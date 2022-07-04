@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: OSS Review Toolkit Server
+Source: https://github.com/oss-review-toolkit/ort-server
+
+# If multiple globs match the same files, the last match wins.
+
+Files: *
+Copyright: The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+License: Apache-2.0

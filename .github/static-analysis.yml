@@ -1,0 +1,26 @@
+name: Static Analysis
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  reuse-tool:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.6
+        cache: pip
+    - name: Check REUSE Compliance
+      run: |
+        pip install --user reuse
+        pip install --user --force-reinstall python-debian==0.1.40 # See https://github.com/fsfe/reuse-tool/issues/427.
+        ~/.local/bin/reuse lint
