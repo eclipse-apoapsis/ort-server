@@ -1,0 +1,11 @@
+.gradle/
+.idea/
+build/
+out/
+/*.iml
+
+# Kotest temporary directory
+.kotest/
+
+# Mac
+.DS_Store
