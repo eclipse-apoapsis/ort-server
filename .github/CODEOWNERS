@@ -1,0 +1,5 @@
+# Note that patterns are not cumulative. So order is important as only the
+# last matching pattern is used, see
+# https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-code-owners#codeowners-syntax
+
+* @oss-review-toolkit/bosch
