@@ -9,6 +9,23 @@ on:
       - main
 
 jobs:
+  detekt-issues:
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 11
+        cache: gradle
+    - name: Check for Detekt Issues
+      uses: burrunan/gradle-cache-action@v1
+      with:
+        arguments: --stacktrace detekt
   reuse-tool:
     runs-on: ubuntu-latest
     steps:
