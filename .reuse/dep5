@@ -7,3 +7,11 @@ Source: https://github.com/oss-review-toolkit/ort-server
 Files: *
 Copyright: The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
+
+Files: gradlew*
+Copyright: 2007-2021 The original author or authors <info@gradle.com>
+License: Apache-2.0
+
+Files: gradle/wrapper/*
+Copyright: 2007-2021 The original author or authors <info@gradle.com>
+License: Apache-2.0
