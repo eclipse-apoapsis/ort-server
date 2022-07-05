@@ -17,13 +17,16 @@
 
 [versions]
 buildConfigPlugin = "3.1.0"
+detektPlugin = "1.20.0"
 kotlinPlugin = "1.7.0"
 
 ktor = "2.0.3"
 logback = "1.2.11"
+ort = "1ca71eb3c2"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektPlugin" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 
@@ -39,3 +42,4 @@ ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", versi
 ktorServerTests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktorTestJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinPlugin" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }

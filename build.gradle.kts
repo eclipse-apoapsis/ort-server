@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     alias(libs.plugins.buildConfig)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin)
 }
 
@@ -34,6 +35,15 @@ allprojects {
 
     repositories {
         mavenCentral()
+
+        exclusiveContent {
+            forRepository {
+                maven("https://jitpack.io")
+            }
+            filter {
+                includeGroup("com.github.oss-review-toolkit.ort")
+            }
+        }
     }
 }
 
@@ -41,7 +51,22 @@ val javaVersion = JavaVersion.current()
 subprojects {
     version = rootProject.version
 
+    apply(plugin = "io.gitlab.arturbosch.detekt")
     apply(plugin = "org.jetbrains.kotlin.jvm")
+
+    dependencies {
+        "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
+
+        "detektPlugins"("com.github.oss-review-toolkit.ort:detekt-rules:${rootProject.libs.versions.ort.get()}")
+    }
+
+    detekt {
+        // Only configure differences to the default.
+        buildUponDefaultConfig = true
+        config = files("$rootDir/.detekt.yml")
+        basePath = rootProject.projectDir.path
+        source.from(fileTree(".") { include("*.gradle.kts") })
+    }
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
