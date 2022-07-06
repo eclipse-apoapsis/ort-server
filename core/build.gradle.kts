@@ -33,17 +33,25 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
 dependencies {
-    implementation(libs.ktorContentNegotiation)
+    implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ktorServerCallLogging)
     implementation(libs.ktorServerCommon)
+    implementation(libs.ktorServerContentNegotiation)
     implementation(libs.ktorServerCore)
     implementation(libs.ktorServerDefaultHeaders)
     implementation(libs.ktorServerNetty)
     implementation(libs.ktorServerStatusPages)
     implementation(libs.logback)
 
-    testImplementation(libs.ktorServerTests)
-    testImplementation(libs.ktorTestJunit)
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotlinTest)
+    testImplementation(libs.ktorServerTestHost)
 }

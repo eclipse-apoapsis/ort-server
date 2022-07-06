@@ -20,6 +20,8 @@ buildConfigPlugin = "3.1.0"
 detektPlugin = "1.20.0"
 kotlinPlugin = "1.7.0"
 
+kotest = "5.3.2"
+kotestAssertionsKtor = "1.0.3"
 ktor = "2.0.3"
 logback = "1.2.11"
 ort = "1ca71eb3c2"
@@ -31,7 +33,11 @@ kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 
 [libraries]
-ktorContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
+kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
+kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinPlugin" }
+ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
 ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref = "ktor" }
@@ -39,7 +45,8 @@ ktorServerCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor"
 ktorServerDefaultHeaders = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
-ktorServerTests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
-ktorTestJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinPlugin" }
+ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
