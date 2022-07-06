@@ -17,19 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.ossreviewtoolkit.server.core.plugins
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 
-import org.ossreviewtoolkit.server.core.plugins.*
-
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
-
-@Suppress("Unused")
-fun Application.module() {
-    configureStatusPages()
-    configureRouting()
-    configureSerialization()
-    configureMonitoring()
-    configureHTTP()
+fun Application.configureStatusPages() {
+    install(StatusPages) {
+        exception<AuthenticationException> { call, _ ->
+            call.respond(HttpStatusCode.Unauthorized)
+        }
+        exception<AuthorizationException> { call, _ ->
+            call.respond(HttpStatusCode.Forbidden)
+        }
+    }
 }

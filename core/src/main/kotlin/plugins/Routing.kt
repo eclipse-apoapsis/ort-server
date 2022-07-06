@@ -19,26 +19,13 @@
 
 package org.ossreviewtoolkit.server.core.plugins
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 import org.ossreviewtoolkit.server.core.api.healthChecks
 
 fun Application.configureRouting() {
-    install(StatusPages) {
-        exception<AuthenticationException> { call, _ ->
-            call.respond(HttpStatusCode.Unauthorized)
-        }
-        exception<AuthorizationException> { call, _ ->
-            call.respond(HttpStatusCode.Forbidden)
-        }
-    }
-
     routing {
         route("api/v1") {
             healthChecks()
