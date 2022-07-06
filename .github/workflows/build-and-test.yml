@@ -27,3 +27,19 @@ jobs:
       uses: burrunan/gradle-cache-action@v1
       with:
         arguments: --stacktrace classes
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 11
+        cache: gradle
+    - name: Run tests
+      uses: burrunan/gradle-cache-action@v1
+      with:
+        arguments: test
