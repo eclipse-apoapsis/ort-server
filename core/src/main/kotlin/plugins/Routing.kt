@@ -21,13 +21,13 @@ package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+
+import org.ossreviewtoolkit.server.core.api.healthChecks
 
 fun Application.configureRouting() {
     install(StatusPages) {
@@ -40,8 +40,8 @@ fun Application.configureRouting() {
     }
 
     routing {
-        get("/") {
-            call.respondText("Hello World!")
+        route("api/v1") {
+            healthChecks()
         }
     }
 }
