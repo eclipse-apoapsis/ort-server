@@ -17,7 +17,28 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+}
 
-include(":core")
-include(":shared")
+kotlin {
+    jvm()
+
+    @Suppress("UnusedPrivateMember")
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+            }
+        }
+    }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+}

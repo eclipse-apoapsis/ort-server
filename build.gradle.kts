@@ -23,7 +23,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinJvm) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.versionCatalogUpdate)
     alias(libs.plugins.versions)
 }
@@ -59,7 +60,6 @@ subprojects {
     version = rootProject.version
 
     apply(plugin = "io.gitlab.arturbosch.detekt")
-    apply(plugin = "org.jetbrains.kotlin.jvm")
 
     dependencies {
         "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")

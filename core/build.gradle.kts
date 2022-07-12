@@ -22,6 +22,7 @@ plugins {
     application
 
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinJvm)
 }
 
 group = "org.ossreviewtoolkit.server.core"
@@ -38,6 +39,8 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":shared"))
+
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ktorServerCallLogging)
