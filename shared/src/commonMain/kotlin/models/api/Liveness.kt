@@ -17,30 +17,11 @@
  * License-Filename: LICENSE
  */
 
-@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
-plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinSerialization)
-}
+package org.ossreviewtoolkit.server.shared.models.api
 
-kotlin {
-    jvm()
+import kotlinx.serialization.Serializable
 
-    @Suppress("UnusedPrivateMember")
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-
-        val commonTest by getting {
-            dependencies {
-            }
-        }
-    }
-}
-
-tasks.named<Test>("jvmTest") {
-    useJUnitPlatform()
-}
+@Serializable
+data class Liveness(
+    val message: String
+)

@@ -29,6 +29,8 @@ import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.testApplication
 
+import org.ossreviewtoolkit.server.shared.models.api.Liveness
+
 class HealthIntegrationTest : WordSpec({
     "/liveness" should {
         "respond with 200 if the server is running" {
