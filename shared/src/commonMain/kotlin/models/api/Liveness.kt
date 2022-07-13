@@ -21,7 +21,11 @@ package org.ossreviewtoolkit.server.shared.models.api
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Response object for the liveness endpoint, used by cloud environment to check if the application is running.
+ */
 @Serializable
 data class Liveness(
+    /** A message describing the state of the application. */
     val message: String
 )
