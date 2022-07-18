@@ -24,6 +24,13 @@ plugins {
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.versionCatalogUpdate)
+    alias(libs.plugins.versions)
+}
+
+versionCatalogUpdate {
+    // Keep the custom sorting / grouping.
+    sortByKey.set(false)
 }
 
 allprojects {
