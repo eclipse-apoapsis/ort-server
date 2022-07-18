@@ -59,6 +59,10 @@ formatting:
   ParameterListWrapping:
     active: false
 
+naming:
+  InvalidPackageDeclaration:
+    active: false
+
 performance:
   SpreadOperator:
     active: false
@@ -80,9 +84,8 @@ style:
     active: true
   WildcardImport:
     excludes: ''
-    excludeImports: '
-      org.ossreviewtoolkit.server.core.plugins.*,
-      '
+    excludeImports:
+      - org.ossreviewtoolkit.server.core.plugins.*
 
 ORT:
   OrtImportOrder:
