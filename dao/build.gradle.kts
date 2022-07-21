@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.exposedJavaTime)
     implementation(libs.exposedJdbc)
     implementation(libs.flywayCore)
+    implementation(libs.hikari)
     implementation(libs.postgres)
     implementation(libs.logback)
 }
