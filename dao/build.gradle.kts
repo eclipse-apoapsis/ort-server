@@ -17,8 +17,23 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+group = "org.ossreviewtoolkit.server.dao"
+version = "0.0.1"
 
-include(":core")
-include(":dao")
-include(":shared")
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    alias(libs.plugins.kotlinJvm)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+dependencies {
+    implementation(libs.exposedCore)
+    implementation(libs.exposedDao)
+    implementation(libs.exposedJavaTime)
+    implementation(libs.exposedJdbc)
+    implementation(libs.postgres)
+    implementation(libs.logback)
+}

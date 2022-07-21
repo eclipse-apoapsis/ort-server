@@ -17,8 +17,12 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package org.ossreviewtoolkit.server.dao
 
-include(":core")
-include(":dao")
-include(":shared")
+import javax.sql.DataSource
+
+import org.jetbrains.exposed.sql.Database
+
+fun DataSource.connect() {
+    Database.connect(this)
+}

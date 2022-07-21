@@ -17,8 +17,13 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package org.ossreviewtoolkit.server.dao.entities
 
-include(":core")
-include(":dao")
-include(":shared")
+import org.jetbrains.exposed.dao.id.IntIdTable
+
+/**
+ * A table to represent license strings.
+ */
+object LicenseStrings : IntIdTable("LICENSE_STRING") {
+    val name = varchar("name", 256)
+}
