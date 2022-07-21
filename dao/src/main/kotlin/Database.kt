@@ -21,8 +21,29 @@ package org.ossreviewtoolkit.server.dao
 
 import javax.sql.DataSource
 
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.configuration.FluentConfiguration
+
 import org.jetbrains.exposed.sql.Database
+
+private const val DEFAULT_SCHEMA = "ort_server"
 
 fun DataSource.connect() {
     Database.connect(this)
+    migrate(this)
 }
+
+fun migrate(dataSource: DataSource) {
+    Flyway(getFlywayConfig(dataSource, DEFAULT_SCHEMA)).migrate()
+}
+
+fun clean(dataSource: DataSource) {
+    Flyway(getFlywayConfig(dataSource, DEFAULT_SCHEMA)).clean()
+}
+
+private fun getFlywayConfig(dataSource: DataSource, schema: String) = FluentConfiguration()
+    .dataSource(dataSource)
+    .schemas(schema)
+    .cleanDisabled(false)
+    .createSchemas(true)
+    .baselineOnMigrate(true)

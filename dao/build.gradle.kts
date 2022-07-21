@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.exposedDao)
     implementation(libs.exposedJavaTime)
     implementation(libs.exposedJdbc)
+    implementation(libs.flywayCore)
     implementation(libs.postgres)
     implementation(libs.logback)
 }
