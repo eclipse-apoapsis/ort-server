@@ -58,6 +58,12 @@ entity ORT_ISSUE {
 * severity: INT
 }
 
+entity LICENSE_SPDX {
+* id: SERIAL
+--
+* expression: TEXT
+}
+
 entity ORT_RUN {
 * id: SERIAL
 --

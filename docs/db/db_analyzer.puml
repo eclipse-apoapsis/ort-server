@@ -13,13 +13,12 @@ entity LICENSE_STRING {
 
 entity LICENSE_SPDX {
 * id: SERIAL
---
-* expression: TEXT
+<<from result_shared>>
 }
 
 entity VCS_REPOSITORY {
-<<from repository>>
 * id: SERIAL
+<<from result_shared>>
 }
 
 entity PROJECT_DECLARED_LICENSE {
@@ -137,7 +136,7 @@ isModified: BOOLEAN
 }
 
 entity ENVIRONMENT {
-<<from repository>>
+<<from result_shared>>
 * id: SERIAL
 }
 
@@ -186,7 +185,7 @@ entity CURATED_PACKAGE {
 }
 
 entity ORT_ISSUE {
-<<from repository>>
+<<from result_shared>>
 *id: SERIAL
 }
 

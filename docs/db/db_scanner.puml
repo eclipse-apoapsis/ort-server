@@ -1,11 +1,11 @@
 @startuml
 entity LICENSE_SPDX {
-<<from analyzer>>
+<<from result_shared>>
 * id: SERIAL
 }
 
 entity ORT_ISSUE {
-<<from repository>>
+<<from result_shared>>
 * id: SERIAL
 }
 
