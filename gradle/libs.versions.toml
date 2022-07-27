@@ -28,6 +28,7 @@ flyway = "9.0.1"
 hikari = "5.0.1"
 kotest = "5.3.2"
 kotestAssertionsKtor = "1.0.3"
+koin = "3.2.0"
 kotestExtensionTestContainers = "1.3.3"
 ktor = "2.0.3"
 logback = "1.2.11"
@@ -51,6 +52,8 @@ exposedJavaTime = { module = "org.jetbrains.exposed:exposed-java-time", version.
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 flywayCore = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koinTest = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
@@ -61,7 +64,7 @@ ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiati
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
 ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref = "ktor" }
-ktorServerCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktorServerDefaultHeaders = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
