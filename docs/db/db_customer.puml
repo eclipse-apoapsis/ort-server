@@ -1,0 +1,26 @@
+@startuml
+
+entity ORGANIZATION {
+<<Keycloak::Group>>
+--
+* name: VARCHAR(256)
+* description: TEXT
+}
+
+entity PRODUCT {
+<<Keycloak::Group>>
+--
+* name: VARCHAR(256)
+* description: TEXT
+}
+
+entity USER {
+<<Keycloak::User>>
+--
+username: VARCHAR(32)
+email: VARCHAR(256)
+firstName: VARCHAR(256)
+lastName: VARCHAR(256)
+}
+
+@enduml

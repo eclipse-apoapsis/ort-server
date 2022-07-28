@@ -81,3 +81,37 @@ The last part of an ORT result to be stored in the database is the evaluator res
 ----
 include::db_evaluator.puml[]
 ----
+
+=== Customer model
+This part of the data model deals with information about customers and their repositories they want to analyze with ORT. This information is organized in a hierarchical model:
+
+On the highest level, there are _organizations_. Organizations develop _products_. Products in turn can have multiple _repositories_ containing the actual source code to be analyzed. On each level, users with different roles can be assigned.
+
+==== Association with Keycloak
+There is obviously a strong connection between the entities in this part of the model and the role and access management to be implemented in the server. For each level of the hierarchy, special roles must exist:
+
+* An admin of an organization can
+** add or remove users to or from this organization
+** assign roles to users in this organization
+** create, update, or delete products in this organization
+** create, update, or delete repositories in the products belonging to this organization
+* An admin of a product can
+** add or remove users to or from this product
+** assign repository roles to users in this product
+** create, update, or delete repositories in the products belonging to this product
+* An admin of a repository can
+** trigger an analysis run on a repository
+** assign repository roles to users in this repository
+* A user assigned to a repository can
+** read the analysis results generated for this repository
+
+For each request sent by a user, the server has to check whether the user has corresponding access rights. The most convenient way to do this is if the access token provided in the request already contains sufficient information required for this check: the organizations, products, and repositories assigned to the user and all the roles he or she is given. So, this implies that this information is available in Keycloak.
+
+The data structures supported by Keycloak are actually capable to represent the customer data model: Organizations and products can be mapped to groups (which can be hierarchical), and access rights on repositories can be represented by roles (this approach is currently used for the mini server). The predefined properties of these structures in Keycloak are quite limited; it is, however, possible to assign arbitrary key-value pairs - so called _attributes_ to them. So it would be an option to store this data directly in Keycloak. Updates can be done via the Admin REST API. If these API calls are hidden behind a repository implementation, for the client code it is fully transparent that the data comes from a different source.
+
+Based on these thoughts, a diagram for the entities in this area could look as follows:
+
+[plantuml, customer, svg]
+----
+include::db_customer.puml[]
+----
