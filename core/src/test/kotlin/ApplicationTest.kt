@@ -17,21 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
-
 import io.ktor.server.application.Application
 
 import org.ossreviewtoolkit.server.core.plugins.*
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
+/**
+ * A special Application configuration for tests without database.
+ */
 @Suppress("Unused")
-fun Application.module() {
+fun Application.moduleNoDB() {
     configureKoin()
     configureStatusPages()
     configureRouting()
     configureSerialization()
     configureMonitoring()
     configureHTTP()
-    configureDatabase()
 }

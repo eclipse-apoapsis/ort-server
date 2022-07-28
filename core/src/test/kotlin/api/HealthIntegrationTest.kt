@@ -27,6 +27,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.shared.models.api.Liveness
@@ -35,6 +36,10 @@ class HealthIntegrationTest : WordSpec({
     "/liveness" should {
         "respond with 200 if the server is running" {
             testApplication {
+                environment {
+                    config = ApplicationConfig("application-nodb.conf")
+                }
+
                 val client = createClient {
                     install(ContentNegotiation) {
                         json()

@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.dao
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+
 import javax.sql.DataSource
 
 import org.flywaydb.core.Flyway
@@ -47,3 +50,37 @@ private fun getFlywayConfig(dataSource: DataSource, schema: String) = FluentConf
     .cleanDisabled(false)
     .createSchemas(true)
     .baselineOnMigrate(true)
+
+fun createDataSource(config: DatabaseConfig): DataSource {
+    val dataSourceConfig = HikariConfig().apply {
+        jdbcUrl = config.jdbcUrl
+        schema = config.schema
+        username = config.username
+        password = config.password
+        maximumPoolSize = config.maximumPoolSize
+        driverClassName = "org.postgresql.Driver"
+
+        addDataSourceProperty("ApplicationName", "ort_server")
+        addDataSourceProperty("sslmode", config.sslMode)
+        config.sslCert?.let { addDataSourceProperty("sslcert", it) }
+        config.sslKey?.let { addDataSourceProperty("sslkey", it) }
+        config.sslRootCert?.let { addDataSourceProperty("sslrootcert", it) }
+    }
+
+    dataSourceConfig.validate()
+
+    return HikariDataSource(dataSourceConfig)
+}
+
+data class DatabaseConfig(
+    val jdbcUrl: String,
+    val schema: String,
+    val username: String,
+    val password: String,
+    val maximumPoolSize: Int,
+    val driverClassName: String,
+    val sslMode: String,
+    val sslCert: String?,
+    val sslKey: String?,
+    val sslRootCert: String?,
+)

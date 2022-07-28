@@ -17,21 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.ossreviewtoolkit.server.core.di
 
-import io.ktor.server.application.Application
+import com.typesafe.config.ConfigFactory
 
-import org.ossreviewtoolkit.server.core.plugins.*
+import io.ktor.server.config.HoconApplicationConfig
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+import org.koin.dsl.module
 
-@Suppress("Unused")
-fun Application.module() {
-    configureKoin()
-    configureStatusPages()
-    configureRouting()
-    configureSerialization()
-    configureMonitoring()
-    configureHTTP()
-    configureDatabase()
+import org.ossreviewtoolkit.server.dao.entities.LicenseStrings
+
+val ortServerModule = module {
+    single { LicenseStrings }
+
+    single { HoconApplicationConfig((ConfigFactory.load())) }
 }

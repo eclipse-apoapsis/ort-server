@@ -39,9 +39,11 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":dao"))
     implementation(project(":shared"))
 
     implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.koinKtor)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ktorServerCallLogging)
     implementation(libs.ktorServerCommon)

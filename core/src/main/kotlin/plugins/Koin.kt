@@ -17,21 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 
-import org.ossreviewtoolkit.server.core.plugins.*
+import org.koin.ktor.plugin.Koin
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+import org.ossreviewtoolkit.server.core.di.ortServerModule
 
-@Suppress("Unused")
-fun Application.module() {
-    configureKoin()
-    configureStatusPages()
-    configureRouting()
-    configureSerialization()
-    configureMonitoring()
-    configureHTTP()
-    configureDatabase()
+fun Application.configureKoin() {
+    install(Koin) {
+        modules(
+            ortServerModule
+        )
+    }
 }
