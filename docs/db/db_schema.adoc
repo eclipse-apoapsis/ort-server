@@ -1,0 +1,30 @@
+= Database schema (high-level design)
+
+This document introduces the database schema of the ORT server. Since the data to be stored is rather complex, the whole schema is broken down into multiple logical areas. For each area, there are one or more diagrams showing the entities and their relations.
+
+Note that the diagrams do not model every single details. The intended goal is rather to have an overview over the different entities, their most important attributes, and how they are connected.
+
+== General design
+This section discusses some general design topics and how they are dealt with in the ORT server schema.
+
+=== Synthetic primary keys
+The debate whether to prefer natural or synthetic (artificial/surrogate) primary keys is still ongoing. See for instance https://sqlstudies.com/2016/08/29/natural-vs-artificial-primary-keys/ or https://medium.com/swlh/relational-databases-know-your-primary-keys-3897befe9d2. This design uses synthetic keys exclusively for the following reasons:
+
+* For many entities - especially in the ORT result model - there are no obvious natural keys.
+* There are many relations between tables. Basing these on synthetic keys is easier and more efficient than using natural keys for this purpose.
+
+=== "Shared" versus "redundant" tables
+In typical relational database modeling, a goal is to be free of redundancy as far as possible. This means that tables define _UNIQUE_ constraints on identifying properties, and a specific instance of an entity exists only once. This has obvious advantages. For instance, the size of the database is reduced as it is free of redundancy, or statistics about entities are easier to calculate because no de-duplication has to be implemented. Therefore, this approach is certainly preferred. In some constellations, however, there are drawbacks:
+
+* Adding new entities becomes harder. It has to be checked first whether a specific entity already exists in the table; if so, the ID of this entity has to be retrieved, otherwise, a new row is added to the table. Postgres offers an https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-upsert/[INSERT ON CONFLICT] or _UPSERT_ statement for this purpose. However, its usage is not trivial.
+* For entities with many attributes it is not always easy to find out whether a specific instance already exists. This is especially true for `Package` and `Project`: For these entities, identity is usually controlled by the components of an ORT `Identifier` (type, namespace, name, and version). However, for two entities with the same identifier, it cannot be guaranteed that all other properties match. For instance, after adding new curations, metadata of a package may change compared to an instance from an older analysis run. Detecting such cases and preventing redundancy correctly would mean a high effort.
+
+So, choosing one of these approaches exclusively, seems to be too strict; a choice can be made based on the entity type. For entities with a limited number of attributes (which mainly remain static over time), instances should be de-duplicated and shared. Examples for this category are (source code) repositories, SPDX license expressions, or author names. In other cases, as for the mentioned projects and packages - but also for issues, vulnerabilities, or environment information -, new instances can be created for every analysis run.
+
+=== JSON columns
+The database schema defined here tries to be rather normalized. For some cases, an exception was made though, and ORT structures are stored in their serialized form in JSON columns. This is done mainly for configuration information for the different ORT components, which has the following properties:
+
+* The structures are quite complex consisting of multiple subcomponents including arbitrary key-value pairs.
+* The data is mainly stored for reference purpose. It is not further evaluated during an ORT analysis run.
+
+So, there is no actual benefit in taking the effort to create a relational model for these structures.
