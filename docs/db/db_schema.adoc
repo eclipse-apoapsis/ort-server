@@ -28,3 +28,56 @@ The database schema defined here tries to be rather normalized. For some cases, 
 * The data is mainly stored for reference purpose. It is not further evaluated during an ORT analysis run.
 
 So, there is no actual benefit in taking the effort to create a relational model for these structures.
+
+== Data model
+This section discusses the single areas of the data model of the ORT server. Each area has its own subsection which - depending on its complexity - may be further broken down.
+
+=== ORT result
+In the CLI version of ORT, YAML files are used to store the results of the single processing steps. This section describes a number of entities that are capable to store equivalent information. ORT result files have a hierarchical structure, sometimes containing lists of objects within other lists. This design does not fit that well to relational database structures; therefore, numerous foreign-key relations and association tables are required to store and correctly link the corresponding data. This makes this part of the database schema quite complicated. To keep the size of the diagrams manageable, multiple diagrams are created that focus on the single substructures (such as analyzer, scanner, advisor) existing in an ORT result file.
+
+==== Global and shared entities
+This diagram contains the entities that do not or not exclusively belong to a specific ORT component.
+
+[plantuml, result_shared, svg]
+----
+include::db_result_shared.puml[]
+----
+
+`ORT_RUN` represents the result of an ORT analysis as a whole and thus corresponds to a single result file. It can be seen as the entrypoint into the model: starting from here, all information related to an analysis of a repository can be obtained.
+
+The entities `ORT_ISSUE`, `LICENSE_SPDX`, `ENVIRONENT`, and `VCS_REPOSITORY` are used by multiple other components.
+
+==== Analyzer
+The analyzer section of an ORT result lists the projects that have been analyzed (i.e. the actual source code) and the external packages they depend on. This includes the whole dependency graph.
+
+[plantuml, analyzer, svg]
+----
+include::db_analyzer.puml[]
+----
+
+This part of the data model is by far the most complex one. Entry point is the `ANALYZER_RESULT` entity, which combines the properties of the ORT model classes `AnalyzerRun` and `AnalyzerResult`. It is associated with the tables for projects and curated packages. The dependency graph is modelled in a way similar to the structure in an ORT result file; as lists of nodes and edges, and entry points into the graph (for the direct dependencies of project scopes). In contrast to ORT result files, no numeric indices are used here, but references between entities are expressed via foreign key relations. (Note that since the dependency graph can contain both packages and projects, these relations can have both tables as targets.)
+
+==== Advisor
+The advisor part adds information about vulnerabilities and defects to an ORT result.
+
+[plantuml, advisor, svg]
+----
+include::db_advisor.puml[]
+----
+
+==== Scanner
+This part of the model defines license and copyright findings provided by external scanner tools. Corresponding to the state of the ORT data model, there is no dedicated modelling for snipped scanners; this may be extended in the future.
+
+[plantuml, scanner, svg]
+----
+include::db_scanner.puml[]
+----
+
+==== Evaluator
+The last part of an ORT result to be stored in the database is the evaluator result. Compared to the other parts, this is a quite simple model, since it only adds a set of rule violations.
+
+
+[plantuml, evaluator, svg]
+----
+include::db_evaluator.puml[]
+----
