@@ -115,3 +115,37 @@ Based on these thoughts, a diagram for the entities in this area could look as f
 ----
 include::db_customer.puml[]
 ----
+
+==== Credentials
+One reoccurring source of problems for ORT analysis runs is the management of credentials. During an analysis, multiple external systems need to be accessed, e.g. to clone source code or to fetch artifacts, which all require their specific authentication. Often, development teams use their own methods to deal with credentials that require a special setup of the development environment, such as setting environment variables or using local configuration files. It is obvious that project-specific conventions like that can be a major challenge for a generic service like ORT. So it is no wonder that many support requests are related to the topic of credential management.
+
+Traditionally, credentials have been managed centrally, but this approach does not scale and has a number of problems:
+
+* Every time a customer needs access to a new system, the corresponding credentials have to be added by 1st or 2nd-level support.
+* There can be (unresolvable) conflicts if different customers require different credentials for accessing the same systems.
+* From a security point of view it is not ideal if always all credentials are available in the build environment, although most of them are not required for a specific run.
+
+To address these problems, an ORT server must provide sufficient flexibility that allows project teams to define their specific build environment in regard to the credentials in use. The responsibility to define correct credentials must be shifted to the project teams, making the life of support easier. This implies that customers can manage their own credentials and have the ability to configure their usage when analysing a specific repository. The basic idea is as follows:
+
+The ORT server stores and allows the management of credentials. There can still be central credentials managed by administrators (for well-known systems frequently used by multiple customers), but each customer can define their own credentials and assign them to their organizational structures (organizations, products, repositories).
+
+Having customer-specific credentials is only halfway to flexible build environments. There needs to be a way to declare how these credentials are made available during an ORT analysis run. For instance, a repository built with Maven may require a specific credential to be included as a server password in a `settings.xml` file. If NPM is used as package manager, special entries in the `.npmrc` file may be required. Other teams may have the convention that specific environment variables are referenced from their build definition files. This basically means, that there must be a rather flexible mechanism to map credentials to specific build configuration options.
+
+NOTE: This flexibility comes of course with a price. It won't be trivial for customers to get their definitions right. Probably some UI and tooling support will be needed here.
+
+Based on this discussion, credentials could be stored in database tables as shown in the following ER diagram:
+
+[plantuml, credentials, svg]
+----
+include::db_credentials.puml[]
+----
+
+The main entry point into these structures is the `CREDENTIAL` entity. It represents a single secret or piece of sensitive information, such as a username or a password. It is given a human-readable name and a description. The actual secret is stored in the `value` property. (To improve security, it may be required to manually encrypt this property.) The entity can be assigned to customer structures on different levels: to all the repositories and products of a customer organization, to all the repositories of a customer product, or only to a specific repository. This association can be expressed by the different nullable foreign key attributes. By leaving all keys to *null*, the credential becomes a central one (available to all customers).
+
+The remaining entities allow mapping a specific credential to different build configurations. They support the same set of foreign keys, so that the mapping can again be done on different levels.
+
+* `MAVEN_CREDENTIAL_MAPPING` specifies that a credential should be included (either as username or password) in the `settings.xml` file under a specific server alias name.
+* `NPM_REGISTRY` and `NPMRC_CREDENTIAL_MAPPING` control the content of the `.npmrc` configuration file. Using these entities, customers can define their own scoped NPM registries and the entries to be added to the `.npmrc` file for them.
+* `ENV_CREDENTIAL_MAPPING` states that the value of a credential should be available as an environment variable during the execution of an ORT analysis run under a specific name.
+
+If required, more structures could be added to support different types of package manager-specific build configuration files. Before running an ORT step, the server would read the mapping information for the current repository and generate the build configuration accordingly.
