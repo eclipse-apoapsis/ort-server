@@ -33,6 +33,8 @@ import org.ossreviewtoolkit.server.dao.migrate
 
 import org.testcontainers.containers.PostgreSQLContainer
 
+private const val TEST_DB_SCHEMA = "ort_server_test"
+
 /**
  * Base class for integration tests using the Database within TestContainers. The TestApplication needs to be configured
  * to use the provided [dataSource] using `configureDatabase(dataSource)`.
@@ -46,17 +48,17 @@ open class DatabaseTest : FunSpec() {
         install(JdbcTestContainerExtension(postgres)) {
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5
-            schema = "ort_server"
+            schema = TEST_DB_SCHEMA
         }
     }
 
     override suspend fun beforeSpec(spec: Spec) {
         Database.connect(dataSource)
-        migrate(dataSource)
+        migrate(dataSource, TEST_DB_SCHEMA)
     }
 
     override suspend fun afterTest(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
-        clean(dataSource)
+        clean(dataSource, TEST_DB_SCHEMA)
     }
 }
