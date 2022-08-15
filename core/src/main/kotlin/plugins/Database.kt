@@ -51,7 +51,7 @@ private fun Application.createDataSource(): DataSource {
         sslCert = config.propertyOrNull("database.sslcert")?.getString(),
         sslKey = config.propertyOrNull("database.sslkey")?.getString(),
         sslRootCert = config.propertyOrNull("database.sslrootcert")?.getString()
-
     )
+
     return createDataSource(dataSourceConfig)
 }
