@@ -31,7 +31,9 @@ import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 
 fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
-    dataSource.connect()
+    val config: HoconApplicationConfig by inject()
+
+    dataSource.connect(config.property("database.schema").getString())
 }
 
 private fun Application.createDataSource(): DataSource {

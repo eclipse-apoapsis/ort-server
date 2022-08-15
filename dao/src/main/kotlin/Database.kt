@@ -29,19 +29,20 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.sql.Database
 
-private const val DEFAULT_SCHEMA = "ort_server"
-
-fun DataSource.connect() {
+/**
+ * Connect and migrate the database. If required, create the [schema].
+ */
+fun DataSource.connect(schema: String) {
     Database.connect(this)
-    migrate(this)
+    migrate(this, schema)
 }
 
-fun migrate(dataSource: DataSource) {
-    Flyway(getFlywayConfig(dataSource, DEFAULT_SCHEMA)).migrate()
+fun migrate(dataSource: DataSource, schema: String) {
+    Flyway(getFlywayConfig(dataSource, schema)).migrate()
 }
 
-fun clean(dataSource: DataSource) {
-    Flyway(getFlywayConfig(dataSource, DEFAULT_SCHEMA)).clean()
+fun clean(dataSource: DataSource, schema: String) {
+    Flyway(getFlywayConfig(dataSource, schema)).clean()
 }
 
 private fun getFlywayConfig(dataSource: DataSource, schema: String) = FluentConfiguration()
