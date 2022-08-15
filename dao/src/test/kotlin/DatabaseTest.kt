@@ -40,7 +40,7 @@ private const val TEST_DB_SCHEMA = "ort_server_test"
  * to use the provided [dataSource] using `configureDatabase(dataSource)`.
  */
 open class DatabaseTest : FunSpec() {
-    private val postgres = PostgreSQLContainer<Nothing>("postgres:11").apply {
+    private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
     }
 
