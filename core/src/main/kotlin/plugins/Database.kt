@@ -41,6 +41,7 @@ private fun Application.createDataSource(): DataSource {
 
     val dataSourceConfig = DatabaseConfig(
         jdbcUrl = config.property("database.url").getString(),
+        name = config.property("database.name").getString(),
         schema = config.property("database.schema").getString(),
         username = config.property("database.username").getString(),
         password = config.property("database.password").getString(),
