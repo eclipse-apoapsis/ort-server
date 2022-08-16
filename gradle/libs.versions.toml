@@ -34,7 +34,7 @@ ktor = "2.0.3"
 logback = "1.2.11"
 ort = "1ca71eb3c2"
 postgres = "42.4.0"
-testContainers = "1.17.2"
+testContainers = "1.17.3"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
