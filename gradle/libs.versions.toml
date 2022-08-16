@@ -24,7 +24,7 @@ versionCatalogUpdatePlugin = "0.5.1"
 versionsPlugin = "0.42.0"
 
 exposed = "0.39.2"
-flyway = "9.0.1"
+flyway = "9.1.4"
 hikari = "5.0.1"
 kotest = "5.3.2"
 kotestAssertionsKtor = "1.0.3"
