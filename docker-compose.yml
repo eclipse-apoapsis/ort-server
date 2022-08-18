@@ -25,6 +25,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     ports:
     - "8080:8080"
     environment:
@@ -53,6 +55,35 @@ services:
     - "5433:5432"
     volumes:
     - db:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:19.0.1
+    restart: always
+    entrypoint: /opt/keycloak_init/init-keycloak.sh
+    command:
+    - "start-dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres:5432/ort_server"
+      KC_HEALTH_ENABLED: true
+    ports:
+    - "8081:8080"
+    volumes:
+    - type: bind
+      source: ./scripts/docker/keycloak/
+      target: /opt/keycloak_init/
 
 volumes:
   db:
