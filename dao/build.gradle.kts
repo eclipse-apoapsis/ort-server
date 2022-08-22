@@ -30,6 +30,8 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":shared"))
+
     implementation(libs.exposedCore)
     implementation(libs.exposedDao)
     implementation(libs.exposedJavaTime)

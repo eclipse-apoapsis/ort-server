@@ -17,20 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.dao
 
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
-
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
-    }
+/**
+ * Enum for PostgreSQL exception states, see https://www.postgresql.org/docs/10/errcodes-appendix.html.
+ */
+enum class PostgresErrorCodes(val value: String) {
+    UNIQUE_CONSTRAINT_VIOLATION("23505")
 }
+
+class UniqueConstraintException(msg: String, cause: Throwable) : RuntimeException(msg, cause)

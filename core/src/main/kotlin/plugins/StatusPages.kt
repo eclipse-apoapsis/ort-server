@@ -27,6 +27,8 @@ import io.ktor.server.response.respond
 
 import org.ossreviewtoolkit.server.core.api.AuthenticationException
 import org.ossreviewtoolkit.server.core.api.AuthorizationException
+import org.ossreviewtoolkit.server.dao.UniqueConstraintException
+import org.ossreviewtoolkit.server.shared.models.api.common.ErrorResponse
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
@@ -35,6 +37,12 @@ fun Application.configureStatusPages() {
         }
         exception<AuthorizationException> { call, _ ->
             call.respond(HttpStatusCode.Forbidden)
+        }
+        exception<UniqueConstraintException> { call, e ->
+            call.respond(
+                HttpStatusCode.Conflict,
+                ErrorResponse("The entity you tried to create already exists.", e.message)
+            )
         }
     }
 }

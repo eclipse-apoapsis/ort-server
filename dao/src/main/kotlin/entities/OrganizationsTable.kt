@@ -17,20 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.dao.entities
 
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
+object OrganizationsTable : LongIdTable("organizations") {
+    val name = text("name")
+    val description = text("description")
+}
 
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
-    }
+class OrganizationDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<OrganizationDao>(OrganizationsTable)
+
+    var name by OrganizationsTable.name
+    var description by OrganizationsTable.description
+
+    fun mapToEntity() = OrganizationEntity(id.value, name, description)
 }

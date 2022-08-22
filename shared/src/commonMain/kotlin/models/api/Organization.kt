@@ -17,20 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.shared.models.api
 
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
+/**
+ * Response object for the organization endpoint. Used to group multiple users and projects into organizations.
+ */
+@Serializable
+data class Organization(
+    val id: Long? = null,
 
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
-    }
-}
+    /** The unique name of the organization. */
+    val name: String,
+
+    /** The optional description of the organization. */
+    val description: String = ""
+)

@@ -17,20 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.shared.models.api.common
 
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
-
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
-    }
-}
+/**
+ * A common model, used for failed requests.
+ */
+@Serializable
+data class ErrorResponse(
+    val message: String,
+    val cause: String?
+)

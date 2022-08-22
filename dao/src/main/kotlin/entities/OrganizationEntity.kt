@@ -17,20 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.dao.entities
 
-import io.ktor.server.application.Application
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import org.ossreviewtoolkit.server.shared.models.api.Organization
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
-
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
-    }
+data class OrganizationEntity(
+    val id: Long,
+    val name: String,
+    val description: String = ""
+) {
+    fun mapToApiModel() = Organization(id, name, description)
 }

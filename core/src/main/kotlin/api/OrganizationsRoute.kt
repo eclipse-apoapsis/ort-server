@@ -17,20 +17,26 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.core.api
 
-import io.ktor.server.application.Application
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
+import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
+import org.ossreviewtoolkit.server.shared.models.api.Organization
 
-fun Application.configureRouting() {
-    routing {
-        route("api/v1") {
-            healthChecks()
-            organizations()
-        }
+fun Route.organizations() = route("organizations") {
+    post {
+        val organization = call.receive<Organization>()
+
+        val createdOrganization =
+            OrganizationsRepository.createOrganization(organization.name, organization.description)
+
+        call.respond(HttpStatusCode.Created, createdOrganization.mapToApiModel())
     }
 }
