@@ -24,10 +24,14 @@ import com.zaxxer.hikari.HikariDataSource
 
 import javax.sql.DataSource
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
  * Connect and migrate the database.
@@ -85,3 +89,11 @@ data class DatabaseConfig(
     val sslKey: String?,
     val sslRootCert: String?,
 )
+
+/**
+ * Execute the [block] in a database [transaction], dispatched to [Dispatchers.IO].
+ */
+suspend fun <T> dbQuery(block: () -> T): T =
+    withContext(Dispatchers.IO) {
+        transaction { block() }
+    }
