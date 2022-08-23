@@ -25,7 +25,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
-import org.ossreviewtoolkit.server.dao.entities.LicenseStrings
+import org.ossreviewtoolkit.server.dao.entities.LicenseStringsTable
 
 import org.slf4j.LoggerFactory
 
@@ -38,12 +38,12 @@ class SimpleExposedTest : DatabaseTest() {
     init {
         test("Exposed should interact with a PostgreSQL database") {
             transaction {
-                val mitId = LicenseStrings.insert {
+                val mitId = LicenseStringsTable.insert {
                     it[name] = "MIT"
-                } get LicenseStrings.id
+                } get LicenseStringsTable.id
                 log.info("License String has been created with ID '$mitId'.")
 
-                val licenseStrings = LicenseStrings.selectAll()
+                val licenseStrings = LicenseStringsTable.selectAll()
                 licenseStrings shouldHaveSize 1
                 val licenseString = licenseStrings.single()
 

@@ -24,6 +24,6 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 /**
  * A table to represent license strings.
  */
-object LicenseStrings : IntIdTable("LICENSE_STRING") {
+object LicenseStringsTable : IntIdTable("LICENSE_STRING") {
     val name = text("name")
 }
