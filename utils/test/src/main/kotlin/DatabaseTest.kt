@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.test
+package org.ossreviewtoolkit.server.utils.test
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
@@ -26,10 +26,10 @@ import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.testcontainers.JdbcTestContainerExtension
 
-import org.jetbrains.exposed.sql.Database
+import javax.sql.DataSource
 
-import org.ossreviewtoolkit.server.dao.clean
-import org.ossreviewtoolkit.server.dao.migrate
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.testcontainers.containers.PostgreSQLContainer
 
@@ -62,3 +62,18 @@ open class DatabaseTest : FunSpec() {
         clean(dataSource)
     }
 }
+
+private fun migrate(dataSource: DataSource) {
+    Flyway(getTestFlywayConfig(dataSource)).migrate()
+}
+
+private fun clean(dataSource: DataSource) {
+    Flyway(getTestFlywayConfig(dataSource)).clean()
+}
+
+private fun getTestFlywayConfig(dataSource: DataSource) = FluentConfiguration()
+    .dataSource(dataSource)
+    .schemas(TEST_DB_SCHEMA)
+    .cleanDisabled(false)
+    .createSchemas(true)
+    .baselineOnMigrate(true)

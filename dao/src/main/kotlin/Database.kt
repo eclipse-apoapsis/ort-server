@@ -45,10 +45,6 @@ fun migrate(dataSource: DataSource) {
     Flyway(getFlywayConfig(dataSource)).migrate()
 }
 
-fun clean(dataSource: DataSource) {
-    Flyway(getFlywayConfig(dataSource)).clean()
-}
-
 private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()
     .dataSource(dataSource)
     .cleanDisabled(false)

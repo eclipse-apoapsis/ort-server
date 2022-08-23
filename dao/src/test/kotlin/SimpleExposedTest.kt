@@ -26,6 +26,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.server.dao.entities.LicenseStringsTable
+import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 import org.slf4j.LoggerFactory
 
