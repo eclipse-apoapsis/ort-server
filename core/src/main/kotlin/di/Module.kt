@@ -25,10 +25,6 @@ import io.ktor.server.config.HoconApplicationConfig
 
 import org.koin.dsl.module
 
-import org.ossreviewtoolkit.server.dao.entities.LicenseStringsTable
-
 val ortServerModule = module {
-    single { LicenseStringsTable }
-
     single { HoconApplicationConfig((ConfigFactory.load())) }
 }
