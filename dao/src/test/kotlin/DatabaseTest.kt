@@ -54,11 +54,11 @@ open class DatabaseTest : FunSpec() {
 
     override suspend fun beforeSpec(spec: Spec) {
         Database.connect(dataSource)
-        migrate(dataSource, TEST_DB_SCHEMA)
+        migrate(dataSource)
     }
 
     override suspend fun afterTest(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
-        clean(dataSource, TEST_DB_SCHEMA)
+        clean(dataSource)
     }
 }

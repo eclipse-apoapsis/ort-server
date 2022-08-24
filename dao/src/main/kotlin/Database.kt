@@ -30,24 +30,23 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.jetbrains.exposed.sql.Database
 
 /**
- * Connect and migrate the database. If required, create the [schema].
+ * Connect and migrate the database.
  */
-fun DataSource.connect(schema: String) {
+fun DataSource.connect() {
     Database.connect(this)
-    migrate(this, schema)
+    migrate(this)
 }
 
-fun migrate(dataSource: DataSource, schema: String) {
-    Flyway(getFlywayConfig(dataSource, schema)).migrate()
+fun migrate(dataSource: DataSource) {
+    Flyway(getFlywayConfig(dataSource)).migrate()
 }
 
-fun clean(dataSource: DataSource, schema: String) {
-    Flyway(getFlywayConfig(dataSource, schema)).clean()
+fun clean(dataSource: DataSource) {
+    Flyway(getFlywayConfig(dataSource)).clean()
 }
 
-private fun getFlywayConfig(dataSource: DataSource, schema: String) = FluentConfiguration()
+private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()
     .dataSource(dataSource)
-    .schemas(schema)
     .cleanDisabled(false)
     .createSchemas(true)
     .baselineOnMigrate(true)
