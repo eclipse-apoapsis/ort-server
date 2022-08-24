@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.utils.test
 
 import io.kotest.core.extensions.install
-import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
@@ -52,19 +51,10 @@ open class DatabaseTest : FunSpec() {
         }
     }
 
-    override suspend fun beforeSpec(spec: Spec) {
-        Database.connect(dataSource)
-        migrate(dataSource)
-    }
-
     override suspend fun afterTest(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
         clean(dataSource)
     }
-}
-
-private fun migrate(dataSource: DataSource) {
-    Flyway(getTestFlywayConfig(dataSource)).migrate()
 }
 
 private fun clean(dataSource: DataSource) {
