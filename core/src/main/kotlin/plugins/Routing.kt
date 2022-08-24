@@ -32,7 +32,3 @@ fun Application.configureRouting() {
         }
     }
 }
-
-class AuthenticationException : RuntimeException()
-
-class AuthorizationException : RuntimeException()

@@ -17,24 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.ossreviewtoolkit.server.core.api
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
+/** Used when the user does not have a valid authentication. */
+class AuthenticationException : RuntimeException()
 
-import org.ossreviewtoolkit.server.core.api.AuthenticationException
-import org.ossreviewtoolkit.server.core.api.AuthorizationException
-
-fun Application.configureStatusPages() {
-    install(StatusPages) {
-        exception<AuthenticationException> { call, _ ->
-            call.respond(HttpStatusCode.Unauthorized)
-        }
-        exception<AuthorizationException> { call, _ ->
-            call.respond(HttpStatusCode.Forbidden)
-        }
-    }
-}
+/** Used when the user does not have the required permissions. */
+class AuthorizationException : RuntimeException()
