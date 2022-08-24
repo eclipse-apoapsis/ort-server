@@ -20,7 +20,7 @@
 package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.server.application.Application
-import io.ktor.server.config.HoconApplicationConfig
+import io.ktor.server.config.ApplicationConfig
 
 import javax.sql.DataSource
 
@@ -35,7 +35,7 @@ fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
 }
 
 private fun Application.createDataSource(): DataSource {
-    val config: HoconApplicationConfig by inject()
+    val config: ApplicationConfig by inject()
 
     val dataSourceConfig = DatabaseConfig(
         jdbcUrl = config.property("database.url").getString(),

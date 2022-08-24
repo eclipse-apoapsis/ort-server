@@ -19,12 +19,10 @@
 
 package org.ossreviewtoolkit.server.core.di
 
-import com.typesafe.config.ConfigFactory
-
-import io.ktor.server.config.HoconApplicationConfig
+import io.ktor.server.config.ApplicationConfig
 
 import org.koin.dsl.module
 
-val ortServerModule = module {
-    single { HoconApplicationConfig((ConfigFactory.load())) }
+fun ortServerModule(config: ApplicationConfig) = module {
+    single { config }
 }

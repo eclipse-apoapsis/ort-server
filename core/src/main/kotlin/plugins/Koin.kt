@@ -29,7 +29,7 @@ import org.ossreviewtoolkit.server.core.di.ortServerModule
 fun Application.configureKoin() {
     install(Koin) {
         modules(
-            ortServerModule
+            ortServerModule(environment.config)
         )
     }
 }
