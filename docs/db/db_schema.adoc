@@ -98,7 +98,7 @@ There is obviously a strong connection between the entities in this part of the 
 * An admin of a product can
 ** add or remove users to or from this product
 ** assign repository roles to users in this product
-** create, update, or delete repositories in the products belonging to this product
+** create, update, or delete repositories in the products belonging to this organization
 * An admin of a repository can
 ** trigger an analysis run on a repository
 ** assign repository roles to users in this repository
