@@ -71,6 +71,46 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
+        test("GET /organizations/{organizationId} should return a single organization") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                dataSource.connect()
+
+                val org = Organization(name = "testOrg", description = "description of testOrg")
+
+                val createdOrganization = OrganizationsRepository.createOrganization(org.name, org.description)
+                createdOrganization.shouldNotBeNull()
+
+                val client = createClient {
+                    install(ContentNegotiation) { json() }
+                }
+
+                val response = client.get("/api/v1/organizations/${createdOrganization.id}")
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Organization>() shouldBe org.copy(id = createdOrganization.id)
+                }
+            }
+        }
+
+        test("GET /organizations/{organizationId} should respond with NotFound if no organization exists") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                dataSource.connect()
+
+                val client = createClient {
+                    install(ContentNegotiation) { json() }
+                }
+
+                val response = client.get("/api/v1/organizations/999999")
+
+                with(response) {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+            }
+        }
+
         test("POST /organizations should create an organization in the database") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }

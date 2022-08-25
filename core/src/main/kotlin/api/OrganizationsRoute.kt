@@ -38,6 +38,15 @@ fun Route.organizations() = route("organizations") {
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApiModel() })
     }
 
+    get("/{organizationId}") {
+        val id = call.parameters["organizationId"]!!.toLong()
+
+        val organization = OrganizationsRepository.getOrganization(id)
+
+        organization?.let { call.respond(HttpStatusCode.OK, it.mapToApiModel()) }
+            ?: call.respond(HttpStatusCode.NotFound)
+    }
+
     post {
         val organization = call.receive<Organization>()
 
