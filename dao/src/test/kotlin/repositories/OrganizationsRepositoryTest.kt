@@ -74,5 +74,17 @@ class OrganizationsRepositoryTest : DatabaseTest() {
             OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
                 .shouldBe(updatedOrg.copy(createdOrg.id))
         }
+
+        test("deleteOrganization should delete an entity in the database") {
+            dataSource.connect()
+
+            val org = Organization(name = "org", description = "description")
+            val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+            createdOrg.shouldNotBeNull()
+
+            OrganizationsRepository.deleteOrganization(createdOrg.id)
+
+            OrganizationsRepository.listOrganizations() shouldBe emptyList()
+        }
     }
 }

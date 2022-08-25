@@ -24,6 +24,7 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -64,5 +65,18 @@ fun Route.organizations() = route("organizations") {
         val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org.name, org.description)
 
         call.respond(HttpStatusCode.OK, updatedOrg.mapToApiModel())
+    }
+
+    delete("/{organizationId}") {
+        val id = call.parameters["organizationId"]!!.toLong()
+
+        if (OrganizationsRepository.getOrganization(id) == null) {
+            call.respond(HttpStatusCode.NotFound)
+            return@delete
+        }
+
+        OrganizationsRepository.deleteOrganization(id)
+
+        call.respond(HttpStatusCode.NoContent)
     }
 }

@@ -77,4 +77,11 @@ object OrganizationsRepository {
 
         OrganizationDao[id].mapToEntity()
     }.getOrThrow()
+
+    /**
+     * Delete an organization by [id].
+     */
+    suspend fun deleteOrganization(id: Long) = dbQuery {
+        OrganizationDao[id].delete()
+    }.getOrThrow()
 }

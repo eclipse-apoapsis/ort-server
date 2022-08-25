@@ -24,6 +24,7 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -186,6 +187,29 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
                     .shouldBe(updatedOrganization.copy(id = createdOrg.id))
+            }
+        }
+
+        test("DELETE /organizations/{organizationId} should delete an organization") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                dataSource.connect()
+
+                val org = Organization(name = "testOrg", description = "description of testOrg")
+                val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+                createdOrg.shouldNotBeNull()
+
+                val client = createClient {
+                    install(ContentNegotiation) { json() }
+                }
+
+                val response = client.delete("/api/v1/organizations/${createdOrg.id}")
+
+                with(response) {
+                    status shouldBe HttpStatusCode.NoContent
+                }
+
+                OrganizationsRepository.listOrganizations() shouldBe emptyList()
             }
         }
     }
