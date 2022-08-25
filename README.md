@@ -10,8 +10,15 @@ To start the ORT server with the required 3rd party services, you can use
 ```shell
 docker compose up
 ```
-Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak without
-TLS.
+
+To debug the ORT server in Intellij, you can use a composition without the server:
+```shell
+docker compose -f docker-compose-dev.yml up
+```
+then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
+
+**Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak without
+TLS.**
 
 # License
 
