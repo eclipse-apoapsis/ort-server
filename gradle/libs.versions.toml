@@ -26,6 +26,7 @@ versionsPlugin = "0.42.0"
 exposed = "0.39.2"
 flyway = "9.2.0"
 hikari = "5.0.1"
+keycloakTestcontainerVersion = "2.3.0"
 koin = "3.2.0"
 kotest = "5.4.2"
 kotestAssertionsKtor = "1.0.3"
@@ -60,7 +61,10 @@ kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensio
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinPlugin" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization"}
+ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
 ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref = "ktor" }
@@ -75,4 +79,5 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
+testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }

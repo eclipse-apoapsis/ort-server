@@ -42,7 +42,10 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":shared"))
 
+    implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientCore)
+    implementation(libs.ktorClientOkHttp)
     implementation(libs.koinKtor)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ktorServerCallLogging)
@@ -58,7 +61,9 @@ dependencies {
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinTest)
     testImplementation(libs.ktorServerTestHost)
+    testImplementation(libs.testContainersKeycloak)
 }

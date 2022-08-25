@@ -21,8 +21,24 @@ package org.ossreviewtoolkit.server.core.di
 
 import io.ktor.server.config.ApplicationConfig
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.core.client.KeycloakService
+
+@OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
     single { config }
+
+    single {
+        Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+            explicitNulls = false
+        }
+    }
+
+    single { KeycloakService.create(get(), get()) }
 }
