@@ -42,5 +42,22 @@ class OrganizationsRepositoryTest : DatabaseTest() {
             dbEntry.shouldNotBeNull()
             dbEntry.mapToApiModel() shouldBe org.copy(id = createdOrg.id)
         }
+
+        test("listOrganizations should retrieve all entities from the database") {
+            dataSource.connect()
+
+            val org1 = Organization(name = "org1", description = "description")
+            val org2 = Organization(name = "org2", description = "description")
+
+            val createdOrg1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
+            val createdOrg2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
+            createdOrg1.shouldNotBeNull()
+            createdOrg2.shouldNotBeNull()
+
+            OrganizationsRepository.listOrganizations().map { it.mapToApiModel() } shouldBe listOf(
+                org1.copy(id = createdOrg1.id),
+                org2.copy(id = createdOrg2.id)
+            )
+        }
     }
 }

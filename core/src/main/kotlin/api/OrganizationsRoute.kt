@@ -24,6 +24,7 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
@@ -31,6 +32,12 @@ import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 import org.ossreviewtoolkit.server.shared.models.api.Organization
 
 fun Route.organizations() = route("organizations") {
+    get {
+        val organizations = OrganizationsRepository.listOrganizations()
+
+        call.respond(HttpStatusCode.OK, organizations.map { it.mapToApiModel() })
+    }
+
     post {
         val organization = call.receive<Organization>()
 

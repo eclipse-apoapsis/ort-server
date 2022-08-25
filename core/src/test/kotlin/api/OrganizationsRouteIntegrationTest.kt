@@ -19,10 +19,12 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -40,6 +42,35 @@ import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRouteIntegrationTest : DatabaseTest() {
     init {
+        test("GET /organizations should return all existing organizations") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                dataSource.connect()
+
+                val org1 = Organization(name = "testOrg1", description = "description of testOrg")
+                val org2 = Organization(name = "testOrg2", description = "description of testOrg")
+
+                val createdOrganization1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
+                val createdOrganization2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
+                createdOrganization1.shouldNotBeNull()
+                createdOrganization2.shouldNotBeNull()
+
+                val client = createClient {
+                    install(ContentNegotiation) { json() }
+                }
+
+                val response = client.get("/api/v1/organizations")
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Organization>>() shouldBe listOf(
+                        org1.copy(id = createdOrganization1.id),
+                        org2.copy(id = createdOrganization2.id)
+                    )
+                }
+            }
+        }
+
         test("POST /organizations should create an organization in the database") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }

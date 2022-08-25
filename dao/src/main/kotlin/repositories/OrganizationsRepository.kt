@@ -59,4 +59,11 @@ object OrganizationsRepository {
     suspend fun getOrganization(id: Long) = dbQuery {
         OrganizationDao[id].mapToEntity()
     }.getOrNull()
+
+    /**
+     * List all organizations.
+     */
+    suspend fun listOrganizations() = dbQuery {
+        OrganizationDao.all().map { it.mapToEntity() }
+    }.getOrThrow()
 }
