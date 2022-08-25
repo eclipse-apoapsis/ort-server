@@ -27,6 +27,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -156,6 +157,35 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 with(response) {
                     status shouldBe HttpStatusCode.Conflict
                 }
+            }
+        }
+
+        test("PUT /organizations/{organizationId} should update an organization") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                dataSource.connect()
+
+                val org = Organization(name = "testOrg", description = "description of testOrg")
+                val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+                createdOrg.shouldNotBeNull()
+
+                val client = createClient {
+                    install(ContentNegotiation) { json() }
+                }
+
+                val updatedOrganization = Organization(name = "updated", description = "updated description of testOrg")
+                val response = client.put("/api/v1/organizations/${createdOrg.id}") {
+                    headers { contentType(ContentType.Application.Json) }
+                    setBody(updatedOrganization)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Organization>() shouldBe updatedOrganization.copy(id = 1)
+                }
+
+                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
+                    .shouldBe(updatedOrganization.copy(id = createdOrg.id))
             }
         }
     }

@@ -59,5 +59,20 @@ class OrganizationsRepositoryTest : DatabaseTest() {
                 org2.copy(id = createdOrg2.id)
             )
         }
+
+        test("updateOrganization should update an entity in the database") {
+            dataSource.connect()
+
+            val org = Organization(name = "org", description = "description")
+            val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+            createdOrg.shouldNotBeNull()
+
+            val updatedOrg = Organization(name = "updatedOrg", description = "updated description")
+
+            OrganizationsRepository.updateOrganization(createdOrg.id, updatedOrg.name, updatedOrg.description)
+
+            OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
+                .shouldBe(updatedOrg.copy(createdOrg.id))
+        }
     }
 }

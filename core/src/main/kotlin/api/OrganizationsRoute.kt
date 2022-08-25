@@ -26,6 +26,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
@@ -54,5 +55,14 @@ fun Route.organizations() = route("organizations") {
             OrganizationsRepository.createOrganization(organization.name, organization.description)
 
         call.respond(HttpStatusCode.Created, createdOrganization.mapToApiModel())
+    }
+
+    put("/{organizationId}") {
+        val organizationId = call.parameters["organizationId"]!!.toLong()
+        val org = call.receive<Organization>()
+
+        val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org.name, org.description)
+
+        call.respond(HttpStatusCode.OK, updatedOrg.mapToApiModel())
     }
 }

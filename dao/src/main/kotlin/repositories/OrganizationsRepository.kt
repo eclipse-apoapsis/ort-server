@@ -66,4 +66,15 @@ object OrganizationsRepository {
     suspend fun listOrganizations() = dbQuery {
         OrganizationDao.all().map { it.mapToEntity() }
     }.getOrThrow()
+
+    /**
+     * Update the organization with [id] overwriting the [name] and / or the [description].
+     */
+    suspend fun updateOrganization(id: Long, name: String? = null, description: String? = null) = dbQuery {
+        val org = OrganizationDao[id]
+        name?.let { org.name = it }
+        description?.let { org.description = it }
+
+        OrganizationDao[id].mapToEntity()
+    }.getOrThrow()
 }
