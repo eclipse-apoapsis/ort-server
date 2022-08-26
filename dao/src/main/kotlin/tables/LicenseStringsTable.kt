@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.entities
+package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 

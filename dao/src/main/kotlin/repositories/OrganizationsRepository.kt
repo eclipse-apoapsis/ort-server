@@ -24,8 +24,8 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.dao.entities.OrganizationDao
-import org.ossreviewtoolkit.server.dao.entities.OrganizationsTable
+import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
+import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
 import org.ossreviewtoolkit.server.shared.models.api.Organization
 
 object OrganizationsRepository {
