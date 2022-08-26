@@ -89,7 +89,9 @@ data class DatabaseConfig(
 /**
  * Execute the [block] in a database [transaction], dispatched to [Dispatchers.IO].
  */
-suspend fun <T> dbQuery(block: () -> T): T =
-    withContext(Dispatchers.IO) {
-        transaction { block() }
+suspend fun <T> dbQuery(block: () -> T): Result<T> =
+    runCatching {
+        withContext(Dispatchers.IO) {
+            transaction { block() }
+        }
     }
