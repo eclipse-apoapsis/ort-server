@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.ossreviewtoolkit.server.dao.entities
 
 import org.ossreviewtoolkit.server.shared.models.api.Organization
 

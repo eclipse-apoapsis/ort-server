@@ -24,7 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.dao.repositories.OrganizationEntity
+import org.ossreviewtoolkit.server.dao.entities.OrganizationEntity
 
 object OrganizationsTable : LongIdTable("organizations") {
     val name = text("name")
