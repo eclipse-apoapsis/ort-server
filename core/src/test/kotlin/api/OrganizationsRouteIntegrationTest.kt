@@ -23,7 +23,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -33,10 +32,10 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
+import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 import org.ossreviewtoolkit.server.shared.models.api.Organization
@@ -57,9 +56,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 createdOrganization1.shouldNotBeNull()
                 createdOrganization2.shouldNotBeNull()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations")
 
@@ -83,9 +80,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val createdOrganization = OrganizationsRepository.createOrganization(org.name, org.description)
                 createdOrganization.shouldNotBeNull()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/${createdOrganization.id}")
 
@@ -101,9 +96,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 dataSource.connect()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/999999")
 
@@ -118,9 +111,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 dataSource.connect()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val organization = Organization(name = "testOrg", description = "description of testOrg")
 
@@ -146,9 +137,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 OrganizationsRepository.createOrganization(org.name, org.description)
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val response = client.post("/api/v1/organizations") {
                     headers { contentType(ContentType.Application.Json) }
@@ -170,9 +159,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
                 createdOrg.shouldNotBeNull()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val updatedOrganization = Organization(name = "updated", description = "updated description of testOrg")
                 val response = client.put("/api/v1/organizations/${createdOrg.id}") {
@@ -199,9 +186,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
                 createdOrg.shouldNotBeNull()
 
-                val client = createClient {
-                    install(ContentNegotiation) { json() }
-                }
+                val client = createJsonClient()
 
                 val response = client.delete("/api/v1/organizations/${createdOrg.id}")
 

@@ -24,12 +24,11 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
+import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.shared.models.api.Liveness
 
 class HealthIntegrationTest : WordSpec({
@@ -40,11 +39,7 @@ class HealthIntegrationTest : WordSpec({
                     config = ApplicationConfig("application-nodb.conf")
                 }
 
-                val client = createClient {
-                    install(ContentNegotiation) {
-                        json()
-                    }
-                }
+                val client = createJsonClient()
 
                 val response = client.get("/api/v1/liveness")
 
