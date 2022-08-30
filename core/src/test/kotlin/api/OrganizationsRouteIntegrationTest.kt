@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.core.test.TestCase
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -42,11 +43,12 @@ import org.ossreviewtoolkit.server.shared.models.api.Organization
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRouteIntegrationTest : DatabaseTest() {
+    override suspend fun beforeTest(testCase: TestCase) = dataSource.connect()
+
     init {
         test("GET /organizations should return all existing organizations") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val org1 = Organization(name = "testOrg1", description = "description of testOrg")
                 val org2 = Organization(name = "testOrg2", description = "description of testOrg")
@@ -73,7 +75,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("GET /organizations/{organizationId} should return a single organization") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
 
@@ -94,7 +95,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("GET /organizations/{organizationId} should respond with NotFound if no organization exists") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val client = createJsonClient()
 
@@ -109,7 +109,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("POST /organizations should create an organization in the database") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val client = createJsonClient()
 
@@ -132,7 +131,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("POST /organizations with an already existing organization should respond with CONFLICT") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 OrganizationsRepository.createOrganization(org.name, org.description)
@@ -153,7 +151,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("PUT /organizations/{organizationId} should update an organization") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
@@ -180,7 +177,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         test("DELETE /organizations/{organizationId} should delete an organization") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
-                dataSource.connect()
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)

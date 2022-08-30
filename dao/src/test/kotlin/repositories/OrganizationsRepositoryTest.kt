@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.test.repositories
 
+import io.kotest.core.test.TestCase
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -28,10 +29,10 @@ import org.ossreviewtoolkit.server.shared.models.api.Organization
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRepositoryTest : DatabaseTest() {
+    override suspend fun beforeTest(testCase: TestCase) = dataSource.connect()
+
     init {
         test("createOrganization should create an entry in the database") {
-            dataSource.connect()
-
             val org = Organization(name = "MyOrg", description = "Description of MyOrg")
 
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
@@ -44,8 +45,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
         }
 
         test("listOrganizations should retrieve all entities from the database") {
-            dataSource.connect()
-
             val org1 = Organization(name = "org1", description = "description")
             val org2 = Organization(name = "org2", description = "description")
 
@@ -61,8 +60,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
         }
 
         test("updateOrganization should update an entity in the database") {
-            dataSource.connect()
-
             val org = Organization(name = "org", description = "description")
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
             createdOrg.shouldNotBeNull()
@@ -76,8 +73,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
         }
 
         test("deleteOrganization should delete an entity in the database") {
-            dataSource.connect()
-
             val org = Organization(name = "org", description = "description")
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
             createdOrg.shouldNotBeNull()
