@@ -30,6 +30,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
+import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 import org.ossreviewtoolkit.server.shared.models.api.Organization
 
@@ -41,7 +42,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     get("/{organizationId}") {
-        val id = call.parameters["organizationId"]!!.toLong()
+        val id = call.requireParameter("organizationId").toLong()
 
         val organization = OrganizationsRepository.getOrganization(id)
 
@@ -59,7 +60,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     put("/{organizationId}") {
-        val organizationId = call.parameters["organizationId"]!!.toLong()
+        val organizationId = call.requireParameter("organizationId").toLong()
         val org = call.receive<Organization>()
 
         val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org.name, org.description)
@@ -68,7 +69,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     delete("/{organizationId}") {
-        val id = call.parameters["organizationId"]!!.toLong()
+        val id = call.requireParameter("organizationId").toLong()
 
         OrganizationsRepository.deleteOrganization(id)
 
