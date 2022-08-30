@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.test.TestCase
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -55,8 +54,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val createdOrganization1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
                 val createdOrganization2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
-                createdOrganization1.shouldNotBeNull()
-                createdOrganization2.shouldNotBeNull()
 
                 val client = createJsonClient()
 
@@ -79,7 +76,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val org = Organization(name = "testOrg", description = "description of testOrg")
 
                 val createdOrganization = OrganizationsRepository.createOrganization(org.name, org.description)
-                createdOrganization.shouldNotBeNull()
 
                 val client = createJsonClient()
 
@@ -154,7 +150,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
-                createdOrg.shouldNotBeNull()
 
                 val client = createJsonClient()
 
@@ -180,7 +175,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val org = Organization(name = "testOrg", description = "description of testOrg")
                 val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
-                createdOrg.shouldNotBeNull()
 
                 val client = createJsonClient()
 

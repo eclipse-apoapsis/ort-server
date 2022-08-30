@@ -37,7 +37,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
 
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
 
-            createdOrg.shouldNotBeNull()
             val dbEntry = OrganizationsRepository.getOrganization(createdOrg.id)
 
             dbEntry.shouldNotBeNull()
@@ -50,8 +49,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
 
             val createdOrg1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
             val createdOrg2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
-            createdOrg1.shouldNotBeNull()
-            createdOrg2.shouldNotBeNull()
 
             OrganizationsRepository.listOrganizations().map { it.mapToApiModel() } shouldBe listOf(
                 org1.copy(id = createdOrg1.id),
@@ -62,7 +59,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
         test("updateOrganization should update an entity in the database") {
             val org = Organization(name = "org", description = "description")
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
-            createdOrg.shouldNotBeNull()
 
             val updatedOrg = Organization(name = "updatedOrg", description = "updated description")
 
@@ -75,7 +71,6 @@ class OrganizationsRepositoryTest : DatabaseTest() {
         test("deleteOrganization should delete an entity in the database") {
             val org = Organization(name = "org", description = "description")
             val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
-            createdOrg.shouldNotBeNull()
 
             OrganizationsRepository.deleteOrganization(createdOrg.id)
 
