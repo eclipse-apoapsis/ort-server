@@ -25,6 +25,8 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+
 import org.ossreviewtoolkit.server.core.api.AuthenticationException
 import org.ossreviewtoolkit.server.core.api.AuthorizationException
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
@@ -37,6 +39,9 @@ fun Application.configureStatusPages() {
         }
         exception<AuthorizationException> { call, _ ->
             call.respond(HttpStatusCode.Forbidden)
+        }
+        exception<EntityNotFoundException> { call, _ ->
+            call.respond(HttpStatusCode.NotFound)
         }
         exception<UniqueConstraintException> { call, e ->
             call.respond(

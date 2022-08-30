@@ -32,8 +32,9 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":shared"))
 
+    api(libs.exposedDao)
+
     implementation(libs.exposedCore)
-    implementation(libs.exposedDao)
     implementation(libs.exposedJavaTime)
     implementation(libs.exposedJdbc)
     implementation(libs.flywayCore)
