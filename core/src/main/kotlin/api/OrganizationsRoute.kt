@@ -70,11 +70,6 @@ fun Route.organizations() = route("organizations") {
     delete("/{organizationId}") {
         val id = call.parameters["organizationId"]!!.toLong()
 
-        if (OrganizationsRepository.getOrganization(id) == null) {
-            call.respond(HttpStatusCode.NotFound)
-            return@delete
-        }
-
         OrganizationsRepository.deleteOrganization(id)
 
         call.respond(HttpStatusCode.NoContent)
