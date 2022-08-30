@@ -32,7 +32,9 @@ import io.ktor.server.routing.route
 
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
+import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
 import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
+import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
 import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
 
 fun Route.organizations() = route("organizations") {
@@ -75,6 +77,21 @@ fun Route.organizations() = route("organizations") {
             OrganizationsRepository.deleteOrganization(id)
 
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        get("products") {
+            val orgId = call.requireParameter("organizationId").toLong()
+
+            call.respond(HttpStatusCode.OK, ProductsRepository.listProductsForOrg(orgId).map { it.mapToApiModel() })
+        }
+
+        post("products") {
+            val createProduct = call.receive<CreateProduct>()
+            val orgId = call.requireParameter("organizationId").toLong()
+
+            val createdProduct = ProductsRepository.createProduct(orgId, createProduct)
+
+            call.respond(HttpStatusCode.Created, createdProduct.mapToApiModel())
         }
     }
 }

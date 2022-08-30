@@ -25,12 +25,14 @@ import io.ktor.server.routing.routing
 
 import org.ossreviewtoolkit.server.core.api.healthChecks
 import org.ossreviewtoolkit.server.core.api.organizations
+import org.ossreviewtoolkit.server.core.api.products
 
 fun Application.configureRouting() {
     routing {
         route("api/v1") {
             healthChecks()
             organizations()
+            products()
         }
     }
 }

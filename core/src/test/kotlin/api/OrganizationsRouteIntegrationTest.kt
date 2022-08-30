@@ -40,8 +40,11 @@ import kotlinx.serialization.json.Json
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
+import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
 import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
+import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
 import org.ossreviewtoolkit.server.shared.models.api.Organization
+import org.ossreviewtoolkit.server.shared.models.api.Product
 import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
 import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
@@ -238,6 +241,56 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 }
 
                 OrganizationsRepository.listOrganizations() shouldBe emptyList()
+            }
+        }
+
+        test("POST /organizations/{orgId}/products should create a product") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                val client = createJsonClient()
+
+                val orgId = OrganizationsRepository.createOrganization(
+                    CreateOrganization("testOrg", "description of testOrg")
+                ).id
+
+                val product = CreateProduct("product", "description")
+                val response = client.post("/api/v1/organizations/$orgId/products") {
+                    headers { contentType(ContentType.Application.Json) }
+                    setBody(product)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.Created
+                    body<Product>() shouldBe Product(1, product.name, product.description)
+                }
+
+                ProductsRepository.getProduct(1)?.mapToApiModel() shouldBe Product(1, product.name, product.description)
+            }
+        }
+
+        test("GET /organizations/{orgId}/products should return all products of an organization") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                val client = createJsonClient()
+
+                val orgId = OrganizationsRepository.createOrganization(
+                    CreateOrganization("testOrg", "description of testOrg")
+                ).id
+
+                val product1 = CreateProduct("product1", "description")
+                val product2 = CreateProduct("product2", "description")
+
+                val createdProduct1 = ProductsRepository.createProduct(orgId, product1)
+                val createdProduct2 = ProductsRepository.createProduct(orgId, product2)
+                val response = client.get("/api/v1/organizations/$orgId/products")
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Product>>() shouldBe listOf(
+                        Product(createdProduct1.id, product1.name, product1.description),
+                        Product(createdProduct2.id, product2.name, product2.description)
+                    )
+                }
             }
         }
     }

@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.shared.models.api
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+
 /**
  * Response object for the products endpoints. Used to group multiple repositories into products.
  */
@@ -33,4 +35,22 @@ data class Product(
 
     /** The optional description of a product. */
     val description: String? = null
+)
+
+/**
+ * Request object for the create product endpoint.
+ */
+@Serializable
+data class CreateProduct(
+    val name: String,
+    val description: String? = null
+)
+
+/**
+ * Request object for the update product endpoint.
+ */
+@Serializable
+data class UpdateProduct(
+    val name: OptionalValue<String> = OptionalValue.Absent,
+    val description: OptionalValue<String?> = OptionalValue.Absent
 )
