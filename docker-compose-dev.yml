@@ -56,7 +56,7 @@ services:
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
       KC_DB_URL: "jdbc:postgresql://postgres:5432/ort_server"
-      KC_HEALTH_ENABLED: true
+      KC_HEALTH_ENABLED: "true"
     ports:
     - "8081:8080"
     volumes:
