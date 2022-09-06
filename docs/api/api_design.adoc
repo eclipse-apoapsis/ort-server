@@ -1,0 +1,135 @@
+= API Design
+
+This document introduces the general API design of the ORT server, to provide a guideline when implementing new API
+endpoints. The actual implemented API will be documented using https://www.openapis.org[OpenAPI].
+
+The use case for this design will focus on two entities. `Organizations` and `Products`: A product is always assigned to
+an organization, and an organization hosts multiple projects.
+
+== Organizations
+
+*Create Organizations*
+
+----
+POST /organizations
+
+Request
+{
+  "name": "Organization's name",
+  "description": "The organization's description"
+}
+
+Response
+{
+  "id": 1,
+  "name": "Organization's name",
+  "description": "The organization's description"
+}
+----
+
+*Read all organizations*
+
+----
+GET /organizations
+
+Response
+[
+  {
+    "id": 1,
+    "name": "Organization's name",
+    "description": "The organization's description"
+  }
+]
+----
+
+*Read single organization*
+
+----
+GET /organizations/1
+
+Response
+{
+  "id": 1,
+  "name": "Organization's name",
+  "description": "The organization's description"
+}
+----
+
+*Update organizations*
+
+Updating entities should be done via `PATCH` requests, which will only update the given values, while deleting entities
+should be explicitly stated via a `null` value.
+
+----
+PATCH /organizations/1
+
+Request
+{
+  "name": "New organization name",
+  "description": null
+}
+
+Response
+{
+  "id": 1,
+  "name": "New organization name"
+}
+----
+
+*Delete organizations*
+
+----
+DELETE /organization/1
+----
+
+== Products
+
+*Create products*
+
+As products are always created within the context of an organization, this creation endpoint will be placed under
+`/organizations`.
+
+----
+POST /organizations/1/products
+
+Request
+{
+  "name": "Product name",
+  "description": "Product description"
+}
+
+Response
+{
+  "id": 22
+  "name": "Product name",
+  "description": "Product description"
+}
+----
+
+*Read all products of an organization*
+
+----
+GET /organizations/1/products
+
+Response
+[
+  {
+    "id": 22
+    "name": "Product name",
+    "description": "Product description"
+  }
+]
+----
+
+*Read a single Product*
+
+----
+GET /products/22
+
+Response
+{
+  "id": 22
+  "name": "Product name",
+  "description": "Product description"
+}
+----
