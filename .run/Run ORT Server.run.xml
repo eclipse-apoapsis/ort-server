@@ -7,6 +7,10 @@
       <env name="DB_SSLMODE" value="disable" />
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:5433" />
       <env name="DB_USERNAME" value="postgres" />
+      <env name="JWT_URI" value="http://localhost:8081/realms/master/protocol/openid-connect/certs" />
+      <env name="JWT_AUDIENCE" value="ort-server" />
+      <env name="JWT_ISSUER" value="http://localhost:8081/realms/master" />
+      <env name="JWT_REALM" value="master" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.ossreviewtoolkit.server.core.ApplicationKt" />
     <module name="ort-server.core.main" />
