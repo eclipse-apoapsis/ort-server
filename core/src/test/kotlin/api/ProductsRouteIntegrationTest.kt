@@ -35,6 +35,7 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.core.createJsonClient
+import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
@@ -65,7 +66,11 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 val product = CreateProduct("product", "description")
 
                 val createdProduct = ProductsRepository.createProduct(orgId, product)
-                val response = client.get("/api/v1/products/${createdProduct.id}")
+                val response = client.get("/api/v1/products/${createdProduct.id}") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -87,7 +92,10 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                     OptionalValue.Present("updateDescription")
                 )
                 val response = client.patch("/api/v1/products/${createdProduct.id}") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(updatedProduct)
                 }
 
@@ -110,7 +118,11 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 val product = CreateProduct("product", "description")
                 val createdProduct = ProductsRepository.createProduct(orgId, product)
 
-                val response = client.delete("/api/v1/products/${createdProduct.id}")
+                val response = client.delete("/api/v1/products/${createdProduct.id}") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent

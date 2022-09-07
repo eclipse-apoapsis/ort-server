@@ -67,5 +67,7 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinTest)
     testImplementation(libs.ktorServerTestHost)
+    testImplementation(libs.mockk)
     testImplementation(libs.testContainersKeycloak)
+    testImplementation(libs.wiremockStandalone)
 }

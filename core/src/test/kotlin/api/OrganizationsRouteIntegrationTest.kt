@@ -38,6 +38,7 @@ import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.core.createJsonClient
+import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
@@ -65,7 +66,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val response = client.get("/api/v1/organizations")
+                val response = client.get("/api/v1/organizations") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -87,7 +92,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val response = client.get("/api/v1/organizations/${createdOrganization.id}")
+                val response = client.get("/api/v1/organizations/${createdOrganization.id}") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -102,7 +111,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val response = client.get("/api/v1/organizations/999999")
+                val response = client.get("/api/v1/organizations/999999") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.NotFound
@@ -119,7 +132,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
 
                 val response = client.post("/api/v1/organizations") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(org)
                 }
 
@@ -144,7 +160,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val client = createJsonClient()
 
                 val response = client.post("/api/v1/organizations") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(org)
                 }
 
@@ -168,7 +187,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     OptionalValue.Present("updated description of testOrg")
                 )
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(updatedOrganization)
                 }
 
@@ -204,7 +226,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 )
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(organizationUpdateRequest)
                 }
 
@@ -234,7 +259,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val response = client.delete("/api/v1/organizations/${createdOrg.id}")
+                val response = client.delete("/api/v1/organizations/${createdOrg.id}") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -255,7 +284,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val product = CreateProduct("product", "description")
                 val response = client.post("/api/v1/organizations/$orgId/products") {
-                    headers { contentType(ContentType.Application.Json) }
+                    headers {
+                        contentType(ContentType.Application.Json)
+                        basicTestAuth()
+                    }
                     setBody(product)
                 }
 
@@ -282,7 +314,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val createdProduct1 = ProductsRepository.createProduct(orgId, product1)
                 val createdProduct2 = ProductsRepository.createProduct(orgId, product2)
-                val response = client.get("/api/v1/organizations/$orgId/products")
+                val response = client.get("/api/v1/organizations/$orgId/products") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK

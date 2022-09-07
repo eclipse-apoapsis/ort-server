@@ -20,6 +20,7 @@
 import io.ktor.server.application.Application
 
 import org.ossreviewtoolkit.server.core.plugins.*
+import org.ossreviewtoolkit.server.core.testutils.configureTestAuthentication
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
@@ -34,4 +35,5 @@ fun Application.moduleNoDB() {
     configureSerialization()
     configureMonitoring()
     configureHTTP()
+    configureTestAuthentication()
 }
