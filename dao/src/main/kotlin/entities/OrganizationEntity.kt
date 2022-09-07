@@ -24,7 +24,7 @@ import org.ossreviewtoolkit.server.shared.models.api.Organization
 data class OrganizationEntity(
     val id: Long,
     val name: String,
-    val description: String = ""
+    val description: String? = null
 ) {
     fun mapToApiModel() = Organization(id, name, description)
 }

@@ -24,26 +24,30 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.entities.OrganizationEntity
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
+import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
 import org.ossreviewtoolkit.server.shared.models.api.Organization
+import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
 
 object OrganizationsRepository {
 
     /**
      * Insert an [Organization] into the [OrganizationsTable] and return the resulting [OrganizationEntity].
      */
-    suspend fun createOrganization(name: String, description: String) = dbQuery {
+    suspend fun createOrganization(createOrganization: CreateOrganization) = dbQuery {
         OrganizationDao.new {
-            this.name = name
-            this.description = description
+            name = createOrganization.name
+            createOrganization.description?.let { description = it }
         }
     }.onFailure {
         if (it is ExposedSQLException) {
             when (it.sqlState) {
                 PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
                     throw UniqueConstraintException(
-                        "Failed to create organization '$name', as an organization with this name already exists.",
+                        "Failed to create organization '${createOrganization.name}', as an organization with " +
+                                "this name already exists.",
                         it
                     )
                 }
@@ -68,12 +72,13 @@ object OrganizationsRepository {
     }.getOrThrow()
 
     /**
-     * Update the organization with [id] overwriting the [name] and / or the [description].
+     * Update the [organization][id] with the values from [updateOrganization].
      */
-    suspend fun updateOrganization(id: Long, name: String? = null, description: String? = null) = dbQuery {
+    suspend fun updateOrganization(id: Long, updateOrganization: UpdateOrganization) = dbQuery {
         val org = OrganizationDao[id]
-        name?.let { org.name = it }
-        description?.let { org.description = it }
+
+        updateOrganization.name.ifPresent { org.name = it }
+        updateOrganization.description.ifNotAbsent { org.description = it }
 
         OrganizationDao[id].mapToEntity()
     }.getOrThrow()

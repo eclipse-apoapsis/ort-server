@@ -25,7 +25,10 @@ import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
+import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
 import org.ossreviewtoolkit.server.shared.models.api.Organization
+import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRepositoryTest : DatabaseTest() {
@@ -33,44 +36,68 @@ class OrganizationsRepositoryTest : DatabaseTest() {
 
     init {
         test("createOrganization should create an entry in the database") {
-            val org = Organization(name = "MyOrg", description = "Description of MyOrg")
+            val org = CreateOrganization("MyOrg", "Description of MyOrg")
 
-            val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+            val createdOrg = OrganizationsRepository.createOrganization(org)
 
             val dbEntry = OrganizationsRepository.getOrganization(createdOrg.id)
 
             dbEntry.shouldNotBeNull()
-            dbEntry.mapToApiModel() shouldBe org.copy(id = createdOrg.id)
+            dbEntry.mapToApiModel() shouldBe Organization(dbEntry.id, org.name, org.description)
         }
 
         test("listOrganizations should retrieve all entities from the database") {
-            val org1 = Organization(name = "org1", description = "description")
-            val org2 = Organization(name = "org2", description = "description")
+            val org1 = CreateOrganization("org1", "description")
+            val org2 = CreateOrganization("org2", "description")
 
-            val createdOrg1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
-            val createdOrg2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
+            val createdOrg1 = OrganizationsRepository.createOrganization(org1)
+            val createdOrg2 = OrganizationsRepository.createOrganization(org2)
 
             OrganizationsRepository.listOrganizations().map { it.mapToApiModel() } shouldBe listOf(
-                org1.copy(id = createdOrg1.id),
-                org2.copy(id = createdOrg2.id)
+                Organization(createdOrg1.id, org1.name, org1.description),
+                Organization(createdOrg2.id, org2.name, org2.description)
             )
         }
 
         test("updateOrganization should update an entity in the database") {
-            val org = Organization(name = "org", description = "description")
-            val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+            val org = CreateOrganization(name = "org", description = "description")
+            val createdOrg = OrganizationsRepository.createOrganization(org)
 
-            val updatedOrg = Organization(name = "updatedOrg", description = "updated description")
+            val updatedOrg = UpdateOrganization(
+                OptionalValue.Present("updatedOrg"),
+                OptionalValue.Present("updated description")
+            )
 
-            OrganizationsRepository.updateOrganization(createdOrg.id, updatedOrg.name, updatedOrg.description)
+            OrganizationsRepository.updateOrganization(createdOrg.id, updatedOrg)
 
-            OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
-                .shouldBe(updatedOrg.copy(createdOrg.id))
+            OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                id = createdOrg.id,
+                name = "updatedOrg",
+                description = "updated description"
+            )
+        }
+
+        test("updateOrganization should update null values and ignore absent values") {
+            val org = CreateOrganization("org", "description")
+            val createdOrg = OrganizationsRepository.createOrganization(org)
+
+            val updatedOrg = UpdateOrganization(
+                name = OptionalValue.Absent,
+                description = OptionalValue.Null
+            )
+
+            OrganizationsRepository.updateOrganization(createdOrg.id, updatedOrg)
+
+            OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                id = createdOrg.id,
+                name = org.name,
+                description = null
+            )
         }
 
         test("deleteOrganization should delete an entity in the database") {
-            val org = Organization(name = "org", description = "description")
-            val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+            val org = CreateOrganization("org", "description")
+            val createdOrg = OrganizationsRepository.createOrganization(org)
 
             OrganizationsRepository.deleteOrganization(createdOrg.id)
 

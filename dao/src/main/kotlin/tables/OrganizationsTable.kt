@@ -28,7 +28,7 @@ import org.ossreviewtoolkit.server.dao.entities.OrganizationEntity
 
 object OrganizationsTable : LongIdTable("organizations") {
     val name = text("name")
-    val description = text("description")
+    val description = text("description").nullable()
 }
 
 class OrganizationDao(id: EntityID<Long>) : LongEntity(id) {

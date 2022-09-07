@@ -26,8 +26,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -35,10 +35,15 @@ import io.ktor.http.contentType
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
+import kotlinx.serialization.json.Json
+
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
+import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
 import org.ossreviewtoolkit.server.shared.models.api.Organization
+import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRouteIntegrationTest : DatabaseTest() {
@@ -49,11 +54,11 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org1 = Organization(name = "testOrg1", description = "description of testOrg")
-                val org2 = Organization(name = "testOrg2", description = "description of testOrg")
+                val org1 = CreateOrganization(name = "testOrg1", description = "description of testOrg")
+                val org2 = CreateOrganization(name = "testOrg2", description = "description of testOrg")
 
-                val createdOrganization1 = OrganizationsRepository.createOrganization(org1.name, org1.description)
-                val createdOrganization2 = OrganizationsRepository.createOrganization(org2.name, org2.description)
+                val createdOrganization1 = OrganizationsRepository.createOrganization(org1)
+                val createdOrganization2 = OrganizationsRepository.createOrganization(org2)
 
                 val client = createJsonClient()
 
@@ -62,8 +67,8 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 with(response) {
                     status shouldBe HttpStatusCode.OK
                     body<List<Organization>>() shouldBe listOf(
-                        org1.copy(id = createdOrganization1.id),
-                        org2.copy(id = createdOrganization2.id)
+                        Organization(createdOrganization1.id, org1.name, org1.description),
+                        Organization(createdOrganization2.id, org2.name, org2.description)
                     )
                 }
             }
@@ -73,9 +78,9 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = Organization(name = "testOrg", description = "description of testOrg")
+                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
 
-                val createdOrganization = OrganizationsRepository.createOrganization(org.name, org.description)
+                val createdOrganization = OrganizationsRepository.createOrganization(org)
 
                 val client = createJsonClient()
 
@@ -83,7 +88,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe org.copy(id = createdOrganization.id)
+                    body<Organization>() shouldBe Organization(createdOrganization.id, org.name, org.description)
                 }
             }
         }
@@ -108,19 +113,21 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val organization = Organization(name = "testOrg", description = "description of testOrg")
+                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
 
                 val response = client.post("/api/v1/organizations") {
                     headers { contentType(ContentType.Application.Json) }
-                    setBody(organization)
+                    setBody(org)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.Created
-                    body<Organization>() shouldBe organization.copy(id = 1)
+                    body<Organization>() shouldBe Organization(1, org.name, org.description)
                 }
 
-                OrganizationsRepository.getOrganization(1)?.mapToApiModel() shouldBe organization.copy(id = 1)
+                OrganizationsRepository.getOrganization(1)?.mapToApiModel().shouldBe(
+                    Organization(1, org.name, org.description)
+                )
             }
         }
 
@@ -128,8 +135,8 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = Organization(name = "testOrg", description = "description of testOrg")
-                OrganizationsRepository.createOrganization(org.name, org.description)
+                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
+                OrganizationsRepository.createOrganization(org)
 
                 val client = createJsonClient()
 
@@ -144,28 +151,74 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("PUT /organizations/{organizationId} should update an organization") {
+        test("PATCH /organizations/{organizationId} should update an organization") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = Organization(name = "testOrg", description = "description of testOrg")
-                val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
+                val createdOrg = OrganizationsRepository.createOrganization(org)
 
                 val client = createJsonClient()
 
-                val updatedOrganization = Organization(name = "updated", description = "updated description of testOrg")
-                val response = client.put("/api/v1/organizations/${createdOrg.id}") {
+                val updatedOrganization = UpdateOrganization(
+                    OptionalValue.Present("updated"),
+                    OptionalValue.Present("updated description of testOrg")
+                )
+                val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
                     headers { contentType(ContentType.Application.Json) }
                     setBody(updatedOrganization)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe updatedOrganization.copy(id = 1)
+                    body<Organization>() shouldBe Organization(
+                        createdOrg.id,
+                        (updatedOrganization.name as OptionalValue.Present).value,
+                        (updatedOrganization.description as OptionalValue.Present).value
+                    )
                 }
 
-                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel()
-                    .shouldBe(updatedOrganization.copy(id = createdOrg.id))
+                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                    createdOrg.id,
+                    (updatedOrganization.name as OptionalValue.Present).value,
+                    (updatedOrganization.description as OptionalValue.Present).value
+                )
+            }
+        }
+
+        test("PATCH /organizations/{organizationId} should be able to delete a value and ignore absent values") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+
+                val org = CreateOrganization("testOrg", "description")
+                val createdOrg = OrganizationsRepository.createOrganization(org)
+
+                val client = createJsonClient(Json)
+
+                val organizationUpdateRequest = UpdateOrganization(
+                    name = OptionalValue.Absent,
+                    description = OptionalValue.Null
+                )
+
+                val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
+                    headers { contentType(ContentType.Application.Json) }
+                    setBody(organizationUpdateRequest)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Organization>() shouldBe Organization(
+                        id = createdOrg.id,
+                        org.name,
+                        description = null
+                    )
+                }
+
+                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                    id = createdOrg.id,
+                    org.name,
+                    description = null
+                )
             }
         }
 
@@ -173,8 +226,8 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = Organization(name = "testOrg", description = "description of testOrg")
-                val createdOrg = OrganizationsRepository.createOrganization(org.name, org.description)
+                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
+                val createdOrg = OrganizationsRepository.createOrganization(org)
 
                 val client = createJsonClient()
 

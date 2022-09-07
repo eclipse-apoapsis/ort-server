@@ -27,6 +27,7 @@ import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.core.client.KeycloakService
+import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
@@ -37,6 +38,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
             ignoreUnknownKeys = true
             encodeDefaults = true
             explicitNulls = false
+            serializersModule = customSerializersModule
         }
     }
 

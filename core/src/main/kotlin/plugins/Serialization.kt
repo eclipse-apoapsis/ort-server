@@ -26,8 +26,12 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 
 import org.koin.ktor.ext.inject
+
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValueSerializer
 
 fun Application.configureSerialization() {
     val json: Json by inject()
@@ -35,4 +39,8 @@ fun Application.configureSerialization() {
     install(ContentNegotiation) {
         serialization(ContentType.Application.Json, json)
     }
+}
+
+val customSerializersModule = SerializersModule {
+    contextual(OptionalValue::class) { args -> OptionalValueSerializer(args[0]) }
 }

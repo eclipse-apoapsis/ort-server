@@ -26,13 +26,14 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
-import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
-import org.ossreviewtoolkit.server.shared.models.api.Organization
+import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
+import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
 
 fun Route.organizations() = route("organizations") {
     get {
@@ -51,19 +52,18 @@ fun Route.organizations() = route("organizations") {
     }
 
     post {
-        val organization = call.receive<Organization>()
+        val createOrganization = call.receive<CreateOrganization>()
 
-        val createdOrganization =
-            OrganizationsRepository.createOrganization(organization.name, organization.description)
+        val createdOrganization = OrganizationsRepository.createOrganization(createOrganization)
 
         call.respond(HttpStatusCode.Created, createdOrganization.mapToApiModel())
     }
 
-    put("/{organizationId}") {
+    patch("/{organizationId}") {
         val organizationId = call.requireParameter("organizationId").toLong()
-        val org = call.receive<Organization>()
+        val org = call.receive<UpdateOrganization>()
 
-        val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org.name, org.description)
+        val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org)
 
         call.respond(HttpStatusCode.OK, updatedOrg.mapToApiModel())
     }

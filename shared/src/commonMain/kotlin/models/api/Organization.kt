@@ -21,16 +21,36 @@ package org.ossreviewtoolkit.server.shared.models.api
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+
 /**
  * Response object for the organization endpoint. Used to group multiple users and projects into organizations.
  */
 @Serializable
 data class Organization(
-    val id: Long? = null,
+    val id: Long,
 
     /** The unique name of the organization. */
     val name: String,
 
     /** The optional description of the organization. */
-    val description: String = ""
+    val description: String? = null
+)
+
+/**
+ * Request object for the create organization endpoint.
+ */
+@Serializable
+data class CreateOrganization(
+    val name: String,
+    val description: String? = null
+)
+
+/**
+ * Request object for the update organization endpoint.
+ */
+@Serializable
+data class UpdateOrganization(
+    val name: OptionalValue<String> = OptionalValue.Absent,
+    val description: OptionalValue<String?> = OptionalValue.Absent
 )
