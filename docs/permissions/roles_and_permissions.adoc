@@ -1,0 +1,251 @@
+= Roles and Permissions
+
+This document describes the basic concept of how roles and permissions are managed in the ORT Server.
+
+== Keycloak
+
+The ORT Server is integrated with https://www.keycloak.org/[Keycloak] for identity and access management. Therefore, all
+roles and permissions are managed by Keycloak, and the server defines which roles and permissions exist. Keycloak itself
+knows only roles, therefore all roles and permissions described below will be represented by roles in Keycloak.
+
+== Entities
+
+This section summarizes the entities that are relevant to the access management.
+
+=== Permission
+
+A permission to perform a specific action on the ORT Server.
+
+=== Role
+
+A role is a group of permissions.
+
+=== User
+
+A single user that can log in to the ORT Server. A user can have assigned roles.
+
+=== Group
+
+A group of users than can have assigned roles. All users in the group inherit all roles from the group.
+
+== Specification
+
+This specifies the available roles and permissions for organizations, products, and repositories in the ORT Server.
+Other parts of the ORT Server data model are ignored for now, but should be implemented in a similar way.
+
+Organizations are a root entity used for grouping content in the ORT Server. Each organization can have multiple
+products, and each product can have multiple repositories. A repository represents a VCS repository, for example a Git
+repository on GitHub.
+
+For now, the ORT Server will support a static role concept which might later be extended to support the customization
+of roles and permissions assigned to them. While it is possible to freely customize roles in Keycloak, the ORT Server
+needs to know the meaning of those roles to properly manage access and the management of roles will be handled by the
+ORT Server only, because manual changes to the roles in Keycloak can lead to unexpected results. However, assigning
+roles to users and groups and managing groups can be done in Keycloak, although the ORT Server might also provide an API
+to manage this. Note that the ORT Server will not provide a UI in the beginning, that means there will also not be a UI
+to manage users and groups and this can only be done in Keycloak.
+
+Please note that the roles and permissions below are just a draft and the defined roles and assigned permissions are
+subject to further discussion.
+
+=== Organizations
+
+==== Permissions
+
+|===
+|Name|Function|Name in Keycloak
+
+|READ
+|Read organization details
+|org_$id_read
+
+|WRITE
+|Write organization details
+|org_$id_write
+
+|READ_PRODUCTS
+|Read list of products
+|org_$id_read_products
+
+|CREATE_PRODUCT
+|Create a new product in the organization
+|org_$id_create_product
+
+|DELETE_ORGANIZATION
+|Delete the organization
+|org_$id_delete
+|===
+
+==== Roles
+
+|===
+|Name|Permissions|Name in Keycloak
+
+|Reader
+|READ, READ_PRODUCTS
+|org_$id_role_reader
+
+|Writer
+|READ, READ_PRODUCTS, CREATE_PRODUCT
+|org_$id_role_writer
+
+|Administrator
+|*
+|org_$id_role_administrator
+|===
+
+=== Products
+
+==== Permissions
+
+|===
+|Name|Function|Name in Keycloak
+
+|READ
+|Read product details
+|product_$id_read
+
+|WRITE
+|Write product details
+|product_$id_write
+
+|READ_REPOSITORIES
+|Read list of repositories
+|product_$id_read_repositories
+
+|CREATE_REPOSITORY
+|Create a new repository in the product
+|product_$id_create_repository
+
+|DELETE_PRODUCT
+|Delete the product
+|product_$id_delete
+|===
+
+==== Roles
+
+|===
+|Name|Permissions|Name in Keycloak
+
+|Reader
+|READ, READ_REPOSITORIES
+|product_$id_role_reader
+
+|Writer
+|READ, READ_REPOSITORIES, CREATE_REPOSITORY
+|product_$id_role_writer
+
+|Administrator
+|*
+|product_$id_role_administrator
+|===
+
+=== Repositories
+
+==== Permissions
+
+|===
+|Name|Function|Name in Keycloak
+
+|READ
+|Read repository details
+|repository_$id_read
+
+|WRITE
+|Write repository details
+|repository_$id_write
+
+|READ_SCANS
+|Read scan results
+|repository_$id_read_scans
+
+|TRIGGER_SCAN
+|Trigger a new scan of the repository
+|repository_$id_trigger_scan
+
+|DELETE_REPOSITORY
+|Delete the repository
+|repository_$id_delete
+|===
+
+==== Roles
+
+|===
+|Name|Permissions|Name in Keycloak
+
+|Reader
+|READ, READ_SCANS
+|repository_$id_role_reader
+
+|Writer
+|READ, READ_SCANS, TRIGGER_SCAN
+|repository_$id_role_writer
+
+|Administrator
+|*
+|repository_$id_role_administrator
+|===
+
+=== Hierarchy
+
+The roles defined above are also hierarchical, that means that for example the reader role for an organization includes
+reader roles for all products in the organization, and the reader role for a product includes reader roles for all
+repositories in the product. Conversely, roles also sometimes need to contain permissions for the parent objects, for
+example the reader role for a product at least also needs the read permission for the related organization.
+
+The idea behind this is to simplify checking for access permissions in the backend, because there are often multiple
+roles that can give access to a resource. For example, an organization administrator is also an administrator for all
+products in the organization. So, when performing an action on a product that requires admin permissions the backend
+would have to check if the user is either an administrator for the product or an administrator for the organization.
+With the hierarchical concept it only needs to check for the specific permission, because the organization administrator
+role contains all product administrator roles and therefore also all permissions for all products.
+
+=== Examples
+
+Below is a list of the roles and permissions for the following setup:
+
+* Org 1
+** Product 1
+*** Repository 1
+
+==== Roles
+
+|===
+|Name|Permissions|Contained Roles
+
+|org_1_reader
+|org_1_read, org_1_read_products
+|product_1_reader
+
+|org_1_writer
+|org_1_create_product
+|org_1_reader, product_1_writer
+
+|org_1_administrator
+|org_1_delete
+|org_1_writer, product_1_administrator
+
+|product_1_reader
+|product_1_read, product_1_read_repositories, org_1_read
+|repository_1_reader
+
+|product_1_writer
+|product_1_create_repository
+|product_1_reader, repository_1_writer
+
+|product1_administrator
+|product_1_write, product_1_delete
+|product_1_writer, repository_1_administrator
+
+|repository_1_reader
+|repository_1_read, repository_1_read_scans, product_1_read, org_1_read
+|
+
+|repository_1_writer
+|repository_1_trigger_scan
+|repository_1_reader
+
+|repository_1_administrator
+|repository_1_write, repository_1_delete
+|repository_1_writer
+|===
