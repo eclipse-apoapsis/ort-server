@@ -209,14 +209,14 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     status shouldBe HttpStatusCode.OK
                     body<Organization>() shouldBe Organization(
                         id = createdOrg.id,
-                        org.name,
+                        name = org.name,
                         description = null
                     )
                 }
 
                 OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
                     id = createdOrg.id,
-                    org.name,
+                    name = org.name,
                     description = null
                 )
             }
