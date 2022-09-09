@@ -42,15 +42,6 @@ fun Route.organizations() = route("organizations") {
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApiModel() })
     }
 
-    get("/{organizationId}") {
-        val id = call.requireParameter("organizationId").toLong()
-
-        val organization = OrganizationsRepository.getOrganization(id)
-
-        organization?.let { call.respond(HttpStatusCode.OK, it.mapToApiModel()) }
-            ?: call.respond(HttpStatusCode.NotFound)
-    }
-
     post {
         val createOrganization = call.receive<CreateOrganization>()
 
@@ -59,20 +50,31 @@ fun Route.organizations() = route("organizations") {
         call.respond(HttpStatusCode.Created, createdOrganization.mapToApiModel())
     }
 
-    patch("/{organizationId}") {
-        val organizationId = call.requireParameter("organizationId").toLong()
-        val org = call.receive<UpdateOrganization>()
+    route("{organizationId}") {
+        get {
+            val id = call.requireParameter("organizationId").toLong()
 
-        val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org)
+            val organization = OrganizationsRepository.getOrganization(id)
 
-        call.respond(HttpStatusCode.OK, updatedOrg.mapToApiModel())
-    }
+            organization?.let { call.respond(HttpStatusCode.OK, it.mapToApiModel()) }
+                ?: call.respond(HttpStatusCode.NotFound)
+        }
 
-    delete("/{organizationId}") {
-        val id = call.requireParameter("organizationId").toLong()
+        patch {
+            val organizationId = call.requireParameter("organizationId").toLong()
+            val org = call.receive<UpdateOrganization>()
 
-        OrganizationsRepository.deleteOrganization(id)
+            val updatedOrg = OrganizationsRepository.updateOrganization(organizationId, org)
 
-        call.respond(HttpStatusCode.NoContent)
+            call.respond(HttpStatusCode.OK, updatedOrg.mapToApiModel())
+        }
+
+        delete {
+            val id = call.requireParameter("organizationId").toLong()
+
+            OrganizationsRepository.deleteOrganization(id)
+
+            call.respond(HttpStatusCode.NoContent)
+        }
     }
 }
