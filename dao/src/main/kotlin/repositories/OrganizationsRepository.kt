@@ -78,7 +78,7 @@ object OrganizationsRepository {
         val org = OrganizationDao[id]
 
         updateOrganization.name.ifPresent { org.name = it }
-        updateOrganization.description.ifNotAbsent { org.description = it }
+        updateOrganization.description.ifPresent { org.description = it }
 
         OrganizationDao[id].mapToEntity()
     }.getOrThrow()

@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.shared.models.api.common
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -27,10 +26,9 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 /**
- * A property type that can be used for PATCH requests. It represents three different states:
+ * A property type that can be used for PATCH requests. It represents two different states:
  * * [OptionalValue.Present]
  * * [OptionalValue.Absent]
- * * [OptionalValue.Null]
  */
 @Serializable(with = OptionalValueSerializer::class)
 sealed interface OptionalValue<out T> {
@@ -47,11 +45,6 @@ sealed interface OptionalValue<out T> {
     object Absent: OptionalValue<Nothing>
 
     /**
-     * Explicitly set to null, will result in deleting the value.
-     */
-    object Null: OptionalValue<Nothing>
-
-    /**
      * Execute [function] if this value is [Present].
      */
     fun ifPresent(function: (T) -> Unit) {
@@ -59,34 +52,27 @@ sealed interface OptionalValue<out T> {
     }
 
     /**
-     * Execute [function] if this value is not [Absent].
+     * Execute [function] if this value is [Absent].
      */
-    fun ifNotAbsent(function: (T?) -> Unit) {
+    fun ifAbsent(function: () -> Unit) {
         when (this) {
-            is Present -> function(value)
-            is Null -> function(null)
+            is Absent -> function()
             else -> return
         }
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : KSerializer<OptionalValue<T>> {
     override val descriptor: SerialDescriptor = valueSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): OptionalValue<T> {
         val value = valueSerializer.deserialize(decoder)
-        return if (value != null) {
-            OptionalValue.Present(value)
-        } else {
-            OptionalValue.Null
-        }
+        return OptionalValue.Present(value)
     }
 
     override fun serialize(encoder: Encoder, value: OptionalValue<T>) {
         when (value) {
             is OptionalValue.Absent -> {}
-            is OptionalValue.Null -> encoder.encodeNull()
             is OptionalValue.Present -> valueSerializer.serialize(encoder, value.value)
         }
     }

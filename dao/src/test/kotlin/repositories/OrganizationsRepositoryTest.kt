@@ -83,7 +83,7 @@ class OrganizationsRepositoryTest : DatabaseTest() {
 
             val updatedOrg = UpdateOrganization(
                 name = OptionalValue.Absent,
-                description = OptionalValue.Null
+                description = OptionalValue.Present(null)
             )
 
             OrganizationsRepository.updateOrganization(createdOrg.id, updatedOrg)

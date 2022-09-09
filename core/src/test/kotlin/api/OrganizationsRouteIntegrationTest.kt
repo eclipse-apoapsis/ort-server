@@ -197,7 +197,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val organizationUpdateRequest = UpdateOrganization(
                     name = OptionalValue.Absent,
-                    description = OptionalValue.Null
+                    description = OptionalValue.Present(null)
                 )
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
