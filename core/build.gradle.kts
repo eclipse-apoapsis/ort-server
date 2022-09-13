@@ -25,8 +25,9 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server.core"
+group = "org.ossreviewtoolkit.server"
 version = "0.0.1"
+
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
 

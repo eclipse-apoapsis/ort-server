@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-group = "org.ossreviewtoolkit.server.dao"
+group = "org.ossreviewtoolkit.server"
 version = "0.0.1"
 
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.

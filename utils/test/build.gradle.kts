@@ -22,7 +22,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server.utils.test"
+group = "org.ossreviewtoolkit.server.utils"
 version = "0.0.1"
 
 tasks.getByName<Test>("test") {
