@@ -24,7 +24,7 @@ versionCatalogUpdatePlugin = "0.5.3"
 versionsPlugin = "0.42.0"
 
 exposed = "0.39.2"
-flyway = "9.2.0"
+flyway = "9.3.0"
 hikari = "5.0.1"
 keycloakTestcontainerVersion = "2.3.0"
 koin = "3.2.1"
