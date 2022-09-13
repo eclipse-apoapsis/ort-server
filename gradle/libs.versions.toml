@@ -20,7 +20,7 @@ buildConfigPlugin = "3.1.0"
 detektPlugin = "1.21.0"
 kotlinPlugin = "1.7.10"
 kotlinxSerialization = "1.4.0"
-versionCatalogUpdatePlugin = "0.5.3"
+versionCatalogUpdatePlugin = "0.6.1"
 versionsPlugin = "0.42.0"
 
 exposed = "0.39.2"
