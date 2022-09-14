@@ -19,15 +19,16 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.delete
+import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.patch
+import io.github.smiley4.ktorswaggerui.dsl.post
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.patch
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
@@ -36,19 +37,26 @@ import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.apiDocs.deleteOrganizationById
+import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationById
+import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationProducts
+import org.ossreviewtoolkit.server.core.apiDocs.getOrganizations
+import org.ossreviewtoolkit.server.core.apiDocs.patchOrganizationById
+import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
+import org.ossreviewtoolkit.server.core.apiDocs.postProduct
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.OrganizationService
 
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
 
-    get {
+    get(getOrganizations) {
         val organizations = organizationService.listOrganizations()
 
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApi() })
     }
 
-    post {
+    post(postOrganizations) {
         val createOrganization = call.receive<CreateOrganization>()
 
         val createdOrganization =
@@ -58,7 +66,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     route("{organizationId}") {
-        get {
+        get(getOrganizationById) {
             val id = call.requireParameter("organizationId").toLong()
 
             val organization = organizationService.getOrganization(id)
@@ -67,7 +75,7 @@ fun Route.organizations() = route("organizations") {
                 ?: call.respond(HttpStatusCode.NotFound)
         }
 
-        patch {
+        patch(patchOrganizationById) {
             val organizationId = call.requireParameter("organizationId").toLong()
             val org = call.receive<UpdateOrganization>()
 
@@ -76,7 +84,7 @@ fun Route.organizations() = route("organizations") {
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }
 
-        delete {
+        delete(deleteOrganizationById) {
             val id = call.requireParameter("organizationId").toLong()
 
             organizationService.deleteOrganization(id)
@@ -84,7 +92,7 @@ fun Route.organizations() = route("organizations") {
             call.respond(HttpStatusCode.NoContent)
         }
 
-        get("products") {
+        get("products", getOrganizationProducts) {
             val orgId = call.requireParameter("organizationId").toLong()
 
             call.respond(
@@ -93,7 +101,7 @@ fun Route.organizations() = route("organizations") {
             )
         }
 
-        post("products") {
+        post("products", postProduct) {
             val createProduct = call.receive<CreateProduct>()
             val orgId = call.requireParameter("organizationId").toLong()
 

@@ -17,23 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.ossreviewtoolkit.server.core.apiDocs
 
-import io.ktor.server.application.Application
+import io.github.smiley4.ktorswaggerui.dsl.OpenApiBody
+import io.github.smiley4.ktorswaggerui.dsl.OpenApiRequest
+import io.github.smiley4.ktorswaggerui.dsl.OpenApiResponse
 
-import org.ossreviewtoolkit.server.core.plugins.*
+import io.ktor.http.ContentType
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+inline fun <reified T> OpenApiRequest.jsonBody(noinline block: OpenApiBody.() -> Unit) =
+    body<T> {
+        mediaType(ContentType.Application.Json)
+        block()
+    }
 
-@Suppress("Unused")
-fun Application.module() {
-    configureKoin()
-    configureAuthentication()
-    configureStatusPages()
-    configureRouting()
-    configureSerialization()
-    configureMonitoring()
-    configureHTTP()
-    configureDatabase()
-    configureOpenApi()
-}
+inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiBody.() -> Unit) =
+    body<T> {
+        mediaType(ContentType.Application.Json)
+        block()
+    }

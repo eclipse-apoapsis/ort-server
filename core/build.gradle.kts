@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":services"))
 
+    implementation(libs.jsonSchemaSerialization)
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientCore)
@@ -60,6 +61,7 @@ dependencies {
     implementation(libs.ktorServerDefaultHeaders)
     implementation(libs.ktorServerNetty)
     implementation(libs.ktorServerStatusPages)
+    implementation(libs.ktorSwaggerUi)
     implementation(libs.logback)
 
     testImplementation(project(":utils:test"))
