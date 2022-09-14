@@ -28,9 +28,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
@@ -93,7 +91,6 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 )
                 val response = client.patch("/api/v1/products/${createdProduct.id}") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(updatedProduct)

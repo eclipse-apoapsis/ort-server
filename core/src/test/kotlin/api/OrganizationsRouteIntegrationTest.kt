@@ -29,9 +29,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
@@ -133,7 +131,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val response = client.post("/api/v1/organizations") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(org)
@@ -161,7 +158,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val response = client.post("/api/v1/organizations") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(org)
@@ -188,7 +184,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 )
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(updatedOrganization)
@@ -227,7 +222,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(organizationUpdateRequest)
@@ -285,7 +279,6 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 val product = CreateProduct("product", "description")
                 val response = client.post("/api/v1/organizations/$orgId/products") {
                     headers {
-                        contentType(ContentType.Application.Json)
                         basicTestAuth()
                     }
                     setBody(product)

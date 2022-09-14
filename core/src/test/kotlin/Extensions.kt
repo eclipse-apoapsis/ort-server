@@ -23,15 +23,21 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.headers
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.util.KtorDsl
+import io.ktor.util.appendIfNameAbsent
 
 import kotlinx.serialization.json.Json
 
 /**
- * Create a client with [JSON ContentNegotiation][json] installed. Can be further configured with [block].
+ * Create a client with [JSON ContentNegotiation][json] installed and default content type set to `application/json`.
+ * Can be further configured with [block].
  */
 @KtorDsl
 fun ApplicationTestBuilder.createJsonClient(
@@ -40,6 +46,10 @@ fun ApplicationTestBuilder.createJsonClient(
 ): HttpClient = createClient {
     install(ContentNegotiation) {
         json(json)
+    }
+
+    defaultRequest {
+        headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json.toString())
     }
 
     block()
