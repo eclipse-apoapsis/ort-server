@@ -35,14 +35,14 @@ sealed interface OptionalValue<out T> {
     /**
      * Value is present, the entry will be updated with [value].
      */
-    class Present<T>(val value: T): OptionalValue<T> {
+    class Present<T>(val value: T) : OptionalValue<T> {
         override fun toString() = value.toString()
     }
 
     /**
      * Omitted from the request, will be ignored in the update.
      */
-    object Absent: OptionalValue<Nothing>
+    object Absent : OptionalValue<Nothing>
 
     /**
      * Execute [function] if this value is [Present].

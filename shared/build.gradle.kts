@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import io.gitlab.arturbosch.detekt.Detekt
+
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -43,4 +45,8 @@ kotlin {
 
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
+}
+
+tasks.named<Detekt>("detekt") {
+    dependsOn("detektMetadataMain")
 }
