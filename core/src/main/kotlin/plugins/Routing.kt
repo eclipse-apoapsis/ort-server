@@ -27,6 +27,7 @@ import io.ktor.server.routing.routing
 import org.ossreviewtoolkit.server.core.api.healthChecks
 import org.ossreviewtoolkit.server.core.api.organizations
 import org.ossreviewtoolkit.server.core.api.products
+import org.ossreviewtoolkit.server.core.api.repositories
 
 fun Application.configureRouting() {
     routing {
@@ -35,6 +36,7 @@ fun Application.configureRouting() {
             authenticate(SecurityConfigurations.token) {
                 organizations()
                 products()
+                repositories()
             }
         }
     }

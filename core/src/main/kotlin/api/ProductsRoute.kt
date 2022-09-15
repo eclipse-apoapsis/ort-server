@@ -27,10 +27,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
+import org.ossreviewtoolkit.server.dao.repositories.RepositoriesRepository
+import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
 import org.ossreviewtoolkit.server.shared.models.api.UpdateProduct
 
 fun Route.products() = route("products/{productId}") {
@@ -61,5 +64,26 @@ fun Route.products() = route("products/{productId}") {
         ProductsRepository.deleteProduct(id)
 
         call.respond(HttpStatusCode.NoContent)
+    }
+
+    route("repositories") {
+        get {
+            val id = call.requireParameter("productId").toLong()
+
+            call.respond(
+                HttpStatusCode.OK,
+                RepositoriesRepository.listRepositoriesForProduct(id).map { it.mapToApiModel() }
+            )
+        }
+
+        post {
+            val id = call.requireParameter("productId").toLong()
+            val createRepository = call.receive<CreateRepository>()
+
+            call.respond(
+                HttpStatusCode.Created,
+                RepositoriesRepository.createRepository(id, createRepository).mapToApiModel()
+            )
+        }
     }
 }
