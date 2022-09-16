@@ -17,10 +17,36 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+import io.gitlab.arturbosch.detekt.Detekt
 
-include(":core")
-include(":dao")
-include(":model")
-include(":shared")
-include(":utils:test")
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
+}
+
+kotlin {
+    jvm()
+
+    @Suppress("UnusedPrivateMember")
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+            }
+        }
+    }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+}
+
+tasks.named<Detekt>("detekt") {
+    dependsOn("detektMetadataMain")
+}
