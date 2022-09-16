@@ -19,14 +19,15 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.delete
+import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.patch
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.patch
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
@@ -34,20 +35,23 @@ import org.koin.ktor.ext.inject
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
+import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.RepositoryService
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryService by inject<RepositoryService>()
 
-    get {
+    get(getRepositoryById) {
         val id = call.requireParameter("repositoryId").toLong()
 
         repositoryService.getRepository(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    patch {
+    patch(patchRepositoryById) {
         val id = call.requireParameter("repositoryId").toLong()
         val updateRepository = call.receive<UpdateRepository>()
 
@@ -57,7 +61,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
 
-    delete {
+    delete(deleteRepositoryById) {
         val id = call.requireParameter("repositoryId").toLong()
 
         repositoryService.deleteRepository(id)
