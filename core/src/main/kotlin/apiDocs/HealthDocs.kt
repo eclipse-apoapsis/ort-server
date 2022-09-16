@@ -17,14 +17,25 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.ossreviewtoolkit.server.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
-import io.ktor.server.application.call
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
+import io.ktor.http.HttpStatusCode
 
-fun Route.healthChecks() = get("liveness") {
-    call.respond(Liveness(message = "ORT Server running"))
+import org.ossreviewtoolkit.server.core.api.Liveness
+
+val getLiveness: OpenApiRoute.() -> Unit = {
+    operationId = "GetLiveness"
+    summary = "Get the health of the ORT server."
+    tags = listOf("Health")
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Liveness> {
+                example("Liveness", Liveness("ORT Server running"))
+            }
+        }
+    }
 }
