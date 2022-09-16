@@ -25,8 +25,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
-import org.ossreviewtoolkit.server.dao.entities.RepositoryEntity
-import org.ossreviewtoolkit.server.shared.models.api.RepositoryType
+import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.RepositoryType
 
 /**
  * A table to represent a repository inside a product.
@@ -44,5 +44,5 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
     var url by RepositoriesTable.url
     var product by ProductDao referencedOn RepositoriesTable.product
 
-    fun mapToEntity() = RepositoryEntity(id.value, type, url)
+    fun mapToModel() = Repository(id.value, type, url)
 }

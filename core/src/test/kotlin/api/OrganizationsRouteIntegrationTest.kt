@@ -38,8 +38,10 @@ import kotlinx.serialization.json.Json
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
-import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
 import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
 import org.ossreviewtoolkit.server.shared.models.api.Organization
@@ -49,18 +51,23 @@ import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRouteIntegrationTest : DatabaseTest() {
-    override suspend fun beforeTest(testCase: TestCase) = dataSource.connect()
+    private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var productRepository: ProductRepository
+
+    override suspend fun beforeTest(testCase: TestCase) {
+        dataSource.connect()
+
+        organizationRepository = DaoOrganizationRepository()
+        productRepository = DaoProductRepository()
+    }
 
     init {
         test("GET /organizations should return all existing organizations") {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org1 = CreateOrganization(name = "testOrg1", description = "description of testOrg")
-                val org2 = CreateOrganization(name = "testOrg2", description = "description of testOrg")
-
-                val createdOrganization1 = OrganizationsRepository.createOrganization(org1)
-                val createdOrganization2 = OrganizationsRepository.createOrganization(org2)
+                val org1 = organizationRepository.create(name = "name1", description = "description1")
+                val org2 = organizationRepository.create(name = "name2", description = "description2")
 
                 val client = createJsonClient()
 
@@ -72,10 +79,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<List<Organization>>() shouldBe listOf(
-                        Organization(createdOrganization1.id, org1.name, org1.description),
-                        Organization(createdOrganization2.id, org2.name, org2.description)
-                    )
+                    body<List<Organization>>() shouldBe listOf(org1.mapToApi(), org2.mapToApi())
                 }
             }
         }
@@ -84,9 +88,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
+                val name = "name"
+                val description = "description"
 
-                val createdOrganization = OrganizationsRepository.createOrganization(org)
+                val createdOrganization = organizationRepository.create(name = name, description = description)
 
                 val client = createJsonClient()
 
@@ -98,7 +103,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe Organization(createdOrganization.id, org.name, org.description)
+                    body<Organization>() shouldBe Organization(createdOrganization.id, name, description)
                 }
             }
         }
@@ -127,7 +132,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
                 val client = createJsonClient()
 
-                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
+                val org = CreateOrganization(name = "name", description = "description")
 
                 val response = client.post("/api/v1/organizations") {
                     headers {
@@ -141,7 +146,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     body<Organization>() shouldBe Organization(1, org.name, org.description)
                 }
 
-                OrganizationsRepository.getOrganization(1)?.mapToApiModel().shouldBe(
+                organizationRepository.get(1)?.mapToApi().shouldBe(
                     Organization(1, org.name, org.description)
                 )
             }
@@ -151,8 +156,12 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
-                OrganizationsRepository.createOrganization(org)
+                val name = "name"
+                val description = "description"
+
+                organizationRepository.create(name = name, description = description)
+
+                val org = CreateOrganization(name = name, description = description)
 
                 val client = createJsonClient()
 
@@ -173,8 +182,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
-                val createdOrg = OrganizationsRepository.createOrganization(org)
+                val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
 
@@ -198,7 +206,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     )
                 }
 
-                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                organizationRepository.get(createdOrg.id)?.mapToApi() shouldBe Organization(
                     createdOrg.id,
                     (updatedOrganization.name as OptionalValue.Present).value,
                     (updatedOrganization.description as OptionalValue.Present).value
@@ -210,8 +218,10 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = CreateOrganization("testOrg", "description")
-                val createdOrg = OrganizationsRepository.createOrganization(org)
+                val name = "name"
+                val description = "description"
+
+                val createdOrg = organizationRepository.create(name = name, description = description)
 
                 val client = createJsonClient(Json)
 
@@ -231,14 +241,14 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     status shouldBe HttpStatusCode.OK
                     body<Organization>() shouldBe Organization(
                         id = createdOrg.id,
-                        name = org.name,
+                        name = name,
                         description = null
                     )
                 }
 
-                OrganizationsRepository.getOrganization(createdOrg.id)?.mapToApiModel() shouldBe Organization(
+                organizationRepository.get(createdOrg.id)?.mapToApi() shouldBe Organization(
                     id = createdOrg.id,
-                    name = org.name,
+                    name = name,
                     description = null
                 )
             }
@@ -248,8 +258,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             testApplication {
                 environment { config = ApplicationConfig("application-nodb.conf") }
 
-                val org = CreateOrganization(name = "testOrg", description = "description of testOrg")
-                val createdOrg = OrganizationsRepository.createOrganization(org)
+                val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
 
@@ -263,7 +272,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     status shouldBe HttpStatusCode.NoContent
                 }
 
-                OrganizationsRepository.listOrganizations() shouldBe emptyList()
+                organizationRepository.list() shouldBe emptyList()
             }
         }
 
@@ -272,9 +281,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val orgId = OrganizationsRepository.createOrganization(
-                    CreateOrganization("testOrg", "description of testOrg")
-                ).id
+                val orgId = organizationRepository.create(name = "name", description = "description").id
 
                 val product = CreateProduct("product", "description")
                 val response = client.post("/api/v1/organizations/$orgId/products") {
@@ -289,7 +296,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                     body<Product>() shouldBe Product(1, product.name, product.description)
                 }
 
-                ProductsRepository.getProduct(1)?.mapToApiModel() shouldBe Product(1, product.name, product.description)
+                productRepository.get(1)?.mapToApi() shouldBe Product(1, product.name, product.description)
             }
         }
 
@@ -298,15 +305,17 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val orgId = OrganizationsRepository.createOrganization(
-                    CreateOrganization("testOrg", "description of testOrg")
-                ).id
+                val orgId = organizationRepository.create(name = "name", description = "description").id
 
-                val product1 = CreateProduct("product1", "description")
-                val product2 = CreateProduct("product2", "description")
+                val name1 = "name1"
+                val name2 = "name2"
+                val description = "description"
 
-                val createdProduct1 = ProductsRepository.createProduct(orgId, product1)
-                val createdProduct2 = ProductsRepository.createProduct(orgId, product2)
+                val createdProduct1 =
+                    productRepository.create(name = name1, description = description, organizationId = orgId)
+                val createdProduct2 =
+                    productRepository.create(name = name2, description = description, organizationId = orgId)
+
                 val response = client.get("/api/v1/organizations/$orgId/products") {
                     headers {
                         basicTestAuth()
@@ -316,8 +325,8 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
                 with(response) {
                     status shouldBe HttpStatusCode.OK
                     body<List<Product>>() shouldBe listOf(
-                        Product(createdProduct1.id, product1.name, product1.description),
-                        Product(createdProduct2.id, product2.name, product2.description)
+                        Product(createdProduct1.id, name1, description),
+                        Product(createdProduct2.id, name2, description)
                     )
                 }
             }

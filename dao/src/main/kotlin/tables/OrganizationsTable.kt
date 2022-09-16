@@ -24,7 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.dao.entities.OrganizationEntity
+import org.ossreviewtoolkit.server.model.Organization
 
 object OrganizationsTable : LongIdTable("organizations") {
     val name = text("name")
@@ -37,5 +37,5 @@ class OrganizationDao(id: EntityID<Long>) : LongEntity(id) {
     var name by OrganizationsTable.name
     var description by OrganizationsTable.description
 
-    fun mapToEntity() = OrganizationEntity(id.value, name, description)
+    fun mapToModel() = Organization(id.value, name, description)
 }

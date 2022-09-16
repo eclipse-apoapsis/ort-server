@@ -1,0 +1,122 @@
+/*
+ * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.dao.test.repositories
+
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.test.TestCase
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+
+import org.ossreviewtoolkit.server.dao.UniqueConstraintException
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.utils.test.DatabaseTest
+
+class DaoProductRepositoryTest : DatabaseTest() {
+    private lateinit var organizationRepository: DaoOrganizationRepository
+    private lateinit var productRepository: DaoProductRepository
+
+    private var orgId = -1L
+
+    override suspend fun beforeTest(testCase: TestCase) {
+        dataSource.connect()
+
+        organizationRepository = DaoOrganizationRepository()
+        productRepository = DaoProductRepository()
+
+        orgId = organizationRepository.create(name = "name", description = "description").id
+    }
+
+    init {
+        test("create should create an entry in the database") {
+            val name = "name"
+            val description = "description"
+
+            val createdProduct = productRepository.create(name, description, orgId)
+
+            val dbEntry = productRepository.get(createdProduct.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe Product(createdProduct.id, name, description)
+        }
+
+        test("create with the same product name and organization should throw") {
+            val name = "name"
+            val description = "description"
+
+            productRepository.create(name, description, orgId)
+
+            shouldThrow<UniqueConstraintException> {
+                productRepository.create(name, description, orgId)
+            }
+        }
+
+        test("listForOrganization should return all products for an organization") {
+            val otherOrgId = organizationRepository.create(name = "otherOrg", description = "org description").id
+
+            val name1 = "name1"
+            val description1 = "description1"
+
+            val name2 = "name2"
+            val description2 = "description2"
+
+            val createdProduct1 = productRepository.create(name1, description1, orgId)
+            val createdProduct2 = productRepository.create(name2, description2, orgId)
+            productRepository.create(name1, description1, otherOrgId)
+
+            productRepository.listForOrganization(orgId) shouldBe listOf(
+                Product(createdProduct1.id, name1, description1),
+                Product(createdProduct2.id, name2, description2)
+            )
+        }
+
+        test("update should update an entry in the database") {
+            val createdProduct = productRepository.create("name", "description", orgId)
+
+            val updateName = OptionalValue.Present("updatedName")
+            val updateDescription = OptionalValue.Present("updatedDescription")
+
+            val updateResult = productRepository.update(createdProduct.id, updateName, updateDescription)
+
+            updateResult shouldBe Product(
+                createdProduct.id,
+                updateName.value,
+                updateDescription.value,
+            )
+
+            productRepository.get(createdProduct.id) shouldBe Product(
+                createdProduct.id,
+                updateName.value,
+                updateDescription.value,
+            )
+        }
+
+        test("delete should delete the database entry") {
+            val createdProduct = productRepository.create("name", "description", orgId)
+
+            productRepository.delete(createdProduct.id)
+
+            productRepository.listForOrganization(orgId) shouldBe emptyList()
+        }
+    }
+}

@@ -41,8 +41,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.testing.testApplication
 
-import io.mockk.coEvery
-import io.mockk.mockkObject
 import io.mockk.unmockkAll
 
 import java.io.File
@@ -65,7 +63,6 @@ import org.ossreviewtoolkit.server.core.plugins.configureKoin
 import org.ossreviewtoolkit.server.core.plugins.configureRouting
 import org.ossreviewtoolkit.server.core.plugins.configureSerialization
 import org.ossreviewtoolkit.server.core.plugins.configureStatusPages
-import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
 
 private const val CERT_STORE = "testkeycloak.jks"
 private const val CERT_ENTRY = "testkeycloak"
@@ -85,9 +82,6 @@ class AuthenticationIntegrationTest : FunSpec() {
     override suspend fun beforeSpec(spec: Spec) {
         server.start()
         server.stubJwks(issuerData)
-
-        mockkObject(OrganizationsRepository)
-        coEvery { OrganizationsRepository.getOrganization(any()) } returns null
     }
 
     override suspend fun afterSpec(spec: Spec) {

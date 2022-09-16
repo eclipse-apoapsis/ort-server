@@ -30,7 +30,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":shared"))
+    implementation(project(":model"))
 
     api(libs.exposedDao)
 

@@ -41,6 +41,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":dao"))
+    implementation(project(":model"))
     implementation(project(":shared"))
 
     implementation(libs.ktorClientAuth)

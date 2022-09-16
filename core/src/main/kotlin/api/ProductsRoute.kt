@@ -30,20 +30,25 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
+import org.koin.ktor.ext.inject
+
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
-import org.ossreviewtoolkit.server.dao.repositories.RepositoriesRepository
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
 import org.ossreviewtoolkit.server.shared.models.api.UpdateProduct
 
 fun Route.products() = route("products/{productId}") {
+    val productRepository by inject<ProductRepository>()
+    val repositoryRepository by inject<RepositoryRepository>()
+
     get {
         val id = call.requireParameter("productId").toLong()
 
-        val product = ProductsRepository.getProduct(id)
+        val product = productRepository.get(id)
 
         if (product != null) {
-            call.respond(HttpStatusCode.OK, product.mapToApiModel())
+            call.respond(HttpStatusCode.OK, product.mapToApi())
         } else {
             call.respond(HttpStatusCode.NotFound)
         }
@@ -53,15 +58,16 @@ fun Route.products() = route("products/{productId}") {
         val id = call.requireParameter("productId").toLong()
         val updateProduct = call.receive<UpdateProduct>()
 
-        val updatedProduct = ProductsRepository.updateProduct(id, updateProduct)
+        val updatedProduct =
+            productRepository.update(id, updateProduct.name.mapToModel(), updateProduct.description.mapToModel())
 
-        call.respond(HttpStatusCode.OK, updatedProduct.mapToApiModel())
+        call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
 
     delete {
         val id = call.requireParameter("productId").toLong()
 
-        ProductsRepository.deleteProduct(id)
+        productRepository.delete(id)
 
         call.respond(HttpStatusCode.NoContent)
     }
@@ -72,17 +78,18 @@ fun Route.products() = route("products/{productId}") {
 
             call.respond(
                 HttpStatusCode.OK,
-                RepositoriesRepository.listRepositoriesForProduct(id).map { it.mapToApiModel() }
+                repositoryRepository.listForProduct(id).map { it.mapToApi() }
             )
         }
 
         post {
-            val id = call.requireParameter("productId").toLong()
+            val productId = call.requireParameter("productId").toLong()
             val createRepository = call.receive<CreateRepository>()
 
             call.respond(
                 HttpStatusCode.Created,
-                RepositoriesRepository.createRepository(id, createRepository).mapToApiModel()
+                repositoryRepository.create(createRepository.type.mapToModel(), createRepository.url, productId)
+                    .mapToApi()
             )
         }
     }

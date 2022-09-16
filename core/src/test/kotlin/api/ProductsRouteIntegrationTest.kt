@@ -36,28 +36,36 @@ import io.ktor.server.testing.testApplication
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
-import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
-import org.ossreviewtoolkit.server.dao.repositories.RepositoriesRepository
-import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
-import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
 import org.ossreviewtoolkit.server.shared.models.api.Product
 import org.ossreviewtoolkit.server.shared.models.api.Repository
-import org.ossreviewtoolkit.server.shared.models.api.RepositoryType
+import org.ossreviewtoolkit.server.shared.models.api.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.shared.models.api.UpdateProduct
 import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class ProductsRouteIntegrationTest : DatabaseTest() {
-    var orgId = -1L
+    private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var productRepository: ProductRepository
+    private lateinit var repositoryRepository: RepositoryRepository
+
+    private var orgId = -1L
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        orgId = OrganizationsRepository.createOrganization(
-            CreateOrganization("org", "org description")
-        ).id
+        organizationRepository = DaoOrganizationRepository()
+        productRepository = DaoProductRepository()
+        repositoryRepository = DaoRepositoryRepository()
+
+        orgId = organizationRepository.create(name = "name", description = "description").id
     }
 
     init {
@@ -66,9 +74,12 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val product = CreateProduct("product", "description")
+                val name = "name"
+                val description = "description"
 
-                val createdProduct = ProductsRepository.createProduct(orgId, product)
+                val createdProduct =
+                    productRepository.create(name = name, description = description, organizationId = orgId)
+
                 val response = client.get("/api/v1/products/${createdProduct.id}") {
                     headers {
                         basicTestAuth()
@@ -77,7 +88,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Product>() shouldBe Product(createdProduct.id, product.name, product.description)
+                    body<Product>() shouldBe Product(createdProduct.id, name, description)
                 }
             }
         }
@@ -87,8 +98,8 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val product = CreateProduct("product", "description")
-                val createdProduct = ProductsRepository.createProduct(orgId, product)
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
 
                 val updatedProduct = UpdateProduct(
                     OptionalValue.Present("updatedProduct"),
@@ -117,8 +128,8 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val product = CreateProduct("product", "description")
-                val createdProduct = ProductsRepository.createProduct(orgId, product)
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
 
                 val response = client.delete("/api/v1/products/${createdProduct.id}") {
                     headers {
@@ -130,7 +141,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                     status shouldBe HttpStatusCode.NoContent
                 }
 
-                ProductsRepository.listProductsForOrg(orgId) shouldBe emptyList()
+                productRepository.listForOrganization(orgId) shouldBe emptyList()
             }
         }
 
@@ -139,14 +150,18 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val product = CreateProduct("product", "description")
-                val createdProduct = ProductsRepository.createProduct(orgId, product)
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
 
-                val repository1 = CreateRepository(RepositoryType.GIT, "https://example.com/repo1.git")
-                val repository2 = CreateRepository(RepositoryType.GIT, "https://example.com/repo2.git")
+                val type = RepositoryType.GIT
+                val url1 = "https://example.com/repo1.git"
+                val url2 = "https://example.com/repo2.git"
 
-                val createdRepository1 = RepositoriesRepository.createRepository(createdProduct.id, repository1)
-                val createdRepository2 = RepositoriesRepository.createRepository(createdProduct.id, repository2)
+                val createdRepository1 =
+                    repositoryRepository.create(type = type, url = url1, productId = createdProduct.id)
+                val createdRepository2 =
+                    repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
+
                 val response = client.get("/api/v1/products/${createdProduct.id}/repositories") {
                     headers {
                         basicTestAuth()
@@ -156,8 +171,8 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 with(response) {
                     status shouldBe HttpStatusCode.OK
                     body<List<Repository>>() shouldBe listOf(
-                        Repository(createdRepository1.id, repository1.type, repository1.url),
-                        Repository(createdRepository2.id, repository2.type, repository2.url)
+                        Repository(createdRepository1.id, type.mapToApi(), url1),
+                        Repository(createdRepository2.id, type.mapToApi(), url2)
                     )
                 }
             }
@@ -168,10 +183,10 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val product = CreateProduct("product", "description")
-                val createdProduct = ProductsRepository.createProduct(orgId, product)
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
 
-                val repository = CreateRepository(RepositoryType.GIT, "https://example.com/repo.git")
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 val response = client.post("/api/v1/products/${createdProduct.id}/repositories") {
                     headers {
                         basicTestAuth()

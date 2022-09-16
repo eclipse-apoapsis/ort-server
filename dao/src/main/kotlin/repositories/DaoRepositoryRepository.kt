@@ -27,68 +27,52 @@ import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
-import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
-import org.ossreviewtoolkit.server.shared.models.api.UpdateRepository
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 
-object RepositoriesRepository {
-    /**
-     * Retrieve all repositories for the [product][productId].
-     */
-    suspend fun listRepositoriesForProduct(productId: Long) = dbQuery {
-        RepositoryDao.find { RepositoriesTable.product eq productId }.map { it.mapToEntity() }
+class DaoRepositoryRepository : RepositoryRepository {
+    override suspend fun create(type: RepositoryType, url: String, productId: Long) = dbQuery {
+        RepositoryDao.new {
+            this.type = type
+            this.url = url
+            product = ProductDao[productId]
+        }.mapToModel()
+    }.onFailure {
+        if (it is ExposedSQLException) {
+            when (it.sqlState) {
+                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
+                    throw UniqueConstraintException(
+                        "Failed to create repository for '$url', as a repository for this url already exists in the " +
+                                "product '$productId'.",
+                        it
+                    )
+                }
+            }
+        }
+
+        throw it
+    }.getOrThrow()
+
+    override suspend fun get(id: Long) = dbQuery { RepositoryDao[id].mapToModel() }.getOrNull()
+
+    override suspend fun listForProduct(productId: Long) = dbQuery {
+        RepositoryDao.find { RepositoriesTable.product eq productId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
-    /**
-     * Create a repository and assign it to the [product][productId].
-     */
-    suspend fun createRepository(productId: Long, createRepository: CreateRepository) = dbQuery {
-        RepositoryDao.new {
-            type = createRepository.type
-            url = createRepository.url
-            product = ProductDao[productId]
-        }.mapToEntity()
-    }.onFailure {
-        if (it is ExposedSQLException) {
-            when (it.sqlState) {
-                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                    throw UniqueConstraintException(
-                        "Failed to create repository for '${createRepository.url}', as a repository for this url " +
-                                "already exists in the product '$productId'.",
-                        it
-                    )
-                }
-            }
-        }
-
-        throw it
-    }.getOrThrow()
-
-    /**
-     * Retrieve a single repository by its [id]. Return null if no repository with the given [id] exists.
-     */
-    suspend fun getRepository(id: Long) = dbQuery {
-        RepositoryDao[id].mapToEntity()
-    }.getOrNull()
-
-    /**
-     * Update the values of a [repository][updateRepository] identified by [id].
-     */
-    suspend fun updateRepository(id: Long, updateRepository: UpdateRepository) = dbQuery {
+    override suspend fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = dbQuery {
         val repository = RepositoryDao[id]
 
-        with(updateRepository) {
-            type.ifPresent { repository.type = it }
-            url.ifPresent { repository.url = it }
-        }
+        type.ifPresent { repository.type = it }
+        url.ifPresent { repository.url = it }
 
-        RepositoryDao[id].mapToEntity()
+        RepositoryDao[id].mapToModel()
     }.onFailure {
         if (it is ExposedSQLException) {
             when (it.sqlState) {
                 PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
                     throw UniqueConstraintException(
-                        "Failed to update repository '$id', as a repository with the url '${updateRepository.url}' " +
-                                "already exists.",
+                        "Failed to update repository '$id', as a repository with the url '$url' already exists.",
                         it
                     )
                 }
@@ -98,10 +82,5 @@ object RepositoriesRepository {
         throw it
     }.getOrThrow()
 
-    /**
-     * Delete a repository with the given [id].
-     */
-    suspend fun deleteRepository(id: Long) = dbQuery {
-        RepositoryDao[id].delete()
-    }.getOrThrow()
+    override suspend fun delete(id: Long) = dbQuery { RepositoryDao[id].delete() }.getOrThrow()
 }

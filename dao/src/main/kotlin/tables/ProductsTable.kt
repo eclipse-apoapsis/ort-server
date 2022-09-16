@@ -25,7 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
-import org.ossreviewtoolkit.server.dao.entities.ProductEntity
+import org.ossreviewtoolkit.server.model.Product
 
 /**
  * A product is a collection of repositories which are combined into one software product.
@@ -43,5 +43,5 @@ class ProductDao(id: EntityID<Long>) : LongEntity(id) {
     var description by ProductsTable.description
     var organization by OrganizationDao referencedOn ProductsTable.organization
 
-    fun mapToEntity() = ProductEntity(id.value, name, description)
+    fun mapToModel() = Product(id.value, name, description)
 }

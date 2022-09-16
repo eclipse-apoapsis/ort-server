@@ -35,33 +35,36 @@ import io.ktor.server.testing.testApplication
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.OrganizationsRepository
-import org.ossreviewtoolkit.server.dao.repositories.ProductsRepository
-import org.ossreviewtoolkit.server.dao.repositories.RepositoriesRepository
-import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
-import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
-import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.shared.models.api.Repository
-import org.ossreviewtoolkit.server.shared.models.api.RepositoryType
+import org.ossreviewtoolkit.server.shared.models.api.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.shared.models.api.UpdateRepository
 import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class RepositoriesRouteIntegrationTest : DatabaseTest() {
-    var orgId = -1L
-    var productId = -1L
+    private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var productRepository: ProductRepository
+    private lateinit var repositoryRepository: RepositoryRepository
+
+    private var orgId = -1L
+    private var productId = -1L
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        orgId = OrganizationsRepository.createOrganization(
-            CreateOrganization(name = "org", description = "org description")
-        ).id
+        organizationRepository = DaoOrganizationRepository()
+        productRepository = DaoProductRepository()
+        repositoryRepository = DaoRepositoryRepository()
 
-        productId = ProductsRepository.createProduct(
-            orgId,
-            CreateProduct(name = "product", description = "product description")
-        ).id
+        orgId = organizationRepository.create(name = "name", description = "description").id
+        productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
     }
 
     init {
@@ -70,9 +73,11 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val repository = CreateRepository(RepositoryType.GIT, "https://example.com/repo.git")
+                val type = RepositoryType.GIT
+                val url = "https://example.com/repo.git"
 
-                val createdRepository = RepositoriesRepository.createRepository(productId, repository)
+                val createdRepository = repositoryRepository.create(type = type, url = url, productId = productId)
+
                 val response = client.get("/api/v1/repositories/${createdRepository.id}") {
                     headers {
                         basicTestAuth()
@@ -81,7 +86,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Repository>() shouldBe Repository(createdRepository.id, repository.type, repository.url)
+                    body<Repository>() shouldBe Repository(createdRepository.id, type.mapToApi(), url)
                 }
             }
         }
@@ -91,10 +96,14 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val repository = CreateRepository(RepositoryType.GIT, "https://example.com/repo.git")
-                val createdRepository = RepositoriesRepository.createRepository(productId, repository)
+                val createdRepository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
                 val updateRepository = UpdateRepository(
-                    OptionalValue.Present(RepositoryType.SUBVERSION),
+                    OptionalValue.Present(ApiRepositoryType.SUBVERSION),
                     OptionalValue.Present("https://svn.example.com/repos/org/repo/trunk")
                 )
 
@@ -121,8 +130,11 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
                 environment { config = ApplicationConfig("application-nodb.conf") }
                 val client = createJsonClient()
 
-                val repository = CreateRepository(RepositoryType.GIT, "https://example.com/repo.git")
-                val createdRepository = RepositoriesRepository.createRepository(productId, repository)
+                val createdRepository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
 
                 val response = client.delete("/api/v1/repositories/${createdRepository.id}") {
                     headers {
@@ -131,7 +143,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
                 }
 
                 response.status shouldBe HttpStatusCode.NoContent
-                RepositoriesRepository.listRepositoriesForProduct(productId) shouldBe emptyList()
+                repositoryRepository.listForProduct(productId) shouldBe emptyList()
             }
         }
     }

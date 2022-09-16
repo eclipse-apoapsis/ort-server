@@ -28,6 +28,12 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.core.client.KeycloakService
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
@@ -43,4 +49,8 @@ fun ortServerModule(config: ApplicationConfig) = module {
     }
 
     single { KeycloakService.create(get(), get()) }
+
+    single<OrganizationRepository> { DaoOrganizationRepository() }
+    single<ProductRepository> { DaoProductRepository() }
+    single<RepositoryRepository> { DaoRepositoryRepository() }
 }

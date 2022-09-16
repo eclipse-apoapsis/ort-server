@@ -29,15 +29,21 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.route
 
+import org.koin.ktor.ext.inject
+
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.dao.repositories.RepositoriesRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.shared.models.api.UpdateRepository
+import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue as ApiOptionalValue
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
+    val repositoryRepository by inject<RepositoryRepository>()
+
     get {
         val id = call.requireParameter("repositoryId").toLong()
 
-        RepositoriesRepository.getRepository(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApiModel()) }
+        repositoryRepository.get(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
@@ -45,15 +51,22 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val id = call.requireParameter("repositoryId").toLong()
         val updateRepository = call.receive<UpdateRepository>()
 
-        val updatedRepository = RepositoriesRepository.updateRepository(id, updateRepository)
+        val type = updateRepository.type.let { type ->
+            when (type) {
+                is ApiOptionalValue.Present -> OptionalValue.Present(type.value.mapToModel())
+                else -> OptionalValue.Absent
+            }
+        }
 
-        call.respond(HttpStatusCode.OK, updatedRepository.mapToApiModel())
+        val updatedRepository = repositoryRepository.update(id, type, updateRepository.url.mapToModel())
+
+        call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
 
     delete {
         val id = call.requireParameter("repositoryId").toLong()
 
-        RepositoriesRepository.deleteRepository(id)
+        repositoryRepository.delete(id)
 
         call.respond(HttpStatusCode.NoContent)
     }

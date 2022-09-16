@@ -27,26 +27,23 @@ import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.ProductsTable
-import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
-import org.ossreviewtoolkit.server.shared.models.api.UpdateProduct
+import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 
-object ProductsRepository {
-    /**
-     * Create a product and assign it to the [organization][orgId].
-     */
-    suspend fun createProduct(orgId: Long, createProduct: CreateProduct) = dbQuery {
+class DaoProductRepository : ProductRepository {
+    override suspend fun create(name: String, description: String?, organizationId: Long) = dbQuery {
         ProductDao.new {
-            name = createProduct.name
-            description = createProduct.description
-            organization = OrganizationDao[orgId]
-        }.mapToEntity()
+            this.name = name
+            this.description = description
+            this.organization = OrganizationDao[organizationId]
+        }.mapToModel()
     }.onFailure {
         if (it is ExposedSQLException) {
             when (it.sqlState) {
                 PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
                     throw UniqueConstraintException(
-                        "Failed to create product '${createProduct.name}', as a product with this name already " +
-                                "exists in the organization '$orgId'.",
+                        "Failed to create product '$name', as a product with this name already exists in the " +
+                                "organization '$organizationId'.",
                         it
                     )
                 }
@@ -56,36 +53,20 @@ object ProductsRepository {
         throw it
     }.getOrThrow()
 
-    /**
-     * Retrieve a single product by its [id]. Returns null if no product with this [id] exists.
-     */
-    suspend fun getProduct(id: Long) = dbQuery {
-        ProductDao[id].mapToEntity()
-    }.getOrNull()
+    override suspend fun get(id: Long) = dbQuery { ProductDao[id].mapToModel() }.getOrNull()
 
-    /**
-     * Retrieve all products for the [organization][orgId].
-     */
-    suspend fun listProductsForOrg(orgId: Long) = dbQuery {
-        ProductDao.find { ProductsTable.organization eq orgId }.map { it.mapToEntity() }
+    override suspend fun listForOrganization(organizationId: Long) = dbQuery {
+        ProductDao.find { ProductsTable.organization eq organizationId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
-    /**
-     * Update the values of a [product][updateProduct] identified by [id].
-     */
-    suspend fun updateProduct(id: Long, updateProduct: UpdateProduct) = dbQuery {
+    override suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
         val product = ProductDao[id]
 
-        updateProduct.name.ifPresent { product.name = it }
-        updateProduct.description.ifPresent { product.description = it }
+        name.ifPresent { product.name = it }
+        description.ifPresent { product.description = it }
 
-        ProductDao[id].mapToEntity()
+        ProductDao[id].mapToModel()
     }.getOrThrow()
 
-    /**
-     * Delete a product.
-     */
-    suspend fun deleteProduct(id: Long) = dbQuery {
-        ProductDao[id].delete()
-    }.getOrThrow()
+    override suspend fun delete(id: Long) = dbQuery { ProductDao[id].delete() }.getOrThrow()
 }
