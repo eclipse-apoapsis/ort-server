@@ -19,15 +19,16 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.delete
+import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.patch
+import io.github.smiley4.ktorswaggerui.dsl.post
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.patch
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
@@ -36,13 +37,18 @@ import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
+import org.ossreviewtoolkit.server.core.apiDocs.deleteProductById
+import org.ossreviewtoolkit.server.core.apiDocs.getProductById
+import org.ossreviewtoolkit.server.core.apiDocs.getRepositoriesByProductId
+import org.ossreviewtoolkit.server.core.apiDocs.patchProductById
+import org.ossreviewtoolkit.server.core.apiDocs.postRepository
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.ProductService
 
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
 
-    get {
+    get(getProductById) {
         val id = call.requireParameter("productId").toLong()
 
         val product = productService.getProduct(id)
@@ -54,7 +60,7 @@ fun Route.products() = route("products/{productId}") {
         }
     }
 
-    patch {
+    patch(patchProductById) {
         val id = call.requireParameter("productId").toLong()
         val updateProduct = call.receive<UpdateProduct>()
 
@@ -64,7 +70,7 @@ fun Route.products() = route("products/{productId}") {
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
 
-    delete {
+    delete(deleteProductById) {
         val id = call.requireParameter("productId").toLong()
 
         productService.deleteProduct(id)
@@ -73,7 +79,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("repositories") {
-        get {
+        get(getRepositoriesByProductId) {
             val id = call.requireParameter("productId").toLong()
 
             call.respond(
@@ -82,13 +88,13 @@ fun Route.products() = route("products/{productId}") {
             )
         }
 
-        post {
-            val productId = call.requireParameter("productId").toLong()
+        post(postRepository) {
+            val id = call.requireParameter("productId").toLong()
             val createRepository = call.receive<CreateRepository>()
 
             call.respond(
                 HttpStatusCode.Created,
-                productService.createRepository(createRepository.type.mapToModel(), createRepository.url, productId)
+                productService.createRepository(createRepository.type.mapToModel(), createRepository.url, id)
                     .mapToApi()
             )
         }
