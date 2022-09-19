@@ -39,8 +39,4 @@ fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
 fun ApiRepositoryType.mapToModel() = RepositoryType.valueOf(name)
 
-fun OptionalValue<ApiRepositoryType>.mapToModel() =
-    when (this) {
-        is OptionalValue.Present -> OptionalValue.Present(value.mapToModel())
-        else -> OptionalValue.Absent
-    }
+fun OptionalValue<ApiRepositoryType>.mapToModel() = map { it.mapToModel() }

@@ -60,6 +60,15 @@ sealed interface OptionalValue<out T> {
             else -> return
         }
     }
+
+    /**
+     * If this [OptionalValue] is [Present] [transform] the [value][Present.value], otherwise return [Absent].
+     */
+    fun <M> map(transform: (T) -> M) =
+        when (this) {
+            is Present -> Present(transform(value))
+            else -> Absent
+        }
 }
 
 class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : KSerializer<OptionalValue<T>> {
