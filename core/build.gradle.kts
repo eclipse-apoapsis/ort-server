@@ -70,5 +70,5 @@ dependencies {
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainersKeycloak)
-    testImplementation(libs.wiremockStandalone)
+    testImplementation(libs.wiremock)
 }

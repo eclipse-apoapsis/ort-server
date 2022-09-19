@@ -87,4 +87,3 @@ testContainers = { module = "org.testcontainers:testcontainers", version.ref = "
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
 wiremock = { module = "com.github.tomakehurst:wiremock-jre8", version.ref = "wiremock" }
-wiremockStandalone = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
