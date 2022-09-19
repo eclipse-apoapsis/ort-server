@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.shared.models.api.common
+package org.ossreviewtoolkit.server.core.api
 
 import kotlinx.serialization.Serializable
 

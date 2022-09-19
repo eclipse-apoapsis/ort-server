@@ -29,8 +29,8 @@ import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
 import org.ossreviewtoolkit.server.core.api.AuthenticationException
 import org.ossreviewtoolkit.server.core.api.AuthorizationException
+import org.ossreviewtoolkit.server.core.api.ErrorResponse
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.shared.models.api.common.ErrorResponse
 
 fun Application.configureStatusPages() {
     install(StatusPages) {

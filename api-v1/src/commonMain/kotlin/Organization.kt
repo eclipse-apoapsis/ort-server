@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.shared.models.api
+package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * Response object for the organization endpoint. Used to group multiple users and projects into organizations.

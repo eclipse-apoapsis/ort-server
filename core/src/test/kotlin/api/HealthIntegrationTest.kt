@@ -29,7 +29,6 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.shared.models.api.Liveness
 
 class HealthIntegrationTest : WordSpec({
     "/liveness" should {

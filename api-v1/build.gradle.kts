@@ -32,6 +32,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":model"))
+
                 implementation(libs.kotlinxSerializationJson)
             }
         }

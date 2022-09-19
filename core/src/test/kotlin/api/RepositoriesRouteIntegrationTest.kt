@@ -32,6 +32,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
+import org.ossreviewtoolkit.server.api.v1.Repository
+import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
+import org.ossreviewtoolkit.server.api.v1.UpdateRepository
+import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
@@ -42,10 +46,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.shared.models.api.Repository
-import org.ossreviewtoolkit.server.shared.models.api.RepositoryType as ApiRepositoryType
-import org.ossreviewtoolkit.server.shared.models.api.UpdateRepository
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class RepositoriesRouteIntegrationTest : DatabaseTest() {

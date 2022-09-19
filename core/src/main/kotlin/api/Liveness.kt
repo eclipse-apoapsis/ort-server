@@ -17,10 +17,15 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package org.ossreviewtoolkit.server.core.api
 
-include(":api-v1")
-include(":core")
-include(":dao")
-include(":model")
-include(":utils:test")
+import kotlinx.serialization.Serializable
+
+/**
+ * Response object for the liveness endpoint, used by cloud environment to check if the application is running.
+ */
+@Serializable
+data class Liveness(
+    /** A message describing the state of the application. */
+    val message: String
+)

@@ -32,11 +32,13 @@ import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.api.v1.CreateRepository
+import org.ossreviewtoolkit.server.api.v1.UpdateProduct
+import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.shared.models.api.CreateRepository
-import org.ossreviewtoolkit.server.shared.models.api.UpdateProduct
 
 fun Route.products() = route("products/{productId}") {
     val productRepository by inject<ProductRepository>()
@@ -59,7 +61,7 @@ fun Route.products() = route("products/{productId}") {
         val updateProduct = call.receive<UpdateProduct>()
 
         val updatedProduct =
-            productRepository.update(id, updateProduct.name.mapToModel(), updateProduct.description.mapToModel())
+            productRepository.update(id, updateProduct.name, updateProduct.description)
 
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }

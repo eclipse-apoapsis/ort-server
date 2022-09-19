@@ -31,11 +31,11 @@ import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.api.v1.UpdateRepository
+import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.shared.models.api.UpdateRepository
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue as ApiOptionalValue
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryRepository by inject<RepositoryRepository>()
@@ -51,14 +51,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val id = call.requireParameter("repositoryId").toLong()
         val updateRepository = call.receive<UpdateRepository>()
 
-        val type = updateRepository.type.let { type ->
-            when (type) {
-                is ApiOptionalValue.Present -> OptionalValue.Present(type.value.mapToModel())
-                else -> OptionalValue.Absent
-            }
-        }
-
-        val updatedRepository = repositoryRepository.update(id, type, updateRepository.url.mapToModel())
+        val updatedRepository =
+            repositoryRepository.update(id, updateRepository.type.mapToModel(), updateRepository.url)
 
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }

@@ -30,8 +30,8 @@ import kotlinx.serialization.modules.SerializersModule
 
 import org.koin.ktor.ext.inject
 
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValueSerializer
+import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OptionalValueSerializer
 
 fun Application.configureSerialization() {
     val json: Json by inject()

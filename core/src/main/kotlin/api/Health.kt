@@ -24,8 +24,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
-import org.ossreviewtoolkit.server.shared.models.api.Liveness
-
 fun Route.healthChecks() = get("liveness") {
     call.respond(Liveness(message = "ORT Server running"))
 }

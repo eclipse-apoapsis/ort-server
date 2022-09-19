@@ -17,15 +17,48 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.shared.models.api
+package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.model.util.OptionalValue
+
 /**
- * Response object for the liveness endpoint, used by cloud environment to check if the application is running.
+ * Response object for the repository endpoint.
  */
 @Serializable
-data class Liveness(
-    /** A message describing the state of the application. */
-    val message: String
+data class Repository(
+    val id: Long,
+
+    /** The type of the repository. */
+    val type: RepositoryType,
+
+    /** The url to the repository. */
+    val url: String
 )
+
+/**
+ * Request object for the create repository endpoint.
+ */
+@Serializable
+data class CreateRepository(
+    val type: RepositoryType,
+    val url: String
+)
+
+/**
+ * Request object for the update repository endpoint.
+ */
+@Serializable
+data class UpdateRepository(
+    val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
+    val url: OptionalValue<String> = OptionalValue.Absent,
+)
+
+enum class RepositoryType {
+    GIT,
+    GIT_REPO,
+    MERCURIAL,
+    SUBVERSION,
+    CVS
+}

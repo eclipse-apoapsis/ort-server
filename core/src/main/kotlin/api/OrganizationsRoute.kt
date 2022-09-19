@@ -32,12 +32,13 @@ import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.api.v1.CreateOrganization
+import org.ossreviewtoolkit.server.api.v1.CreateProduct
+import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
+import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
-import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
-import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
 
 fun Route.organizations() = route("organizations") {
     val organizationRepository by inject<OrganizationRepository>()
@@ -71,8 +72,7 @@ fun Route.organizations() = route("organizations") {
             val organizationId = call.requireParameter("organizationId").toLong()
             val org = call.receive<UpdateOrganization>()
 
-            val updatedOrg =
-                organizationRepository.update(organizationId, org.name.mapToModel(), org.description.mapToModel())
+            val updatedOrg = organizationRepository.update(organizationId, org.name, org.description)
 
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }

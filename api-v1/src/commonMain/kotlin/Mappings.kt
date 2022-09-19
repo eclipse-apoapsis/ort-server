@@ -17,18 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.ossreviewtoolkit.server.api.v1
 
+import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
+import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
+import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
+import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.shared.models.api.Organization as ApiOrganization
-import org.ossreviewtoolkit.server.shared.models.api.Product as ApiProduct
-import org.ossreviewtoolkit.server.shared.models.api.Repository as ApiRepository
-import org.ossreviewtoolkit.server.shared.models.api.RepositoryType as ApiRepositoryType
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue as ApiOptionalValue
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
@@ -38,10 +37,10 @@ fun Repository.mapToApi() = ApiRepository(id, type.mapToApi(), url)
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
-inline fun <reified T> ApiOptionalValue<T>.mapToModel() =
-    when (this) {
-        is ApiOptionalValue.Present -> OptionalValue.Present(value)
-        is ApiOptionalValue.Absent -> OptionalValue.Absent
-    }
-
 fun ApiRepositoryType.mapToModel() = RepositoryType.valueOf(name)
+
+fun OptionalValue<ApiRepositoryType>.mapToModel() =
+    when (this) {
+        is OptionalValue.Present -> OptionalValue.Present(value.mapToModel())
+        else -> OptionalValue.Absent
+    }

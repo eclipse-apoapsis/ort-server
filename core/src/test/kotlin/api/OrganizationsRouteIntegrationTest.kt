@@ -35,6 +35,12 @@ import io.ktor.server.testing.testApplication
 
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.api.v1.CreateOrganization
+import org.ossreviewtoolkit.server.api.v1.CreateProduct
+import org.ossreviewtoolkit.server.api.v1.Organization
+import org.ossreviewtoolkit.server.api.v1.Product
+import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
+import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
@@ -42,12 +48,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.shared.models.api.CreateOrganization
-import org.ossreviewtoolkit.server.shared.models.api.CreateProduct
-import org.ossreviewtoolkit.server.shared.models.api.Organization
-import org.ossreviewtoolkit.server.shared.models.api.Product
-import org.ossreviewtoolkit.server.shared.models.api.UpdateOrganization
-import org.ossreviewtoolkit.server.shared.models.api.common.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class OrganizationsRouteIntegrationTest : DatabaseTest() {

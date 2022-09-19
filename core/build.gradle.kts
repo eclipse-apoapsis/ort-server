@@ -40,9 +40,9 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":api-v1"))
     implementation(project(":dao"))
     implementation(project(":model"))
-    implementation(project(":shared"))
 
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
