@@ -35,15 +35,15 @@ import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.services.RepositoryService
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
-    val repositoryRepository by inject<RepositoryRepository>()
+    val repositoryService by inject<RepositoryService>()
 
     get {
         val id = call.requireParameter("repositoryId").toLong()
 
-        repositoryRepository.get(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+        repositoryService.getRepository(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
@@ -52,7 +52,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val updateRepository = call.receive<UpdateRepository>()
 
         val updatedRepository =
-            repositoryRepository.update(id, updateRepository.type.mapToModel(), updateRepository.url)
+            repositoryService.updateRepository(id, updateRepository.type.mapToModel(), updateRepository.url)
 
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
@@ -60,7 +60,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     delete {
         val id = call.requireParameter("repositoryId").toLong()
 
-        repositoryRepository.delete(id)
+        repositoryService.deleteRepository(id)
 
         call.respond(HttpStatusCode.NoContent)
     }

@@ -37,15 +37,13 @@ import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.services.OrganizationService
 
 fun Route.organizations() = route("organizations") {
-    val organizationRepository by inject<OrganizationRepository>()
-    val productRepository by inject<ProductRepository>()
+    val organizationService by inject<OrganizationService>()
 
     get {
-        val organizations = organizationRepository.list()
+        val organizations = organizationService.listOrganizations()
 
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApi() })
     }
@@ -53,7 +51,8 @@ fun Route.organizations() = route("organizations") {
     post {
         val createOrganization = call.receive<CreateOrganization>()
 
-        val createdOrganization = organizationRepository.create(createOrganization.name, createOrganization.description)
+        val createdOrganization =
+            organizationService.createOrganization(createOrganization.name, createOrganization.description)
 
         call.respond(HttpStatusCode.Created, createdOrganization.mapToApi())
     }
@@ -62,7 +61,7 @@ fun Route.organizations() = route("organizations") {
         get {
             val id = call.requireParameter("organizationId").toLong()
 
-            val organization = organizationRepository.get(id)
+            val organization = organizationService.getOrganization(id)
 
             organization?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                 ?: call.respond(HttpStatusCode.NotFound)
@@ -72,7 +71,7 @@ fun Route.organizations() = route("organizations") {
             val organizationId = call.requireParameter("organizationId").toLong()
             val org = call.receive<UpdateOrganization>()
 
-            val updatedOrg = organizationRepository.update(organizationId, org.name, org.description)
+            val updatedOrg = organizationService.updateOrganization(organizationId, org.name, org.description)
 
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }
@@ -80,7 +79,7 @@ fun Route.organizations() = route("organizations") {
         delete {
             val id = call.requireParameter("organizationId").toLong()
 
-            organizationRepository.delete(id)
+            organizationService.deleteOrganization(id)
 
             call.respond(HttpStatusCode.NoContent)
         }
@@ -88,14 +87,17 @@ fun Route.organizations() = route("organizations") {
         get("products") {
             val orgId = call.requireParameter("organizationId").toLong()
 
-            call.respond(HttpStatusCode.OK, productRepository.listForOrganization(orgId).map { it.mapToApi() })
+            call.respond(
+                HttpStatusCode.OK,
+                organizationService.listProductsForOrganization(orgId).map { it.mapToApi() }
+            )
         }
 
         post("products") {
             val createProduct = call.receive<CreateProduct>()
             val orgId = call.requireParameter("organizationId").toLong()
 
-            val createdProduct = productRepository.create(createProduct.name, createProduct.description, orgId)
+            val createdProduct = organizationService.createProduct(createProduct.name, createProduct.description, orgId)
 
             call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
         }

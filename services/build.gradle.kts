@@ -17,11 +17,21 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    alias(libs.plugins.kotlinJvm)
+}
 
-include(":api-v1")
-include(":core")
-include(":dao")
-include(":model")
-include(":services")
-include(":utils:test")
+group = "org.ossreviewtoolkit.server"
+version = "0.0.1"
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+dependencies {
+    implementation(project(":dao"))
+    implementation(project(":model"))
+
+    implementation(libs.logback)
+}

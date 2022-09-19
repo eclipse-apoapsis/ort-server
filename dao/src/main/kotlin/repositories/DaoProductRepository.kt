@@ -19,10 +19,6 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-
-import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
-import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
@@ -37,20 +33,6 @@ class DaoProductRepository : ProductRepository {
             this.description = description
             this.organization = OrganizationDao[organizationId]
         }.mapToModel()
-    }.onFailure {
-        if (it is ExposedSQLException) {
-            when (it.sqlState) {
-                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                    throw UniqueConstraintException(
-                        "Failed to create product '$name', as a product with this name already exists in the " +
-                                "organization '$organizationId'.",
-                        it
-                    )
-                }
-            }
-        }
-
-        throw it
     }.getOrThrow()
 
     override fun get(id: Long) = blockingQuery { ProductDao[id].mapToModel() }.getOrNull()

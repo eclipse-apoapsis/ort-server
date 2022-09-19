@@ -19,10 +19,6 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-
-import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
-import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
@@ -38,19 +34,6 @@ class DaoOrganizationRepository : OrganizationRepository {
             this.name = name
             this.description = description
         }
-    }.onFailure {
-        if (it is ExposedSQLException) {
-            when (it.sqlState) {
-                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                    throw UniqueConstraintException(
-                        "Failed to create organization '$name', as an organization with this name already exists.",
-                        it
-                    )
-                }
-            }
-        }
-
-        throw it
     }.getOrThrow().mapToModel()
 
     override fun get(id: Long) = blockingQuery { OrganizationDao[id].mapToModel() }.getOrNull()

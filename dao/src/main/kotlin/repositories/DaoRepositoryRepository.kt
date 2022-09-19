@@ -19,10 +19,6 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-
-import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
-import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
@@ -38,20 +34,6 @@ class DaoRepositoryRepository : RepositoryRepository {
             this.url = url
             product = ProductDao[productId]
         }.mapToModel()
-    }.onFailure {
-        if (it is ExposedSQLException) {
-            when (it.sqlState) {
-                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                    throw UniqueConstraintException(
-                        "Failed to create repository for '$url', as a repository for this url already exists in the " +
-                                "product '$productId'.",
-                        it
-                    )
-                }
-            }
-        }
-
-        throw it
     }.getOrThrow()
 
     override fun get(id: Long) = blockingQuery { RepositoryDao[id].mapToModel() }.getOrNull()
@@ -67,19 +49,6 @@ class DaoRepositoryRepository : RepositoryRepository {
         url.ifPresent { repository.url = it }
 
         RepositoryDao[id].mapToModel()
-    }.onFailure {
-        if (it is ExposedSQLException) {
-            when (it.sqlState) {
-                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                    throw UniqueConstraintException(
-                        "Failed to update repository '$id', as a repository with the url '$url' already exists.",
-                        it
-                    )
-                }
-            }
-        }
-
-        throw it
     }.getOrThrow()
 
     override fun delete(id: Long) = blockingQuery { RepositoryDao[id].delete() }.getOrThrow()

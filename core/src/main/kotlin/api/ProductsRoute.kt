@@ -37,17 +37,15 @@ import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.services.ProductService
 
 fun Route.products() = route("products/{productId}") {
-    val productRepository by inject<ProductRepository>()
-    val repositoryRepository by inject<RepositoryRepository>()
+    val productService by inject<ProductService>()
 
     get {
         val id = call.requireParameter("productId").toLong()
 
-        val product = productRepository.get(id)
+        val product = productService.getProduct(id)
 
         if (product != null) {
             call.respond(HttpStatusCode.OK, product.mapToApi())
@@ -61,7 +59,7 @@ fun Route.products() = route("products/{productId}") {
         val updateProduct = call.receive<UpdateProduct>()
 
         val updatedProduct =
-            productRepository.update(id, updateProduct.name, updateProduct.description)
+            productService.updateProduct(id, updateProduct.name, updateProduct.description)
 
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
@@ -69,7 +67,7 @@ fun Route.products() = route("products/{productId}") {
     delete {
         val id = call.requireParameter("productId").toLong()
 
-        productRepository.delete(id)
+        productService.deleteProduct(id)
 
         call.respond(HttpStatusCode.NoContent)
     }
@@ -80,7 +78,7 @@ fun Route.products() = route("products/{productId}") {
 
             call.respond(
                 HttpStatusCode.OK,
-                repositoryRepository.listForProduct(id).map { it.mapToApi() }
+                productService.listRepositoriesForProduct(id).map { it.mapToApi() }
             )
         }
 
@@ -90,7 +88,7 @@ fun Route.products() = route("products/{productId}") {
 
             call.respond(
                 HttpStatusCode.Created,
-                repositoryRepository.create(createRepository.type.mapToModel(), createRepository.url, productId)
+                productService.createRepository(createRepository.type.mapToModel(), createRepository.url, productId)
                     .mapToApi()
             )
         }

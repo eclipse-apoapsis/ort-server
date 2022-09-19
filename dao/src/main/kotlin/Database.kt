@@ -24,9 +24,13 @@ import com.zaxxer.hikari.HikariDataSource
 
 import javax.sql.DataSource
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -83,7 +87,32 @@ data class DatabaseConfig(
     val sslRootCert: String?,
 )
 
+suspend fun <T> dbQuery(block: () -> T): Result<T> =
+    runCatching {
+        withContext(Dispatchers.IO) {
+            transaction { block() }
+        }
+    }.mapExceptions()
+
 /**
  * Execute the [block] in a database [transaction].
  */
-internal fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }
+internal fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }.mapExceptions()
+
+/**
+ * Map the generic database exceptions to more specific exceptions.
+ */
+internal fun <T> Result<T>.mapExceptions(): Result<T> =
+    runCatching {
+        onFailure {
+            if (it is ExposedSQLException) {
+                when (it.sqlState) {
+                    PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
+                        throw UniqueConstraintException("Unique constraint violation: ${it.message}.", it)
+                    }
+                }
+            }
+
+            throw it
+        }.getOrThrow()
+    }
