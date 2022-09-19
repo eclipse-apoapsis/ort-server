@@ -44,7 +44,11 @@ interface OrganizationRepository {
     /**
      * Update an organization by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Organization
+    fun update(
+        id: Long,
+        name: OptionalValue<String> = OptionalValue.Absent,
+        description: OptionalValue<String?> = OptionalValue.Absent
+    ): Organization
 
     /**
      * Delete an organization by [id].

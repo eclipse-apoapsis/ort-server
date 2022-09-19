@@ -44,7 +44,11 @@ interface ProductRepository {
     /**
      * Update a product by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Product
+    fun update(
+        id: Long,
+        name: OptionalValue<String> = OptionalValue.Absent,
+        description: OptionalValue<String?> = OptionalValue.Absent
+    ): Product
 
     /**
      * Delete a product by [id].

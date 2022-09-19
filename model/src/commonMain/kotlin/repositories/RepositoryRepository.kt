@@ -45,7 +45,11 @@ interface RepositoryRepository {
     /**
      * Update a repository by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>): Repository
+    fun update(
+        id: Long,
+        type: OptionalValue<RepositoryType> = OptionalValue.Absent,
+        url: OptionalValue<String> = OptionalValue.Absent
+    ): Repository
 
     /**
      * Delete a repository by [id].
