@@ -37,7 +37,7 @@ mockk = "1.12.7"
 ort = "052c8ffa0f"
 postgres = "42.5.0"
 testContainers = "1.17.3"
-wiremock = "2.33.2"
+wiremock = "2.34.0"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
