@@ -23,7 +23,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
  */
 class DaoOrganizationRepository : OrganizationRepository {
-    override fun create(name: String, description: String?) = dbQuery {
+    override fun create(name: String, description: String?) = blockingQuery {
         OrganizationDao.new {
             this.name = name
             this.description = description
@@ -53,11 +53,11 @@ class DaoOrganizationRepository : OrganizationRepository {
         throw it
     }.getOrThrow().mapToModel()
 
-    override fun get(id: Long) = dbQuery { OrganizationDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = blockingQuery { OrganizationDao[id].mapToModel() }.getOrNull()
 
-    override fun list() = dbQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
+    override fun list() = blockingQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
         val org = OrganizationDao[id]
 
         name.ifPresent { org.name = it }
@@ -66,5 +66,5 @@ class DaoOrganizationRepository : OrganizationRepository {
         OrganizationDao[id].mapToModel()
     }.getOrThrow()
 
-    override fun delete(id: Long) = dbQuery { OrganizationDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { OrganizationDao[id].delete() }.getOrThrow()
 }

@@ -23,7 +23,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 import org.ossreviewtoolkit.server.dao.PostgresErrorCodes
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoRepositoryRepository : RepositoryRepository {
-    override fun create(type: RepositoryType, url: String, productId: Long) = dbQuery {
+    override fun create(type: RepositoryType, url: String, productId: Long) = blockingQuery {
         RepositoryDao.new {
             this.type = type
             this.url = url
@@ -54,13 +54,13 @@ class DaoRepositoryRepository : RepositoryRepository {
         throw it
     }.getOrThrow()
 
-    override fun get(id: Long) = dbQuery { RepositoryDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = blockingQuery { RepositoryDao[id].mapToModel() }.getOrNull()
 
-    override fun listForProduct(productId: Long) = dbQuery {
+    override fun listForProduct(productId: Long) = blockingQuery {
         RepositoryDao.find { RepositoriesTable.product eq productId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
-    override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = dbQuery {
+    override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = blockingQuery {
         val repository = RepositoryDao[id]
 
         type.ifPresent { repository.type = it }
@@ -82,5 +82,5 @@ class DaoRepositoryRepository : RepositoryRepository {
         throw it
     }.getOrThrow()
 
-    override fun delete(id: Long) = dbQuery { RepositoryDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { RepositoryDao[id].delete() }.getOrThrow()
 }
