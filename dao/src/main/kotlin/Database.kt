@@ -86,4 +86,4 @@ data class DatabaseConfig(
 /**
  * Execute the [block] in a database [transaction].
  */
-fun <T> dbQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }
+internal fun <T> dbQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }
