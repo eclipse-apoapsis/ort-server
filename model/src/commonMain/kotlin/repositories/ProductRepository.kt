@@ -29,25 +29,25 @@ interface ProductRepository {
     /**
      * Create a product.
      */
-    suspend fun create(name: String, description: String?, organizationId: Long): Product
+    fun create(name: String, description: String?, organizationId: Long): Product
 
     /**
      * Get a product by [id]. Returns null if the product is not found.
      */
-    suspend fun get(id: Long): Product?
+    fun get(id: Long): Product?
 
     /**
      * List all products for an [organization][organizationId].
      */
-    suspend fun listForOrganization(organizationId: Long): List<Product>
+    fun listForOrganization(organizationId: Long): List<Product>
 
     /**
      * Update a product by [id] with the [present][OptionalValue.Present] values.
      */
-    suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Product
+    fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Product
 
     /**
      * Delete a product by [id].
      */
-    suspend fun delete(id: Long)
+    fun delete(id: Long)
 }

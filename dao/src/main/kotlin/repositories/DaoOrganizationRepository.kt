@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
  */
 class DaoOrganizationRepository : OrganizationRepository {
-    override suspend fun create(name: String, description: String?) = dbQuery {
+    override fun create(name: String, description: String?) = dbQuery {
         OrganizationDao.new {
             this.name = name
             this.description = description
@@ -53,11 +53,11 @@ class DaoOrganizationRepository : OrganizationRepository {
         throw it
     }.getOrThrow().mapToModel()
 
-    override suspend fun get(id: Long) = dbQuery { OrganizationDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = dbQuery { OrganizationDao[id].mapToModel() }.getOrNull()
 
-    override suspend fun list() = dbQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
+    override fun list() = dbQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
 
-    override suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
         val org = OrganizationDao[id]
 
         name.ifPresent { org.name = it }
@@ -66,5 +66,5 @@ class DaoOrganizationRepository : OrganizationRepository {
         OrganizationDao[id].mapToModel()
     }.getOrThrow()
 
-    override suspend fun delete(id: Long) = dbQuery { OrganizationDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = dbQuery { OrganizationDao[id].delete() }.getOrThrow()
 }

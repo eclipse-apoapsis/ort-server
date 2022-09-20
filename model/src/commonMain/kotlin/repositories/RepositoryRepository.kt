@@ -30,25 +30,25 @@ interface RepositoryRepository {
     /**
      * Create a repository.
      */
-    suspend fun create(type: RepositoryType, url: String, productId: Long): Repository
+    fun create(type: RepositoryType, url: String, productId: Long): Repository
 
     /**
      * Get a repository by [id]. Returns null if the product is not found.
      */
-    suspend fun get(id: Long): Repository?
+    fun get(id: Long): Repository?
 
     /**
      * List all repositories for a [product][productId].
      */
-    suspend fun listForProduct(productId: Long): List<Repository>
+    fun listForProduct(productId: Long): List<Repository>
 
     /**
      * Update a repository by [id] with the [present][OptionalValue.Present] values.
      */
-    suspend fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>): Repository
+    fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>): Repository
 
     /**
      * Delete a repository by [id].
      */
-    suspend fun delete(id: Long)
+    fun delete(id: Long)
 }

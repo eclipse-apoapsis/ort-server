@@ -31,7 +31,7 @@ import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoProductRepository : ProductRepository {
-    override suspend fun create(name: String, description: String?, organizationId: Long) = dbQuery {
+    override fun create(name: String, description: String?, organizationId: Long) = dbQuery {
         ProductDao.new {
             this.name = name
             this.description = description
@@ -53,13 +53,13 @@ class DaoProductRepository : ProductRepository {
         throw it
     }.getOrThrow()
 
-    override suspend fun get(id: Long) = dbQuery { ProductDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = dbQuery { ProductDao[id].mapToModel() }.getOrNull()
 
-    override suspend fun listForOrganization(organizationId: Long) = dbQuery {
+    override fun listForOrganization(organizationId: Long) = dbQuery {
         ProductDao.find { ProductsTable.organization eq organizationId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
-    override suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = dbQuery {
         val product = ProductDao[id]
 
         name.ifPresent { product.name = it }
@@ -68,5 +68,5 @@ class DaoProductRepository : ProductRepository {
         ProductDao[id].mapToModel()
     }.getOrThrow()
 
-    override suspend fun delete(id: Long) = dbQuery { ProductDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = dbQuery { ProductDao[id].delete() }.getOrThrow()
 }

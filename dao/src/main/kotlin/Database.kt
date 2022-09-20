@@ -24,9 +24,6 @@ import com.zaxxer.hikari.HikariDataSource
 
 import javax.sql.DataSource
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
@@ -87,11 +84,6 @@ data class DatabaseConfig(
 )
 
 /**
- * Execute the [block] in a database [transaction], dispatched to [Dispatchers.IO].
+ * Execute the [block] in a database [transaction].
  */
-suspend fun <T> dbQuery(block: () -> T): Result<T> =
-    runCatching {
-        withContext(Dispatchers.IO) {
-            transaction { block() }
-        }
-    }
+fun <T> dbQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }

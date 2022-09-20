@@ -29,25 +29,25 @@ interface OrganizationRepository {
     /**
      * Create an organization.
      */
-    suspend fun create(name: String, description: String?): Organization
+    fun create(name: String, description: String?): Organization
 
     /**
      * Get an organization by [id]. Returns null if the organization is not found.
      */
-    suspend fun get(id: Long): Organization?
+    fun get(id: Long): Organization?
 
     /**
      * List all organizations.
      */
-    suspend fun list(): List<Organization>
+    fun list(): List<Organization>
 
     /**
      * Update an organization by [id] with the [present][OptionalValue.Present] values.
      */
-    suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Organization
+    fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>): Organization
 
     /**
      * Delete an organization by [id].
      */
-    suspend fun delete(id: Long)
+    fun delete(id: Long)
 }
