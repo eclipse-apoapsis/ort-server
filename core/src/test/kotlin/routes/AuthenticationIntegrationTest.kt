@@ -41,8 +41,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.testing.testApplication
 
-import io.mockk.unmockkAll
-
 import java.io.File
 import java.security.KeyStore
 import java.security.cert.Certificate
@@ -86,9 +84,6 @@ class AuthenticationIntegrationTest : FunSpec() {
 
     override suspend fun afterSpec(spec: Spec) {
         server.stop()
-
-        // Because a static mock was created, it needs to be removed to not affect other tests.
-        unmockkAll()
     }
 
     init {
@@ -172,7 +167,6 @@ class AuthenticationIntegrationTest : FunSpec() {
             configureRouting()
             configureSerialization()
             configureHTTP()
-            // Don't configure database: It is mocked.
         }
 
         runBlocking {
