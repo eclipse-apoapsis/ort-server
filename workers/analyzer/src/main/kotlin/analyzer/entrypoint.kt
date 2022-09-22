@@ -17,12 +17,21 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package analyzer
 
-include(":api-v1")
-include(":core")
-include(":dao")
-include(":model")
-include(":services")
-include(":utils:test")
-include(":workers:analyzer")
+import java.io.File
+
+import org.ossreviewtoolkit.analyzer.managers.Npm
+import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+
+fun main() {
+    // This is the entry point of the Analyzer Docker image. It calls the Analyzer from ORT programmatically by
+    // interfacing on its APIs.
+    println("Hello World")
+
+    // This tests that ORT's classes can be accessed as well as the CLI tools of the Docker image.
+    val npm = Npm.Factory().create(File("."), AnalyzerConfiguration(), RepositoryConfiguration())
+    val version = npm.getVersion()
+    println("Npm version is $version.")
+}

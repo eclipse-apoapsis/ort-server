@@ -18,6 +18,7 @@
 [versions]
 buildConfigPlugin = "3.1.0"
 detektPlugin = "1.21.0"
+jibPlugin = "3.3.0"
 kotlinPlugin = "1.7.10"
 kotlinxSerialization = "1.4.0"
 versionCatalogUpdatePlugin = "0.6.1"
@@ -38,12 +39,14 @@ logback = "1.4.0"
 mockk = "1.12.7"
 ort = "052c8ffa0f"
 postgres = "42.5.0"
+sw360Client = "16.0.0-m1"
 testContainers = "1.17.3"
 wiremock = "2.34.0"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektPlugin" }
+jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlinPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
@@ -86,7 +89,9 @@ ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "k
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
+ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+sw360Client = { module = "org.eclipse.sw360:client", version.ref = "sw360Client" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
