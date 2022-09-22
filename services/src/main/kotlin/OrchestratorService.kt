@@ -17,40 +17,17 @@
  * License-Filename: LICENSE
  */
 
-import io.gitlab.arturbosch.detekt.Detekt
+package org.ossreviewtoolkit.server.services
 
-@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
-plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinSerialization)
-}
+import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.OrtRun
 
-kotlin {
-    jvm()
-
-    @Suppress("UnusedPrivateMember")
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(project(":model"))
-
-                api(libs.kotlinxDatetime)
-
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-
-        val commonTest by getting {
-            dependencies {
-            }
-        }
+/**
+ * This service is responsible for creating worker jobs for ORT runs.
+ */
+class OrchestratorService {
+    suspend fun createOrtRun(repositoryId: Long, revision: String, config: JobConfigurations): OrtRun {
+        println("$repositoryId $revision $config") // Temporarily suppress unused error.
+        TODO("Not yet implemented.")
     }
-}
-
-tasks.named<Test>("jvmTest") {
-    useJUnitPlatform()
-}
-
-tasks.named<Detekt>("detekt") {
-    dependsOn("detektMetadataMain")
 }

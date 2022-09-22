@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.services.OrchestratorService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.RepositoryService
@@ -57,6 +58,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<ProductRepository> { DaoProductRepository() }
     single<RepositoryRepository> { DaoRepositoryRepository() }
 
+    single { OrchestratorService() }
     single { OrganizationService(get(), get()) }
     single { ProductService(get(), get()) }
     single { RepositoryService(get()) }

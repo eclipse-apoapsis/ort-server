@@ -20,6 +20,7 @@ buildConfigPlugin = "3.1.0"
 detektPlugin = "1.21.0"
 jibPlugin = "3.3.0"
 kotlinPlugin = "1.7.10"
+kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.4.0"
 versionCatalogUpdatePlugin = "0.6.1"
 versionsPlugin = "0.42.0"
@@ -68,6 +69,7 @@ kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor",
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinPlugin" }
+kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime"}
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization"}
 ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }

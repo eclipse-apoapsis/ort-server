@@ -28,10 +28,13 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
@@ -39,9 +42,11 @@ import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.services.OrchestratorService
 import org.ossreviewtoolkit.server.services.RepositoryService
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
+    val orchestratorService by inject<OrchestratorService>()
     val repositoryService by inject<RepositoryService>()
 
     get(getRepositoryById) {
@@ -67,5 +72,18 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         repositoryService.deleteRepository(id)
 
         call.respond(HttpStatusCode.NoContent)
+    }
+
+    route("runs") {
+        post {
+            val repositoryId = call.requireParameter("repositoryId").toLong()
+            val createOrtRun = call.receive<CreateOrtRun>()
+
+            call.respond(
+                HttpStatusCode.Created,
+                orchestratorService.createOrtRun(repositoryId, createOrtRun.revision, createOrtRun.jobs.mapToModel())
+                    .mapToApi()
+            )
+        }
     }
 }
