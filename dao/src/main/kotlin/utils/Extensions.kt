@@ -17,20 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.ossreviewtoolkit.server.dao.utils
 
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
+import kotlinx.datetime.minus
 
 /**
- * This service is responsible for creating worker jobs for ORT runs.
+ * Convert an instance to microsecond precision which is stored in the database. This function should always be used
+ * when writing timestamps to the database to ensure that the created DAO objects use the same precision as the
+ * database.
  */
-class OrchestratorService(
-    private val ortRunRepository: OrtRunRepository
-) {
-    suspend fun createOrtRun(repositoryId: Long, revision: String, config: JobConfigurations): OrtRun = dbQuery {
-        ortRunRepository.create(repositoryId, revision, config)
-    }.getOrThrow()
-}
+internal fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)

@@ -27,11 +27,16 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.patch
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.testApplication
 
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
+import org.ossreviewtoolkit.server.api.v1.JobConfigurations
+import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
@@ -145,6 +150,40 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
 
                 response.status shouldBe HttpStatusCode.NoContent
                 repositoryRepository.listForProduct(productId) shouldBe emptyList()
+            }
+        }
+
+        test("POST /repositories/{repositoryId}/runs should create an ORT run") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                val client = createJsonClient()
+
+                val repository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                val jobConfigurations =
+                    JobConfigurations(analyzer = AnalyzerJobConfiguration(allowDynamicVersions = true))
+
+                val createOrtRun = CreateOrtRun(revision = "revision", jobs = jobConfigurations)
+                val response = client.post("/api/v1/repositories/${repository.id}/runs") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(createOrtRun)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.Created
+                    with(body<OrtRun>()) {
+                        id shouldBe 1
+                        repositoryId shouldBe repository.id
+                        revision shouldBe createOrtRun.revision
+                        jobs shouldBe jobConfigurations
+                    }
+                }
             }
         }
     }

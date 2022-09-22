@@ -35,10 +35,11 @@ dependencies {
     api(libs.exposedDao)
 
     implementation(libs.exposedCore)
-    implementation(libs.exposedJavaTime)
+    implementation(libs.exposedKotlinDatetime)
     implementation(libs.exposedJdbc)
     implementation(libs.flywayCore)
     implementation(libs.hikari)
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.postgres)
     implementation(libs.logback)
 

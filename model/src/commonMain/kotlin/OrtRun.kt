@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.model
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
 data class OrtRun(
     /**
@@ -50,12 +51,15 @@ data class OrtRun(
     /**
      * The job configurations for this run.
      */
-    val jobs: JobConfigurations
+    val jobs: JobConfigurations,
+
+    val status: OrtRunStatus
 )
 
 /**
  * The configurations for the jobs in an [OrtRun].
  */
+@Serializable
 data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration()
 )
@@ -63,6 +67,13 @@ data class JobConfigurations(
 /**
  * The configuration for an analyzer job.
  */
+@Serializable
 data class AnalyzerJobConfiguration(
     val allowDynamicVersions: Boolean = false
 )
+
+enum class OrtRunStatus {
+    CREATED,
+    ACTIVE,
+    FINISHED
+}
