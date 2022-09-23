@@ -41,14 +41,17 @@ import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -56,6 +59,7 @@ import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class RepositoriesRouteIntegrationTest : DatabaseTest() {
     private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var ortRunRepository: OrtRunRepository
     private lateinit var productRepository: ProductRepository
     private lateinit var repositoryRepository: RepositoryRepository
 
@@ -66,6 +70,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
         dataSource.connect()
 
         organizationRepository = DaoOrganizationRepository()
+        ortRunRepository = DaoOrtRunRepository()
         productRepository = DaoProductRepository()
         repositoryRepository = DaoRepositoryRepository()
 
@@ -181,6 +186,40 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
                         id shouldBe 1
                         repositoryId shouldBe repository.id
                         revision shouldBe createOrtRun.revision
+                        jobs shouldBe jobConfigurations
+                    }
+                }
+            }
+        }
+
+        test("GET /repositories/{repositoryId}/runs/{ortRunIndex} should return an ORT run") {
+            testApplication {
+                environment { config = ApplicationConfig("application-nodb.conf") }
+                val client = createJsonClient()
+
+                val repository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                val jobConfigurations =
+                    JobConfigurations(analyzer = AnalyzerJobConfiguration(allowDynamicVersions = true))
+
+                val ortRun = ortRunRepository.create(repository.id, "revision", jobConfigurations.mapToModel())
+
+                val response = client.get("/api/v1/repositories/${repository.id}/runs/${ortRun.index}") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    with(body<OrtRun>()) {
+                        id shouldBe ortRun.id
+                        repositoryId shouldBe repository.id
+                        revision shouldBe ortRun.revision
                         jobs shouldBe jobConfigurations
                     }
                 }

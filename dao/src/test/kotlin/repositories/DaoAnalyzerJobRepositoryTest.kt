@@ -23,28 +23,34 @@ import io.kotest.core.test.TestCase
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import kotlinx.datetime.Clock
+
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoOrtRunRepositoryTest : DatabaseTest() {
+class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
     private lateinit var organizationRepository: DaoOrganizationRepository
     private lateinit var productRepository: DaoProductRepository
     private lateinit var repositoryRepository: DaoRepositoryRepository
     private lateinit var ortRunRepository: DaoOrtRunRepository
+    private lateinit var analyzerJobRepository: DaoAnalyzerJobRepository
 
     private var orgId = -1L
     private var productId = -1L
     private var repositoryId = -1L
+    private var ortRunId = -1L
 
     private val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
@@ -59,6 +65,7 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
         productRepository = DaoProductRepository()
         repositoryRepository = DaoRepositoryRepository()
         ortRunRepository = DaoOrtRunRepository()
+        analyzerJobRepository = DaoAnalyzerJobRepository()
 
         orgId = organizationRepository.create(name = "name", description = "description").id
         productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
@@ -67,71 +74,64 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
             url = "https://example.com/repo.git",
             productId = productId
         ).id
+        ortRunId = ortRunRepository.create(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = jobConfigurations
+        ).id
     }
 
     init {
         test("create should create an entry in the database") {
-            val revision = "revision"
+            val createdAnalyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
-            val createdOrtRun = ortRunRepository.create(repositoryId, revision, jobConfigurations)
-
-            val dbEntry = ortRunRepository.get(createdOrtRun.id)
+            val dbEntry = analyzerJobRepository.get(createdAnalyzerJob.id)
 
             dbEntry.shouldNotBeNull()
-            dbEntry shouldBe OrtRun(
-                id = createdOrtRun.id,
-                index = createdOrtRun.id,
-                repositoryId = repositoryId,
-                revision = revision,
-                createdAt = createdOrtRun.createdAt,
-                jobs = jobConfigurations,
-                status = OrtRunStatus.CREATED
+            dbEntry shouldBe AnalyzerJob(
+                id = createdAnalyzerJob.id,
+                createdAt = createdAnalyzerJob.createdAt,
+                startedAt = null,
+                finishedAt = null,
+                configuration = jobConfigurations.analyzer,
+                status = AnalyzerJobStatus.CREATED
             )
         }
 
-        test("create should create sequential indexes for different repositories") {
-            val otherRepository = repositoryRepository.create(
-                type = RepositoryType.GIT,
-                url = "https://example.com/repo2.git",
-                productId = productId
-            )
+        test("getForOrtRun should return the job for a run") {
+            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
-            ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
-            ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 1
-            ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 2
-            ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 2
-        }
-
-        test("getByIndex should return the correct run") {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
-
-            ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
-        }
-
-        test("listForRepositories should return all runs for a repository") {
-            val ortRun1 = ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
-            val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
-
-            ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
+            analyzerJobRepository.getForOrtRun(ortRunId) shouldBe analyzerJob
         }
 
         test("update should update an entry in the database") {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
-            val updateStatus = OptionalValue.Present(OrtRunStatus.ACTIVE)
+            val updateStartedAt = OptionalValue.Present(Clock.System.now())
+            val updatedFinishedAt = OptionalValue.Present(Clock.System.now())
+            val updateStatus = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
 
-            val updateResult = ortRunRepository.update(ortRun.id, updateStatus)
+            val updateResult =
+                analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
 
-            updateResult shouldBe ortRun.copy(status = updateStatus.value)
-            ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(status = updateStatus.value)
+            updateResult shouldBe analyzerJob.copy(
+                startedAt = updateStartedAt.value.toDatabasePrecision(),
+                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+                status = updateStatus.value
+            )
+            analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
+                startedAt = updateStartedAt.value.toDatabasePrecision(),
+                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+                status = updateStatus.value
+            )
         }
 
         test("delete should delete the database entry") {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
-            ortRunRepository.delete(ortRun.id)
+            analyzerJobRepository.delete(analyzerJob.id)
 
-            ortRunRepository.listForRepository(repositoryId) shouldBe emptyList()
+            analyzerJobRepository.get(analyzerJob.id) shouldBe null
         }
     }
 }

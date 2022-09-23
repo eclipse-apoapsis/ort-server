@@ -19,18 +19,37 @@
 
 package org.ossreviewtoolkit.server.services
 
+import kotlinx.coroutines.runBlocking
+
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * This service is responsible for creating worker jobs for ORT runs.
  */
 class OrchestratorService(
-    private val ortRunRepository: OrtRunRepository
+    private val analyzerJobRepository: AnalyzerJobRepository,
+    private val ortRunRepository: OrtRunRepository,
+    private val repositoryRepository: RepositoryRepository,
+    private val schedulerService: SchedulerService
 ) {
     suspend fun createOrtRun(repositoryId: Long, revision: String, config: JobConfigurations): OrtRun = dbQuery {
-        ortRunRepository.create(repositoryId, revision, config)
+        val repository = repositoryRepository.get(repositoryId)
+        val ortRun = ortRunRepository.create(repositoryId, revision, config)
+        val analyzerJob = analyzerJobRepository.create(ortRunId = ortRun.id, configuration = config.analyzer)
+
+        require(repository != null)
+
+        runBlocking { schedulerService.scheduleAnalyzerJob(repository, ortRun, analyzerJob) }.getOrThrow()
+
+        analyzerJobRepository.update(analyzerJob.id, status = OptionalValue.Present(AnalyzerJobStatus.SCHEDULED))
+
+        ortRun
     }.getOrThrow()
 }

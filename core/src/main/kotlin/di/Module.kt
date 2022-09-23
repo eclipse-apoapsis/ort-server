@@ -28,18 +28,22 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.core.client.KeycloakService
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.services.NoOpSchedulerService
 import org.ossreviewtoolkit.server.services.OrchestratorService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.RepositoryService
+import org.ossreviewtoolkit.server.services.SchedulerService
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
@@ -56,13 +60,15 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single { KeycloakService.create(get(), get()) }
 
+    single<AnalyzerJobRepository> { DaoAnalyzerJobRepository() }
     single<OrganizationRepository> { DaoOrganizationRepository() }
     single<OrtRunRepository> { DaoOrtRunRepository() }
     single<ProductRepository> { DaoProductRepository() }
     single<RepositoryRepository> { DaoRepositoryRepository() }
 
-    single { OrchestratorService(get()) }
+    single<SchedulerService> { NoOpSchedulerService() }
+    single { OrchestratorService(get(), get(), get(), get()) }
     single { OrganizationService(get(), get()) }
     single { ProductService(get(), get()) }
-    single { RepositoryService(get()) }
+    single { RepositoryService(get(), get()) }
 }

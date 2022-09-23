@@ -19,45 +19,44 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
+import kotlinx.datetime.Instant
+
+import org.ossreviewtoolkit.server.model.AnalyzerJob
+import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
- * A repository of [ORT runs][OrtRun].
+ * A repository of [analyzer jobs][AnalyzerJob].
  */
-interface OrtRunRepository {
+interface AnalyzerJobRepository {
     /**
-     * Create an ORT run.
+     * Create an analyzer job.
      */
-    fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun
+    fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob
 
     /**
-     * Get an ORT run by [id]. Returns null if the ORT run is not found.
+     * Get an analyzer job by [id]. Returns null if the analyzer job is not found.
      */
-    fun get(id: Long): OrtRun?
+    fun get(id: Long): AnalyzerJob?
 
     /**
-     * Get an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
+     * Get the analyzer job for an [ORT run][ortRunId].
      */
-    fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
+    fun getForOrtRun(ortRunId: Long): AnalyzerJob?
 
     /**
-     * List all ORT runs for a [repository][repositoryId].
-     */
-    fun listForRepository(repositoryId: Long): List<OrtRun>
-
-    /**
-     * Update an ORT run by [id] with the [present][OptionalValue.Present] values.
+     * Update an analyzer job by [id] with the [present][OptionalValue.Present] values.
      */
     fun update(
         id: Long,
-        status: OptionalValue<OrtRunStatus> = OptionalValue.Absent
-    ): OrtRun
+        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
+        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
+        status: OptionalValue<AnalyzerJobStatus> = OptionalValue.Absent
+    ): AnalyzerJob
 
     /**
-     * Delete an ORT run by [id].
+     * Delete an analyzer job by [id].
      */
     fun delete(id: Long)
 }

@@ -20,8 +20,10 @@
 package org.ossreviewtoolkit.server.services
 
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
@@ -29,6 +31,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
  * A service providing functions for working with [repositories][Repository].
  */
 class RepositoryService(
+    private val ortRunRepository: OrtRunRepository,
     private val repositoryRepository: RepositoryRepository
 ) {
     /**
@@ -36,6 +39,10 @@ class RepositoryService(
      */
     suspend fun deleteRepository(repositoryId: Long): Unit = dbQuery {
         repositoryRepository.delete(repositoryId)
+    }.getOrThrow()
+
+    suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = dbQuery {
+        ortRunRepository.getByIndex(repositoryId, ortRunIndex)
     }.getOrThrow()
 
     /**

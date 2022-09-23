@@ -85,5 +85,16 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     .mapToApi()
             )
         }
+
+        route("{ortRunIndex}") {
+            get {
+                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val ortRunIndex = call.requireParameter("ortRunIndex").toLong()
+
+                repositoryService.getOrtRun(repositoryId, ortRunIndex)
+                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                    ?: call.respond(HttpStatusCode.NotFound)
+            }
+        }
     }
 }

@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Clock
 
+import org.jetbrains.exposed.sql.and
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
@@ -48,6 +50,11 @@ class DaoOrtRunRepository : OrtRunRepository {
         }.getOrThrow()
 
     override fun get(id: Long): OrtRun? = blockingQuery { OrtRunDao[id].mapToModel() }.getOrNull()
+
+    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQuery {
+        OrtRunDao.find { OrtRunsTable.repository eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
+            .firstOrNull()?.mapToModel()
+    }.getOrNull()
 
     override fun listForRepository(repositoryId: Long): List<OrtRun> = blockingQuery {
         OrtRunDao.find { OrtRunsTable.repository eq repositoryId }.map { it.mapToModel() }
