@@ -25,6 +25,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 import org.ossreviewtoolkit.server.core.api.healthChecks
+import org.ossreviewtoolkit.server.core.api.jobs
 import org.ossreviewtoolkit.server.core.api.organizations
 import org.ossreviewtoolkit.server.core.api.products
 import org.ossreviewtoolkit.server.core.api.repositories
@@ -34,6 +35,7 @@ fun Application.configureRouting() {
         route("api/v1") {
             healthChecks()
             authenticate(SecurityConfigurations.token) {
+                jobs()
                 organizations()
                 products()
                 repositories()

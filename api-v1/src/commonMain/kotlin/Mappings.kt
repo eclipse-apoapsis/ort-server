@@ -21,14 +21,18 @@
 
 package org.ossreviewtoolkit.server.api.v1
 
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJobStatus as ApiAnalyzerJobStatus
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
+import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -37,9 +41,16 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
+fun AnalyzerJob.mapToApi() =
+    ApiAnalyzerJob(id, createdAt, startedAt, finishedAt, configuration.mapToApi(), status.mapToApi())
+
 fun AnalyzerJobConfiguration.mapToApi() = ApiAnalyzerJobConfiguration(allowDynamicVersions)
 
 fun ApiAnalyzerJobConfiguration.mapToModel() = AnalyzerJobConfiguration(allowDynamicVersions)
+
+fun AnalyzerJobStatus.mapToApi() = ApiAnalyzerJobStatus.valueOf(name)
+
+fun ApiAnalyzerJobStatus.mapToModel() = AnalyzerJobStatus.valueOf(name)
 
 fun JobConfigurations.mapToApi() = ApiJobConfigurations(analyzer.mapToApi())
 

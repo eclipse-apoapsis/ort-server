@@ -20,8 +20,10 @@
 package org.ossreviewtoolkit.server.services
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -51,5 +53,39 @@ class OrchestratorService(
         analyzerJobRepository.update(analyzerJob.id, status = OptionalValue.Present(AnalyzerJobStatus.SCHEDULED))
 
         ortRun
+    }.getOrThrow()
+
+    /**
+     * Get an analyzer job by [analyzerJobId]. Returns null if the analyzer job is not found.
+     */
+    suspend fun getAnalyzerJob(analyzerJobId: Long): AnalyzerJob? = dbQuery {
+        analyzerJobRepository.get(analyzerJobId)
+    }.getOrNull()
+
+    /**
+     * If a [scheduled][AnalyzerJobStatus.SCHEDULED]
+     */
+    suspend fun startAnalyzerJob(): AnalyzerJob? = dbQuery {
+        val analyzerJob = analyzerJobRepository.getScheduled()
+
+        if (analyzerJob != null) {
+            analyzerJobRepository.update(
+                analyzerJob.id,
+                startedAt = OptionalValue.Present(Clock.System.now()),
+                status = OptionalValue.Present(AnalyzerJobStatus.RUNNING)
+            )
+        } else null
+    }.getOrThrow()
+
+    suspend fun finishAnalyzerJob(analyzerJobId: Long): AnalyzerJob? = dbQuery {
+        val analyzerJob = analyzerJobRepository.get(analyzerJobId)
+
+        if (analyzerJob != null) {
+            analyzerJobRepository.update(
+                analyzerJob.id,
+                finishedAt = OptionalValue.Present(Clock.System.now()),
+                status = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
+            )
+        } else null
     }.getOrThrow()
 }

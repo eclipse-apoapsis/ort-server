@@ -48,6 +48,11 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
         AnalyzerJobDao.find { AnalyzerJobsTable.ortRun eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }.getOrNull()
 
+    override fun getScheduled(): AnalyzerJob? = blockingQuery {
+        AnalyzerJobDao.find { AnalyzerJobsTable.status eq AnalyzerJobStatus.SCHEDULED }.limit(1)
+            .firstOrNull()?.mapToModel()
+    }.getOrNull()
+
     override fun update(
         id: Long,
         startedAt: OptionalValue<Instant?>,
