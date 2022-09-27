@@ -90,6 +90,12 @@ services:
       source: ./scripts/docker/keycloak/
       target: /opt/keycloak_init/
 
+  analyzer-worker:
+    image: analyzer-ort-server:latest
+    depends_on:
+      ort-server:
+        condition: service_healthy
+
 volumes:
   db:
     driver: local
