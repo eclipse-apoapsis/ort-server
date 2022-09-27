@@ -27,6 +27,11 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/liveness" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
     - "8080:8080"
     environment:
