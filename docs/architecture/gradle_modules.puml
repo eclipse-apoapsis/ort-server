@@ -1,0 +1,75 @@
+@startuml
+
+component Core [
+<b>Core</b>
+DI, Routing, ...
+]
+
+component Frontend [
+<b>Frontend</b>
+Kotlin/JS
+]
+
+component ApiV1 [
+<b>API v1</b>
+API model,
+mappings, ...
+]
+
+component ApiClientV1 [
+<b>API Client v1</b>
+MP Ktor Client
+]
+
+component ApiV2 [
+<b>API v2</b>
+API model,
+mappings, ...
+]
+
+component ApiClientV2 [
+<b>API Client v2</b>
+MP Ktor Client
+]
+
+component Services [
+<b>Services</b>
+Business Logic,
+transactions, ...
+]
+
+component Dao [
+<b>DAO</b>
+Database access
+]
+
+component Model [
+<b>Model</b>
+Model classes,
+interfaces
+]
+
+component Clients [
+<b>Clients</b>
+Keycloak, ...
+]
+
+component Workers [
+<b>Workers</b>
+Analyzer, Scanner, ...
+]
+
+Workers <..> Core : API Calls, Service Bus
+Frontend <.. Core
+Core ..> ApiV1
+Core ..> ApiV2
+Frontend ..> ApiClientV1
+ApiClientV1 ..> ApiV1
+ApiClientV2 ..> ApiV2
+ApiV1 ..> Services
+ApiV2 ..> Services
+Services ..> Dao
+Services ..> Clients
+Dao ..> Model
+
+@enduml
