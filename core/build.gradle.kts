@@ -67,7 +67,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.kotlinTest)
     testImplementation(libs.ktorClientContentNegotiation)
     testImplementation(libs.ktorClientCore)
     testImplementation(libs.ktorServerTestHost)

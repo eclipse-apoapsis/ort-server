@@ -49,7 +49,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotestExtensionsTestContainer)
-    testImplementation(libs.kotlinTest)
     testImplementation(libs.testContainers)
     testImplementation(libs.testContainersPostgresql)
 }
