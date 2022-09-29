@@ -20,6 +20,7 @@
 rootProject.name = "ort-server"
 
 include(":api-v1")
+include(":clients:keycloak")
 include(":core")
 include(":dao")
 include(":model")

@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 
 import org.koin.dsl.module
 
-import org.ossreviewtoolkit.server.core.client.KeycloakClient
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository

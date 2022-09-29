@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.client
+package org.ossreviewtoolkit.server.clients.keycloak
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig

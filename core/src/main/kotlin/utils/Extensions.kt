@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.core.utils
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.ApplicationConfig
 
-import org.ossreviewtoolkit.server.core.client.KeycloakClientConfiguration
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
 
 /**
  * Get the parameter from this [ApplicationCall].

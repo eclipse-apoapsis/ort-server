@@ -17,9 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.client
-
-import com.typesafe.config.ConfigFactory
+package org.ossreviewtoolkit.server.clients.keycloak
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
@@ -35,7 +33,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.HoconApplicationConfig
 
 import kotlinx.serialization.json.Json
 
@@ -393,17 +390,14 @@ private fun KeycloakContainer.createTestClient(): KeycloakClient =
 /**
  * Generate a configuration with test properties based on this container to be consumed by a test client instance.
  */
-private fun KeycloakContainer.createConfig(secret: String = API_SECRET): HoconApplicationConfig {
-    val configMap = mapOf(
-        "keycloak.accessTokenUrl" to "${authServerUrl}realms/$REALM/protocol/openid-connect/token",
-        "keycloak.apiUrl" to "${authServerUrl}admin/realms/$REALM",
-        "keycloak.clientId" to CLIENT_ID,
-        "keycloak.apiUser" to API_USER,
-        "keycloak.apiSecret" to secret
+private fun KeycloakContainer.createConfig(secret: String = API_SECRET) =
+    KeycloakClientConfiguration(
+        apiUrl = "${authServerUrl}admin/realms/$REALM",
+        clientId = CLIENT_ID,
+        accessTokenUrl = "${authServerUrl}realms/$REALM/protocol/openid-connect/token",
+        apiUser = API_USER,
+        apiSecret = secret
     )
-
-    return HoconApplicationConfig(ConfigFactory.parseMap(configMap))
-}
 
 /**
  * Create the [Json] instance required by the test client.

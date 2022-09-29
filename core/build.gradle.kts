@@ -41,15 +41,12 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":api-v1"))
+    implementation(project(":clients:keycloak"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":services"))
 
     implementation(libs.jsonSchemaSerialization)
-    implementation(libs.ktorClientAuth)
-    implementation(libs.ktorClientContentNegotiation)
-    implementation(libs.ktorClientCore)
-    implementation(libs.ktorClientOkHttp)
     implementation(libs.koinKtor)
     implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerAuthJwt)
@@ -71,8 +68,9 @@ dependencies {
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinTest)
+    testImplementation(libs.ktorClientContentNegotiation)
+    testImplementation(libs.ktorClientCore)
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
-    testImplementation(libs.testContainersKeycloak)
     testImplementation(libs.wiremock)
 }

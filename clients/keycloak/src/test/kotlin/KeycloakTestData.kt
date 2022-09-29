@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.client
+package org.ossreviewtoolkit.server.clients.keycloak
 
 internal val groupOrgA = Group(
     id = "e6a8bf53-32e1-43d9-9962-ece3863fe4ce",
