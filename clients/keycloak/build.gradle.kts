@@ -20,7 +20,7 @@
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.ossreviewtoolkit.server.clients"

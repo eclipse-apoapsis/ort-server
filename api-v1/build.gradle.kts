@@ -22,7 +22,7 @@ import io.gitlab.arturbosch.detekt.Detekt
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 kotlin {
