@@ -39,7 +39,7 @@ import io.ktor.server.config.HoconApplicationConfig
 
 import kotlinx.serialization.json.Json
 
-class KeycloakServiceTest : WordSpec() {
+class KeycloakClientTest : WordSpec() {
     private val keycloak = install(
         TestContainerExtension(
             KeycloakContainer()
@@ -56,10 +56,10 @@ class KeycloakServiceTest : WordSpec() {
             "not throw any instantiation exception" {
                 val incorrectConfig = keycloak.createConfig("falseSecret")
 
-                val service = KeycloakService.create(incorrectConfig, createJson())
+                val client = KeycloakClient.create(incorrectConfig, createJson())
 
-                val exception = shouldThrow<KeycloakServiceException> {
-                    service.getRoles()
+                val exception = shouldThrow<KeycloakClientException> {
+                    client.getRoles()
                 }
 
                 exception.message shouldStartWith "Failed to load roles"
@@ -68,9 +68,9 @@ class KeycloakServiceTest : WordSpec() {
 
         "getGroups" should {
             "return the correct realm groups" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val groups = service.getGroups()
+                val groups = client.getGroups()
 
                 groups shouldContainAnyOf setOf(groupOrgA, groupOrgB, groupOrgC)
             }
@@ -78,96 +78,96 @@ class KeycloakServiceTest : WordSpec() {
 
         "getGroup by ID" should {
             "return the correct realm group" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val group = service.getGroup(groupOrgA.id)
+                val group = client.getGroup(groupOrgA.id)
 
                 group shouldBe groupOrgA
             }
 
             "throw an exception if the group does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.getGroup("1")
+                shouldThrow<KeycloakClientException> {
+                    client.getGroup("1")
                 }
             }
         }
 
         "createGroup" should {
             "add successfully a new realm group" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val response = service.createGroup("TEST_GROUP")
-                val keycloakGroups = service.getGroups()
+                val response = client.createGroup("TEST_GROUP")
+                val keycloakGroups = client.getGroups()
 
                 response.status shouldBe HttpStatusCode.Created
                 keycloakGroups.size shouldBe 4
             }
 
             "throw an exception if a group with the name already exists" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.createGroup(groupOrgA.name)
+                shouldThrow<KeycloakClientException> {
+                    client.createGroup(groupOrgA.name)
                 }
             }
         }
 
         "updateGroup" should {
             "update successfully the given realm group" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedGroup = groupOrgA.copy(name = "New-Organization-A")
-                val response = service.updateGroup(groupOrgA.id, updatedGroup.name)
-                val updatedKeycloakGroup = service.getGroup(groupOrgA.id)
+                val response = client.updateGroup(groupOrgA.id, updatedGroup.name)
+                val updatedKeycloakGroup = client.getGroup(groupOrgA.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakGroup shouldBe updatedGroup
             }
 
             "throw an exception if the group does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.updateGroup("1", "New-Organization")
+                shouldThrow<KeycloakClientException> {
+                    client.updateGroup("1", "New-Organization")
                 }
             }
 
             "throw an exception if a group with the name already exists" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.updateGroup(groupOrgA.id, groupOrgB.name)
+                shouldThrow<KeycloakClientException> {
+                    client.updateGroup(groupOrgA.id, groupOrgB.name)
                 }
             }
         }
 
         "deleteGroup" should {
             "delete successfully the given realm group" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val response = service.deleteGroup(groupOrgA.id)
-                val groups = service.getGroups()
+                val response = client.deleteGroup(groupOrgA.id)
+                val groups = client.getGroups()
 
                 response.status shouldBe HttpStatusCode.NoContent
                 groups.map(Group::name) shouldNotContain groupOrgA.name
             }
 
             "throw an exception if the group does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.deleteGroup("1")
+                shouldThrow<KeycloakClientException> {
+                    client.deleteGroup("1")
                 }
             }
         }
 
         "getRoles" should {
             "return the correct client roles" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val roles = service.getRoles()
+                val roles = client.getRoles()
 
                 roles shouldContainAnyOf listOf(adminRole, visitorRole)
             }
@@ -175,111 +175,111 @@ class KeycloakServiceTest : WordSpec() {
 
         "getRole by name" should {
             "return the correct client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val role = service.getRole(adminRole.name)
+                val role = client.getRole(adminRole.name)
 
                 role shouldBe adminRole
             }
 
             "throw an exception if the role does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.getRole("UNKNOWN_ROLE")
+                shouldThrow<KeycloakClientException> {
+                    client.getRole("UNKNOWN_ROLE")
                 }
             }
         }
 
         "createRole" should {
             "add successfully a new client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val response = service.createRole("TEST_ROLE", "Created for testing purposes.")
-                val keycloakRoles = service.getRoles()
+                val response = client.createRole("TEST_ROLE", "Created for testing purposes.")
+                val keycloakRoles = client.getRoles()
 
                 response.status shouldBe HttpStatusCode.Created
                 keycloakRoles.size shouldBe 3
             }
 
             "throw an exception if a role with the name already exists" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.createRole("ADMIN")
+                shouldThrow<KeycloakClientException> {
+                    client.createRole("ADMIN")
                 }
             }
         }
 
         "updateRole" should {
             "update only the name of the given client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedRole = visitorRole.copy(name = "UPDATED_VISITOR")
-                val response = service.updateRole(visitorRole.name, updatedRole.name, updatedRole.description)
-                val updatedKeycloakRole = service.getRole(updatedRole.name)
+                val response = client.updateRole(visitorRole.name, updatedRole.name, updatedRole.description)
+                val updatedKeycloakRole = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
             }
 
             "update only the description of the given client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedRole = adminRole.copy(description = "This role is for admins.")
-                val response = service.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
-                val updatedKeycloakRole = service.getRole(updatedRole.name)
+                val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
+                val updatedKeycloakRole = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
             }
 
             "update successfully the given client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedRole = adminRole.copy(name = "UPDATED_ADMIN", description = "The updated role description.")
-                val response = service.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
-                val updatedKeycloakService = service.getRole(updatedRole.name)
+                val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
+                val updatedKeycloakclient = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
-                updatedKeycloakService shouldBe updatedRole
+                updatedKeycloakclient shouldBe updatedRole
             }
 
             "throw an exception if a role cannot be updated" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.updateRole("UNKOWN_ROLE", "UPDATED_UNKNOWN_ROLE", null)
+                shouldThrow<KeycloakClientException> {
+                    client.updateRole("UNKOWN_ROLE", "UPDATED_UNKNOWN_ROLE", null)
                 }
             }
         }
 
         "deleteRole" should {
             "delete successfully the given client role" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val role = visitorRole.copy(name = "UPDATED_VISITOR")
-                val response = service.deleteRole(role.name)
-                val keycloakRoles = service.getRoles()
+                val response = client.deleteRole(role.name)
+                val keycloakRoles = client.getRoles()
 
                 response.status shouldBe HttpStatusCode.NoContent
                 keycloakRoles.map(Role::name) shouldNotContain role.name
             }
 
             "throw an exception if the role does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.deleteRole("UNKNOWN_ROLE")
+                shouldThrow<KeycloakClientException> {
+                    client.deleteRole("UNKNOWN_ROLE")
                 }
             }
         }
 
         "getUsers" should {
             "return the correct realm users" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val users = service.getUsers()
+                val users = client.getUsers()
 
                 users shouldContainAnyOf setOf(adminUser, ortAdminUser, visitorUser)
             }
@@ -287,59 +287,59 @@ class KeycloakServiceTest : WordSpec() {
 
         "getUser by ID" should {
             "return the correct realm user" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val user = service.getUser(adminUser.id)
+                val user = client.getUser(adminUser.id)
 
                 user shouldBe adminUser
             }
 
             "throw an exception if the user does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.getUser("1")
+                shouldThrow<KeycloakClientException> {
+                    client.getUser("1")
                 }
             }
         }
 
         "createUser" should {
             "add successfully a new realm user" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val response = service.createUser("new-test-user")
-                val keycloakUsers = service.getUsers()
+                val response = client.createUser("new-test-user")
+                val keycloakUsers = client.getUsers()
 
                 response.status shouldBe HttpStatusCode.Created
                 keycloakUsers.size shouldBe 4
             }
 
             "throw an exception if a user with the username already exists" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.createUser(adminUser.username)
+                shouldThrow<KeycloakClientException> {
+                    client.createUser(adminUser.username)
                 }
             }
         }
 
         "updateUser" should {
             "update only the firstname of the user" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedUser = visitorUser.copy(firstName = "New First Name")
-                val response = service.updateUser(id = visitorUser.id, firstName = updatedUser.firstName)
-                val updatedKeycloakUser = service.getUser(visitorUser.id)
+                val response = client.updateUser(id = visitorUser.id, firstName = updatedUser.firstName)
+                val updatedKeycloakUser = client.getUser(visitorUser.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
             }
 
             "update successfully the given realm user" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
                 val updatedUser = visitorUser.copy(email = "updated-visitor-mail@org.com")
-                val response = service.updateUser(
+                val response = client.updateUser(
                     updatedUser.id,
                     updatedUser.username,
                     updatedUser.firstName,
@@ -347,37 +347,37 @@ class KeycloakServiceTest : WordSpec() {
                     updatedUser.email
                 )
 
-                val updatedKeycloakUser = service.getUser(visitorUser.id)
+                val updatedKeycloakUser = client.getUser(visitorUser.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
             }
 
             "throw an exception if a user cannot be updated" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.updateUser(visitorUser.id, email = adminUser.email)
+                shouldThrow<KeycloakClientException> {
+                    client.updateUser(visitorUser.id, email = adminUser.email)
                 }
             }
         }
 
         "deleteUser" should {
             "delete successfully the given realm user" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                val response = service.deleteUser(visitorUser.id)
-                val keycloakUsers = service.getUsers()
+                val response = client.deleteUser(visitorUser.id)
+                val keycloakUsers = client.getUsers()
 
                 response.status shouldBe HttpStatusCode.NoContent
                 keycloakUsers.map(User::username) shouldNotContain visitorUser.username
             }
 
             "throw an exception if the user does not exist" {
-                val service = keycloak.createTestService()
+                val client = keycloak.createTestClient()
 
-                shouldThrow<KeycloakServiceException> {
-                    service.deleteUser("1")
+                shouldThrow<KeycloakClientException> {
+                    client.deleteUser("1")
                 }
             }
         }
@@ -385,13 +385,13 @@ class KeycloakServiceTest : WordSpec() {
 }
 
 /**
- * Create a test service instance that is configured to access the Keycloak instance managed by this container.
+ * Create a test client instance that is configured to access the Keycloak instance managed by this container.
  */
-private fun KeycloakContainer.createTestService(): KeycloakService =
-    KeycloakService.create(createConfig(), createJson())
+private fun KeycloakContainer.createTestClient(): KeycloakClient =
+    KeycloakClient.create(createConfig(), createJson())
 
 /**
- * Generate a configuration with test properties based on this container to be consumed by a test service instance.
+ * Generate a configuration with test properties based on this container to be consumed by a test client instance.
  */
 private fun KeycloakContainer.createConfig(secret: String = API_SECRET): HoconApplicationConfig {
     val configMap = mapOf(
@@ -406,7 +406,7 @@ private fun KeycloakContainer.createConfig(secret: String = API_SECRET): HoconAp
 }
 
 /**
- * Create the [Json] instance required by the test service.
+ * Create the [Json] instance required by the test client.
  */
 private fun createJson(): Json = Json {
     ignoreUnknownKeys = true

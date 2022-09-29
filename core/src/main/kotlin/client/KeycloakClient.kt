@@ -47,28 +47,28 @@ import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 
 /**
- * A service class implementing interactions with Keycloak, based on the documentation from
+ * A client implementing interactions with Keycloak, based on the documentation from
  * https://www.keycloak.org/docs-api/19.0/rest-api/index.html.
  */
 @Suppress("TooManyFunctions")
-class KeycloakService(
+class KeycloakClient(
     /** The pre-configured [HttpClient] for the interaction with the Keycloak REST API. */
     private val httpClient: HttpClient,
 
     /** The base URL to access the Keycloak Admin REST API. */
     private val apiUrl: String,
 
-    /** The clientId of the client inside the Keycloak realm, which will be accessed/modified by this service. */
+    /** The clientId of the client inside the Keycloak realm, which will be accessed/modified by this client. */
     private val clientId: String
 ) {
     companion object {
-        private val logger = LoggerFactory.getLogger(KeycloakService::class.java)
+        private val logger = LoggerFactory.getLogger(KeycloakClient::class.java)
 
-        fun create(config: ApplicationConfig, json: Json): KeycloakService {
+        fun create(config: ApplicationConfig, json: Json): KeycloakClient {
             val apiUrl = config.property("keycloak.apiUrl").getString()
             val httpClient = createHttpClient(config, json)
 
-            return KeycloakService(httpClient, apiUrl, config.property("keycloak.clientId").getString())
+            return KeycloakClient(httpClient, apiUrl, config.property("keycloak.clientId").getString())
         }
 
         private fun createHttpClient(config: ApplicationConfig, json: Json): HttpClient =
@@ -92,7 +92,7 @@ class KeycloakService(
                             val tokenInfo: TokenInfo = runCatching {
                                 tokenClient.generateAccessToken(accessTokenUrl, clientId, apiUser, apiSecret)
                             }.getOrElse {
-                                throw KeycloakServiceException("Failed to generate access token.", it)
+                                throw KeycloakClientException("Failed to generate access token.", it)
                             }.body()
 
                             BearerTokens(tokenInfo.accessToken, tokenInfo.refreshToken)
@@ -116,7 +116,7 @@ class KeycloakService(
     /** A mutex allowing safe access to the client ID, which is initialized on first access. */
     private val mutexClientId = Mutex()
 
-    /** The internal ID of the client whose roles are to be accessed by this service. */
+    /** The internal ID of the client whose roles are to be accessed by this client. */
     private var internalClientId: String? = null
 
     /**
@@ -126,7 +126,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/clients")
         }.getOrElse {
-            throw KeycloakServiceException("Failed to loads clients.", it)
+            throw KeycloakClientException("Failed to loads clients.", it)
         }.body()
 
     /**
@@ -135,10 +135,10 @@ class KeycloakService(
      */
     private suspend fun findClientId(clientId: String): String =
         getClients().find { it.clientId == clientId }?.id ?:
-            throw KeycloakServiceException("Could not find client with ID '$clientId'.")
+            throw KeycloakClientException("Could not find client with ID '$clientId'.")
 
     /**
-     * Return the [(internal) ID of the client][internalClientId] to be manipulated by this service. Retrieve it on
+     * Return the [(internal) ID of the client][internalClientId] to be manipulated by this client. Retrieve it on
      * the first access.
      */
     private suspend fun getClientId(): String = mutexClientId.withLock {
@@ -152,7 +152,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/groups")
         }.getOrElse {
-            throw KeycloakServiceException("Failed to load groups.", it)
+            throw KeycloakClientException("Failed to load groups.", it)
         }.body()
 
     /**
@@ -162,7 +162,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/groups/$id")
         }.getOrElse {
-            throw KeycloakServiceException("Could not find group '$id'.", it)
+            throw KeycloakClientException("Could not find group '$id'.", it)
         }.body()
 
     /**
@@ -173,7 +173,7 @@ class KeycloakService(
             httpClient.post("$apiUrl/groups") {
                 setBody(GroupRequest(name))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to create group '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create group '$name'.", it) }
 
     /**
      * Add a new [subgroup][Group] with the given [name] to the [group][Group] with the given [id].
@@ -184,7 +184,7 @@ class KeycloakService(
                 setBody(GroupRequest(name))
             }
         }.getOrElse {
-            throw KeycloakServiceException("Failed to add subgroup '$name' to the group '$id'.", it)
+            throw KeycloakClientException("Failed to add subgroup '$name' to the group '$id'.", it)
         }.body()
 
     /**
@@ -195,7 +195,7 @@ class KeycloakService(
             httpClient.put("$apiUrl/groups/$id") {
                 setBody(GroupRequest(name))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to update group '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update group '$id'.", it) }
 
     /**
      * Delete the [group][Group] within the Keycloak realm with the given [id].
@@ -203,7 +203,7 @@ class KeycloakService(
     suspend fun deleteGroup(id: String): HttpResponse =
         runCatching {
             httpClient.delete("$apiUrl/groups/$id")
-        }.getOrElse { throw KeycloakServiceException("Failed to delete group '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to delete group '$id'.", it) }
 
     /**
      * Return a set of all [roles][Role] that are currently defined for the configured [client][clientId].
@@ -212,7 +212,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/clients/${getClientId()}/roles")
         }.getOrElse {
-            throw KeycloakServiceException("Failed to load roles.", it)
+            throw KeycloakClientException("Failed to load roles.", it)
         }.body()
 
     /**
@@ -222,7 +222,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/clients/${getClientId()}/roles/$name")
         }.getOrElse {
-            throw KeycloakServiceException("Could not find role '$name'.", it)
+            throw KeycloakClientException("Could not find role '$name'.", it)
         }.body()
 
     /**
@@ -233,7 +233,7 @@ class KeycloakService(
             httpClient.post("$apiUrl/clients/${getClientId()}/roles") {
                 setBody(RoleRequest(name, description))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to create role '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create role '$name'.", it) }
 
     /**
      * Update the [role][Role] within the configured [client][clientId] with the new [updatedName] and
@@ -248,7 +248,7 @@ class KeycloakService(
             httpClient.put("$apiUrl/clients/${getClientId()}/roles/$name") {
                 setBody(RoleRequest(updatedName, roleDescription))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to update role '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update role '$name'.", it) }
     }
 
     /**
@@ -257,7 +257,7 @@ class KeycloakService(
     suspend fun deleteRole(name: String): HttpResponse =
         runCatching {
             httpClient.delete("$apiUrl/clients/${getClientId()}/roles/$name")
-        }.getOrElse { throw KeycloakServiceException("Failed to delete role '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to delete role '$name'.", it) }
 
     /**
      * Return a set of all [users][User], which currently exist in the Keycloak realm.
@@ -272,7 +272,7 @@ class KeycloakService(
                 }
             }
         }.getOrElse {
-            throw KeycloakServiceException("Failed to load users.", it)
+            throw KeycloakClientException("Failed to load users.", it)
         }.body()
 
     /**
@@ -282,7 +282,7 @@ class KeycloakService(
         runCatching {
             httpClient.get("$apiUrl/users/$id")
         }.getOrElse {
-            throw KeycloakServiceException("Could not find user '$id'.", it)
+            throw KeycloakClientException("Could not find user '$id'.", it)
         }.body()
 
     /**
@@ -298,7 +298,7 @@ class KeycloakService(
             httpClient.post("$apiUrl/users") {
                 setBody(UserRequest(username, firstName, lastName, email))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to create user '$username'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create user '$username'.", it) }
 
     /**
      * Update the [user][User] with the given [id] within the Keycloak realm with the new [username], [firstName],
@@ -322,7 +322,7 @@ class KeycloakService(
             httpClient.put("$apiUrl/users/$id") {
                 setBody(UserRequest(correctUsername, correctFirstName, correctLastName, correctEmail))
             }
-        }.getOrElse { throw KeycloakServiceException("Failed to update user '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update user '$id'.", it) }
     }
 
     /**
@@ -331,7 +331,7 @@ class KeycloakService(
     suspend fun deleteUser(id: String): HttpResponse =
         runCatching {
             httpClient.delete("$apiUrl/users/$id")
-        }.getOrElse { throw KeycloakServiceException("Failed to delete user '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to delete user '$id'.", it) }
 }
 
 /**
@@ -429,7 +429,7 @@ private data class UserRequest(
     val enabled: Boolean = true
 )
 
-class KeycloakServiceException : RuntimeException {
+class KeycloakClientException : RuntimeException {
     constructor(msg: String, cause: Throwable) : super(msg, cause)
     constructor(msg: String) : super(msg)
 }
