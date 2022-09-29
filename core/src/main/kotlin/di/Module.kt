@@ -28,6 +28,7 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.core.client.KeycloakClient
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
+import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
@@ -58,7 +59,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
         }
     }
 
-    single { KeycloakClient.create(get(), get()) }
+    single { KeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get()) }
 
     single<AnalyzerJobRepository> { DaoAnalyzerJobRepository() }
     single<OrganizationRepository> { DaoOrganizationRepository() }

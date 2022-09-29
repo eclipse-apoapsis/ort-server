@@ -36,7 +36,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
-import io.ktor.server.config.ApplicationConfig
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -64,14 +63,13 @@ class KeycloakClient(
     companion object {
         private val logger = LoggerFactory.getLogger(KeycloakClient::class.java)
 
-        fun create(config: ApplicationConfig, json: Json): KeycloakClient {
-            val apiUrl = config.property("keycloak.apiUrl").getString()
+        fun create(config: KeycloakClientConfiguration, json: Json): KeycloakClient {
             val httpClient = createHttpClient(config, json)
 
-            return KeycloakClient(httpClient, apiUrl, config.property("keycloak.clientId").getString())
+            return KeycloakClient(httpClient, config.apiUrl, config.clientId)
         }
 
-        private fun createHttpClient(config: ApplicationConfig, json: Json): HttpClient =
+        private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =
             createDefaultHttpClient(json) {
                 expectSuccess = true
 
@@ -80,10 +78,10 @@ class KeycloakClient(
                 }
 
                 install(Auth) {
-                    val accessTokenUrl = config.property("keycloak.accessTokenUrl").getString()
-                    val clientId = config.property("keycloak.clientId").getString()
-                    val apiUser = config.property("keycloak.apiUser").getString()
-                    val apiSecret = config.property("keycloak.apiSecret").getString()
+                    val accessTokenUrl = config.accessTokenUrl
+                    val clientId = config.clientId
+                    val apiUser = config.apiUser
+                    val apiSecret = config.apiSecret
 
                     val tokenClient = createDefaultHttpClient(json) { expectSuccess = true }
 
@@ -465,3 +463,11 @@ internal suspend fun HttpClient.refreshToken(tokenUrl: String, clientId: String,
  */
 private fun getUpdatedValue(oldValue: String?, newValue: String?): String? =
     newValue?.takeIf { newValue.isNotEmpty() } ?: oldValue
+
+data class KeycloakClientConfiguration(
+    val apiUrl: String,
+    val clientId: String,
+    val accessTokenUrl: String,
+    val apiUser: String,
+    val apiSecret: String
+)

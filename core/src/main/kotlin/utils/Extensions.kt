@@ -20,6 +20,9 @@
 package org.ossreviewtoolkit.server.core.utils
 
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.config.ApplicationConfig
+
+import org.ossreviewtoolkit.server.core.client.KeycloakClientConfiguration
 
 /**
  * Get the parameter from this [ApplicationCall].
@@ -27,3 +30,14 @@ import io.ktor.server.application.ApplicationCall
 fun ApplicationCall.requireParameter(name: String) = requireNotNull(parameters[name]) {
     "Parameter '$name' cannot be null."
 }
+
+fun ApplicationConfig.createKeycloakClientConfiguration() =
+    with(config("keycloak")) {
+        KeycloakClientConfiguration(
+            apiUrl = property("apiUrl").getString(),
+            clientId = property("clientId").getString(),
+            accessTokenUrl = property("accessTokenUrl").getString(),
+            apiUser = property("apiUser").getString(),
+            apiSecret = property("apiSecret").getString()
+        )
+    }
