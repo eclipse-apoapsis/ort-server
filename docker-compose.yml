@@ -42,6 +42,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_SSLMODE: disable
+      JWT_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
 
   postgres:
     image: postgres:14
