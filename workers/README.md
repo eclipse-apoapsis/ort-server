@@ -2,7 +2,7 @@
 
 The module *workers* contains submodules for each tool of ORT: Analyzer, Advisor, Scanner, Evaluator and Reporter.
 
-For each step, the submodule contains the code of the workers running in the cluster and the configuration to build the
+For each tool, the submodule contains the code of the workers running in the cluster and the configuration to build the
 Docker images for them. These Docker images are constructed by [Jib](https://github.com/GoogleContainerTools/jib) from
 a *base image*. The latter contains all the tools required by the worker, but not the Java/Kotlin code of the worker
 which will be added by Jib.
@@ -27,10 +27,10 @@ workers/
 └── Readme.md // This file
 ```
 
-Choosing the worker step for which to build the Docker image is made by
+Choosing the worker tool for which to build the Docker image is made by
 selecting the correct submodule in the `workers` module.
 
-The following example presents how to build a Docker image for the **Analyzer** worker step:
+The following example presents how to build a Docker image for the **Analyzer** worker tool:
  * for a local Docker daemon
  * for an Azure Container Registry (ACR)
 
@@ -46,7 +46,7 @@ Build the base image for the Analyzer. This is the same image as upstream ORT bu
 
 Build the Analyzer worker Docker image:
 
-```./gradlew :workers:analyzer:jibDockerBuild -PworkerStep=analyzer```
+```./gradlew :workers:analyzer:jibDockerBuild -PworkerTool=analyzer```
 
 Run the image:
 
@@ -83,7 +83,7 @@ Push the base image to the ACR:
 
 Build the Analyzer worker Docker image:
 
-```./gradlew :workers:analyzer:jibDockerBuild -Djib.from.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-baseimage-latest -Djib.to.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-latest -PworkerStep=analyzer```
+```./gradlew :workers:analyzer:jibDockerBuild -Djib.from.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-baseimage-latest -Djib.to.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-latest -PworkerTool=analyzer```
 
 Push the Analyzer worker Docker image to the ACR:
 
