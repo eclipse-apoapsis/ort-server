@@ -2,10 +2,13 @@
 
 The module *workers* contains submodules for each tool of ORT: Analyzer, Advisor, Scanner, Evaluator and Reporter.
 
-For each step, the submodule contains the code of the workers running in the cluster and the configuration to build the Docker images for them.
-These Docker images are constructed by [Jib](https://github.com/GoogleContainerTools/jib) from a *base image*. The latter contains all the tools required by the worker, but not the Java/Kotlin code of the worker which will be added by Jib.
+For each step, the submodule contains the code of the workers running in the cluster and the configuration to build the
+Docker images for them. These Docker images are constructed by [Jib](https://github.com/GoogleContainerTools/jib) from
+a *base image*. The latter contains all the tools required by the worker, but not the Java/Kotlin code of the worker
+which will be added by Jib.
 
-Since this base image changes less often than the actual worker code, this has the benefit of optimizing the build by quickly rebuilding the worker's Docker image while reusing the already built base image.
+Since this base image changes less often than the actual worker code, this has the benefit of optimizing the build by
+quickly rebuilding the worker's Docker image while reusing the already built base image.
 
 The project structure is the following:
 
