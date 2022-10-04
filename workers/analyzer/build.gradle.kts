@@ -56,6 +56,13 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":api-v1"))
+
+    implementation(libs.ktorClientAuth)
+    implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientCore)
+    implementation(libs.ktorClientOkHttp)
+    implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
     // Required by ORT Analyzer.
     implementation(libs.sw360Client)
