@@ -96,6 +96,7 @@ services:
     depends_on:
       ort-server:
         condition: service_healthy
+    network_mode: host
 
 volumes:
   db:
