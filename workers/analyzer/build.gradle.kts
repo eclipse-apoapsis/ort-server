@@ -72,6 +72,6 @@ jib {
         image = "$workerStep-ort-server:latest"
     }
     container {
-        mainClass = "$workerStep.EntrypointKt"
+        mainClass = "org.ossreviewtoolkit.server.workers.$workerStep.EntrypointKt"
     }
 }

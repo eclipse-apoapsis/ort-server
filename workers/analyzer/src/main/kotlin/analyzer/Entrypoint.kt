@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package analyzer
+package org.ossreviewtoolkit.server.workers.analyzer
 
 import java.io.File
 
