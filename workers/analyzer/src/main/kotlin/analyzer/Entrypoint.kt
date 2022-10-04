@@ -34,4 +34,19 @@ fun main() {
     val npm = Npm.Factory().create(File("."), AnalyzerConfiguration(), RepositoryConfiguration())
     val version = npm.getVersion()
     println("Npm version is $version.")
+
+    // Reading environment variables, which could be set e.g. in a docker compose file. Otherwise, use default
+    // values. This is only an experimental approach to get access to ORT server specific environment variables,
+    // which could be improved by using a configuration file.
+    val host = System.getenv("ORT_SERVER_URL") ?: "http://localhost:8080"
+    val user = System.getenv("ORT_SERVER_USER") ?: "admin"
+    val password = System.getenv("ORT_SERVER_PASSWORD") ?: "admin"
+    val authUrl = System.getenv("ORT_SERVER_AUTH_URL")
+        ?: "http://localhost:8081/realms/master/protocol/openid-connect/token"
+    val clientId = System.getenv("ORT_SERVER_CLIENT_ID") ?: "ort-server"
+    println("ORT server base URL: $host")
+    println("ORT server user: $user")
+    println("ORT server password. $password")
+    println("ORT server authentication URL: $authUrl")
+    println("ORT server client ID: $clientId")
 }

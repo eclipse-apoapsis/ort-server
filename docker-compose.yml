@@ -97,6 +97,12 @@ services:
       ort-server:
         condition: service_healthy
     network_mode: host
+    environment:
+      ORT_SERVER_URL: "http://localhost:8080"
+      ORT_SERVER_USER: admin
+      ORT_SERVER_PASSWORD: admin
+      ORT_SERVER_AUTH_URL: "http://localhost:8081/realms/master/protocol/openid-connect/token"
+      ORT_SERVER_CLIENT_ID: "ort-server"
 
 volumes:
   db:
