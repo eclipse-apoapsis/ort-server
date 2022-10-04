@@ -8,7 +8,7 @@ The ORT server is a standalone application to deploy the
 To start the ORT server with the required 3rd party services, you can use
 [Docker Compose](https://docs.docker.com/compose/). In addition, the local setup requires existing worker images
 constructed by [Jib](https://github.com/GoogleContainerTools/jib). First, follow the
-[instructions](workers/Readme.md) to build the worker images and then start the required containers using docker:
+[instructions](workers/README.md) to build the worker images and then start the required containers using docker:
 ```shell
 docker compose up
 ```
