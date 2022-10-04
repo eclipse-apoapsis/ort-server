@@ -20,7 +20,7 @@ workers/
 │       └── main
 │           └── kotlin
 │               └── analyzer          // Source code of the Analyzer worker
-│                   └── entrypoint.kt // Entrypoint of the Docker image
+│                   └── Entrypoint.kt // Entrypoint of the Docker image
 └── Readme.md // This file
 ```
 
