@@ -22,15 +22,16 @@ package org.ossreviewtoolkit.server.core.api
 import io.github.smiley4.ktorswaggerui.dsl.delete
 import io.github.smiley4.ktorswaggerui.dsl.get
 import io.github.smiley4.ktorswaggerui.dsl.patch
+import io.github.smiley4.ktorswaggerui.dsl.post
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+
+import kotlinx.serialization.json.Json
 
 import org.koin.ktor.ext.inject
 
@@ -39,8 +40,10 @@ import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.getOrtRunByIndex
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.postOrtRun
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 import org.ossreviewtoolkit.server.services.RepositoryService
@@ -48,6 +51,7 @@ import org.ossreviewtoolkit.server.services.RepositoryService
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val repositoryService by inject<RepositoryService>()
+    val json by inject<Json>()
 
     get(getRepositoryById) {
         val id = call.requireParameter("repositoryId").toLong()
@@ -75,7 +79,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        post {
+        post(postOrtRun(json)) {
             val repositoryId = call.requireParameter("repositoryId").toLong()
             val createOrtRun = call.receive<CreateOrtRun>()
 
@@ -87,7 +91,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get {
+            get(getOrtRunByIndex(json)) {
                 val repositoryId = call.requireParameter("repositoryId").toLong()
                 val ortRunIndex = call.requireParameter("ortRunIndex").toLong()
 

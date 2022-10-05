@@ -23,6 +23,14 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import kotlinx.datetime.Clock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
+import org.ossreviewtoolkit.server.api.v1.JobConfigurations
+import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
@@ -86,6 +94,81 @@ val deleteRepositoryById: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+    }
+}
+
+fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
+    operationId = "postOrtRun"
+    summary = "Create an ORT run for a repository."
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+
+        jsonBody<CreateOrtRun> {
+            example(
+                "Create ORT run",
+                CreateOrtRun("main", JobConfigurations(AnalyzerJobConfiguration(true)))
+            )
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<OrtRun> {
+                example(
+                    "Create ORT run",
+                    json.encodeToString(
+                        OrtRun(
+                            id = 1,
+                            repositoryId = 1,
+                            revision = "main",
+                            createdAt = Clock.System.now(),
+                            jobs = JobConfigurations()
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
+fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRunByIndex"
+    summary = "Get details of an ORT run."
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+
+        pathParameter<Long>("ortRunIndex") {
+            description = "The index of an ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<OrtRun> {
+                example(
+                    "Get ORT run",
+                    json.encodeToString(
+                        OrtRun(
+                            id = 1,
+                            repositoryId = 1,
+                            revision = "main",
+                            createdAt = Clock.System.now(),
+                            jobs = JobConfigurations()
+                        )
+                    )
+                )
+            }
         }
     }
 }
