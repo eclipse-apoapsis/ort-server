@@ -19,27 +19,34 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.post
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+
+import kotlinx.serialization.json.Json
 
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.apiDocs.finishAnalyzerJob
+import org.ossreviewtoolkit.server.core.apiDocs.getAnalyzerJobById
+import org.ossreviewtoolkit.server.core.apiDocs.startAnalyzerJob
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 
 fun Route.jobs() = route("jobs") {
     val orchestratorService by inject<OrchestratorService>()
+    val json by inject<Json>()
 
     route("analyzer") {
         route("start") {
-            post {
+            post(startAnalyzerJob(json)) {
                 val job = orchestratorService.startAnalyzerJob()
 
                 if (job != null) {
@@ -51,7 +58,7 @@ fun Route.jobs() = route("jobs") {
         }
 
         route("{id}") {
-            get {
+            get(getAnalyzerJobById(json)) {
                 val id = call.requireParameter("id").toLong()
 
                 val job = orchestratorService.getAnalyzerJob(id)
@@ -64,7 +71,7 @@ fun Route.jobs() = route("jobs") {
             }
 
             route("finish") {
-                post {
+                post(finishAnalyzerJob(json)) {
                     val id = call.requireParameter("id").toLong()
 
                     val job = orchestratorService.finishAnalyzerJob(id)
