@@ -25,7 +25,7 @@ kotlinxSerialization = "1.4.0"
 versionCatalogUpdatePlugin = "0.6.1"
 versionsPlugin = "0.42.0"
 
-exposed = "0.39.2"
+exposed = "0.40.1"
 flyway = "9.4.0"
 hikari = "5.0.1"
 jsonSchemaSerialization = "0.6.6"
