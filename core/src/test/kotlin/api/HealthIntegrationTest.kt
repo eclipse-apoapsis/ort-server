@@ -25,19 +25,15 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.core.createJsonClient
+import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
 class HealthIntegrationTest : WordSpec({
     "/liveness" should {
         "respond with 200 if the server is running" {
-            testApplication {
-                environment {
-                    config = ApplicationConfig("application-nodb.conf")
-                }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/liveness")

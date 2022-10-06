@@ -29,8 +29,6 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
@@ -39,6 +37,8 @@ import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
+import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
@@ -82,9 +82,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
 
     init {
         test("POST /jobs/analyzer/start should return NotFound if no scheduled job exists") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val response = client.post("/api/v1/jobs/analyzer/start") {
@@ -98,9 +96,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /jobs/analyzer/start should return a scheduled job") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 client.post("/api/v1/repositories/$repositoryId/runs") {
@@ -129,9 +125,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /jobs/analyzer/{id}/finish should finish a job") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 client.post("/api/v1/repositories/$repositoryId/runs") {

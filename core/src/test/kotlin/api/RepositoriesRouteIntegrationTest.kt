@@ -30,8 +30,6 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
@@ -44,6 +42,8 @@ import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
+import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
@@ -80,8 +80,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
 
     init {
         test("GET /repositories/{repositoryId} should return a single repository") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val type = RepositoryType.GIT
@@ -103,8 +102,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
         }
 
         test("PATCH /repositories/{repositoryId} should update a repository") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -137,8 +135,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
         }
 
         test("DELETE /repositories/{repositoryId} should delete a repository") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -159,8 +156,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /repositories/{repositoryId}/runs should create an ORT run") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val repository = repositoryRepository.create(
@@ -193,8 +189,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
         }
 
         test("GET /repositories/{repositoryId}/runs/{ortRunIndex} should return an ORT run") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val repository = repositoryRepository.create(

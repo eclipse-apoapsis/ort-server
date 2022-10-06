@@ -30,8 +30,6 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import kotlinx.serialization.json.Json
 
@@ -43,6 +41,8 @@ import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
+import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
@@ -64,9 +64,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
     init {
         test("GET /organizations should return all existing organizations") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val org1 = organizationRepository.create(name = "name1", description = "description1")
                 val org2 = organizationRepository.create(name = "name2", description = "description2")
 
@@ -86,9 +84,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("GET /organizations/{organizationId} should return a single organization") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -110,9 +106,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("GET /organizations/{organizationId} should respond with NotFound if no organization exists") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/999999") {
@@ -128,9 +122,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /organizations should create an organization in the database") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val org = CreateOrganization(name = "name", description = "description")
@@ -154,9 +146,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /organizations with an already existing organization should respond with CONFLICT") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -180,9 +170,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("PATCH /organizations/{organizationId} should update an organization") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
@@ -216,9 +204,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("PATCH /organizations/{organizationId} should be able to delete a value and ignore absent values") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -256,9 +242,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("DELETE /organizations/{organizationId} should delete an organization") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
-
+            ortServerTestApplication(noDbConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
@@ -278,8 +262,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /organizations/{orgId}/products should create a product") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -302,8 +285,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("GET /organizations/{orgId}/products should return all products of an organization") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id

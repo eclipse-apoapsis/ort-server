@@ -30,8 +30,6 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.Product
@@ -41,6 +39,8 @@ import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
+import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
@@ -71,8 +71,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
 
     init {
         test("GET /products/{productId} should return a single product") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val name = "name"
@@ -95,8 +94,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("PATCH /products/{id} should update a product") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -125,8 +123,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("DELETE /products/{id} should delete a product") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -147,8 +144,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("GET /products/{id}/repositories should return all repositories of an organization") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -180,8 +176,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
         }
 
         test("POST /products/{id}/repositories should create a repository") {
-            testApplication {
-                environment { config = ApplicationConfig("application-nodb.conf") }
+            ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
