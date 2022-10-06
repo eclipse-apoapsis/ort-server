@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+package org.ossreviewtoolkit.server.core
+
 import io.ktor.server.application.Application
 
 import org.ossreviewtoolkit.server.core.plugins.*
