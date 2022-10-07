@@ -20,19 +20,40 @@
 package org.ossreviewtoolkit.server.core.testutils
 
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.MapApplicationConfig
+import io.ktor.server.config.merge
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.util.KtorDsl
 
+import java.lang.IllegalArgumentException
+
 /**
- * Test helper for integration tests, which configures a test application using the given [applicationConfig][config].
+ * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
+ * merged with [additionalConfigs]. The [additionalConfigs] take precedence over the [config].
  */
 @KtorDsl
 fun ortServerTestApplication(
     config: ApplicationConfig = defaultConfig,
+    additionalConfigs: Map<String, Any> = mapOf(),
     block: suspend ApplicationTestBuilder.() -> Unit
 ) = testApplication {
-    environment { this.config = config }
+    val additionalConfig = MapApplicationConfig()
+    additionalConfigs.forEach { (path, value) ->
+        @Suppress("UNCHECKED_CAST")
+        when (value) {
+            is String -> additionalConfig.put(path, value)
+            is Iterable<*> -> additionalConfig.put(path, value as Iterable<String>)
+            else -> IllegalArgumentException(
+                "Value '$value' cannot be added as an application configuration. The configuration type has to be " +
+                        "either 'String' or 'Iterable<String>'."
+            )
+        }
+    }
+
+    val mergedConfig = listOf(additionalConfig, config).merge()
+
+    environment { this.config = mergedConfig }
 
     block()
 }
