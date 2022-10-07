@@ -61,5 +61,8 @@ fun ortServerTestApplication(
 /** The default application configuration. */
 val defaultConfig = ApplicationConfig("application.conf")
 
+/** An application configuration with token authentication, without a database. */
+val authNoDbConfig = ApplicationConfig("application-auth.conf")
+
 /** An application configuration without a database. */
 val noDbConfig = ApplicationConfig("application-nodb.conf")

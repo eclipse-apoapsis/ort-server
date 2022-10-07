@@ -39,3 +39,13 @@ fun Application.moduleNoDB() {
     configureHTTP()
     configureTestAuthentication()
 }
+
+fun Application.moduleAuthNoDb() {
+    configureKoin()
+    configureStatusPages()
+    configureRouting()
+    configureSerialization()
+    configureMonitoring()
+    configureHTTP()
+    configureAuthentication()
+}

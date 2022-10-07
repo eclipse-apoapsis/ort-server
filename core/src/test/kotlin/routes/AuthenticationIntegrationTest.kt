@@ -28,18 +28,14 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
-import io.kotest.common.runBlocking
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.FunSpec
 
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.MapApplicationConfig
-import io.ktor.server.testing.testApplication
 
 import java.io.File
 import java.security.KeyStore
@@ -55,12 +51,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.core.plugins.configureAuthentication
-import org.ossreviewtoolkit.server.core.plugins.configureHTTP
-import org.ossreviewtoolkit.server.core.plugins.configureKoin
-import org.ossreviewtoolkit.server.core.plugins.configureRouting
-import org.ossreviewtoolkit.server.core.plugins.configureSerialization
-import org.ossreviewtoolkit.server.core.plugins.configureStatusPages
+import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
 private const val CERT_STORE = "testkeycloak.jks"
 private const val CERT_ENTRY = "testkeycloak"
@@ -77,9 +69,21 @@ class AuthenticationIntegrationTest : FunSpec() {
             .dynamicPort()
     )
 
+    /**
+     * JWT configurations which have to be set after the wiremock server is started.
+     */
+    private lateinit var testJwtConfigs: Map<String, String>
+
     override suspend fun beforeSpec(spec: Spec) {
         server.start()
         server.stubJwks(issuerData)
+
+        testJwtConfigs = mapOf(
+            "jwt.jwksUri" to "http://localhost:${server.port()}$JWKS_ENDPOINT",
+            "jwt.issuer" to CERT_ISSUER,
+            "jwt.realm" to "master",
+            "jwt.audience" to "ort-server"
+        )
     }
 
     override suspend fun afterSpec(spec: Spec) {
@@ -88,8 +92,8 @@ class AuthenticationIntegrationTest : FunSpec() {
 
     init {
         test("A request with a valid token is accepted.") {
-            withTestORTServer {
-                val response = it.get("/api/v1/organizations/0") {
+            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+                val response = client.get("/api/v1/organizations/0") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -102,16 +106,16 @@ class AuthenticationIntegrationTest : FunSpec() {
         }
 
         test("A request without a token is rejected.") {
-            withTestORTServer {
-                val response = it.get("/api/v1/organizations")
+            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+                val response = client.get("/api/v1/organizations")
                 response shouldHaveStatus HttpStatusCode.Unauthorized
             }
         }
 
         test("A request with an expired token is rejected.") {
-            withTestORTServer {
+            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
                 val cal = LocalDateTime.now().minusHours(2).atZone(ZoneId.systemDefault())
-                val response = it.get("/api/v1/organizations/0") {
+                val response = client.get("/api/v1/organizations/0") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -125,8 +129,8 @@ class AuthenticationIntegrationTest : FunSpec() {
         }
 
         test("A token without an audience claim is rejected.") {
-            withTestORTServer {
-                val response = it.get("/api/v1/organizations/0") {
+            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+                val response = client.get("/api/v1/organizations/0") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -138,8 +142,8 @@ class AuthenticationIntegrationTest : FunSpec() {
         }
 
         test("A token with a wrong audience claim is rejected.") {
-            withTestORTServer {
-                val response = it.get("/api/v1/organizations/0") {
+            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+                val response = client.get("/api/v1/organizations/0") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -149,28 +153,6 @@ class AuthenticationIntegrationTest : FunSpec() {
                 }
                 response shouldHaveStatus HttpStatusCode.Unauthorized
             }
-        }
-    }
-
-    /**
-     * Execute the [test] block on a properly configured test application instance.
-     */
-    private fun withTestORTServer(test: suspend (HttpClient) -> Unit) = testApplication {
-        environment {
-            config = MapApplicationConfig().also { it.initTestJwtConfig() }
-        }
-
-        application {
-            configureKoin()
-            configureAuthentication()
-            configureStatusPages()
-            configureRouting()
-            configureSerialization()
-            configureHTTP()
-        }
-
-        runBlocking {
-            test(client)
         }
     }
 
@@ -186,17 +168,6 @@ class AuthenticationIntegrationTest : FunSpec() {
      */
     private fun HeadersBuilder.token(builder: JWTCreator.Builder.() -> JWTCreator.Builder) {
         set(HttpHeaders.Authorization, "Bearer ${createToken(builder)}")
-    }
-
-    /**
-     * Override the properties related to JWT validation with test values. Note: It seems to be necessary to override
-     * all the properties in the jwt sub-path; otherwise, the missing ones are not found.
-     */
-    private fun MapApplicationConfig.initTestJwtConfig() {
-        put("jwt.jwksUri", "http://localhost:${server.port()}$JWKS_ENDPOINT")
-        put("jwt.issuer", CERT_ISSUER)
-        put("jwt.realm", "master")
-        put("jwt.audience", "ort-server")
     }
 }
 
