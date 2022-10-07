@@ -32,13 +32,17 @@ import io.ktor.server.config.ApplicationConfig
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
+import org.koin.ktor.ext.inject
+
 /**
  * Configure the authentication for this server application.
  */
 fun Application.configureAuthentication() {
-    val issuer = jwtConfig.property("issuer").getString()
-    val jwksUri = URL(jwtConfig.property("jwksUri").getString())
-    val configuredRealm = jwtConfig.property("realm").getString()
+    val config: ApplicationConfig by inject()
+
+    val issuer = config.property("jwt.issuer").getString()
+    val jwksUri = URL(config.property("jwt.jwksUri").getString())
+    val configuredRealm = config.property("jwt.realm").getString()
     val jwkProvider = JwkProviderBuilder(jwksUri)
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
@@ -61,16 +65,10 @@ fun Application.configureAuthentication() {
 }
 
 /**
- * Convenience property to access the part of the configuration dealing with tokens.
- */
-private val Application.jwtConfig: ApplicationConfig
-    get() = environment.config.config("jwt")
-
-/**
  * Validate the [payload] of the current JWT. Return *true* if it is valid.
  */
 private fun Application.validateJwtPayload(payload: Payload): Boolean =
-    payload.audience.contains(jwtConfig.property("audience").getString())
+    payload.audience.contains(environment.config.property("jwt.audience").getString())
 
 /**
  * An object defining the different security configurations supported by this application. These configurations
