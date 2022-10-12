@@ -19,34 +19,14 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
-import io.ktor.serialization.kotlinx.json.json
-
 import java.io.File
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.analyzer.managers.Npm
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
 
 fun main() {
     // This is the entry point of the Analyzer Docker image. It calls the Analyzer from ORT programmatically by
@@ -90,81 +70,3 @@ fun main() {
         }
     }
 }
-
-/**
- * A simple ORT server client.
- */
-class ServerClient(
-    private val url: String,
-    private val httpClient: HttpClient
-) {
-    companion object {
-        fun create(url: String, username: String, password: String, clientId: String, authUrl: String): ServerClient {
-            val client = HttpClient(OkHttp) {
-                expectSuccess = true
-
-                defaultRequest {
-                    header(HttpHeaders.ContentType, ContentType.Application.Json)
-                }
-
-                install(ContentNegotiation) {
-                    json(
-                        Json {
-                            ignoreUnknownKeys = true
-                        }
-                    )
-                }
-
-                install(Auth) {
-                    bearer {
-                        refreshTokens {
-                            val tokenInfo: TokenInfo = runCatching {
-                                client.submitForm(
-                                    url = authUrl,
-                                    formParameters = Parameters.build {
-                                        append("client_id", clientId)
-                                        append("grant_type", "refresh_token")
-                                        append("refresh_token", oldTokens?.refreshToken ?: "")
-                                    }
-                                )
-                            }.getOrElse {
-                                client.submitForm(
-                                    url = authUrl,
-                                    formParameters = Parameters.build {
-                                        append("client_id", clientId)
-                                        append("grant_type", "password")
-                                        append("username", username)
-                                        append("password", password)
-                                    }
-                                )
-                            }.body()
-
-                            BearerTokens(tokenInfo.accessToken, tokenInfo.refreshToken)
-                        }
-                    }
-                }
-            }
-
-            return ServerClient(url, client)
-        }
-    }
-
-    suspend fun getScheduledAnalyzerJob(): AnalyzerJob? =
-        runCatching {
-            httpClient.post("$url/api/v1/jobs/analyzer/start")
-        }.getOrNull()?.body()
-
-    suspend fun finishAnalyzerJob(jobId: Long): AnalyzerJob? =
-        runCatching {
-            httpClient.post("$url/api/v1/jobs/analyzer/$jobId/finish")
-        }.getOrNull()?.body()
-}
-
-/**
- * A data class representing information about the tokens received from the API client.
- */
-@Serializable
-private data class TokenInfo(
-    @SerialName("access_token") val accessToken: String,
-    @SerialName("refresh_token") val refreshToken: String
-)
