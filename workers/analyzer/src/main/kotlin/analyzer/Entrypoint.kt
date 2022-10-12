@@ -28,15 +28,19 @@ import org.ossreviewtoolkit.analyzer.managers.Npm
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt")
+
 fun main() {
     // This is the entry point of the Analyzer Docker image. It calls the Analyzer from ORT programmatically by
     // interfacing on its APIs.
-    println("Hello World")
+    logger.info("Hello World")
 
     // This tests that ORT's classes can be accessed as well as the CLI tools of the Docker image.
     val npm = Npm.Factory().create(File("."), AnalyzerConfiguration(), RepositoryConfiguration())
     val version = npm.getVersion()
-    println("Npm version is $version.")
+    logger.info("Npm version is $version.")
 
     // Reading environment variables, which could be set e.g. in a docker compose file. Otherwise, use default
     // values. This is only an experimental approach to get access to ORT server specific environment variables,
@@ -47,11 +51,10 @@ fun main() {
     val authUrl = System.getenv("ORT_SERVER_AUTH_URL")
         ?: "http://localhost:8081/realms/master/protocol/openid-connect/token"
     val clientId = System.getenv("ORT_SERVER_CLIENT_ID") ?: "ort-server"
-    println("ORT server base URL: $host")
-    println("ORT server user: $user")
-    println("ORT server password. $password")
-    println("ORT server authentication URL: $authUrl")
-    println("ORT server client ID: $clientId")
+    logger.info("ORT server base URL: $host")
+    logger.info("ORT server user: $user")
+    logger.info("ORT server authentication URL: $authUrl")
+    logger.info("ORT server client ID: $clientId")
 
     runBlocking {
         val client = ServerClient.create(host, user, password, clientId, authUrl)
@@ -60,11 +63,11 @@ fun main() {
             delay(10 * 1000)
 
             client.getScheduledAnalyzerJob()?.let { startedJob ->
-                println("Analyzer job with id '${startedJob.id}' started at ${startedJob.startedAt}.")
-                println("Running...")
+                logger.info("Analyzer job with id '${startedJob.id}' started at ${startedJob.startedAt}.")
+                logger.info("Running...")
                 delay(10 * 1000)
                 client.finishAnalyzerJob(startedJob.id)?.let { finishedJob ->
-                    println("Analyzer job with id '${finishedJob.id} finished at ${finishedJob.finishedAt}")
+                    logger.info("Analyzer job with id '${finishedJob.id} finished at ${finishedJob.finishedAt}")
                 }
             }
         }

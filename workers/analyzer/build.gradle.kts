@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientCore)
     implementation(libs.ktorClientOkHttp)
+    implementation(libs.logback)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
     // Required by ORT Analyzer.
