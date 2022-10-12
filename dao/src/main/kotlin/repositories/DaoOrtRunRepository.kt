@@ -34,6 +34,10 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
+
 class DaoOrtRunRepository : OrtRunRepository {
     override fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun =
         blockingQuery {
@@ -58,7 +62,10 @@ class DaoOrtRunRepository : OrtRunRepository {
 
     override fun listForRepository(repositoryId: Long): List<OrtRun> = blockingQuery {
         OrtRunDao.find { OrtRunsTable.repository eq repositoryId }.map { it.mapToModel() }
-    }.getOrDefault(emptyList())
+    }.getOrElse {
+        logger.error("Cannot list repository for id $repositoryId.", it)
+        emptyList()
+    }
 
     override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = blockingQuery {
         val ortRun = OrtRunDao[id]
