@@ -19,29 +19,17 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import java.io.File
-
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-
-import org.ossreviewtoolkit.analyzer.managers.Npm
-import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
-import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt")
 
+/**
+ * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
+ * interfacing on its APIs.
+ */
 fun main() {
-    // This is the entry point of the Analyzer Docker image. It calls the Analyzer from ORT programmatically by
-    // interfacing on its APIs.
-    logger.info("Hello World")
-
-    // This tests that ORT's classes can be accessed as well as the CLI tools of the Docker image.
-    val npm = Npm.Factory().create(File("."), AnalyzerConfiguration(), RepositoryConfiguration())
-    val version = npm.getVersion()
-    logger.info("Npm version is $version.")
-
     // Reading environment variables, which could be set e.g. in a docker compose file. Otherwise, use default
     // values. This is only an experimental approach to get access to ORT server specific environment variables,
     // which could be improved by using a configuration file.
@@ -58,18 +46,6 @@ fun main() {
 
     runBlocking {
         val client = ServerClient.create(host, user, password, clientId, authUrl)
-
-        while (true) {
-            delay(10 * 1000)
-
-            client.getScheduledAnalyzerJob()?.let { startedJob ->
-                logger.info("Analyzer job with id '${startedJob.id}' started at ${startedJob.startedAt}.")
-                logger.info("Running...")
-                delay(10 * 1000)
-                client.finishAnalyzerJob(startedJob.id)?.let { finishedJob ->
-                    logger.info("Analyzer job with id '${finishedJob.id} finished at ${finishedJob.finishedAt}")
-                }
-            }
-        }
+        AnalyzerWorker(client).start()
     }
 }

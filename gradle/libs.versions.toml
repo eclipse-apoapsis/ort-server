@@ -92,6 +92,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
+ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 sw360Client = { module = "org.eclipse.sw360:client", version.ref = "sw360Client" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
