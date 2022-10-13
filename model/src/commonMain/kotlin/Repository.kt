@@ -19,9 +19,12 @@
 
 package org.ossreviewtoolkit.server.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * A repository represents a source code repository, for example a [Git][RepositoryType.GIT] repository.
  */
+@Serializable
 data class Repository(
     /**
      * The unique identifier of the repository.

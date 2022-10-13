@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class OrtRun(
     /**
      * The unique identifier.
