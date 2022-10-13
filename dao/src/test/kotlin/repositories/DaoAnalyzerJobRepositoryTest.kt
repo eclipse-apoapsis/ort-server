@@ -40,6 +40,9 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
+private const val REPOSITORY_URL = "https://example.com/repo.git"
+private const val REPOSITORY_REVISIOM = "revision"
+
 class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
     private lateinit var organizationRepository: DaoOrganizationRepository
     private lateinit var productRepository: DaoProductRepository
@@ -71,12 +74,12 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
         productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
         repositoryId = repositoryRepository.create(
             type = RepositoryType.GIT,
-            url = "https://example.com/repo.git",
+            url = REPOSITORY_URL,
             productId = productId
         ).id
         ortRunId = ortRunRepository.create(
             repositoryId = repositoryId,
-            revision = "revision",
+            revision = REPOSITORY_REVISIOM,
             jobConfigurations = jobConfigurations
         ).id
     }
@@ -94,7 +97,9 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
                 startedAt = null,
                 finishedAt = null,
                 configuration = jobConfigurations.analyzer,
-                status = AnalyzerJobStatus.CREATED
+                status = AnalyzerJobStatus.CREATED,
+                repositoryUrl = REPOSITORY_URL,
+                repositoryRevision = REPOSITORY_REVISIOM
             )
         }
 

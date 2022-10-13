@@ -51,6 +51,9 @@ import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
+private const val REPOSITORY_URL = "https://example.com/repo.git"
+private const val REPOSITORY_REVISIOM = "revision"
+
 class JobsRouteIntegrationTest : DatabaseTest() {
     private lateinit var analyzerJobRepository: AnalyzerJobRepository
     private lateinit var organizationRepository: OrganizationRepository
@@ -75,7 +78,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
         productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
         repositoryId = repositoryRepository.create(
             type = RepositoryType.GIT,
-            url = "https://example.com/repo.git",
+            url = REPOSITORY_URL,
             productId = productId
         ).id
     }
@@ -103,7 +106,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                     headers {
                         basicTestAuth()
                     }
-                    setBody(CreateOrtRun(revision = "revision", jobs = jobConfigurations))
+                    setBody(CreateOrtRun(revision = REPOSITORY_REVISIOM, jobs = jobConfigurations))
                 }
 
                 val response = client.post("/api/v1/jobs/analyzer/start") {
@@ -119,6 +122,8 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         startedAt shouldNot beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.RUNNING
+                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryUrl shouldBe REPOSITORY_URL
                     }
                 }
             }
@@ -155,6 +160,8 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         finishedAt shouldNot beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.FINISHED
+                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryUrl shouldBe REPOSITORY_URL
                     }
                 }
             }

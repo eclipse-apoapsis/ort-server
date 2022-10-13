@@ -42,7 +42,16 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 fun AnalyzerJob.mapToApi() =
-    ApiAnalyzerJob(id, createdAt, startedAt, finishedAt, configuration.mapToApi(), status.mapToApi())
+    ApiAnalyzerJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi(),
+        repositoryUrl,
+        repositoryRevision
+    )
 
 fun AnalyzerJobConfiguration.mapToApi() = ApiAnalyzerJobConfiguration(allowDynamicVersions)
 

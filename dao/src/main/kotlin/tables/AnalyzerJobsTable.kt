@@ -54,5 +54,14 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
     var configuration by AnalyzerJobsTable.configuration
     var status by AnalyzerJobsTable.status
 
-    fun mapToModel() = AnalyzerJob(id.value, createdAt, startedAt, finishedAt, configuration, status)
+    fun mapToModel() = AnalyzerJob(
+        id.value,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration,
+        status,
+        ortRun.repository.url,
+        ortRun.revision
+    )
 }

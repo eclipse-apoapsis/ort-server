@@ -52,7 +52,17 @@ data class AnalyzerJob(
     /**
      * The job status.
      */
-    val status: AnalyzerJobStatus
+    val status: AnalyzerJobStatus,
+
+    /**
+     * The URL of the repository to analyze.
+     */
+    val repositoryUrl: String,
+
+    /**
+     * The revision of the repository to analyze.
+     */
+    val repositoryRevision: String,
 )
 
 /**
