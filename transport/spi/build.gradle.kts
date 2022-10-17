@@ -33,6 +33,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":model"))
 
+    api(libs.typesafeConfig)
     implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(libs.kotestAssertionsCore)

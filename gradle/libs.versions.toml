@@ -42,6 +42,7 @@ ort = "052c8ffa0f"
 postgres = "42.5.0"
 sw360Client = "16.0.0-m1"
 testContainers = "1.17.4"
+typesafeConfig = "1.4.2"
 wiremock = "2.34.0"
 
 [plugins]
@@ -96,4 +97,5 @@ sw360Client = { module = "org.eclipse.sw360:client", version.ref = "sw360Client"
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
+typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
 wiremock = { module = "com.github.tomakehurst:wiremock-jre8", version.ref = "wiremock" }
