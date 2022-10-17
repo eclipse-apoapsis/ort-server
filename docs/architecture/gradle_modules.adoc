@@ -18,6 +18,8 @@ The model module contains the internally used class and interface definitions.
 === DAO
 
 The DAO module contains all code related to database access, for example database specific repository implementations.
+A repository only has to be implemented for an https://martinfowler.com/bliki/DDD_Aggregate.html[aggregate root] and
+not for every table. An aggregate root is the most important entity object, which encapsulates entity/value objects.
 
 === Clients
 
