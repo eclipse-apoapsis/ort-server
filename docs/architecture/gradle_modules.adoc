@@ -55,3 +55,7 @@ option to provide a frontend, it might also be decided to implement it with anot
 
 The worker modules contain code that run the individual ORT tools, like the analyzer. They run independently of the
 backend to process jobs and communicate with the backend for example via API calls or a service bus.
+
+=== Transport
+
+Modules under _transport_ implement different approaches for the message exchange between core, services, and workers. The main goal here is to become independent of the underlying infrastructure, so that the server could be deployed in different environments. For instance, there can be implementations making use of different messaging products. Also, the scheduling of tasks from the Orchestrator to the workers is considered a special case of message exchange and is therefore covered by this abstraction layer.

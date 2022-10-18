@@ -59,6 +59,11 @@ component Workers [
 Analyzer, Scanner, ...
 ]
 
+component Transport [
+<b>Transport</b>
+jobs, messaging
+]
+
 Workers <..> Core : API Calls, Service Bus
 Frontend <.. Core
 Core ..> ApiV1
@@ -71,5 +76,9 @@ ApiV2 ..> Services
 Services ..> Dao
 Services ..> Clients
 Dao ..> Model
+Core ..> Transport
+Workers ..> Transport
+Services ..> Transport
+Transport..>Model
 
 @enduml
