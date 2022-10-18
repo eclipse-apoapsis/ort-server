@@ -45,7 +45,8 @@ fun main() {
     logger.info("ORT server client ID: $clientId")
 
     runBlocking {
-        val client = ServerClient.create(host, user, password, clientId, authUrl)
-        AnalyzerWorker(client).start()
+        ServerClient.create(host, user, password, clientId, authUrl).use {
+            AnalyzerWorker(it).start()
+        }
     }
 }

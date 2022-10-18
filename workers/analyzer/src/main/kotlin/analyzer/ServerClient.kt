@@ -35,6 +35,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
 import io.ktor.serialization.kotlinx.json.json
 
+import java.io.Closeable
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -49,7 +51,7 @@ import org.slf4j.LoggerFactory
 internal class ServerClient(
     private val url: String,
     private val httpClient: HttpClient
-) {
+) : Closeable by httpClient {
     companion object {
         private val logger = LoggerFactory.getLogger(ServerClient::class.java)
 
