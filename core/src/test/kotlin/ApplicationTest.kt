@@ -29,7 +29,7 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 /**
  * A special Application configuration for tests without database.
  */
-fun Application.moduleNoDB() {
+fun Application.testModule() {
     configureKoin()
     configureStatusPages()
     configureRouting()
@@ -39,7 +39,7 @@ fun Application.moduleNoDB() {
     configureTestAuthentication()
 }
 
-fun Application.moduleAuthNoDb() {
+fun Application.testAuthModule() {
     configureKoin()
     configureStatusPages()
     configureRouting()
