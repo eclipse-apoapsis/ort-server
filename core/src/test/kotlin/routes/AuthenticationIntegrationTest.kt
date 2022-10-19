@@ -29,7 +29,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.FunSpec
 
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -53,6 +52,8 @@ import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 private const val CERT_STORE = "testkeycloak.jks"
 private const val CERT_ENTRY = "testkeycloak"
@@ -61,7 +62,7 @@ private const val CERT_ISSUER = "https://testkeycloak.example.org"
 private const val JWKS_ENDPOINT = "/auth/realms/master/protocol/openid-connect/certs"
 private const val KEY_ID = "testKey"
 
-class AuthenticationIntegrationTest : FunSpec() {
+class AuthenticationIntegrationTest : DatabaseTest() {
     private val issuerData = loadIssuerData()
 
     private val server = WireMockServer(
@@ -75,6 +76,10 @@ class AuthenticationIntegrationTest : FunSpec() {
     private lateinit var testJwtConfigs: Map<String, String>
 
     override suspend fun beforeSpec(spec: Spec) {
+        // TODO: This test should not require a database. However, calling the organizations endpoints requires a
+        //       working database for now. This should be removed, and the required database access should be mocked.
+        dataSource.connect()
+
         server.start()
         server.stubJwks(issuerData)
 
