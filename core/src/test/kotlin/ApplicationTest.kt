@@ -23,11 +23,17 @@ import io.ktor.server.application.Application
 
 import org.ossreviewtoolkit.server.core.plugins.*
 import org.ossreviewtoolkit.server.core.testutils.configureTestAuthentication
+import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
 /**
- * A special Application configuration for tests without database.
+ * A test application configuration that removes or replaces components with a dummy version that are required for
+ * most integration tests.
+ * * Database: This application does not connect to a database. Instead, [DatabaseTest] should be used to connect to
+ *             a test database backed by [Testcontainers](https://www.testcontainers.org/).
+ * * Authentication: This application does not use KeyCloak for authentication. Instead, it uses an
+ *                   authentication which is always valid.
  */
 fun Application.testModule() {
     configureKoin()
@@ -39,6 +45,9 @@ fun Application.testModule() {
     configureTestAuthentication()
 }
 
+/**
+ * A test application configuration that requires Keycloak to be run in the integration test.
+ */
 fun Application.testAuthModule() {
     configureKoin()
     configureStatusPages()

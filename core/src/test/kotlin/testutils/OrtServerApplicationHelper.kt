@@ -64,5 +64,5 @@ val defaultConfig = ApplicationConfig("application.conf")
 /** An application configuration with token authentication, without a database. */
 val authNoDbConfig = ApplicationConfig("application-test-auth.conf")
 
-/** An application configuration without a database. */
+/** An application configuration without a database and a dummy authentication. */
 val noDbConfig = ApplicationConfig("application-test.conf")
