@@ -29,7 +29,6 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 /**
  * A special Application configuration for tests without database.
  */
-@Suppress("Unused")
 fun Application.moduleNoDB() {
     configureKoin()
     configureStatusPages()
