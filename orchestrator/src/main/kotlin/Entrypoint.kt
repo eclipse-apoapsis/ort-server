@@ -17,26 +17,8 @@
  * License-Filename: LICENSE
  */
 
-@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
-plugins {
-    alias(libs.plugins.jib)
-    alias(libs.plugins.kotlinJvm)
-}
+package org.ossreviewtoolkit.server.orchestrator
 
-group = "org.ossreviewtoolkit.server"
-version = "0.0.1"
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
-dependencies {
-    implementation(project(":dao"))
-    implementation(project(":model"))
-}
-
-jib {
-    from.image = "eclipse-temurin:17"
-    to.image = "ort-server-orchestrator:latest"
-    container.mainClass = "org.ossreviewtoolkit.server.orchestrator.EntrypointKt"
+fun main() {
+    println("ORT-Server OrchestratorService started.")
 }
