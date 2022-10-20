@@ -69,6 +69,13 @@ dependencies {
     // Required by ORT Analyzer.
     implementation(libs.sw360Client)
     implementation("org.gradle:gradle-tooling-api:${gradle.gradleVersion}")
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestRunnerJunit5)
+
+    testImplementation(libs.mockk)
 }
 
 jib {

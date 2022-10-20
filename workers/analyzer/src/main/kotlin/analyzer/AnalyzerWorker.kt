@@ -72,7 +72,7 @@ internal class AnalyzerWorker(private val client: ServerClient) {
     /**
      * Download a repository for a given [AnalyzerJob]. Return the temporary directory containing the download.
      */
-    private fun AnalyzerJob.download(): File {
+    internal fun AnalyzerJob.download(): File {
         logger.info("Run analyzer job '$id'.")
 
         val repositoryName = repositoryUrl.substringAfterLast("/")
