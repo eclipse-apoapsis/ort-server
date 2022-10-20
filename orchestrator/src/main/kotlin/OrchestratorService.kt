@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.ossreviewtoolkit.server.orchestrator
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock

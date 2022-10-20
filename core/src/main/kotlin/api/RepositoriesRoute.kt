@@ -42,7 +42,7 @@ import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.services.OrchestratorService
+import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 import org.ossreviewtoolkit.server.services.RepositoryService
 
 fun Route.repositories() = route("repositories/{repositoryId}") {

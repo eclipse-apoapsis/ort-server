@@ -54,6 +54,11 @@ component Clients [
 Keycloak, ...
 ]
 
+component Orchestrator [
+<b>Orchestrator</b>
+Job orchestration
+]
+
 component Workers [
 <b>Workers</b>
 Analyzer, Scanner, ...
@@ -68,6 +73,7 @@ Workers <..> Core : API Calls, Service Bus
 Frontend <.. Core
 Core ..> ApiV1
 Core ..> ApiV2
+Core ..> Orchestrator
 Frontend ..> ApiClientV1
 ApiClientV1 ..> ApiV1
 ApiClientV2 ..> ApiV2
@@ -76,6 +82,8 @@ ApiV2 ..> Services
 Services ..> Dao
 Services ..> Clients
 Dao ..> Model
+Orchestrator ..> Dao
+Orchestrator ..> Transport
 Core ..> Transport
 Workers ..> Transport
 Services ..> Transport

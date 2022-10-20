@@ -39,12 +39,12 @@ import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.services.NoOpSchedulerService
-import org.ossreviewtoolkit.server.services.OrchestratorService
+import org.ossreviewtoolkit.server.orchestrator.NoOpSchedulerService
+import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
+import org.ossreviewtoolkit.server.orchestrator.SchedulerService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.RepositoryService
-import org.ossreviewtoolkit.server.services.SchedulerService
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {

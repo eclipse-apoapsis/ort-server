@@ -28,3 +28,8 @@ version = "0.0.1"
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+dependencies {
+    implementation(project(":dao"))
+    implementation(project(":model"))
+}

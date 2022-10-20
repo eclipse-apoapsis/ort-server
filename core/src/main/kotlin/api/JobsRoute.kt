@@ -31,7 +31,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.services.OrchestratorService
+import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 
 fun Route.jobs() = route("jobs") {
     val orchestratorService by inject<OrchestratorService>()
