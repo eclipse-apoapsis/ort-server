@@ -69,24 +69,24 @@ component Transport [
 jobs, messaging
 ]
 
-Workers <..> Core : API Calls, Service Bus
-Frontend <.. Core
+ApiV1 ..> Services
+ApiV2 ..> Services
+ApiClientV1 ..> ApiV1
+ApiClientV2 ..> ApiV2
 Core ..> ApiV1
 Core ..> ApiV2
 Core ..> Orchestrator
-Frontend ..> ApiClientV1
-ApiClientV1 ..> ApiV1
-ApiClientV2 ..> ApiV2
-ApiV1 ..> Services
-ApiV2 ..> Services
-Services ..> Dao
-Services ..> Clients
+Core ..> Transport
 Dao ..> Model
+Frontend <.. Core
+Frontend ..> ApiClientV1
 Orchestrator ..> Dao
 Orchestrator ..> Transport
-Core ..> Transport
-Workers ..> Transport
+Services ..> Clients
+Services ..> Dao
 Services ..> Transport
 Transport..>Model
+Workers <..> Core : API Calls, Service Bus
+Workers ..> Transport
 
 @enduml
