@@ -46,7 +46,7 @@ Build the base image for the Analyzer. This is the same image as upstream ORT bu
 
 Build the Analyzer worker Docker image:
 
-```./gradlew :workers:analyzer:jibDockerBuild -PworkerTool=analyzer```
+```./gradlew :workers:analyzer:jibDockerBuild```
 
 Run the image:
 
