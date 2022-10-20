@@ -21,6 +21,7 @@
 plugins {
     application
 
+    alias(libs.plugins.jib)
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
@@ -73,4 +74,10 @@ dependencies {
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
     testImplementation(libs.wiremock)
+}
+
+jib {
+    from.image = "eclipse-temurin:17"
+    to.image = "ort-server-core:latest"
+    container.mainClass = "io.ktor.server.netty.EngineMain"
 }
