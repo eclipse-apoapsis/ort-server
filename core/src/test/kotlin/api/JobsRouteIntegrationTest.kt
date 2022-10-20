@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.test.TestCase
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
@@ -160,6 +161,44 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         finishedAt shouldNot beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.FINISHED
+                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryUrl shouldBe REPOSITORY_URL
+                    }
+                }
+            }
+        }
+
+        test("POST /jobs/analyzer/{id}/fail should update job status") {
+            ortServerTestApplication(noDbConfig) {
+                val client = createJsonClient()
+
+                client.post("/api/v1/repositories/$repositoryId/runs") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(CreateOrtRun(revision = REPOSITORY_REVISIOM, jobs = jobConfigurations))
+                }
+
+                val analyzerJob = client.post("/api/v1/jobs/analyzer/start") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }.body<AnalyzerJob>()
+
+                val response = client.post("/api/v1/jobs/analyzer/${analyzerJob.id}/fail") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    with(body<AnalyzerJob>()) {
+                        id shouldBe 1
+                        startedAt shouldNot beNull()
+                        finishedAt should beNull()
+                        configuration shouldBe jobConfigurations.analyzer
+                        status shouldBe AnalyzerJobStatus.FAILED
                         repositoryRevision shouldBe REPOSITORY_REVISIOM
                         repositoryUrl shouldBe REPOSITORY_URL
                     }

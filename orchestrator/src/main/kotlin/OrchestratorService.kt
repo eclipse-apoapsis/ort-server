@@ -88,4 +88,15 @@ class OrchestratorService(
             )
         } else null
     }.getOrThrow()
+
+    suspend fun updateAnalyzerJobStatus(analyzerJobId: Long, status: AnalyzerJobStatus): AnalyzerJob? = dbQuery {
+        val analyzerJob = analyzerJobRepository.get(analyzerJobId)
+
+        if (analyzerJob != null) {
+            analyzerJobRepository.update(
+                analyzerJob.id,
+                status = OptionalValue.Present(status)
+            )
+        } else null
+    }.getOrThrow()
 }

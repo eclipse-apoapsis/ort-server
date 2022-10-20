@@ -41,6 +41,8 @@ import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
 
+import org.slf4j.LoggerFactory
+
 /**
  * A simple ORT server client.
  */
@@ -49,6 +51,8 @@ internal class ServerClient(
     private val httpClient: HttpClient
 ) {
     companion object {
+        private val logger = LoggerFactory.getLogger(ServerClient::class.java)
+
         fun create(url: String, username: String, password: String, clientId: String, authUrl: String): ServerClient {
             val client = HttpClient(OkHttp) {
                 expectSuccess = true
@@ -108,6 +112,14 @@ internal class ServerClient(
         runCatching {
             httpClient.post("$url/api/v1/jobs/analyzer/$jobId/finish")
         }.getOrNull()?.body()
+
+    suspend fun reportAnalyzerJobFailure(jobId: Long) {
+        runCatching {
+            httpClient.post("$url/api/v1/jobs/analyzer/$jobId/fail")
+        }.onFailure {
+            logger.error("Error during failure reporting", it)
+        }
+    }
 }
 
 /**

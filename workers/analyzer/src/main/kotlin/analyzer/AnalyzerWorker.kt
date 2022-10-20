@@ -48,15 +48,19 @@ internal class AnalyzerWorker(private val client: ServerClient) {
 
     suspend fun start() {
         while (started) {
-            // TODO add error handling
             logger.info("Waiting for Analyzer Job...")
             client.getScheduledAnalyzerJob()?.let { startedJob ->
-                logger.info("Analyzer job with id ${startedJob.id} started at ${startedJob.startedAt}.")
-                logger.info("Running...")
-                val sourcesDir = startedJob.download()
-                startedJob.analyze(sourcesDir)
-                client.finishAnalyzerJob(startedJob.id)?.let { finishedJob ->
-                    logger.info("Analyzer job with id ${finishedJob.id} finished at ${finishedJob.finishedAt}.")
+                runCatching {
+                    logger.info("Analyzer job with id ${startedJob.id} started at ${startedJob.startedAt}.")
+                    logger.info("Running...")
+                    val sourcesDir = startedJob.download()
+                    startedJob.analyze(sourcesDir)
+                    client.finishAnalyzerJob(startedJob.id)?.let { finishedJob ->
+                        logger.info("Analyzer job with id ${finishedJob.id} finished at ${finishedJob.finishedAt}.")
+                    }
+                }.onFailure {
+                    logger.error("Error during the analyzer job", it)
+                    client.reportAnalyzerJobFailure(startedJob.id)
                 }
             }
             delay(10 * 1000)

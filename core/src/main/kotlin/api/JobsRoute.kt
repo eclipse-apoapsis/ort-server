@@ -31,6 +31,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 
 fun Route.jobs() = route("jobs") {
@@ -67,6 +68,20 @@ fun Route.jobs() = route("jobs") {
                     val id = call.requireParameter("id").toLong()
 
                     val job = orchestratorService.finishAnalyzerJob(id)
+
+                    if (job != null) {
+                        call.respond(HttpStatusCode.OK, job.mapToApi())
+                    } else {
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                }
+            }
+
+            route("fail") {
+                post {
+                    val id = call.requireParameter("id").toLong()
+
+                    val job = orchestratorService.updateAnalyzerJobStatus(id, AnalyzerJobStatus.FAILED)
 
                     if (job != null) {
                         call.respond(HttpStatusCode.OK, job.mapToApi())
