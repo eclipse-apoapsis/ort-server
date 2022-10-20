@@ -42,7 +42,7 @@ The Docker images produced by these steps will be:
 
 Build the base image for the Analyzer. This is the same image as upstream ORT but without ORT and Scancode:
 
-```docker build . -f Analyzer.Dockerfile -t ort-server-worker-base-image:analyzer-latest```
+```docker build . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest```
 
 Build the Analyzer worker Docker image:
 
