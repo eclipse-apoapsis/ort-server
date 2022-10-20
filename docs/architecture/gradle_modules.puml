@@ -1,17 +1,13 @@
 @startuml
 
-component Core [
-<b>Core</b>
-DI, Routing, ...
-]
-
-component Frontend [
-<b>Frontend</b>
-Kotlin/JS
-]
-
 component ApiV1 [
 <b>API v1</b>
+API model,
+mappings, ...
+]
+
+component ApiV2 [
+<b>API v2</b>
 API model,
 mappings, ...
 ]
@@ -21,26 +17,29 @@ component ApiClientV1 [
 MP Ktor Client
 ]
 
-component ApiV2 [
-<b>API v2</b>
-API model,
-mappings, ...
-]
-
 component ApiClientV2 [
 <b>API Client v2</b>
 MP Ktor Client
 ]
 
-component Services [
-<b>Services</b>
-Business Logic,
-transactions, ...
+component Clients [
+<b>Clients</b>
+Keycloak, ...
+]
+
+component Core [
+<b>Core</b>
+DI, Routing, ...
 ]
 
 component Dao [
 <b>DAO</b>
 Database access
+]
+
+component Frontend [
+<b>Frontend</b>
+Kotlin/JS
 ]
 
 component Model [
@@ -49,24 +48,25 @@ Model classes,
 interfaces
 ]
 
-component Clients [
-<b>Clients</b>
-Keycloak, ...
-]
-
 component Orchestrator [
 <b>Orchestrator</b>
 Job orchestration
 ]
 
-component Workers [
-<b>Workers</b>
-Analyzer, Scanner, ...
+component Services [
+<b>Services</b>
+Business Logic,
+transactions, ...
 ]
 
 component Transport [
 <b>Transport</b>
 jobs, messaging
+]
+
+component Workers [
+<b>Workers</b>
+Analyzer, Scanner, ...
 ]
 
 ApiV1 ..> Services
