@@ -36,7 +36,7 @@ The following example presents how to build a Docker image for the **Analyzer** 
 
 The Docker images produced by these steps will be:
 * *ort-server-worker-base-image:analyzer-latest*: the base image for the Analyzer worker
-* *analyzer-ort-server*: the image for the Analyzer worker
+* *ort-server-analyzer-worker*: the image for the Analyzer worker
 
 ## For a local Docker Daemon
 
@@ -50,7 +50,7 @@ Build the Analyzer worker Docker image:
 
 Run the image:
 
-```docker run analyzer-ort-server```
+```docker run ort-server-analyzer-worker```
 
 ## For an Azure container registry
 

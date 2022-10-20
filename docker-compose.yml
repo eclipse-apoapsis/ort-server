@@ -92,7 +92,7 @@ services:
       target: /opt/keycloak_init/
 
   analyzer-worker:
-    image: analyzer-ort-server
+    image: ort-server-analyzer-worker
     depends_on:
       ort-server:
         condition: service_healthy

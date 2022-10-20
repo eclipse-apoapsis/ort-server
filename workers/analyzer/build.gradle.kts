@@ -79,15 +79,13 @@ dependencies {
 }
 
 jib {
-    val workerTool = "analyzer"
-
     from {
-        image = "docker://ort-server-worker-base-image:$workerTool-latest"
+        image = "docker://ort-server-worker-base-image:analyzer-latest"
     }
     to {
-        image = "$workerTool-ort-server:latest"
+        image = "ort-server-analyzer-worker:latest"
     }
     container {
-        mainClass = "org.ossreviewtoolkit.server.workers.$workerTool.EntrypointKt"
+        mainClass = "org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt"
     }
 }
