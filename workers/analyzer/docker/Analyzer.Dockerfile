@@ -126,6 +126,16 @@ ARG PIPTOOL_VERSION=22.2.2
 ENV PYENV_ROOT=/opt/python
 ENV PATH=${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:$PATH
 
+RUN pip install -U \
+    pip=="${PIPTOOL_VERSION}" \
+    wheel \
+    && pip install -U \
+    Mercurial \
+    conan=="${CONAN_VERSION}" \
+    pipenv=="${PYTHON_PIPENV_VERSION}" \
+    poetry==${PYTHON_POETRY_VERSION} \
+    python-inspector=="${PYTHON_INSPECTOR_VERSION}"
+
 #------------------------------------------------------------------------
 # RUBY - Build Ruby as a separate component with rbenv
 FROM build as rubybuild
