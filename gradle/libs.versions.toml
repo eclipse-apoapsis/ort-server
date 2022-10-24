@@ -41,7 +41,7 @@ logback = "1.4.1"
 mockk = "1.13.2"
 ort = "052c8ffa0f"
 postgres = "42.5.0"
-testContainers = "1.17.4"
+testContainers = "1.17.5"
 typesafeConfig = "1.4.2"
 wiremock = "2.34.0"
 
