@@ -35,4 +35,8 @@ dependencies {
 
     implementation(libs.activeMQArtemis)
     implementation(libs.logback)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
 }
