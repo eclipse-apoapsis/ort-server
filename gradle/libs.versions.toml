@@ -41,7 +41,6 @@ logback = "1.4.1"
 mockk = "1.13.2"
 ort = "052c8ffa0f"
 postgres = "42.5.0"
-sw360Client = "16.0.0-m1"
 testContainers = "1.17.4"
 typesafeConfig = "1.4.2"
 wiremock = "2.34.0"
@@ -96,7 +95,6 @@ ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
-sw360Client = { module = "org.eclipse.sw360:client", version.ref = "sw360Client" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }

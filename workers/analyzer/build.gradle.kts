@@ -66,9 +66,6 @@ dependencies {
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
     implementation(libs.ortDownloader)
-    // Required by ORT Analyzer.
-    implementation(libs.sw360Client)
-    implementation("org.gradle:gradle-tooling-api:${gradle.gradleVersion}")
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
