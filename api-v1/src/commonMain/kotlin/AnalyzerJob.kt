@@ -62,7 +62,7 @@ data class AnalyzerJob(
     /**
      * The revision of the repository to analyze.
      */
-    val repositoryRevision: String,
+    val repositoryRevision: String
 )
 
 /**
