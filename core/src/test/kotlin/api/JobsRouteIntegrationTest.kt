@@ -53,7 +53,7 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 private const val REPOSITORY_URL = "https://example.com/repo.git"
-private const val REPOSITORY_REVISIOM = "revision"
+private const val REPOSITORY_REVISION = "revision"
 
 class JobsRouteIntegrationTest : DatabaseTest() {
     private lateinit var analyzerJobRepository: AnalyzerJobRepository
@@ -107,7 +107,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                     headers {
                         basicTestAuth()
                     }
-                    setBody(CreateOrtRun(revision = REPOSITORY_REVISIOM, jobs = jobConfigurations))
+                    setBody(CreateOrtRun(revision = REPOSITORY_REVISION, jobs = jobConfigurations))
                 }
 
                 val response = client.post("/api/v1/jobs/analyzer/start") {
@@ -123,7 +123,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         startedAt shouldNot beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.RUNNING
-                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryRevision shouldBe REPOSITORY_REVISION
                         repositoryUrl shouldBe REPOSITORY_URL
                     }
                 }
@@ -161,7 +161,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         finishedAt shouldNot beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.FINISHED
-                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryRevision shouldBe REPOSITORY_REVISION
                         repositoryUrl shouldBe REPOSITORY_URL
                     }
                 }
@@ -176,7 +176,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                     headers {
                         basicTestAuth()
                     }
-                    setBody(CreateOrtRun(revision = REPOSITORY_REVISIOM, jobs = jobConfigurations))
+                    setBody(CreateOrtRun(revision = REPOSITORY_REVISION, jobs = jobConfigurations))
                 }
 
                 val analyzerJob = client.post("/api/v1/jobs/analyzer/start") {
@@ -199,7 +199,7 @@ class JobsRouteIntegrationTest : DatabaseTest() {
                         finishedAt should beNull()
                         configuration shouldBe jobConfigurations.analyzer
                         status shouldBe AnalyzerJobStatus.FAILED
-                        repositoryRevision shouldBe REPOSITORY_REVISIOM
+                        repositoryRevision shouldBe REPOSITORY_REVISION
                         repositoryUrl shouldBe REPOSITORY_URL
                     }
                 }
