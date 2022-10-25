@@ -41,7 +41,7 @@ import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(AnalyzerJob::class.java)
+private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
 internal class AnalyzerWorker(private val client: ServerClient) {
     private var started = true
