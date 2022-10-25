@@ -57,6 +57,9 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":api-v1"))
+    implementation(project(":model"))
+    implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:spi"))
 
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)

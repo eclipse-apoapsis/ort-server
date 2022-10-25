@@ -19,9 +19,11 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import com.typesafe.config.Config
+
 import java.io.File
 
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.PackageManager
@@ -36,38 +38,45 @@ import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
+import org.ossreviewtoolkit.server.model.AnalyzerJob
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
-internal class AnalyzerWorker(private val client: ServerClient) {
-    private var started = true
+internal class AnalyzerWorker(private val config: Config, private val client: ServerClient) {
+    fun start() {
+        MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config) { message ->
+            val job = message.payload.analyzerJob
+            runCatching {
+                logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+                val sourcesDir = job.download()
+                val result = job.analyze(sourcesDir)
 
-    suspend fun start() {
-        while (started) {
-            logger.info("Waiting for Analyzer Job...")
-            client.getScheduledAnalyzerJob()?.let { startedJob ->
-                runCatching {
-                    logger.info("Analyzer job with id ${startedJob.id} started at ${startedJob.startedAt}.")
-                    logger.info("Running...")
-                    val sourcesDir = startedJob.download()
-                    startedJob.analyze(sourcesDir)
-                    client.finishAnalyzerJob(startedJob.id)?.let { finishedJob ->
+                result.analyzer?.result?.issues?.values?.size?.let { issueCount ->
+                    logger.info(
+                        "Analyze job '${job.id}' for repository '${message.payload.repository.url}' finished with " +
+                                "'$issueCount' issues."
+                    )
+                }
+
+                runBlocking {
+                    client.finishAnalyzerJob(job.id)?.let { finishedJob ->
                         logger.info("Analyzer job with id ${finishedJob.id} finished at ${finishedJob.finishedAt}.")
                     }
-                }.onFailure {
-                    logger.error("Error during the analyzer job", it)
-                    client.reportAnalyzerJobFailure(startedJob.id)
+                }
+            }.onFailure {
+                logger.error("Error during the analyzer job", it)
+
+                runBlocking {
+                    client.reportAnalyzerJobFailure(job.id)
                 }
             }
-            delay(10 * 1000)
         }
     }
-
-    fun stop() { started = false }
 
     /**
      * Download a repository for a given [AnalyzerJob]. Return the temporary directory containing the download.

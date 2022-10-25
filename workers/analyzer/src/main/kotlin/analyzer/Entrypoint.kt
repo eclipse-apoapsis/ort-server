@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import kotlinx.coroutines.runBlocking
+import com.typesafe.config.ConfigFactory
 
 import org.slf4j.LoggerFactory
 
@@ -44,9 +44,9 @@ fun main() {
     logger.info("ORT server authentication URL: $authUrl")
     logger.info("ORT server client ID: $clientId")
 
-    runBlocking {
-        ServerClient.create(host, user, password, clientId, authUrl).use {
-            AnalyzerWorker(it).start()
-        }
+    val config = ConfigFactory.load()
+
+    ServerClient.create(host, user, password, clientId, authUrl).use {
+        AnalyzerWorker(config, it).start()
     }
 }
