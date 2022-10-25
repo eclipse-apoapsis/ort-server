@@ -39,8 +39,13 @@ import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
+import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -49,8 +54,13 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
 internal class AnalyzerWorker(private val config: Config, private val client: ServerClient) {
     fun start() {
+        val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
+
         MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config) { message ->
+            val token = message.header.token
+            val traceId = message.header.traceId
             val job = message.payload.analyzerJob
+
             runCatching {
                 logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
                 val sourcesDir = job.download()
@@ -63,11 +73,8 @@ internal class AnalyzerWorker(private val config: Config, private val client: Se
                     )
                 }
 
-                runBlocking {
-                    client.finishAnalyzerJob(job.id)?.let { finishedJob ->
-                        logger.info("Analyzer job with id ${finishedJob.id} finished at ${finishedJob.finishedAt}.")
-                    }
-                }
+                val resultMessage = Message(MessageHeader(token, traceId), AnalyzeResult(job.id))
+                sender.send(resultMessage)
             }.onFailure {
                 logger.error("Error during the analyzer job", it)
 
