@@ -48,12 +48,7 @@ internal class ArtemisMessageSender<T : Any>(
     private val serializer = JsonSerializer.forClass(endpoint.messageClass)
 
     override fun send(message: Message<T>) {
-        val jmsMessage = session.createTextMessage(serializer.toJson(message.payload)).apply {
-            setStringProperty("token", message.header.token)
-            setStringProperty("traceId", message.header.traceId)
-        }
-
-        producer.send(jmsMessage)
+        producer.send(ArtemisMessageConverter.toJmsMessage(message, serializer, session))
     }
 
     override fun close() {
