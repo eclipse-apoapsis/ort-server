@@ -64,8 +64,7 @@ interface MessageReceiverFactory {
          * factory.
          */
         fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-            val factoryName =
-                config.getString("${endpoint.configPrefix}.$RECEIVER_TYPE_PROPERTY")
+            val factoryName = config.getString("${endpoint.configPrefix}.$RECEIVER_TYPE_PROPERTY")
             log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, endpoint.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
