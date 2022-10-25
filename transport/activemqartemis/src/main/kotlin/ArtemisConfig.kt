@@ -34,6 +34,12 @@ data class ArtemisConfig(
     val queueName: String
 ) {
     companion object {
+        /**
+         * Constant for the name of this transport implementation. This name is used for both the message sender and
+         * receiver factories.
+         */
+        const val TRANSPORT_NAME = "activeMQ"
+
         /** Name of the configuration property for the server URI. */
         private const val SERVER_URI_PROPERTY = "serverUri"
 

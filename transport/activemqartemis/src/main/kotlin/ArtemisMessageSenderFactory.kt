@@ -31,7 +31,7 @@ import org.ossreviewtoolkit.server.transport.MessageSenderFactory
  * Implementation of the [MessageSenderFactory] interface for Apache ActiveMQ Artemis.
  */
 class ArtemisMessageSenderFactory : MessageSenderFactory {
-    override val name: String = "activeMQ"
+    override val name: String = ArtemisConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
         val artemisConfig = ArtemisConfig.create(to, config)
