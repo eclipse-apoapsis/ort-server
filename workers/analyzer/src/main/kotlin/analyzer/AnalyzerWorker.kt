@@ -23,8 +23,6 @@ import com.typesafe.config.Config
 
 import java.io.File
 
-import kotlinx.coroutines.runBlocking
-
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.PackageManager
 import org.ossreviewtoolkit.analyzer.curation.OrtConfigPackageCurationProvider
@@ -40,6 +38,7 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerError
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -52,7 +51,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
-internal class AnalyzerWorker(private val config: Config, private val client: ServerClient) {
+internal class AnalyzerWorker(private val config: Config) {
     fun start() {
         val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
 
@@ -76,11 +75,9 @@ internal class AnalyzerWorker(private val config: Config, private val client: Se
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzeResult(job.id))
                 sender.send(resultMessage)
             }.onFailure {
-                logger.error("Error during the analyzer job", it)
-
-                runBlocking {
-                    client.reportAnalyzerJobFailure(job.id)
-                }
+                logger.error("Analyze job '${job.id}' for repository '${message.payload.repository}' failed.", it)
+                val errorMessage = Message(MessageHeader(token, traceId), AnalyzerError(job.id))
+                sender.send(errorMessage)
             }
         }
     }

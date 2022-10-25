@@ -46,3 +46,6 @@ data class AnalyzeRepository(
 data class AnalyzeResult(
     val runId: Long
 ) : OrchestratorMessage()
+
+@Serializable
+data class AnalyzerError(val runId: Long) : OrchestratorMessage()
