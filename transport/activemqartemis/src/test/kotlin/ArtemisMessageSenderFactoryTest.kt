@@ -46,16 +46,16 @@ import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {
-        val config = startArtemisContainer()
+        val config = startArtemisContainer("sender")
 
         val payload = AnalyzeResult(42)
         val header = MessageHeader(token = "1234567890", traceId = "dick.tracy")
         val message = Message(header, payload)
 
-        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.serverUri"))
+        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.sender.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.queueName"))
+            val queue = session.createQueue(config.getString("orchestrator.sender.queueName"))
             val consumer = session.createConsumer(queue)
 
             val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)

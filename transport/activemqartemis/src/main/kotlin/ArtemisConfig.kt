@@ -47,12 +47,27 @@ data class ArtemisConfig(
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
         /**
-         * Create an [ArtemisConfig] object for the given [endpoint] from the provided [config].
+         * Create an [ArtemisConfig] object for a sender to the given [endpoint] from the provided [config].
          */
-        fun create(endpoint: Endpoint<*>, config: Config): ArtemisConfig {
+        fun createSenderConfig(endpoint: Endpoint<*>, config: Config): ArtemisConfig =
+            createConfig(endpoint, "sender", config)
+
+        /**
+         * Create an [ArtemisConfig] object for a receiver of the given [endpoint] from the provided [config].
+         */
+        fun createReceiverConfig(endpoint: Endpoint<*>, config: Config): ArtemisConfig =
+            createConfig(endpoint, "receiver", config)
+
+        /**
+         * Create an [ArtemisConfig] object for the given [endpoint] and [transportType] (sender or receiver) from the
+         * provided [config].
+         */
+        private fun createConfig(endpoint: Endpoint<*>, transportType: String, config: Config): ArtemisConfig {
+            val prefix = "${endpoint.configPrefix}.$transportType"
+
             return ArtemisConfig(
-                serverUri = config.getString("${endpoint.configPrefix}.$SERVER_URI_PROPERTY"),
-                queueName = config.getString("${endpoint.configPrefix}.$QUEUE_NAME_PROPERTY")
+                serverUri = config.getString("$prefix.$SERVER_URI_PROPERTY"),
+                queueName = config.getString("$prefix.$QUEUE_NAME_PROPERTY")
             )
         }
     }

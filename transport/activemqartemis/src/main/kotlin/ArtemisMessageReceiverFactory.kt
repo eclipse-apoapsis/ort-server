@@ -57,7 +57,7 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
 
     override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
         val serializer = JsonSerializer.forClass(endpoint.messageClass)
-        val artemisConfig = ArtemisConfig.create(endpoint, config)
+        val artemisConfig = ArtemisConfig.createReceiverConfig(endpoint, config)
 
         logger.info(
             "Starting Artemis message receiver for endpoint '{}' using queue '{}'.",

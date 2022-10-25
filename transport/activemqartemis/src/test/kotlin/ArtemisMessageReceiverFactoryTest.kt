@@ -45,13 +45,13 @@ import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 class ArtemisMessageReceiverFactoryTest : StringSpec({
     "Messages can be received via the Artemis transport" {
         val serializer = JsonSerializer.forType<OrchestratorMessage>()
-        val config = startArtemisContainer()
+        val config = startArtemisContainer("receiver")
         val messageQueue = startReceiver(config)
 
-        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.serverUri"))
+        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.queueName"))
+            val queue = session.createQueue(config.getString("orchestrator.receiver.queueName"))
             val producer = session.createProducer(queue)
 
             val token1 = "token1"
@@ -71,13 +71,13 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 
     "Exceptions during message receiving are handled" {
         val serializer = JsonSerializer.forType<OrchestratorMessage>()
-        val config = startArtemisContainer()
+        val config = startArtemisContainer("receiver")
         val messageQueue = startReceiver(config)
 
-        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.serverUri"))
+        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.queueName"))
+            val queue = session.createQueue(config.getString("orchestrator.receiver.queueName"))
             val producer = session.createProducer(queue)
 
             // Send an invalid message which cannot be converted.

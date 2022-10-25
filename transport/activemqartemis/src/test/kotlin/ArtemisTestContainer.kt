@@ -34,10 +34,10 @@ private const val ARTEMIS_CONTAINER = "quay.io/artemiscloud/activemq-artemis-bro
 private const val ARTEMIS_PORT = 61616
 
 /**
- * Extension function to start an Artemis broker in a test container. The resulting [Config] can be used to connect to
- * the broker in the container.
+ * Extension function to start an Artemis broker in a test container for testing a factory of the given
+ * [transportType]. The resulting [Config] can be used to connect to the broker in the container.
  */
-fun Spec.startArtemisContainer(): Config {
+fun Spec.startArtemisContainer(transportType: String): Config {
     val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
     val artemisContainer = install(TestContainerExtension(ARTEMIS_CONTAINER)) {
         startupAttempts = 1
@@ -46,11 +46,11 @@ fun Spec.startArtemisContainer(): Config {
         withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
     }
 
+    val keyPrefix = "orchestrator.$transportType"
     val configMap = mapOf(
-        "orchestrator.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
-        "orchestrator.queueName" to "testQueue",
-        "orchestrator.sender.type" to "activeMQ",
-        "orchestrator.receiver.type" to "activeMQ"
+        "$keyPrefix.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
+        "$keyPrefix.queueName" to "testQueue",
+        "$keyPrefix.type" to "activeMQ"
     )
     return ConfigFactory.parseMap(configMap)
 }

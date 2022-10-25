@@ -30,16 +30,32 @@ import io.mockk.mockk
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 
 class ArtemisConfigTest : WordSpec({
-    "create" should {
+    "createSenderConfig" should {
         "create an instance from a Config object" {
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
 
             val config = mockk<Config>()
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.serverUri") } returns serverUri
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.queueName") } returns queueName
+            every { config.getString("${AnalyzerEndpoint.configPrefix}.sender.serverUri") } returns serverUri
+            every { config.getString("${AnalyzerEndpoint.configPrefix}.sender.queueName") } returns queueName
 
-            val artemisConfig = ArtemisConfig.create(AnalyzerEndpoint, config)
+            val artemisConfig = ArtemisConfig.createSenderConfig(AnalyzerEndpoint, config)
+
+            artemisConfig.serverUri shouldBe serverUri
+            artemisConfig.queueName shouldBe queueName
+        }
+    }
+
+    "createReceiverConfig" should {
+        "create an instance from a Config object" {
+            val serverUri = "tcp://example.org:5445"
+            val queueName = "testQueue"
+
+            val config = mockk<Config>()
+            every { config.getString("${AnalyzerEndpoint.configPrefix}.receiver.serverUri") } returns serverUri
+            every { config.getString("${AnalyzerEndpoint.configPrefix}.receiver.queueName") } returns queueName
+
+            val artemisConfig = ArtemisConfig.createReceiverConfig(AnalyzerEndpoint, config)
 
             artemisConfig.serverUri shouldBe serverUri
             artemisConfig.queueName shouldBe queueName
