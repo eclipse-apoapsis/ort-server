@@ -19,12 +19,8 @@
 
 package org.ossreviewtoolkit.server.transport.artemis
 
-import com.typesafe.config.ConfigFactory
-
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.TestContainerExtension
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -48,29 +44,9 @@ import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 
-import org.slf4j.LoggerFactory
-
-import org.testcontainers.containers.output.Slf4jLogConsumer
-
-private const val ARTEMIS_CONTAINER = "quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0"
-private const val ARTEMIS_PORT = 61616
-
 class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {
-        val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
-        val artemisContainer = install(TestContainerExtension(ARTEMIS_CONTAINER)) {
-            startupAttempts = 1
-            withExposedPorts(ARTEMIS_PORT)
-            withEnv(containerEnv)
-            withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
-        }
-
-        val configMap = mapOf(
-            "orchestrator.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
-            "orchestrator.queueName" to "testQueue",
-            "orchestrator.sender.type" to "activeMQ"
-        )
-        val config = ConfigFactory.parseMap(configMap)
+        val config = startArtemisContainer()
 
         val payload = AnalyzeResult(42)
         val header = MessageHeader(token = "1234567890", traceId = "dick.tracy")
