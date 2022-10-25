@@ -23,6 +23,7 @@ import jakarta.jms.Session
 import jakarta.jms.TextMessage
 
 import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 
 /**
@@ -44,4 +45,17 @@ internal object ArtemisMessageConverter {
             setStringProperty(TOKEN_PROPERTY, message.header.token)
             setStringProperty(TRACE_PROPERTY, message.header.traceId)
         }
+
+    /**
+     * Convert the given [jmsMessage] to a [Message] using the given [serializer].
+     */
+    fun <T> toTransportMessage(jmsMessage: TextMessage, serializer: JsonSerializer<T>): Message<T> {
+        val header = MessageHeader(
+            token = jmsMessage.getStringProperty(TOKEN_PROPERTY),
+            traceId = jmsMessage.getStringProperty(TRACE_PROPERTY)
+        )
+        val payload = serializer.fromJson(jmsMessage.text)
+
+        return Message(header, payload)
+    }
 }
