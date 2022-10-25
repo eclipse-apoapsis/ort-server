@@ -50,7 +50,7 @@ interface MessageReceiverFactory {
          * receiver, a [MessageReceiverFactory] with a name matching the value of this configuration property is
          * looked up.
          */
-        const val RECEIVER_TYPE_PROPERTY = "sender.type"
+        const val RECEIVER_TYPE_PROPERTY = "receiver.type"
 
         /** The service loader to load [MessageReceiverFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageReceiverFactory::class.java)
