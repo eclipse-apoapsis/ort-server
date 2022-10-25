@@ -41,6 +41,7 @@ logback = "1.4.4"
 mockk = "1.13.2"
 ort = "052c8ffa0f"
 postgres = "42.5.0"
+qpidJmsClient = "2.1.0"
 testContainers = "1.17.5"
 typesafeConfig = "1.4.2"
 wiremock = "2.34.0"
@@ -95,6 +96,7 @@ ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }

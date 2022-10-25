@@ -34,9 +34,15 @@ dependencies {
     implementation(project(":transport:spi"))
 
     implementation(libs.activeMQArtemis)
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.logback)
+    implementation(libs.qpidJmsClient)
+
+    testImplementation(project(":model"))
 
     testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
+    testImplementation(libs.testContainers)
 }
