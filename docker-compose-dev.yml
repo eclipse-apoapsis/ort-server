@@ -50,6 +50,7 @@ services:
       AMQ_PASSWORD: admin
     ports:
       - "8161:8161"
+      - "61616:61616"
 
   keycloak:
     image: quay.io/keycloak/keycloak:19.0.1
