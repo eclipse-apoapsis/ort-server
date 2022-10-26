@@ -19,65 +19,143 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.core.spec.style.WordSpec
 
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.verify
 
 import java.io.File
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.AnalyzerJob
+import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
+import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.Endpoint
+import org.ossreviewtoolkit.server.transport.EndpointHandler
+import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.MessageHeader
+import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
+import org.ossreviewtoolkit.server.transport.MessageSender
+import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 
 private const val JOB_ID = 1L
+private const val TOKEN = "token"
+private const val TRACE_ID = "42"
+
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
 class AnalyzerWorkerTest : WordSpec({
     "AnalyzerWorker" should {
-        "create and Analyzer Result" {
-            val client = mockk<ServerClient>()
+        "analyze a project and send the result to the transport SPI" {
+            val serializer = JsonSerializer.forClass(AnalyzeRequest::class)
 
-            val analyzerJob = AnalyzerJob(
-                JOB_ID,
-                Clock.System.now(),
-                configuration = AnalyzerJobConfiguration(),
-                status = AnalyzerJobStatus.SCHEDULED,
-                startedAt = Clock.System.now(),
-                repositoryUrl = "https://example.com/myProject",
-                repositoryRevision = "revision"
+            val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
+            mockkObject(MessageSenderFactory)
+            every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
+            every { msgSenderMock.send(any()) } just runs
+
+            val worker = spyk(
+                AnalyzerWorker(
+                    ConfigFactory.parseMap(
+                        mapOf(
+                            "${AnalyzerEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
+                                    "testMessageReceiverFactory",
+                            TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzeRequest)
+                        )
+                    )
+                )
             )
 
-            val worker = spyk(AnalyzerWorker(client))
-
-            coEvery { client.getScheduledAnalyzerJob() } returns analyzerJob
-            coEvery { client.reportAnalyzerJobFailure(any()) }
-            coEvery {
-                client.finishAnalyzerJob(JOB_ID)
-            } coAnswers {
-                // Since the worker is in an unending loop, it should be shutdown after processing this analyzer job.
-                worker.stop()
-                analyzerJob.copy(status = AnalyzerJobStatus.FINISHED, finishedAt = Clock.System.now())
-            }
-            // To speed the test up, a minimal pom file is scanned and the repository is not cloned.
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the
+            // repository is not cloned.
             with(worker) {
                 every { any<AnalyzerJob>().download() } returns projectDir
             }
 
             worker.start()
 
-            coVerify(exactly = 0) {
-                client.reportAnalyzerJobFailure(any())
-            }
-            coVerify {
-                client.getScheduledAnalyzerJob()
-                client.finishAnalyzerJob(JOB_ID)
+            verify(exactly = 1) {
+                msgSenderMock.send(
+                    Message(MessageHeader(TOKEN, TRACE_ID), AnalyzeResult(JOB_ID))
+                )
             }
         }
     }
 })
+
+private val analyzeRequest = AnalyzeRequest(
+    Repository(
+        id = 0,
+        type = RepositoryType.GIT,
+        url = "https://example.com/git/repository.git"
+    ),
+    OrtRun(
+        id = 0,
+        index = 0,
+        repositoryId = 0,
+        revision = "main",
+        createdAt = Clock.System.now(),
+        jobs = JobConfigurations(AnalyzerJobConfiguration()),
+        status = OrtRunStatus.CREATED
+    ),
+    AnalyzerJob(
+        id = JOB_ID,
+        createdAt = Clock.System.now(),
+        startedAt = Clock.System.now(),
+        finishedAt = null,
+        configuration = AnalyzerJobConfiguration(),
+        status = AnalyzerJobStatus.CREATED,
+        repositoryUrl = "https://example.com/git/repository.git",
+        repositoryRevision = "main"
+    )
+)
+
+/** The name reported by the test receiver factory. */
+private const val TEST_RECEIVER_FACTORY_NAME = "testMessageReceiverFactory"
+
+/** The config key for the mock message's payload which is received by this test receiver. */
+private const val TEST_RECEIVER_PAYLOAD_CONFIG_KEY = "test.receiver.payload"
+
+/**
+ * A MessageReceiverFactory intended to be used for unit testing parts of the code that relies on the SPI receiver
+ * implementations.
+ */
+class MessageReceiverFactoryForTesting : MessageReceiverFactory {
+    override val name: String = TEST_RECEIVER_FACTORY_NAME
+
+    /**
+     * A mock receiver implementation which immediately simulates the retrieval of a message. The message payload can be
+     * set by setting the [config] key [TEST_RECEIVER_PAYLOAD_CONFIG_KEY].
+     */
+    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+        val serializer = JsonSerializer.forClass(endpoint.messageClass)
+        val payload = config.getString(TEST_RECEIVER_PAYLOAD_CONFIG_KEY)
+
+        handler(
+            Message(
+                MessageHeader(TOKEN, TRACE_ID),
+                serializer.fromJson(payload)
+            )
+        )
+    }
+}
