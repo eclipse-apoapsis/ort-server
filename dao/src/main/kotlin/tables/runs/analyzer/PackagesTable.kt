@@ -44,12 +44,16 @@ object PackagesTable : LongIdTable("packages") {
     val vcsProcessed = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
     val binaryArtifact = reference("binary_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
     val sourceArtifact = reference("source_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
-    val concludedLicense = reference("concluded_license_spdx_id", LicenseSpdxTable.id, ReferenceOption.CASCADE)
+    val concludedLicense = reference(
+        "concluded_license_spdx_id",
+        LicenseSpdxTable.id,
+        ReferenceOption.CASCADE
+    ).nullable()
     val processedDeclaredLicense = reference(
         "processed_declared_license_id",
         ProcessedDeclaredLicensesTable.id,
         ReferenceOption.CASCADE
-    )
+    ).nullable()
 
     val cpe = text("cpe").nullable()
     val purl = text("purl")
@@ -68,9 +72,10 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var authors by AuthorDao via PackagesAuthorsTable
     var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifact
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifact
-    var concludedLicense by LicenseSpdxDao referencedOn PackagesTable.concludedLicense
+    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicense
     var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
-    var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn PackagesTable.processedDeclaredLicense
+    var processedDeclaredLicense by ProcessedDeclaredLicenseDao optionalReferencedOn
+            PackagesTable.processedDeclaredLicense
 
     var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl
