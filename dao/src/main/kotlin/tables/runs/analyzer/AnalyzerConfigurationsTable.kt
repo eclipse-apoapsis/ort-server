@@ -43,4 +43,6 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     val enabledPackageManagers by EnabledPackageManagerDao referrersOn EnabledPackageManagersTable.analyzerConfiguration
     val disabledPackageManagers by DisabledPackageManagerDao referrersOn
             DisabledPackageManagersTable.analyzerConfiguration
+    val packageManagerConfiguration by PackageManagerConfigurationDao referrersOn
+            PackageManagerConfigurationsTable.analyzerConfiguration
 }
