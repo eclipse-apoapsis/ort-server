@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxTable
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -50,6 +51,7 @@ object PackagesTable : LongIdTable("packages") {
         ReferenceOption.CASCADE
     )
 
+    val cpe = text("cpe").nullable()
     val purl = text("purl")
     val description = text("description")
     val homepageUrl = text("homepage_url")
@@ -67,8 +69,10 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifact
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifact
     var concludedLicense by LicenseSpdxDao referencedOn PackagesTable.concludedLicense
+    var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
     var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn PackagesTable.processedDeclaredLicense
 
+    var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl
     var description by PackagesTable.description
     var homepageUrl by PackagesTable.homepageUrl
