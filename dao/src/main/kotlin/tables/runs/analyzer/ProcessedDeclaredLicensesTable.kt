@@ -40,6 +40,6 @@ class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
 
     var licenseSpdx by LicenseSpdxDao optionalReferencedOn ProcessedDeclaredLicensesTable.licenseSpdx
     var unmapped by LicenseStringDao via ProcessedDeclaredLicensesUnmappedLicensesTable
-    val mappedLicenseDao by ProcessedDeclaredLicensesMappedLicenseDao referrersOn
+    val mapped by ProcessedDeclaredLicensesMappedLicenseDao referrersOn
             ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicense
 }
