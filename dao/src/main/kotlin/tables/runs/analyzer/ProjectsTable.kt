@@ -60,6 +60,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var authors by AuthorDao via ProjectsAuthorsTable
     var declaredLicenses by LicenseStringDao via ProjectsDeclaredLicensesTable
     var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn ProjectsTable.processedDeclaredLicense
+    val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.project
 
     var cpe by ProjectsTable.cpe
     var homepageUrl by ProjectsTable.homepageUrl
