@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
 
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
@@ -28,4 +31,12 @@ import org.jetbrains.exposed.sql.ReferenceOption
 object CuratedPackagesTable : LongIdTable("curated_packages") {
     val packageId = reference("package_id", PackagesTable.id, ReferenceOption.CASCADE)
     val analyzerRun = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
+}
+
+class CuratedPackageDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<CuratedPackageDao>(CuratedPackagesTable)
+
+    var packageId by PackageDao referencedOn CuratedPackagesTable.packageId
+    var analyzerRun by AnalyzerRunDao referencedOn CuratedPackagesTable.analyzerRun
+    val curations by PackageCurationResultDao referrersOn PackagesCurationResultsTable.curatedPackage
 }
