@@ -28,6 +28,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 
 /**
@@ -48,4 +49,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environment
     var analyzerConfiguration by AnalyzerConfigurationDao referencedOn AnalyzerRunsTable.analyzerConfiguration
+    val projects by ProjectDao referrersOn ProjectsTable.analyzerRun
+    val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRun
+    var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
 }
