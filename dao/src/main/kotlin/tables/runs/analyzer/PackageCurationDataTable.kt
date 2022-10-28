@@ -61,4 +61,5 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var sourceArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.sourceArtifact
     var vcs by CurationVcsInfoDao optionalReferencedOn PackageCurationDataTable.vcs
     var concludedLicense by LicenseSpdxDao optionalReferencedOn PackageCurationDataTable.concludedLicense
+    var authors by AuthorDao via PackageCurationDataAuthorsTable
 }
