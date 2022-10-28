@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.Sw360ConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.Sw360ConfigurationsTable
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 
 /**
  * A table to represent an analyzer configuration.
@@ -45,4 +46,13 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
             DisabledPackageManagersTable.analyzerConfiguration
     val packageManagerConfiguration by PackageManagerConfigurationDao referrersOn
             PackageManagerConfigurationsTable.analyzerConfiguration
+
+    fun mapToModel() = AnalyzerConfiguration(
+        id.value,
+        allowDynamicVersions,
+        enabledPackageManagers.map(EnabledPackageManagerDao::packageManager),
+        disabledPackageManagers.map(DisabledPackageManagerDao::packageManager),
+        packageManagerConfiguration.associate { it.name to it.mapToModel() },
+        sw360Configuration?.mapToModel()
+    )
 }

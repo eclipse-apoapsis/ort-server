@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.LicenseSpdx
+
 /**
  * A table to represent a SPDX expression of a license string. The reference of this table can be used to map a license
  * string to its corresponding SPDX expression.
@@ -36,4 +38,6 @@ class LicenseSpdxDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<LicenseSpdxDao>(LicenseSpdxTable)
 
     var expression by LicenseSpdxTable.expression
+
+    fun mapToModel() = LicenseSpdx(id.value, expression)
 }

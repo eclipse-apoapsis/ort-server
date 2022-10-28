@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.runs.CurationVcsInfo
 
 /**
  * A table to represent Version Control System information with nullable columns.
@@ -43,4 +44,6 @@ class CurationVcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
     var url by CurationVcsInfoTable.url
     var revision by CurationVcsInfoTable.revision
     var path by CurationVcsInfoTable.path
+
+    fun mapToModel() = CurationVcsInfo(id.value, type, url, revision, path)
 }

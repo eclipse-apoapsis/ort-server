@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
 
 /**
  * A table to represent an ort issue.
@@ -44,4 +45,6 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     var issueSource by OrtIssuesTable.issueSource
     var message by OrtIssuesTable.message
     var severity by OrtIssuesTable.severity
+
+    fun mapToModel() = OrtIssue(id.value, timeStamp, issueSource, message, severity)
 }

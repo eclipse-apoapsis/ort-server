@@ -27,6 +27,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
 
 /**
  * A table to represent a processed declared license.
@@ -42,4 +43,11 @@ class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
     var unmapped by LicenseStringDao via ProcessedDeclaredLicensesUnmappedLicensesTable
     val mapped by ProcessedDeclaredLicensesMappedLicenseDao referrersOn
             ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicense
+
+    fun mapToModel() = ProcessedDeclaredLicense(
+        id.value,
+        licenseSpdx?.mapToModel(),
+        mapped.associate { it.licenseString.mapToModel() to it.licenseSpdx.mapToModel() },
+        unmapped.map(LicenseStringDao::mapToModel)
+    )
 }

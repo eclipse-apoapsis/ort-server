@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.Identifier
+
 /**
  * A table to represent an identifier of a software package.
  */
@@ -41,4 +43,6 @@ class IdentifierDao(id: EntityID<Long>) : LongEntity(id) {
     var namespace by IdentifiersTable.namespace
     var name by IdentifiersTable.name
     var version by IdentifiersTable.version
+
+    fun mapToModel() = Identifier(id.value, type, namespace, name, version)
 }

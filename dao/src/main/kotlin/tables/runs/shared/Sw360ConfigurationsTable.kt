@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.Sw360Configuration
+
 /**
  * A table to represent a SW360 configuration.
  */
@@ -41,4 +43,6 @@ class Sw360ConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var authUrl by Sw360ConfigurationsTable.authUrl
     var username by Sw360ConfigurationsTable.username
     var clientId by Sw360ConfigurationsTable.clientId
+
+    fun mapToModel() = Sw360Configuration(id.value, restUrl, authUrl, username, clientId)
 }

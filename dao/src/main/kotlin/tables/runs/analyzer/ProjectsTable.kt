@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
+import org.ossreviewtoolkit.server.model.runs.Project
 
 /**
  * A table to represent a software package as a project.
@@ -65,4 +66,18 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var cpe by ProjectsTable.cpe
     var homepageUrl by ProjectsTable.homepageUrl
     var definitionFilePath by ProjectsTable.definitionFilePath
+
+    fun mapToModel() = Project(
+        id.value,
+        identifier.mapToModel(),
+        cpe,
+        definitionFilePath,
+        authors.map(AuthorDao::mapToModel).toSet(),
+        declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
+        processedDeclaredLicense.mapToModel(),
+        vcs.mapToModel(),
+        vcsProcessed.mapToModel(),
+        homepageUrl,
+        scopeNames.map(ProjectScopeDao::name).toSet()
+    )
 }

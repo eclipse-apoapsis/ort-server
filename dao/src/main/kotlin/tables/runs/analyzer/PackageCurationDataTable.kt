@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
+import org.ossreviewtoolkit.server.model.runs.PackageCurationData
 
 /**
  * A table to represent a package curation.
@@ -62,4 +63,20 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var vcs by CurationVcsInfoDao optionalReferencedOn PackageCurationDataTable.vcs
     var concludedLicense by LicenseSpdxDao optionalReferencedOn PackageCurationDataTable.concludedLicense
     var authors by AuthorDao via PackageCurationDataAuthorsTable
+
+    fun mapToModel() = PackageCurationData(
+        id.value,
+        comment,
+        purl,
+        cpe,
+        authors.map(AuthorDao::mapToModel).toSet().ifEmpty { null },
+        concludedLicense?.mapToModel(),
+        description,
+        homepageUrl,
+        binaryArtifact?.mapToModel(),
+        sourceArtifact?.mapToModel(),
+        vcs?.mapToModel(),
+        isMetadataOnly,
+        isModified
+    )
 }

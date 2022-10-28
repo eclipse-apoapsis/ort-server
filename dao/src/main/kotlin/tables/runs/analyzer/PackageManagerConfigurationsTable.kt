@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OptionDao
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 
 /**
  * A table to represent a package manager configuration.
@@ -48,4 +49,10 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     val mustRunAfter by PackageManagerConfigurationMustRunAfterDao referrersOn
             PackageManagerConfigurationsMustRunAfterTable.packageManagerConfiguration
     var options by OptionDao via PackageManagerConfigurationsOptionsTable
+
+    fun mapToModel() = PackageManagerConfiguration(
+        id.value,
+        mustRunAfter.map(PackageManagerConfigurationMustRunAfterDao::name),
+        options.associate { it.name to it.value }
+    )
 }

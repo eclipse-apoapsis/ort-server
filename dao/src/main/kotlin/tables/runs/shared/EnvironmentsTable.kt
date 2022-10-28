@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.Environment
+
 /**
  * A table to represent the environment settings.
  */
@@ -45,4 +47,15 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
     var maxMemory by EnvironmentsTable.maxMemory
     val variables by EnvironmentVariableDao referrersOn EnvironmentVariablesTable.environment
     val toolVersion by EnvironmentToolVersionDao referrersOn EnvironmentToolVersionsTable.environment
+
+    fun mapToModel() = Environment(
+        id.value,
+        ortVersion,
+        javaVersion,
+        os,
+        processors,
+        maxMemory,
+        variables.associate { it.name to it.value },
+        toolVersion.associate { it.name to it.version }
+    )
 }

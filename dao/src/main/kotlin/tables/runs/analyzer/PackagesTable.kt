@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
+import org.ossreviewtoolkit.server.model.runs.Package
 
 /**
  * A table to represent all metadata for a software package.
@@ -83,4 +84,23 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var homepageUrl by PackagesTable.homepageUrl
     var isMetadataOnly by PackagesTable.isMetadataOnly
     var isModified by PackagesTable.isModified
+
+    fun mapToModel() = Package(
+        id.value,
+        identifier.mapToModel(),
+        purl,
+        cpe,
+        authors.map(AuthorDao::mapToModel).toSet(),
+        declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
+        processedDeclaredLicense?.mapToModel(),
+        concludedLicense?.mapToModel(),
+        description,
+        homepageUrl,
+        binaryArtifact.mapToModel(),
+        sourceArtifact.mapToModel(),
+        vcs.mapToModel(),
+        vcsProcessed.mapToModel(),
+        isMetadataOnly,
+        isModified
+    )
 }

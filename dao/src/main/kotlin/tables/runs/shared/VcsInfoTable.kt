@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.runs.VcsInfo
 
 /**
  * A table to represent Version Control System information.
@@ -43,4 +44,6 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
     var url by VcsInfoTable.url
     var revision by VcsInfoTable.revision
     var path by VcsInfoTable.path
+
+    fun mapToModel() = VcsInfo(id.value, type, url, revision, path)
 }

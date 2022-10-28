@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.LicenseString
+
 /**
  * A table to represent a license string.
  */
@@ -35,4 +37,6 @@ class LicenseStringDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<LicenseStringDao>(LicenseStringsTable)
 
     var name by LicenseStringsTable.name
+
+    fun mapToModel() = LicenseString(id.value, name)
 }

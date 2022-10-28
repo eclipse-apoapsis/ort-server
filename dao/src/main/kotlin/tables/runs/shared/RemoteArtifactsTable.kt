@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
+
 /**
  * A table to represent bundle information about a remote artifact.
  */
@@ -39,4 +41,6 @@ class RemoteArtifactDao(id: EntityID<Long>) : LongEntity(id) {
     var url by RemoteArtifactsTable.url
     var hashValue by RemoteArtifactsTable.hashValue
     var hashAlgorithm by RemoteArtifactsTable.hashAlgorithm
+
+    fun mapToModel() = RemoteArtifact(id.value, url, hashValue, hashAlgorithm)
 }

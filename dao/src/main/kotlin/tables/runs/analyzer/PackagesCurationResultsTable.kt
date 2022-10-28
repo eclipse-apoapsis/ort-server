@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.PackageCurationResult
+
 /**
  * An intermediate table to store references from [PackageCurationDataTable] and [CuratedPackagesTable].
  */
@@ -39,4 +41,6 @@ class PackageCurationResultDao(id: EntityID<Long>) : LongEntity(id) {
     var baseCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.baseCuration
     var appliedCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.appliedCuration
     var curatedPackage by CuratedPackageDao referencedOn PackagesCurationResultsTable.curatedPackage
+
+    fun mapToModel() = PackageCurationResult(id.value, baseCuration.mapToModel(), appliedCuration.mapToModel())
 }

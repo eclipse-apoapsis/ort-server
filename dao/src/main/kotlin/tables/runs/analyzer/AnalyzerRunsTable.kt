@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 
 /**
  * A table to represent an analyzer run.
@@ -52,4 +53,18 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRun
     val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRun
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
+
+    fun mapToModel() = AnalyzerRun(
+        id.value,
+        startTime,
+        endTime,
+        environment.mapToModel(),
+        analyzerConfiguration.mapToModel(),
+        projects.map(ProjectDao::mapToModel).toSet(),
+        packages.map(CuratedPackageDao::mapToModel).toSet(),
+        issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
+            identifier.mapToModel() to
+                    idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }
+        }.toMap()
+    )
 }
