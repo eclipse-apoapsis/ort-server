@@ -19,16 +19,24 @@
 
 package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.LongIdTable
 
 /**
  * An intermediate table to store references from [PackageCurationDataTable] and [CuratedPackagesTable].
  */
-object PackagesCurationResultsTable : Table("packages_curation_results") {
+object PackagesCurationResultsTable : LongIdTable("packages_curation_results") {
     val baseCuration = reference("base_curation_id", PackageCurationDataTable)
     val appliedCuration = reference("applied_curation_id", PackageCurationDataTable)
     val curatedPackage = reference("curated_package_id", CuratedPackagesTable)
+}
 
-    override val primaryKey: PrimaryKey?
-        get() = PrimaryKey(baseCuration, appliedCuration, curatedPackage, name = "pk_packages_curation_results_data")
+class PackageCurationResultDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<PackageCurationResultDao>(PackagesCurationResultsTable)
+
+    var baseCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.baseCuration
+    var appliedCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.appliedCuration
+    var curatedPackage by CuratedPackageDao referencedOn PackagesCurationResultsTable.curatedPackage
 }
