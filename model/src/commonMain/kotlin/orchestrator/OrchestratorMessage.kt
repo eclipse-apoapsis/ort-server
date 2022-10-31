@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.model.OrtRun
+
 /**
  * Base class for the hierarchy of messages that can be processed by the Orchestrator component.
  */
@@ -49,3 +51,9 @@ data class AnalyzeResult(
 
 @Serializable
 data class AnalyzerError(val runId: Long) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about a new ORT run.
+ */
+@Serializable
+data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage()

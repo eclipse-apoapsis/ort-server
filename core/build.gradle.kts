@@ -47,6 +47,8 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":orchestrator"))
     implementation(project(":services"))
+    implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:spi"))
 
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)

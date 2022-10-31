@@ -41,20 +41,6 @@ class OrchestratorService(
     private val repositoryRepository: RepositoryRepository,
     private val schedulerService: SchedulerService
 ) {
-    suspend fun createOrtRun(repositoryId: Long, revision: String, config: JobConfigurations): OrtRun = dbQuery {
-        val repository = repositoryRepository.get(repositoryId)
-        val ortRun = ortRunRepository.create(repositoryId, revision, config)
-        val analyzerJob = analyzerJobRepository.create(ortRunId = ortRun.id, configuration = config.analyzer)
-
-        require(repository != null)
-
-        runBlocking { schedulerService.scheduleAnalyzerJob(repository, ortRun, analyzerJob) }.getOrThrow()
-
-        analyzerJobRepository.update(analyzerJob.id, status = OptionalValue.Present(AnalyzerJobStatus.SCHEDULED))
-
-        ortRun
-    }.getOrThrow()
-
     /**
      * Get an analyzer job by [analyzerJobId]. Returns null if the analyzer job is not found.
      */

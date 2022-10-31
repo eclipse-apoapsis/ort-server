@@ -19,23 +19,35 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
+import com.typesafe.config.ConfigFactory
+
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.MessageHeader
+import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
 /**
- * This service is responsible for scheduling jobs to be picked up by workers. Different implementation can use
- * different means to schedule jobs, for example sending a message via a message service.
+ * This service is responsible for scheduling jobs to be picked up by workers.
  */
-interface SchedulerService {
-    suspend fun scheduleAnalyzerJob(repository: Repository, ortRun: OrtRun, analyzerJob: AnalyzerJob): Result<Unit>
-}
+class SchedulerService {
+    // TODO: Use Orchestrator specific configuration without manually loading it.
+    private val analyzerSender by lazy { MessageSenderFactory.createSender(AnalyzerEndpoint, ConfigFactory.load()) }
 
-/**
- * This implementation of [SchedulerService] does nothing. It can be used in a setup where workers actively pull jobs
- * via the server API.
- */
-class NoOpSchedulerService : SchedulerService {
-    override suspend fun scheduleAnalyzerJob(repository: Repository, ortRun: OrtRun, analyzerJob: AnalyzerJob) =
-        Result.success(Unit)
+    fun scheduleAnalyzerJob(
+        messageHeader: MessageHeader,
+        repository: Repository,
+        ortRun: OrtRun,
+        analyzerJob: AnalyzerJob
+    ) {
+        analyzerSender.send(
+            Message(
+                header = messageHeader,
+                payload = AnalyzeRequest(repository, ortRun, analyzerJob)
+            )
+        )
+    }
 }

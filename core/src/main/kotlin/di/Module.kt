@@ -28,6 +28,7 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
+import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
@@ -39,8 +40,6 @@ import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.orchestrator.NoOpSchedulerService
-import org.ossreviewtoolkit.server.orchestrator.OrchestratorService
 import org.ossreviewtoolkit.server.orchestrator.SchedulerService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
@@ -67,8 +66,8 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<ProductRepository> { DaoProductRepository() }
     single<RepositoryRepository> { DaoRepositoryRepository() }
 
-    single<SchedulerService> { NoOpSchedulerService() }
-    single { OrchestratorService(get(), get(), get(), get()) }
+    single { SchedulerService() }
+    single { OrchestratorService(get(), get()) }
     single { OrganizationService(get(), get()) }
     single { ProductService(get(), get()) }
     single { RepositoryService(get(), get()) }
