@@ -11,3 +11,48 @@ spec:
   resources:
     requests:
       storage: 100Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    ort-server.service: postgres
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ort-server.service: postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        ort-server.service: postgres
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: ort_server
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+          image: postgres:14
+          livenessProbe:
+            exec:
+              command: [ 'sh', '-c', 'exec pg_isready -U "postgres"' ]
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: db
+      restartPolicy: Always
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: postgres-pvc
