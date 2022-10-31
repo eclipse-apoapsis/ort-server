@@ -58,3 +58,18 @@ spec:
           ports:
             - containerPort: 8080
       restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    ort-server.service: ort-server
+  name: ort-server
+spec:
+  type: NodePort
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
+  selector:
+    ort-server.service: ort-server
