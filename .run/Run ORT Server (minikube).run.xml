@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run ORT Server (minikube)" type="JetRunConfigurationType">
+    <envs>
+      <env name="DB_NAME" value="ort_server" />
+      <env name="DB_PASSWORD" value="postgres" />
+      <env name="DB_SCHEMA" value="ort_server" />
+      <env name="DB_SSLMODE" value="disable" />
+      <env name="DB_URL" value="jdbc:postgresql://postgres:5433" />
+      <env name="DB_USERNAME" value="postgres" />
+      <env name="JWT_AUDIENCE" value="ort-server" />
+      <env name="JWT_ISSUER" value="http://keycloak:8081/realms/master" />
+      <env name="JWT_REALM" value="master" />
+      <env name="JWT_URI" value="http://keycloak:8081/realms/master/protocol/openid-connect/certs" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="org.ossreviewtoolkit.server.core.ApplicationKt" />
+    <module name="ort-server.core.main" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
