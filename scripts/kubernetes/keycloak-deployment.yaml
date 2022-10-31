@@ -32,3 +32,82 @@ spec:
   resources:
     requests:
       storage: 1Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    ort-server.service: keycloak
+  name: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ort-server.service: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        ort-server.service: keycloak
+    spec:
+      # See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ on how to create dependencies between
+      # containers.
+      initContainers:
+        - name: init-keycloak
+          image: busybox:latest
+          command: ['sh', '-c', "until nslookup postgres.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for postgres; sleep 2; done"]
+      containers:
+        - args:
+            - start-dev
+          command:
+            - /opt/keycloak_init/init-keycloak.sh
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_PASSWORD
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://postgres:5433/ort_server
+            - name: KC_DB_USERNAME
+              value: postgres
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: admin
+          image: quay.io/keycloak/keycloak:19.0.1
+          # See https://keycloak.discourse.group/t/readiness-probe-on-kubernetes-gets-connection-refused/7364 and
+          # https://github.com/keycloak/keycloak/issues/9552 for more details on Keycloak probes.
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            initialDelaySeconds: 40
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health/live
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 30
+            initialDelaySeconds: 50
+          name: keycloak
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /opt/keycloak_init/
+              name: keycloak-init-volume
+      restartPolicy: Always
+      volumes:
+        - name: keycloak-init-volume
+          persistentVolumeClaim:
+            claimName: keycloak-pvc
