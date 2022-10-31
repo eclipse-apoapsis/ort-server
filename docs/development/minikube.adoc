@@ -1,0 +1,75 @@
+= Run ORT Server on Minikube
+
+Start minikube with only one node due to limitation that will be explained later.
+
+ minikube start --nodes 1
+
+
+Create the namespace for all the future deployments and enable it with https://github.com/ahmetb/kubectx/blob/master/kubens[KubeNS]:
+
+----
+kubectl create namespace ort-server
+kubens ort-server
+----
+
+Deploy the database:
+
+ kubectl apply -f postgres-deployment.yaml
+
+== Keycloak
+
+Mount the directory containing the keycloak initialization script.
+**Warning**! Due to a https://github.com/kubernetes/minikube/issues/12165[bug], this mounts only on the first node in case of a multi-node setup.
+
+ minikube mount docker/keycloak:/data/init-keycloak &
+
+Deploy Keycloak:
+
+ kubectl apply -f kubernetes/keycloak-deployment.yaml
+
+== ORT Server
+
+Run once to expose the Docker Engine inside Minikube:
+
+ eval $(minikube docker-env)
+
+Build the Docker image for the core module in the cluster.
+See https://minikube.sigs.k8s.io/docs/handbook/pushing/ for alternatives.
+
+ ./gradlew :core:jibDockerBuild
+
+Deploy ORT Server:
+
+ kubectl apply -f scripts/kubernetes/ort-server-deployment.yaml
+
+== Accessing on the host the remove services
+
+Connect ORT Server service for local debugging. This command returns a host with a port where you can access the service. It survives pod redeployment.
+
+ minikube service ort-server --url -n ort-server
+
+You can list all URLs with:
+
+ minikube service list
+
+Keycloak however needs to have the exact same domain and port as in the cluster to avoid running into a JWT validation error because of issuer change.
+Same for Postgres for consistency.
+
+The solution here is to start the following command (it should not be stopped):
+
+ minikube tunnel --bind-address=127.0.0.1
+
+Then add an alias to localhost in the /etc/hosts file (or your platform equivalent):
+
+ 127.0.0.1       localhost keycloak postgres
+
+Afterwards, configure a local ORT Service with the following JDBC URL:
+
+ jdbc:postgresql://postgres:5433
+
+And you can send requests to the ORT Server using the following Keycloak URLs:
+
+----
+Authorization URL: http://keycloak:8081/realms/master/protocol/openid-connect/auth
+Access Token URL: http://keycloak:8081/realms/master/protocol/openid-connect/token
+----
