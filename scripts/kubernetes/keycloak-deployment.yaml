@@ -111,3 +111,18 @@ spec:
         - name: keycloak-init-volume
           persistentVolumeClaim:
             claimName: keycloak-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    ort-server.service: keycloak
+  name: keycloak
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "8081"
+      port: 8081
+      targetPort: 8080
+  selector:
+    ort-server.service: keycloak
