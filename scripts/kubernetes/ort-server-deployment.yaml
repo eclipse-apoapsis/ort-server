@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    ort-server.service: ort-server
+  name: ort-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ort-server.service: ort-server
+  template:
+    metadata:
+      labels:
+        ort-server.service: ort-server
+    spec:
+      initContainers:
+        - name: init-postgres
+          image: busybox:latest
+          command: [ 'sh', '-c', "until nslookup postgres.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for postgres; sleep 2; done" ]
+        - name: init-keycloak
+          image: busybox:latest
+          command: [ 'sh', '-c', "until nslookup keycloak.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for keycloak; sleep 2; done" ]
+      containers:
+        - env:
+            - name: DB_NAME
+              value: ort_server
+            - name: DB_PASSWORD
+              value: postgres
+            - name: DB_SCHEMA
+              value: ort_server
+            - name: DB_SSLMODE
+              value: disable
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5433
+            - name: DB_USERNAME
+              value: postgres
+            - name: JWT_URI
+              value: http://keycloak:8081/realms/master/protocol/openid-connect/certs
+            - name: JWT_ISSUER
+              value: http://keycloak:8081/realms/master
+            - name: PORT
+              value: "8080"
+          image: ort-server-core
+          # Having a value of 'Never' makes sure that only the local images are used.
+          # See https://kubernetes.io/docs/concepts/containers/images/#updating-images.
+          imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ort-server
+          ports:
+            - containerPort: 8080
+      restartPolicy: Always
