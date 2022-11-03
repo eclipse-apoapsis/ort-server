@@ -57,6 +57,7 @@ CREATE TABLE disabled_package_managers
 CREATE TABLE analyzer_runs
 (
     id                        bigserial PRIMARY KEY,
+    analyzer_job_id           bigint REFERENCES analyzer_jobs           NOT NULL,
     environment_id            bigint REFERENCES environments            NOT NULL,
     analyzer_configuration_id bigint REFERENCES analyzer_configurations NOT NULL,
     start_time                timestamp                                 NOT NULL,

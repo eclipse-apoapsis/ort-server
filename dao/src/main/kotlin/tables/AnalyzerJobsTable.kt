@@ -26,6 +26,8 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
@@ -53,6 +55,7 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by AnalyzerJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by AnalyzerJobsTable.configuration
     var status by AnalyzerJobsTable.status
+    val analyzerRun by AnalyzerRunDao optionalBackReferencedOn AnalyzerRunsTable.analyzerJob
 
     fun mapToModel() = AnalyzerJob(
         id.value,

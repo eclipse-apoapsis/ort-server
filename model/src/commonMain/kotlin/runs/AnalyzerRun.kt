@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 
 data class AnalyzerRun(
     val id: Long,
+    val analyzerJobId: Long,
     val startTime: Instant,
     val endTime: Instant,
     val environment: Environment,

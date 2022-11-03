@@ -26,6 +26,8 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
+import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
@@ -36,6 +38,7 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
  * A table to represent an analyzer run.
  */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
+    val analyzerJob = reference("analyzer_job_id", AnalyzerJobsTable.id, ReferenceOption.CASCADE)
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
     val environment = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
@@ -46,6 +49,7 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable)
 
+    var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJob
     var startTime by AnalyzerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environment
@@ -56,6 +60,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
 
     fun mapToModel() = AnalyzerRun(
         id.value,
+        analyzerJob.id.value,
         startTime,
         endTime,
         environment.mapToModel(),
