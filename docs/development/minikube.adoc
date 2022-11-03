@@ -14,7 +14,7 @@ kubens ort-server
 
 Deploy the database:
 
- kubectl apply -f postgres-deployment.yaml
+ kubectl apply -f kubernetes/1_postgres-deployment.yaml
 
 == Keycloak
 
@@ -25,7 +25,7 @@ Mount the directory containing the keycloak initialization script.
 
 Deploy Keycloak:
 
- kubectl apply -f kubernetes/keycloak-deployment.yaml
+ kubectl apply -f kubernetes/2_keycloak-deployment.yaml
 
 == ORT Server
 
@@ -40,7 +40,7 @@ See https://minikube.sigs.k8s.io/docs/handbook/pushing/ for alternatives.
 
 Deploy ORT Server:
 
- kubectl apply -f scripts/kubernetes/ort-server-deployment.yaml
+ kubectl apply -f scripts/kubernetes/3_ort-server-deployment.yaml
 
 == Accessing on the host the remove services
 
