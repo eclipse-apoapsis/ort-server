@@ -36,3 +36,21 @@ spec:
             - containerPort: 8161
             - containerPort: 61616
       restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    ort-server.service: artemis
+  name: artemis
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "8161"
+      port: 8161
+      targetPort: 8161
+    - name: "61616"
+      port: 61616
+      targetPort: 61616
+  selector:
+    ort-server.service: artemis
