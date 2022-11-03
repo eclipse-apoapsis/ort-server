@@ -256,7 +256,7 @@ RUN chmod o+rwx ${NVM_DIR}
 ARG RUST_HOME=/opt/rust
 ARG CARGO_HOME=${RUST_HOME}/cargo
 COPY --chown=$USERNAME:$USERNAME --from=rustbuild /opt/rust /opt/rust
-COPY docker/rust.sh /etc/profile.d/
+COPY scripts/rust.sh /etc/profile.d/
 RUN chmod o+rwx ${CARGO_HOME}
 
 # Golang
