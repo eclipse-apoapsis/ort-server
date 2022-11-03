@@ -74,16 +74,6 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
             analyzerJobRepository.getForOrtRun(ortRunId) shouldBe analyzerJob
         }
 
-        test("getScheduled should return a scheduled job") {
-            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-            val scheduledAnalyzerJob = analyzerJobRepository.update(
-                id = analyzerJob.id,
-                status = OptionalValue.Present(AnalyzerJobStatus.SCHEDULED)
-            )
-
-            analyzerJobRepository.getScheduled() shouldBe scheduledAnalyzerJob
-        }
-
         test("update should update an entry in the database") {
             val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 

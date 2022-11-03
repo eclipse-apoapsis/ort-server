@@ -85,51 +85,6 @@ class JobsRouteIntegrationTest : DatabaseTest() {
     }
 
     init {
-        test("POST /jobs/analyzer/start should return NotFound if no scheduled job exists") {
-            ortServerTestApplication(noDbConfig) {
-                val client = createJsonClient()
-
-                val response = client.post("/api/v1/jobs/analyzer/start") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }
-
-                response.status shouldBe HttpStatusCode.NotFound
-            }
-        }
-
-        test("POST /jobs/analyzer/start should return a scheduled job") {
-            ortServerTestApplication(noDbConfig) {
-                val client = createJsonClient()
-
-                client.post("/api/v1/repositories/$repositoryId/runs") {
-                    headers {
-                        basicTestAuth()
-                    }
-                    setBody(CreateOrtRun(revision = REPOSITORY_REVISION, jobs = jobConfigurations))
-                }
-
-                val response = client.post("/api/v1/jobs/analyzer/start") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    with(body<AnalyzerJob>()) {
-                        id shouldBe 1
-                        startedAt shouldNot beNull()
-                        configuration shouldBe jobConfigurations.analyzer
-                        status shouldBe AnalyzerJobStatus.RUNNING
-                        repositoryRevision shouldBe REPOSITORY_REVISION
-                        repositoryUrl shouldBe REPOSITORY_URL
-                    }
-                }
-            }
-        }
-
         test("POST /jobs/analyzer/{id}/finish should finish a job") {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()

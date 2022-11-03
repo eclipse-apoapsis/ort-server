@@ -45,18 +45,6 @@ fun Route.jobs() = route("jobs") {
     val json by inject<Json>()
 
     route("analyzer") {
-        route("start") {
-            post(startAnalyzerJob(json)) {
-                val job = orchestratorService.startAnalyzerJob()
-
-                if (job != null) {
-                    call.respond(HttpStatusCode.OK, job.mapToApi())
-                } else {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-            }
-        }
-
         route("{id}") {
             get(getAnalyzerJobById(json)) {
                 val id = call.requireParameter("id").toLong()

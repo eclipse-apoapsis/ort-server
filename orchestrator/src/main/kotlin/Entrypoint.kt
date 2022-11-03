@@ -24,6 +24,8 @@ import com.typesafe.config.ConfigFactory
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 
 fun main() {
     println("ORT-Server OrchestratorService started.")
@@ -32,4 +34,11 @@ fun main() {
 
     // TODO: The `connect()` method also runs the migration, this might not be desired.
     createDataSource(createDatabaseConfig(config)).connect()
+
+    Orchestrator(
+        config,
+        SchedulerService(),
+        DaoAnalyzerJobRepository(),
+        DaoRepositoryRepository()
+    ).start()
 }

@@ -46,11 +46,6 @@ interface AnalyzerJobRepository {
     fun getForOrtRun(ortRunId: Long): AnalyzerJob?
 
     /**
-     * Get a [scheduled][AnalyzerJobStatus.SCHEDULED] analyzer job. Returns null if no scheduled job is found.
-     */
-    fun getScheduled(): AnalyzerJob?
-
-    /**
      * Update an analyzer job by [id] with the [present][OptionalValue.Present] values.
      */
     fun update(
