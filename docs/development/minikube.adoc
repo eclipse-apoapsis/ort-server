@@ -58,6 +58,18 @@ Deploy the Analyzer Worker:
 
   kubectl apply -f kubernetes/5_analyzer-worker-deployment.yaml
 
+== Orchestrator
+
+Initialize the Docker Engine as above.
+
+In the root directory of the project, build the orchestrator Docker image in the cluster:
+
+  ./gradlew :orchestrator:jibDockerBuild
+
+Deploy the Orchestrator:
+
+  kubectl apply -f kubernetes/6_orchestrator-deployment.yaml
+
 == Accessing on the host the remove services
 
 Connect ORT Server service for local debugging. This command returns a host with a port where you can access the service. It survives pod redeployment.
