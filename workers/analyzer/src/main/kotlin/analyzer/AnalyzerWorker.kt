@@ -37,8 +37,8 @@ import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerError
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -72,11 +72,11 @@ internal class AnalyzerWorker(private val config: Config) {
                     )
                 }
 
-                val resultMessage = Message(MessageHeader(token, traceId), AnalyzeResult(job.id))
+                val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
             }.onFailure {
                 logger.error("Analyze job '${job.id}' for repository '${message.payload.repository}' failed.", it)
-                val errorMessage = Message(MessageHeader(token, traceId), AnalyzerError(job.id))
+                val errorMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerError(job.id))
                 sender.send(errorMessage)
             }
         }

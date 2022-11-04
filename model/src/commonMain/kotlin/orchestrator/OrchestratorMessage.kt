@@ -45,13 +45,16 @@ data class AnalyzeRepository(
  * TODO: The exact payload still has to be defined.
  */
 @Serializable
-data class AnalyzeResult(
+data class AnalyzerWorkerResult(
     /** The ID of the Analyzer job, as it is stored in the database. */
     val jobId: Long
 ) : OrchestratorMessage()
 
+/**
+ * A message notifying the Orchestrator about a failed Analyzer worker job.
+ */
 @Serializable
-data class AnalyzerError(
+data class AnalyzerWorkerError(
     /** The ID of the Analyzer job, as it is stored in the database. */
     val jobId: Long
 ) : OrchestratorMessage()

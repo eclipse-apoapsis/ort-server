@@ -45,7 +45,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
@@ -96,7 +96,7 @@ class AnalyzerWorkerTest : WordSpec({
 
             verify(exactly = 1) {
                 msgSenderMock.send(
-                    Message(MessageHeader(TOKEN, TRACE_ID), AnalyzeResult(JOB_ID))
+                    Message(MessageHeader(TOKEN, TRACE_ID), AnalyzerWorkerResult(JOB_ID))
                 )
             }
         }

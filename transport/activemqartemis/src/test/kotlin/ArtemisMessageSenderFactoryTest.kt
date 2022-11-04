@@ -35,7 +35,7 @@ import jakarta.jms.TextMessage
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeResult
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -48,7 +48,7 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {
         val config = startArtemisContainer("sender")
 
-        val payload = AnalyzeResult(42)
+        val payload = AnalyzerWorkerResult(42)
         val header = MessageHeader(token = "1234567890", traceId = "dick.tracy")
         val message = Message(header, payload)
 
