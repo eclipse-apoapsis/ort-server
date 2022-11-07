@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.postgres)
     implementation(libs.logback)
+    implementation(libs.typesafeConfig)
 
     testImplementation(project(":utils:test"))
 

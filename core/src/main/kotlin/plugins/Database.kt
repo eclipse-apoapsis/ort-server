@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.core.plugins
 
+import com.typesafe.config.ConfigFactory
+
 import io.ktor.server.application.Application
 import io.ktor.server.config.ApplicationConfig
 
@@ -26,9 +28,9 @@ import javax.sql.DataSource
 
 import org.koin.ktor.ext.inject
 
-import org.ossreviewtoolkit.server.dao.DatabaseConfig
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
+import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 
 fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
     dataSource.connect()
@@ -37,19 +39,7 @@ fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
 private fun Application.createDataSource(): DataSource {
     val config: ApplicationConfig by inject()
 
-    val dataSourceConfig = DatabaseConfig(
-        jdbcUrl = config.property("database.url").getString(),
-        name = config.property("database.name").getString(),
-        schema = config.property("database.schema").getString(),
-        username = config.property("database.username").getString(),
-        password = config.property("database.password").getString(),
-        maximumPoolSize = config.property("database.poolsize").getString().toInt(),
-        driverClassName = "org.postgresql.Driver",
-        sslMode = config.property("database.sslmode").getString(),
-        sslCert = config.propertyOrNull("database.sslcert")?.getString(),
-        sslKey = config.propertyOrNull("database.sslkey")?.getString(),
-        sslRootCert = config.propertyOrNull("database.sslrootcert")?.getString()
-    )
+    val dataSourceConfig = createDatabaseConfig(ConfigFactory.parseMap(config.toMap()))
 
     return createDataSource(dataSourceConfig)
 }

@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.dao
 
+import com.typesafe.config.Config
+
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 
@@ -86,6 +88,30 @@ data class DatabaseConfig(
     val sslKey: String?,
     val sslRootCert: String?,
 )
+
+/**
+ * Create a [DatabaseConfig] object for the *database* configuration, given in [config].
+ */
+fun createDatabaseConfig(config: Config) = DatabaseConfig(
+    jdbcUrl = config.getString("database.url"),
+    name = config.getString("database.name"),
+    schema = config.getString("database.schema"),
+    username = config.getString("database.username"),
+    password = config.getString("database.password"),
+    maximumPoolSize = config.getInt("database.poolsize"),
+    driverClassName = "org.postgresql.Driver",
+    sslMode = config.getString("database.sslmode"),
+
+    sslCert = config.getStringOrNull("database.sslcert"),
+    sslKey = config.getStringOrNull("database.sslkey"),
+    sslRootCert = config.getStringOrNull("database.sslrootcert")
+)
+
+/**
+ * Read the configuration from [this] configuration defined in [path]. Returns *null* if the [path] is not available in
+ * the configuration.
+ */
+private fun Config.getStringOrNull(path: String) = if (hasPath(path)) getString(path) else null
 
 suspend fun <T> dbQuery(block: () -> T): Result<T> =
     runCatching {
