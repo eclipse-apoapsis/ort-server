@@ -47,27 +47,4 @@ class OrchestratorService(
     suspend fun getAnalyzerJob(analyzerJobId: Long): AnalyzerJob? = dbQuery {
         analyzerJobRepository.get(analyzerJobId)
     }.getOrNull()
-
-    suspend fun finishAnalyzerJob(analyzerJobId: Long): AnalyzerJob? = dbQuery {
-        val analyzerJob = analyzerJobRepository.get(analyzerJobId)
-
-        if (analyzerJob != null) {
-            analyzerJobRepository.update(
-                analyzerJob.id,
-                finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
-            )
-        } else null
-    }.getOrThrow()
-
-    suspend fun updateAnalyzerJobStatus(analyzerJobId: Long, status: AnalyzerJobStatus): AnalyzerJob? = dbQuery {
-        val analyzerJob = analyzerJobRepository.get(analyzerJobId)
-
-        if (analyzerJob != null) {
-            analyzerJobRepository.update(
-                analyzerJob.id,
-                status = OptionalValue.Present(status)
-            )
-        } else null
-    }.getOrThrow()
 }

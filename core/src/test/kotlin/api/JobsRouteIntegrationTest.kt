@@ -85,44 +85,6 @@ class JobsRouteIntegrationTest : DatabaseTest() {
     }
 
     init {
-        test("POST /jobs/analyzer/{id}/finish should finish a job") {
-            ortServerTestApplication(noDbConfig) {
-                val client = createJsonClient()
-
-                client.post("/api/v1/repositories/$repositoryId/runs") {
-                    headers {
-                        basicTestAuth()
-                    }
-                    setBody(CreateOrtRun(revision = "revision", jobs = jobConfigurations))
-                }
-
-                val analyzerJob = client.post("/api/v1/jobs/analyzer/start") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }.body<AnalyzerJob>()
-
-                val response = client.post("/api/v1/jobs/analyzer/${analyzerJob.id}/finish") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    with(body<AnalyzerJob>()) {
-                        id shouldBe 1
-                        startedAt shouldNot beNull()
-                        finishedAt shouldNot beNull()
-                        configuration shouldBe jobConfigurations.analyzer
-                        status shouldBe AnalyzerJobStatus.FINISHED
-                        repositoryRevision shouldBe REPOSITORY_REVISION
-                        repositoryUrl shouldBe REPOSITORY_URL
-                    }
-                }
-            }
-        }
-
         test("POST /jobs/analyzer/{id}/fail should update job status") {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()

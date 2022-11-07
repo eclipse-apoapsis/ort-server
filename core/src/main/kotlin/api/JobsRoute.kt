@@ -57,34 +57,6 @@ fun Route.jobs() = route("jobs") {
                     call.respond(HttpStatusCode.NotFound)
                 }
             }
-
-            route("finish") {
-                post(finishAnalyzerJob(json)) {
-                    val id = call.requireParameter("id").toLong()
-
-                    val job = orchestratorService.finishAnalyzerJob(id)
-
-                    if (job != null) {
-                        call.respond(HttpStatusCode.OK, job.mapToApi())
-                    } else {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                }
-            }
-
-            route("fail") {
-                post {
-                    val id = call.requireParameter("id").toLong()
-
-                    val job = orchestratorService.updateAnalyzerJobStatus(id, AnalyzerJobStatus.FAILED)
-
-                    if (job != null) {
-                        call.respond(HttpStatusCode.OK, job.mapToApi())
-                    } else {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                }
-            }
         }
     }
 }

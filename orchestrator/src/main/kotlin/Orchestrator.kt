@@ -24,6 +24,7 @@ import com.typesafe.config.Config
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -51,6 +52,8 @@ class Orchestrator(
 
             when (message.payload) {
                 is CreateOrtRun -> handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
+
+                is AnalyzerWorkerResult -> handleAnalyzerWorkerResult(message.payload as AnalyzerWorkerResult)
 
                 else -> TODO("Support for message type '${message.payload::class.simpleName}' not yet implemented.")
             }
@@ -85,5 +88,25 @@ class Orchestrator(
         } else {
             log.warn("Failed to schedule Analyzer job. Repository '${ortRun.repositoryId}' not found.")
         }
+    }
+
+    /**
+     * Handle messages of the type [AnalyzerWorkerResult].
+     */
+    private fun handleAnalyzerWorkerResult(analyzerWorkerResult: AnalyzerWorkerResult) {
+        val jobId = analyzerWorkerResult.jobId
+
+        val analyzerJob = analyzerJobRepository.get(jobId)
+
+        if (analyzerJob != null) {
+            analyzerJobRepository.update(
+                id = analyzerJob.id,
+                finishedAt = OptionalValue.Present(Clock.System.now()),
+                status = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
+            )
+        } else {
+            log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
+        }
+        // TODO: Retrieve the OrtRun from the DB, and schedule the subsequent jobs.
     }
 }
