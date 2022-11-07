@@ -45,7 +45,6 @@ dependencies {
     implementation(project(":clients:keycloak"))
     implementation(project(":dao"))
     implementation(project(":model"))
-    implementation(project(":orchestrator"))
     implementation(project(":services"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:spi"))
