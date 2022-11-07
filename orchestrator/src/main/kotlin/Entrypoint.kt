@@ -19,6 +19,17 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
+import com.typesafe.config.ConfigFactory
+
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.createDataSource
+import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+
 fun main() {
     println("ORT-Server OrchestratorService started.")
+
+    val config = ConfigFactory.load()
+
+    // TODO: The `connect()` method also runs the migration, this might not be desired.
+    createDataSource(createDatabaseConfig(config)).connect()
 }
