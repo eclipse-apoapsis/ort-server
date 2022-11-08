@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
-import com.typesafe.config.Config
-
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
@@ -35,14 +33,16 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 
 import org.slf4j.LoggerFactory
 
+/**
+ * The Orchestrator is the central component that breaks an ORT run into single steps and coordinates their execution.
+ * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
+ * produced by the workers until the complete ORT result is available or the run has failed.
+ */
 class Orchestrator(
-    private val config: Config,
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
@@ -51,28 +51,9 @@ class Orchestrator(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Start the Orchestrator and receive messages from the [MessageReceiverFactory].
-     */
-    fun start() {
-        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config) { message ->
-            log.info("Received '${message.payload::class.simpleName}' message. TraceID: '${message.header.traceId}'.")
-
-            when (message.payload) {
-                is CreateOrtRun -> handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
-
-                is AnalyzerWorkerResult -> handleAnalyzerWorkerResult(message.payload as AnalyzerWorkerResult)
-
-                is AnalyzerWorkerError -> handleAnalyzerWorkerError(message.payload as AnalyzerWorkerError)
-
-                else -> TODO("Support for message type '${message.payload::class.simpleName}' not yet implemented.")
-            }
-        }
-    }
-
-    /**
      * Handle messages of the type [CreateOrtRun].
      */
-    private fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
+    fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
         val ortRun = createOrtRun.ortRun
 
         val repository = repositoryRepository.get(ortRun.repositoryId)
@@ -102,7 +83,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [AnalyzerWorkerResult].
      */
-    private fun handleAnalyzerWorkerResult(analyzerWorkerResult: AnalyzerWorkerResult) {
+    fun handleAnalyzerWorkerResult(analyzerWorkerResult: AnalyzerWorkerResult) {
         val jobId = analyzerWorkerResult.jobId
 
         val analyzerJob = analyzerJobRepository.get(jobId)
@@ -122,7 +103,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [AnalyzerWorkerError].
      */
-    private fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
+    fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
         val jobId = analyzerWorkerError.jobId
 
         val analyzerJob = analyzerJobRepository.get(jobId)

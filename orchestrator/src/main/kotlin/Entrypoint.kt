@@ -27,8 +27,17 @@ import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("org.ossreviewtoolkit.server.orchestrator.EntrypointKt")
 
 fun main() {
     println("ORT-Server OrchestratorService started.")
@@ -38,11 +47,29 @@ fun main() {
     // TODO: The `connect()` method also runs the migration, this might not be desired.
     createDataSource(createDatabaseConfig(config)).connect()
 
-    Orchestrator(
-        config,
+    val orchestrator = Orchestrator(
         DaoAnalyzerJobRepository(),
         DaoRepositoryRepository(),
         DaoOrtRunRepository(),
         MessageSenderFactory.createSender(AnalyzerEndpoint, config)
-    ).start()
+    )
+
+    // Register the message receiver and handle the messages.
+    MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config) { message ->
+        log.info("Received '${message.payload::class.simpleName}' message. TraceID: '${message.header.traceId}'.")
+
+        when (message.payload) {
+            is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
+
+            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(
+                message.payload as AnalyzerWorkerResult
+            )
+
+            is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(
+                message.payload as AnalyzerWorkerError
+            )
+
+            else -> TODO("Support for message type '${message.payload::class.simpleName}' not yet implemented.")
+        }
+    }
 }
