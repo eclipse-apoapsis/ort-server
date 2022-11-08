@@ -1,6 +1,6 @@
 CREATE TABLE organizations
 (
-    id          serial PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     name        TEXT UNIQUE NOT NULL,
     description TEXT
 );

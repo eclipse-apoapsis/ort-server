@@ -1,5 +1,5 @@
 CREATE TABLE LICENSE_STRING
 (
-    id   serial PRIMARY KEY,
+    id   SERIAL PRIMARY KEY,
     name TEXT NOT NULL
 );
