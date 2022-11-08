@@ -6,4 +6,4 @@ CREATE TABLE repositories
     product_id BIGINT REFERENCES products NOT NULL,
 
     UNIQUE (url, product_id)
-)
+);

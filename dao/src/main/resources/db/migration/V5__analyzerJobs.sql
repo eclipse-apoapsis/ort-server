@@ -7,4 +7,4 @@ CREATE TABLE analyzer_jobs
     finished_at   TIMESTAMP                  NULL,
     configuration JSONB                      NOT NULL,
     status        TEXT                       NOT NULL
-)
+);

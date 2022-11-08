@@ -9,4 +9,4 @@ CREATE TABLE ort_runs
     status             TEXT                           NOT NULL,
 
     UNIQUE (index, repository_id)
-)
+);

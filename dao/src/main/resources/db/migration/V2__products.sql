@@ -6,4 +6,4 @@ CREATE TABLE products
     organization_id BIGINT REFERENCES organizations NOT NULL,
 
     UNIQUE (name, organization_id)
-)
+);
