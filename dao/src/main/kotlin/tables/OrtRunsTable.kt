@@ -37,7 +37,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
  */
 object OrtRunsTable : LongIdTable("ort_runs") {
     val index = long("index")
-    val repository = reference("fk_repository", RepositoriesTable.id, ReferenceOption.CASCADE)
+    val repository = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE)
     val revision = text("revision")
     val createdAt = timestamp("created_at")
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected

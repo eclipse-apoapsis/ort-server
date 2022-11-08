@@ -2,5 +2,5 @@ CREATE TABLE organizations
 (
     id          BIGSERIAL PRIMARY KEY,
     name        TEXT UNIQUE NOT NULL,
-    description TEXT
+    description TEXT        NULL
 );

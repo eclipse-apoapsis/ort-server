@@ -1,15 +1,12 @@
 CREATE TABLE ort_runs
 (
     id                 BIGSERIAL PRIMARY KEY,
-    index              INTEGER   NOT NULL,
-    fk_repository      BIGSERIAL NOT NULL,
-    revision           TEXT      NOT NULL,
-    created_at         TIMESTAMP NOT NULL,
-    job_configurations JSONB     NOT NULL,
-    status             TEXT      NOT NULL,
-    CONSTRAINT fk_ort_runs_repositories
-        FOREIGN KEY (fk_repository)
-            REFERENCES repositories (id),
+    index              INTEGER                        NOT NULL,
+    repository_id      BIGINT REFERENCES repositories NOT NULL,
+    revision           TEXT                           NOT NULL,
+    created_at         TIMESTAMP                      NOT NULL,
+    job_configurations JSONB                          NOT NULL,
+    status             TEXT                           NOT NULL,
     CONSTRAINT unique_index
-        UNIQUE (index, fk_repository)
+        UNIQUE (index, repository_id)
 )

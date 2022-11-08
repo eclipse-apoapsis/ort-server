@@ -36,7 +36,7 @@ import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
  * A table to represent an analyzer job.
  */
 object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
-    val ortRun = reference("fk_ort_run", OrtRunsTable.id, ReferenceOption.CASCADE)
+    val ortRun = reference("ort_run_id", OrtRunsTable.id, ReferenceOption.CASCADE)
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()

@@ -11,21 +11,17 @@ CREATE TABLE environments
 CREATE TABLE environment_variables
 (
     id             BIGSERIAL PRIMARY KEY,
-    environment_id BIGINT NOT NULL,
-    name           TEXT   NOT NULL,
-    value          TEXT   NOT NULL,
-
-    CONSTRAINT fk_environment FOREIGN KEY (environment_id) REFERENCES environments (id)
+    environment_id BIGINT REFERENCES environments NOT NULL,
+    name           TEXT                           NOT NULL,
+    value          TEXT                           NOT NULL
 );
 
 CREATE TABLE environment_tool_versions
 (
     id             BIGSERIAL PRIMARY KEY,
-    environment_id BIGINT NOT NULL,
-    name           TEXT,
-    version        TEXT,
-
-    CONSTRAINT fk_environment FOREIGN KEY (environment_id) REFERENCES environments (id)
+    environment_id BIGINT REFERENCES environments NOT NULL,
+    name           TEXT                           NULL,
+    version        TEXT                           NULL
 );
 
 CREATE TABLE sw360_configurations
@@ -40,49 +36,38 @@ CREATE TABLE sw360_configurations
 CREATE TABLE analyzer_configurations
 (
     id                     BIGSERIAL PRIMARY KEY,
-    sw360_configuration_id BIGINT  NULL,
-    allow_dynamic_versions BOOLEAN NOT NULL,
-
-    CONSTRAINT fk_sw360_configuration FOREIGN KEY (sw360_configuration_id) REFERENCES sw360_configurations (id)
+    sw360_configuration_id BIGINT REFERENCES sw360_configurations NULL,
+    allow_dynamic_versions BOOLEAN                                NOT NULL
 );
 
 CREATE TABLE enabled_package_managers
 (
     id                        BIGSERIAL PRIMARY KEY,
-    analyzer_configuration_id BIGINT NOT NULL,
-    package_manager           TEXT   NOT NULL,
-
-    CONSTRAINT fk_analyzer_configuration FOREIGN KEY (analyzer_configuration_id) REFERENCES analyzer_configurations (id)
+    analyzer_configuration_id BIGINT REFERENCES analyzer_configurations NOT NULL,
+    package_manager           TEXT                                      NOT NULL
 );
 
 CREATE TABLE disabled_package_managers
 (
     id                        BIGSERIAL PRIMARY KEY,
-    analyzer_configuration_id BIGINT NOT NULL,
-    package_manager           TEXT   NOT NULL,
-
-    CONSTRAINT fk_analyzer_configuration FOREIGN KEY (analyzer_configuration_id) REFERENCES analyzer_configurations (id)
+    analyzer_configuration_id BIGINT REFERENCES analyzer_configurations NOT NULL,
+    package_manager           TEXT                                      NOT NULL
 );
 
 CREATE TABLE analyzer_runs
 (
     id                        BIGSERIAL PRIMARY KEY,
-    environment_id            BIGINT    NOT NULL,
-    analyzer_configuration_id BIGINT    NOT NULL,
-    start_time                TIMESTAMP NOT NULL,
-    end_time                  TIMESTAMP NOT NULL,
-
-    CONSTRAINT fk_environment FOREIGN KEY (environment_id) REFERENCES environments (id),
-    CONSTRAINT fk_analyzer_configuration FOREIGN KEY (analyzer_configuration_id) REFERENCES analyzer_configurations (id)
+    environment_id            BIGINT REFERENCES environments            NOT NULL,
+    analyzer_configuration_id BIGINT REFERENCES analyzer_configurations NOT NULL,
+    start_time                TIMESTAMP                                 NOT NULL,
+    end_time                  TIMESTAMP                                 NOT NULL
 );
 
 CREATE TABLE package_manager_configurations
 (
     id                        BIGSERIAL PRIMARY KEY,
-    analyzer_configuration_id BIGINT NOT NULL,
-    name                      TEXT   NOT NULL,
-
-    CONSTRAINT fk_analyzer_configuration FOREIGN KEY (analyzer_configuration_id) REFERENCES analyzer_configurations (id)
+    analyzer_configuration_id BIGINT REFERENCES analyzer_configurations NOT NULL,
+    name                      TEXT                                      NOT NULL
 );
 
 CREATE TABLE options
@@ -95,25 +80,15 @@ CREATE TABLE options
 CREATE TABLE package_manager_configurations_must_run_after
 (
     id                               BIGSERIAL PRIMARY KEY,
-    package_manager_configuration_id BIGINT NOT NULL,
-    name                             TEXT   NOT NULL,
-
-    CONSTRAINT fk_package_manager_configuration
-        FOREIGN KEY (package_manager_configuration_id)
-            REFERENCES package_manager_configurations (id)
+    package_manager_configuration_id BIGINT REFERENCES package_manager_configurations NOT NULL,
+    name                             TEXT                                             NOT NULL
 );
 
 CREATE TABLE package_manager_configurations_options
 (
-    package_manager_configuration_id BIGINT NOT NULL,
-    option_id                        BIGINT NOT NULL,
+    package_manager_configuration_id BIGINT REFERENCES package_manager_configurations NOT NULL,
+    option_id                        BIGINT REFERENCES options                        NOT NULL,
 
     CONSTRAINT pk_package_manager_configurations_options
-        PRIMARY KEY (package_manager_configuration_id, option_id),
-    CONSTRAINT fk_package_manager_configuration
-        FOREIGN KEY (package_manager_configuration_id)
-            REFERENCES package_manager_configurations (id),
-    CONSTRAINT fk_option
-        FOREIGN KEY (option_id)
-            REFERENCES options (id)
+        PRIMARY KEY (package_manager_configuration_id, option_id)
 );

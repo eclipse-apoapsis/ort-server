@@ -37,85 +37,58 @@ CREATE TABLE authors
 CREATE TABLE processed_declared_licenses
 (
     id              BIGSERIAL PRIMARY KEY,
-    license_spdx_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_license_spdx FOREIGN KEY (license_spdx_id) REFERENCES license_spdx (id)
+    license_spdx_id BIGINT REFERENCES license_spdx NOT NULL
 );
 
 CREATE TABLE projects
 (
     id                            BIGSERIAL PRIMARY KEY,
-    identifier_id                 BIGINT NOT NULL,
-    vcs_id                        BIGINT NOT NULL,
-    vcs_processed_id              BIGINT NOT NULL,
-    analyzer_run_id               BIGINT NOT NULL,
-    processed_declared_license_id BIGINT NULL,
-
-    homepage_url                  TEXT   NOT NULL,
-    definition_file_path          TEXT   NOT NULL,
-    cpe                           TEXT   NULL,
-
-    CONSTRAINT fk_projects_identifier FOREIGN KEY (identifier_id) REFERENCES identifiers (id),
-    CONSTRAINT fk_projects_vcs FOREIGN KEY (vcs_id) REFERENCES vcs_info (id),
-    CONSTRAINT fk_projects_vcs_processed FOREIGN KEY (vcs_processed_id) REFERENCES vcs_info (id),
-    CONSTRAINT fk_projects_processed_declared_license
-        FOREIGN KEY (processed_declared_license_id)
-            REFERENCES processed_declared_licenses (id),
-    CONSTRAINT fk_projects_analyzer_run FOREIGN KEY (analyzer_run_id) REFERENCES analyzer_runs (id)
+    identifier_id                 BIGINT REFERENCES identifiers   NOT NULL,
+    vcs_id                        BIGINT REFERENCES vcs_info      NOT NULL,
+    vcs_processed_id              BIGINT REFERENCES vcs_info      NOT NULL,
+    analyzer_run_id               BIGINT REFERENCES analyzer_runs NOT NULL,
+    processed_declared_license_id BIGINT REFERENCES processed_declared_licenses,
+    homepage_url                  TEXT                            NOT NULL,
+    definition_file_path          TEXT                            NOT NULL,
+    cpe                           TEXT                            NULL
 );
 
 CREATE TABLE projects_authors
 (
-    author_id  BIGINT NOT NULL,
-    project_id BIGINT NOT NULL,
+    author_id  BIGINT REFERENCES authors  NOT NULL,
+    project_id BIGINT REFERENCES projects NOT NULL,
 
-    CONSTRAINT pk_projects_authors PRIMARY KEY (author_id, project_id),
-    CONSTRAINT fk_author FOREIGN KEY (author_id) REFERENCES authors (id),
-    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects (id)
+    CONSTRAINT pk_projects_authors PRIMARY KEY (author_id, project_id)
 );
 
 CREATE TABLE projects_declared_licenses
 (
-    project_id        BIGINT NOT NULL,
-    license_string_id BIGINT NOT NULL,
+    project_id        BIGINT REFERENCES projects        NOT NULL,
+    license_string_id BIGINT REFERENCES license_strings NOT NULL,
 
-    CONSTRAINT pk_projects_license_strings PRIMARY KEY (project_id, license_string_id),
-    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects (id),
-    CONSTRAINT fk_license_string FOREIGN KEY (license_string_id) REFERENCES license_strings (id)
+    CONSTRAINT pk_projects_license_strings PRIMARY KEY (project_id, license_string_id)
 );
 
 CREATE TABLE processed_declared_licenses_unmapped_licenses
 (
-    processed_declared_license_id BIGINT NOT NULL,
-    license_string_id             BIGINT NULL,
+    processed_declared_license_id BIGINT REFERENCES processed_declared_licenses NOT NULL,
+    license_string_id             BIGINT REFERENCES license_strings             NOT NULL,
 
     CONSTRAINT pk_processed_declared_licenses_unmapped_licenses
-        PRIMARY KEY (processed_declared_license_id, license_string_id),
-    CONSTRAINT fk_processed_declared_license
-        FOREIGN KEY (processed_declared_license_id)
-            REFERENCES processed_declared_licenses (id),
-    CONSTRAINT fk_license_string FOREIGN KEY (license_string_id) REFERENCES license_strings (id)
+        PRIMARY KEY (processed_declared_license_id, license_string_id)
 );
 
 CREATE TABLE processed_declared_licenses_mapped_licenses
 (
     id                            BIGSERIAL PRIMARY KEY,
-    processed_declared_license_id BIGINT NOT NULL,
-    license_string_id             BIGINT NOT NULL,
-    license_spdx_id               BIGINT NOT NULL,
-
-    CONSTRAINT fk_processed_declared_license
-        FOREIGN KEY (processed_declared_license_id)
-            REFERENCES processed_declared_licenses (id),
-    CONSTRAINT fk_license_string FOREIGN KEY (license_string_id) REFERENCES license_strings (id),
-    CONSTRAINT fk_license_spdx FOREIGN KEY (license_spdx_id) REFERENCES license_spdx (id)
+    processed_declared_license_id BIGINT REFERENCES processed_declared_licenses NOT NULL,
+    license_string_id             BIGINT REFERENCES license_strings             NOT NULL,
+    license_spdx_id               BIGINT REFERENCES license_spdx                NOT NULL
 );
 
 CREATE TABLE project_scopes
 (
     id         BIGSERIAL PRIMARY KEY,
-    project_id BIGINT NOT NULL,
-    name       TEXT   NOT NULL,
-
-    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects (id)
+    project_id BIGINT REFERENCES projects NOT NULL,
+    name       TEXT                       NOT NULL
 );

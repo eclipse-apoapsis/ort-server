@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.Product
 object ProductsTable : LongIdTable("products") {
     val name = text("name")
     val description = text("description").nullable()
-    val organization = reference("fk_organization", OrganizationsTable.id, ReferenceOption.CASCADE)
+    val organization = reference("organization_id", OrganizationsTable.id, ReferenceOption.CASCADE)
 }
 
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {
