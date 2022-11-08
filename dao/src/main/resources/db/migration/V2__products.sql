@@ -1,9 +1,9 @@
 CREATE TABLE products
 (
-    id              SERIAL PRIMARY KEY,
-    name            TEXT   NOT NULL,
+    id              BIGSERIAL PRIMARY KEY,
+    name            TEXT      NOT NULL,
     description     TEXT,
-    fk_organization SERIAL NOT NULL,
+    fk_organization BIGSERIAL NOT NULL,
     CONSTRAINT fk_products_organizations
         FOREIGN KEY (fk_organization)
             REFERENCES organizations (id),

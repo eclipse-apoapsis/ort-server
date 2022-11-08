@@ -1,7 +1,7 @@
 CREATE TABLE analyzer_jobs
 (
-    id            SERIAL PRIMARY KEY,
-    fk_ort_run    SERIAL    NOT NULL UNIQUE,
+    id            BIGSERIAL PRIMARY KEY,
+    fk_ort_run    BIGSERIAL NOT NULL UNIQUE,
     created_at    TIMESTAMP NOT NULL,
     started_at    TIMESTAMP,
     finished_at   TIMESTAMP,

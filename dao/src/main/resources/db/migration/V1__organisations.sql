@@ -1,6 +1,6 @@
 CREATE TABLE organizations
 (
-    id          SERIAL PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
     name        TEXT UNIQUE NOT NULL,
     description TEXT
 );

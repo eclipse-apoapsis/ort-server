@@ -1,8 +1,8 @@
 CREATE TABLE ort_runs
 (
-    id                 SERIAL PRIMARY KEY,
+    id                 BIGSERIAL PRIMARY KEY,
     index              INTEGER   NOT NULL,
-    fk_repository      SERIAL    NOT NULL,
+    fk_repository      BIGSERIAL NOT NULL,
     revision           TEXT      NOT NULL,
     created_at         TIMESTAMP NOT NULL,
     job_configurations JSONB     NOT NULL,
