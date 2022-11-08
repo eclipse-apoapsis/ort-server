@@ -29,5 +29,5 @@ object PackagesAuthorsTable : Table("packages_authors") {
     val packageId = reference("package_id", PackagesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(author, packageId, name = "pk_packages_authors")
+        get() = PrimaryKey(author, packageId, name = "${tableName}_pkey")
 }

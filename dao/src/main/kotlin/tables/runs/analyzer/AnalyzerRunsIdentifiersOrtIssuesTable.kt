@@ -31,5 +31,5 @@ object AnalyzerRunsIdentifiersOrtIssuesTable : Table("analyzer_runs_identifiers_
     val identifierOrtIssue = reference("identifier_ort_issue_id", IdentifiersOrtIssuesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(analyzerRun, identifierOrtIssue, name = "pk_analyzer_run_identifier_ort_issue")
+        get() = PrimaryKey(analyzerRun, identifierOrtIssue, name = "${tableName}_pkey")
 }

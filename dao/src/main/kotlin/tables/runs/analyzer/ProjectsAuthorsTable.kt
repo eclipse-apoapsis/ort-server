@@ -29,5 +29,5 @@ object ProjectsAuthorsTable : Table("projects_authors") {
     val project = reference("project_id", ProjectsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(author, project, name = "pk_projects_authors")
+        get() = PrimaryKey(author, project, name = "${tableName}_pkey")
 }

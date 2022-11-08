@@ -34,5 +34,5 @@ object PackageManagerConfigurationsOptionsTable : Table("package_manager_configu
     val option = reference("option_id", OptionsTable)
 
     override val primaryKey: PrimaryKey?
-        get() = PrimaryKey(packageManagerConfiguration, option, name = "pk_package_manager_configurations_options")
+        get() = PrimaryKey(packageManagerConfiguration, option, name = "${tableName}_pkey")
 }

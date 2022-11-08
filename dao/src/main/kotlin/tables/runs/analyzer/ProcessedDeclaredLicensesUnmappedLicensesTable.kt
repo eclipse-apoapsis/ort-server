@@ -37,6 +37,6 @@ object ProcessedDeclaredLicensesUnmappedLicensesTable : Table("processed_declare
         get() = PrimaryKey(
             processedDeclaredLicense,
             licenseString,
-            name = "pk_processed_declared_licenses_unmapped_licenses"
+            name = "${tableName}_pkey"
         )
 }

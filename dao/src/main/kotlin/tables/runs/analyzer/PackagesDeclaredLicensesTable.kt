@@ -31,5 +31,5 @@ object PackagesDeclaredLicensesTable : Table("packages_declared_licenses") {
     val licenseString = reference("license_string_id", LicenseStringsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(packageId, licenseString, name = "pk_packages_license_strings")
+        get() = PrimaryKey(packageId, licenseString, name = "${tableName}_pkey")
 }

@@ -58,7 +58,7 @@ CREATE TABLE projects_authors
     author_id  BIGINT REFERENCES authors  NOT NULL,
     project_id BIGINT REFERENCES projects NOT NULL,
 
-    CONSTRAINT pk_projects_authors PRIMARY KEY (author_id, project_id)
+    PRIMARY KEY (author_id, project_id)
 );
 
 CREATE TABLE projects_declared_licenses
@@ -66,7 +66,7 @@ CREATE TABLE projects_declared_licenses
     project_id        BIGINT REFERENCES projects        NOT NULL,
     license_string_id BIGINT REFERENCES license_strings NOT NULL,
 
-    CONSTRAINT pk_projects_license_strings PRIMARY KEY (project_id, license_string_id)
+    PRIMARY KEY (project_id, license_string_id)
 );
 
 CREATE TABLE processed_declared_licenses_unmapped_licenses
@@ -74,8 +74,7 @@ CREATE TABLE processed_declared_licenses_unmapped_licenses
     processed_declared_license_id BIGINT REFERENCES processed_declared_licenses NOT NULL,
     license_string_id             BIGINT REFERENCES license_strings             NOT NULL,
 
-    CONSTRAINT pk_processed_declared_licenses_unmapped_licenses
-        PRIMARY KEY (processed_declared_license_id, license_string_id)
+    PRIMARY KEY (processed_declared_license_id, license_string_id)
 );
 
 CREATE TABLE processed_declared_licenses_mapped_licenses

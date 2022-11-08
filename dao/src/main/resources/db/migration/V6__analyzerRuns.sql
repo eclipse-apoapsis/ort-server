@@ -89,6 +89,5 @@ CREATE TABLE package_manager_configurations_options
     package_manager_configuration_id BIGINT REFERENCES package_manager_configurations NOT NULL,
     option_id                        BIGINT REFERENCES options                        NOT NULL,
 
-    CONSTRAINT pk_package_manager_configurations_options
-        PRIMARY KEY (package_manager_configuration_id, option_id)
+    PRIMARY KEY (package_manager_configuration_id, option_id)
 );

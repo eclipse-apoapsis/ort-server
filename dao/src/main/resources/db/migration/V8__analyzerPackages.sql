@@ -37,8 +37,7 @@ CREATE TABLE package_curation_data_authors
     package_curation_data_id BIGINT REFERENCES package_curation_data NOT NULL,
     author_id                BIGINT REFERENCES authors               NOT NULL,
 
-    CONSTRAINT pk_package_curation_data_author
-        PRIMARY KEY (package_curation_data_id, author_id)
+    PRIMARY KEY (package_curation_data_id, author_id)
 );
 
 CREATE TABLE package_curation_data_declared_license_mappings
@@ -47,8 +46,7 @@ CREATE TABLE package_curation_data_declared_license_mappings
     license_string_id        BIGINT REFERENCES license_strings       NOT NULL,
     license_spdx_id          BIGINT REFERENCES license_spdx          NOT NULL,
 
-    CONSTRAINT pk_package_curation_data_declared_license_mappings
-        PRIMARY KEY (package_curation_data_id, license_string_id, license_spdx_id)
+    PRIMARY KEY (package_curation_data_id, license_string_id, license_spdx_id)
 );
 
 CREATE TABLE packages
@@ -75,8 +73,7 @@ CREATE TABLE packages_declared_licenses
     package_id        BIGINT REFERENCES packages        NOT NULL,
     license_string_id BIGINT REFERENCES license_strings NOT NULL,
 
-    CONSTRAINT pk_packages_license_strings
-        PRIMARY KEY (package_id, license_string_id)
+    PRIMARY KEY (package_id, license_string_id)
 );
 
 CREATE TABLE curated_packages
@@ -99,6 +96,5 @@ CREATE TABLE packages_authors
     author_id  BIGINT REFERENCES authors  NOT NULL,
     package_id BIGINT REFERENCES packages NOT NULL,
 
-    CONSTRAINT pk_packages_authors
-        PRIMARY KEY (author_id, package_id)
+    PRIMARY KEY (author_id, package_id)
 );

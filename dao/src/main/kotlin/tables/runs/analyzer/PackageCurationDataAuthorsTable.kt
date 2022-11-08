@@ -29,5 +29,5 @@ object PackageCurationDataAuthorsTable : Table("package_curation_data_authors") 
     val author = reference("author_id", AuthorsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(packageCurationData, author, name = "pk_package_curation_data_author")
+        get() = PrimaryKey(packageCurationData, author, name = "${tableName}_pkey")
 }

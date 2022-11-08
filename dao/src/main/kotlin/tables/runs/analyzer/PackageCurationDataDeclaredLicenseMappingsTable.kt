@@ -39,6 +39,6 @@ object PackageCurationDataDeclaredLicenseMappingsTable :
             packageCurationData,
             licenseString,
             licenseSpdx,
-            name = "pk_package_curation_data_declared_license_mappings"
+            name = "${tableName}_pkey"
         )
 }
