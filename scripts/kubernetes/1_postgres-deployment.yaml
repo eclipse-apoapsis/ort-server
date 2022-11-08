@@ -1,4 +1,17 @@
-# TODO: add a persistent volume with local storage.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    ort-server.service: postgres-pv
+  name: postgres-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/postgres-pv
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,11 +19,13 @@ metadata:
     ort.server.service: postgres
   name: postgres-pvc
 spec:
+  volumeName: postgres-pv
   accessModes:
     - ReadWriteOnce
+  storageClassName: ""
   resources:
     requests:
-      storage: 100Mi
+      storage: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
