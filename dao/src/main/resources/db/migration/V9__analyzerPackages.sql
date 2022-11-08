@@ -151,12 +151,11 @@ CREATE TABLE curated_packages
 
 CREATE TABLE packages_curation_results
 (
+    id                  BIGSERIAL PRIMARY KEY,
     base_curation_id    BIGINT NOT NULL,
     applied_curation_id BIGINT NOT NULL,
     curated_package_id  BIGINT NOT NULL,
 
-    CONSTRAINT pk_packages_curation_results_data
-        PRIMARY KEY (base_curation_id, applied_curation_id, curated_package_id),
     CONSTRAINT fk_base_curation
         FOREIGN KEY (base_curation_id)
             REFERENCES package_curation_data (id),
