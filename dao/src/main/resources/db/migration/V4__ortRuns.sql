@@ -7,6 +7,6 @@ CREATE TABLE ort_runs
     created_at         TIMESTAMP                      NOT NULL,
     job_configurations JSONB                          NOT NULL,
     status             TEXT                           NOT NULL,
-    CONSTRAINT unique_index
-        UNIQUE (index, repository_id)
+
+    UNIQUE (index, repository_id)
 )

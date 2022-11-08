@@ -4,6 +4,6 @@ CREATE TABLE repositories
     type       TEXT                       NOT NULL,
     url        TEXT                       NOT NULL,
     product_id BIGINT REFERENCES products NOT NULL,
-    CONSTRAINT unique_product_repository
-        UNIQUE (url, product_id)
+
+    UNIQUE (url, product_id)
 )
