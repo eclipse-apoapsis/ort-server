@@ -56,7 +56,8 @@ CREATE TABLE package_manager_configurations
 (
     id                        bigserial PRIMARY KEY,
     analyzer_configuration_id bigint REFERENCES analyzer_configurations NOT NULL,
-    name                      text                                      NOT NULL
+    name                      text                                      NOT NULL,
+    must_run_after            text                                      NULL
 );
 
 CREATE TABLE options
@@ -64,13 +65,6 @@ CREATE TABLE options
     id    bigserial PRIMARY KEY,
     name  text NOT NULL,
     value text NOT NULL
-);
-
-CREATE TABLE package_manager_configurations_must_run_after
-(
-    id                               bigserial PRIMARY KEY,
-    package_manager_configuration_id bigint REFERENCES package_manager_configurations NOT NULL,
-    name                             text                                             NOT NULL
 );
 
 CREATE TABLE package_manager_configurations_options

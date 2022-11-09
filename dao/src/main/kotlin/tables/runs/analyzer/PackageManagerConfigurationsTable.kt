@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao.Companion.transform
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OptionDao
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
@@ -38,21 +39,22 @@ object PackageManagerConfigurationsTable : LongIdTable("package_manager_configur
         ReferenceOption.CASCADE
     )
     val name = text("name")
+    val mustRunAfter = text("must_run_after").nullable()
 }
 
 class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageManagerConfigurationDao>(PackageManagerConfigurationsTable)
 
-    var name by PackageManagerConfigurationsTable.name
     var analyzerConfiguration by AnalyzerConfigurationDao referencedOn
             PackageManagerConfigurationsTable.analyzerConfiguration
-    val mustRunAfter by PackageManagerConfigurationMustRunAfterDao referrersOn
-            PackageManagerConfigurationsMustRunAfterTable.packageManagerConfiguration
+    var name by PackageManagerConfigurationsTable.name
+    var mustRunAfter: List<String>? by PackageManagerConfigurationsTable.mustRunAfter
+        .transform({ it?.joinToString(",") }, { it?.split(",") })
     var options by OptionDao via PackageManagerConfigurationsOptionsTable
 
     fun mapToModel() = PackageManagerConfiguration(
         id.value,
-        mustRunAfter.map(PackageManagerConfigurationMustRunAfterDao::name),
+        mustRunAfter,
         options.associate { it.name to it.value }
     )
 }
