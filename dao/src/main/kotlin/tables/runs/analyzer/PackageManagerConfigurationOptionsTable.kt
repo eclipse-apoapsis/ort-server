@@ -17,30 +17,28 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.shared
+package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationsTable
 
 /**
  * A table to represent a key-value pair.
  */
-object OptionsTable : LongIdTable("options") {
+object PackageManagerConfigurationOptionsTable : LongIdTable("package_manager_configuration_options") {
     val packageManagerConfigurationId =
         reference("package_manager_configuration_id", PackageManagerConfigurationsTable.id)
     val name = text("name")
     val value = text("value")
 }
 
-class OptionDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OptionDao>(OptionsTable)
+class PackageManagerConfigurationOptionDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<PackageManagerConfigurationOptionDao>(PackageManagerConfigurationOptionsTable)
 
     var packageManagerConfiguration by PackageManagerConfigurationDao referencedOn
-            OptionsTable.packageManagerConfigurationId
-    var name by OptionsTable.name
-    var value by OptionsTable.value
+            PackageManagerConfigurationOptionsTable.packageManagerConfigurationId
+    var name by PackageManagerConfigurationOptionsTable.name
+    var value by PackageManagerConfigurationOptionsTable.value
 }

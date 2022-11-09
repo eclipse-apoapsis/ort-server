@@ -60,7 +60,7 @@ CREATE TABLE package_manager_configurations
     must_run_after            text                                      NULL
 );
 
-CREATE TABLE options
+CREATE TABLE package_manager_configuration_options
 (
     id                               bigserial PRIMARY KEY,
     package_manager_configuration_id bigint REFERENCES package_manager_configurations NOT NULL,
