@@ -34,6 +34,8 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
     val sw360Configuration = reference("sw360_configuration_id", Sw360ConfigurationsTable.id).nullable()
     val allowDynamicVersions = bool("allow_dynamic_versions")
+    val enabledPackageManagers = text("enabled_package_managers").nullable()
+    val disabledPackageManagers = text("disabled_package_managers").nullable()
 }
 
 class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
@@ -41,17 +43,18 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
     var sw360Configuration by Sw360ConfigurationDao optionalReferencedOn AnalyzerConfigurationsTable.sw360Configuration
-    val enabledPackageManagers by EnabledPackageManagerDao referrersOn EnabledPackageManagersTable.analyzerConfiguration
-    val disabledPackageManagers by DisabledPackageManagerDao referrersOn
-            DisabledPackageManagersTable.analyzerConfiguration
+    var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
+        .transform({ it?.joinToString(",") }, { it?.split(",") })
+    var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
+        .transform({ it?.joinToString(",") }, { it?.split(",") })
     val packageManagerConfiguration by PackageManagerConfigurationDao referrersOn
             PackageManagerConfigurationsTable.analyzerConfiguration
 
     fun mapToModel() = AnalyzerConfiguration(
         id.value,
         allowDynamicVersions,
-        enabledPackageManagers.map(EnabledPackageManagerDao::packageManager),
-        disabledPackageManagers.map(DisabledPackageManagerDao::packageManager),
+        enabledPackageManagers,
+        disabledPackageManagers,
         packageManagerConfiguration.associate { it.name to it.mapToModel() },
         sw360Configuration?.mapToModel()
     )

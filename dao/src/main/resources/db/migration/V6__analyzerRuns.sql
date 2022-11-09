@@ -35,23 +35,11 @@ CREATE TABLE sw360_configurations
 
 CREATE TABLE analyzer_configurations
 (
-    id                     bigserial PRIMARY KEY,
-    sw360_configuration_id bigint REFERENCES sw360_configurations NULL,
-    allow_dynamic_versions boolean                                NOT NULL
-);
-
-CREATE TABLE enabled_package_managers
-(
     id                        bigserial PRIMARY KEY,
-    analyzer_configuration_id bigint REFERENCES analyzer_configurations NOT NULL,
-    package_manager           text                                      NOT NULL
-);
-
-CREATE TABLE disabled_package_managers
-(
-    id                        bigserial PRIMARY KEY,
-    analyzer_configuration_id bigint REFERENCES analyzer_configurations NOT NULL,
-    package_manager           text                                      NOT NULL
+    sw360_configuration_id    bigint REFERENCES sw360_configurations NULL,
+    allow_dynamic_versions    boolean                                NOT NULL,
+    enabled_package_managers  text                                   NULL,
+    disabled_package_managers text                                   NULL
 );
 
 CREATE TABLE analyzer_runs
