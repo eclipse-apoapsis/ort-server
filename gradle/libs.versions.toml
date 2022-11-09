@@ -19,7 +19,7 @@
 buildConfigPlugin = "3.1.0"
 detektPlugin = "1.21.0"
 jibPlugin = "3.3.1"
-kotlinPlugin = "1.7.20"
+kotlinPlugin = "1.7.21"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.4.1"
 versionCatalogUpdatePlugin = "0.7.0"
