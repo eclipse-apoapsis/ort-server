@@ -23,11 +23,15 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationsTable
 
 /**
  * A table to represent a key-value pair.
  */
 object OptionsTable : LongIdTable("options") {
+    val packageManagerConfigurationId =
+        reference("package_manager_configuration_id", PackageManagerConfigurationsTable.id)
     val name = text("name")
     val value = text("value")
 }
@@ -35,6 +39,8 @@ object OptionsTable : LongIdTable("options") {
 class OptionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OptionDao>(OptionsTable)
 
+    var packageManagerConfiguration by PackageManagerConfigurationDao referencedOn
+            OptionsTable.packageManagerConfigurationId
     var name by OptionsTable.name
     var value by OptionsTable.value
 }
