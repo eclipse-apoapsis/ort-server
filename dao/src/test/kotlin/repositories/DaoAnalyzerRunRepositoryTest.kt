@@ -1,0 +1,94 @@
+/*
+ * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.dao.test.repositories
+
+import io.kotest.core.test.TestCase
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+
+import kotlinx.datetime.Clock
+
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.utils.test.DatabaseTest
+
+class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
+    private val analyzerRunRepository = DaoAnalyzerRunRepository()
+
+    private lateinit var fixtures: Fixtures
+    private var analyzerJobId = -1L
+    private lateinit var environment: Environment
+
+    override suspend fun beforeTest(testCase: TestCase) {
+        dataSource.connect()
+
+        fixtures = Fixtures()
+        analyzerJobId = fixtures.analyzerJob.id
+        environment = fixtures.environment
+    }
+
+    init {
+        test("create should create an entry in the database") {
+            val analyzerConfiguration = AnalyzerConfiguration(
+                allowDynamicVersions = true,
+                enabledPackageManagers = listOf("Gradle", "NPM"),
+                disabledPackageManagers = listOf("Maven", "Pub"),
+                packageManagers = mapOf(
+                    "Gradle" to PackageManagerConfiguration(
+                        mustRunAfter = listOf("NPM")
+                    ),
+                    "NPM" to PackageManagerConfiguration(
+                        options = mapOf("legacyPeerDeps" to "true")
+                    )
+                )
+            )
+
+            val createdAnalyzerRun = analyzerRunRepository.create(
+                analyzerJobId = analyzerJobId,
+                environmentId = environment.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                config = analyzerConfiguration,
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = emptyMap()
+            )
+
+            val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe AnalyzerRun(
+                id = createdAnalyzerRun.id,
+                analyzerJobId = analyzerJobId,
+                startTime = createdAnalyzerRun.startTime,
+                endTime = createdAnalyzerRun.endTime,
+                environment = environment,
+                config = createdAnalyzerRun.config,
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = emptyMap()
+            )
+        }
+    }
+}
