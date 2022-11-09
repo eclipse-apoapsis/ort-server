@@ -44,7 +44,7 @@ postgres = "42.5.0"
 qpidJmsClient = "2.1.0"
 testContainers = "1.17.5"
 typesafeConfig = "1.4.2"
-wiremock = "2.34.0"
+wiremock = "2.35.0"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
