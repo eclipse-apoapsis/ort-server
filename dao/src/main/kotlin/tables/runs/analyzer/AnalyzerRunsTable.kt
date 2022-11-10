@@ -42,8 +42,6 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
     val environment = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
-    val analyzerConfiguration =
-        reference("analyzer_configuration_id", AnalyzerConfigurationsTable.id, ReferenceOption.CASCADE)
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -53,7 +51,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var startTime by AnalyzerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environment
-    var analyzerConfiguration by AnalyzerConfigurationDao referencedOn AnalyzerRunsTable.analyzerConfiguration
+    val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRun
     val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRun
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable

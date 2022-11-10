@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 
@@ -30,6 +31,7 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
  * A table to represent an analyzer configuration.
  */
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
     val allowDynamicVersions = bool("allow_dynamic_versions")
     val enabledPackageManagers = text("enabled_package_managers").nullable()
     val disabledPackageManagers = text("disabled_package_managers").nullable()
@@ -38,6 +40,7 @@ object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
 class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerConfigurationDao>(AnalyzerConfigurationsTable)
 
+    var analyzerRun by AnalyzerRunDao referencedOn AnalyzerConfigurationsTable.analyzerRunId
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })

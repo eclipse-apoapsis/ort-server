@@ -24,22 +24,22 @@ CREATE TABLE environment_tool_versions
     version        text                                             NULL
 );
 
-CREATE TABLE analyzer_configurations
-(
-    id                        bigserial PRIMARY KEY,
-    allow_dynamic_versions    boolean                                NOT NULL,
-    enabled_package_managers  text                                   NULL,
-    disabled_package_managers text                                   NULL
-);
-
 CREATE TABLE analyzer_runs
 (
     id                        bigserial PRIMARY KEY,
     analyzer_job_id           bigint REFERENCES analyzer_jobs           NOT NULL,
     environment_id            bigint REFERENCES environments            NOT NULL,
-    analyzer_configuration_id bigint REFERENCES analyzer_configurations NOT NULL,
     start_time                timestamp                                 NOT NULL,
     end_time                  timestamp                                 NOT NULL
+);
+
+CREATE TABLE analyzer_configurations
+(
+    id                        bigserial PRIMARY KEY,
+    analyzer_run_id           bigint REFERENCES analyzer_runs ON DELETE CASCADE NOT NULL,
+    allow_dynamic_versions    boolean                                           NOT NULL,
+    enabled_package_managers  text                                              NULL,
+    disabled_package_managers text                                              NULL
 );
 
 CREATE TABLE package_manager_configurations
