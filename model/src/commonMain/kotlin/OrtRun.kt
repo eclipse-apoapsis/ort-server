@@ -76,5 +76,6 @@ data class AnalyzerJobConfiguration(
 enum class OrtRunStatus {
     CREATED,
     ACTIVE,
-    FINISHED
+    FINISHED,
+    FAILED
 }

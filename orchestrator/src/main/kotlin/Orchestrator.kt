@@ -24,9 +24,12 @@ import com.typesafe.config.Config
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -39,7 +42,8 @@ class Orchestrator(
     private val config: Config,
     private val schedulerService: SchedulerService,
     private val analyzerJobRepository: AnalyzerJobRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val ortRunRepository: OrtRunRepository
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,6 +58,8 @@ class Orchestrator(
                 is CreateOrtRun -> handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
 
                 is AnalyzerWorkerResult -> handleAnalyzerWorkerResult(message.payload as AnalyzerWorkerResult)
+
+                is AnalyzerWorkerError -> handleAnalyzerWorkerError(message.payload as AnalyzerWorkerError)
 
                 else -> TODO("Support for message type '${message.payload::class.simpleName}' not yet implemented.")
             }
@@ -108,5 +114,29 @@ class Orchestrator(
             log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
         }
         // TODO: Retrieve the OrtRun from the DB, and schedule the subsequent jobs.
+    }
+
+    /**
+     * Handle messages of the type [AnalyzerWorkerError].
+     */
+    private fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
+        val jobId = analyzerWorkerError.jobId
+
+        val analyzerJob = analyzerJobRepository.get(jobId)
+
+        if (analyzerJob != null) {
+            analyzerJobRepository.update(
+                id = analyzerJob.id,
+                status = OptionalValue.Present(AnalyzerJobStatus.FAILED)
+            )
+
+            // If the analyzerJob failed, the whole OrtRun will be treated as failed.
+            ortRunRepository.update(
+                id = jobId,
+                status = OptionalValue.Present(OrtRunStatus.FAILED)
+            )
+        } else {
+            log.warn("Failed to handle 'AnalyzeError' message. No analyzer job ORT run '$jobId' found.")
+        }
     }
 }

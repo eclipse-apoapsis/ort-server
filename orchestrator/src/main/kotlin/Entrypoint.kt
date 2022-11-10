@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 
 fun main() {
@@ -39,6 +40,7 @@ fun main() {
         config,
         SchedulerService(),
         DaoAnalyzerJobRepository(),
-        DaoRepositoryRepository()
+        DaoRepositoryRepository(),
+        DaoOrtRunRepository()
     ).start()
 }
