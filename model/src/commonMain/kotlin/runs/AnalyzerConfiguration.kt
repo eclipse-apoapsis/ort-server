@@ -24,6 +24,5 @@ data class AnalyzerConfiguration(
     val allowDynamicVersions: Boolean = false,
     val enabledPackageManagers: List<String>? = null,
     val disabledPackageManagers: List<String>? = null,
-    val packageManagers: Map<String, PackageManagerConfiguration>? = null,
-    val sw360Configuration: Sw360Configuration? = null
+    val packageManagers: Map<String, PackageManagerConfiguration>? = null
 )

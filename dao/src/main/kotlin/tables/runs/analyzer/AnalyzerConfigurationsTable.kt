@@ -24,15 +24,12 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.Sw360ConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.Sw360ConfigurationsTable
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 
 /**
  * A table to represent an analyzer configuration.
  */
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
-    val sw360Configuration = reference("sw360_configuration_id", Sw360ConfigurationsTable.id).nullable()
     val allowDynamicVersions = bool("allow_dynamic_versions")
     val enabledPackageManagers = text("enabled_package_managers").nullable()
     val disabledPackageManagers = text("disabled_package_managers").nullable()
@@ -42,7 +39,6 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerConfigurationDao>(AnalyzerConfigurationsTable)
 
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
-    var sw360Configuration by Sw360ConfigurationDao optionalReferencedOn AnalyzerConfigurationsTable.sw360Configuration
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
@@ -55,7 +51,6 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         allowDynamicVersions,
         enabledPackageManagers,
         disabledPackageManagers,
-        packageManagerConfiguration.associate { it.name to it.mapToModel() },
-        sw360Configuration?.mapToModel()
+        packageManagerConfiguration.associate { it.name to it.mapToModel() }
     )
 }

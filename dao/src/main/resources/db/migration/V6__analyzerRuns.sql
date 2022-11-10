@@ -24,19 +24,9 @@ CREATE TABLE environment_tool_versions
     version        text                                             NULL
 );
 
-CREATE TABLE sw360_configurations
-(
-    id        bigserial PRIMARY KEY,
-    rest_url  text NOT NULL,
-    auth_url  text NOT NULL,
-    username  text NOT NULL,
-    client_id text NOT NULL
-);
-
 CREATE TABLE analyzer_configurations
 (
     id                        bigserial PRIMARY KEY,
-    sw360_configuration_id    bigint REFERENCES sw360_configurations NULL,
     allow_dynamic_versions    boolean                                NOT NULL,
     enabled_package_managers  text                                   NULL,
     disabled_package_managers text                                   NULL
