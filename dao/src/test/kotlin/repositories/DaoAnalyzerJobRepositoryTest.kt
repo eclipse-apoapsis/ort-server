@@ -35,10 +35,10 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
-    private lateinit var fixtures: Fixtures
-    private lateinit var analyzerJobRepository: DaoAnalyzerJobRepository
-    private lateinit var jobConfigurations: JobConfigurations
+    private val analyzerJobRepository = DaoAnalyzerJobRepository()
 
+    private lateinit var fixtures: Fixtures
+    private lateinit var jobConfigurations: JobConfigurations
     private var ortRunId = -1L
 
     override suspend fun beforeTest(testCase: TestCase) {
@@ -47,8 +47,6 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
         fixtures = Fixtures()
         ortRunId = fixtures.ortRun.id
         jobConfigurations = fixtures.jobConfigurations
-
-        analyzerJobRepository = DaoAnalyzerJobRepository()
     }
 
     init {

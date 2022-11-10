@@ -30,12 +30,10 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoOrganizationRepositoryTest : DatabaseTest() {
-    private lateinit var organizationRepository: DaoOrganizationRepository
+    private val organizationRepository = DaoOrganizationRepository()
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
-
-        organizationRepository = DaoOrganizationRepository()
     }
 
     init {

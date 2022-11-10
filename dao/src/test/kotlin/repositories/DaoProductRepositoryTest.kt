@@ -32,9 +32,9 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoProductRepositoryTest : DatabaseTest() {
-    private lateinit var fixtures: Fixtures
-    private lateinit var productRepository: DaoProductRepository
+    private val productRepository = DaoProductRepository()
 
+    private lateinit var fixtures: Fixtures
     private var orgId = -1L
 
     override suspend fun beforeTest(testCase: TestCase) {
@@ -42,8 +42,6 @@ class DaoProductRepositoryTest : DatabaseTest() {
 
         fixtures = Fixtures()
         orgId = fixtures.organization.id
-
-        productRepository = DaoProductRepository()
     }
 
     init {

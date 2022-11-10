@@ -33,9 +33,9 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoOrtRunRepositoryTest : DatabaseTest() {
-    private lateinit var fixtures: Fixtures
-    private lateinit var ortRunRepository: DaoOrtRunRepository
+    private val ortRunRepository = DaoOrtRunRepository()
 
+    private lateinit var fixtures: Fixtures
     private var repositoryId = -1L
 
     private val jobConfigurations = JobConfigurations(
@@ -49,8 +49,6 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
 
         fixtures = Fixtures()
         repositoryId = fixtures.repository.id
-
-        ortRunRepository = DaoOrtRunRepository()
     }
 
     init {
