@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger("org.ossreviewtoolkit.server.orchestrator.EntrypointKt")
 
 fun main() {
-    println("ORT-Server OrchestratorService started.")
+    log.info("Starting ORT-Server Orchestrator.")
 
     val config = ConfigFactory.load()
 
