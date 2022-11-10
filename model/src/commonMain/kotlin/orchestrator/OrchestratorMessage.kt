@@ -46,11 +46,15 @@ data class AnalyzeRepository(
  */
 @Serializable
 data class AnalyzeResult(
-    val runId: Long
+    /** The ID of the Analyzer job, as it is stored in the database. */
+    val jobId: Long
 ) : OrchestratorMessage()
 
 @Serializable
-data class AnalyzerError(val runId: Long) : OrchestratorMessage()
+data class AnalyzerError(
+    /** The ID of the Analyzer job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
 
 /**
  * A message notifying the Orchestrator about a new ORT run.
