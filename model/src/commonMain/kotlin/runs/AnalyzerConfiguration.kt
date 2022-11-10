@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class AnalyzerConfiguration(
-    val id: Long,
     val allowDynamicVersions: Boolean = false,
     val enabledPackageManagers: List<String>? = null,
     val disabledPackageManagers: List<String>? = null,

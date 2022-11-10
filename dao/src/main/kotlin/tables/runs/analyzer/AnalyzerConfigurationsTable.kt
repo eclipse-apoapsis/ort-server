@@ -50,7 +50,6 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
             PackageManagerConfigurationsTable.analyzerConfiguration
 
     fun mapToModel() = AnalyzerConfiguration(
-        id.value,
         allowDynamicVersions,
         enabledPackageManagers,
         disabledPackageManagers,
