@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class PackageManagerConfiguration(
-    val id: Long,
     val mustRunAfter: List<String>? = null,
     val options: Map<String, String>? = null
 )

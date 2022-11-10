@@ -52,7 +52,6 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
             PackageManagerConfigurationOptionsTable.packageManagerConfigurationId
 
     fun mapToModel() = PackageManagerConfiguration(
-        id.value,
         mustRunAfter,
         options.associate { it.name to it.value }
     )
