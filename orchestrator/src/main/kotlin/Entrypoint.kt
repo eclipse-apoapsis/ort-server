@@ -27,6 +27,8 @@ import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
 fun main() {
     println("ORT-Server OrchestratorService started.")
@@ -38,9 +40,9 @@ fun main() {
 
     Orchestrator(
         config,
-        SchedulerService(),
         DaoAnalyzerJobRepository(),
         DaoRepositoryRepository(),
-        DaoOrtRunRepository()
+        DaoOrtRunRepository(),
+        MessageSenderFactory.createSender(AnalyzerEndpoint, config)
     ).start()
 }

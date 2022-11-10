@@ -25,6 +25,7 @@ import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
@@ -32,18 +33,20 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
+import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 
 import org.slf4j.LoggerFactory
 
 class Orchestrator(
     private val config: Config,
-    private val schedulerService: SchedulerService,
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val repositoryRepository: RepositoryRepository,
-    private val ortRunRepository: OrtRunRepository
+    private val ortRunRepository: OrtRunRepository,
+    private val analyzerSender: MessageSender<AnalyzeRequest>
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -79,11 +82,11 @@ class Orchestrator(
                 ortRun.jobs.analyzer
             )
 
-            schedulerService.scheduleAnalyzerJob(
-                messageHeader = header,
-                repository = repository,
-                ortRun = ortRun,
-                analyzerJob = analyzerJob
+            analyzerSender.send(
+                Message(
+                    header = header,
+                    payload = AnalyzeRequest(repository, ortRun, analyzerJob)
+                )
             )
 
             analyzerJobRepository.update(
