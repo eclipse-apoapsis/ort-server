@@ -27,5 +27,5 @@ data class Environment(
     val processors: Int,
     val maxMemory: Long,
     val variables: Map<String, String>,
-    val toolVersion: Map<String, String>
+    val toolVersions: Map<String, String>
 )
