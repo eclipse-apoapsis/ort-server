@@ -26,8 +26,6 @@ import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -35,22 +33,18 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoRepositoryRepositoryTest : DatabaseTest() {
-    private lateinit var organizationRepository: DaoOrganizationRepository
-    private lateinit var productRepository: DaoProductRepository
+    private lateinit var fixtures: Fixtures
     private lateinit var repositoryRepository: DaoRepositoryRepository
 
-    private var orgId = -1L
     private var productId = -1L
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        organizationRepository = DaoOrganizationRepository()
-        productRepository = DaoProductRepository()
-        repositoryRepository = DaoRepositoryRepository()
+        fixtures = Fixtures()
+        productId = fixtures.product.id
 
-        orgId = organizationRepository.create(name = "name", description = "description").id
-        productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
+        repositoryRepository = DaoRepositoryRepository()
     }
 
     init {

@@ -27,61 +27,28 @@ import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-private const val REPOSITORY_URL = "https://example.com/repo.git"
-private const val REPOSITORY_REVISION = "revision"
-
 class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
-    private lateinit var organizationRepository: DaoOrganizationRepository
-    private lateinit var productRepository: DaoProductRepository
-    private lateinit var repositoryRepository: DaoRepositoryRepository
-    private lateinit var ortRunRepository: DaoOrtRunRepository
+    private lateinit var fixtures: Fixtures
     private lateinit var analyzerJobRepository: DaoAnalyzerJobRepository
+    private lateinit var jobConfigurations: JobConfigurations
 
-    private var orgId = -1L
-    private var productId = -1L
-    private var repositoryId = -1L
     private var ortRunId = -1L
-
-    private val jobConfigurations = JobConfigurations(
-        analyzer = AnalyzerJobConfiguration(
-            allowDynamicVersions = true
-        )
-    )
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        organizationRepository = DaoOrganizationRepository()
-        productRepository = DaoProductRepository()
-        repositoryRepository = DaoRepositoryRepository()
-        ortRunRepository = DaoOrtRunRepository()
-        analyzerJobRepository = DaoAnalyzerJobRepository()
+        fixtures = Fixtures()
+        ortRunId = fixtures.ortRun.id
+        jobConfigurations = fixtures.jobConfigurations
 
-        orgId = organizationRepository.create(name = "name", description = "description").id
-        productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
-        repositoryId = repositoryRepository.create(
-            type = RepositoryType.GIT,
-            url = REPOSITORY_URL,
-            productId = productId
-        ).id
-        ortRunId = ortRunRepository.create(
-            repositoryId = repositoryId,
-            revision = REPOSITORY_REVISION,
-            jobConfigurations = jobConfigurations
-        ).id
+        analyzerJobRepository = DaoAnalyzerJobRepository()
     }
 
     init {
@@ -98,8 +65,8 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
                 finishedAt = null,
                 configuration = jobConfigurations.analyzer,
                 status = AnalyzerJobStatus.CREATED,
-                repositoryUrl = REPOSITORY_URL,
-                repositoryRevision = REPOSITORY_REVISION
+                repositoryUrl = fixtures.repository.url,
+                repositoryRevision = fixtures.ortRun.revision
             )
         }
 

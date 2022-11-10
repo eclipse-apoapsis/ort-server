@@ -24,26 +24,18 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoOrtRunRepositoryTest : DatabaseTest() {
-    private lateinit var organizationRepository: DaoOrganizationRepository
-    private lateinit var productRepository: DaoProductRepository
-    private lateinit var repositoryRepository: DaoRepositoryRepository
+    private lateinit var fixtures: Fixtures
     private lateinit var ortRunRepository: DaoOrtRunRepository
 
-    private var orgId = -1L
-    private var productId = -1L
     private var repositoryId = -1L
 
     private val jobConfigurations = JobConfigurations(
@@ -55,18 +47,10 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        organizationRepository = DaoOrganizationRepository()
-        productRepository = DaoProductRepository()
-        repositoryRepository = DaoRepositoryRepository()
-        ortRunRepository = DaoOrtRunRepository()
+        fixtures = Fixtures()
+        repositoryId = fixtures.repository.id
 
-        orgId = organizationRepository.create(name = "name", description = "description").id
-        productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
-        repositoryId = repositoryRepository.create(
-            type = RepositoryType.GIT,
-            url = "https://example.com/repo.git",
-            productId = productId
-        ).id
+        ortRunRepository = DaoOrtRunRepository()
     }
 
     init {
@@ -90,11 +74,7 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
         }
 
         test("create should create sequential indexes for different repositories") {
-            val otherRepository = repositoryRepository.create(
-                type = RepositoryType.GIT,
-                url = "https://example.com/repo2.git",
-                productId = productId
-            )
+            val otherRepository = fixtures.createRepository(url = "https://example.com/repo2.git")
 
             ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
             ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 1

@@ -26,14 +26,13 @@ import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoProductRepositoryTest : DatabaseTest() {
-    private lateinit var organizationRepository: DaoOrganizationRepository
+    private lateinit var fixtures: Fixtures
     private lateinit var productRepository: DaoProductRepository
 
     private var orgId = -1L
@@ -41,10 +40,10 @@ class DaoProductRepositoryTest : DatabaseTest() {
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
 
-        organizationRepository = DaoOrganizationRepository()
-        productRepository = DaoProductRepository()
+        fixtures = Fixtures()
+        orgId = fixtures.organization.id
 
-        orgId = organizationRepository.create(name = "name", description = "description").id
+        productRepository = DaoProductRepository()
     }
 
     init {
@@ -72,7 +71,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
         }
 
         test("listForOrganization should return all products for an organization") {
-            val otherOrgId = organizationRepository.create(name = "otherOrg", description = "org description").id
+            val otherOrgId = fixtures.createOrganization(name = "ortherOrg").id
 
             val name1 = "name1"
             val description1 = "description1"
