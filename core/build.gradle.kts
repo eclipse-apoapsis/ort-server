@@ -73,7 +73,7 @@ dependencies {
     testImplementation(libs.ktorClientCore)
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
-    testImplementation(libs.wiremock)
+    testImplementation(libs.wiremockStandalone)
 }
 
 jib {
