@@ -11,17 +11,17 @@ CREATE TABLE environments
 CREATE TABLE environment_variables
 (
     id             bigserial PRIMARY KEY,
-    environment_id bigint REFERENCES environments NOT NULL,
-    name           text                           NOT NULL,
-    value          text                           NOT NULL
+    environment_id bigint REFERENCES environments ON DELETE CASCADE NOT NULL,
+    name           text                                             NOT NULL,
+    value          text                                             NOT NULL
 );
 
 CREATE TABLE environment_tool_versions
 (
     id             bigserial PRIMARY KEY,
-    environment_id bigint REFERENCES environments NOT NULL,
-    name           text                           NULL,
-    version        text                           NULL
+    environment_id bigint REFERENCES environments ON DELETE CASCADE NOT NULL,
+    name           text                                             NULL,
+    version        text                                             NULL
 );
 
 CREATE TABLE sw360_configurations
