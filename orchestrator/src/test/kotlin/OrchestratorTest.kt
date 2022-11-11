@@ -45,6 +45,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -125,6 +126,31 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe analyzerJob.id },
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.SCHEDULED) }
+                    )
+                }
+            }
+        }
+
+        "handleAnalyzerWorkerResult" should {
+            "update the job in the database" {
+                val analyzerJobRepository = mockk<AnalyzerJobRepository>()
+                val repositoryRepository = mockk<RepositoryRepository>()
+                val ortRunRepository = mockk<OrtRunRepository>()
+                val analyzerSender = mockk<MessageSender<AnalyzeRequest>>()
+
+                val analyzerWorkerResult = AnalyzerWorkerResult(123)
+
+                every { analyzerJobRepository.get(analyzerWorkerResult.jobId) } returns analyzerJob
+                every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
+
+                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, analyzerSender)
+                    .handleAnalyzerWorkerResult(analyzerWorkerResult)
+
+                verify(exactly = 1) {
+                    analyzerJobRepository.update(
+                        id = withArg { it shouldBe analyzerJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.FINISHED) }
                     )
                 }
             }
