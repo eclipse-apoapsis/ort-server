@@ -30,16 +30,6 @@ import org.ossreviewtoolkit.server.model.OrtRun
 sealed class OrchestratorMessage
 
 /**
- * A message requesting an analysis run on a specific repository.
- *
- * TODO: The exact payload still has to be defined.
- */
-@Serializable
-data class AnalyzeRepository(
-    val repositoryId: Long
-) : OrchestratorMessage()
-
-/**
  * A message notifying the Orchestrator about a result produced by the Analyzer Worker.
  *
  * TODO: The exact payload still has to be defined.

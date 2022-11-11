@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRepository
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.transport.Message
@@ -56,7 +56,7 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 
             val token1 = "token1"
             val traceId1 = "trace1"
-            val payload1 = AnalyzeRepository(21)
+            val payload1 = AnalyzerWorkerError(21)
             val token2 = "token2"
             val traceId2 = "trace2"
             val payload2 = AnalyzerWorkerResult(42)

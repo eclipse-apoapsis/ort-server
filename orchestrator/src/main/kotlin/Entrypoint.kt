@@ -68,8 +68,6 @@ fun main() {
             is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(
                 message.payload as AnalyzerWorkerError
             )
-
-            else -> TODO("Support for message type '${message.payload::class.simpleName}' not yet implemented.")
         }
     }
 }
