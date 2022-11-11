@@ -30,6 +30,11 @@ data class AnalyzerJob(
     val id: Long,
 
     /**
+     * The ID of the [OrtRun] this [AnalyzerJob] is a part of.
+     */
+    val ortRunId: Long,
+
+    /**
      * The time the job was created.
      */
     val createdAt: Instant,

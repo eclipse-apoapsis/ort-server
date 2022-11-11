@@ -58,6 +58,7 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe AnalyzerJob(
                 id = createdAnalyzerJob.id,
+                ortRunId = ortRunId,
                 createdAt = createdAnalyzerJob.createdAt,
                 startedAt = null,
                 finishedAt = null,

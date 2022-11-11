@@ -59,6 +59,7 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
 
     fun mapToModel() = AnalyzerJob(
         id.value,
+        ortRun.id.value,
         createdAt,
         startedAt,
         finishedAt,

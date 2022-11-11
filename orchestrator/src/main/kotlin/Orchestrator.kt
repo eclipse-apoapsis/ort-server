@@ -116,7 +116,7 @@ class Orchestrator(
 
             // If the analyzerJob failed, the whole OrtRun will be treated as failed.
             ortRunRepository.update(
-                id = jobId,
+                id = analyzerJob.ortRunId,
                 status = OptionalValue.Present(OrtRunStatus.FAILED)
             )
         } else {

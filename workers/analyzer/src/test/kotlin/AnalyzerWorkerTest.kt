@@ -120,6 +120,7 @@ private val analyzeRequest = AnalyzeRequest(
     ),
     AnalyzerJob(
         id = JOB_ID,
+        ortRunId = 12,
         createdAt = Clock.System.now(),
         startedAt = Clock.System.now(),
         finishedAt = null,
