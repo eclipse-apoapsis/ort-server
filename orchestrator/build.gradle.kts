@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":transport:spi"))
 
     testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKotlinxTime)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

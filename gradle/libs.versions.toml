@@ -33,6 +33,7 @@ jsonSchemaSerialization = "0.6.6"
 keycloakTestcontainerVersion = "2.4.0"
 koin = "3.2.2"
 kotest = "5.5.4"
+kotestAssertionsKotlinxTime = "4.4.3"
 kotestAssertionsKtor = "1.0.3"
 kotestExtensionTestContainers = "1.3.4"
 ktor = "2.1.3"
@@ -68,6 +69,7 @@ jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-seri
 koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotestAssertionsKotlinxTime = { module = "io.kotest:kotest-assertions-kotlinx-time", version.ref = "kotestAssertionsKotlinxTime" }
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
