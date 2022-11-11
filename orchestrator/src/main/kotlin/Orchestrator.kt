@@ -111,6 +111,7 @@ class Orchestrator(
         if (analyzerJob != null) {
             analyzerJobRepository.update(
                 id = analyzerJob.id,
+                finishedAt = OptionalValue.Present(Clock.System.now()),
                 status = OptionalValue.Present(AnalyzerJobStatus.FAILED)
             )
 
