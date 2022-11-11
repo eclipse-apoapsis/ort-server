@@ -45,6 +45,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
@@ -151,6 +152,39 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.FINISHED) }
+                    )
+                }
+            }
+        }
+
+        "handleAnalyzerWorkerError" should {
+            "update the job and the ORT run in the database" {
+                val analyzerJobRepository = mockk<AnalyzerJobRepository>()
+                val repositoryRepository = mockk<RepositoryRepository>()
+                val ortRunRepository = mockk<OrtRunRepository>()
+                val analyzerSender = mockk<MessageSender<AnalyzeRequest>>()
+
+                val analyzerWorkerError = AnalyzerWorkerError(123)
+
+                every { analyzerJobRepository.get(analyzerWorkerError.jobId) } returns analyzerJob
+                every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
+                every { ortRunRepository.update(any(), any()) } returns mockk()
+
+                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, analyzerSender)
+                    .handleAnalyzerWorkerError(analyzerWorkerError)
+
+                verify(exactly = 1) {
+                    // The job status was updated.
+                    analyzerJobRepository.update(
+                        id = withArg { it shouldBe analyzerJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.FAILED) }
+                    )
+
+                    // The ORT run status was updated.
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe analyzerJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
             }
