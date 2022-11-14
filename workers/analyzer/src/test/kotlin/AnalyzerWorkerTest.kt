@@ -39,14 +39,10 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -70,9 +66,11 @@ class AnalyzerWorkerTest : WordSpec({
             val serializer = JsonSerializer.forClass(AnalyzeRequest::class)
 
             val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
+            val analyzerJobRepository = mockk<AnalyzerJobRepository>()
             mockkObject(MessageSenderFactory)
             every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
             every { msgSenderMock.send(any()) } just runs
+            every { analyzerJobRepository.get(analyzerJob.id) } returns analyzerJob
 
             val worker = spyk(
                 AnalyzerWorker(
@@ -82,7 +80,8 @@ class AnalyzerWorkerTest : WordSpec({
                                     "testMessageReceiverFactory",
                             TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzeRequest)
                         )
-                    )
+                    ),
+                    analyzerJobRepository
                 )
             )
 
@@ -103,32 +102,20 @@ class AnalyzerWorkerTest : WordSpec({
     }
 })
 
+private val analyzerJob = AnalyzerJob(
+    id = JOB_ID,
+    ortRunId = 12,
+    createdAt = Clock.System.now(),
+    startedAt = Clock.System.now(),
+    finishedAt = null,
+    configuration = AnalyzerJobConfiguration(),
+    status = AnalyzerJobStatus.CREATED,
+    repositoryUrl = "https://example.com/git/repository.git",
+    repositoryRevision = "main"
+)
+
 private val analyzeRequest = AnalyzeRequest(
-    Repository(
-        id = 0,
-        type = RepositoryType.GIT,
-        url = "https://example.com/git/repository.git"
-    ),
-    OrtRun(
-        id = 0,
-        index = 0,
-        repositoryId = 0,
-        revision = "main",
-        createdAt = Clock.System.now(),
-        jobs = JobConfigurations(AnalyzerJobConfiguration()),
-        status = OrtRunStatus.CREATED
-    ),
-    AnalyzerJob(
-        id = JOB_ID,
-        ortRunId = 12,
-        createdAt = Clock.System.now(),
-        startedAt = Clock.System.now(),
-        finishedAt = null,
-        configuration = AnalyzerJobConfiguration(),
-        status = AnalyzerJobStatus.CREATED,
-        repositoryUrl = "https://example.com/git/repository.git",
-        repositoryRevision = "main"
-    )
+    analyzerJobId = analyzerJob.id
 )
 
 /** The name reported by the test receiver factory. */

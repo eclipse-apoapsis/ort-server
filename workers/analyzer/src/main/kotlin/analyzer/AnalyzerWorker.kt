@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -51,14 +52,28 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
-internal class AnalyzerWorker(private val config: Config) {
+internal class AnalyzerWorker(
+    private val config: Config,
+    private val analyzerJobRepository: AnalyzerJobRepository
+) {
     fun start() {
         val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
 
         MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config) { message ->
             val token = message.header.token
             val traceId = message.header.traceId
-            val job = message.payload.analyzerJob
+            val job = analyzerJobRepository.get(message.payload.analyzerJobId)
+
+            if (job == null) {
+                logger.error("An analyzer job with ID '${message.payload.analyzerJobId}' does not exist.")
+                val errorMessage = Message(
+                    MessageHeader(token, traceId),
+                    AnalyzerWorkerError(message.payload.analyzerJobId)
+                )
+
+                sender.send(errorMessage)
+                return@createReceiver
+            }
 
             runCatching {
                 logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
@@ -67,7 +82,7 @@ internal class AnalyzerWorker(private val config: Config) {
 
                 result.analyzer?.result?.issues?.values?.size?.let { issueCount ->
                     logger.info(
-                        "Analyze job '${job.id}' for repository '${message.payload.repository.url}' finished with " +
+                        "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
                                 "'$issueCount' issues."
                     )
                 }
@@ -75,7 +90,7 @@ internal class AnalyzerWorker(private val config: Config) {
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
             }.onFailure {
-                logger.error("Analyze job '${job.id}' for repository '${message.payload.repository}' failed.", it)
+                logger.error("Analyze job '${job.id}' for repository '${job.repositoryUrl}' failed.", it)
                 val errorMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerError(job.id))
                 sender.send(errorMessage)
             }

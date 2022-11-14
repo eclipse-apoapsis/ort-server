@@ -118,7 +118,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerSender.send(
                         message = withArg {
                             it.header shouldBe msgHeader
-                            it.payload shouldBe AnalyzeRequest(repository, createOrtRun.ortRun, analyzerJob)
+                            it.payload shouldBe AnalyzeRequest(analyzerJob.id)
                         }
                     )
 

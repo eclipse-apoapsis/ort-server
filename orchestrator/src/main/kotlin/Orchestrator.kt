@@ -66,7 +66,7 @@ class Orchestrator(
             analyzerSender.send(
                 Message(
                     header = header,
-                    payload = AnalyzeRequest(repository, ortRun, analyzerJob)
+                    payload = AnalyzeRequest(analyzerJob.id)
                 )
             )
 

@@ -21,10 +21,6 @@ package org.ossreviewtoolkit.server.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Repository
-
 /**
  * A data class representing a request to the Analyzer worker to process a specific repository.
  *
@@ -32,7 +28,5 @@ import org.ossreviewtoolkit.server.model.Repository
  */
 @Serializable
 data class AnalyzeRequest(
-    val repository: Repository,
-    val ortRun: OrtRun,
-    val analyzerJob: AnalyzerJob
+    val analyzerJobId: Long
 )

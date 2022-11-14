@@ -24,6 +24,7 @@ import com.typesafe.config.ConfigFactory
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 
 /**
  * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
@@ -34,5 +35,5 @@ fun main() {
 
     createDataSource(createDatabaseConfig(config)).connect()
 
-    AnalyzerWorker(config).start()
+    AnalyzerWorker(config, DaoAnalyzerJobRepository()).start()
 }
