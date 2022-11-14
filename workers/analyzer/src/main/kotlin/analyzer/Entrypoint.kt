@@ -21,12 +21,18 @@ package org.ossreviewtoolkit.server.workers.analyzer
 
 import com.typesafe.config.ConfigFactory
 
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.createDataSource
+import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+
 /**
  * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
  * interfacing on its APIs.
  */
 fun main() {
     val config = ConfigFactory.load()
+
+    createDataSource(createDatabaseConfig(config)).connect()
 
     AnalyzerWorker(config).start()
 }

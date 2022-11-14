@@ -57,6 +57,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":api-v1"))
+    implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:spi"))
