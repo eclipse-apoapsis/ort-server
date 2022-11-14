@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
@@ -57,6 +58,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
+        dataSource.migrate()
 
         organizationRepository = DaoOrganizationRepository()
         productRepository = DaoProductRepository()

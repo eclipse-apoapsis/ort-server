@@ -31,9 +31,15 @@ import org.koin.ktor.ext.inject
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+import org.ossreviewtoolkit.server.dao.migrate
 
+/**
+ * Connect and migrate the database. This is the only place where migrations for the production database are done. While
+ * other services can connect to the database, they must not handle migrations.
+ */
 fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
     dataSource.connect()
+    dataSource.migrate()
 }
 
 private fun Application.createDataSource(): DataSource {

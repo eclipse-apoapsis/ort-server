@@ -44,7 +44,6 @@ fun main() {
 
     val config = ConfigFactory.load()
 
-    // TODO: The `connect()` method also runs the migration, this might not be desired.
     createDataSource(createDatabaseConfig(config)).connect()
 
     val orchestrator = Orchestrator(

@@ -37,15 +37,15 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
- * Connect and migrate the database.
+ * Connect the database.
  */
-fun DataSource.connect() {
-    Database.connect(this)
-    migrate(this)
-}
+fun DataSource.connect() = Database.connect(this)
 
-fun migrate(dataSource: DataSource) {
-    Flyway(getFlywayConfig(dataSource)).migrate()
+/**
+ * Run the database migrations.
+ */
+fun DataSource.migrate() {
+    Flyway(getFlywayConfig(this)).migrate()
 }
 
 private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()

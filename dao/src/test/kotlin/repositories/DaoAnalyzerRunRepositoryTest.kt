@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
@@ -42,6 +43,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
+        dataSource.migrate()
 
         fixtures = Fixtures()
         analyzerJobId = fixtures.analyzerJob.id

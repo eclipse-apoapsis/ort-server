@@ -24,6 +24,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -34,6 +35,7 @@ class DaoOrganizationRepositoryTest : DatabaseTest() {
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
+        dataSource.migrate()
     }
 
     init {

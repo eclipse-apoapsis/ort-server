@@ -53,6 +53,7 @@ import kotlinx.serialization.json.Json
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 private const val CERT_STORE = "testkeycloak.jks"
@@ -79,6 +80,7 @@ class AuthenticationIntegrationTest : DatabaseTest() {
         // TODO: This test should not require a database. However, calling the organizations endpoints requires a
         //       working database for now. This should be removed, and the required database access should be mocked.
         dataSource.connect()
+        dataSource.migrate()
 
         server.start()
         server.stubJwks(issuerData)

@@ -29,6 +29,7 @@ import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoEnvironmentRepository
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentToolVersionDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentToolVersionsTable
@@ -58,6 +59,7 @@ class DaoEnvironmentRepositoryTest : DatabaseTest() {
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
+        dataSource.migrate()
     }
 
     init {

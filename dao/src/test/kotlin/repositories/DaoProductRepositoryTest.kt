@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -39,6 +40,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
+        dataSource.migrate()
 
         fixtures = Fixtures()
         orgId = fixtures.organization.id
