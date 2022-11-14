@@ -40,12 +40,14 @@ import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -54,7 +56,8 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
 internal class AnalyzerWorker(
     private val config: Config,
-    private val analyzerJobRepository: AnalyzerJobRepository
+    private val analyzerJobRepository: AnalyzerJobRepository,
+    private val environmentRepository: EnvironmentRepository
 ) {
     fun start() {
         val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
@@ -86,6 +89,8 @@ internal class AnalyzerWorker(
                             "'${analyzerRun.result.issues.values.size}' issues."
                 )
 
+                analyzerRun.environment.writeToDatabase()
+
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
             }.onFailure {
@@ -95,6 +100,12 @@ internal class AnalyzerWorker(
             }
         }
     }
+
+    /**
+     * Create a database entry for an [Environment].
+     */
+    private fun Environment.writeToDatabase() =
+        environmentRepository.create(ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
 
     /**
      * Download a repository for a given [AnalyzerJob]. Return the temporary directory containing the download.

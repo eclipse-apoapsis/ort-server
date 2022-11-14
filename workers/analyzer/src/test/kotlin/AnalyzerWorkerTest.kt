@@ -43,6 +43,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
+import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -53,6 +55,7 @@ import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 
 private const val JOB_ID = 1L
 private const val TOKEN = "token"
@@ -67,10 +70,12 @@ class AnalyzerWorkerTest : WordSpec({
 
             val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
             val analyzerJobRepository = mockk<AnalyzerJobRepository>()
+            val environmentRepository = mockk<EnvironmentRepository>()
             mockkObject(MessageSenderFactory)
             every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
             every { msgSenderMock.send(any()) } just runs
             every { analyzerJobRepository.get(analyzerJob.id) } returns analyzerJob
+            every { environmentRepository.create(any(), any(), any(), any(), any(), any(), any()) } returns environment
 
             val worker = spyk(
                 AnalyzerWorker(
@@ -81,7 +86,8 @@ class AnalyzerWorkerTest : WordSpec({
                             TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzeRequest)
                         )
                     ),
-                    analyzerJobRepository
+                    analyzerJobRepository,
+                    environmentRepository
                 )
             )
 
@@ -97,10 +103,29 @@ class AnalyzerWorkerTest : WordSpec({
                 msgSenderMock.send(
                     Message(MessageHeader(TOKEN, TRACE_ID), AnalyzerWorkerResult(JOB_ID))
                 )
+
+                with(environment) {
+                    environmentRepository.create(
+                        ortVersion,
+                        javaVersion,
+                        os,
+                        processors,
+                        maxMemory,
+                        variables,
+                        toolVersions
+                    )
+                }
             }
         }
     }
 })
+
+/**
+ * Use [OrtEnvironment] to create the environment for the machine which runs these tests.
+ */
+private val environment = with(OrtEnvironment()) {
+    Environment(0, ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
+}
 
 private val analyzerJob = AnalyzerJob(
     id = JOB_ID,
