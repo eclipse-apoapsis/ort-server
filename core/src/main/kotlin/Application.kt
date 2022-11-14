@@ -25,7 +25,6 @@ import org.ossreviewtoolkit.server.core.plugins.*
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
-@Suppress("Unused")
 fun Application.module() {
     configureKoin()
     configureAuthentication()
