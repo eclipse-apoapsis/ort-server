@@ -32,4 +32,15 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":transport:spi"))
+
+    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kubernetesClient)
+    implementation(libs.kubernetesClientExtended)
+
+    testImplementation(project(":model"))
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
+    testImplementation(libs.ortTestUtils)
 }

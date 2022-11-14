@@ -38,6 +38,7 @@ kotestAssertionsKtor = "1.0.3"
 kotestExtensionTestContainers = "1.3.4"
 ktor = "2.1.3"
 ktorSwaggerUi = "0.7.0"
+kubernetesClient = "16.0.2"
 logback = "1.4.4"
 mockk = "1.13.2"
 ort = "958e9f7bbf"
@@ -92,11 +93,14 @@ ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", versi
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi"}
+kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
+kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
+ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
