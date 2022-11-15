@@ -72,8 +72,6 @@ dependencies {
     implementation(libs.ortDownloader)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }
