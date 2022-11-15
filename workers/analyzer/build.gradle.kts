@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.ortDownloader)
 
     testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKotlinxTime)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

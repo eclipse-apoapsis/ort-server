@@ -23,6 +23,7 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.kotlinx.datetime.shouldBeBetween
 
 import io.mockk.every
 import io.mockk.just
@@ -34,7 +35,11 @@ import io.mockk.verify
 
 import java.io.File
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
@@ -43,7 +48,10 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
@@ -70,11 +78,15 @@ class AnalyzerWorkerTest : WordSpec({
 
             val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
             val analyzerJobRepository = mockk<AnalyzerJobRepository>()
+            val analyzerRunRepository = mockk<AnalyzerRunRepository>()
             val environmentRepository = mockk<EnvironmentRepository>()
             mockkObject(MessageSenderFactory)
             every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
             every { msgSenderMock.send(any()) } just runs
             every { analyzerJobRepository.get(analyzerJob.id) } returns analyzerJob
+            every {
+                analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any())
+            } returns analyzerRun
             every { environmentRepository.create(any(), any(), any(), any(), any(), any(), any()) } returns environment
 
             val worker = spyk(
@@ -87,6 +99,7 @@ class AnalyzerWorkerTest : WordSpec({
                         )
                     ),
                     analyzerJobRepository,
+                    analyzerRunRepository,
                     environmentRepository
                 )
             )
@@ -115,6 +128,18 @@ class AnalyzerWorkerTest : WordSpec({
                         toolVersions
                     )
                 }
+
+                analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    environmentId = analyzerRun.environment.id,
+                    // As an actual analysis is performed, the startTime might be some time ago.
+                    startTime = withArg { it.validateTimeRange(30.seconds) },
+                    endTime = withArg { it.validateTimeRange(10.seconds) },
+                    config = analyzerConfig,
+                    projects = analyzerRun.projects,
+                    packages = analyzerRun.packages,
+                    issues = analyzerRun.issues
+                )
             }
         }
     }
@@ -126,6 +151,20 @@ class AnalyzerWorkerTest : WordSpec({
 private val environment = with(OrtEnvironment()) {
     Environment(0, ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
 }
+
+private val analyzerConfig = AnalyzerConfiguration(allowDynamicVersions = false)
+
+private val analyzerRun = AnalyzerRun(
+    id = 0,
+    analyzerJobId = 0,
+    startTime = Instant.fromEpochSeconds(0),
+    endTime = Clock.System.now(),
+    environment = environment,
+    config = analyzerConfig,
+    projects = emptySet(),
+    packages = emptySet(),
+    issues = emptyMap()
+)
 
 private val analyzerJob = AnalyzerJob(
     id = JOB_ID,
@@ -171,4 +210,10 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
             )
         )
     }
+}
+
+fun Instant.validateTimeRange(allowedDiff: Duration) {
+    val now = Clock.System.now()
+
+    shouldBeBetween(now - allowedDiff, now)
 }

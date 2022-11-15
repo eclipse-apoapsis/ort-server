@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEnvironmentRepository
 
 /**
@@ -36,5 +37,5 @@ fun main() {
 
     createDataSource(createDatabaseConfig(config)).connect()
 
-    AnalyzerWorker(config, DaoAnalyzerJobRepository(), DaoEnvironmentRepository()).start()
+    AnalyzerWorker(config, DaoAnalyzerJobRepository(), DaoAnalyzerRunRepository(), DaoEnvironmentRepository()).start()
 }

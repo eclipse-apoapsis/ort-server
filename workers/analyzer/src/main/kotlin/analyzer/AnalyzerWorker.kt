@@ -23,24 +23,31 @@ import com.typesafe.config.Config
 
 import java.io.File
 
+import kotlinx.datetime.Instant
+
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.PackageManager
 import org.ossreviewtoolkit.analyzer.curation.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.downloader.VersionControlSystem
+import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
+import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -57,6 +64,7 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 internal class AnalyzerWorker(
     private val config: Config,
     private val analyzerJobRepository: AnalyzerJobRepository,
+    private val analyzerRunRepository: AnalyzerRunRepository,
     private val environmentRepository: EnvironmentRepository
 ) {
     fun start() {
@@ -89,7 +97,9 @@ internal class AnalyzerWorker(
                             "'${analyzerRun.result.issues.values.size}' issues."
                 )
 
-                analyzerRun.environment.writeToDatabase()
+                // TODO: Run the two database operations in a single transaction.
+                val environment = analyzerRun.environment.writeToDatabase()
+                analyzerRun.writeToDatabase(job.id, environment.id)
 
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
@@ -106,6 +116,32 @@ internal class AnalyzerWorker(
      */
     private fun Environment.writeToDatabase() =
         environmentRepository.create(ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
+
+    /**
+     * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.AnalyzerRun].
+     */
+    private fun AnalyzerRun.writeToDatabase(jobId: Long, environmentId: Long) =
+        analyzerRunRepository.create(
+            jobId,
+            environmentId,
+            Instant.fromEpochSeconds(startTime.epochSecond),
+            Instant.fromEpochSeconds(endTime.epochSecond),
+            AnalyzerConfiguration(
+                config.allowDynamicVersions,
+                config.enabledPackageManagers,
+                config.disabledPackageManagers,
+                config.packageManagers?.mapValues {
+                    PackageManagerConfiguration(
+                        it.value.mustRunAfter,
+                        it.value.options
+                    )
+                }
+            ),
+            // TODO: Also handle projects, packages and issues.
+            projects = emptySet(),
+            packages = emptySet(),
+            issues = emptyMap()
+        )
 
     /**
      * Download a repository for a given [AnalyzerJob]. Return the temporary directory containing the download.
@@ -143,7 +179,7 @@ internal class AnalyzerWorker(
      * Analyze a repository download in [inputDir] for a given [AnalyzerJob]. Return the file containing the result.
      */
     private fun AnalyzerJob.analyze(inputDir: File): OrtResult {
-        val config = AnalyzerConfiguration(configuration.allowDynamicVersions)
+        val config = OrtAnalyzerConfiguration(configuration.allowDynamicVersions)
         val analyzer = Analyzer(config)
 
         //   Add support for RepositoryConfiguration.
