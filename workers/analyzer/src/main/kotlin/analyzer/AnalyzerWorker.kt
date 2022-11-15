@@ -78,14 +78,13 @@ internal class AnalyzerWorker(
             runCatching {
                 logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
                 val sourcesDir = job.download()
-                val result = job.analyze(sourcesDir)
+                val analyzerRun = job.analyze(sourcesDir).analyzer
+                    ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
-                result.analyzer?.result?.issues?.values?.size?.let { issueCount ->
-                    logger.info(
-                        "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
-                                "'$issueCount' issues."
-                    )
-                }
+                logger.info(
+                    "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
+                            "'${analyzerRun.result.issues.values.size}' issues."
+                )
 
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
@@ -178,3 +177,5 @@ internal class AnalyzerWorker(
         return ortResult
     }
 }
+
+private class AnalyzerException(message: String) : Exception(message)
