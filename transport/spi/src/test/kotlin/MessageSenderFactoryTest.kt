@@ -38,7 +38,7 @@ class MessageSenderFactoryTest : StringSpec({
         val config = mockk<Config>()
         every {
             config.getString("analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}")
-        } returns TEST_FACTORY_NAME
+        } returns TEST_TRANSPORT_NAME
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
 
@@ -61,30 +61,3 @@ class MessageSenderFactoryTest : StringSpec({
         exception.message should contain(invalidFactoryName)
     }
 })
-
-/** The name returned by the test message sender factory. */
-private const val TEST_FACTORY_NAME = "testMessageSenderFactory"
-
-/**
- * A test [MessageSenderFactory] implementation that is referenced by test cases.
- */
-class MessageSenderFactoryForTesting : MessageSenderFactory {
-    override val name: String = TEST_FACTORY_NAME
-
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> =
-        MessageSenderForTesting(to, config)
-}
-
-/**
- * A test [MessageSender] implementation that is used to test whether the correct parameters have been passed to the
- * factory to create an instance.
- */
-class MessageSenderForTesting<T : Any>(
-    val endpoint: Endpoint<T>,
-
-    val config: Config
-) : MessageSender<T> {
-    override fun send(message: Message<T>) {
-        println(message)
-    }
-}

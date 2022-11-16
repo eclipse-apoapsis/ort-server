@@ -42,7 +42,7 @@ class MessageReceiverFactoryTest : StringSpec({
         val config = mockk<Config>()
         every {
             config.getString("orchestrator.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}")
-        } returns TEST_FACTORY_NAME
+        } returns TEST_TRANSPORT_NAME
 
         MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, handler)
 
@@ -65,41 +65,3 @@ class MessageReceiverFactoryTest : StringSpec({
         exception.message should contain(invalidFactoryName)
     }
 })
-
-/** The name reported by the test receiver factory. */
-private const val TEST_FACTORY_NAME = "testMessageReceiverFactory"
-
-/**
- * A test [MessageReceiverFactory] implementation that is referenced by test cases.
- */
-class MessageReceiverFactoryForTesting : MessageReceiverFactory {
-    companion object {
-        /** Stores the [Endpoint] passed to [createReceiver]. */
-        var createdEndpoint: Endpoint<*>? = null
-
-        /** Stores the config passed to [createReceiver]. */
-        var createdConfig: Config? = null
-
-        /** Stores the handler function passed to [createReceiver]. */
-        var createdHandler: Any? = null
-
-        /**
-         * Reset the properties passed from the last [createReceiver] call.
-         */
-        fun reset() {
-            createdEndpoint = null
-            createdConfig = null
-            createdHandler = null
-        }
-    }
-
-    override val name: String = TEST_FACTORY_NAME
-
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        check(createdEndpoint == null) { "Too many invocations of createReceiver." }
-
-        createdEndpoint = endpoint
-        createdConfig = config
-        createdHandler = handler
-    }
-}
