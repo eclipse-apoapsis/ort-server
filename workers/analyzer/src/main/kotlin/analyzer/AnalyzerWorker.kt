@@ -86,6 +86,15 @@ internal class AnalyzerWorker(
                 return@createReceiver
             }
 
+            if (job.status == AnalyzerJobStatus.FAILED || job.status == AnalyzerJobStatus.FINISHED) {
+                logger.warn(
+                    "Analyzer job '${job.id}' status is already set to '${job.status}'. Ignoring message with " +
+                            "traceId '$traceId'."
+                )
+
+                return@createReceiver
+            }
+
             runCatching {
                 logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
                 val sourcesDir = job.download()
