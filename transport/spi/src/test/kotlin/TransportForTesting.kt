@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.transport
 import com.typesafe.config.Config
 
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 
 import java.util.Queue
 import java.util.concurrent.LinkedBlockingQueue
@@ -99,6 +100,18 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
             createdEndpoint = null
             createdConfig = null
             createdHandler = null
+        }
+
+        /**
+         * Invoke the recorded [EndpointHandler] for the given [endpoint] with the given [message]. Fail if no handler
+         * or a handler to a different endpoint was registered.
+         */
+        fun <T : Any> receive(endpoint: Endpoint<T>, message: Message<T>) {
+            createdEndpoint shouldBe endpoint
+
+            @Suppress("UNCHECKED_CAST")
+            val handler = createdHandler as EndpointHandler<T>
+            handler(message)
         }
     }
 

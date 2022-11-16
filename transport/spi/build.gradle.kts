@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":model"))
 
     api(libs.typesafeConfig)
+    api(libs.koinCore)
     implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(libs.kotestAssertionsCore)
