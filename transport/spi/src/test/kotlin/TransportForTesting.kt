@@ -21,6 +21,11 @@ package org.ossreviewtoolkit.server.transport
 
 import com.typesafe.config.Config
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+
+import java.util.Queue
+import java.util.concurrent.LinkedBlockingQueue
+
 /** The name to identify the test transport implementation. */
 internal const val TEST_TRANSPORT_NAME = "testMessageTransport"
 
@@ -28,10 +33,32 @@ internal const val TEST_TRANSPORT_NAME = "testMessageTransport"
  * A test [MessageSenderFactory] implementation that is referenced by test cases.
  */
 class MessageSenderFactoryForTesting : MessageSenderFactory {
+    companion object {
+        /** A map for storing messages sent by one of the created senders. */
+        private val messageQueues = mutableMapOf<Endpoint<*>, Queue<Message<*>>>()
+
+        /**
+         * Return the next message that was sent to the given [endpoint][to] or throw an exception if no such message
+         * exists.
+         */
+        fun <T : Any> expectMessage(to: Endpoint<T>): Message<T> {
+            val queue = messageQueues[to].shouldNotBeNull()
+
+            @Suppress("UNCHECKED_CAST")
+            return queue.remove() as Message<T>
+        }
+    }
+
     override val name: String = TEST_TRANSPORT_NAME
 
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> =
-        MessageSenderForTesting(to, config)
+    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
+        val queue = LinkedBlockingQueue<Message<T>>()
+        val sender = MessageSenderForTesting(to, config, queue)
+
+        @Suppress("UNCHECKED_CAST")
+        messageQueues[to] = queue as Queue<Message<*>>
+        return sender
+    }
 }
 
 /**
@@ -41,10 +68,13 @@ class MessageSenderFactoryForTesting : MessageSenderFactory {
 class MessageSenderForTesting<T : Any>(
     val endpoint: Endpoint<T>,
 
-    val config: Config
+    val config: Config,
+
+    /** A queue where to store messages sent via this object. */
+    private val queue: Queue<Message<T>>
 ) : MessageSender<T> {
     override fun send(message: Message<T>) {
-        println(message)
+        queue.offer(message)
     }
 }
 
