@@ -1,0 +1,26 @@
+= Kubernetes Transport Implementation
+
+This module provides an implementation of the transport abstraction layer using the
+https://github.com/kubernetes-client/java/[Kubernetes Java Client].
+
+== Synopsis
+The Kubernetes transport abstraction layer exchanges messages via environment variables. The sender creates a Kubernetes
+Job using the Kubernetes API, that runs the configured container image and sets the message content as environment
+variables. The container started by the Kubernetes Job acts as the receiver and constructs the message from the
+environment variables.
+
+== Configuration
+In order to use this module, the `type` property in the transport configuration must be set to `kubernetes`. The
+`namespace` property specifies the namespace inside the Kubernetes Cluster, in which the Jobs will be created. And the
+`imageName` property specifies the container image, that will run inside the Job.
+
+[source]
+----
+endpoint {
+    sender/receiver {
+        type = "kubernetes"
+        namespace = "namespace-inside-cluster"
+        imageName = "image-to-run"
+    }
+}
+----
