@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:kubernetes"))
     implementation(project(":transport:spi"))
 
     testImplementation(libs.kotestAssertionsCore)
