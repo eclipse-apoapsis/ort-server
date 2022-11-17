@@ -27,6 +27,8 @@ import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
+import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessagePublisherTest : StringSpec({
     "Messages to the Orchestrator can be published" {

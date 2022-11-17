@@ -31,6 +31,8 @@ import io.mockk.every
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
+import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageReceiverFactoryTest : StringSpec({
     afterAny {

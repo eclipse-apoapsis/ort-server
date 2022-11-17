@@ -86,3 +86,13 @@ MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, ::handler)
 ----
 
 The `createReceiver` call is blocking. It enters the message loop, which will wait for new messages and dispatch them to the handler function.
+
+== Testing support
+To simplify testing of message exchange between ORT server components, this module exposes a test transport implementation as a https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures[test fixture]. It can be enabled in the configuration of an endpoint like regular transport implementations using the name "testMessageTransport"; so a test class could create a special test configuration that refers to the testing transport.
+
+The implementation consists of the two factory classes `MessageSenderFactoryForTesting` and `MessageReceiverFactoryForTesting`. Both provide companion objects that can be used to interact with message senders and receivers in a controlled way:
+
+* With `MessageSenderFactoryForTesting.expectMessage()`, it can be tested whether the code under test has sent a message to a specific endpoint; this message is returned and can be further inspected.
+* `MessageReceiverFactoryForTesting.receive()` allows simulating an incoming message to an endpoint. The function passes the provided message to the `EndpointHandler` function used by the owning endpoint.
+
+These test implementations allow an end-to-end test of an ORT server endpoint: from an incoming request to the response(s) sent to other endpoints.

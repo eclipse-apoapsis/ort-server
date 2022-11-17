@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.ossreviewtoolkit.server.transport.testing
 
 import com.typesafe.config.Config
 
@@ -27,8 +27,15 @@ import io.kotest.matchers.shouldBe
 import java.util.Queue
 import java.util.concurrent.LinkedBlockingQueue
 
+import org.ossreviewtoolkit.server.transport.Endpoint
+import org.ossreviewtoolkit.server.transport.EndpointHandler
+import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
+import org.ossreviewtoolkit.server.transport.MessageSender
+import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+
 /** The name to identify the test transport implementation. */
-internal const val TEST_TRANSPORT_NAME = "testMessageTransport"
+const val TEST_TRANSPORT_NAME = "testMessageTransport"
 
 /**
  * A test [MessageSenderFactory] implementation that is referenced by test cases.

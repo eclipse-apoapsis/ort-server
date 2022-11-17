@@ -35,6 +35,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
+import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 
 class EndpointComponentTest : StringSpec({
     afterAny {

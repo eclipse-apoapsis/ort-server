@@ -32,6 +32,8 @@ import io.mockk.every
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
+import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageSenderFactoryTest : StringSpec({
     "A correct MessageSender should be created" {
