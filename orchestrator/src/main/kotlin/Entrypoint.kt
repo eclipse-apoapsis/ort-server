@@ -55,16 +55,12 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
 
         val orchestrator by inject<Orchestrator>()
 
-        when (message.payload) {
-            is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
+        when (val payload = message.payload) {
+            is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, payload)
 
-            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(
-                message.payload as AnalyzerWorkerResult
-            )
+            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(payload)
 
-            is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(
-                message.payload as AnalyzerWorkerError
-            )
+            is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(payload)
         }
     }
 
