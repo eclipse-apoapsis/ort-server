@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":model"))
 
     api(libs.exposedDao)
+    api(libs.koinCore)
 
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
@@ -50,6 +51,7 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.mockk)
     testImplementation(libs.testContainers)
     testImplementation(libs.testContainersPostgresql)
 }

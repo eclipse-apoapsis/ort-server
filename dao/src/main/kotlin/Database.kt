@@ -36,6 +36,9 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
 /**
  * Connect the database.
  */
@@ -106,6 +109,15 @@ fun createDatabaseConfig(config: Config) = DatabaseConfig(
     sslKey = config.getStringOrNull("database.sslkey"),
     sslRootCert = config.getStringOrNull("database.sslrootcert")
 )
+
+/**
+ * Return a Koin [Module] that sets up a database connection based on the current application configuration.
+ */
+fun databaseModule(): Module = module {
+    single { createDatabaseConfig(get()) }
+
+    single(createdAtStart = true) { createDataSource(get()).connect() }
+}
 
 /**
  * Read the configuration from [this] configuration defined in [path]. Returns *null* if the [path] is not available in
