@@ -19,19 +19,24 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
-import com.typesafe.config.ConfigFactory
+import org.koin.core.component.inject
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
-import org.ossreviewtoolkit.server.transport.MessagePublisher
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
+import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.transport.EndpointComponent
+import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 
 import org.slf4j.LoggerFactory
@@ -41,20 +46,14 @@ private val log = LoggerFactory.getLogger("org.ossreviewtoolkit.server.orchestra
 fun main() {
     log.info("Starting ORT-Server Orchestrator.")
 
-    val config = ConfigFactory.load()
+    OrchestratorComponent().start()
+}
 
-    createDataSource(createDatabaseConfig(config)).connect()
-
-    val orchestrator = Orchestrator(
-        DaoAnalyzerJobRepository(),
-        DaoRepositoryRepository(),
-        DaoOrtRunRepository(),
-        MessagePublisher(config)
-    )
-
-    // Register the message receiver and handle the messages.
-    MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config) { message ->
+class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(OrchestratorEndpoint) {
+    override val endpointHandler: EndpointHandler<OrchestratorMessage> = { message ->
         log.info("Received '${message.payload::class.simpleName}' message. TraceID: '${message.header.traceId}'.")
+
+        val orchestrator by inject<Orchestrator>()
 
         when (message.payload) {
             is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, message.payload as CreateOrtRun)
@@ -67,5 +66,17 @@ fun main() {
                 message.payload as AnalyzerWorkerError
             )
         }
+    }
+
+    override fun customModules(): List<Module> {
+        return listOf(orchestratorModule(), databaseModule())
+    }
+
+    private fun orchestratorModule(): Module = module {
+        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
+        singleOf<RepositoryRepository>(::DaoRepositoryRepository)
+        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
+
+        singleOf(::Orchestrator)
     }
 }

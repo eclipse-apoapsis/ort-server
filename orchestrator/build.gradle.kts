@@ -37,6 +37,8 @@ dependencies {
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:spi"))
 
+    testImplementation(testFixtures(project(":transport:spi")))
+    testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKotlinxTime)
     testImplementation(libs.kotestRunnerJunit5)
