@@ -52,8 +52,10 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSender
+import org.ossreviewtoolkit.server.transport.MessagePublisher
 
 class OrchestratorTest : WordSpec() {
     private val msgHeader = MessageHeader(
@@ -85,12 +87,12 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository = mockk<AnalyzerJobRepository>()
                 val repositoryRepository = mockk<RepositoryRepository>()
                 val ortRunRepository = mockk<OrtRunRepository>()
-                val analyzerSender = mockk<MessageSender<AnalyzeRequest>>()
+                val publisher = mockk<MessagePublisher>()
 
                 every { repositoryRepository.get(any()) } returns repository
                 every { analyzerJobRepository.create(any(), any()) } returns analyzerJob
                 every { analyzerJobRepository.update(any(), any(), any(), any()) } returns mockk()
-                every { analyzerSender.send(any()) } just runs
+                every { publisher.publish(AnalyzerEndpoint, any()) } just runs
 
                 val createOrtRun = CreateOrtRun(
                     OrtRun(
@@ -104,7 +106,7 @@ class OrchestratorTest : WordSpec() {
                     )
                 )
 
-                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, analyzerSender)
+                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, publisher)
                     .handleCreateOrtRun(msgHeader, createOrtRun)
 
                 verify(exactly = 1) {
@@ -115,8 +117,9 @@ class OrchestratorTest : WordSpec() {
                     )
 
                     // The message was sent.
-                    analyzerSender.send(
-                        message = withArg {
+                    publisher.publish(
+                        to = withArg { it shouldBe AnalyzerEndpoint },
+                        message = withArg<Message<AnalyzeRequest>> {
                             it.header shouldBe msgHeader
                             it.payload shouldBe AnalyzeRequest(analyzerJob.id)
                         }
@@ -137,14 +140,14 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository = mockk<AnalyzerJobRepository>()
                 val repositoryRepository = mockk<RepositoryRepository>()
                 val ortRunRepository = mockk<OrtRunRepository>()
-                val analyzerSender = mockk<MessageSender<AnalyzeRequest>>()
+                val publisher = mockk<MessagePublisher>()
 
                 val analyzerWorkerResult = AnalyzerWorkerResult(123)
 
                 every { analyzerJobRepository.get(analyzerWorkerResult.jobId) } returns analyzerJob
                 every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
 
-                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, analyzerSender)
+                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, publisher)
                     .handleAnalyzerWorkerResult(analyzerWorkerResult)
 
                 verify(exactly = 1) {
@@ -162,7 +165,7 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository = mockk<AnalyzerJobRepository>()
                 val repositoryRepository = mockk<RepositoryRepository>()
                 val ortRunRepository = mockk<OrtRunRepository>()
-                val analyzerSender = mockk<MessageSender<AnalyzeRequest>>()
+                val publisher = mockk<MessagePublisher>()
 
                 val analyzerWorkerError = AnalyzerWorkerError(123)
 
@@ -170,7 +173,7 @@ class OrchestratorTest : WordSpec() {
                 every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
                 every { ortRunRepository.update(any(), any()) } returns mockk()
 
-                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, analyzerSender)
+                Orchestrator(analyzerJobRepository, repositoryRepository, ortRunRepository, publisher)
                     .handleAnalyzerWorkerError(analyzerWorkerError)
 
                 verify(exactly = 1) {

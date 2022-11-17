@@ -31,9 +31,10 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSender
+import org.ossreviewtoolkit.server.transport.MessagePublisher
 
 import org.slf4j.LoggerFactory
 
@@ -46,7 +47,7 @@ class Orchestrator(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
-    private val analyzerSender: MessageSender<AnalyzeRequest>
+    private val publisher: MessagePublisher
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -63,7 +64,8 @@ class Orchestrator(
                 ortRun.jobs.analyzer
             )
 
-            analyzerSender.send(
+            publisher.publish(
+                AnalyzerEndpoint,
                 Message(
                     header = header,
                     payload = AnalyzeRequest(analyzerJob.id)

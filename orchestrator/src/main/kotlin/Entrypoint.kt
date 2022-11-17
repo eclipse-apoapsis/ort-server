@@ -30,9 +30,8 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 
 import org.slf4j.LoggerFactory
@@ -50,7 +49,7 @@ fun main() {
         DaoAnalyzerJobRepository(),
         DaoRepositoryRepository(),
         DaoOrtRunRepository(),
-        MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        MessagePublisher(config)
     )
 
     // Register the message receiver and handle the messages.
