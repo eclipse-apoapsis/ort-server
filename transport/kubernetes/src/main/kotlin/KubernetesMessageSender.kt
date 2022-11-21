@@ -47,7 +47,7 @@ internal class KubernetesMessageSender<T : Any>(
     /** A map for environment variables, which will be set for the container that runs in the Pod. **/
     val envVars: Map<String, String>,
 
-    endpoint: Endpoint<T>
+    val endpoint: Endpoint<T>
 ) : MessageSender<T> {
     /** The object to serialize the payload of messages. */
     private val serializer = JsonSerializer.forClass(endpoint.messageClass)
@@ -63,7 +63,7 @@ internal class KubernetesMessageSender<T : Any>(
         //       configurable in the future.
         val jobBody = V1JobBuilder()
             .withNewMetadata()
-            .withName("job-$imageName-${message.header.traceId}")
+            .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .endMetadata()
             .withNewSpec()
             .withBackoffLimit(2)
@@ -71,7 +71,7 @@ internal class KubernetesMessageSender<T : Any>(
             .withNewSpec()
             .withRestartPolicy("Always")
             .addNewContainer()
-            .withName("pod-$imageName-${message.header.traceId}")
+            .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .withImage(imageName)
             .withCommand(commands)
             .withImagePullPolicy("Never")
