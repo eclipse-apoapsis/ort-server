@@ -1,3 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orchestrator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ort-server
+  name: api-client
+rules:
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-client
+  namespace: ort-server
+subjects:
+  - kind: ServiceAccount
+    name: orchestrator
+    namespace: ort-server
+roleRef:
+  kind: Role
+  name: api-client
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +43,7 @@ spec:
       labels:
         ort-server.service: orchestrator
     spec:
+      serviceAccountName: orchestrator
       initContainers:
         - name: init-postgres
           image: busybox:latest
