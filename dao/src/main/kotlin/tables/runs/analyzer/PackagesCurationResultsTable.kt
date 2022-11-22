@@ -30,17 +30,17 @@ import org.ossreviewtoolkit.server.model.runs.PackageCurationResult
  * An intermediate table to store references from [PackageCurationDataTable] and [CuratedPackagesTable].
  */
 object PackagesCurationResultsTable : LongIdTable("packages_curation_results") {
-    val baseCuration = reference("base_curation_id", PackageCurationDataTable)
-    val appliedCuration = reference("applied_curation_id", PackageCurationDataTable)
-    val curatedPackage = reference("curated_package_id", CuratedPackagesTable)
+    val baseCurationId = reference("base_curation_id", PackageCurationDataTable)
+    val appliedCurationId = reference("applied_curation_id", PackageCurationDataTable)
+    val curatedPackageId = reference("curated_package_id", CuratedPackagesTable)
 }
 
 class PackageCurationResultDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageCurationResultDao>(PackagesCurationResultsTable)
 
-    var baseCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.baseCuration
-    var appliedCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.appliedCuration
-    var curatedPackage by CuratedPackageDao referencedOn PackagesCurationResultsTable.curatedPackage
+    var baseCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.baseCurationId
+    var appliedCuration by PackageCurationDataDao referencedOn PackagesCurationResultsTable.appliedCurationId
+    var curatedPackage by CuratedPackageDao referencedOn PackagesCurationResultsTable.curatedPackageId
 
     fun mapToModel() = PackageCurationResult(id.value, baseCuration.mapToModel(), appliedCuration.mapToModel())
 }

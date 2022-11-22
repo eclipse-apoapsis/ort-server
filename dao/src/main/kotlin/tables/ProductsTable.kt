@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.Product
 object ProductsTable : LongIdTable("products") {
     val name = text("name")
     val description = text("description").nullable()
-    val organization = reference("organization_id", OrganizationsTable.id, ReferenceOption.CASCADE)
+    val organizationId = reference("organization_id", OrganizationsTable.id, ReferenceOption.CASCADE)
 }
 
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {
@@ -41,7 +41,7 @@ class ProductDao(id: EntityID<Long>) : LongEntity(id) {
 
     var name by ProductsTable.name
     var description by ProductsTable.description
-    var organization by OrganizationDao referencedOn ProductsTable.organization
+    var organization by OrganizationDao referencedOn ProductsTable.organizationId
 
     fun mapToModel() = Product(id.value, name, description)
 }

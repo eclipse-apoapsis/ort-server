@@ -45,7 +45,7 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
     override fun get(id: Long) = blockingQuery { AnalyzerJobDao[id].mapToModel() }.getOrNull()
 
     override fun getForOrtRun(ortRunId: Long): AnalyzerJob? = blockingQuery {
-        AnalyzerJobDao.find { AnalyzerJobsTable.ortRun eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
+        AnalyzerJobDao.find { AnalyzerJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }.getOrNull()
 
     override fun update(

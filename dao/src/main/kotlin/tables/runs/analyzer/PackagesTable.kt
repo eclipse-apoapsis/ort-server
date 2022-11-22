@@ -40,17 +40,17 @@ import org.ossreviewtoolkit.server.model.runs.Package
  * A table to represent all metadata for a software package.
  */
 object PackagesTable : LongIdTable("packages") {
-    val identifier = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
-    val vcs = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val vcsProcessed = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val binaryArtifact = reference("binary_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
-    val sourceArtifact = reference("source_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
-    val concludedLicense = reference(
+    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
+    val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
+    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
+    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
+    val concludedLicenseSpdxId = reference(
         "concluded_license_spdx_id",
         LicenseSpdxTable.id,
         ReferenceOption.CASCADE
     ).nullable()
-    val processedDeclaredLicense = reference(
+    val processedDeclaredLicenseId = reference(
         "processed_declared_license_id",
         ProcessedDeclaredLicensesTable.id,
         ReferenceOption.CASCADE
@@ -67,16 +67,16 @@ object PackagesTable : LongIdTable("packages") {
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageDao>(PackagesTable)
 
-    var identifier by IdentifierDao referencedOn PackagesTable.identifier
-    var vcs by VcsInfoDao referencedOn PackagesTable.vcs
-    var vcsProcessed by VcsInfoDao referencedOn PackagesTable.vcsProcessed
+    var identifier by IdentifierDao referencedOn PackagesTable.identifierId
+    var vcs by VcsInfoDao referencedOn PackagesTable.vcsId
+    var vcsProcessed by VcsInfoDao referencedOn PackagesTable.vcsProcessedId
     var authors by AuthorDao via PackagesAuthorsTable
-    var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifact
-    var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifact
-    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicense
+    var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifactId
+    var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
+    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicenseSpdxId
     var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
     var processedDeclaredLicense by ProcessedDeclaredLicenseDao optionalReferencedOn
-            PackagesTable.processedDeclaredLicense
+            PackagesTable.processedDeclaredLicenseId
 
     var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl

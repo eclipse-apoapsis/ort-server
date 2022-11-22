@@ -34,10 +34,10 @@ import org.ossreviewtoolkit.server.model.runs.PackageCurationData
  * A table to represent a package curation.
  */
 object PackageCurationDataTable : LongIdTable("package_curation_data") {
-    val binaryArtifact = reference("binary_artifact_id", RemoteArtifactsTable.id).nullable()
-    val sourceArtifact = reference("source_artifact_id", RemoteArtifactsTable.id).nullable()
-    val vcs = reference("vcs_id", CurationVcsInfoTable.id).nullable()
-    val concludedLicense = reference("concluded_license_spdx_id", LicenseSpdxTable.id).nullable()
+    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id).nullable()
+    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id).nullable()
+    val vcsId = reference("vcs_id", CurationVcsInfoTable.id).nullable()
+    val concludedLicenseSpdxId = reference("concluded_license_spdx_id", LicenseSpdxTable.id).nullable()
 
     val purl = text("purl").nullable()
     val cpe = text("cpe").nullable()
@@ -58,10 +58,10 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var homepageUrl by PackageCurationDataTable.homepageUrl
     var isModified by PackageCurationDataTable.isModified
     var isMetadataOnly by PackageCurationDataTable.isMetadataOnly
-    var binaryArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.binaryArtifact
-    var sourceArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.sourceArtifact
-    var vcs by CurationVcsInfoDao optionalReferencedOn PackageCurationDataTable.vcs
-    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackageCurationDataTable.concludedLicense
+    var binaryArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.binaryArtifactId
+    var sourceArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.sourceArtifactId
+    var vcs by CurationVcsInfoDao optionalReferencedOn PackageCurationDataTable.vcsId
+    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackageCurationDataTable.concludedLicenseSpdxId
     var authors by AuthorDao via PackageCurationDataAuthorsTable
 
     fun mapToModel() = PackageCurationData(

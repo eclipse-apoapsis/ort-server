@@ -30,15 +30,15 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
  */
 object PackageCurationDataDeclaredLicenseMappingsTable :
     Table("package_curation_data_declared_license_mappings") {
-    val packageCurationData = reference("package_curation_data_id", PackageCurationDataTable)
-    val licenseString = reference("license_string_id", LicenseStringsTable)
-    val licenseSpdx = reference("license_spdx_id", LicenseSpdxTable)
+    val packageCurationDataId = reference("package_curation_data_id", PackageCurationDataTable)
+    val licenseStringId = reference("license_string_id", LicenseStringsTable)
+    val licenseSpdxId = reference("license_spdx_id", LicenseSpdxTable)
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(
-            packageCurationData,
-            licenseString,
-            licenseSpdx,
+            packageCurationDataId,
+            licenseStringId,
+            licenseSpdxId,
             name = "${tableName}_pkey"
         )
 }

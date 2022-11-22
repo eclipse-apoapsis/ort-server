@@ -34,9 +34,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
  * and [LicenseSpdxTable].
  */
 object ProcessedDeclaredLicensesMappedLicensesTable : LongIdTable("processed_declared_licenses_mapped_licenses") {
-    val processedDeclaredLicense = reference("processed_declared_license_id", ProcessedDeclaredLicensesTable)
-    val licenseString = reference("license_string_id", LicenseStringsTable)
-    val licenseSpdx = reference("license_spdx_id", LicenseSpdxTable)
+    val processedDeclaredLicenseId = reference("processed_declared_license_id", ProcessedDeclaredLicensesTable)
+    val licenseStringId = reference("license_string_id", LicenseStringsTable)
+    val licenseSpdxId = reference("license_spdx_id", LicenseSpdxTable)
 }
 
 class ProcessedDeclaredLicensesMappedLicenseDao(id: EntityID<Long>) : LongEntity(id) {
@@ -44,7 +44,7 @@ class ProcessedDeclaredLicensesMappedLicenseDao(id: EntityID<Long>) : LongEntity
         LongEntityClass<ProcessedDeclaredLicensesMappedLicenseDao>(ProcessedDeclaredLicensesMappedLicensesTable)
 
     var processedDeclaredLicenseDao by ProcessedDeclaredLicenseDao referencedOn
-            ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicense
-    var licenseString by LicenseStringDao referencedOn ProcessedDeclaredLicensesMappedLicensesTable.licenseString
-    var licenseSpdx by LicenseSpdxDao referencedOn ProcessedDeclaredLicensesMappedLicensesTable.licenseSpdx
+            ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicenseId
+    var licenseString by LicenseStringDao referencedOn ProcessedDeclaredLicensesMappedLicensesTable.licenseStringId
+    var licenseSpdx by LicenseSpdxDao referencedOn ProcessedDeclaredLicensesMappedLicensesTable.licenseSpdxId
 }

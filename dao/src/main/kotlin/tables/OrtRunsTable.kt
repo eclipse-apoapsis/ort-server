@@ -37,7 +37,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
  */
 object OrtRunsTable : LongIdTable("ort_runs") {
     val index = long("index")
-    val repository = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE)
+    val repositoryId = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE)
     val revision = text("revision")
     val createdAt = timestamp("created_at")
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
@@ -50,7 +50,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtRunDao>(OrtRunsTable)
 
     var index by OrtRunsTable.index
-    var repository by RepositoryDao referencedOn OrtRunsTable.repository
+    var repository by RepositoryDao referencedOn OrtRunsTable.repositoryId
     var revision by OrtRunsTable.revision
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var jobConfigurations by OrtRunsTable.jobConfigurations

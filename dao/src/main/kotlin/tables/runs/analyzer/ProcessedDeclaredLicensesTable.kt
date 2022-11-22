@@ -33,16 +33,16 @@ import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
  * A table to represent a processed declared license.
  */
 object ProcessedDeclaredLicensesTable : LongIdTable("processed_declared_licenses") {
-    val licenseSpdx = reference("license_spdx_id", LicenseSpdxTable.id).nullable()
+    val licenseSpdxId = reference("license_spdx_id", LicenseSpdxTable.id).nullable()
 }
 
 class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ProcessedDeclaredLicenseDao>(ProcessedDeclaredLicensesTable)
 
-    var licenseSpdx by LicenseSpdxDao optionalReferencedOn ProcessedDeclaredLicensesTable.licenseSpdx
+    var licenseSpdx by LicenseSpdxDao optionalReferencedOn ProcessedDeclaredLicensesTable.licenseSpdxId
     var unmapped by LicenseStringDao via ProcessedDeclaredLicensesUnmappedLicensesTable
     val mapped by ProcessedDeclaredLicensesMappedLicenseDao referrersOn
-            ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicense
+            ProcessedDeclaredLicensesMappedLicensesTable.processedDeclaredLicenseId
 
     fun mapToModel() = ProcessedDeclaredLicense(
         id.value,

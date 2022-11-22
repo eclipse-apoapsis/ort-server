@@ -34,7 +34,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 object RepositoriesTable : LongIdTable("repositories") {
     val type = enumerationByName<RepositoryType>("type", 128)
     val url = text("url")
-    val product = reference("product_id", ProductsTable.id, ReferenceOption.CASCADE)
+    val productId = reference("product_id", ProductsTable.id, ReferenceOption.CASCADE)
 }
 
 class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
@@ -42,7 +42,7 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
 
     var type by RepositoriesTable.type
     var url by RepositoriesTable.url
-    var product by ProductDao referencedOn RepositoriesTable.product
+    var product by ProductDao referencedOn RepositoriesTable.productId
 
     fun mapToModel() = Repository(id.value, type, url)
 }

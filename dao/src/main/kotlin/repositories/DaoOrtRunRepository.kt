@@ -56,12 +56,12 @@ class DaoOrtRunRepository : OrtRunRepository {
     override fun get(id: Long): OrtRun? = blockingQuery { OrtRunDao[id].mapToModel() }.getOrNull()
 
     override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQuery {
-        OrtRunDao.find { OrtRunsTable.repository eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
+        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.mapToModel()
     }.getOrNull()
 
     override fun listForRepository(repositoryId: Long): List<OrtRun> = blockingQuery {
-        OrtRunDao.find { OrtRunsTable.repository eq repositoryId }.map { it.mapToModel() }
+        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }.map { it.mapToModel() }
     }.getOrElse {
         logger.error("Cannot list repository for id $repositoryId.", it)
         emptyList()

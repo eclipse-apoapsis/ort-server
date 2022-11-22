@@ -38,22 +38,22 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
  * A table to represent an analyzer run.
  */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
-    val analyzerJob = reference("analyzer_job_id", AnalyzerJobsTable.id, ReferenceOption.CASCADE)
+    val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable.id, ReferenceOption.CASCADE)
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val environment = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable)
 
-    var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJob
+    var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJobId
     var startTime by AnalyzerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
-    var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environment
+    var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
-    val projects by ProjectDao referrersOn ProjectsTable.analyzerRun
-    val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRun
+    val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
+    val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRunId
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
 
     fun mapToModel() = AnalyzerRun(

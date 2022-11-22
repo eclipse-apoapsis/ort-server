@@ -27,9 +27,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
  * An intermediate table to store references from [ProjectsTable] and [LicenseStringsTable].
  */
 object ProjectsDeclaredLicensesTable : Table("projects_declared_licenses") {
-    val project = reference("project_id", ProjectsTable)
-    val licenseString = reference("license_string_id", LicenseStringsTable)
+    val projectId = reference("project_id", ProjectsTable)
+    val licenseStringId = reference("license_string_id", LicenseStringsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(project, licenseString, name = "${tableName}_pkey")
+        get() = PrimaryKey(projectId, licenseStringId, name = "${tableName}_pkey")
 }

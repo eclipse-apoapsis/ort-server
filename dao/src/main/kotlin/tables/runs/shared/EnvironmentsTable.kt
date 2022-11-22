@@ -45,8 +45,8 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
     var os by EnvironmentsTable.os
     var processors by EnvironmentsTable.processors
     var maxMemory by EnvironmentsTable.maxMemory
-    val variables by EnvironmentVariableDao referrersOn EnvironmentVariablesTable.environment
-    val toolVersions by EnvironmentToolVersionDao referrersOn EnvironmentToolVersionsTable.environment
+    val variables by EnvironmentVariableDao referrersOn EnvironmentVariablesTable.environmentId
+    val toolVersions by EnvironmentToolVersionDao referrersOn EnvironmentToolVersionsTable.environmentId
 
     fun mapToModel() = Environment(
         id.value,

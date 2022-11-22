@@ -129,10 +129,10 @@ class DaoEnvironmentRepositoryTest : DatabaseTest() {
             environmentRepository.list() should beEmpty()
 
             transaction {
-                EnvironmentVariableDao.find { EnvironmentVariablesTable.environment eq createdEnvironment.id }
+                EnvironmentVariableDao.find { EnvironmentVariablesTable.environmentId eq createdEnvironment.id }
                     .toList() should beEmpty()
 
-                EnvironmentToolVersionDao.find { EnvironmentToolVersionsTable.environment eq createdEnvironment.id }
+                EnvironmentToolVersionDao.find { EnvironmentToolVersionsTable.environmentId eq createdEnvironment.id }
                     .toList() should beEmpty()
             }
         }

@@ -29,7 +29,7 @@ import org.jetbrains.exposed.sql.ReferenceOption
  * A table to represent the tool versions for a specific environment.
  */
 object EnvironmentToolVersionsTable : LongIdTable("environment_tool_versions") {
-    val environment = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
     val name = text("name")
     val version = text("version")
 }
@@ -37,7 +37,7 @@ object EnvironmentToolVersionsTable : LongIdTable("environment_tool_versions") {
 class EnvironmentToolVersionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EnvironmentToolVersionDao>(EnvironmentToolVersionsTable)
 
-    var environment by EnvironmentDao referencedOn EnvironmentToolVersionsTable.environment
+    var environment by EnvironmentDao referencedOn EnvironmentToolVersionsTable.environmentId
     var name by EnvironmentToolVersionsTable.name
     var version by EnvironmentToolVersionsTable.version
 }

@@ -27,9 +27,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersOrtIssuesTa
  * An intermediate table to store references from [AnalyzerRunsTable] and [IdentifiersOrtIssuesTable].
  */
 object AnalyzerRunsIdentifiersOrtIssuesTable : Table("analyzer_runs_identifiers_ort_issues") {
-    val analyzerRun = reference("analyzer_run_id", AnalyzerRunsTable)
-    val identifierOrtIssue = reference("identifier_ort_issue_id", IdentifiersOrtIssuesTable)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
+    val identifierOrtIssueId = reference("identifier_ort_issue_id", IdentifiersOrtIssuesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(analyzerRun, identifierOrtIssue, name = "${tableName}_pkey")
+        get() = PrimaryKey(analyzerRunId, identifierOrtIssueId, name = "${tableName}_pkey")
 }

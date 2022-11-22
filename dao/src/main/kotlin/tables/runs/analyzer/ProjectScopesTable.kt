@@ -29,7 +29,7 @@ import org.jetbrains.exposed.sql.ReferenceOption
  * A table to represent project scopes.
  */
 object ProjectScopesTable : LongIdTable("project_scopes") {
-    var project = reference("project_id", ProjectsTable.id, ReferenceOption.CASCADE)
+    var projectId = reference("project_id", ProjectsTable.id, ReferenceOption.CASCADE)
     var name = text("name")
 }
 
@@ -37,5 +37,5 @@ class ProjectScopeDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ProjectScopeDao>(ProjectScopesTable)
 
     var name by ProjectScopesTable.name
-    var project by ProjectDao referencedOn ProjectScopesTable.project
+    var project by ProjectDao referencedOn ProjectScopesTable.projectId
 }

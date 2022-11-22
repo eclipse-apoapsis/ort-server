@@ -38,7 +38,7 @@ import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
  * A table to represent an analyzer job.
  */
 object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
-    val ortRun = reference("ort_run_id", OrtRunsTable.id, ReferenceOption.CASCADE)
+    val ortRunId = reference("ort_run_id", OrtRunsTable.id, ReferenceOption.CASCADE)
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
@@ -49,13 +49,13 @@ object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
 class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerJobDao>(AnalyzerJobsTable)
 
-    var ortRun by OrtRunDao referencedOn AnalyzerJobsTable.ortRun
+    var ortRun by OrtRunDao referencedOn AnalyzerJobsTable.ortRunId
     var createdAt by AnalyzerJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by AnalyzerJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
     var finishedAt by AnalyzerJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by AnalyzerJobsTable.configuration
     var status by AnalyzerJobsTable.status
-    val analyzerRun by AnalyzerRunDao optionalBackReferencedOn AnalyzerRunsTable.analyzerJob
+    val analyzerRun by AnalyzerRunDao optionalBackReferencedOn AnalyzerRunsTable.analyzerJobId
 
     fun mapToModel() = AnalyzerJob(
         id.value,

@@ -25,9 +25,9 @@ import org.jetbrains.exposed.sql.Table
  * An intermediate table to store references from [ProjectsTable] and [AuthorsTable].
  */
 object ProjectsAuthorsTable : Table("projects_authors") {
-    val author = reference("author_id", AuthorsTable)
-    val project = reference("project_id", ProjectsTable)
+    val authorId = reference("author_id", AuthorsTable)
+    val projectId = reference("project_id", ProjectsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(author, project, name = "${tableName}_pkey")
+        get() = PrimaryKey(authorId, projectId, name = "${tableName}_pkey")
 }

@@ -29,7 +29,7 @@ import org.jetbrains.exposed.sql.ReferenceOption
  * A table to represent environment variables for a specific environment.
  */
 object EnvironmentVariablesTable : LongIdTable("environment_variables") {
-    val environment = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
     val name = text("name")
     val value = text("value")
 }
@@ -37,7 +37,7 @@ object EnvironmentVariablesTable : LongIdTable("environment_variables") {
 class EnvironmentVariableDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EnvironmentVariableDao>(EnvironmentVariablesTable)
 
-    var environment by EnvironmentDao referencedOn EnvironmentVariablesTable.environment
+    var environment by EnvironmentDao referencedOn EnvironmentVariablesTable.environmentId
     var name by EnvironmentVariablesTable.name
     var value by EnvironmentVariablesTable.value
 }

@@ -28,8 +28,8 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
  */
 object PackagesDeclaredLicensesTable : Table("packages_declared_licenses") {
     val packageId = reference("package_id", PackagesTable)
-    val licenseString = reference("license_string_id", LicenseStringsTable)
+    val licenseStringId = reference("license_string_id", LicenseStringsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(packageId, licenseString, name = "${tableName}_pkey")
+        get() = PrimaryKey(packageId, licenseStringId, name = "${tableName}_pkey")
 }

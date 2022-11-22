@@ -32,15 +32,15 @@ import org.ossreviewtoolkit.server.model.runs.CuratedPackage
  */
 object CuratedPackagesTable : LongIdTable("curated_packages") {
     val packageId = reference("package_id", PackagesTable.id, ReferenceOption.CASCADE)
-    val analyzerRun = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
 }
 
 class CuratedPackageDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<CuratedPackageDao>(CuratedPackagesTable)
 
     var packageId by PackageDao referencedOn CuratedPackagesTable.packageId
-    var analyzerRun by AnalyzerRunDao referencedOn CuratedPackagesTable.analyzerRun
-    val curations by PackageCurationResultDao referrersOn PackagesCurationResultsTable.curatedPackage
+    var analyzerRun by AnalyzerRunDao referencedOn CuratedPackagesTable.analyzerRunId
+    val curations by PackageCurationResultDao referrersOn PackagesCurationResultsTable.curatedPackageId
 
     fun mapToModel() = CuratedPackage(
         id.value,

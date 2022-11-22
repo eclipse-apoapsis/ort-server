@@ -36,11 +36,11 @@ import org.ossreviewtoolkit.server.model.runs.Project
  * A table to represent a software package as a project.
  */
 object ProjectsTable : LongIdTable("projects") {
-    val identifier = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
-    val vcs = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val vcsProcessed = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val analyzerRun = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
-    val processedDeclaredLicense = reference(
+    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
+    val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
+    val processedDeclaredLicenseId = reference(
         "processed_declared_license_id",
         ProcessedDeclaredLicensesTable.id,
         ReferenceOption.CASCADE
@@ -54,14 +54,14 @@ object ProjectsTable : LongIdTable("projects") {
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ProjectDao>(ProjectsTable)
 
-    var identifier by IdentifierDao referencedOn ProjectsTable.identifier
-    var vcs by VcsInfoDao referencedOn ProjectsTable.vcs
-    var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessed
-    var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRun
+    var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
+    var vcs by VcsInfoDao referencedOn ProjectsTable.vcsId
+    var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessedId
+    var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRunId
     var authors by AuthorDao via ProjectsAuthorsTable
     var declaredLicenses by LicenseStringDao via ProjectsDeclaredLicensesTable
-    var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn ProjectsTable.processedDeclaredLicense
-    val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.project
+    var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn ProjectsTable.processedDeclaredLicenseId
+    val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     var cpe by ProjectsTable.cpe
     var homepageUrl by ProjectsTable.homepageUrl

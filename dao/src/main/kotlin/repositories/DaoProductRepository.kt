@@ -38,7 +38,7 @@ class DaoProductRepository : ProductRepository {
     override fun get(id: Long) = blockingQuery { ProductDao[id].mapToModel() }.getOrNull()
 
     override fun listForOrganization(organizationId: Long) = blockingQuery {
-        ProductDao.find { ProductsTable.organization eq organizationId }.map { it.mapToModel() }
+        ProductDao.find { ProductsTable.organizationId eq organizationId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
     override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {

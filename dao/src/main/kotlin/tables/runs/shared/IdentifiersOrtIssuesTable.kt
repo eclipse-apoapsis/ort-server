@@ -28,12 +28,12 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  * An intermediate table to store references from [IdentifiersTable] and [OrtIssuesTable].
  */
 object IdentifiersOrtIssuesTable : LongIdTable("identifiers_ort_issues") {
-    val identifier = reference("identifier_id", IdentifiersTable)
-    val ortIssue = reference("ort_issue_id", OrtIssuesTable)
+    val identifierId = reference("identifier_id", IdentifiersTable)
+    val ortIssueId = reference("ort_issue_id", OrtIssuesTable)
 }
 
 class IdentifierOrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<IdentifierOrtIssueDao>(IdentifiersOrtIssuesTable)
-    var identifier by IdentifierDao referencedOn IdentifiersOrtIssuesTable.identifier
-    var ortIssueDao by OrtIssueDao referencedOn IdentifiersOrtIssuesTable.ortIssue
+    var identifier by IdentifierDao referencedOn IdentifiersOrtIssuesTable.identifierId
+    var ortIssueDao by OrtIssueDao referencedOn IdentifiersOrtIssuesTable.ortIssueId
 }

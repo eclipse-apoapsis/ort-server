@@ -39,7 +39,7 @@ class DaoRepositoryRepository : RepositoryRepository {
     override fun get(id: Long) = blockingQuery { RepositoryDao[id].mapToModel() }.getOrNull()
 
     override fun listForProduct(productId: Long) = blockingQuery {
-        RepositoryDao.find { RepositoriesTable.product eq productId }.map { it.mapToModel() }
+        RepositoryDao.find { RepositoriesTable.productId eq productId }.map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
     override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = blockingQuery {

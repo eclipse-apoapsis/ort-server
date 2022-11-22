@@ -27,16 +27,16 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
  * An intermediate table to store references from [ProcessedDeclaredLicensesTable] and [LicenseStringsTable].
  */
 object ProcessedDeclaredLicensesUnmappedLicensesTable : Table("processed_declared_licenses_unmapped_licenses") {
-    val processedDeclaredLicense = reference(
+    val processedDeclaredLicenseId = reference(
         "processed_declared_license_id",
         ProcessedDeclaredLicensesTable
     )
-    val licenseString = reference("license_string_id", LicenseStringsTable)
+    val licenseStringId = reference("license_string_id", LicenseStringsTable)
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(
-            processedDeclaredLicense,
-            licenseString,
+            processedDeclaredLicenseId,
+            licenseStringId,
             name = "${tableName}_pkey"
         )
 }
