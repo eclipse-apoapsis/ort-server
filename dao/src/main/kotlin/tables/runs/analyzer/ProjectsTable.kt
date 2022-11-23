@@ -40,11 +40,6 @@ object ProjectsTable : LongIdTable("projects") {
     val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
-    val processedDeclaredLicenseId = reference(
-        "processed_declared_license_id",
-        ProcessedDeclaredLicensesTable.id,
-        ReferenceOption.CASCADE
-    )
 
     val cpe = text("cpe").nullable()
     val homepageUrl = text("homepage_url")
@@ -60,7 +55,6 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRunId
     var authors by AuthorDao via ProjectsAuthorsTable
     var declaredLicenses by LicenseStringDao via ProjectsDeclaredLicensesTable
-    var processedDeclaredLicense by ProcessedDeclaredLicenseDao referencedOn ProjectsTable.processedDeclaredLicenseId
     val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     var cpe by ProjectsTable.cpe
@@ -74,7 +68,6 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         definitionFilePath,
         authors.map(AuthorDao::mapToModel).toSet(),
         declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
-        processedDeclaredLicense.mapToModel(),
         vcs.mapToModel(),
         vcsProcessed.mapToModel(),
         homepageUrl,

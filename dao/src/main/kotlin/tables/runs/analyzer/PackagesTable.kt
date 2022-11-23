@@ -50,11 +50,6 @@ object PackagesTable : LongIdTable("packages") {
         LicenseSpdxTable.id,
         ReferenceOption.CASCADE
     ).nullable()
-    val processedDeclaredLicenseId = reference(
-        "processed_declared_license_id",
-        ProcessedDeclaredLicensesTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
 
     val cpe = text("cpe").nullable()
     val purl = text("purl")
@@ -75,8 +70,6 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
     var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicenseSpdxId
     var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
-    var processedDeclaredLicense by ProcessedDeclaredLicenseDao optionalReferencedOn
-            PackagesTable.processedDeclaredLicenseId
 
     var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl
@@ -92,7 +85,6 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         cpe,
         authors.map(AuthorDao::mapToModel).toSet(),
         declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
-        processedDeclaredLicense?.mapToModel(),
         concludedLicense?.mapToModel(),
         description,
         homepageUrl,

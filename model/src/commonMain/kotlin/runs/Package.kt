@@ -26,7 +26,6 @@ data class Package(
     val cpe: String? = null,
     val authors: Set<Author>,
     val declaredLicenses: Set<LicenseString>,
-    val declaredLicensesProcessed: ProcessedDeclaredLicense?,
     val concludedLicense: LicenseSpdx? = null,
     val description: String,
     val homepageUrl: String,
