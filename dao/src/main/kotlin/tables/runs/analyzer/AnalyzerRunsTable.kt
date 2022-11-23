@@ -53,6 +53,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
+    var packages by PackageDao via PackagesAnalyzerRunsTable
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
 
     fun mapToModel() = AnalyzerRun(

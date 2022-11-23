@@ -24,6 +24,14 @@ CREATE TABLE packages
     cpe                       text                               NULL
 );
 
+CREATE TABLE packages_analyzer_runs
+(
+    package_id      bigint REFERENCES packages      NOT NULL,
+    analyzer_run_id bigint REFERENCES analyzer_runs NOT NULL,
+
+    PRIMARY KEY (package_id, analyzer_run_id)
+);
+
 CREATE TABLE packages_declared_licenses
 (
     package_id        bigint REFERENCES packages        NOT NULL,

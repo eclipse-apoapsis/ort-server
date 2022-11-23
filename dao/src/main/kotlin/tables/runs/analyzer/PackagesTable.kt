@@ -70,6 +70,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
     var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicenseSpdxId
     var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
+    var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
     var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl
