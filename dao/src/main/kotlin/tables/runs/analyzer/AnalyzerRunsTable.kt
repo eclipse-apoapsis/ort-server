@@ -53,7 +53,6 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
-    val packages by CuratedPackageDao referrersOn CuratedPackagesTable.analyzerRunId
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
 
     fun mapToModel() = AnalyzerRun(
@@ -64,7 +63,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
         environment.mapToModel(),
         analyzerConfiguration.mapToModel(),
         projects.map(ProjectDao::mapToModel).toSet(),
-        packages.map(CuratedPackageDao::mapToModel).toSet(),
+        emptySet(),
         issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
             identifier.mapToModel() to
                     idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }

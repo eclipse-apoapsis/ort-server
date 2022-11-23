@@ -29,6 +29,6 @@ data class AnalyzerRun(
     val environment: Environment,
     val config: AnalyzerConfiguration,
     val projects: Set<Project>,
-    val packages: Set<CuratedPackage>,
+    val packages: Set<Package>,
     val issues: Map<Identifier, List<OrtIssue>>
 )

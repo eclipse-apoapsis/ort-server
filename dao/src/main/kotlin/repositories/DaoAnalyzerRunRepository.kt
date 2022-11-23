@@ -32,9 +32,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.CuratedPackage
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.Project
 
 /**
@@ -48,7 +48,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         endTime: Instant,
         config: AnalyzerConfiguration,
         projects: Set<Project>,
-        packages: Set<CuratedPackage>,
+        packages: Set<Package>,
         issues: Map<Identifier, List<OrtIssue>>
     ): AnalyzerRun = blockingQuery {
         val analyzerRun = AnalyzerRunDao.new {
