@@ -23,7 +23,9 @@ CREATE TABLE vcs_info
     type     text NOT NULL,
     url      text NOT NULL,
     revision text NOT NULL,
-    path     text NOT NULL
+    path     text NOT NULL,
+
+    UNIQUE (type, url, revision, path)
 );
 
 CREATE TABLE authors
