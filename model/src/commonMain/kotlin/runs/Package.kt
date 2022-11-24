@@ -24,7 +24,7 @@ data class Package(
     val identifier: Identifier,
     val purl: String,
     val cpe: String? = null,
-    val authors: Set<Author>,
+    val authors: Set<String>,
     val declaredLicenses: Set<String>,
     val description: String,
     val homepageUrl: String,

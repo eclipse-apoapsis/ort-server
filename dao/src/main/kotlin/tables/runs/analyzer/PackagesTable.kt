@@ -76,7 +76,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         identifier.mapToModel(),
         purl,
         cpe,
-        authors.map(AuthorDao::mapToModel).toSet(),
+        authors.mapTo(mutableSetOf()) { it.name },
         declaredLicenses.mapTo(mutableSetOf()) { it.name },
         description,
         homepageUrl,

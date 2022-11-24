@@ -24,7 +24,7 @@ data class Project(
     val identifier: Identifier,
     val cpe: String? = null,
     val definitionFilePath: String,
-    val authors: Set<Author>,
+    val authors: Set<String>,
     val declaredLicenses: Set<String>,
     val vcs: VcsInfo,
     val vcsProcessed: VcsInfo,

@@ -24,8 +24,6 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.model.runs.Author
-
 /**
  * A table to represent an author.
  */
@@ -37,6 +35,4 @@ class AuthorDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AuthorDao>(AuthorsTable)
 
     var name by AuthorsTable.name
-
-    fun mapToModel() = Author(id.value, name)
 }
