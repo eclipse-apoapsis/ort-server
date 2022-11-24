@@ -1,7 +1,9 @@
 CREATE TABLE declared_licenses
 (
     id   bigserial PRIMARY KEY,
-    name text NOT NULL
+    name text NOT NULL,
+
+    UNIQUE(name)
 );
 
 CREATE TABLE identifiers
