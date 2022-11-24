@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -38,7 +39,15 @@ object VcsInfoTable : LongIdTable("vcs_info") {
 }
 
 class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VcsInfoDao>(VcsInfoTable)
+    companion object : LongEntityClass<VcsInfoDao>(VcsInfoTable) {
+        fun findByVcsInfo(vcsInfo: VcsInfo): VcsInfoDao? =
+            find {
+                VcsInfoTable.type eq vcsInfo.type and
+                        (VcsInfoTable.url eq vcsInfo.url) and
+                        (VcsInfoTable.revision eq vcsInfo.revision) and
+                        (VcsInfoTable.path eq vcsInfo.path)
+            }.singleOrNull()
+    }
 
     var type by VcsInfoTable.type
     var url by VcsInfoTable.url

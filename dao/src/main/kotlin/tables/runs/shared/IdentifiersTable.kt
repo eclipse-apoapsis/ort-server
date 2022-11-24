@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.Identifier
 
@@ -37,7 +38,15 @@ object IdentifiersTable : LongIdTable("identifiers") {
 }
 
 class IdentifierDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<IdentifierDao>(IdentifiersTable)
+    companion object : LongEntityClass<IdentifierDao>(IdentifiersTable) {
+        fun findByIdentifier(identifier: Identifier): IdentifierDao? =
+            find {
+                IdentifiersTable.type eq identifier.type and
+                        (IdentifiersTable.namespace eq identifier.namespace) and
+                        (IdentifiersTable.name eq identifier.name) and
+                        (IdentifiersTable.version eq identifier.version)
+            }.singleOrNull()
+    }
 
     var type by IdentifiersTable.type
     var namespace by IdentifiersTable.namespace

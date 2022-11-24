@@ -32,7 +32,9 @@ object DeclaredLicensesTable : LongIdTable("declared_licenses") {
 }
 
 class DeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<DeclaredLicenseDao>(DeclaredLicensesTable)
+    companion object : LongEntityClass<DeclaredLicenseDao>(DeclaredLicensesTable) {
+        fun findByName(name: String): DeclaredLicenseDao? = find { DeclaredLicensesTable.name eq name }.singleOrNull()
+    }
 
     var name by DeclaredLicensesTable.name
 }

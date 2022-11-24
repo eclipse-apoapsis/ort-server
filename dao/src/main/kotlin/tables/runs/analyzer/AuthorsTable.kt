@@ -32,7 +32,9 @@ object AuthorsTable : LongIdTable("authors") {
 }
 
 class AuthorDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<AuthorDao>(AuthorsTable)
+    companion object : LongEntityClass<AuthorDao>(AuthorsTable) {
+        fun findByName(name: String): AuthorDao? = find { AuthorsTable.name eq name }.singleOrNull()
+    }
 
     var name by AuthorsTable.name
 }

@@ -28,10 +28,15 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
+import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
@@ -66,6 +71,43 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 )
             )
 
+            val pkg = Package(
+                identifier = Identifier(
+                    type = "type",
+                    namespace = "namespace",
+                    name = "package",
+                    version = "version"
+                ),
+                purl = "purl",
+                cpe = "cpe",
+                authors = setOf("author1", "author2"),
+                declaredLicenses = setOf("license1", "license2"),
+                description = "description",
+                homepageUrl = "https://example.com",
+                binaryArtifact = RemoteArtifact(
+                    url = "https://example.com/binary.zip",
+                    hashValue = "",
+                    hashAlgorithm = ""
+                ),
+                sourceArtifact = RemoteArtifact(
+                    url = "https://example.com/source.zip",
+                    hashValue = "",
+                    hashAlgorithm = ""
+                ),
+                vcs = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/package.git",
+                    revision = "",
+                    path = ""
+                ),
+                vcsProcessed = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/package.git",
+                    revision = "main",
+                    path = ""
+                )
+            )
+
             val createdAnalyzerRun = analyzerRunRepository.create(
                 analyzerJobId = analyzerJobId,
                 environmentId = environment.id,
@@ -73,7 +115,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 endTime = Clock.System.now(),
                 config = analyzerConfiguration,
                 projects = emptySet(),
-                packages = emptySet(),
+                packages = setOf(pkg),
                 issues = emptyMap()
             )
 
@@ -88,7 +130,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 environment = environment,
                 config = createdAnalyzerRun.config,
                 projects = emptySet(),
-                packages = emptySet(),
+                packages = setOf(pkg),
                 issues = emptyMap()
             )
         }

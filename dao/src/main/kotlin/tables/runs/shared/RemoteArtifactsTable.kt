@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 
@@ -36,7 +37,14 @@ object RemoteArtifactsTable : LongIdTable("remote_artifacts") {
 }
 
 class RemoteArtifactDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<RemoteArtifactDao>(RemoteArtifactsTable)
+    companion object : LongEntityClass<RemoteArtifactDao>(RemoteArtifactsTable) {
+        fun findByRemoteArtifact(artifact: RemoteArtifact): RemoteArtifactDao? =
+            find {
+                RemoteArtifactsTable.url eq artifact.url and
+                        (RemoteArtifactsTable.hashValue eq artifact.hashValue) and
+                        (RemoteArtifactsTable.hashAlgorithm eq artifact.hashAlgorithm)
+            }.singleOrNull()
+    }
 
     var url by RemoteArtifactsTable.url
     var hashValue by RemoteArtifactsTable.hashValue

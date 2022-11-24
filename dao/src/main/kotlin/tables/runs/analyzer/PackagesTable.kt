@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -53,7 +54,26 @@ object PackagesTable : LongIdTable("packages") {
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageDao>(PackagesTable)
+    companion object : LongEntityClass<PackageDao>(PackagesTable) {
+        fun findByPackage(pkg: Package): PackageDao? =
+            // TODO: Implement a more efficient way to check if an identical package already exists.
+            find {
+                PackagesTable.purl eq pkg.purl and
+                        (PackagesTable.cpe eq pkg.cpe) and
+                        (PackagesTable.description eq pkg.description) and
+                        (PackagesTable.homepageUrl eq pkg.homepageUrl) and
+                        (PackagesTable.isMetadataOnly eq pkg.isMetadataOnly) and
+                        (PackagesTable.isModified eq pkg.isMetadataOnly)
+            }.singleOrNull {
+                it.identifier.mapToModel() == pkg.identifier &&
+                        it.authors == pkg.authors &&
+                        it.declaredLicenses == pkg.declaredLicenses &&
+                        it.vcs.mapToModel() == pkg.vcs &&
+                        it.vcsProcessed.mapToModel() == pkg.vcsProcessed &&
+                        it.binaryArtifact.mapToModel() == pkg.binaryArtifact &&
+                        it.sourceArtifact.mapToModel() == pkg.sourceArtifact
+            }
+    }
 
     var identifier by IdentifierDao referencedOn PackagesTable.identifierId
     var vcs by VcsInfoDao referencedOn PackagesTable.vcsId

@@ -21,14 +21,25 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.insert
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAuthorsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
@@ -36,6 +47,8 @@ import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.Project
+import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
+import org.ossreviewtoolkit.server.model.runs.VcsInfo
 
 /**
  * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].
@@ -60,7 +73,8 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
 
         createAnalyzerConfiguration(analyzerRun, config)
 
-        // TODO: Create projects, packages, and issues.
+        // TODO: Create projects and issues.
+        packages.forEach { createPackage(analyzerRun, it) }
 
         analyzerRun.mapToModel()
     }.getOrThrow()
@@ -97,3 +111,84 @@ private fun createAnalyzerConfiguration(
 
     return analyzerConfigurationDao
 }
+
+private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao {
+    val identifier = getOrPutIdentifier(pkg.identifier)
+
+    val vcs = getOrPutVcsInfo(pkg.vcs)
+    val vcsProcessed = getOrPutVcsInfo(pkg.vcsProcessed)
+
+    val binaryArtifact = getOrPutArtifact(pkg.binaryArtifact)
+    val sourceArtifact = getOrPutArtifact(pkg.sourceArtifact)
+
+    val pkgDao = PackageDao.findByPackage(pkg) ?: PackageDao.new {
+        this.identifier = identifier
+        this.vcs = vcs
+        this.vcsProcessed = vcsProcessed
+        this.binaryArtifact = binaryArtifact
+        this.sourceArtifact = sourceArtifact
+
+        this.cpe = pkg.cpe
+        this.purl = pkg.purl
+        this.description = pkg.description
+        this.homepageUrl = pkg.homepageUrl
+        this.isMetadataOnly = pkg.isMetadataOnly
+        this.isModified = pkg.isModified
+    }
+
+    PackagesAnalyzerRunsTable.insert {
+        it[analyzerRunId] = analyzerRun.id
+        it[packageId] = pkgDao.id
+    }
+
+    pkg.authors.forEach { author ->
+        val authorDao = getOrPutAuthor(author)
+        PackagesAuthorsTable.insert {
+            it[authorId] = authorDao.id
+            it[packageId] = pkgDao.id
+        }
+    }
+
+    pkg.declaredLicenses.forEach { declaredLicense ->
+        val declaredLicenseDao = getOrPutDeclaredLicense(declaredLicense)
+        PackagesDeclaredLicensesTable.insert {
+            it[declaredLicenseId] = declaredLicenseDao.id
+            it[packageId] = pkgDao.id
+        }
+    }
+
+    return pkgDao
+}
+
+fun getOrPutArtifact(artifact: RemoteArtifact): RemoteArtifactDao =
+    RemoteArtifactDao.findByRemoteArtifact(artifact) ?: RemoteArtifactDao.new {
+        url = artifact.url
+        hashValue = artifact.hashValue
+        hashAlgorithm = artifact.hashAlgorithm
+    }
+
+fun getOrPutAuthor(author: String): AuthorDao =
+    AuthorDao.findByName(author) ?: AuthorDao.new {
+        name = author
+    }
+
+fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao =
+    DeclaredLicenseDao.findByName(declaredLicense) ?: DeclaredLicenseDao.new {
+        name = declaredLicense
+    }
+
+fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
+    IdentifierDao.findByIdentifier(identifier) ?: IdentifierDao.new {
+        type = identifier.type
+        namespace = identifier.namespace
+        name = identifier.name
+        version = identifier.version
+    }
+
+fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =
+    VcsInfoDao.findByVcsInfo(vcsInfo) ?: VcsInfoDao.new {
+        type = vcsInfo.type
+        url = vcsInfo.url
+        revision = vcsInfo.revision
+        path = vcsInfo.path
+    }
