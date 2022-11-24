@@ -25,9 +25,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -61,7 +61,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var authors by AuthorDao via PackagesAuthorsTable
     var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifactId
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
-    var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
+    var declaredLicenses by DeclaredLicenseDao via PackagesDeclaredLicensesTable
     var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
     var purl by PackagesTable.purl
@@ -77,7 +77,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         purl,
         cpe,
         authors.map(AuthorDao::mapToModel).toSet(),
-        declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
+        declaredLicenses.map(DeclaredLicenseDao::mapToModel).toSet(),
         description,
         homepageUrl,
         binaryArtifact.mapToModel(),

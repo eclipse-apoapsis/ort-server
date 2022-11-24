@@ -25,7 +25,7 @@ data class Package(
     val purl: String,
     val cpe: String? = null,
     val authors: Set<Author>,
-    val declaredLicenses: Set<LicenseString>,
+    val declaredLicenses: Set<DeclaredLicense>,
     val description: String,
     val homepageUrl: String,
     val binaryArtifact: RemoteArtifact,

@@ -33,10 +33,10 @@ CREATE TABLE packages_analyzer_runs
 
 CREATE TABLE packages_declared_licenses
 (
-    package_id        bigint REFERENCES packages        NOT NULL,
-    license_string_id bigint REFERENCES license_strings NOT NULL,
+    package_id          bigint REFERENCES packages          NOT NULL,
+    declared_license_id bigint REFERENCES declared_licenses NOT NULL,
 
-    PRIMARY KEY (package_id, license_string_id)
+    PRIMARY KEY (package_id, declared_license_id)
 );
 
 CREATE TABLE packages_authors

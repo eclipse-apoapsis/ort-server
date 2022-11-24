@@ -25,9 +25,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 import org.ossreviewtoolkit.server.model.runs.Project
@@ -54,7 +54,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessedId
     var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRunId
     var authors by AuthorDao via ProjectsAuthorsTable
-    var declaredLicenses by LicenseStringDao via ProjectsDeclaredLicensesTable
+    var declaredLicenses by DeclaredLicenseDao via ProjectsDeclaredLicensesTable
     val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     var cpe by ProjectsTable.cpe
@@ -67,7 +67,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         cpe,
         definitionFilePath,
         authors.map(AuthorDao::mapToModel).toSet(),
-        declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
+        declaredLicenses.map(DeclaredLicenseDao::mapToModel).toSet(),
         vcs.mapToModel(),
         vcsProcessed.mapToModel(),
         homepageUrl,

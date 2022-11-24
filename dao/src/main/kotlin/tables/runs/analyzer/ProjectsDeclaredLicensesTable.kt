@@ -21,15 +21,15 @@ package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
 
 import org.jetbrains.exposed.sql.Table
 
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicensesTable
 
 /**
- * An intermediate table to store references from [ProjectsTable] and [LicenseStringsTable].
+ * An intermediate table to store references from [ProjectsTable] and [DeclaredLicensesTable].
  */
 object ProjectsDeclaredLicensesTable : Table("projects_declared_licenses") {
     val projectId = reference("project_id", ProjectsTable)
-    val licenseStringId = reference("license_string_id", LicenseStringsTable)
+    val declaredLicenseId = reference("declared_license_id", DeclaredLicensesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(projectId, licenseStringId, name = "${tableName}_pkey")
+        get() = PrimaryKey(projectId, declaredLicenseId, name = "${tableName}_pkey")
 }

@@ -17,9 +17,26 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs
+package org.ossreviewtoolkit.server.dao.tables.runs.shared
 
-data class LicenseString(
-    val id: Long,
-    val name: String
-)
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.LongIdTable
+
+import org.ossreviewtoolkit.server.model.runs.DeclaredLicense
+
+/**
+ * A table to represent a license string.
+ */
+object DeclaredLicensesTable : LongIdTable("declared_licenses") {
+    val name = text("name")
+}
+
+class DeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<DeclaredLicenseDao>(DeclaredLicensesTable)
+
+    var name by DeclaredLicensesTable.name
+
+    fun mapToModel() = DeclaredLicense(id.value, name)
+}

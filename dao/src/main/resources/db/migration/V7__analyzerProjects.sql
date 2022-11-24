@@ -1,4 +1,4 @@
-CREATE TABLE license_strings
+CREATE TABLE declared_licenses
 (
     id   bigserial PRIMARY KEY,
     name text NOT NULL
@@ -52,10 +52,10 @@ CREATE TABLE projects_authors
 
 CREATE TABLE projects_declared_licenses
 (
-    project_id        bigint REFERENCES projects        NOT NULL,
-    license_string_id bigint REFERENCES license_strings NOT NULL,
+    project_id          bigint REFERENCES projects          NOT NULL,
+    declared_license_id bigint REFERENCES declared_licenses NOT NULL,
 
-    PRIMARY KEY (project_id, license_string_id)
+    PRIMARY KEY (project_id, declared_license_id)
 );
 
 CREATE TABLE project_scopes
