@@ -16,7 +16,9 @@ CREATE TABLE identifiers
     type      text NOT NULL,
     namespace text NOT NULL,
     name      text NOT NULL,
-    version   text NOT NULL
+    version   text NOT NULL,
+
+    UNIQUE (type, namespace, name, version)
 );
 
 CREATE TABLE vcs_info
