@@ -4,12 +4,6 @@ CREATE TABLE license_strings
     name text NOT NULL
 );
 
-CREATE TABLE license_spdx
-(
-    id         bigserial PRIMARY KEY,
-    expression text NOT NULL
-);
-
 CREATE TABLE identifiers
 (
     id        bigserial PRIMARY KEY,

@@ -8,20 +8,19 @@ CREATE TABLE remote_artifacts
 
 CREATE TABLE packages
 (
-    id                        bigserial PRIMARY KEY,
-    identifier_id             bigint REFERENCES identifiers      NOT NULL,
-    vcs_id                    bigint REFERENCES vcs_info         NOT NULL,
-    vcs_processed_id          bigint REFERENCES vcs_info         NOT NULL,
-    binary_artifact_id        bigint REFERENCES remote_artifacts NOT NULL,
-    source_artifact_id        bigint REFERENCES remote_artifacts NOT NULL,
-    concluded_license_spdx_id bigint REFERENCES license_spdx     NULL,
+    id                 bigserial PRIMARY KEY,
+    identifier_id      bigint REFERENCES identifiers      NOT NULL,
+    vcs_id             bigint REFERENCES vcs_info         NOT NULL,
+    vcs_processed_id   bigint REFERENCES vcs_info         NOT NULL,
+    binary_artifact_id bigint REFERENCES remote_artifacts NOT NULL,
+    source_artifact_id bigint REFERENCES remote_artifacts NOT NULL,
 
-    purl                      text                               NOT NULL,
-    description               text                               NOT NULL,
-    homepage_url              text                               NOT NULL,
-    is_metadata_only          boolean DEFAULT FALSE              NOT NULL,
-    is_modified               boolean DEFAULT FALSE              NOT NULL,
-    cpe                       text                               NULL
+    purl               text                               NOT NULL,
+    cpe                text                               NULL,
+    description        text                               NOT NULL,
+    homepage_url       text                               NOT NULL,
+    is_metadata_only   boolean DEFAULT FALSE              NOT NULL,
+    is_modified        boolean DEFAULT FALSE              NOT NULL
 );
 
 CREATE TABLE packages_analyzer_runs

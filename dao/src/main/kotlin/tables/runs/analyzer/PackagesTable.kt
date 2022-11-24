@@ -27,8 +27,6 @@ import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseSpdxTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.LicenseStringDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
@@ -45,14 +43,9 @@ object PackagesTable : LongIdTable("packages") {
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
     val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
     val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
-    val concludedLicenseSpdxId = reference(
-        "concluded_license_spdx_id",
-        LicenseSpdxTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
 
-    val cpe = text("cpe").nullable()
     val purl = text("purl")
+    val cpe = text("cpe").nullable()
     val description = text("description")
     val homepageUrl = text("homepage_url")
     val isMetadataOnly = bool("is_metadata_only").default(false)
@@ -68,12 +61,11 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var authors by AuthorDao via PackagesAuthorsTable
     var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifactId
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
-    var concludedLicense by LicenseSpdxDao optionalReferencedOn PackagesTable.concludedLicenseSpdxId
     var declaredLicenses by LicenseStringDao via PackagesDeclaredLicensesTable
     var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
-    var cpe by PackagesTable.cpe
     var purl by PackagesTable.purl
+    var cpe by PackagesTable.cpe
     var description by PackagesTable.description
     var homepageUrl by PackagesTable.homepageUrl
     var isMetadataOnly by PackagesTable.isMetadataOnly
@@ -86,7 +78,6 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         cpe,
         authors.map(AuthorDao::mapToModel).toSet(),
         declaredLicenses.map(LicenseStringDao::mapToModel).toSet(),
-        concludedLicense?.mapToModel(),
         description,
         homepageUrl,
         binaryArtifact.mapToModel(),
