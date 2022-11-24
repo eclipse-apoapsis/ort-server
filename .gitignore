@@ -9,3 +9,7 @@ out/
 
 # Mac
 .DS_Store
+
+# Helm subcharts and install packages
+/scripts/helm/ort-server/charts/
+/scripts/helm/*.tgz

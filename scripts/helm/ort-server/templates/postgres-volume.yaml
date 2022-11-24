@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-postgres-pv
+  name: {{ .Release.Name }}-postgres-pv
+spec:
+  capacity:
+    storage: {{ .Values.ort_server.postgres.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ .Values.ort_server.postgres.location }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    ort.server.service: postgres
+  name: {{ .Release.Name }}-postgres-pvc
+spec:
+  volumeName: {{ .Release.Name }}-postgres-pv
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: {{ .Values.ort_server.postgres.size }}

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-keycloak-pv
+  name: {{ .Release.Name }}-keycloak-pv
+spec:
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadOnlyMany
+  # The volume configuration for Keycloak is split between a Persistent Volume and a Persistent Volume Claim.
+  # For Minikube, the volume type is `hostPath` which is the only supported value. In production another type will be
+  # used such as `local`.
+  hostPath:
+    # This directory should be mounted with `minikube mount` to contain Keycloak initialization script.
+    # The mount can be verified with `minikube ssh`.
+    path: {{ .Values.ort_server.keycloak.init_location }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-keycloak-pvc
+  name: {{ .Release.Name }}-keycloak-pvc
+spec:
+  volumeName: {{ .Release.Name }}-keycloak-pv
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Mi
