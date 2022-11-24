@@ -3,7 +3,9 @@ CREATE TABLE remote_artifacts
     id             bigserial PRIMARY KEY,
     url            text NOT NULL,
     hash_value     text NOT NULL,
-    hash_algorithm text NOT NULL
+    hash_algorithm text NOT NULL,
+
+    UNIQUE(url, hash_value, hash_algorithm)
 );
 
 CREATE TABLE packages
