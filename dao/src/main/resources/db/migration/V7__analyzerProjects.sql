@@ -29,7 +29,9 @@ CREATE TABLE vcs_info
 CREATE TABLE authors
 (
     id   bigserial PRIMARY KEY,
-    name text NOT NULL
+    name text NOT NULL,
+
+    UNIQUE (name)
 );
 
 CREATE TABLE projects
