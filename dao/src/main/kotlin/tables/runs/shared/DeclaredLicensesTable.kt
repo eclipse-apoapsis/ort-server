@@ -24,8 +24,6 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-import org.ossreviewtoolkit.server.model.runs.DeclaredLicense
-
 /**
  * A table to represent a license string.
  */
@@ -37,6 +35,4 @@ class DeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<DeclaredLicenseDao>(DeclaredLicensesTable)
 
     var name by DeclaredLicensesTable.name
-
-    fun mapToModel() = DeclaredLicense(id.value, name)
 }

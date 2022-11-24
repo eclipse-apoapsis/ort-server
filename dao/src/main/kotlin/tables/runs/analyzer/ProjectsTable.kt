@@ -67,7 +67,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         cpe,
         definitionFilePath,
         authors.map(AuthorDao::mapToModel).toSet(),
-        declaredLicenses.map(DeclaredLicenseDao::mapToModel).toSet(),
+        declaredLicenses.mapTo(mutableSetOf()) { it.name },
         vcs.mapToModel(),
         vcsProcessed.mapToModel(),
         homepageUrl,
