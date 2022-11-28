@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
  * A table to represent an ort issue.
  */
 object OrtIssuesTable : LongIdTable("ort_issues") {
-    val timeStamp = timestamp("timestamp")
+    val timestamp = timestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = text("severity")
@@ -41,10 +41,10 @@ object OrtIssuesTable : LongIdTable("ort_issues") {
 class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable)
 
-    var timeStamp by OrtIssuesTable.timeStamp.transform({ it.toDatabasePrecision() }, { it })
-    var issueSource by OrtIssuesTable.issueSource
+    var timestamp by OrtIssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })
+    var source by OrtIssuesTable.issueSource
     var message by OrtIssuesTable.message
     var severity by OrtIssuesTable.severity
 
-    fun mapToModel() = OrtIssue(timestamp = timeStamp, source = issueSource, message = message, severity = severity)
+    fun mapToModel() = OrtIssue(timestamp = timestamp, source = source, message = message, severity = severity)
 }
