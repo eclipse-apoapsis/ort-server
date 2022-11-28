@@ -47,7 +47,15 @@ Run once per shell to expose the Docker Engine inside Minikube:
 Build the required Docker images in the cluster.
 See https://minikube.sigs.k8s.io/docs/handbook/pushing/ for alternatives.
 
+First the base image for the Analyzer Worker:
+
+ workers/analyzer/docker$ DOCKER_BUILDKIT=1 docker build . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
+
+Then the different images of ORT Server:
+
  ./gradlew :core:jibDockerBuild
+ ./gradlew :orchestrator:jibDockerBuild
+ ./gradlew :workers:analyzer:jibDockerBuild
 
 ==== Mount initialization directory
 
