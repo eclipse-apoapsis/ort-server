@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-core
+  name: {{ .Release.Name }}-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ort-server.service: {{ .Release.Name }}-core
+  serviceName: {{ .Release.Name }}-core
+  template:
+    metadata:
+      labels:
+        ort-server.service: {{ .Release.Name }}-core
+    spec:
+      initContainers:
+          # Here a `nslookup` should be used with the domains of the sub-services created by the chart:
+          # ort-server-postgresql-0.ort-server-postgresql-hl.ort-server.svc.cluster.local and
+          # ort-server-keycloak-0.ort-server-keycloak-headless.ort-server.svc.cluster.local. Unfortunately, it seems
+          # a reverse dns configuration is missing. Hence, we use 'netcat' instead to find if the required services are
+          # running.
+        - name: init-postgres
+          image: busybox:latest
+          command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-postgresql-hl {{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}; do echo waiting for postgres; sleep 2; done' ]
+        # Please also note that the 'keycloak-headless' service can't somehow be accessed, hence the other service is used.
+        - name: init-keycloak
+          image: busybox:latest
+          command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-keycloak {{ .Values.keycloak.service.ports.http }}; do echo waiting for keycloak; sleep 2; done' ]
+      containers:
+        - env:
+            - name: DB_NAME
+              value: "{{ .Values.ort_server.postgres.databaseSchema }}"
+            - name: DB_SCHEMA
+              value: "{{ .Values.ort_server.postgres.databaseSchema }}"
+            - name: DB_USERNAME
+              value: postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+            - name: DB_SSLMODE
+              value: disable
+            - name: DB_URL
+              value: "jdbc:postgresql://{{ .Release.Name }}-postgresql-hl:{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
+            - name: JWT_URI
+              value: http://keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master/protocol/openid-connect/certs
+            - name: JWT_ISSUER
+              value: http://keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master
+            - name: PORT
+              value: "{{ .Values.ort_server.core.port }}"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: "activeMQ"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.ort_server.artemis.orchestratorSenderQueue }}
+          image: ort-server-core
+          # Having a value of 'Never' makes sure that only the local images are used.
+          # See https://kubernetes.io/docs/concepts/containers/images/#updating-images.
+          imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: {{ .Values.ort_server.core.port }}
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ort-server
+          ports:
+            - containerPort: {{ .Values.ort_server.core.port }}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-core
+  name: {{ .Release.Name }}-core
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "{{ .Values.ort_server.core.port }}"
+      port: {{ .Values.ort_server.core.port }}
+      targetPort: {{ .Values.ort_server.core.port }}
+  selector:
+    ort-server.service: {{ .Release.Name }}-core

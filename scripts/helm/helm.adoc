@@ -31,6 +31,26 @@ Therefore, with:
 
 you can make sure that `/data/postgres-pv` is empty.
 
+==== Initialize Docker engine
+
+.We need to configure the Docker CLI to connect it to the Docker Engine inside Minikube. This allows:
+* Building images to Minikube Docker registry
+* Listing images from this registry (with `docker images`)
+* Listing Docker containers running in Minikube's Docker Engine (with `docker ps`)
+
+Run once per shell to expose the Docker Engine inside Minikube:
+
+ eval $(minikube docker-env)
+
+==== Build the required Docker images
+
+Build the required Docker images in the cluster.
+See https://minikube.sigs.k8s.io/docs/handbook/pushing/ for alternatives.
+
+ ./gradlew :core:jibDockerBuild
+
+==== Mount initialization directory
+
 Finally, mount the directory containing Keycloak initialization script:
 
  minikube mount docker/keycloak:/data/init-keycloak &
@@ -84,7 +104,7 @@ The solution here is to start the following command (it should not be stopped):
 
 Then add an alias to localhost in the /etc/hosts file (or your platform equivalent) for each service being exposed:
 
- 127.0.0.1       localhost keycloak postgres artemis
+ 127.0.0.1       localhost keycloak postgres artemis core
 
 Afterwards, you can configure a local ORT Service with the following JDBC URL:
 
@@ -96,3 +116,7 @@ And you can send requests to the ORT Server using the following Keycloak URLs:
 Authorization URL: http://keycloak:8081/realms/master/protocol/openid-connect/auth
 Access Token URL: http://keycloak:8081/realms/master/protocol/openid-connect/token
 ----
+
+And you can send requests to the _core_ module of the ORT Server. Its SwaggerUI is reachable under the following URL:
+
+  http://core:8080/swagger-ui/index.html

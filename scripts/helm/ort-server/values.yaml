@@ -79,3 +79,5 @@ ort_server:
     orchestratorQueue: "orchestrator_queue"
     openWirePort: 61616
     managementConsolePort: 8161
+  core:
+    port: 8080
