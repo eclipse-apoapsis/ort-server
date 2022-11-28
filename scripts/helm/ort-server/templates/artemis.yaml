@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-artemis
+  name: {{ .Release.Name }}-artemis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ort-server.service: {{ .Release.Name }}-artemis
+  serviceName: {{ .Release.Name }}-artemis
+  template:
+    metadata:
+      labels:
+        ort-server.service: {{ .Release.Name }}-artemis
+    spec:
+      containers:
+        - env:
+            - name: AMQ_EXTRA_ARGS
+              # 'relax-jolokia' allows to connect to the Artemis Console from all origins
+              value: >-
+                --relax-jolokia
+                --queues {{ .Values.ort_server.artemis.orchestratorQueue }}:anycast
+                --default-port {{ .Values.ort_server.artemis.openWirePort }}
+                --http-port {{ .Values.ort_server.artemis.managementConsolePort }}
+            - name: AMQ_PASSWORD
+              value: {{ .Values.ort_server.artemis.password }}
+            - name: AMQ_USER
+              value: {{ .Values.ort_server.artemis.user }}
+          image: quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0
+          livenessProbe:
+            exec:
+              # See https://artemiscloud.io/docs/help/operator/#liveness-and-readiness-probes
+              command: [ 'sh', '-c', '/home/jboss/broker/bin/artemis check node --silent --user $AMQ_USER --password $AMQ_PASSWORD' ]
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: artemis
+          ports:
+            - name: amq-openwire
+              containerPort: {{ .Values.ort_server.artemis.openWirePort }}
+            - name: amq-mgmt
+              containerPort: {{ .Values.ort_server.artemis.managementConsolePort }}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-artemis
+  name: {{ .Release.Name }}-artemis
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "{{ .Values.ort_server.artemis.managementConsolePort }}"
+      port: {{ .Values.ort_server.artemis.managementConsolePort }}
+      targetPort: amq-mgmt
+    - name: "{{ .Values.ort_server.artemis.openWirePort }}"
+      port: {{ .Values.ort_server.artemis.openWirePort }}
+      targetPort: amq-openwire
+  selector:
+    ort-server.service: {{ .Release.Name }}-artemis

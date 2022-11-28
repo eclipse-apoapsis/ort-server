@@ -72,3 +72,10 @@ ort_server:
     ## You can verify the location in the cluster with `minikube ssh`.
     ## Additionally, you can mount a directory of the host with `minikube mount` to this location.
     init_location: "/data/init-keycloak"
+  artemis:
+    user: "admin"
+    password: "admin"
+    # The queue for messages the Orchestrator will receive from the OrchestratorService (Core module).
+    orchestratorQueue: "orchestrator_queue"
+    openWirePort: 61616
+    managementConsolePort: 8161

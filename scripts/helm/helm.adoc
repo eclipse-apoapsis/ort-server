@@ -84,7 +84,7 @@ The solution here is to start the following command (it should not be stopped):
 
 Then add an alias to localhost in the /etc/hosts file (or your platform equivalent) for each service being exposed:
 
- 127.0.0.1       localhost keycloak postgres
+ 127.0.0.1       localhost keycloak postgres artemis
 
 Afterwards, you can configure a local ORT Service with the following JDBC URL:
 
