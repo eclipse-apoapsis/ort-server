@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
@@ -37,9 +38,9 @@ interface AnalyzerRunRepository {
      */
     fun create(
         analyzerJobId: Long,
-        environmentId: Long,
         startTime: Instant,
         endTime: Instant,
+        environment: Environment,
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,

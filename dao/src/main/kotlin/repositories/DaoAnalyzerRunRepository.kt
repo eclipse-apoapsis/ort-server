@@ -43,14 +43,19 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsToolVersionsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsVariablesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.ToolVersionDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VariableDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
@@ -64,19 +69,21 @@ import org.ossreviewtoolkit.server.model.runs.VcsInfo
 class DaoAnalyzerRunRepository : AnalyzerRunRepository {
     override fun create(
         analyzerJobId: Long,
-        environmentId: Long,
         startTime: Instant,
         endTime: Instant,
+        environment: Environment,
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
         issues: Map<Identifier, List<OrtIssue>>
     ): AnalyzerRun = blockingQuery {
+        val environmentDao = getOrPutEnvironment(environment)
+
         val analyzerRun = AnalyzerRunDao.new {
             this.analyzerJob = AnalyzerJobDao[analyzerJobId]
             this.startTime = startTime
             this.endTime = endTime
-            this.environment = EnvironmentDao[environmentId]
+            this.environment = environmentDao
         }
 
         createAnalyzerConfiguration(analyzerRun, config)
@@ -241,6 +248,33 @@ private fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao
         name = declaredLicense
     }
 
+private fun getOrPutEnvironment(environment: Environment): EnvironmentDao =
+    EnvironmentDao.findByEnvironment(environment) ?: EnvironmentDao.new {
+        ortVersion = environment.ortVersion
+        javaVersion = environment.javaVersion
+        os = environment.os
+        processors = environment.processors
+        maxMemory = environment.maxMemory
+    }.also { environmentDao ->
+        environment.toolVersions.forEach { (name, version) ->
+            val toolVersionDao = getOrPutToolVersion(name, version)
+
+            EnvironmentsToolVersionsTable.insert {
+                it[environmentId] = environmentDao.id
+                it[toolVersionId] = toolVersionDao.id
+            }
+        }
+
+        environment.variables.forEach { (name, value) ->
+            val variableDao = getOrPutVariable(name, value)
+
+            EnvironmentsVariablesTable.insert {
+                it[environmentId] = environmentDao.id
+                it[variableId] = variableDao.id
+            }
+        }
+    }
+
 private fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
     IdentifierDao.findByIdentifier(identifier) ?: IdentifierDao.new {
         type = identifier.type
@@ -261,6 +295,18 @@ private fun getOrPutIssue(issue: OrtIssue): OrtIssueDao =
         source = issue.source
         message = issue.message
         severity = issue.severity
+    }
+
+private fun getOrPutToolVersion(name: String, version: String): ToolVersionDao =
+    ToolVersionDao.findByNameAndVersion(name, version) ?: ToolVersionDao.new {
+        this.name = name
+        this.version = version
+    }
+
+private fun getOrPutVariable(name: String, value: String): VariableDao =
+    VariableDao.findByNameAndValue(name, value) ?: VariableDao.new {
+        this.name = name
+        this.value = value
     }
 
 private fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =

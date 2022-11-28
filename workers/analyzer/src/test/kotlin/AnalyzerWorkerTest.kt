@@ -49,7 +49,6 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
@@ -79,7 +78,6 @@ class AnalyzerWorkerTest : WordSpec({
             val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
             val analyzerJobRepository = mockk<AnalyzerJobRepository>()
             val analyzerRunRepository = mockk<AnalyzerRunRepository>()
-            val environmentRepository = mockk<EnvironmentRepository>()
             mockkObject(MessageSenderFactory)
             every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
             every { msgSenderMock.send(any()) } just runs
@@ -87,7 +85,6 @@ class AnalyzerWorkerTest : WordSpec({
             every {
                 analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any())
             } returns analyzerRun
-            every { environmentRepository.create(any(), any(), any(), any(), any(), any(), any()) } returns environment
 
             val worker = spyk(
                 AnalyzerWorker(
@@ -99,8 +96,7 @@ class AnalyzerWorkerTest : WordSpec({
                         )
                     ),
                     analyzerJobRepository,
-                    analyzerRunRepository,
-                    environmentRepository
+                    analyzerRunRepository
                 )
             )
 
@@ -117,24 +113,12 @@ class AnalyzerWorkerTest : WordSpec({
                     Message(MessageHeader(TOKEN, TRACE_ID), AnalyzerWorkerResult(JOB_ID))
                 )
 
-                with(environment) {
-                    environmentRepository.create(
-                        ortVersion,
-                        javaVersion,
-                        os,
-                        processors,
-                        maxMemory,
-                        variables,
-                        toolVersions
-                    )
-                }
-
                 analyzerRunRepository.create(
                     analyzerJobId = analyzerJob.id,
-                    environmentId = analyzerRun.environment.id,
                     // As an actual analysis is performed, the startTime might be some time ago.
                     startTime = withArg { it.validateTimeRange(30.seconds) },
                     endTime = withArg { it.validateTimeRange(10.seconds) },
+                    environment = analyzerRun.environment,
                     config = analyzerConfig,
                     projects = analyzerRun.projects,
                     packages = analyzerRun.packages,
@@ -149,7 +133,7 @@ class AnalyzerWorkerTest : WordSpec({
  * Use [OrtEnvironment] to create the environment for the machine which runs these tests.
  */
 private val environment = with(OrtEnvironment()) {
-    Environment(0, ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
+    Environment(ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
 }
 
 private val analyzerConfig = AnalyzerConfiguration(allowDynamicVersions = false)

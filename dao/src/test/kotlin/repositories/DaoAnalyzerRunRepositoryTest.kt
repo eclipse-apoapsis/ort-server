@@ -47,7 +47,6 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
 
     private lateinit var fixtures: Fixtures
     private var analyzerJobId = -1L
-    private lateinit var environment: Environment
 
     override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
@@ -55,11 +54,30 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
 
         fixtures = Fixtures()
         analyzerJobId = fixtures.analyzerJob.id
-        environment = fixtures.environment
     }
 
     init {
         test("create should create an entry in the database") {
+            val variables = mapOf(
+                "SHELL" to "/bin/bash",
+                "TERM" to "xterm-256color"
+            )
+
+            val toolVersions = mapOf(
+                "Conan" to "1.53.0",
+                "NPM" to "8.15.1"
+            )
+
+            val environment = Environment(
+                ortVersion = "1.0",
+                javaVersion = "11.0.16",
+                os = "Linux",
+                processors = 8,
+                maxMemory = 8321499136,
+                variables = variables,
+                toolVersions = toolVersions
+            )
+
             val analyzerConfiguration = AnalyzerConfiguration(
                 allowDynamicVersions = true,
                 enabledPackageManagers = listOf("Gradle", "NPM"),
@@ -147,9 +165,9 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
 
             val createdAnalyzerRun = analyzerRunRepository.create(
                 analyzerJobId = analyzerJobId,
-                environmentId = environment.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
+                environment = environment,
                 config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),

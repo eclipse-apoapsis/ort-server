@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class Environment(
-    val id: Long,
     val ortVersion: String,
     val javaVersion: String,
     val os: String,

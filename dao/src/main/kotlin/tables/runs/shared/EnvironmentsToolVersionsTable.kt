@@ -17,24 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.analyzer
+package org.ossreviewtoolkit.server.dao.tables.runs.shared
 
-import com.typesafe.config.ConfigFactory
-
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.createDatabaseConfig
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.jetbrains.exposed.sql.Table
 
 /**
- * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
- * interfacing on its APIs.
+ * An intermediate table to store references from [EnvironmentsTable] and [ToolVersionsTable].
  */
-fun main() {
-    val config = ConfigFactory.load()
+object EnvironmentsToolVersionsTable : Table("environments_tool_versions") {
+    val environmentId = reference("environment_id", EnvironmentsTable)
+    val toolVersionId = reference("tool_version_id", ToolVersionsTable)
 
-    createDataSource(createDatabaseConfig(config)).connect()
-
-    AnalyzerWorker(config, DaoAnalyzerJobRepository(), DaoAnalyzerRunRepository()).start()
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(environmentId, toolVersionId, name = "${tableName}_pkey")
 }

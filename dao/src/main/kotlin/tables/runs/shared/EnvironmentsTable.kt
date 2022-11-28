@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.Environment
 
@@ -38,18 +39,31 @@ object EnvironmentsTable : LongIdTable("environments") {
 }
 
 class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<EnvironmentDao>(EnvironmentsTable)
+    companion object : LongEntityClass<EnvironmentDao>(EnvironmentsTable) {
+        fun findByEnvironment(environment: Environment): EnvironmentDao? =
+            // TODO: Implement are more efficient way to check if an identical environment already exists.
+            find {
+                EnvironmentsTable.ortVersion eq environment.ortVersion and
+                        (EnvironmentsTable.javaVersion eq environment.javaVersion) and
+                        (EnvironmentsTable.os eq environment.os) and
+                        (EnvironmentsTable.processors eq environment.processors) and
+                        (EnvironmentsTable.maxMemory eq environment.maxMemory)
+            }.singleOrNull {
+                it.variables.associate { it.name to it.value } == environment.variables &&
+                        it.toolVersions.associate { it.name to it.version } == environment.toolVersions
+            }
+    }
+
+    val variables by VariableDao via EnvironmentsVariablesTable
+    val toolVersions by ToolVersionDao via EnvironmentsToolVersionsTable
 
     var ortVersion by EnvironmentsTable.ortVersion
     var javaVersion by EnvironmentsTable.javaVersion
     var os by EnvironmentsTable.os
     var processors by EnvironmentsTable.processors
     var maxMemory by EnvironmentsTable.maxMemory
-    val variables by EnvironmentVariableDao referrersOn EnvironmentVariablesTable.environmentId
-    val toolVersions by EnvironmentToolVersionDao referrersOn EnvironmentToolVersionsTable.environmentId
 
     fun mapToModel() = Environment(
-        id = id.value,
         ortVersion = ortVersion,
         javaVersion = javaVersion,
         os = os,

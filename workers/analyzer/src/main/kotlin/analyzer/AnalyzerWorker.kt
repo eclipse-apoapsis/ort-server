@@ -45,8 +45,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.EnvironmentRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -54,7 +54,6 @@ import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -64,8 +63,7 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 internal class AnalyzerWorker(
     private val config: Config,
     private val analyzerJobRepository: AnalyzerJobRepository,
-    private val analyzerRunRepository: AnalyzerRunRepository,
-    private val environmentRepository: EnvironmentRepository
+    private val analyzerRunRepository: AnalyzerRunRepository
 ) {
     fun start() {
         val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
@@ -106,9 +104,7 @@ internal class AnalyzerWorker(
                             "'${analyzerRun.result.issues.values.size}' issues."
                 )
 
-                // TODO: Run the two database operations in a single transaction.
-                val environment = analyzerRun.environment.writeToDatabase()
-                analyzerRun.writeToDatabase(job.id, environment.id)
+                analyzerRun.writeToDatabase(job.id)
 
                 val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
                 sender.send(resultMessage)
@@ -121,20 +117,22 @@ internal class AnalyzerWorker(
     }
 
     /**
-     * Create a database entry for an [Environment].
-     */
-    private fun Environment.writeToDatabase() =
-        environmentRepository.create(ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
-
-    /**
      * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.AnalyzerRun].
      */
-    private fun AnalyzerRun.writeToDatabase(jobId: Long, environmentId: Long) =
+    private fun AnalyzerRun.writeToDatabase(jobId: Long) =
         analyzerRunRepository.create(
             jobId,
-            environmentId,
             Instant.fromEpochSeconds(startTime.epochSecond),
             Instant.fromEpochSeconds(endTime.epochSecond),
+            Environment(
+                environment.ortVersion,
+                environment.javaVersion,
+                environment.os,
+                environment.processors,
+                environment.maxMemory,
+                environment.variables,
+                environment.toolVersions
+            ),
             AnalyzerConfiguration(
                 config.allowDynamicVersions,
                 config.enabledPackageManagers,

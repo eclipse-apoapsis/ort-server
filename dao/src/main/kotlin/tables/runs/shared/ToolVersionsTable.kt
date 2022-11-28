@@ -23,21 +23,24 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.and
 
 /**
- * A table to represent environment variables for a specific environment.
+ * A table to represent tool versions for [Environment][EnvironmentsTable]s.
  */
-object EnvironmentVariablesTable : LongIdTable("environment_variables") {
-    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+object ToolVersionsTable : LongIdTable("tool_versions") {
     val name = text("name")
-    val value = text("value")
+    val version = text("version")
 }
 
-class EnvironmentVariableDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<EnvironmentVariableDao>(EnvironmentVariablesTable)
+class ToolVersionDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<ToolVersionDao>(ToolVersionsTable) {
+        fun findByNameAndVersion(name: String, version: String): ToolVersionDao? =
+            find { ToolVersionsTable.name eq name and (ToolVersionsTable.version eq version) }.singleOrNull()
+    }
 
-    var environment by EnvironmentDao referencedOn EnvironmentVariablesTable.environmentId
-    var name by EnvironmentVariablesTable.name
-    var value by EnvironmentVariablesTable.value
+    val environments by EnvironmentDao via EnvironmentsToolVersionsTable
+
+    var name by ToolVersionsTable.name
+    var version by ToolVersionsTable.version
 }

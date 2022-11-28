@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEnvironmentRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
@@ -39,29 +38,17 @@ class Fixtures {
     private val repositoryRepository = DaoRepositoryRepository()
     private val ortRunRepository = DaoOrtRunRepository()
     private val analyzerJobRepository = DaoAnalyzerJobRepository()
-    private val environmentRepository = DaoEnvironmentRepository()
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
     val repository by lazy { createRepository() }
     val ortRun by lazy { createOrtRun() }
     val analyzerJob by lazy { createAnalyzerJob() }
-    val environment by lazy { createEnvironment() }
 
     val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
             allowDynamicVersions = true
         )
-    )
-
-    val variables = mapOf(
-        "SHELL" to "/bin/bash",
-        "TERM" to "xterm-256color"
-    )
-
-    val toolVersions = mapOf(
-        "Conan" to "1.53.0",
-        "NPM" to "8.15.1"
     )
 
     fun createOrganization(name: String = "name", description: String = "description") =
@@ -89,14 +76,4 @@ class Fixtures {
         ortRunId: Long = ortRun.id,
         configuration: AnalyzerJobConfiguration = jobConfigurations.analyzer
     ) = analyzerJobRepository.create(ortRunId, configuration)
-
-    fun createEnvironment(
-        ortVersion: String = "1.0",
-        javaVersion: String = "11.0.16",
-        os: String = "Linux",
-        processors: Int = 8,
-        maxMemory: Long = 8321499136,
-        variables: Map<String, String> = this.variables,
-        toolVersions: Map<String, String> = this.toolVersions
-    ) = environmentRepository.create(ortVersion, javaVersion, os, processors, maxMemory, variables, toolVersions)
 }

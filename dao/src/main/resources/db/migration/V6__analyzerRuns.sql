@@ -8,20 +8,40 @@ CREATE TABLE environments
     max_memory   bigint NOT NULL
 );
 
-CREATE TABLE environment_variables
+CREATE INDEX environments_all_value_columns ON environments (ort_version, java_version, os, processors, max_memory);
+
+CREATE TABLE variables
 (
-    id             bigserial PRIMARY KEY,
-    environment_id bigint REFERENCES environments ON DELETE CASCADE NOT NULL,
-    name           text                                             NOT NULL,
-    value          text                                             NOT NULL
+    id    bigserial PRIMARY KEY,
+    name  text NOT NULL,
+    value text NOT NULL,
+
+    UNIQUE (name, value)
 );
 
-CREATE TABLE environment_tool_versions
+CREATE TABLE environments_variables
 (
-    id             bigserial PRIMARY KEY,
-    environment_id bigint REFERENCES environments ON DELETE CASCADE NOT NULL,
-    name           text                                             NULL,
-    version        text                                             NULL
+    environment_id          bigint REFERENCES environments NOT NULL,
+    variable_id bigint REFERENCES variables    NOT NULL,
+
+    PRIMARY KEY (environment_id, variable_id)
+);
+
+CREATE TABLE tool_versions
+(
+    id      bigserial PRIMARY KEY,
+    name    text NULL,
+    version text NULL,
+
+    UNIQUE (name, version)
+);
+
+CREATE TABLE environments_tool_versions
+(
+    environment_id              bigint REFERENCES environments  NOT NULL,
+    tool_version_id bigint REFERENCES tool_versions NOT NULL,
+
+    PRIMARY KEY (environment_id, tool_version_id)
 );
 
 CREATE TABLE analyzer_runs
