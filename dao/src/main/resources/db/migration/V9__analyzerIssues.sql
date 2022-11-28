@@ -4,7 +4,9 @@ CREATE TABLE ort_issues
     timestamp timestamp    NOT NULL,
     source    varchar(64)  NOT NULL,
     message   varchar(256) NOT NULL,
-    severity  varchar(64)  NOT NULL
+    severity  varchar(64)  NOT NULL,
+
+    UNIQUE (timestamp, source, message, severity)
 );
 
 CREATE TABLE identifiers_ort_issues
