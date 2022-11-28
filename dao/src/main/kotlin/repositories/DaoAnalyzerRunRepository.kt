@@ -202,24 +202,24 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     return pkgDao
 }
 
-fun getOrPutArtifact(artifact: RemoteArtifact): RemoteArtifactDao =
+private fun getOrPutArtifact(artifact: RemoteArtifact): RemoteArtifactDao =
     RemoteArtifactDao.findByRemoteArtifact(artifact) ?: RemoteArtifactDao.new {
         url = artifact.url
         hashValue = artifact.hashValue
         hashAlgorithm = artifact.hashAlgorithm
     }
 
-fun getOrPutAuthor(author: String): AuthorDao =
+private fun getOrPutAuthor(author: String): AuthorDao =
     AuthorDao.findByName(author) ?: AuthorDao.new {
         name = author
     }
 
-fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao =
+private fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao =
     DeclaredLicenseDao.findByName(declaredLicense) ?: DeclaredLicenseDao.new {
         name = declaredLicense
     }
 
-fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
+private fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
     IdentifierDao.findByIdentifier(identifier) ?: IdentifierDao.new {
         type = identifier.type
         namespace = identifier.namespace
@@ -227,7 +227,7 @@ fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
         version = identifier.version
     }
 
-fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =
+private fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =
     VcsInfoDao.findByVcsInfo(vcsInfo) ?: VcsInfoDao.new {
         type = vcsInfo.type
         url = vcsInfo.url
