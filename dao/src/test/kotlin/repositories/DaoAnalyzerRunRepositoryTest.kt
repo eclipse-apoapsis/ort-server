@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.utils.test.DatabaseTest
@@ -69,6 +70,33 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                         options = mapOf("legacyPeerDeps" to "true")
                     )
                 )
+            )
+
+            val project = Project(
+                identifier = Identifier(
+                    type = "type",
+                    namespace = "namespace",
+                    name = "project",
+                    version = "version"
+                ),
+                cpe = "cpe",
+                definitionFilePath = "definitionFilePath",
+                authors = setOf("author1", "author2"),
+                declaredLicenses = setOf("license1", "license2"),
+                vcs = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/project.git",
+                    revision = "",
+                    path = ""
+                ),
+                vcsProcessed = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/project.git",
+                    revision = "main",
+                    path = ""
+                ),
+                homepageUrl = "https://example.com",
+                scopeNames = emptySet()
             )
 
             val pkg = Package(
@@ -114,7 +142,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
                 config = analyzerConfiguration,
-                projects = emptySet(),
+                projects = setOf(project),
                 packages = setOf(pkg),
                 issues = emptyMap()
             )
@@ -129,7 +157,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 endTime = createdAnalyzerRun.endTime,
                 environment = environment,
                 config = createdAnalyzerRun.config,
-                projects = emptySet(),
+                projects = setOf(project),
                 packages = setOf(pkg),
                 issues = emptyMap()
             )

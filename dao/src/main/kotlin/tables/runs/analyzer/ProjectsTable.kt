@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -47,7 +48,20 @@ object ProjectsTable : LongIdTable("projects") {
 }
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ProjectDao>(ProjectsTable)
+    companion object : LongEntityClass<ProjectDao>(ProjectsTable) {
+        fun findByProject(project: Project): ProjectDao? =
+            find {
+                ProjectsTable.cpe eq project.cpe and
+                        (ProjectsTable.homepageUrl eq project.homepageUrl) and
+                        (ProjectsTable.definitionFilePath eq project.definitionFilePath)
+            }.singleOrNull {
+                it.identifier.mapToModel() == project.identifier &&
+                        it.authors == project.authors &&
+                        it.declaredLicenses == project.declaredLicenses &&
+                        it.vcs.mapToModel() == project.vcs &&
+                        it.vcsProcessed.mapToModel() == project.vcsProcessed
+            }
+    }
 
     var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
     var vcs by VcsInfoDao referencedOn ProjectsTable.vcsId

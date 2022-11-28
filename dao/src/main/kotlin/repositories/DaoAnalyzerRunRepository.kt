@@ -35,6 +35,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfig
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -73,7 +76,8 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
 
         createAnalyzerConfiguration(analyzerRun, config)
 
-        // TODO: Create projects and issues.
+        // TODO: Create issues.
+        projects.forEach { createProject(analyzerRun, it) }
         packages.forEach { createPackage(analyzerRun, it) }
 
         analyzerRun.mapToModel()
@@ -110,6 +114,44 @@ private fun createAnalyzerConfiguration(
     }
 
     return analyzerConfigurationDao
+}
+
+private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): ProjectDao {
+    val identifier = getOrPutIdentifier(project.identifier)
+
+    val vcs = getOrPutVcsInfo(project.vcs)
+    val vcsProcessed = getOrPutVcsInfo(project.vcsProcessed)
+
+    val projectDao = ProjectDao.findByProject(project) ?: ProjectDao.new {
+        this.analyzerRun = analyzerRun
+        this.identifier = identifier
+        this.vcs = vcs
+        this.vcsProcessed = vcsProcessed
+
+        this.cpe = project.cpe
+        this.homepageUrl = project.homepageUrl
+        this.definitionFilePath = project.definitionFilePath
+    }
+
+    project.authors.forEach { author ->
+        val authorDao = getOrPutAuthor(author)
+        ProjectsAuthorsTable.insert {
+            it[authorId] = authorDao.id
+            it[projectId] = projectDao.id
+        }
+    }
+
+    project.declaredLicenses.forEach { declaredLicense ->
+        val declaredLicenseDao = getOrPutDeclaredLicense(declaredLicense)
+        ProjectsDeclaredLicensesTable.insert {
+            it[declaredLicenseId] = declaredLicenseDao.id
+            it[projectId] = projectDao.id
+        }
+    }
+
+    // TODO: Add scopes.
+
+    return projectDao
 }
 
 private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao {
