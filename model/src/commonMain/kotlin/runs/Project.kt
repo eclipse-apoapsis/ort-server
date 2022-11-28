@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class Project(
-    val id: Long,
     val identifier: Identifier,
     val cpe: String? = null,
     val definitionFilePath: String,

@@ -62,7 +62,6 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var definitionFilePath by ProjectsTable.definitionFilePath
 
     fun mapToModel() = Project(
-        id.value,
         identifier.mapToModel(),
         cpe,
         definitionFilePath,

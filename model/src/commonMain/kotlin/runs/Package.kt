@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class Package(
-    val id: Long,
     val identifier: Identifier,
     val purl: String,
     val cpe: String? = null,

@@ -22,7 +22,6 @@ package org.ossreviewtoolkit.server.model.runs
 import org.ossreviewtoolkit.server.model.RepositoryType
 
 data class VcsInfo(
-    val id: Long,
     val type: RepositoryType,
     val url: String,
     val revision: String,

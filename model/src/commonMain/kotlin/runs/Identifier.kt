@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class Identifier(
-    val id: Long,
     val type: String,
     val namespace: String,
     val name: String,

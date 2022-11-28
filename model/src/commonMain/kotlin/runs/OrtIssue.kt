@@ -22,7 +22,6 @@ package org.ossreviewtoolkit.server.model.runs
 import kotlinx.datetime.Instant
 
 data class OrtIssue(
-    val id: Long,
     val timestamp: Instant,
     val source: String,
     val message: String,

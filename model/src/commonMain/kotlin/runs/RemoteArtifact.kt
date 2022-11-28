@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class RemoteArtifact(
-    val id: Long,
     val url: String,
     val hashValue: String,
     val hashAlgorithm: String

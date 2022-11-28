@@ -45,5 +45,5 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
     var revision by VcsInfoTable.revision
     var path by VcsInfoTable.path
 
-    fun mapToModel() = VcsInfo(id.value, type, url, revision, path)
+    fun mapToModel() = VcsInfo(type, url, revision, path)
 }

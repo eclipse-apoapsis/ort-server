@@ -72,7 +72,6 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var isModified by PackagesTable.isModified
 
     fun mapToModel() = Package(
-        id.value,
         identifier.mapToModel(),
         purl,
         cpe,
