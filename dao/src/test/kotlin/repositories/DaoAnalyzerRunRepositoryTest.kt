@@ -28,11 +28,13 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
@@ -136,6 +138,13 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 )
             )
 
+            val issue = OrtIssue(
+                timestamp = Clock.System.now(),
+                source = "source",
+                message = "message",
+                severity = "severity"
+            )
+
             val createdAnalyzerRun = analyzerRunRepository.create(
                 analyzerJobId = analyzerJobId,
                 environmentId = environment.id,
@@ -144,7 +153,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),
-                issues = emptyMap()
+                issues = mapOf(pkg.identifier to listOf(issue))
             )
 
             val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
@@ -159,7 +168,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 config = createdAnalyzerRun.config,
                 projects = setOf(project),
                 packages = setOf(pkg),
-                issues = emptyMap()
+                issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision())))
             )
         }
     }

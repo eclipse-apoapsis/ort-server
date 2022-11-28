@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
@@ -39,7 +40,15 @@ object OrtIssuesTable : LongIdTable("ort_issues") {
 }
 
 class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable)
+    companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable) {
+        fun findByIssue(issue: OrtIssue): OrtIssueDao? =
+            find {
+                OrtIssuesTable.timestamp eq issue.timestamp and
+                        (OrtIssuesTable.issueSource eq issue.source) and
+                        (OrtIssuesTable.message eq issue.message) and
+                        (OrtIssuesTable.severity eq issue.severity)
+            }.singleOrNull()
+    }
 
     var timestamp by OrtIssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })
     var source by OrtIssuesTable.issueSource

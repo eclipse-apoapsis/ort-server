@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
@@ -27,6 +29,7 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersOrtIssuesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
@@ -41,6 +44,8 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLice
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
@@ -76,9 +81,13 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
 
         createAnalyzerConfiguration(analyzerRun, config)
 
-        // TODO: Create issues.
         projects.forEach { createProject(analyzerRun, it) }
         packages.forEach { createPackage(analyzerRun, it) }
+
+        issues.forEach { (id, issues) ->
+            val identifier = getOrPutIdentifier(id)
+            issues.forEach { createIssue(analyzerRun, identifier, it) }
+        }
 
         analyzerRun.mapToModel()
     }.getOrThrow()
@@ -202,6 +211,19 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     return pkgDao
 }
 
+private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: OrtIssue): OrtIssueDao {
+    val issueDao = getOrPutIssue(issue)
+
+    val identifiersOrtIssueDao = getOrPutIdentifierOrtIssue(identifier, issueDao)
+
+    AnalyzerRunsIdentifiersOrtIssuesTable.insert {
+        it[analyzerRunId] = analyzerRun.id
+        it[identifierOrtIssueId] = identifiersOrtIssueDao.id
+    }
+
+    return issueDao
+}
+
 private fun getOrPutArtifact(artifact: RemoteArtifact): RemoteArtifactDao =
     RemoteArtifactDao.findByRemoteArtifact(artifact) ?: RemoteArtifactDao.new {
         url = artifact.url
@@ -225,6 +247,20 @@ private fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
         namespace = identifier.namespace
         name = identifier.name
         version = identifier.version
+    }
+
+private fun getOrPutIdentifierOrtIssue(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao =
+    IdentifierOrtIssueDao.findByIdentifierAndIssue(identifier, issue) ?: IdentifierOrtIssueDao.new {
+        this.identifier = identifier
+        this.ortIssueDao = issue
+    }
+
+private fun getOrPutIssue(issue: OrtIssue): OrtIssueDao =
+    OrtIssueDao.findByIssue(issue) ?: OrtIssueDao.new {
+        timestamp = issue.timestamp
+        source = issue.source
+        message = issue.message
+        severity = issue.severity
     }
 
 private fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =

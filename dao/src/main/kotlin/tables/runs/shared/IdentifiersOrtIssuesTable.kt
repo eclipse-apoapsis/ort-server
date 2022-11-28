@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 /**
  * An intermediate table to store references from [IdentifiersTable] and [OrtIssuesTable].
@@ -33,7 +34,14 @@ object IdentifiersOrtIssuesTable : LongIdTable("identifiers_ort_issues") {
 }
 
 class IdentifierOrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<IdentifierOrtIssueDao>(IdentifiersOrtIssuesTable)
+    companion object : LongEntityClass<IdentifierOrtIssueDao>(IdentifiersOrtIssuesTable) {
+        fun findByIdentifierAndIssue(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao? =
+            find {
+                IdentifiersOrtIssuesTable.identifierId eq identifier.id and
+                        (IdentifiersOrtIssuesTable.ortIssueId eq issue.id)
+            }.singleOrNull()
+    }
+
     var identifier by IdentifierDao referencedOn IdentifiersOrtIssuesTable.identifierId
     var ortIssueDao by OrtIssueDao referencedOn IdentifiersOrtIssuesTable.ortIssueId
 }
