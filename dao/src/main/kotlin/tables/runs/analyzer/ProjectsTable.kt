@@ -37,14 +37,14 @@ import org.ossreviewtoolkit.server.model.runs.Project
  * A table to represent a software package as a project.
  */
 object ProjectsTable : LongIdTable("projects") {
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
     val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
     val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
 
     val cpe = text("cpe").nullable()
-    val homepageUrl = text("homepage_url")
     val definitionFilePath = text("definition_file_path")
+    val homepageUrl = text("homepage_url")
 }
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
@@ -63,17 +63,17 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
-    var vcs by VcsInfoDao referencedOn ProjectsTable.vcsId
-    var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessedId
     var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRunId
+    var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
     var authors by AuthorDao via ProjectsAuthorsTable
     var declaredLicenses by DeclaredLicenseDao via ProjectsDeclaredLicensesTable
+    var vcs by VcsInfoDao referencedOn ProjectsTable.vcsId
+    var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessedId
     val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     var cpe by ProjectsTable.cpe
-    var homepageUrl by ProjectsTable.homepageUrl
     var definitionFilePath by ProjectsTable.definitionFilePath
+    var homepageUrl by ProjectsTable.homepageUrl
 
     fun mapToModel() = Project(
         identifier = identifier.mapToModel(),
