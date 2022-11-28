@@ -44,5 +44,5 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
     var url by RepositoriesTable.url
     var product by ProductDao referencedOn RepositoriesTable.productId
 
-    fun mapToModel() = Repository(id.value, type, url)
+    fun mapToModel() = Repository(id = id.value, type = type, url = url)
 }

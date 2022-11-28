@@ -37,5 +37,5 @@ class OrganizationDao(id: EntityID<Long>) : LongEntity(id) {
     var name by OrganizationsTable.name
     var description by OrganizationsTable.description
 
-    fun mapToModel() = Organization(id.value, name, description)
+    fun mapToModel() = Organization(id = id.value, name = name, description = description)
 }

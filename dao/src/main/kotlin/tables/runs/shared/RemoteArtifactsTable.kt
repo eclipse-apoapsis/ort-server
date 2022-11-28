@@ -50,5 +50,5 @@ class RemoteArtifactDao(id: EntityID<Long>) : LongEntity(id) {
     var hashValue by RemoteArtifactsTable.hashValue
     var hashAlgorithm by RemoteArtifactsTable.hashAlgorithm
 
-    fun mapToModel() = RemoteArtifact(url, hashValue, hashAlgorithm)
+    fun mapToModel() = RemoteArtifact(url = url, hashValue = hashValue, hashAlgorithm = hashAlgorithm)
 }

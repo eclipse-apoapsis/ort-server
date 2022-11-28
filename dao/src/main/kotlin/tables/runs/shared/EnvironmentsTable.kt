@@ -49,13 +49,13 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
     val toolVersions by EnvironmentToolVersionDao referrersOn EnvironmentToolVersionsTable.environmentId
 
     fun mapToModel() = Environment(
-        id.value,
-        ortVersion,
-        javaVersion,
-        os,
-        processors,
-        maxMemory,
-        variables.associate { it.name to it.value },
-        toolVersions.associate { it.name to it.version }
+        id = id.value,
+        ortVersion = ortVersion,
+        javaVersion = javaVersion,
+        os = os,
+        processors = processors,
+        maxMemory = maxMemory,
+        variables = variables.associate { it.name to it.value },
+        toolVersions = toolVersions.associate { it.name to it.version }
     )
 }

@@ -57,15 +57,15 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
 
     fun mapToModel() = AnalyzerRun(
-        id.value,
-        analyzerJob.id.value,
-        startTime,
-        endTime,
-        environment.mapToModel(),
-        analyzerConfiguration.mapToModel(),
-        projects.map(ProjectDao::mapToModel).toSet(),
-        packages.map(PackageDao::mapToModel).toSet(),
-        issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
+        id = id.value,
+        analyzerJobId = analyzerJob.id.value,
+        startTime = startTime,
+        endTime = endTime,
+        environment = environment.mapToModel(),
+        config = analyzerConfiguration.mapToModel(),
+        projects = projects.map(ProjectDao::mapToModel).toSet(),
+        packages = packages.map(PackageDao::mapToModel).toSet(),
+        issues = issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
             identifier.mapToModel() to
                     idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }
         }.toMap()

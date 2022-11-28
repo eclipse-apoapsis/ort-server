@@ -56,5 +56,13 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var jobConfigurations by OrtRunsTable.jobConfigurations
     var status by OrtRunsTable.status
 
-    fun mapToModel() = OrtRun(id.value, index, repository.id.value, revision, createdAt, jobConfigurations, status)
+    fun mapToModel() = OrtRun(
+        id = id.value,
+        index = index,
+        repositoryId = repository.id.value,
+        revision = revision,
+        createdAt = createdAt,
+        jobs = jobConfigurations,
+        status = status
+    )
 }

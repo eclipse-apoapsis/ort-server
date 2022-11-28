@@ -46,5 +46,5 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     var message by OrtIssuesTable.message
     var severity by OrtIssuesTable.severity
 
-    fun mapToModel() = OrtIssue(timeStamp, issueSource, message, severity)
+    fun mapToModel() = OrtIssue(timestamp = timeStamp, source = issueSource, message = message, severity = severity)
 }

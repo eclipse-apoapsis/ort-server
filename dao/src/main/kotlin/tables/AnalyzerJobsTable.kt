@@ -58,14 +58,14 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
     val analyzerRun by AnalyzerRunDao optionalBackReferencedOn AnalyzerRunsTable.analyzerJobId
 
     fun mapToModel() = AnalyzerJob(
-        id.value,
-        ortRun.id.value,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration,
-        status,
-        ortRun.repository.url,
-        ortRun.revision
+        id = id.value,
+        ortRunId = ortRun.id.value,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration,
+        status = status,
+        repositoryUrl = ortRun.repository.url,
+        repositoryRevision = ortRun.revision
     )
 }

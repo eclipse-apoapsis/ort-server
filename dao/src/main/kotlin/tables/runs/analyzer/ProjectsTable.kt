@@ -76,14 +76,14 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var definitionFilePath by ProjectsTable.definitionFilePath
 
     fun mapToModel() = Project(
-        identifier.mapToModel(),
-        cpe,
-        definitionFilePath,
-        authors.mapTo(mutableSetOf()) { it.name },
-        declaredLicenses.mapTo(mutableSetOf()) { it.name },
-        vcs.mapToModel(),
-        vcsProcessed.mapToModel(),
-        homepageUrl,
-        scopeNames.map(ProjectScopeDao::name).toSet()
+        identifier = identifier.mapToModel(),
+        cpe = cpe,
+        definitionFilePath = definitionFilePath,
+        authors = authors.mapTo(mutableSetOf()) { it.name },
+        declaredLicenses = declaredLicenses.mapTo(mutableSetOf()) { it.name },
+        vcs = vcs.mapToModel(),
+        vcsProcessed = vcsProcessed.mapToModel(),
+        homepageUrl = homepageUrl,
+        scopeNames = scopeNames.map(ProjectScopeDao::name).toSet()
     )
 }

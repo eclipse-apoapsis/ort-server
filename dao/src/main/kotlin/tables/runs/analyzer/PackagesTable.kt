@@ -92,18 +92,18 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var isModified by PackagesTable.isModified
 
     fun mapToModel() = Package(
-        identifier.mapToModel(),
-        purl,
-        cpe,
-        authors.mapTo(mutableSetOf()) { it.name },
-        declaredLicenses.mapTo(mutableSetOf()) { it.name },
-        description,
-        homepageUrl,
-        binaryArtifact.mapToModel(),
-        sourceArtifact.mapToModel(),
-        vcs.mapToModel(),
-        vcsProcessed.mapToModel(),
-        isMetadataOnly,
-        isModified
+        identifier = identifier.mapToModel(),
+        purl = purl,
+        cpe = cpe,
+        authors = authors.mapTo(mutableSetOf()) { it.name },
+        declaredLicenses = declaredLicenses.mapTo(mutableSetOf()) { it.name },
+        description = description,
+        homepageUrl = homepageUrl,
+        binaryArtifact = binaryArtifact.mapToModel(),
+        sourceArtifact = sourceArtifact.mapToModel(),
+        vcs = vcs.mapToModel(),
+        vcsProcessed = vcsProcessed.mapToModel(),
+        isMetadataOnly = isMetadataOnly,
+        isModified = isModified
     )
 }

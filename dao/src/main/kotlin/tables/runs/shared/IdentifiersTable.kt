@@ -53,5 +53,5 @@ class IdentifierDao(id: EntityID<Long>) : LongEntity(id) {
     var name by IdentifiersTable.name
     var version by IdentifiersTable.version
 
-    fun mapToModel() = Identifier(type, namespace, name, version)
+    fun mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 }
