@@ -25,6 +25,9 @@ CREATE TABLE packages
     is_modified        boolean DEFAULT FALSE              NOT NULL
 );
 
+CREATE INDEX packages_all_value_columns
+    ON packages (purl, cpe, description, homepage_url, is_metadata_only, is_modified);
+
 CREATE TABLE packages_analyzer_runs
 (
     package_id      bigint REFERENCES packages      NOT NULL,

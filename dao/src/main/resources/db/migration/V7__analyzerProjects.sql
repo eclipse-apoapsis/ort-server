@@ -48,6 +48,8 @@ CREATE TABLE projects
     cpe                  text                            NULL
 );
 
+CREATE INDEX projects_all_value_columns ON projects (homepage_url, definition_file_path, cpe);
+
 CREATE TABLE projects_authors
 (
     author_id  bigint REFERENCES authors  NOT NULL,
