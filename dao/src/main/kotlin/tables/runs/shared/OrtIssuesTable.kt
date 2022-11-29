@@ -43,7 +43,7 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable) {
         fun findByIssue(issue: OrtIssue): OrtIssueDao? =
             find {
-                OrtIssuesTable.timestamp eq issue.timestamp and
+                OrtIssuesTable.timestamp eq issue.timestamp.toDatabasePrecision() and
                         (OrtIssuesTable.issueSource eq issue.source) and
                         (OrtIssuesTable.message eq issue.message) and
                         (OrtIssuesTable.severity eq issue.severity)
