@@ -1,5 +1,7 @@
 = Database schema (high-level design)
 
+WARNING: The database schema in this document is deprecated and will not be kept up-to-date. To get an up-to-date ER diagram you can deploy the link:../../dao/src/main/resources/db.migration[migrations] to a database and use a tool like https://www.pgadmin.org/docs/pgadmin4/latest/erd_tool.html[this].
+
 This document introduces the database schema of the ORT server. Since the data to be stored is rather complex, the whole schema is broken down into multiple logical areas. For each area, there are one or more diagrams showing the entities and their relations.
 
 Note that the diagrams do not model every single detail. The intended goal is rather to have an overview over the different entities, their most important attributes, and how they are connected.
