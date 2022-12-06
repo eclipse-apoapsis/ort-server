@@ -38,6 +38,7 @@ object PackageManagerConfigurationsTable : LongIdTable("package_manager_configur
     )
     val name = text("name")
     val mustRunAfter = text("must_run_after").nullable()
+    val hasOptions = bool("has_options")
 }
 
 class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
@@ -50,9 +51,10 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     val options by PackageManagerConfigurationOptionDao referrersOn
             PackageManagerConfigurationOptionsTable.packageManagerConfigurationId
+    var hasOptions by PackageManagerConfigurationsTable.hasOptions
 
     fun mapToModel() = PackageManagerConfiguration(
         mustRunAfter = mustRunAfter,
-        options = options.associate { it.name to it.value }
+        options = if (hasOptions) options.associate { it.name to it.value } else null
     )
 }

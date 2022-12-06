@@ -80,7 +80,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
 
             val analyzerConfiguration = AnalyzerConfiguration(
                 allowDynamicVersions = true,
-                enabledPackageManagers = listOf("Gradle", "NPM"),
+                enabledPackageManagers = listOf("Gradle", "NPM", "Yarn"),
                 disabledPackageManagers = listOf("Maven", "Pub"),
                 packageManagers = mapOf(
                     "Gradle" to PackageManagerConfiguration(
@@ -88,6 +88,9 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                     ),
                     "NPM" to PackageManagerConfiguration(
                         options = mapOf("legacyPeerDeps" to "true")
+                    ),
+                    "Yarn" to PackageManagerConfiguration(
+                        options = emptyMap()
                     )
                 )
             )
@@ -183,7 +186,7 @@ class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
                 startTime = createdAnalyzerRun.startTime,
                 endTime = createdAnalyzerRun.endTime,
                 environment = environment,
-                config = createdAnalyzerRun.config,
+                config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),
                 issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision())))

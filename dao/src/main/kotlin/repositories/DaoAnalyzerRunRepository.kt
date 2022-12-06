@@ -118,6 +118,7 @@ private fun createAnalyzerConfiguration(
             this.analyzerConfiguration = analyzerConfigurationDao
             name = packageManager
             mustRunAfter = packageManagerConfiguration.mustRunAfter
+            hasOptions = (packageManagerConfiguration.options != null)
         }
 
         packageManagerConfiguration.options?.forEach { (name, value) ->
