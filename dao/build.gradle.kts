@@ -53,8 +53,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.testContainers)
-    testImplementation(libs.testContainersPostgresql)
 
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.kotestExtensionsTestContainer)
