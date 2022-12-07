@@ -27,14 +27,22 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
+import io.github.smiley4.ktorswaggerui.dsl.route
+
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.Spec
+import io.kotest.core.spec.style.FunSpec
 
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.testing.ApplicationTestBuilder
 
 import java.io.File
 import java.security.KeyStore
@@ -50,11 +58,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
 private const val CERT_STORE = "testkeycloak.jks"
 private const val CERT_ENTRY = "testkeycloak"
@@ -63,7 +69,7 @@ private const val CERT_ISSUER = "https://testkeycloak.example.org"
 private const val JWKS_ENDPOINT = "/auth/realms/master/protocol/openid-connect/certs"
 private const val KEY_ID = "testKey"
 
-class AuthenticationIntegrationTest : DatabaseTest() {
+class AuthenticationIntegrationTest : FunSpec() {
     private val issuerData = loadIssuerData()
 
     private val server = WireMockServer(
@@ -77,11 +83,6 @@ class AuthenticationIntegrationTest : DatabaseTest() {
     private lateinit var testJwtConfigs: Map<String, String>
 
     override suspend fun beforeSpec(spec: Spec) {
-        // TODO: This test should not require a database. However, calling the organizations endpoints requires a
-        //       working database for now. This should be removed, and the required database access should be mocked.
-        dataSource.connect()
-        dataSource.migrate()
-
         server.start()
         server.stubJwks(issuerData)
 
@@ -99,8 +100,8 @@ class AuthenticationIntegrationTest : DatabaseTest() {
 
     init {
         test("A request with a valid token is accepted.") {
-            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
-                val response = client.get("/api/v1/organizations/0") {
+            authTestApplication {
+                val response = client.get("/api/v1/test") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -108,21 +109,21 @@ class AuthenticationIntegrationTest : DatabaseTest() {
                         }
                     }
                 }
-                response shouldHaveStatus HttpStatusCode.NotFound
+                response shouldHaveStatus HttpStatusCode.OK
             }
         }
 
         test("A request without a token is rejected.") {
-            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
-                val response = client.get("/api/v1/organizations")
+            authTestApplication {
+                val response = client.get("/api/v1/test")
                 response shouldHaveStatus HttpStatusCode.Unauthorized
             }
         }
 
         test("A request with an expired token is rejected.") {
-            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+            authTestApplication {
                 val cal = LocalDateTime.now().minusHours(2).atZone(ZoneId.systemDefault())
-                val response = client.get("/api/v1/organizations/0") {
+                val response = client.get("/api/v1/test") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -136,8 +137,8 @@ class AuthenticationIntegrationTest : DatabaseTest() {
         }
 
         test("A token without an audience claim is rejected.") {
-            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
-                val response = client.get("/api/v1/organizations/0") {
+            authTestApplication {
+                val response = client.get("/api/v1/test") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -149,8 +150,8 @@ class AuthenticationIntegrationTest : DatabaseTest() {
         }
 
         test("A token with a wrong audience claim is rejected.") {
-            ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
-                val response = client.get("/api/v1/organizations/0") {
+            authTestApplication {
+                val response = client.get("/api/v1/test") {
                     headers {
                         token {
                             withIssuer(CERT_ISSUER)
@@ -176,6 +177,23 @@ class AuthenticationIntegrationTest : DatabaseTest() {
     private fun HeadersBuilder.token(builder: JWTCreator.Builder.() -> JWTCreator.Builder) {
         set(HttpHeaders.Authorization, "Bearer ${createToken(builder)}")
     }
+
+    private fun authTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
+        ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+            routing {
+                route("api/v1") {
+                    authenticate(SecurityConfigurations.token) {
+                        route("test") {
+                            get {
+                                call.respond("Ok")
+                            }
+                        }
+                    }
+                }
+            }
+
+            block()
+        }
 }
 
 /**
