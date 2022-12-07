@@ -19,15 +19,14 @@
 
 package org.ossreviewtoolkit.server.dao.test.repositories
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -40,24 +39,22 @@ import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoAnalyzerRunRepositoryTest : DatabaseTest() {
+class DaoAnalyzerRunRepositoryTest : StringSpec() {
     private val analyzerRunRepository = DaoAnalyzerRunRepository()
 
     private lateinit var fixtures: Fixtures
     private var analyzerJobId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        fixtures = Fixtures()
-        analyzerJobId = fixtures.analyzerJob.id
-    }
-
     init {
-        test("create should create an entry in the database") {
+        extension(
+            DatabaseTestExtension {
+                fixtures = Fixtures()
+                analyzerJobId = fixtures.analyzerJob.id
+            }
+        )
+
+        "create should create an entry in the database" {
             val variables = mapOf(
                 "SHELL" to "/bin/bash",
                 "TERM" to "xterm-256color"

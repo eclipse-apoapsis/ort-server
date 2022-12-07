@@ -20,35 +20,32 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoRepositoryRepositoryTest : DatabaseTest() {
+class DaoRepositoryRepositoryTest : StringSpec() {
     private val repositoryRepository = DaoRepositoryRepository()
 
     private lateinit var fixtures: Fixtures
     private var productId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        fixtures = Fixtures()
-        productId = fixtures.product.id
-    }
-
     init {
-        test("create should create an entry in the database") {
+        extension(
+            DatabaseTestExtension {
+                fixtures = Fixtures()
+                productId = fixtures.product.id
+            }
+        )
+
+        "create should create an entry in the database" {
             val type = RepositoryType.GIT
             val url = "https://example.com/repo.git"
 
@@ -60,7 +57,7 @@ class DaoRepositoryRepositoryTest : DatabaseTest() {
             dbEntry shouldBe Repository(createdRepository.id, type, url)
         }
 
-        test("create should throw an exception if a repository with the same url exists") {
+        "create should throw an exception if a repository with the same url exists" {
             val type = RepositoryType.GIT
             val url = "https://example.com/repo.git"
 
@@ -71,7 +68,7 @@ class DaoRepositoryRepositoryTest : DatabaseTest() {
             }
         }
 
-        test("listForProduct should return all repositories for a product") {
+        "listForProduct should return all repositories for a product" {
             val type = RepositoryType.GIT
 
             val url1 = "https://example.com/repo1.git"
@@ -86,7 +83,7 @@ class DaoRepositoryRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("update should update an entry in the database") {
+        "update should update an entry in the database" {
             val createdRepository =
                 repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
 
@@ -108,7 +105,7 @@ class DaoRepositoryRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("update should throw an exception if a repository with the same url exists") {
+        "update should throw an exception if a repository with the same url exists" {
             val type = RepositoryType.GIT
 
             val url1 = "https://example.com/repo1.git"
@@ -125,7 +122,7 @@ class DaoRepositoryRepositoryTest : DatabaseTest() {
             }
         }
 
-        test("delete should delete the database entry") {
+        "delete should delete the database entry" {
             val createdRepository =
                 repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
 

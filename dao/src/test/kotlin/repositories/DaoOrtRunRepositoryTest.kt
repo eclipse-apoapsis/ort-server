@@ -19,21 +19,19 @@
 
 package org.ossreviewtoolkit.server.dao.test.repositories
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoOrtRunRepositoryTest : DatabaseTest() {
+class DaoOrtRunRepositoryTest : StringSpec() {
     private val ortRunRepository = DaoOrtRunRepository()
 
     private lateinit var fixtures: Fixtures
@@ -45,16 +43,15 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
         )
     )
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        fixtures = Fixtures()
-        repositoryId = fixtures.repository.id
-    }
-
     init {
-        test("create should create an entry in the database") {
+        extension(
+            DatabaseTestExtension {
+                fixtures = Fixtures()
+                repositoryId = fixtures.repository.id
+            }
+        )
+
+        "create should create an entry in the database" {
             val revision = "revision"
 
             val createdOrtRun = ortRunRepository.create(repositoryId, revision, jobConfigurations)
@@ -73,7 +70,7 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("create should create sequential indexes for different repositories") {
+        "create should create sequential indexes for different repositories" {
             val otherRepository = fixtures.createRepository(url = "https://example.com/repo2.git")
 
             ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
@@ -82,20 +79,20 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
             ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 2
         }
 
-        test("getByIndex should return the correct run") {
+        "getByIndex should return the correct run" {
             val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
 
             ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
         }
 
-        test("listForRepositories should return all runs for a repository") {
+        "listForRepositories should return all runs for a repository" {
             val ortRun1 = ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
             val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
 
             ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
         }
 
-        test("update should update an entry in the database") {
+        "update should update an entry in the database" {
             val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
 
             val updateStatus = OptionalValue.Present(OrtRunStatus.ACTIVE)
@@ -106,7 +103,7 @@ class DaoOrtRunRepositoryTest : DatabaseTest() {
             ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(status = updateStatus.value)
         }
 
-        test("delete should delete the database entry") {
+        "delete should delete the database entry" {
             val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
 
             ortRunRepository.delete(ortRun.id)

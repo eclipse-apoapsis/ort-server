@@ -19,41 +19,39 @@
 
 package org.ossreviewtoolkit.server.dao.test.repositories
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
+class DaoAnalyzerJobRepositoryTest : StringSpec() {
     private val analyzerJobRepository = DaoAnalyzerJobRepository()
 
     private lateinit var fixtures: Fixtures
     private lateinit var jobConfigurations: JobConfigurations
     private var ortRunId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        fixtures = Fixtures()
-        ortRunId = fixtures.ortRun.id
-        jobConfigurations = fixtures.jobConfigurations
-    }
-
     init {
-        test("create should create an entry in the database") {
-            val createdAnalyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+        extension(
+            DatabaseTestExtension {
+                fixtures = Fixtures()
+                ortRunId = fixtures.ortRun.id
+                jobConfigurations = fixtures.jobConfigurations
+            }
+        )
+
+        "create should create an entry in the database" {
+            val createdAnalyzerJob =
+                analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
             val dbEntry = analyzerJobRepository.get(createdAnalyzerJob.id)
 
@@ -71,13 +69,13 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("getForOrtRun should return the job for a run") {
+        "getForOrtRun should return the job for a run" {
             val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
             analyzerJobRepository.getForOrtRun(ortRunId) shouldBe analyzerJob
         }
 
-        test("update should update an entry in the database") {
+        "update should update an entry in the database" {
             val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
             val updateStartedAt = OptionalValue.Present(Clock.System.now())
@@ -99,7 +97,7 @@ class DaoAnalyzerJobRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("delete should delete the database entry") {
+        "delete should delete the database entry" {
             val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
             analyzerJobRepository.delete(analyzerJob.id)

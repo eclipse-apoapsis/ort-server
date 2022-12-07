@@ -19,27 +19,22 @@
 
 package org.ossreviewtoolkit.server.dao.test.repositories
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoOrganizationRepositoryTest : DatabaseTest() {
+class DaoOrganizationRepositoryTest : StringSpec() {
     private val organizationRepository = DaoOrganizationRepository()
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-    }
-
     init {
-        test("create should create an entry in the database") {
+        extension(DatabaseTestExtension())
+
+        "create should create an entry in the database" {
             val name = "name"
             val description = "description"
 
@@ -51,7 +46,7 @@ class DaoOrganizationRepositoryTest : DatabaseTest() {
             dbEntry shouldBe Organization(dbEntry.id, name, description)
         }
 
-        test("list should retrieve all entities from the database") {
+        "list should retrieve all entities from the database" {
             val name1 = "name1"
             val description1 = "description1"
 
@@ -67,7 +62,7 @@ class DaoOrganizationRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("update should update an entity in the database") {
+        "update should update an entity in the database" {
             val createdOrg = organizationRepository.create("name", "description")
 
             val updateName = OptionalValue.Present("updatedName")
@@ -82,7 +77,7 @@ class DaoOrganizationRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("update should update null values and ignore absent values") {
+        "update should update null values and ignore absent values" {
             val name = "name"
 
             val createdOrg = organizationRepository.create("name", "description")
@@ -100,7 +95,7 @@ class DaoOrganizationRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("delete should delete an entity in the database") {
+        "delete should delete an entity in the database" {
             val createdOrg = organizationRepository.create("name", "description")
 
             organizationRepository.delete(createdOrg.id)

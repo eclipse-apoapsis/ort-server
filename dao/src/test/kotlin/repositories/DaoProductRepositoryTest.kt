@@ -20,34 +20,31 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class DaoProductRepositoryTest : DatabaseTest() {
+class DaoProductRepositoryTest : StringSpec() {
     private val productRepository = DaoProductRepository()
 
     private lateinit var fixtures: Fixtures
     private var orgId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        fixtures = Fixtures()
-        orgId = fixtures.organization.id
-    }
-
     init {
-        test("create should create an entry in the database") {
+        extension(
+            DatabaseTestExtension {
+                fixtures = Fixtures()
+                orgId = fixtures.organization.id
+            }
+        )
+
+        "create should create an entry in the database" {
             val name = "name"
             val description = "description"
 
@@ -59,7 +56,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
             dbEntry shouldBe Product(createdProduct.id, name, description)
         }
 
-        test("create with the same product name and organization should throw") {
+        "create with the same product name and organization should throw" {
             val name = "name"
             val description = "description"
 
@@ -70,7 +67,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
             }
         }
 
-        test("listForOrganization should return all products for an organization") {
+        "listForOrganization should return all products for an organization" {
             val otherOrgId = fixtures.createOrganization(name = "ortherOrg").id
 
             val name1 = "name1"
@@ -89,7 +86,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("update should update an entry in the database") {
+        "update should update an entry in the database" {
             val createdProduct = productRepository.create("name", "description", orgId)
 
             val updateName = OptionalValue.Present("updatedName")
@@ -110,7 +107,7 @@ class DaoProductRepositoryTest : DatabaseTest() {
             )
         }
 
-        test("delete should delete the database entry") {
+        "delete should delete the database entry" {
             val createdProduct = productRepository.create("name", "description", orgId)
 
             productRepository.delete(createdProduct.id)
