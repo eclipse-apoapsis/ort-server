@@ -65,10 +65,10 @@ dependencies {
     implementation(libs.logback)
 
     testImplementation(project(":utils:test"))
+    testImplementation(testFixtures(project(":dao")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.ktorClientContentNegotiation)
     testImplementation(libs.ktorClientCore)

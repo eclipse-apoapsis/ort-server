@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -41,38 +41,35 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class ProductsRouteIntegrationTest : DatabaseTest() {
+class ProductsRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
     private lateinit var repositoryRepository: RepositoryRepository
 
     private var orgId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        organizationRepository = DaoOrganizationRepository()
-        productRepository = DaoProductRepository()
-        repositoryRepository = DaoRepositoryRepository()
-
-        orgId = organizationRepository.create(name = "name", description = "description").id
-    }
-
     init {
-        test("GET /products/{productId} should return a single product") {
+        extension(
+            DatabaseTestExtension {
+                organizationRepository = DaoOrganizationRepository()
+                productRepository = DaoProductRepository()
+                repositoryRepository = DaoRepositoryRepository()
+
+                orgId = organizationRepository.create(name = "name", description = "description").id
+            }
+        )
+
+        "GET /products/{productId} should return a single product" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -95,7 +92,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("PATCH /products/{id} should update a product") {
+        "PATCH /products/{id} should update a product" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -124,7 +121,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("DELETE /products/{id} should delete a product") {
+        "DELETE /products/{id} should delete a product" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -145,7 +142,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("GET /products/{id}/repositories should return all repositories of an organization") {
+        "GET /products/{id}/repositories should return all repositories of an organization" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -177,7 +174,7 @@ class ProductsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("POST /products/{id}/repositories should create a repository") {
+        "POST /products/{id}/repositories should create a repository" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 

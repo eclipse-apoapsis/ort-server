@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.matchers.shouldBe
 
@@ -43,29 +44,26 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class OrganizationsRouteIntegrationTest : DatabaseTest() {
+class OrganizationsRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
 
     override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
         organizationRepository = DaoOrganizationRepository()
         productRepository = DaoProductRepository()
     }
 
     init {
-        test("GET /organizations should return all existing organizations") {
+        extension(DatabaseTestExtension())
+
+        "GET /organizations should return all existing organizations" {
             ortServerTestApplication(noDbConfig) {
                 val org1 = organizationRepository.create(name = "name1", description = "description1")
                 val org2 = organizationRepository.create(name = "name2", description = "description2")
@@ -85,7 +83,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("GET /organizations/{organizationId} should return a single organization") {
+        "GET /organizations/{organizationId} should return a single organization" {
             ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
@@ -107,7 +105,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("GET /organizations/{organizationId} should respond with NotFound if no organization exists") {
+        "GET /organizations/{organizationId} should respond with NotFound if no organization exists" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -123,7 +121,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("POST /organizations should create an organization in the database") {
+        "POST /organizations should create an organization in the database" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -147,7 +145,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("POST /organizations with an already existing organization should respond with CONFLICT") {
+        "POST /organizations with an already existing organization should respond with CONFLICT" {
             ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
@@ -171,7 +169,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("PATCH /organizations/{organizationId} should update an organization") {
+        "PATCH /organizations/{organizationId} should update an organization" {
             ortServerTestApplication(noDbConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
@@ -205,7 +203,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("PATCH /organizations/{organizationId} should be able to delete a value and ignore absent values") {
+        "PATCH /organizations/{organizationId} should be able to delete a value and ignore absent values" {
             ortServerTestApplication(noDbConfig) {
                 val name = "name"
                 val description = "description"
@@ -243,7 +241,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("DELETE /organizations/{organizationId} should delete an organization") {
+        "DELETE /organizations/{organizationId} should delete an organization" {
             ortServerTestApplication(noDbConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
@@ -263,7 +261,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("POST /organizations/{orgId}/products should create a product") {
+        "POST /organizations/{orgId}/products should create a product" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -286,7 +284,7 @@ class OrganizationsRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("GET /organizations/{orgId}/products should return all products of an organization") {
+        "GET /organizations/{orgId}/products should return all products of an organization" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 

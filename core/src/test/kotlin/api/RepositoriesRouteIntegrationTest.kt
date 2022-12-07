@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
-import io.kotest.core.test.TestCase
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -38,21 +38,19 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
 
-class RepositoriesRouteIntegrationTest : DatabaseTest() {
+class RepositoriesRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var ortRunRepository: OrtRunRepository
     private lateinit var productRepository: ProductRepository
@@ -61,21 +59,21 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
     private var orgId = -1L
     private var productId = -1L
 
-    override suspend fun beforeTest(testCase: TestCase) {
-        dataSource.connect()
-        dataSource.migrate()
-
-        organizationRepository = DaoOrganizationRepository()
-        ortRunRepository = DaoOrtRunRepository()
-        productRepository = DaoProductRepository()
-        repositoryRepository = DaoRepositoryRepository()
-
-        orgId = organizationRepository.create(name = "name", description = "description").id
-        productId = productRepository.create(name = "name", description = "description", organizationId = orgId).id
-    }
-
     init {
-        test("GET /repositories/{repositoryId} should return a single repository") {
+        extension(
+            DatabaseTestExtension {
+                organizationRepository = DaoOrganizationRepository()
+                ortRunRepository = DaoOrtRunRepository()
+                productRepository = DaoProductRepository()
+                repositoryRepository = DaoRepositoryRepository()
+
+                orgId = organizationRepository.create(name = "name", description = "description").id
+                productId =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId).id
+            }
+        )
+
+        "GET /repositories/{repositoryId} should return a single repository" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -97,7 +95,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("PATCH /repositories/{repositoryId} should update a repository") {
+        "PATCH /repositories/{repositoryId} should update a repository" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -130,7 +128,7 @@ class RepositoriesRouteIntegrationTest : DatabaseTest() {
             }
         }
 
-        test("DELETE /repositories/{repositoryId} should delete a repository") {
+        "DELETE /repositories/{repositoryId} should delete a repository" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
