@@ -19,6 +19,8 @@
 
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
+    `java-test-fixtures`
+
     alias(libs.plugins.kotlinJvm)
 }
 
@@ -50,8 +52,13 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainers)
     testImplementation(libs.testContainersPostgresql)
+
+    testFixturesImplementation(libs.flywayCore)
+    testFixturesImplementation(libs.kotestExtensionsTestContainer)
+    testFixturesImplementation(libs.kotestRunnerJunit5)
+    testFixturesImplementation(libs.testContainers)
+    testFixturesImplementation(libs.testContainersPostgresql)
 }
