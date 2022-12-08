@@ -47,8 +47,6 @@ dependencies {
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
 
-    testImplementation(project(":utils:test"))
-
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)

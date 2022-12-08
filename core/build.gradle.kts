@@ -64,7 +64,6 @@ dependencies {
     implementation(libs.ktorSwaggerUi)
     implementation(libs.logback)
 
-    testImplementation(project(":utils:test"))
     testImplementation(testFixtures(project(":dao")))
 
     testImplementation(libs.kotestAssertionsCore)

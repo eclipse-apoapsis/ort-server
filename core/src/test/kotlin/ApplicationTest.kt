@@ -23,15 +23,15 @@ import io.ktor.server.application.Application
 
 import org.ossreviewtoolkit.server.core.plugins.*
 import org.ossreviewtoolkit.server.core.testutils.configureTestAuthentication
-import org.ossreviewtoolkit.server.utils.test.DatabaseTest
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
 /**
  * A test application configuration that removes or replaces components with a dummy version that are required for
  * most integration tests.
- * * Database: This application does not connect to a database. Instead, [DatabaseTest] should be used to connect to
- *             a test database backed by [Testcontainers](https://www.testcontainers.org/).
+ * * Database: This application does not connect to a database. Instead, [DatabaseTestExtension] should be used to
+ *             connect to a test database backed by [Testcontainers](https://www.testcontainers.org/).
  * * Authentication: This application does not use KeyCloak for authentication. Instead, it uses an
  *                   authentication which is always valid.
  */
