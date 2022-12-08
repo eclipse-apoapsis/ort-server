@@ -44,7 +44,7 @@ mockk = "1.13.2"
 ort = "958e9f7bbf"
 postgres = "42.5.0"
 qpidJmsClient = "2.1.0"
-testContainers = "1.17.5"
+testContainers = "1.17.6"
 typesafeConfig = "1.4.2"
 wiremock = "2.35.0"
 
