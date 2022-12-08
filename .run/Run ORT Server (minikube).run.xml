@@ -5,7 +5,7 @@
       <env name="DB_PASSWORD" value="postgres" />
       <env name="DB_SCHEMA" value="ort_server" />
       <env name="DB_SSLMODE" value="disable" />
-      <env name="DB_URL" value="jdbc:postgresql://postgres:5433" />
+      <env name="DB_URL" value="jdbc:postgresql://postgres:5432" />
       <env name="DB_USERNAME" value="postgres" />
       <env name="JWT_AUDIENCE" value="ort-server" />
       <env name="JWT_ISSUER" value="http://keycloak:8081/realms/master" />
