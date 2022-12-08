@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
@@ -88,5 +90,20 @@ subprojects {
             jvmTarget = javaVersion.majorVersion
             apiVersion = "1.7"
         }
+    }
+}
+
+tasks.named<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask>("dependencyUpdates").configure {
+    gradleReleaseChannel = "current"
+    outputFormatter = "json"
+
+    val nonFinalQualifiers = listOf(
+        "alpha", "b", "beta", "cr", "dev", "ea", "eap", "m", "milestone", "pr", "preview", "rc", "\\d{14}"
+    ).joinToString("|", "(", ")")
+
+    val nonFinalQualifiersRegex = Regex(".*[.-]$nonFinalQualifiers[.\\d-+]*", RegexOption.IGNORE_CASE)
+
+    rejectVersionIf {
+        candidate.version.matches(nonFinalQualifiersRegex)
     }
 }
