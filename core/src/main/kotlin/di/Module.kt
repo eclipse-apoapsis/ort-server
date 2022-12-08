@@ -30,11 +30,13 @@ import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
 import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -59,6 +61,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single { KeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get()) }
 
+    single<AdvisorJobRepository> { DaoAdvisorJobRepository() }
     single<AnalyzerJobRepository> { DaoAnalyzerJobRepository() }
     single<OrganizationRepository> { DaoOrganizationRepository() }
     single<OrtRunRepository> { DaoOrtRunRepository() }

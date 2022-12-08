@@ -55,7 +55,8 @@ data class OrtRun(
  */
 @Serializable
 data class JobConfigurations(
-    val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration()
+    val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
+    val advisor: AdvisorJobConfiguration = AdvisorJobConfiguration()
 )
 
 /**
@@ -64,6 +65,17 @@ data class JobConfigurations(
 @Serializable
 data class AnalyzerJobConfiguration(
     val allowDynamicVersions: Boolean = false
+)
+
+/**
+ * The configuration for an advisor job.
+ */
+@Serializable
+data class AdvisorJobConfiguration(
+    /**
+     * The Advisors to use (e.g. NexusIQ, VulnerableCode, DefectDB).
+     */
+    val advisors: List<String> = emptyList()
 )
 
 /**
