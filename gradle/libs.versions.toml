@@ -23,7 +23,7 @@ kotlinPlugin = "1.7.21"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.4.1"
 versionCatalogUpdatePlugin = "0.7.0"
-versionsPlugin = "0.43.0"
+versionsPlugin = "0.44.0"
 
 activeMQArtemis = "2.26.0"
 exposed = "0.41.1"
