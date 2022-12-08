@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.transport
 
 import kotlin.reflect.KClass
 
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 
@@ -54,3 +55,8 @@ object OrchestratorEndpoint : Endpoint<OrchestratorMessage>(OrchestratorMessage:
  * A concrete [Endpoint] declaration representing the Analyzer worker.
  */
 object AnalyzerEndpoint : Endpoint<AnalyzeRequest>(AnalyzeRequest::class, "analyzer")
+
+/**
+ * A concrete [Endpoint] declaration representing the Advisor worker.
+ */
+object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "advisor")
