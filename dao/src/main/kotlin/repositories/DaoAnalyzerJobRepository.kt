@@ -28,7 +28,7 @@ import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
@@ -38,7 +38,7 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
             this.configuration = configuration
-            status = AnalyzerJobStatus.CREATED
+            status = JobStatus.CREATED
         }.mapToModel()
     }.getOrThrow()
 
@@ -52,7 +52,7 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
-        status: OptionalValue<AnalyzerJobStatus>
+        status: OptionalValue<JobStatus>
     ): AnalyzerJob = blockingQuery {
         val analyzerJob = AnalyzerJobDao[id]
 

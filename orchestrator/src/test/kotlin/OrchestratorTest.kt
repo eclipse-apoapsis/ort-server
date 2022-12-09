@@ -38,8 +38,8 @@ import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
@@ -76,7 +76,7 @@ class OrchestratorTest : WordSpec() {
         startedAt = null,
         finishedAt = null,
         configuration = AnalyzerJobConfiguration(),
-        status = AnalyzerJobStatus.CREATED,
+        status = JobStatus.CREATED,
         repositoryUrl = repository.url,
         repositoryRevision = "main"
     )
@@ -129,7 +129,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository.update(
                         id = withArg { it shouldBe analyzerJob.id },
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.SCHEDULED) }
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                 }
             }
@@ -154,7 +154,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository.update(
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.FINISHED) }
+                        status = withArg { it.verifyOptionalValue(JobStatus.FINISHED) }
                     )
                 }
             }
@@ -181,7 +181,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository.update(
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(AnalyzerJobStatus.FAILED) }
+                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
                     )
 
                     // The ORT run status was updated.

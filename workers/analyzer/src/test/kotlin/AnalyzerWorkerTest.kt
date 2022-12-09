@@ -43,7 +43,7 @@ import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -157,7 +157,7 @@ private val analyzerJob = AnalyzerJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = AnalyzerJobConfiguration(),
-    status = AnalyzerJobStatus.CREATED,
+    status = JobStatus.CREATED,
     repositoryUrl = "https://example.com/git/repository.git",
     repositoryRevision = "main"
 )

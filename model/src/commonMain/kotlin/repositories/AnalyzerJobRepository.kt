@@ -23,7 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -52,7 +52,7 @@ interface AnalyzerJobRepository {
         id: Long,
         startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
         finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<AnalyzerJobStatus> = OptionalValue.Absent
+        status: OptionalValue<JobStatus> = OptionalValue.Absent
     ): AnalyzerJob
 
     /**

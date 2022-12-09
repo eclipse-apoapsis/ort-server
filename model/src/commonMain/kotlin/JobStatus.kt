@@ -19,53 +19,16 @@
 
 package org.ossreviewtoolkit.server.model
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+/**
+ * The status of a Job.
+ */
 @Serializable
-data class AnalyzerJob(
-    /**
-     * The unique identifier.
-     */
-    val id: Long,
-
-    /**
-     * The ID of the [OrtRun] this [AnalyzerJob] is a part of.
-     */
-    val ortRunId: Long,
-
-    /**
-     * The time the job was created.
-     */
-    val createdAt: Instant,
-
-    /**
-     * The time the job was started.
-     */
-    val startedAt: Instant?,
-
-    /**
-     * The time the job finished.
-     */
-    val finishedAt: Instant?,
-
-    /**
-     * The job configuration.
-     */
-    val configuration: AnalyzerJobConfiguration,
-
-    /**
-     * The job status.
-     */
-    val status: JobStatus,
-
-    /**
-     * The URL of the repository to analyze.
-     */
-    val repositoryUrl: String,
-
-    /**
-     * The revision of the repository to analyze.
-     */
-    val repositoryRevision: String,
-)
+enum class JobStatus {
+    CREATED,
+    SCHEDULED,
+    RUNNING,
+    FAILED,
+    FINISHED
+}

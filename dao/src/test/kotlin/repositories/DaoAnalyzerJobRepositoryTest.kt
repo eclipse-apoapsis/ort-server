@@ -29,8 +29,8 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
 import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoAnalyzerJobRepositoryTest : StringSpec() {
@@ -63,7 +63,7 @@ class DaoAnalyzerJobRepositoryTest : StringSpec() {
                 startedAt = null,
                 finishedAt = null,
                 configuration = jobConfigurations.analyzer,
-                status = AnalyzerJobStatus.CREATED,
+                status = JobStatus.CREATED,
                 repositoryUrl = fixtures.repository.url,
                 repositoryRevision = fixtures.ortRun.revision
             )
@@ -80,7 +80,7 @@ class DaoAnalyzerJobRepositoryTest : StringSpec() {
 
             val updateStartedAt = OptionalValue.Present(Clock.System.now())
             val updatedFinishedAt = OptionalValue.Present(Clock.System.now())
-            val updateStatus = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
+            val updateStatus = OptionalValue.Present(JobStatus.FINISHED)
 
             val updateResult =
                 analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)

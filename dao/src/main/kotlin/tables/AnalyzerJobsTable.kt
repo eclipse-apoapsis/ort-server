@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 
 /**
  * A table to represent an analyzer job.
@@ -43,7 +43,7 @@ object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb("configuration", AnalyzerJobConfiguration::class)
-    val status = enumerationByName<AnalyzerJobStatus>("status", 128)
+    val status = enumerationByName<JobStatus>("status", 128)
 }
 
 class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {

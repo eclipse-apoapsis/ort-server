@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.orchestrator
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
@@ -75,7 +75,7 @@ class Orchestrator(
             analyzerJobRepository.update(
                 analyzerJob.id,
                 startedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(AnalyzerJobStatus.SCHEDULED)
+                status = OptionalValue.Present(JobStatus.SCHEDULED)
             )
         } else {
             log.warn("Failed to schedule Analyzer job. Repository '${ortRun.repositoryId}' not found.")
@@ -94,7 +94,7 @@ class Orchestrator(
             analyzerJobRepository.update(
                 id = analyzerJob.id,
                 finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(AnalyzerJobStatus.FINISHED)
+                status = OptionalValue.Present(JobStatus.FINISHED)
             )
         } else {
             log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
@@ -114,7 +114,7 @@ class Orchestrator(
             analyzerJobRepository.update(
                 id = analyzerJob.id,
                 finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(AnalyzerJobStatus.FAILED)
+                status = OptionalValue.Present(JobStatus.FAILED)
             )
 
             // If the analyzerJob failed, the whole OrtRun will be treated as failed.

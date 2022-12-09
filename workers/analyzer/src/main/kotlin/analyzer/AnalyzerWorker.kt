@@ -40,7 +40,7 @@ import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerCon
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobStatus
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
@@ -84,7 +84,7 @@ internal class AnalyzerWorker(
                 return@createReceiver
             }
 
-            if (job.status == AnalyzerJobStatus.FAILED || job.status == AnalyzerJobStatus.FINISHED) {
+            if (job.status == JobStatus.FAILED || job.status == JobStatus.FINISHED) {
                 logger.warn(
                     "Analyzer job '${job.id}' status is already set to '${job.status}'. Ignoring message with " +
                             "traceId '$traceId'."
