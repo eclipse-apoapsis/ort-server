@@ -20,7 +20,9 @@
 package org.ossreviewtoolkit.server.model.runs
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class OrtIssue(
     val timestamp: Instant,
     val source: String,

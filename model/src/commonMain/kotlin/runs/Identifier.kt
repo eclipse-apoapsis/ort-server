@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.model.runs
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Identifier(
     val type: String,
     val namespace: String,
