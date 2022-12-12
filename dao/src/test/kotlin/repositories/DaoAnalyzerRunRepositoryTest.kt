@@ -186,7 +186,8 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),
-                issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision())))
+                issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision()))),
+                dependencyGraphs = emptyMap()
             )
         }
     }

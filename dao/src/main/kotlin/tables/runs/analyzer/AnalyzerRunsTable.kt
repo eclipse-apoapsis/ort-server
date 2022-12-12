@@ -72,6 +72,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
         issues = issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
             identifier.mapToModel() to
                     idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }
-        }.toMap()
+        }.toMap(),
+        dependencyGraphs = dependencyGraphsWrapper.dependencyGraphs
     )
 }

@@ -55,6 +55,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
@@ -84,6 +85,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
             this.startTime = startTime
             this.endTime = endTime
             this.environment = environmentDao
+            this.dependencyGraphsWrapper = DependencyGraphsWrapper(emptyMap())
         }
 
         createAnalyzerConfiguration(analyzerRun, config)
