@@ -24,6 +24,8 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
@@ -144,6 +146,50 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'AnalyzeError' message. No analyzer job ORT run '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [AdvisorWorkerResult].
+     */
+    fun handleAdvisorWorkerResult(advisorWorkerResult: AdvisorWorkerResult) {
+        val jobId = advisorWorkerResult.jobId
+
+        val advisorJob = advisorJobRepository.get(jobId)
+
+        if (advisorJob != null) {
+            advisorJobRepository.update(
+                id = advisorJob.id,
+                finishedAt = OptionalValue.Present(Clock.System.now()),
+                status = OptionalValue.Present(JobStatus.FINISHED)
+            )
+        } else {
+            log.warn("Failed to handle 'AdviseResult' message. No advisor job '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [AnalyzerWorkerError].
+     */
+    fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
+        val jobId = advisorWorkerError.jobId
+
+        val advisorJob = advisorJobRepository.get(jobId)
+
+        if (advisorJob != null) {
+            advisorJobRepository.update(
+                id = advisorJob.id,
+                finishedAt = OptionalValue.Present(Clock.System.now()),
+                status = OptionalValue.Present(JobStatus.FAILED)
+            )
+
+            // If the advisorJob failed, the whole OrtRun will be treated as failed.
+            ortRunRepository.update(
+                id = advisorJob.ortRunId,
+                status = OptionalValue.Present(OrtRunStatus.FAILED)
+            )
+        } else {
+            log.warn("Failed to handle 'AdviseError' message. No advisor job ORT run '$jobId' found.")
         }
     }
 }

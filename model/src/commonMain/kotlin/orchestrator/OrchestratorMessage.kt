@@ -50,6 +50,24 @@ data class AnalyzerWorkerError(
 ) : OrchestratorMessage()
 
 /**
+ * A message notifying the Orchestrator about a result produced by the Advisor Worker.
+ */
+@Serializable
+data class AdvisorWorkerResult(
+    /** The ID of the Advisor job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about a failed Advisor worker job.
+ */
+@Serializable
+data class AdvisorWorkerError(
+    /** The ID of the Advisor job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
  * A message notifying the Orchestrator about a new ORT run.
  */
 @Serializable

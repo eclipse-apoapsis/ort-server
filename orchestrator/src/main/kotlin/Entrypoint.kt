@@ -28,6 +28,8 @@ import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
@@ -61,6 +63,10 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(message.header, payload)
 
             is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(payload)
+
+            is AdvisorWorkerResult -> orchestrator.handleAdvisorWorkerResult(payload)
+
+            is AdvisorWorkerError -> orchestrator.handleAdvisorWorkerError(payload)
         }
     }
 
