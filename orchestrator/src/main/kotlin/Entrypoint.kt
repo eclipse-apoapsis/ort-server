@@ -58,7 +58,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         when (val payload = message.payload) {
             is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, payload)
 
-            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(payload)
+            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(message.header, payload)
 
             is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(payload)
         }

@@ -106,13 +106,13 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
             runEndpointTest {
                 val orchestrator = declareMock<Orchestrator> {
-                    every { handleAnalyzerWorkerResult(any()) } just runs
+                    every { handleAnalyzerWorkerResult(any(), any()) } just runs
                 }
 
                 MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
 
                 verify {
-                    orchestrator.handleAnalyzerWorkerResult(analyzerWorkerResult)
+                    orchestrator.handleAnalyzerWorkerResult(message.header, analyzerWorkerResult)
                 }
             }
         }

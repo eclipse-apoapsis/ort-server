@@ -23,14 +23,17 @@ import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -45,6 +48,7 @@ import org.slf4j.LoggerFactory
  */
 class Orchestrator(
     private val analyzerJobRepository: AnalyzerJobRepository,
+    private val advisorJobRepository: AdvisorJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
@@ -85,7 +89,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [AnalyzerWorkerResult].
      */
-    fun handleAnalyzerWorkerResult(analyzerWorkerResult: AnalyzerWorkerResult) {
+    fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
         val jobId = analyzerWorkerResult.jobId
 
         val analyzerJob = analyzerJobRepository.get(jobId)
@@ -98,8 +102,24 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
+            return
         }
-        // TODO: Retrieve the OrtRun from the DB, and schedule the subsequent jobs.
+
+        val ortRun = ortRunRepository.get(analyzerJob.ortRunId)
+
+        if (ortRun == null) {
+            log.warn("Failed to handle 'AnalyzeResult' message. No ORT run '${analyzerJob.ortRunId}' found.")
+            return
+        }
+        val advisorJob = advisorJobRepository.create(analyzerJob.ortRunId, ortRun.jobs.advisor)
+
+        publisher.publish(AdvisorEndpoint, Message(header = header, payload = AdvisorRequest(advisorJob.id)))
+
+        advisorJobRepository.update(
+            advisorJob.id,
+            startedAt = OptionalValue.Present(Clock.System.now()),
+            status = OptionalValue.Present(JobStatus.SCHEDULED)
+        )
     }
 
     /**
