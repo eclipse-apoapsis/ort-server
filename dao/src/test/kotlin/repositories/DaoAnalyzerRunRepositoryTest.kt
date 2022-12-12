@@ -31,6 +31,10 @@ import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.DependencyGraph
+import org.ossreviewtoolkit.server.model.runs.DependencyGraphEdge
+import org.ossreviewtoolkit.server.model.runs.DependencyGraphNode
+import org.ossreviewtoolkit.server.model.runs.DependencyGraphRoot
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
@@ -156,6 +160,51 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 )
             )
 
+            val dependencyGraphs = mapOf(
+                "Maven" to DependencyGraph(
+                    packages = listOf(
+                        Identifier(
+                            type = "type1",
+                            namespace = "namespace1",
+                            name = "name1",
+                            version = "version1"
+                        ),
+                        Identifier(
+                            type = "type2",
+                            namespace = "namespace2",
+                            name = "name2",
+                            version = "version2"
+                        )
+                    ),
+                    nodes = listOf(
+                        DependencyGraphNode(
+                            pkg = 0,
+                            fragment = 0,
+                            linkage = "DYNAMIC",
+                            emptyList()
+                        ),
+                        DependencyGraphNode(
+                            pkg = 1,
+                            fragment = 0,
+                            linkage = "DYNAMIC",
+                            emptyList()
+                        )
+                    ),
+                    edges = listOf(
+                        DependencyGraphEdge(
+                            from = 1,
+                            to = 0
+                        )
+                    ),
+                    scopes = mapOf(
+                        "compile" to DependencyGraphRoot(
+                            root = 1,
+                            fragment = 0
+                        )
+                    )
+                )
+            )
+
             val issue = OrtIssue(
                 timestamp = Clock.System.now(),
                 source = "source",
@@ -171,7 +220,8 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),
-                issues = mapOf(pkg.identifier to listOf(issue))
+                issues = mapOf(pkg.identifier to listOf(issue)),
+                dependencyGraphs = dependencyGraphs
             )
 
             val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
@@ -187,7 +237,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 projects = setOf(project),
                 packages = setOf(pkg),
                 issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision()))),
-                dependencyGraphs = emptyMap()
+                dependencyGraphs = dependencyGraphs
             )
         }
     }

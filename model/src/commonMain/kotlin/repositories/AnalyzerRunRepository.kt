@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.DependencyGraph
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
@@ -44,7 +45,8 @@ interface AnalyzerRunRepository {
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
-        issues: Map<Identifier, List<OrtIssue>>
+        issues: Map<Identifier, List<OrtIssue>>,
+        dependencyGraphs: Map<String, DependencyGraph>
     ): AnalyzerRun
 
     /**

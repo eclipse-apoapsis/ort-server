@@ -147,7 +147,8 @@ internal class AnalyzerWorker(
             // TODO: Also handle projects, packages and issues.
             projects = emptySet(),
             packages = emptySet(),
-            issues = emptyMap()
+            issues = emptyMap(),
+            dependencyGraphs = emptyMap()
         )
 
     /**

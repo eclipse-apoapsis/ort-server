@@ -83,7 +83,7 @@ class AnalyzerWorkerTest : WordSpec({
             every { msgSenderMock.send(any()) } just runs
             every { analyzerJobRepository.get(analyzerJob.id) } returns analyzerJob
             every {
-                analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any())
+                analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns analyzerRun
 
             val worker = spyk(
@@ -122,7 +122,8 @@ class AnalyzerWorkerTest : WordSpec({
                     config = analyzerConfig,
                     projects = analyzerRun.projects,
                     packages = analyzerRun.packages,
-                    issues = analyzerRun.issues
+                    issues = analyzerRun.issues,
+                    dependencyGraphs = analyzerRun.dependencyGraphs
                 )
             }
         }
@@ -147,7 +148,8 @@ private val analyzerRun = AnalyzerRun(
     config = analyzerConfig,
     projects = emptySet(),
     packages = emptySet(),
-    issues = emptyMap()
+    issues = emptyMap(),
+    dependencyGraphs = emptyMap()
 )
 
 private val analyzerJob = AnalyzerJob(

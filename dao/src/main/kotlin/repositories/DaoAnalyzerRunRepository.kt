@@ -55,6 +55,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.DependencyGraph
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
@@ -76,7 +77,8 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
-        issues: Map<Identifier, List<OrtIssue>>
+        issues: Map<Identifier, List<OrtIssue>>,
+        dependencyGraphs: Map<String, DependencyGraph>
     ): AnalyzerRun = blockingQuery {
         val environmentDao = getOrPutEnvironment(environment)
 
@@ -85,7 +87,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
             this.startTime = startTime
             this.endTime = endTime
             this.environment = environmentDao
-            this.dependencyGraphsWrapper = DependencyGraphsWrapper(emptyMap())
+            this.dependencyGraphsWrapper = DependencyGraphsWrapper(dependencyGraphs)
         }
 
         createAnalyzerConfiguration(analyzerRun, config)
