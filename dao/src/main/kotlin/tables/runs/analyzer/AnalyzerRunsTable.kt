@@ -31,8 +31,10 @@ import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
+import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
 
 /**
  * A table to represent an analyzer run.
@@ -42,6 +44,7 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
     val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val dependencyGraphs = jsonb("dependency_graphs", DependencyGraphsWrapper::class)
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -55,6 +58,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
     var packages by PackageDao via PackagesAnalyzerRunsTable
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
+    var dependencyGraphsWrapper by AnalyzerRunsTable.dependencyGraphs
 
     fun mapToModel() = AnalyzerRun(
         id = id.value,
