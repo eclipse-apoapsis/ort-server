@@ -23,8 +23,6 @@ import kotlinx.serialization.Serializable
 
 /**
  * A data class representing a request to the Analyzer worker to process a specific repository.
- *
- * TODO: The exact payload still has to be defined.
  */
 @Serializable
 data class AnalyzeRequest(
