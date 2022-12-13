@@ -31,8 +31,6 @@ sealed class OrchestratorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Analyzer Worker.
- *
- * TODO: The exact payload still has to be defined.
  */
 @Serializable
 data class AnalyzerWorkerResult(
