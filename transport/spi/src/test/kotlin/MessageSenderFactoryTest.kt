@@ -31,7 +31,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
@@ -44,7 +44,7 @@ class MessageSenderFactoryTest : StringSpec({
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
 
-        sender.shouldBeInstanceOf<MessageSenderForTesting<AnalyzeRequest>>()
+        sender.shouldBeInstanceOf<MessageSenderForTesting<AnalyzerRequest>>()
         sender.endpoint shouldBe AnalyzerEndpoint
         sender.config shouldBe config
     }

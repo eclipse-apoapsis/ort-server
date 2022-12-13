@@ -44,7 +44,7 @@ import kotlinx.datetime.Instant
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
@@ -73,7 +73,7 @@ private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 class AnalyzerWorkerTest : WordSpec({
     "AnalyzerWorker" should {
         "analyze a project and send the result to the transport SPI" {
-            val serializer = JsonSerializer.forClass(AnalyzeRequest::class)
+            val serializer = JsonSerializer.forClass(AnalyzerRequest::class)
 
             val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
             val analyzerJobRepository = mockk<AnalyzerJobRepository>()
@@ -92,7 +92,7 @@ class AnalyzerWorkerTest : WordSpec({
                         mapOf(
                             "${AnalyzerEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
                                     "testMessageReceiverFactory",
-                            TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzeRequest)
+                            TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzerRequest)
                         )
                     ),
                     analyzerJobRepository,
@@ -164,7 +164,7 @@ private val analyzerJob = AnalyzerJob(
     repositoryRevision = "main"
 )
 
-private val analyzeRequest = AnalyzeRequest(
+private val analyzerRequest = AnalyzerRequest(
     analyzerJobId = analyzerJob.id
 )
 

@@ -46,7 +46,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
@@ -140,9 +140,9 @@ class OrchestratorTest : WordSpec() {
                     // The message was sent.
                     publisher.publish(
                         to = withArg { it shouldBe AnalyzerEndpoint },
-                        message = withArg<Message<AnalyzeRequest>> {
+                        message = withArg<Message<AnalyzerRequest>> {
                             it.header shouldBe msgHeader
-                            it.payload shouldBe AnalyzeRequest(analyzerJob.id)
+                            it.payload shouldBe AnalyzerRequest(analyzerJob.id)
                         }
                     )
 

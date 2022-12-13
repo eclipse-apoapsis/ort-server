@@ -31,7 +31,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -66,7 +66,7 @@ class EndpointComponentTest : StringSpec({
 
         val publishedMessage = MessageSenderFactoryForTesting.expectMessage(AnalyzerEndpoint)
         publishedMessage.header shouldBe HEADER
-        publishedMessage.payload shouldBe AnalyzeRequest(42)
+        publishedMessage.payload shouldBe AnalyzerRequest(42)
     }
 
     "Custom services are available via dependency injection" {
@@ -79,7 +79,7 @@ class EndpointComponentTest : StringSpec({
         val serviceMessage = MessageSenderFactoryForTesting.expectMessage(AnalyzerEndpoint)
 
         serviceMessage.header shouldBe HEADER
-        serviceMessage.payload shouldBe AnalyzeRequest(127)
+        serviceMessage.payload shouldBe AnalyzerRequest(127)
     }
 })
 
@@ -105,7 +105,7 @@ private class EndpointForTesting : EndpointComponent<OrchestratorMessage>(Orches
     override val endpointHandler: EndpointHandler<OrchestratorMessage> = { message ->
         receivedMessagesList += message
 
-        val response = Message(message.header, AnalyzeRequest(42))
+        val response = Message(message.header, AnalyzerRequest(42))
         publisher.publish(AnalyzerEndpoint, response)
 
         service.process()
@@ -132,7 +132,7 @@ private class CustomProcessingService(
     fun process() {
         val responseStatus = config.getInt("responseCode")
 
-        val message = Message(HEADER, AnalyzeRequest(responseStatus.toLong()))
+        val message = Message(HEADER, AnalyzerRequest(responseStatus.toLong()))
         publisher.publish(AnalyzerEndpoint, message)
     }
 }

@@ -25,7 +25,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageReceiverFactoryTest : StringSpec({
     "Messages can be received via the Kubernetes transport" {
-        val payload = AnalyzeRequest(1)
+        val payload = AnalyzerRequest(1)
         val header = MessageHeader(token = "testToken", traceId = "testTraceId")
 
         val env = mapOf(
@@ -52,7 +52,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
 
             val config = ConfigFactory.parseMap(configMap)
 
-            var receivedMessage: Message<AnalyzeRequest>? = null
+            var receivedMessage: Message<AnalyzerRequest>? = null
             KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, config) { message ->
                 receivedMessage = message
             }

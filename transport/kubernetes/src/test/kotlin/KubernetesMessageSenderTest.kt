@@ -30,7 +30,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -41,7 +41,7 @@ class KubernetesMessageSenderTest : StringSpec({
         val client = mockk<BatchV1Api>()
         every { client.createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
 
-        val payload = AnalyzeRequest(1)
+        val payload = AnalyzerRequest(1)
         val header = MessageHeader(token = "testToken", traceId = "testTraceId")
         val message = Message(header, payload)
 

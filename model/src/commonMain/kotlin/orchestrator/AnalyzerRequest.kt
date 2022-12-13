@@ -25,6 +25,6 @@ import kotlinx.serialization.Serializable
  * A data class representing a request to the Analyzer worker to process a specific repository.
  */
 @Serializable
-data class AnalyzeRequest(
+data class AnalyzerRequest(
     val analyzerJobId: Long
 )

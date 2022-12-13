@@ -25,7 +25,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzeRequest
+import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
@@ -47,7 +47,7 @@ class MessagePublisherTest : StringSpec({
 
         val publisher = MessagePublisher(config)
 
-        val message = Message(HEADER, AnalyzeRequest(1))
+        val message = Message(HEADER, AnalyzerRequest(1))
         publisher.publish(AnalyzerEndpoint, message)
 
         MessageSenderFactoryForTesting.expectMessage(AnalyzerEndpoint) shouldBe message
