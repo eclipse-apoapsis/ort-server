@@ -50,6 +50,7 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class OrganizationsRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
@@ -176,8 +177,8 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val updatedOrganization = UpdateOrganization(
-                    OptionalValue.Present("updated"),
-                    OptionalValue.Present("updated description of testOrg")
+                    "updated".asPresent(),
+                    "updated description of testOrg".asPresent()
                 )
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
                     headers {
@@ -214,7 +215,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
 
                 val organizationUpdateRequest = UpdateOrganization(
                     name = OptionalValue.Absent,
-                    description = OptionalValue.Present(null)
+                    description = null.asPresent()
                 )
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {

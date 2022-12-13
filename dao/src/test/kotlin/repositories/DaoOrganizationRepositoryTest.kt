@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrganizationRepositoryTest : StringSpec() {
     private val organizationRepository = DaoOrganizationRepository()
@@ -65,8 +66,8 @@ class DaoOrganizationRepositoryTest : StringSpec() {
         "update should update an entity in the database" {
             val createdOrg = organizationRepository.create("name", "description")
 
-            val updateName = OptionalValue.Present("updatedName")
-            val updateDescription = OptionalValue.Present("updatedDescription")
+            val updateName = "updatedName".asPresent()
+            val updateDescription = "updatedDescription".asPresent()
 
             organizationRepository.update(createdOrg.id, updateName, updateDescription)
 
@@ -85,7 +86,7 @@ class DaoOrganizationRepositoryTest : StringSpec() {
             organizationRepository.update(
                 id = createdOrg.id,
                 name = OptionalValue.Absent,
-                description = OptionalValue.Present(null)
+                description = null.asPresent()
             )
 
             organizationRepository.get(createdOrg.id) shouldBe Organization(

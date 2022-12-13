@@ -31,7 +31,7 @@ import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoAnalyzerJobRepositoryTest : StringSpec() {
     private val analyzerJobRepository = DaoAnalyzerJobRepository()
@@ -78,9 +78,9 @@ class DaoAnalyzerJobRepositoryTest : StringSpec() {
         "update should update an entry in the database" {
             val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
-            val updateStartedAt = OptionalValue.Present(Clock.System.now())
-            val updatedFinishedAt = OptionalValue.Present(Clock.System.now())
-            val updateStatus = OptionalValue.Present(JobStatus.FINISHED)
+            val updateStartedAt = Clock.System.now().asPresent()
+            val updatedFinishedAt = Clock.System.now().asPresent()
+            val updateStatus = JobStatus.FINISHED.asPresent()
 
             val updateResult =
                 analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)

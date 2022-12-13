@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoRepositoryRepositoryTest : StringSpec() {
     private val repositoryRepository = DaoRepositoryRepository()
@@ -87,8 +88,8 @@ class DaoRepositoryRepositoryTest : StringSpec() {
             val createdRepository =
                 repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
 
-            val updateType = OptionalValue.Present(RepositoryType.SUBVERSION)
-            val updateUrl = OptionalValue.Present("https://svn.example.com/repos/org/repo/trunk")
+            val updateType = RepositoryType.SUBVERSION.asPresent()
+            val updateUrl = "https://svn.example.com/repos/org/repo/trunk".asPresent()
 
             val updateRepositoryResult = repositoryRepository.update(createdRepository.id, updateType, updateUrl)
 
@@ -115,7 +116,7 @@ class DaoRepositoryRepositoryTest : StringSpec() {
             val createdRepository2 = repositoryRepository.create(type, url2, productId)
 
             val updateType = OptionalValue.Absent
-            val updateUrl = OptionalValue.Present(url1)
+            val updateUrl = url1.asPresent()
 
             shouldThrow<UniqueConstraintException> {
                 repositoryRepository.update(createdRepository2.id, updateType, updateUrl)

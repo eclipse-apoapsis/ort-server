@@ -49,6 +49,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class RepositoriesRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
@@ -106,8 +107,8 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 )
 
                 val updateRepository = UpdateRepository(
-                    OptionalValue.Present(ApiRepositoryType.SUBVERSION),
-                    OptionalValue.Present("https://svn.example.com/repos/org/repo/trunk")
+                    ApiRepositoryType.SUBVERSION.asPresent(),
+                    "https://svn.example.com/repos/org/repo/trunk".asPresent()
                 )
 
                 val response = client.patch("/api/v1/repositories/${createdRepository.id}") {

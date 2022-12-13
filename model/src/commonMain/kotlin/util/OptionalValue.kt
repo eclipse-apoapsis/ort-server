@@ -76,7 +76,7 @@ class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : 
 
     override fun deserialize(decoder: Decoder): OptionalValue<T> {
         val value = valueSerializer.deserialize(decoder)
-        return OptionalValue.Present(value)
+        return value.asPresent()
     }
 
     override fun serialize(encoder: Encoder, value: OptionalValue<T>) {
@@ -86,3 +86,8 @@ class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : 
         }
     }
 }
+
+/**
+ * Wrap [this] object in [OptionalValue.Present].
+ */
+fun <T : Any?> T.asPresent() = OptionalValue.Present(this)

@@ -50,6 +50,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class ProductsRouteIntegrationTest : StringSpec() {
     private lateinit var organizationRepository: OrganizationRepository
@@ -100,8 +101,8 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     productRepository.create(name = "name", description = "description", organizationId = orgId)
 
                 val updatedProduct = UpdateProduct(
-                    OptionalValue.Present("updatedProduct"),
-                    OptionalValue.Present("updateDescription")
+                    "updatedProduct".asPresent(),
+                    "updateDescription".asPresent()
                 )
                 val response = client.patch("/api/v1/products/${createdProduct.id}") {
                     headers {

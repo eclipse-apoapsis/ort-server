@@ -29,7 +29,7 @@ import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrtRunRepositoryTest : StringSpec() {
     private val ortRunRepository = DaoOrtRunRepository()
@@ -95,7 +95,7 @@ class DaoOrtRunRepositoryTest : StringSpec() {
         "update should update an entry in the database" {
             val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
 
-            val updateStatus = OptionalValue.Present(OrtRunStatus.ACTIVE)
+            val updateStatus = OrtRunStatus.ACTIVE.asPresent()
 
             val updateResult = ortRunRepository.update(ortRun.id, updateStatus)
 

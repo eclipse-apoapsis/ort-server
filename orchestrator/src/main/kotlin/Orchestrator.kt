@@ -34,7 +34,7 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -80,8 +80,8 @@ class Orchestrator(
 
             analyzerJobRepository.update(
                 analyzerJob.id,
-                startedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(JobStatus.SCHEDULED)
+                startedAt = Clock.System.now().asPresent(),
+                status = JobStatus.SCHEDULED.asPresent()
             )
         } else {
             log.warn("Failed to schedule Analyzer job. Repository '${ortRun.repositoryId}' not found.")
@@ -99,8 +99,8 @@ class Orchestrator(
         if (analyzerJob != null) {
             analyzerJobRepository.update(
                 id = analyzerJob.id,
-                finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(JobStatus.FINISHED)
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
             )
         } else {
             log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
@@ -119,8 +119,8 @@ class Orchestrator(
 
         advisorJobRepository.update(
             advisorJob.id,
-            startedAt = OptionalValue.Present(Clock.System.now()),
-            status = OptionalValue.Present(JobStatus.SCHEDULED)
+            startedAt = Clock.System.now().asPresent(),
+            status = JobStatus.SCHEDULED.asPresent()
         )
     }
 
@@ -135,14 +135,14 @@ class Orchestrator(
         if (analyzerJob != null) {
             analyzerJobRepository.update(
                 id = analyzerJob.id,
-                finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(JobStatus.FAILED)
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FAILED.asPresent()
             )
 
             // If the analyzerJob failed, the whole OrtRun will be treated as failed.
             ortRunRepository.update(
                 id = analyzerJob.ortRunId,
-                status = OptionalValue.Present(OrtRunStatus.FAILED)
+                status = OrtRunStatus.FAILED.asPresent()
             )
         } else {
             log.warn("Failed to handle 'AnalyzeError' message. No analyzer job ORT run '$jobId' found.")
@@ -160,8 +160,8 @@ class Orchestrator(
         if (advisorJob != null) {
             advisorJobRepository.update(
                 id = advisorJob.id,
-                finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(JobStatus.FINISHED)
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
             )
         } else {
             log.warn("Failed to handle 'AdviseResult' message. No advisor job '$jobId' found.")
@@ -179,14 +179,14 @@ class Orchestrator(
         if (advisorJob != null) {
             advisorJobRepository.update(
                 id = advisorJob.id,
-                finishedAt = OptionalValue.Present(Clock.System.now()),
-                status = OptionalValue.Present(JobStatus.FAILED)
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FAILED.asPresent()
             )
 
             // If the advisorJob failed, the whole OrtRun will be treated as failed.
             ortRunRepository.update(
                 id = advisorJob.ortRunId,
-                status = OptionalValue.Present(OrtRunStatus.FAILED)
+                status = OrtRunStatus.FAILED.asPresent()
             )
         } else {
             log.warn("Failed to handle 'AdviseError' message. No advisor job ORT run '$jobId' found.")

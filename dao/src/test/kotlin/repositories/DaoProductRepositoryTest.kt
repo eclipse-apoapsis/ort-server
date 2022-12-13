@@ -28,7 +28,7 @@ import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoProductRepositoryTest : StringSpec() {
     private val productRepository = DaoProductRepository()
@@ -89,8 +89,8 @@ class DaoProductRepositoryTest : StringSpec() {
         "update should update an entry in the database" {
             val createdProduct = productRepository.create("name", "description", orgId)
 
-            val updateName = OptionalValue.Present("updatedName")
-            val updateDescription = OptionalValue.Present("updatedDescription")
+            val updateName = "updatedName".asPresent()
+            val updateDescription = "updatedDescription".asPresent()
 
             val updateResult = productRepository.update(createdProduct.id, updateName, updateDescription)
 
