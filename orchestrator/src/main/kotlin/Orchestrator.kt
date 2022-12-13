@@ -113,15 +113,18 @@ class Orchestrator(
             log.warn("Failed to handle 'AnalyzeResult' message. No ORT run '${analyzerJob.ortRunId}' found.")
             return
         }
-        val advisorJob = advisorJobRepository.create(analyzerJob.ortRunId, ortRun.jobs.advisor)
 
-        publisher.publish(AdvisorEndpoint, Message(header = header, payload = AdvisorRequest(advisorJob.id)))
+        ortRun.jobs.advisor?.let { advisorJobConfiguration ->
+            val advisorJob = advisorJobRepository.create(analyzerJob.ortRunId, advisorJobConfiguration)
 
-        advisorJobRepository.update(
-            advisorJob.id,
-            startedAt = Clock.System.now().asPresent(),
-            status = JobStatus.SCHEDULED.asPresent()
-        )
+            publisher.publish(AdvisorEndpoint, Message(header = header, payload = AdvisorRequest(advisorJob.id)))
+
+            advisorJobRepository.update(
+                advisorJob.id,
+                startedAt = Clock.System.now().asPresent(),
+                status = JobStatus.SCHEDULED.asPresent()
+            )
+        }
     }
 
     /**

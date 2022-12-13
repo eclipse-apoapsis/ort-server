@@ -63,7 +63,7 @@ data class OrtRun(
 @Serializable
 data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
-    val advisor: AdvisorJobConfiguration = AdvisorJobConfiguration()
+    val advisor: AdvisorJobConfiguration? = null
 )
 
 /**

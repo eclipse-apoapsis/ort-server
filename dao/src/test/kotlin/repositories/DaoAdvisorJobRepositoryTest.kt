@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AdvisorJob
+import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
@@ -38,6 +39,7 @@ class DaoAdvisorJobRepositoryTest : StringSpec() {
 
     private lateinit var fixtures: Fixtures
     private lateinit var jobConfigurations: JobConfigurations
+    private lateinit var advisorJobConfiguration: AdvisorJobConfiguration
     private var ortRunId = -1L
 
     init {
@@ -46,11 +48,12 @@ class DaoAdvisorJobRepositoryTest : StringSpec() {
                 fixtures = Fixtures()
                 ortRunId = fixtures.ortRun.id
                 jobConfigurations = fixtures.jobConfigurations
+                advisorJobConfiguration = jobConfigurations.advisor!!
             }
         )
 
         "create should create an entry in the database" {
-            val createdAdvisorJob = advisorJobRepository.create(ortRunId, jobConfigurations.advisor)
+            val createdAdvisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
             val dbEntry = advisorJobRepository.get(createdAdvisorJob.id)
 
@@ -61,19 +64,19 @@ class DaoAdvisorJobRepositoryTest : StringSpec() {
                 createdAt = createdAdvisorJob.createdAt,
                 startedAt = null,
                 finishedAt = null,
-                configuration = jobConfigurations.advisor,
+                configuration = advisorJobConfiguration,
                 status = JobStatus.CREATED,
             )
         }
 
         "getForOrtRun should return the job for a run" {
-            val advisorJob = advisorJobRepository.create(ortRunId, jobConfigurations.advisor)
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
             advisorJobRepository.getForOrtRun(ortRunId) shouldBe advisorJob
         }
 
         "update should update an entry in the database" {
-            val advisorJob = advisorJobRepository.create(ortRunId, jobConfigurations.advisor)
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
             val updateStartedAt = Clock.System.now().asPresent()
             val updatedFinishedAt = Clock.System.now().asPresent()
@@ -95,7 +98,7 @@ class DaoAdvisorJobRepositoryTest : StringSpec() {
         }
 
         "delete should delete the database entry" {
-            val advisorJob = advisorJobRepository.create(ortRunId, jobConfigurations.advisor)
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
             advisorJobRepository.delete(advisorJob.id)
 

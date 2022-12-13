@@ -24,6 +24,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -48,6 +49,9 @@ class Fixtures {
     val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
             allowDynamicVersions = true
+        ),
+        advisor = AdvisorJobConfiguration(
+            advisors = listOf("OSV")
         )
     )
 
