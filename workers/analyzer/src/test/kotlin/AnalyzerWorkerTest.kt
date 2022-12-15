@@ -86,18 +86,18 @@ class AnalyzerWorkerTest : WordSpec({
                 analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns analyzerRun
 
-            val worker = spyk(
-                AnalyzerWorker(
-                    ConfigFactory.parseMap(
-                        mapOf(
-                            "${AnalyzerEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
-                                    "testMessageReceiverFactory",
-                            TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzerRequest)
-                        )
-                    ),
-                    analyzerJobRepository,
-                    analyzerRunRepository
+            val receiver = AnalyzerReceiver(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "${AnalyzerEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
+                                "testMessageReceiverFactory",
+                        TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzerRequest)
+                    )
                 )
+            )
+
+            val worker = spyk(
+                AnalyzerWorker(receiver, analyzerJobRepository, analyzerRunRepository)
             )
 
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the

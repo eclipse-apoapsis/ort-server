@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import com.typesafe.config.Config
-
 import java.io.File
 
 import kotlinx.datetime.Instant
@@ -41,19 +39,11 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -62,41 +52,13 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
-private sealed interface RunResult {
-    object Success : RunResult
-    object Ignored : RunResult
-    class Failed(val error: Throwable) : RunResult
-}
-
 internal class AnalyzerWorker(
-    private val config: Config,
+    private val receiver: AnalyzerReceiver,
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository
 ) {
     fun start() {
-        val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
-
-        MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config) { message ->
-            val token = message.header.token
-            val traceId = message.header.traceId
-            val jobId = message.payload.analyzerJobId
-
-            val response = when (val result = run(jobId, traceId)) {
-                is RunResult.Success -> {
-                    logger.info("Analyzer job '$jobId' succeeded.")
-                    Message(MessageHeader(token, traceId), AnalyzerWorkerResult(jobId))
-                }
-
-                is RunResult.Failed -> {
-                    logger.error("Analyzer job '$jobId' failed.", result.error)
-                    Message(MessageHeader(token, traceId), AnalyzerWorkerError(jobId))
-                }
-
-                is RunResult.Ignored -> null
-            }
-
-            if (response != null) sender.send(response)
-        }
+        receiver.receive(::run)
     }
 
     private fun run(jobId: Long, traceId: String): RunResult {
