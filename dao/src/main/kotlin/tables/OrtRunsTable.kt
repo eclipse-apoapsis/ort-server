@@ -40,6 +40,7 @@ object OrtRunsTable : LongIdTable("ort_runs") {
     val repositoryId = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE)
     val revision = text("revision")
     val createdAt = timestamp("created_at")
+
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
     val jobConfigurations = jsonb("job_configurations", JobConfigurations::class)

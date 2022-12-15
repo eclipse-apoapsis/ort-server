@@ -26,7 +26,7 @@ comments:
     licenseTemplateIsRegex: true
 
 complexity:
-  ComplexMethod:
+  CyclomaticComplexMethod:
     threshold: 33
   LongMethod:
     threshold: 158
