@@ -60,6 +60,14 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
+private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
+
+private sealed interface RunResult {
+    object Success : RunResult
+    object Ignored : RunResult
+    class Failed(val error: Throwable) : RunResult
+}
+
 internal class AnalyzerWorker(
     private val config: Config,
     private val analyzerJobRepository: AnalyzerJobRepository,
@@ -71,49 +79,54 @@ internal class AnalyzerWorker(
         MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config) { message ->
             val token = message.header.token
             val traceId = message.header.traceId
-            val job = analyzerJobRepository.get(message.payload.analyzerJobId)
+            val jobId = message.payload.analyzerJobId
 
-            if (job == null) {
-                logger.error("An analyzer job with ID '${message.payload.analyzerJobId}' does not exist.")
-                val errorMessage = Message(
-                    MessageHeader(token, traceId),
-                    AnalyzerWorkerError(message.payload.analyzerJobId)
-                )
+            val response = when (val result = run(jobId, traceId)) {
+                is RunResult.Success -> {
+                    logger.info("Analyzer job '$jobId' succeeded.")
+                    Message(MessageHeader(token, traceId), AnalyzerWorkerResult(jobId))
+                }
 
-                sender.send(errorMessage)
-                return@createReceiver
+                is RunResult.Failed -> {
+                    logger.error("Analyzer job '$jobId' failed.", result.error)
+                    Message(MessageHeader(token, traceId), AnalyzerWorkerError(jobId))
+                }
+
+                is RunResult.Ignored -> null
             }
 
-            if (job.status == JobStatus.FAILED || job.status == JobStatus.FINISHED) {
-                logger.warn(
-                    "Analyzer job '${job.id}' status is already set to '${job.status}'. Ignoring message with " +
-                            "traceId '$traceId'."
-                )
-
-                return@createReceiver
-            }
-
-            runCatching {
-                logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
-                val sourcesDir = job.download()
-                val analyzerRun = job.analyze(sourcesDir).analyzer
-                    ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
-
-                logger.info(
-                    "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
-                            "'${analyzerRun.result.issues.values.size}' issues."
-                )
-
-                analyzerRun.writeToDatabase(job.id)
-
-                val resultMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerResult(job.id))
-                sender.send(resultMessage)
-            }.onFailure {
-                logger.error("Analyze job '${job.id}' for repository '${job.repositoryUrl}' failed.", it)
-                val errorMessage = Message(MessageHeader(token, traceId), AnalyzerWorkerError(job.id))
-                sender.send(errorMessage)
-            }
+            if (response != null) sender.send(response)
         }
+    }
+
+    private fun run(jobId: Long, traceId: String): RunResult {
+        val job = analyzerJobRepository.get(jobId)
+            ?: return RunResult.Failed(IllegalArgumentException("The analyzer job '$jobId' does not exist."))
+
+        if (job.status in invalidStates) {
+            logger.warn(
+                "Analyzer job '$jobId' status is already set to '${job.status}'. Ignoring message with traceId " +
+                        "'$traceId'."
+            )
+
+            return RunResult.Ignored
+        }
+
+        return runCatching {
+            logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+            val sourcesDir = job.download()
+            val analyzerRun = job.analyze(sourcesDir).analyzer
+                ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
+
+            logger.info(
+                "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
+                        "'${analyzerRun.result.issues.values.size}' issues."
+            )
+
+            analyzerRun.writeToDatabase(job.id)
+
+            RunResult.Success
+        }.getOrElse { RunResult.Failed(it) }
     }
 
     /**
