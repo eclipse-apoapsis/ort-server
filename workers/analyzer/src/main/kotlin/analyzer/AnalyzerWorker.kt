@@ -191,7 +191,7 @@ internal class AnalyzerWorker(
         val analyzer = Analyzer(config)
 
         //   Add support for RepositoryConfiguration.
-        val info = analyzer.findManagedFiles(inputDir, PackageManager.ALL, RepositoryConfiguration())
+        val info = analyzer.findManagedFiles(inputDir, PackageManager.ALL.values, RepositoryConfiguration())
         if (info.managedFiles.isEmpty()) {
             logger.warn("No definition files found.")
         } else {
