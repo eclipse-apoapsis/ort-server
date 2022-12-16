@@ -42,16 +42,14 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsToolVersionsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsVariablesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.ToolVersionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VariableDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
+import org.ossreviewtoolkit.server.dao.utils.getOrPutEnvironment
+import org.ossreviewtoolkit.server.dao.utils.getOrPutIdentifier
+import org.ossreviewtoolkit.server.dao.utils.getOrPutIssue
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
@@ -253,65 +251,10 @@ private fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao
         name = declaredLicense
     }
 
-private fun getOrPutEnvironment(environment: Environment): EnvironmentDao =
-    EnvironmentDao.findByEnvironment(environment) ?: EnvironmentDao.new {
-        ortVersion = environment.ortVersion
-        javaVersion = environment.javaVersion
-        os = environment.os
-        processors = environment.processors
-        maxMemory = environment.maxMemory
-    }.also { environmentDao ->
-        environment.toolVersions.forEach { (name, version) ->
-            val toolVersionDao = getOrPutToolVersion(name, version)
-
-            EnvironmentsToolVersionsTable.insert {
-                it[environmentId] = environmentDao.id
-                it[toolVersionId] = toolVersionDao.id
-            }
-        }
-
-        environment.variables.forEach { (name, value) ->
-            val variableDao = getOrPutVariable(name, value)
-
-            EnvironmentsVariablesTable.insert {
-                it[environmentId] = environmentDao.id
-                it[variableId] = variableDao.id
-            }
-        }
-    }
-
-private fun getOrPutIdentifier(identifier: Identifier): IdentifierDao =
-    IdentifierDao.findByIdentifier(identifier) ?: IdentifierDao.new {
-        type = identifier.type
-        namespace = identifier.namespace
-        name = identifier.name
-        version = identifier.version
-    }
-
 private fun getOrPutIdentifierOrtIssue(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao =
     IdentifierOrtIssueDao.findByIdentifierAndIssue(identifier, issue) ?: IdentifierOrtIssueDao.new {
         this.identifier = identifier
         this.ortIssueDao = issue
-    }
-
-private fun getOrPutIssue(issue: OrtIssue): OrtIssueDao =
-    OrtIssueDao.findByIssue(issue) ?: OrtIssueDao.new {
-        timestamp = issue.timestamp
-        source = issue.source
-        message = issue.message
-        severity = issue.severity
-    }
-
-private fun getOrPutToolVersion(name: String, version: String): ToolVersionDao =
-    ToolVersionDao.findByNameAndVersion(name, version) ?: ToolVersionDao.new {
-        this.name = name
-        this.version = version
-    }
-
-private fun getOrPutVariable(name: String, value: String): VariableDao =
-    VariableDao.findByNameAndValue(name, value) ?: VariableDao.new {
-        this.name = name
-        this.value = value
     }
 
 private fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =
