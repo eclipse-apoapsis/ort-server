@@ -28,6 +28,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 
 /**
  * A table to represent a result of an advisor for a single identifier.
@@ -56,4 +57,14 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
     var defects by DefectDao via AdvisorResultsDefectsTable
     var issues by OrtIssueDao via AdvisorResultsIssuesTable
+
+    fun mapToModel() = AdvisorResult(
+        advisorName = advisorName,
+        capabilities = capabilities.filter(String::isNotEmpty),
+        startTime = startTime,
+        endTime = endTime,
+        issues = issues.map(OrtIssueDao::mapToModel),
+        defects = defects.map(DefectDao::mapToModel),
+        vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel)
+    )
 }

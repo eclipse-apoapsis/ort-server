@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
+
 /**
  * A table to represent a vulnerability.
  */
@@ -40,4 +42,11 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
     var summary by VulnerabilitiesTable.summary
     var description by VulnerabilitiesTable.description
     val references by VulnerabilityReferenceDao referrersOn VulnerabilityReferencesTable.vulnerabilityId
+
+    fun mapToModel() = Vulnerability(
+        externalId = externalId,
+        summary = summary,
+        description = description,
+        references = references.map(VulnerabilityReferenceDao::mapToModel)
+    )
 }

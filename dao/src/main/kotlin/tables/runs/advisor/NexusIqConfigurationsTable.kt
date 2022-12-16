@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
+
 /**
  * A table to represent a configuration for the Nexus IQ advisor.
  */
@@ -37,4 +39,6 @@ class NexusIqConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var serverUrl by NexusIqConfigurationsTable.serverUrl
     var browseUrl by NexusIqConfigurationsTable.browseUrl
+
+    fun mapToModel() = NexusIqConfiguration(serverUrl, browseUrl)
 }

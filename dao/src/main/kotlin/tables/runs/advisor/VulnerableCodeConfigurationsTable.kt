@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+
 /**
  * A table to represent a configuration for the VulnerableCode advisor.
  */
@@ -35,4 +37,6 @@ class VulnerableCodeConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<VulnerableCodeConfigurationDao>(VulnerableCodeConfigurationsTable)
 
     var serverUrl by VulnerableCodeConfigurationsTable.serverUrl
+
+    fun mapToModel() = VulnerableCodeConfiguration(serverUrl)
 }

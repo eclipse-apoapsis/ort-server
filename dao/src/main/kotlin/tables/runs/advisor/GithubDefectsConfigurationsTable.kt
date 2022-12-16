@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
+
 /**
  * A table to represent a configuration for the GitHub Defects advisor.
  */
@@ -42,4 +44,11 @@ class GithubDefectsConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var maxNumberOfIssuesPerRepository by GithubDefectsConfigurationsTable.maxNumberOfIssuesPerRepository
     var parallelRequests by GithubDefectsConfigurationsTable.parallelRequests
+
+    fun mapToModel() = GithubDefectsConfiguration(
+        endpointUrl = endpointUrl,
+        labelFilter = labelFilter.orEmpty(),
+        maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository,
+        parallelRequests = parallelRequests
+    )
 }

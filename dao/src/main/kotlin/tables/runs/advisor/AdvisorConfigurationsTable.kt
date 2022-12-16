@@ -25,6 +25,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
+
 /**
  * A table to represent an advisor configuration.
  */
@@ -64,4 +66,12 @@ class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var vulnerableCodeConfiguration by VulnerableCodeConfigurationDao optionalReferencedOn
             AdvisorConfigurationsTable.vulnerableCodeConfigurationId
     val options by AdvisorConfigurationsOptionDao referrersOn AdvisorConfigurationsOptionsTable.advisorConfigurationId
+
+    fun mapToModel() = AdvisorConfiguration(
+        githubDefectsConfiguration = githubDefectsConfiguration?.mapToModel(),
+        nexusIqConfiguration = nexusIqConfiguration?.mapToModel(),
+        osvConfiguration = osvConfiguration?.mapToModel(),
+        vulnerableCodeConfiguration = vulnerableCodeConfiguration?.mapToModel(),
+        options = options.associate { it.key to it.value }
+    )
 }

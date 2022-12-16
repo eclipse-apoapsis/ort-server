@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
+
 /**
  * A table to represent a configuration for the Google OSV advisor.
  */
@@ -35,4 +37,6 @@ class OsvConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OsvConfigurationDao>(OsvConfigurationsTable)
 
     var serverUrl by OsvConfigurationsTable.serverUrl
+
+    fun mapToModel() = OsvConfiguration(serverUrl)
 }

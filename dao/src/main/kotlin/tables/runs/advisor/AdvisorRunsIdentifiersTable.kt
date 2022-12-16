@@ -42,4 +42,6 @@ class AdvisorRunIdentifierDao(id: EntityID<Long>) : LongEntity(id) {
     var advisorRun by AdvisorRunDao referencedOn AdvisorRunsIdentifiersTable.advisorRunId
     var identifier by IdentifierDao referencedOn AdvisorRunsIdentifiersTable.identifierId
     val advisorResults by AdvisorResultDao referrersOn AdvisorResultsTable.advisorRunIdentifierId
+
+    fun mapToModel() = Pair(identifier.mapToModel(), advisorResults.map(AdvisorResultDao::mapToModel))
 }

@@ -31,6 +31,7 @@ import org.ossreviewtoolkit.server.dao.tables.AdvisorJobsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 
 /**
  * A table to represent a summary of an advisor run.
@@ -51,4 +52,14 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     var environment by EnvironmentDao referencedOn AdvisorRunsTable.environmentId
     val advisorConfiguration by AdvisorConfigurationDao backReferencedOn AdvisorConfigurationsTable.advisorRunId
     val advisorRecords by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId
+
+    fun mapToModel() = AdvisorRun(
+        id = id.value,
+        advisorJobId = advisorJob.id.value,
+        startTime = startTime,
+        endTime = endTime,
+        environment = environment.mapToModel(),
+        config = advisorConfiguration.mapToModel(),
+        advisorRecords = advisorRecords.associate(AdvisorRunIdentifierDao::mapToModel)
+    )
 }

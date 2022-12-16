@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.advisor.Defect
 
 /**
  * A table to represent a software defect.
@@ -59,4 +60,19 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
     var fixReleaseVersion by DefectsTable.fixReleaseVersion
     var fixReleaseUrl by DefectsTable.fixReleaseUrl
     val labels by DefectLabelDao referrersOn DefectLabelsTable.defectId
+
+    fun mapToModel() = Defect(
+        externalId = externalId,
+        url = url,
+        title = title,
+        state = state,
+        severity = severity,
+        description = description,
+        creationTime = creationTime,
+        modificationTime = modificationTime,
+        closingTime = closingTime,
+        fixReleaseVersion = fixReleaseVersion,
+        fixReleaseUrl = fixReleaseUrl,
+        labels = labels.associate { it.key to it.value }
+    )
 }
