@@ -96,15 +96,15 @@ class AnalyzerWorkerTest : WordSpec({
                 )
             )
 
-            val worker = spyk(
-                AnalyzerWorker(receiver, analyzerJobRepository, analyzerRunRepository)
-            )
-
-            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the
-            // repository is not cloned.
-            with(worker) {
-                every { any<AnalyzerJob>().download() } returns projectDir
+            val downloader = mockk<AnalyzerDownloader>() {
+                // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the
+                // repository is not cloned.
+                every { downloadRepository(any(), any()) } returns projectDir
             }
+
+            val worker = spyk(
+                AnalyzerWorker(receiver, downloader, analyzerJobRepository, analyzerRunRepository)
+            )
 
             worker.start()
 

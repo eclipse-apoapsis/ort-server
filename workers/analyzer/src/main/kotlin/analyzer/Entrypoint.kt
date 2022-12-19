@@ -36,5 +36,10 @@ fun main() {
 
     createDataSource(createDatabaseConfig(config)).connect()
 
-    AnalyzerWorker(AnalyzerReceiver(config), DaoAnalyzerJobRepository(), DaoAnalyzerRunRepository()).start()
+    AnalyzerWorker(
+        AnalyzerReceiver(config),
+        AnalyzerDownloader(),
+        DaoAnalyzerJobRepository(),
+        DaoAnalyzerRunRepository()
+    ).start()
 }

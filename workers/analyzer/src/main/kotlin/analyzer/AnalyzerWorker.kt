@@ -26,16 +26,9 @@ import kotlinx.datetime.Instant
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.PackageManager
 import org.ossreviewtoolkit.analyzer.curation.OrtConfigPackageCurationProvider
-import org.ossreviewtoolkit.downloader.Downloader
-import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.AnalyzerRun
-import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.Package
-import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
-import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -44,7 +37,6 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
@@ -54,6 +46,7 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AnalyzerWorker(
     private val receiver: AnalyzerReceiver,
+    private val downloader: AnalyzerDownloader,
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository
 ) {
@@ -76,7 +69,7 @@ internal class AnalyzerWorker(
 
         return runCatching {
             logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
-            val sourcesDir = job.download()
+            val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
             val analyzerRun = job.analyze(sourcesDir).analyzer
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
@@ -125,38 +118,6 @@ internal class AnalyzerWorker(
             issues = emptyMap(),
             dependencyGraphs = emptyMap()
         )
-
-    /**
-     * Download a repository for a given [AnalyzerJob]. Return the temporary directory containing the download.
-     */
-    internal fun AnalyzerJob.download(): File {
-        logger.info("Run analyzer job '$id'.")
-
-        val repositoryName = repositoryUrl.substringAfterLast("/")
-        val dummyId = Identifier("Downloader::$repositoryName:")
-        val outputDir = createOrtTempDir("analyzer-worker")
-
-        val vcs = VersionControlSystem.forUrl(repositoryUrl)
-        val vcsType = vcs?.type ?: VcsType.UNKNOWN
-
-        val vcsInfo = VcsInfo(
-            type = vcsType,
-            url = repositoryUrl,
-            revision = repositoryRevision
-        )
-
-        logger.info("Downloading from $vcsType VCS at $repositoryUrl...")
-        val dummyPackage = Package.EMPTY.copy(id = dummyId, vcs = vcsInfo, vcsProcessed = vcsInfo.normalize())
-
-        // Always allow moving revisions when directly downloading a single project only. This is for
-        // convenience as often the latest revision (referred to by some VCS-specific symbolic name) of a
-        // project needs to be downloaded.
-        val config = DownloaderConfiguration(allowMovingRevisions = true)
-        val provenance = Downloader(config).download(dummyPackage, outputDir)
-        logger.info("Successfully downloaded $provenance.")
-
-        return outputDir
-    }
 
     /**
      * Analyze a repository download in [inputDir] for a given [AnalyzerJob]. Return the file containing the result.
