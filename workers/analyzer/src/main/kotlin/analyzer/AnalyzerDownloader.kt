@@ -21,13 +21,8 @@ package org.ossreviewtoolkit.server.workers.analyzer
 
 import java.io.File
 
-import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.downloader.VersionControlSystem
-import org.ossreviewtoolkit.model.Identifier
-import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -38,28 +33,21 @@ class AnalyzerDownloader {
     fun downloadRepository(repositoryUrl: String, revision: String): File {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
-        val repositoryName = repositoryUrl.substringAfterLast("/")
-        val dummyId = Identifier("Downloader::$repositoryName:")
         val outputDir = createOrtTempDir("analyzer-worker")
 
         val vcs = VersionControlSystem.forUrl(repositoryUrl)
-
-        val vcsType = vcs?.type ?: VcsType.UNKNOWN
+        requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
         val vcsInfo = VcsInfo(
-            type = vcsType,
+            type = vcs.type,
             url = repositoryUrl,
             revision = revision
         )
 
-        val dummyPackage = Package.EMPTY.copy(id = dummyId, vcs = vcsInfo, vcsProcessed = vcsInfo.normalize())
+        val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
+        vcs.updateWorkingTree(workingTree, revision, recursive = true).getOrThrow()
 
-        // Always allow moving revisions when directly downloading a single project only. This is for
-        // convenience as often the latest revision (referred to by some VCS-specific symbolic name) of a
-        // project needs to be downloaded.
-        val config = DownloaderConfiguration(allowMovingRevisions = true)
-        val provenance = Downloader(config).download(dummyPackage, outputDir)
-        logger.info("Successfully downloaded $provenance.")
+        logger.info("Finished downloading '$repositoryUrl' revision '$revision'.")
 
         return outputDir
     }
