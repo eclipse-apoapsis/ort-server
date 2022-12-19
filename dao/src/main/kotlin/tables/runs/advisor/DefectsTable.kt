@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
@@ -46,7 +47,24 @@ object DefectsTable : LongIdTable("defects") {
 }
 
 class DefectDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<DefectDao>(DefectsTable)
+    companion object : LongEntityClass<DefectDao>(DefectsTable) {
+        fun findByDefect(defect: Defect): DefectDao? =
+            find {
+                DefectsTable.externalId eq defect.externalId and
+                        (DefectsTable.url eq defect.url) and
+                        (DefectsTable.title eq defect.title) and
+                        (DefectsTable.state eq defect.state) and
+                        (DefectsTable.severity eq defect.severity) and
+                        (DefectsTable.description eq defect.description) and
+                        (DefectsTable.creationTime eq defect.creationTime) and
+                        (DefectsTable.modificationTime eq defect.modificationTime) and
+                        (DefectsTable.closingTime eq defect.closingTime) and
+                        (DefectsTable.fixReleaseVersion eq defect.fixReleaseVersion) and
+                        (DefectsTable.fixReleaseUrl eq defect.fixReleaseUrl)
+            }.singleOrNull {
+                it.labels.associate { it.key to it.value } == defect.labels
+            }
+    }
 
     var externalId by DefectsTable.externalId
     var url by DefectsTable.url
