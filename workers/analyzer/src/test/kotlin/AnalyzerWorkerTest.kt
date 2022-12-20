@@ -75,16 +75,20 @@ class AnalyzerWorkerTest : WordSpec({
         "analyze a project and send the result to the transport SPI" {
             val serializer = JsonSerializer.forClass(AnalyzerRequest::class)
 
-            val msgSenderMock = mockk<MessageSender<OrchestratorMessage>>()
-            val analyzerJobRepository = mockk<AnalyzerJobRepository>()
-            val analyzerRunRepository = mockk<AnalyzerRunRepository>()
+            val msgSenderMock = mockk<MessageSender<OrchestratorMessage>> {
+                every { send(any()) } just runs
+            }
+
+            val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+                every { get(analyzerJob.id) } returns analyzerJob
+            }
+
+            val analyzerRunRepository = mockk<AnalyzerRunRepository> {
+                every { create(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns analyzerRun
+            }
+
             mockkObject(MessageSenderFactory)
             every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
-            every { msgSenderMock.send(any()) } just runs
-            every { analyzerJobRepository.get(analyzerJob.id) } returns analyzerJob
-            every {
-                analyzerRunRepository.create(any(), any(), any(), any(), any(), any(), any(), any(), any())
-            } returns analyzerRun
 
             val receiver = AnalyzerReceiver(
                 ConfigFactory.parseMap(
