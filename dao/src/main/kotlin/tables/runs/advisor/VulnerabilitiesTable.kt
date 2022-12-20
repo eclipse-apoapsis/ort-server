@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 
@@ -36,7 +37,14 @@ object VulnerabilitiesTable : LongIdTable("vulnerabilities") {
 }
 
 class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VulnerabilityDao>(VulnerabilitiesTable)
+    companion object : LongEntityClass<VulnerabilityDao>(VulnerabilitiesTable) {
+        fun findByVulnerability(vulnerability: Vulnerability): VulnerabilityDao? =
+            find {
+                VulnerabilitiesTable.externalId eq vulnerability.externalId and
+                        (VulnerabilitiesTable.summary eq vulnerability.summary) and
+                        (VulnerabilitiesTable.description eq vulnerability.description)
+            }.singleOrNull { it.references.map(VulnerabilityReferenceDao::mapToModel) == vulnerability.references }
+    }
 
     var externalId by VulnerabilitiesTable.externalId
     var summary by VulnerabilitiesTable.summary
