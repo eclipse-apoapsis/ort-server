@@ -73,8 +73,10 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
     }
 
     "The connection is closed by the AutoClosable implementation" {
-        val connection = mockk<Connection>()
-        every { connection.close() } just runs
+        val connection = mockk<Connection> {
+            every { close() } just runs
+        }
+
         val sender = ArtemisMessageSender(
             connection = connection,
             session = mockk(),
@@ -89,14 +91,19 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
 
     "The connection is closed if the sender cannot be created" {
         val exception = IllegalStateException("JMS exception")
-        val jmsFactory = mockk<JmsConnectionFactory>()
-        val connection = mockk<Connection>()
-        val session = mockk<Session>()
 
-        every { jmsFactory.createConnection() } returns connection
-        every { connection.createSession() } returns session
-        every { session.createQueue(any()) } throws exception
-        every { connection.close() } just runs
+        val session = mockk<Session> {
+            every { createQueue(any()) } throws exception
+        }
+
+        val connection = mockk<Connection> {
+            every { createSession() } returns session
+            every { close() } just runs
+        }
+
+        val jmsFactory = mockk<JmsConnectionFactory> {
+            every { createConnection() } returns connection
+        }
 
         val factory = ArtemisMessageSenderFactory()
         val thrownException = shouldThrow<IllegalStateException> {

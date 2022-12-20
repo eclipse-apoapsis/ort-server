@@ -109,24 +109,26 @@ class OrchestratorTest : WordSpec() {
     init {
         "handleCreateOrtRun" should {
             "create an ORT run in the database and notify the analyzer" {
-                val advisorJobRepository = mockk<AdvisorJobRepository>()
-                val analyzerJobRepository = mockk<AnalyzerJobRepository>()
-                val repositoryRepository = mockk<RepositoryRepository>()
-                val ortRunRepository = mockk<OrtRunRepository>()
-                val publisher = mockk<MessagePublisher>()
+                val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+                    every { create(any(), any()) } returns analyzerJob
+                    every { update(any(), any(), any(), any()) } returns mockk()
+                }
 
-                every { repositoryRepository.get(any()) } returns repository
-                every { analyzerJobRepository.create(any(), any()) } returns analyzerJob
-                every { analyzerJobRepository.update(any(), any(), any(), any()) } returns mockk()
-                every { publisher.publish(AnalyzerEndpoint, any()) } just runs
+                val repositoryRepository = mockk<RepositoryRepository> {
+                    every { this@mockk.get(any()) } returns repository
+                }
+
+                val publisher = mockk<MessagePublisher> {
+                    every { publish(AnalyzerEndpoint, any()) } just runs
+                }
 
                 val createOrtRun = CreateOrtRun(ortRun)
 
                 Orchestrator(
                     analyzerJobRepository,
-                    advisorJobRepository,
+                    mockk(),
                     repositoryRepository,
-                    ortRunRepository,
+                    mockk(),
                     publisher
                 ).handleCreateOrtRun(msgHeader, createOrtRun)
 
@@ -158,25 +160,30 @@ class OrchestratorTest : WordSpec() {
 
         "handleAnalyzerWorkerResult" should {
             "update the job in the database and create an advisor job" {
-                val advisorJobRepository = mockk<AdvisorJobRepository>()
-                val analyzerJobRepository = mockk<AnalyzerJobRepository>()
-                val repositoryRepository = mockk<RepositoryRepository>()
-                val ortRunRepository = mockk<OrtRunRepository>()
-                val publisher = mockk<MessagePublisher>()
-
                 val analyzerWorkerResult = AnalyzerWorkerResult(123)
 
-                every { analyzerJobRepository.get(analyzerWorkerResult.jobId) } returns analyzerJob
-                every { ortRunRepository.get(analyzerJob.ortRunId) } returns ortRun
-                every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
-                every { advisorJobRepository.create(ortRun.id, any()) } returns advisorJob
-                every { publisher.publish(any<Endpoint<*>>(), any()) } just runs
-                every { advisorJobRepository.update(advisorJob.id, any(), any(), any()) } returns mockk()
+                val advisorJobRepository = mockk<AdvisorJobRepository> {
+                    every { create(ortRun.id, any()) } returns advisorJob
+                    every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+                    every { get(analyzerWorkerResult.jobId) } returns analyzerJob
+                    every { update(analyzerJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { get(analyzerJob.ortRunId) } returns ortRun
+                }
+
+                val publisher = mockk<MessagePublisher> {
+                    every { publish(any<Endpoint<*>>(), any()) } just runs
+                }
 
                 Orchestrator(
                     analyzerJobRepository,
                     advisorJobRepository,
-                    repositoryRepository,
+                    mockk(),
                     ortRunRepository,
                     publisher
                 ).handleAnalyzerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), analyzerWorkerResult)

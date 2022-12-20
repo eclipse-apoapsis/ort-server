@@ -38,8 +38,9 @@ import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageSenderTest : StringSpec({
     "Kubernetes jobs are created via the sender" {
-        val client = mockk<BatchV1Api>()
-        every { client.createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+        val client = mockk<BatchV1Api> {
+            every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+        }
 
         val payload = AnalyzerRequest(1)
         val header = MessageHeader(token = "testToken", traceId = "testTraceId")

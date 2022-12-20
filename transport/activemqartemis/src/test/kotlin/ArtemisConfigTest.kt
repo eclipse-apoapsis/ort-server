@@ -35,9 +35,10 @@ class ArtemisConfigTest : WordSpec({
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
 
-            val config = mockk<Config>()
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.sender.serverUri") } returns serverUri
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.sender.queueName") } returns queueName
+            val config = mockk<Config> {
+                every { getString("${AnalyzerEndpoint.configPrefix}.sender.serverUri") } returns serverUri
+                every { getString("${AnalyzerEndpoint.configPrefix}.sender.queueName") } returns queueName
+            }
 
             val artemisConfig = ArtemisConfig.createSenderConfig(AnalyzerEndpoint, config)
 
@@ -51,9 +52,10 @@ class ArtemisConfigTest : WordSpec({
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
 
-            val config = mockk<Config>()
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.receiver.serverUri") } returns serverUri
-            every { config.getString("${AnalyzerEndpoint.configPrefix}.receiver.queueName") } returns queueName
+            val config = mockk<Config> {
+                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.serverUri") } returns serverUri
+                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.queueName") } returns queueName
+            }
 
             val artemisConfig = ArtemisConfig.createReceiverConfig(AnalyzerEndpoint, config)
 

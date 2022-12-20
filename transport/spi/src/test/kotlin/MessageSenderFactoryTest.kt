@@ -37,10 +37,9 @@ import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageSenderFactoryTest : StringSpec({
     "A correct MessageSender should be created" {
-        val config = mockk<Config>()
-        every {
-            config.getString("analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}")
-        } returns TEST_TRANSPORT_NAME
+        val config = mockk<Config> {
+            every { getString("analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}") } returns TEST_TRANSPORT_NAME
+        }
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
 
@@ -51,10 +50,9 @@ class MessageSenderFactoryTest : StringSpec({
 
     "An exception should be thrown for a non-existing MessageSenderFactory" {
         val invalidFactoryName = "a non existing message sender factory"
-        val config = mockk<Config>()
-        every {
-            config.getString("orchestrator.${MessageSenderFactory.SENDER_TYPE_PROPERTY}")
-        } returns invalidFactoryName
+        val config = mockk<Config> {
+            every { getString("orchestrator.${MessageSenderFactory.SENDER_TYPE_PROPERTY}") } returns invalidFactoryName
+        }
 
         val exception = shouldThrow<IllegalStateException> {
             MessageSenderFactory.createSender(OrchestratorEndpoint, config)
