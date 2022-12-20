@@ -17,17 +17,23 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    application
 
-include(":api-v1")
-include(":clients:keycloak")
-include(":core")
-include(":dao")
-include(":model")
-include(":orchestrator")
-include(":services")
-include(":transport:activemqartemis")
-include(":transport:kubernetes")
-include(":transport:spi")
-include(":workers:advisor")
-include(":workers:analyzer")
+    alias(libs.plugins.jib)
+    alias(libs.plugins.kotlinJvm)
+}
+
+group = "org.ossreviewtoolkit.server.workers"
+version = "0.0.1"
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+jib {
+    from.image = "eclipse-temurin:17"
+    to.image = "ort-server-advisor-worker:latest"
+    container.mainClass = "org.ossreviewtoolkit.server.workers.advisor.EntrypointKt"
+}

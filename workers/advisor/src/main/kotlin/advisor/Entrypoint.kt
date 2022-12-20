@@ -17,17 +17,12 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package org.ossreviewtoolkit.server.workers.advisor
 
-include(":api-v1")
-include(":clients:keycloak")
-include(":core")
-include(":dao")
-include(":model")
-include(":orchestrator")
-include(":services")
-include(":transport:activemqartemis")
-include(":transport:kubernetes")
-include(":transport:spi")
-include(":workers:advisor")
-include(":workers:analyzer")
+/**
+ * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
+ * interfacing on its APIs.
+ */
+fun main() {
+    TODO("Implement AdvisorWorker.")
+}
