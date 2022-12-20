@@ -100,7 +100,7 @@ class AnalyzerWorkerTest : WordSpec({
                 )
             )
 
-            val downloader = mockk<AnalyzerDownloader>() {
+            val downloader = mockk<AnalyzerDownloader> {
                 // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the
                 // repository is not cloned.
                 every { downloadRepository(any(), any()) } returns projectDir
