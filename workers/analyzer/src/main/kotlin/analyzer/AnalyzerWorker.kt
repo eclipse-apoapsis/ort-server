@@ -19,18 +19,9 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import java.io.File
-
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.analyzer.Analyzer
-import org.ossreviewtoolkit.analyzer.PackageManager
-import org.ossreviewtoolkit.analyzer.curation.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.model.AnalyzerRun
-import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
-import org.ossreviewtoolkit.model.config.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
@@ -47,6 +38,7 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class AnalyzerWorker(
     private val receiver: AnalyzerReceiver,
     private val downloader: AnalyzerDownloader,
+    private val runner: AnalyzerRunner,
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository
 ) {
@@ -70,7 +62,7 @@ internal class AnalyzerWorker(
         return runCatching {
             logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
             val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
-            val analyzerRun = job.analyze(sourcesDir).analyzer
+            val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
             logger.info(
@@ -118,55 +110,6 @@ internal class AnalyzerWorker(
             issues = emptyMap(),
             dependencyGraphs = emptyMap()
         )
-
-    /**
-     * Analyze a repository download in [inputDir] for a given [AnalyzerJob]. Return the file containing the result.
-     */
-    private fun AnalyzerJob.analyze(inputDir: File): OrtResult {
-        val config = OrtAnalyzerConfiguration(configuration.allowDynamicVersions)
-        val analyzer = Analyzer(config)
-
-        //   Add support for RepositoryConfiguration.
-        val info = analyzer.findManagedFiles(inputDir, PackageManager.ALL.values, RepositoryConfiguration())
-        if (info.managedFiles.isEmpty()) {
-            logger.warn("No definition files found.")
-        } else {
-            val filesPerManager = info.managedFiles.mapKeysTo(sortedMapOf()) { it.key.managerName }
-            var count = 0
-
-            filesPerManager.forEach { (manager, files) ->
-                count += files.size
-                logger.info("Found ${files.size} $manager definition file(s) at:")
-
-                files.forEach { file ->
-                    val relativePath = file.toRelativeString(inputDir).takeIf { it.isNotEmpty() } ?: "."
-                    logger.info("\t$relativePath")
-                }
-            }
-
-            logger.info("Found $count definition file(s) from ${filesPerManager.size} package manager(s) in total.")
-        }
-
-        // TODO: Add support for the curation providers.
-        val curationProvider = OrtConfigPackageCurationProvider()
-        val ortResult = analyzer.analyze(info, curationProvider)
-
-        val projectCount = ortResult.getProjects().size
-        val packageCount = ortResult.getPackages().size
-        logger.info(
-            "Found $projectCount project(s) and $packageCount package(s) in total (not counting excluded ones)."
-        )
-
-        val curationCount = ortResult.getPackages().sumOf { it.curations.size }
-        logger.info("Applied $curationCount curation(s) from 1 provider.")
-
-        check(ortResult.analyzer?.result != null) {
-            "There was an error creating the analyzer result."
-        }
-
-        // TODO: Store the Analyzer result in the database.
-        return ortResult
-    }
 }
 
 private class AnalyzerException(message: String) : Exception(message)

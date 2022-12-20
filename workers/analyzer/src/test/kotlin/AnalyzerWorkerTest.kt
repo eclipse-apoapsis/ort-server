@@ -102,8 +102,10 @@ class AnalyzerWorkerTest : WordSpec({
                 every { downloadRepository(any(), any()) } returns projectDir
             }
 
+            val runner = AnalyzerRunner()
+
             val worker = spyk(
-                AnalyzerWorker(receiver, downloader, analyzerJobRepository, analyzerRunRepository)
+                AnalyzerWorker(receiver, downloader, runner, analyzerJobRepository, analyzerRunRepository)
             )
 
             worker.start()

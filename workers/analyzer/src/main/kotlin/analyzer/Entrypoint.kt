@@ -39,6 +39,7 @@ fun main() {
     AnalyzerWorker(
         AnalyzerReceiver(config),
         AnalyzerDownloader(),
+        AnalyzerRunner(),
         DaoAnalyzerJobRepository(),
         DaoAnalyzerRunRepository()
     ).start()
