@@ -19,10 +19,20 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import com.typesafe.config.ConfigFactory
+
+import org.ossreviewtoolkit.server.dao.connect
+import org.ossreviewtoolkit.server.dao.createDataSource
+import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+
 /**
  * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
  * interfacing on its APIs.
  */
 fun main() {
+    val config = ConfigFactory.load()
+
+    createDataSource(createDatabaseConfig(config)).connect()
+
     TODO("Implement AdvisorWorker.")
 }

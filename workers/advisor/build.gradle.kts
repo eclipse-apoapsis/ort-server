@@ -32,6 +32,12 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
+dependencies {
+    implementation(project(":dao"))
+
+    implementation(libs.typesafeConfig)
+}
+
 jib {
     from.image = "eclipse-temurin:17"
     to.image = "ort-server-advisor-worker:latest"
