@@ -26,7 +26,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.ossreviewtoolkit.server.workers"
 version = "0.0.1"
 
 repositories {
