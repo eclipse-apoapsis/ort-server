@@ -197,9 +197,11 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                         )
                     ),
                     scopes = mapOf(
-                        "compile" to DependencyGraphRoot(
-                            root = 1,
-                            fragment = 0
+                        "compile" to listOf(
+                            DependencyGraphRoot(
+                                root = 1,
+                                fragment = 0
+                            )
                         )
                     )
                 )

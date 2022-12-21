@@ -34,3 +34,9 @@ repositories {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+dependencies {
+    implementation(project(":model"))
+
+    api(libs.ortModel)
+}
