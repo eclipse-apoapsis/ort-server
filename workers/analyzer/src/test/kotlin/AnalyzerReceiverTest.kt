@@ -41,6 +41,7 @@ import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val JOB_ID = 1L
 private val analyzerRequest = AnalyzerRequest(

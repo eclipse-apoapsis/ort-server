@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 import org.slf4j.LoggerFactory
 

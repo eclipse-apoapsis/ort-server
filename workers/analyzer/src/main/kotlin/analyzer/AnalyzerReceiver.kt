@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 import org.slf4j.LoggerFactory
 

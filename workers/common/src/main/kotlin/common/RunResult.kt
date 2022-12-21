@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.analyzer
+package org.ossreviewtoolkit.server.workers.common
 
 sealed interface RunResult {
     object Success : RunResult

@@ -62,6 +62,7 @@ dependencies {
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:spi"))
+    implementation(project(":workers:common"))
 
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
