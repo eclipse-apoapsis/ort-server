@@ -19,17 +19,10 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import kotlinx.datetime.Instant
-
-import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 import org.slf4j.LoggerFactory
 
@@ -41,15 +34,14 @@ internal class AnalyzerWorker(
     private val receiver: AnalyzerReceiver,
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner,
-    private val analyzerJobRepository: AnalyzerJobRepository,
-    private val analyzerRunRepository: AnalyzerRunRepository
+    private val dao: AnalyzerWorkerDao
 ) {
     fun start() {
         receiver.receive(::run)
     }
 
     private fun run(jobId: Long, traceId: String): RunResult = blockingQuery {
-        val job = analyzerJobRepository.get(jobId)
+        val job = dao.getAnalyzerJob(jobId)
             ?: return@blockingQuery RunResult.Failed(
                 IllegalArgumentException("The analyzer job '$jobId' does not exist.")
             )
@@ -64,54 +56,20 @@ internal class AnalyzerWorker(
         }
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+
         val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
         val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
         logger.info(
-            "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
+            "Analyzer job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
                     "'${analyzerRun.result.issues.values.size}' issues."
         )
 
-        analyzerRun.writeToDatabase(job.id)
+        dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
 
         RunResult.Success
     }.getOrElse { RunResult.Failed(it) }
-
-    /**
-     * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.AnalyzerRun].
-     */
-    private fun AnalyzerRun.writeToDatabase(jobId: Long) =
-        analyzerRunRepository.create(
-            jobId,
-            Instant.fromEpochSeconds(startTime.epochSecond),
-            Instant.fromEpochSeconds(endTime.epochSecond),
-            Environment(
-                environment.ortVersion,
-                environment.javaVersion,
-                environment.os,
-                environment.processors,
-                environment.maxMemory,
-                environment.variables,
-                environment.toolVersions
-            ),
-            AnalyzerConfiguration(
-                config.allowDynamicVersions,
-                config.enabledPackageManagers,
-                config.disabledPackageManagers,
-                config.packageManagers?.mapValues {
-                    PackageManagerConfiguration(
-                        it.value.mustRunAfter,
-                        it.value.options
-                    )
-                }
-            ),
-            // TODO: Also handle projects, packages and issues.
-            projects = emptySet(),
-            packages = emptySet(),
-            issues = emptyMap(),
-            dependencyGraphs = emptyMap()
-        )
 }
 
 private class AnalyzerException(message: String) : Exception(message)
