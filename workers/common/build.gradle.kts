@@ -17,18 +17,20 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    application
 
-include(":api-v1")
-include(":clients:keycloak")
-include(":core")
-include(":dao")
-include(":model")
-include(":orchestrator")
-include(":services")
-include(":transport:activemqartemis")
-include(":transport:kubernetes")
-include(":transport:spi")
-include(":workers:advisor")
-include(":workers:analyzer")
-include(":workers:common")
+    alias(libs.plugins.kotlinJvm)
+}
+
+group = "org.ossreviewtoolkit.server.workers"
+version = "0.0.1"
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
