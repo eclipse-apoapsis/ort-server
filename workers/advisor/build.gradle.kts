@@ -34,7 +34,13 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":dao"))
+    implementation(project(":model"))
+    implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:kubernetes"))
+    implementation(project(":transport:spi"))
+    implementation(project(":workers:common"))
 
+    implementation(libs.logback)
     implementation(libs.typesafeConfig)
 }
 
