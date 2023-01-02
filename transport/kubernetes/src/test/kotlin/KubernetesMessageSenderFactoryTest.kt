@@ -22,8 +22,11 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
+
+import java.nio.file.Paths
 
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
@@ -41,7 +44,11 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         )
         val config = ConfigFactory.parseMap(configMap)
 
-        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig").toURI()).toFile().absolutePath
+
+        val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
+            MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        }
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         sender.namespace shouldBe NAMESPACE
