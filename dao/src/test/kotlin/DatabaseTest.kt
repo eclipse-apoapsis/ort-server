@@ -26,6 +26,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import javax.sql.DataSource
@@ -37,6 +38,10 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 
 class DatabaseTest : WordSpec({
+    afterTest {
+        unmockkAll()
+    }
+
     "databaseModule" should {
         "return a module that connects to the database" {
             val dbConfig = DatabaseConfig(

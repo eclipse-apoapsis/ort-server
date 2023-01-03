@@ -29,6 +29,7 @@ import io.mockk.just
 import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import kotlinx.datetime.Instant
@@ -62,6 +63,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
     override suspend fun afterEach(testCase: TestCase, result: io.kotest.core.test.TestResult) {
         stopKoin()
         MessageReceiverFactoryForTesting.reset()
+        unmockkAll()
     }
 
     init {

@@ -31,6 +31,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.File
@@ -71,6 +72,10 @@ private const val TRACE_ID = "42"
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
 class AnalyzerWorkerTest : WordSpec({
+    afterTest {
+        unmockkAll()
+    }
+
     "AnalyzerWorker" should {
         "analyze a project and send the result to the transport SPI" {
             val serializer = JsonSerializer.forClass(AnalyzerRequest::class)
