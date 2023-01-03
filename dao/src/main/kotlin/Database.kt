@@ -135,7 +135,7 @@ suspend fun <T> dbQuery(block: () -> T): Result<T> =
 /**
  * Execute the [block] in a database [transaction].
  */
-internal fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }.mapExceptions()
+fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }.mapExceptions()
 
 /**
  * Map the generic database exceptions to more specific exceptions.
