@@ -55,6 +55,7 @@ dependencies {
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.kotestExtensionsTestContainer)
     testFixturesImplementation(libs.kotestRunnerJunit5)
+    testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.testContainers)
     testFixturesImplementation(libs.testContainersPostgresql)
 }
