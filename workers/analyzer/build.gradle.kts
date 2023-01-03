@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.ortAnalyzer)
     implementation(libs.ortDownloader)
 
+    testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:spi")))
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKotlinxTime)

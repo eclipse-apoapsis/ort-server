@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.workers.analyzer
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.model.AnalyzerRun
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
@@ -47,9 +48,11 @@ internal class AnalyzerWorker(
         receiver.receive(::run)
     }
 
-    private fun run(jobId: Long, traceId: String): RunResult {
+    private fun run(jobId: Long, traceId: String): RunResult = blockingQuery {
         val job = analyzerJobRepository.get(jobId)
-            ?: return RunResult.Failed(IllegalArgumentException("The analyzer job '$jobId' does not exist."))
+            ?: return@blockingQuery RunResult.Failed(
+                IllegalArgumentException("The analyzer job '$jobId' does not exist.")
+            )
 
         if (job.status in invalidStates) {
             logger.warn(
@@ -57,25 +60,23 @@ internal class AnalyzerWorker(
                         "'$traceId'."
             )
 
-            return RunResult.Ignored
+            return@blockingQuery RunResult.Ignored
         }
 
-        return runCatching {
-            logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
-            val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
-            val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
-                ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
+        logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+        val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
+        val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
+            ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
-            logger.info(
-                "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
-                        "'${analyzerRun.result.issues.values.size}' issues."
-            )
+        logger.info(
+            "Analyze job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
+                    "'${analyzerRun.result.issues.values.size}' issues."
+        )
 
-            analyzerRun.writeToDatabase(job.id)
+        analyzerRun.writeToDatabase(job.id)
 
-            RunResult.Success
-        }.getOrElse { RunResult.Failed(it) }
-    }
+        RunResult.Success
+    }.getOrElse { RunResult.Failed(it) }
 
     /**
      * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.AnalyzerRun].

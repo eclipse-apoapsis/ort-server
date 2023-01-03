@@ -42,6 +42,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -117,7 +118,7 @@ class AnalyzerWorkerTest : WordSpec({
                 AnalyzerWorker(receiver, downloader, runner, analyzerJobRepository, analyzerRunRepository)
             )
 
-            worker.start()
+            mockkTransaction { worker.start() }
 
             verify(exactly = 1) {
                 msgSenderMock.send(
