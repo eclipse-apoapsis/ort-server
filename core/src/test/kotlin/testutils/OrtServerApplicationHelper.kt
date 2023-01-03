@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.core.testutils
 
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.MapApplicationConfig
-import io.ktor.server.config.merge
+import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.util.KtorDsl
@@ -51,7 +51,7 @@ fun ortServerTestApplication(
         }
     }
 
-    val mergedConfig = listOf(additionalConfig, config).merge()
+    val mergedConfig = config.mergeWith(additionalConfig)
 
     environment { this.config = mergedConfig }
 

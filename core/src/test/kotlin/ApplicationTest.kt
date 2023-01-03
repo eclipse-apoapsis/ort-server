@@ -37,12 +37,12 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
  */
 fun Application.testModule() {
     configureKoin()
+    configureTestAuthentication()
     configureStatusPages()
     configureRouting()
     configureSerialization()
     configureMonitoring()
     configureHTTP()
-    configureTestAuthentication()
 }
 
 /**
@@ -50,10 +50,10 @@ fun Application.testModule() {
  */
 fun Application.testAuthModule() {
     configureKoin()
+    configureAuthentication()
     configureStatusPages()
     configureRouting()
     configureSerialization()
     configureMonitoring()
     configureHTTP()
-    configureAuthentication()
 }
