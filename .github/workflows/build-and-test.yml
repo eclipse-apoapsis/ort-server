@@ -21,7 +21,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: 11
+        java-version: 17
         cache: gradle
     - name: Build all classes
       uses: burrunan/gradle-cache-action@v1
@@ -37,7 +37,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: 11
+        java-version: 17
         cache: gradle
     - name: Run tests
       uses: burrunan/gradle-cache-action@v1

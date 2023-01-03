@@ -64,7 +64,6 @@ allprojects {
     }
 }
 
-val javaVersion = JavaVersion.current()
 subprojects {
     version = rootProject.version
 
@@ -87,7 +86,7 @@ subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             allWarningsAsErrors = true
-            jvmTarget = javaVersion.majorVersion
+            jvmTarget = JavaVersion.VERSION_17.majorVersion
             apiVersion = "1.8"
         }
     }

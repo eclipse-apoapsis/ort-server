@@ -21,7 +21,7 @@
 # License-Filename: LICENSE
 
 # Use OpenJDK Eclipe Temurin Ubuntu LTS
-FROM eclipse-temurin:11-jdk-jammy as base-image
+FROM eclipse-temurin:17-jdk-jammy as base-image
 
 # Base package set
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
