@@ -80,7 +80,7 @@ subprojects {
         buildUponDefaultConfig = true
         config = files("$rootDir/.detekt.yml")
         basePath = rootProject.projectDir.path
-        source.from(fileTree(".") { include("*.gradle.kts") })
+        source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
     }
 
     tasks.withType<KotlinCompile>().configureEach {
