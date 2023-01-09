@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.util.asPresent
 

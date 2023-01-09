@@ -52,6 +52,8 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
+    testFixturesApi(project(":model"))
+
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.kotestExtensionsTestContainer)
     testFixturesImplementation(libs.kotestRunnerJunit5)
