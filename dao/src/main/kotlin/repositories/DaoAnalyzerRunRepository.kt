@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRuns
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectScopeDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
@@ -168,7 +169,12 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
         }
     }
 
-    // TODO: Add scopes.
+    project.scopeNames.forEach { scopeName ->
+        ProjectScopeDao.new {
+            this.project = projectDao
+            this.name = scopeName
+        }
+    }
 
     return projectDao
 }

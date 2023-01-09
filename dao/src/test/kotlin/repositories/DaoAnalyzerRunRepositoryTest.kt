@@ -121,7 +121,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                     path = ""
                 ),
                 homepageUrl = "https://example.com",
-                scopeNames = emptySet()
+                scopeNames = setOf("compile")
             )
 
             val pkg = Package(
@@ -165,16 +165,16 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 "Maven" to DependencyGraph(
                     packages = listOf(
                         Identifier(
-                            type = "type1",
-                            namespace = "namespace1",
-                            name = "name1",
-                            version = "version1"
+                            type = "type",
+                            namespace = "namespace",
+                            name = "package",
+                            version = "version"
                         ),
                         Identifier(
-                            type = "type2",
-                            namespace = "namespace2",
-                            name = "name2",
-                            version = "version2"
+                            type = "type",
+                            namespace = "namespace",
+                            name = "project",
+                            version = "version"
                         )
                     ),
                     nodes = listOf(
