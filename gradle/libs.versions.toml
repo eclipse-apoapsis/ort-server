@@ -100,6 +100,7 @@ kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", vers
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
+ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "ort" }

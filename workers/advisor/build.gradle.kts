@@ -41,7 +41,12 @@ dependencies {
     implementation(project(":workers:common"))
 
     implementation(libs.logback)
+    implementation(libs.ortAdvisor)
     implementation(libs.typesafeConfig)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
 }
 
 jib {
