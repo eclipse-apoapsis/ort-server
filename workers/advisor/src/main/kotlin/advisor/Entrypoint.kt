@@ -24,6 +24,8 @@ import com.typesafe.config.ConfigFactory
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
 
 /**
  * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
@@ -34,5 +36,10 @@ fun main() {
 
     createDataSource(createDatabaseConfig(config)).connect()
 
-    TODO("Implement AdvisorWorker.")
+    AdvisorWorker(
+        AdvisorReceiver(config),
+        AdvisorRunner(),
+        DaoAdvisorJobRepository(),
+        DaoAdvisorRunRepository()
+    ).start()
 }
