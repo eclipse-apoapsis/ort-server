@@ -103,6 +103,10 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
     }.getOrThrow()
 
     override fun get(id: Long): AnalyzerRun? = blockingQuery { AnalyzerRunDao[id].mapToModel() }.getOrNull()
+
+    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQuery {
+        AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()
+    }.getOrNull()
 }
 
 private fun createAnalyzerConfiguration(

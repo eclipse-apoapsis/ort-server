@@ -53,4 +53,9 @@ interface AnalyzerRunRepository {
      * Get an analyzer run by [id]. Returns null if the analyzer run is not found.
      */
     fun get(id: Long): AnalyzerRun?
+
+    /**
+     * Get an analyzer run by [analyzerJobId]. Returns null if the analyzer run is not found.
+     */
+    fun getByJobId(analyzerJobId: Long): AnalyzerRun?
 }
