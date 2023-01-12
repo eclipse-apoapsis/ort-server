@@ -13,7 +13,7 @@
       <env name="JWT_URI" value="http://keycloak:8081/realms/master/protocol/openid-connect/certs" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.ossreviewtoolkit.server.core.ApplicationKt" />
-    <module name="ort-server.core.main" />
+    <module name="org.ossreviewtoolkit.server.ort-server.core.main" />
     <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
