@@ -20,7 +20,9 @@
 package org.ossreviewtoolkit.server.workers.analyzer
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
@@ -40,20 +42,8 @@ internal class AnalyzerWorker(
         receiver.receive(::run)
     }
 
-    private fun run(jobId: Long, traceId: String): RunResult = blockingQuery {
-        val job = dao.getAnalyzerJob(jobId)
-            ?: return@blockingQuery RunResult.Failed(
-                IllegalArgumentException("The analyzer job '$jobId' does not exist.")
-            )
-
-        if (job.status in invalidStates) {
-            logger.warn(
-                "Analyzer job '$jobId' status is already set to '${job.status}'. Ignoring message with traceId " +
-                        "'$traceId'."
-            )
-
-            return@blockingQuery RunResult.Ignored
-        }
+    private fun run(jobId: Long, traceId: String): RunResult = runCatching {
+        val job = blockingQuery { getValidAnalyzerJob(jobId) }.getOrThrow()
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
 
@@ -66,10 +56,35 @@ internal class AnalyzerWorker(
                     "'${analyzerRun.result.issues.values.size}' issues."
         )
 
-        dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
+        blockingQuery {
+            getValidAnalyzerJob(jobId)
+            dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
+        }
 
         RunResult.Success
-    }.getOrElse { RunResult.Failed(it) }
+    }.getOrElse {
+        when (it) {
+            is JobIgnoredException -> {
+                logger.warn("Message with traceId '$traceId' ignored: ${it.message}")
+                RunResult.Ignored
+            }
+
+            else -> {
+                logger.error("Error while processing message traceId '$traceId': ${it.message}")
+                RunResult.Failed(it)
+            }
+        }
+    }
+
+    private fun getValidAnalyzerJob(jobId: Long) =
+        dao.getAnalyzerJob(jobId)?.validate()
+            ?: throw IllegalArgumentException("The analyzer job '$jobId' does not exist.")
+
+    private fun AnalyzerJob.validate() = apply {
+        if (status in invalidStates) {
+            throw JobIgnoredException("Analyzer job '$id' status is already set to '$status'.")
+        }
+    }
 }
 
 private class AnalyzerException(message: String) : Exception(message)
