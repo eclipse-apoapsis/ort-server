@@ -56,13 +56,11 @@ internal class AdvisorWorker(
     private val advisorJobRepository: AdvisorJobRepository,
     private val advisorRunRepository: AdvisorRunRepository,
 ) {
-    fun start() = receiver.receive { jobId, traceId ->
-        blockingQuery { run(jobId, traceId) }.getOrElse { RunResult.Failed(it) }
-    }
+    fun start() = receiver.receive(::run)
 
-    private fun run(advisorJobId: Long, traceId: String): RunResult {
+    private fun run(advisorJobId: Long, traceId: String): RunResult = blockingQuery {
         val advisorJob = advisorJobRepository.get(advisorJobId)
-            ?: return RunResult.Failed(
+            ?: return@blockingQuery RunResult.Failed(
                 IllegalArgumentException("The advisor job '$advisorJobId' does not exist.")
             )
 
@@ -72,7 +70,7 @@ internal class AdvisorWorker(
                         "traceId '$traceId'."
             )
 
-            return RunResult.Ignored
+            return@blockingQuery RunResult.Ignored
         }
 
         // TODO: Add more arguments to this function/class to retrieve more information for the construction of the
@@ -85,8 +83,8 @@ internal class AdvisorWorker(
 
         advisorRun.writeToDatabase(advisorJob.id)
 
-        return RunResult.Success
-    }
+        RunResult.Success
+    }.getOrElse { RunResult.Failed(it) }
 
     /**
      * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun].
