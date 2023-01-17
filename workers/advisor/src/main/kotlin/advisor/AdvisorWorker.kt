@@ -19,16 +19,11 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import kotlinx.datetime.toKotlinInstant
-
-import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
@@ -41,13 +36,12 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class AdvisorWorker(
     private val receiver: AdvisorReceiver,
     private val runner: AdvisorRunner,
-    private val advisorJobRepository: AdvisorJobRepository,
-    private val advisorRunRepository: AdvisorRunRepository,
+    private val dao: AdvisorWorkerDao
 ) {
     fun start() = receiver.receive(::run)
 
     private fun run(advisorJobId: Long, traceId: String): RunResult = blockingQuery {
-        val advisorJob = advisorJobRepository.get(advisorJobId)
+        val advisorJob = dao.getAdvisorJob(advisorJobId)
             ?: return@blockingQuery RunResult.Failed(
                 IllegalArgumentException("The advisor job '$advisorJobId' does not exist.")
             )
@@ -69,26 +63,10 @@ internal class AdvisorWorker(
         val advisorRun = runner.run(ortResult, advisorJob.configuration).advisor
             ?: throw AdvisorException("ORT Advisor failed to create a result.")
 
-        advisorRun.writeToDatabase(advisorJob.id)
+        dao.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
 
         RunResult.Success
     }.getOrElse { RunResult.Failed(it) }
-
-    /**
-     * Create a database entry for an [org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun].
-     */
-    private fun AdvisorRun.writeToDatabase(jobId: Long) =
-        // TODO: Use the OrtMappings functions for the mapping from ORT to ORT server model to shorten the function
-        //       call.
-        advisorRunRepository.create(
-            advisorJobId = jobId,
-            startTime = startTime.toKotlinInstant(),
-            endTime = endTime.toKotlinInstant(),
-            environment = environment.mapToModel(),
-            config = config.mapToModel(),
-            advisorRecords = results.advisorResults.mapKeys { it.key.mapToModel() }
-                .mapValues { it.value.map { it.mapToModel() } }
-        )
 }
 
 private class AdvisorException(message: String) : Exception(message)

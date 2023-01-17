@@ -39,7 +39,6 @@ fun main() {
     AdvisorWorker(
         AdvisorReceiver(config),
         AdvisorRunner(),
-        DaoAdvisorJobRepository(),
-        DaoAdvisorRunRepository()
+        AdvisorWorkerDao(DaoAdvisorJobRepository(), DaoAdvisorRunRepository())
     ).start()
 }

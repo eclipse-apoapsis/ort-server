@@ -26,6 +26,8 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunsTable
 import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.AdvisorJob
@@ -53,7 +55,7 @@ class AdvisorJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by AdvisorJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by AdvisorJobsTable.configuration
     var status by AdvisorJobsTable.status
-    // TODO: add FK link to AdvisorRunsTable.advisorJobId
+    val advisorRun by AdvisorRunDao optionalBackReferencedOn AdvisorRunsTable.advisorJobId
 
     fun mapToModel() = AdvisorJob(
         id = id.value,
