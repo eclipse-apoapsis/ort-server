@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.advisor
 
 import kotlinx.datetime.Instant
+import kotlinx.datetime.toKotlinInstant
 
 import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorRun
@@ -30,7 +31,6 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
-import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 import org.slf4j.LoggerFactory
 
@@ -94,17 +95,9 @@ internal class AdvisorWorker(
         //       call.
         advisorRunRepository.create(
             advisorJobId = jobId,
-            startTime = Instant.fromEpochSeconds(startTime.epochSecond),
-            endTime = Instant.fromEpochSeconds(endTime.epochSecond),
-            environment = Environment(
-                environment.ortVersion,
-                environment.javaVersion,
-                environment.os,
-                environment.processors,
-                environment.maxMemory,
-                environment.variables,
-                environment.toolVersions
-            ),
+            startTime = startTime.toKotlinInstant(),
+            endTime = endTime.toKotlinInstant(),
+            environment = environment.mapToModel(),
             config = AdvisorConfiguration(
                 githubDefectsConfiguration = config.gitHubDefects?.let {
                     GithubDefectsConfiguration(
