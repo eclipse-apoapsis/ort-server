@@ -19,10 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.toKotlinInstant
 
-import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
@@ -31,17 +29,6 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
-import org.ossreviewtoolkit.server.model.runs.advisor.Defect
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
@@ -98,91 +85,9 @@ internal class AdvisorWorker(
             startTime = startTime.toKotlinInstant(),
             endTime = endTime.toKotlinInstant(),
             environment = environment.mapToModel(),
-            config = AdvisorConfiguration(
-                githubDefectsConfiguration = config.gitHubDefects?.let {
-                    GithubDefectsConfiguration(
-                        endpointUrl = it.endpointUrl,
-                        labelFilter = it.labelFilter,
-                        maxNumberOfIssuesPerRepository = it.maxNumberOfIssuesPerRepository,
-                        parallelRequests = it.parallelRequests
-                    )
-                },
-                nexusIqConfiguration = config.nexusIq?.let {
-                    NexusIqConfiguration(
-                        serverUrl = it.serverUrl,
-                        browseUrl = it.browseUrl
-                    )
-                },
-                osvConfiguration = config.osv?.let {
-                    OsvConfiguration(
-                        serverUrl = it.serverUrl
-                    )
-                },
-                vulnerableCodeConfiguration = config.vulnerableCode?.let {
-                    VulnerableCodeConfiguration(
-                        serverUrl = it.serverUrl
-                    )
-                },
-                // TODO: Currently, the type of options is Map<String, String>, which should be
-                //       Map<String, Map<String, String>>. This has to be fixed in order to create the database
-                //       correctly.
-                options = emptyMap()
-            ),
-            advisorRecords = results.advisorResults.map { (identifier, results) ->
-                Identifier(
-                    type = identifier.type,
-                    namespace = identifier.namespace,
-                    name = identifier.name,
-                    version = identifier.version
-                ) to results.map { result ->
-                    AdvisorResult(
-                        advisorName = result.advisor.name,
-                        capabilities = result.advisor.capabilities.map(AdvisorCapability::name),
-                        startTime = Instant.fromEpochSeconds(result.summary.startTime.epochSecond),
-                        endTime = Instant.fromEpochSeconds(result.summary.endTime.epochSecond),
-                        issues = result.summary.issues.map { issue ->
-                            OrtIssue(
-                                timestamp = Instant.fromEpochSeconds(issue.timestamp.epochSecond),
-                                source = issue.source,
-                                message = issue.message,
-                                severity = issue.severity.name
-                            )
-                        },
-                        defects = result.defects.map { defect ->
-                            Defect(
-                                externalId = defect.id,
-                                url = defect.url.toString(),
-                                title = defect.title,
-                                state = defect.state,
-                                severity = defect.severity,
-                                description = defect.description,
-                                creationTime = defect.creationTime?.let { Instant.fromEpochSeconds(it.epochSecond) },
-                                modificationTime = defect.modificationTime?.let {
-                                    Instant.fromEpochSeconds(it.epochSecond)
-                                },
-                                closingTime = defect.closingTime?.let { Instant.fromEpochSeconds(it.epochSecond) },
-                                fixReleaseVersion = defect.fixReleaseVersion,
-                                fixReleaseUrl = defect.fixReleaseUrl,
-                                labels = defect.labels
-                            )
-                        },
-                        vulnerabilities = result.vulnerabilities.map { vulnerability ->
-                            Vulnerability(
-                                externalId = vulnerability.id,
-                                summary = vulnerability.summary,
-                                description = vulnerability.description,
-                                references = vulnerability.references.map { reference ->
-                                    VulnerabilityReference(
-                                        url = reference.url.toString(),
-                                        scoringSystem = reference.scoringSystem,
-                                        severity = reference.severity
-                                    )
-                                }
-                            )
-                        }
-                    )
-                }
-            }.toMap()
+            config = config.mapToModel(),
+            advisorRecords = results.advisorResults.mapKeys { it.key.mapToModel() }
+                .mapValues { it.value.map { it.mapToModel() } }
         )
 }
 

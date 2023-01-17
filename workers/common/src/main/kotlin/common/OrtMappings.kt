@@ -23,7 +23,10 @@ package org.ossreviewtoolkit.server.workers.common
 
 import kotlinx.datetime.toKotlinInstant
 
+import org.ossreviewtoolkit.model.AdvisorResult as OrtAdvisorResult
+import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
@@ -35,8 +38,15 @@ import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.RootDependencyIndex
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
+import org.ossreviewtoolkit.model.VulnerabilityReference as OrtVulnerabilityReference
+import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGitHubDefectsConfiguration
+import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
+import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
+import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
@@ -52,7 +62,52 @@ import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.advisor.Defect
+import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
+import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
+import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
+import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
+import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
+import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+
+fun OrtAdvisorConfiguration.mapToModel() =
+    AdvisorConfiguration(
+        githubDefectsConfiguration = gitHubDefects?.mapToModel(),
+        nexusIqConfiguration = nexusIq?.mapToModel(),
+        osvConfiguration = osv?.mapToModel(),
+        vulnerableCodeConfiguration = vulnerableCode?.mapToModel(),
+        // TODO: Currently, the type of options is Map<String, String>, which should be
+        //       Map<String, Map<String, String>>. This has to be fixed in order to create the database
+        //       correctly.
+        options = emptyMap()
+    )
+
+fun OrtAdvisorResult.mapToModel() =
+    AdvisorResult(
+        advisorName = advisor.name,
+        capabilities = advisor.capabilities.map { it.name },
+        startTime = summary.startTime.toKotlinInstant(),
+        endTime = summary.endTime.toKotlinInstant(),
+        issues = summary.issues.map { it.mapToModel() },
+        defects = defects.map { it.mapToModel() },
+        vulnerabilities = vulnerabilities.map { it.mapToModel() }
+    )
+
+fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
+    AdvisorRun(
+        id = -1,
+        advisorJobId = advisorJobId,
+        startTime = startTime.toKotlinInstant(),
+        endTime = endTime.toKotlinInstant(),
+        environment = environment.mapToModel(),
+        config = config.mapToModel(),
+        advisorRecords = results.advisorResults.mapKeys { it.key.mapToModel() }
+            .mapValues { it.value.map { it.mapToModel() } }
+    )
 
 fun OrtAnalyzerConfiguration.mapToModel() =
     AnalyzerConfiguration(
@@ -74,6 +129,22 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
         packages = result.packages.mapTo(mutableSetOf()) { it.metadata.mapToModel() },
         issues = result.issues.mapKeys { it.key.mapToModel() }.mapValues { it.value.map { it.mapToModel() } },
         dependencyGraphs = result.dependencyGraphs.mapValues { it.value.mapToModel() }
+    )
+
+fun OrtDefect.mapToModel() =
+    Defect(
+        externalId = id,
+        url = url.toString(),
+        title = title,
+        state = state,
+        severity = severity,
+        description = description,
+        creationTime = creationTime?.toKotlinInstant(),
+        modificationTime = modificationTime?.toKotlinInstant(),
+        closingTime = closingTime?.toKotlinInstant(),
+        fixReleaseVersion = fixReleaseVersion,
+        fixReleaseUrl = fixReleaseUrl,
+        labels = labels
     )
 
 fun OrtDependencyGraph.mapToModel() =
@@ -98,6 +169,14 @@ fun OrtDependencyGraphNode.mapToModel() =
         issues = issues.map { it.mapToModel() }
     )
 
+fun OrtGitHubDefectsConfiguration.mapToModel() =
+ GithubDefectsConfiguration(
+     endpointUrl = endpointUrl,
+     labelFilter = labelFilter,
+     maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository,
+     parallelRequests = parallelRequests
+ )
+
 fun RootDependencyIndex.mapToModel() =
     DependencyGraphRoot(
         root = root,
@@ -117,6 +196,8 @@ fun OrtEnvironment.mapToModel() =
 
 fun OrtIdentifier.mapToModel() = Identifier(type, namespace, name, version)
 
+fun OrtNexusIqConfiguration.mapToModel() = NexusIqConfiguration(serverUrl = serverUrl, browseUrl = browseUrl)
+
 fun OrtOrtIssue.mapToModel() =
     OrtIssue(
         timestamp = timestamp.toKotlinInstant(),
@@ -124,6 +205,8 @@ fun OrtOrtIssue.mapToModel() =
         message = message,
         severity = severity.name
     )
+
+fun OrtOsvConfiguration.mapToModel() = OsvConfiguration(serverUrl = serverUrl)
 
 fun OrtPackage.mapToModel() =
     Package(
@@ -179,3 +262,20 @@ fun VcsType.mapToModel() = when (this) {
     VcsType.UNKNOWN -> RepositoryType.UNKNOWN
     else -> throw IllegalArgumentException("Unknown VcsType: $this")
 }
+
+fun OrtVulnerability.mapToModel() =
+    Vulnerability(
+        externalId = id,
+        summary = summary,
+        description = description,
+        references = references.map { it.mapToModel() }
+    )
+
+fun OrtVulnerabilityReference.mapToModel() =
+    VulnerabilityReference(
+        url = url.toString(),
+        scoringSystem = scoringSystem,
+        severity = severity
+    )
+
+fun OrtVulnerableCodeConfiguration.mapToModel() = VulnerableCodeConfiguration(serverUrl = serverUrl)
