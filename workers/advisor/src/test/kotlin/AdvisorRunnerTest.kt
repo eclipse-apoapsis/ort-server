@@ -90,7 +90,7 @@ class TestAdviceProvider(name: String) : AdviceProvider(name) {
     }
 
     companion object {
-        var storedPackages = emptyList<Package>()
+        var storedPackages = emptySet<Package>()
         val RESULT = mapOf(
             Identifier("type", "namespace", "name", "version") to listOf(
                 AdvisorResult(
@@ -115,7 +115,7 @@ class TestAdviceProvider(name: String) : AdviceProvider(name) {
 
     override val details = AdvisorDetails(providerName, enumSetOf(AdvisorCapability.VULNERABILITIES))
 
-    override suspend fun retrievePackageFindings(packages: List<Package>): Map<Package, List<AdvisorResult>> {
+    override suspend fun retrievePackageFindings(packages: Set<Package>): Map<Package, List<AdvisorResult>> {
         storedPackages = packages
 
         return RESULT.mapKeys { Package.EMPTY.copy(id = it.key) }
