@@ -22,6 +22,7 @@ jibPlugin = "3.3.1"
 kotlinPlugin = "1.8.0"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.4.1"
+rabbitMq = "5.16.0"
 versionCatalogUpdatePlugin = "0.7.0"
 versionsPlugin = "0.44.0"
 
@@ -107,8 +108,10 @@ ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "
 ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
+rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
+testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
 wiremockStandalone = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
