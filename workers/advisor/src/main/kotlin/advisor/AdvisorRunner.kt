@@ -22,7 +22,8 @@ package org.ossreviewtoolkit.server.workers.advisor
 import kotlinx.coroutines.runBlocking
 
 import org.ossreviewtoolkit.advisor.Advisor
-import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.AdvisorRun
+import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 
@@ -31,11 +32,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
 
 class AdvisorRunner {
-    fun run(ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult {
-        requireNotNull(ortResult.analyzer) {
-            "The advisor cannot run due to the missing analyzer result in the provided ORT result."
-        }
-
+    fun run(packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun {
         // TODO: Find a way to make the AdvisorConfiguration configurable, otherwise the Advisor
         //       will run without any AdvisorProvider due to the missing correspondent configuration.
         val advisorConfig = AdvisorConfiguration()
@@ -63,18 +60,7 @@ class AdvisorRunner {
         }
 
         val advisor = Advisor(advisorProviders, advisorConfig)
-        val newOrtResult = runBlocking { advisor.advise(ortResult) }
 
-        with(newOrtResult.getVulnerabilities(omitExcluded = true)) {
-            val totalPackageCount = newOrtResult.getPackages(omitExcluded = true).size
-            val vulnerabilityCount = values.sumOf { it.size }
-
-            logger.info(
-                "$size of $totalPackageCount package(s) (not counting excluded ones) are vulnerable, with " +
-                    "$vulnerabilityCount vulnerabilities in total."
-            )
-        }
-
-        return newOrtResult
+        return runBlocking { advisor.advise(packages) }
     }
 }

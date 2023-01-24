@@ -19,9 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.Repository
-import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -47,12 +44,8 @@ internal class AdvisorWorker(
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
-        // TODO: Add more arguments to this function/class to retrieve more information for the construction of the
-        //       OrtResult (e.g. AnalyzerRunRepository, OrtRunRepository, RepositoryRepository).
-        val ortResult = OrtResult(Repository(VcsInfo.EMPTY))
-
-        val advisorRun = runner.run(ortResult, advisorJob.configuration).advisor
-            ?: throw AdvisorException("ORT Advisor failed to create a result.")
+        // TODO: Pass the packages from the previous analyzer run.
+        val advisorRun = runner.run(emptySet(), advisorJob.configuration)
 
         blockingQuery {
             getValidAdvisorJob(advisorJobId)
@@ -84,5 +77,3 @@ internal class AdvisorWorker(
         }
     }
 }
-
-private class AdvisorException(message: String) : Exception(message)

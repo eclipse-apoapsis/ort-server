@@ -19,14 +19,11 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
-import io.kotest.matchers.nulls.shouldNotBeNull
 
-import java.io.File
 import java.net.URI
 
 import kotlinx.datetime.Clock
@@ -39,14 +36,10 @@ import org.ossreviewtoolkit.model.AdvisorDetails
 import org.ossreviewtoolkit.model.AdvisorResult
 import org.ossreviewtoolkit.model.AdvisorSummary
 import org.ossreviewtoolkit.model.Identifier
-import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
-import org.ossreviewtoolkit.model.Repository
-import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.Vulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
-import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.utils.common.enumSetOf
 
@@ -54,32 +47,22 @@ class AdvisorRunnerTest : WordSpec({
     val runner = AdvisorRunner()
 
     "run" should {
-        "return an OrtResult with an empty AdvisorRun" {
-            val ortResult = File("src/test/resources/ort-result.yml").readValue<OrtResult>()
+        "return an AdvisorRun with an empty result" {
             val config = AdvisorJobConfiguration()
 
-            val newOrtResult = runner.run(ortResult, config)
+            val advisorRun = runner.run(emptySet(), config)
 
-            newOrtResult.advisor.shouldNotBeNull()
-            newOrtResult.getAdvisorResults().shouldBeEmpty()
+            advisorRun.results.advisorResults.shouldBeEmpty()
         }
 
-        "throw an exception when no AdvisorRun was created" {
-            shouldThrow<IllegalArgumentException> {
-                runner.run(OrtResult(Repository(VcsInfo.EMPTY)), AdvisorJobConfiguration())
-            }
-        }
-
-        "return an OrtResult with Advisor result" {
-            val ortResult = File("src/test/resources/ort-result.yml").readValue<OrtResult>()
+        "return an AdvisorRun with valid results" {
+            val packages = TestAdviceProvider.RESULT.mapTo(mutableSetOf()) { Package.EMPTY.copy(id = it.key) }
             val config = AdvisorJobConfiguration(listOf("TestAdviceProvider"))
 
-            val newOrtResult = runner.run(ortResult, config)
+            val advisorRun = runner.run(packages, config)
 
-            newOrtResult.advisor.shouldNotBeNull()
-            TestAdviceProvider.storedPackages shouldContainExactlyInAnyOrder ortResult.getPackages(true)
-                .map { it.metadata }
-            newOrtResult.getAdvisorResults() shouldContainExactly TestAdviceProvider.RESULT
+            TestAdviceProvider.storedPackages shouldContainExactlyInAnyOrder packages
+            advisorRun.results.advisorResults shouldContainExactly TestAdviceProvider.RESULT
         }
     }
 })
