@@ -21,27 +21,24 @@ package org.ossreviewtoolkit.server.orchestrator
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockkClass
-import io.mockk.mockkStatic
 import io.mockk.runs
-import io.mockk.unmockkAll
 import io.mockk.verify
 
 import kotlinx.datetime.Instant
 
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
-import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
-import org.ossreviewtoolkit.server.dao.databaseModule
+import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
+import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
@@ -60,18 +57,15 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
         traceId = "traceId"
     )
 
-    override suspend fun afterEach(testCase: TestCase, result: io.kotest.core.test.TestResult) {
+    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
         stopKoin()
         MessageReceiverFactoryForTesting.reset()
-        unmockkAll()
     }
 
     init {
         "The database module should be added" {
             runEndpointTest {
-                val testResult by inject<TestResult>()
-
-                testResult.success shouldBe true
+                verifyDatabaseModuleIncluded()
             }
         }
 
@@ -142,34 +136,19 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
      * testing transport. Then execute the given [block].
      */
     private fun runEndpointTest(block: () -> Unit) {
-        // Substitute the database module.
-        mockkStatic(::databaseModule)
-        every { databaseModule() } returns mockDatabaseModule()
+        withMockDatabaseModule {
+            val environment = mapOf(
+                "ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+                "ANALYZER_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME
+            )
 
-        val environment = mapOf(
-            "ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-            "ANALYZER_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME
-        )
+            withEnvironment(environment) {
+                main()
 
-        withEnvironment(environment) {
-            main()
+                MockProvider.register { mockkClass(it) }
 
-            MockProvider.register { mockkClass(it) }
-
-            block()
+                block()
+            }
         }
     }
-}
-
-/**
- * A data class to be used as a bean in a module.
- */
-private data class TestResult(val success: Boolean)
-
-/**
- * Return a module that is used as replacement for the database module. By checking for the [TestResult] bean
- * contained in this module, it can be verified whether the endpoint implementation has added the database module.
- */
-private fun mockDatabaseModule() = module {
-    single { TestResult(success = true) }
 }

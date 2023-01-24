@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:spi"))
 
+    testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:spi")))
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
