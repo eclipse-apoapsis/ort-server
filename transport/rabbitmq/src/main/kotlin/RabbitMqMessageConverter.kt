@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.transport.rabbitmq
 
 import com.rabbitmq.client.AMQP.BasicProperties
+import com.rabbitmq.client.Delivery
 
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -49,4 +50,17 @@ internal object RabbitMqMessageConverter {
      * Convert the [message]'s payload into a plain JSON string.
      */
     fun <T> toStringMessage(message: Message<T>, serializer: JsonSerializer<T>) = serializer.toJson(message.payload)
+
+    /**
+     * Convert the [delivery] to a [Message] using the [serializer].
+     */
+    fun <T> toTransportMessage(delivery: Delivery, serializer: JsonSerializer<T>): Message<T> {
+        val header = MessageHeader(
+            delivery.properties.headers[TOKEN_PROPERTY].toString(),
+            delivery.properties.headers[TRACE_PROPERTY].toString()
+        )
+        val payload = serializer.fromJson(String(delivery.body, Charsets.UTF_8))
+
+        return Message(header, payload)
+    }
 }
