@@ -21,11 +21,18 @@ package org.ossreviewtoolkit.server.transport.testing
 
 import com.typesafe.config.Config
 
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.util.Queue
+import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -43,18 +50,33 @@ const val TEST_TRANSPORT_NAME = "testMessageTransport"
 class MessageSenderFactoryForTesting : MessageSenderFactory {
     companion object {
         /** A map for storing messages sent by one of the created senders. */
-        private val messageQueues = mutableMapOf<Endpoint<*>, Queue<Message<*>>>()
+        private val messageQueues = mutableMapOf<Endpoint<*>, BlockingQueue<Message<*>>>()
 
         /**
          * Return the next message that was sent to the given [endpoint][to] or throw an exception if no such message
          * exists.
          */
         fun <T : Any> expectMessage(to: Endpoint<T>): Message<T> {
-            val queue = messageQueues[to].shouldNotBeNull()
+            val queue = queueFor(to)
 
             @Suppress("UNCHECKED_CAST")
             return queue.remove() as Message<T>
         }
+
+        /**
+         * Verify that no message has been sent to the given [endpoint][to] within the given [delay]. The [delay] can
+         * be needed if messages are sent asynchronously.
+         */
+        fun <T : Any> expectNoMessage(to: Endpoint<T>, delay: Duration = 1.seconds) {
+            val queue = queueFor(to)
+
+            queue.poll(delay.inWholeMilliseconds, TimeUnit.MILLISECONDS) should beNull()
+        }
+
+        /**
+         * Make sure that a sender for the given [endpoint] has been created and return its queue of sent messages.
+         */
+        private fun <T : Any> queueFor(endpoint: Endpoint<T>) = messageQueues[endpoint].shouldNotBeNull()
     }
 
     override val name: String = TEST_TRANSPORT_NAME
@@ -64,7 +86,7 @@ class MessageSenderFactoryForTesting : MessageSenderFactory {
         val sender = MessageSenderForTesting(to, config, queue)
 
         @Suppress("UNCHECKED_CAST")
-        messageQueues[to] = queue as Queue<Message<*>>
+        messageQueues[to] = queue as BlockingQueue<Message<*>>
         return sender
     }
 }
