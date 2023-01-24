@@ -33,16 +33,11 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AnalyzerWorker(
-    private val receiver: AnalyzerReceiver,
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner,
     private val dao: AnalyzerWorkerDao
 ) {
-    fun start() {
-        receiver.receive(::run)
-    }
-
-    private fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val job = blockingQuery { getValidAnalyzerJob(jobId) }.getOrThrow()
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")

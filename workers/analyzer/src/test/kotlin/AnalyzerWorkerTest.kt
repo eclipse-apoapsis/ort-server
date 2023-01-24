@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,18 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-
-import io.kotest.core.spec.style.WordSpec
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.runs
-import io.mockk.spyk
-import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.File
+
+import kotlin.test.fail
 
 import kotlinx.datetime.Clock
 
@@ -42,81 +38,12 @@ import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val JOB_ID = 1L
-private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
-
-class AnalyzerWorkerTest : WordSpec({
-    afterTest {
-        unmockkAll()
-    }
-
-    "AnalyzerWorker" should {
-        "analyze a project and send the result to the transport SPI" {
-            val serializer = JsonSerializer.forClass(AnalyzerRequest::class)
-
-            val msgSenderMock = mockk<MessageSender<OrchestratorMessage>> {
-                every { send(any()) } just runs
-            }
-
-            val dao = mockk<AnalyzerWorkerDao> {
-                every { getAnalyzerJob(any()) } returns analyzerJob
-                every { storeAnalyzerRun(any()) } just runs
-            }
-
-            mockkObject(MessageSenderFactory)
-            every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
-
-            val receiver = AnalyzerReceiver(
-                ConfigFactory.parseMap(
-                    mapOf(
-                        "${AnalyzerEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
-                                "testMessageReceiverFactory",
-                        TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(analyzerRequest)
-                    )
-                )
-            )
-
-            val downloader = mockk<AnalyzerDownloader> {
-                // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and the
-                // repository is not cloned.
-                every { downloadRepository(any(), any()) } returns projectDir
-            }
-
-            val runner = AnalyzerRunner()
-
-            val worker = spyk(
-                AnalyzerWorker(receiver, downloader, runner, dao)
-            )
-
-            mockkTransaction { worker.start() }
-
-            verify(exactly = 1) {
-                msgSenderMock.send(
-                    Message(MessageHeader(TOKEN, TRACE_ID), AnalyzerWorkerResult(JOB_ID))
-                )
-
-                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
-            }
-        }
-    }
-})
 
 private val analyzerJob = AnalyzerJob(
     id = JOB_ID,
@@ -130,36 +57,60 @@ private val analyzerJob = AnalyzerJob(
     repositoryRevision = "main"
 )
 
-private val analyzerRequest = AnalyzerRequest(
-    analyzerJobId = analyzerJob.id
-)
+class AnalyzerWorkerTest : StringSpec({
+    "A project should be analyzed successfully" {
+        val dao = mockk<AnalyzerWorkerDao> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any()) } just runs
+        }
 
-/** The name reported by the test receiver factory. */
-private const val TEST_RECEIVER_FACTORY_NAME = "testMessageReceiverFactory"
+        val downloader = mockk<AnalyzerDownloader> {
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
+            // the repository is not cloned.
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
 
-/** The config key for the mock message's payload which is received by this test receiver. */
-private const val TEST_RECEIVER_PAYLOAD_CONFIG_KEY = "test.receiver.payload"
+        val worker = AnalyzerWorker(downloader, AnalyzerRunner(), dao)
 
-/**
- * A MessageReceiverFactory intended to be used for unit testing parts of the code that relies on the SPI receiver
- * implementations.
- */
-class MessageReceiverFactoryForTesting : MessageReceiverFactory {
-    override val name: String = TEST_RECEIVER_FACTORY_NAME
+        mockkTransaction {
+            val result = worker.run(JOB_ID, TRACE_ID)
 
-    /**
-     * A mock receiver implementation which immediately simulates the retrieval of a message. The message payload can be
-     * set by setting the [config] key [TEST_RECEIVER_PAYLOAD_CONFIG_KEY].
-     */
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        val serializer = JsonSerializer.forClass(endpoint.messageClass)
-        val payload = config.getString(TEST_RECEIVER_PAYLOAD_CONFIG_KEY)
+            result shouldBe RunResult.Success
 
-        handler(
-            Message(
-                MessageHeader(TOKEN, TRACE_ID),
-                serializer.fromJson(payload)
-            )
-        )
+            verify(exactly = 1) {
+                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+            }
+        }
     }
-}
+
+    "A failure result should be returned in case of an error" {
+        val testException = IllegalStateException("Test exception")
+        val dao = mockk<AnalyzerWorkerDao> {
+            every { getAnalyzerJob(any()) } throws testException
+        }
+
+        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(), dao)
+
+        mockkTransaction {
+            when (val result = worker.run(JOB_ID, TRACE_ID)) {
+                is RunResult.Failed -> result.error shouldBe testException
+                else -> fail("Unexpected result: $result")
+            }
+        }
+    }
+
+    "An ignore result should be returned for an invalid job" {
+        val invalidJob = analyzerJob.copy(status = JobStatus.FINISHED)
+        val dao = mockk<AnalyzerWorkerDao> {
+            every { getAnalyzerJob(any()) } returns invalidJob
+        }
+
+        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(), dao)
+
+        mockkTransaction {
+            val result = worker.run(JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Ignored
+        }
+    }
+})

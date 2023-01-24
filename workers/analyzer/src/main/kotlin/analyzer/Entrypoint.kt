@@ -19,27 +19,16 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import com.typesafe.config.ConfigFactory
+import org.slf4j.LoggerFactory
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.createDatabaseConfig
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+private val logger = LoggerFactory.getLogger(AnalyzerComponent::class.java)
 
 /**
  * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
  * interfacing on its APIs.
  */
 fun main() {
-    val config = ConfigFactory.load()
+    logger.info("Starting ORT-Server Analyzer endpoint.")
 
-    createDataSource(createDatabaseConfig(config)).connect()
-
-    AnalyzerWorker(
-        AnalyzerReceiver(config),
-        AnalyzerDownloader(),
-        AnalyzerRunner(),
-        AnalyzerWorkerDao(DaoAnalyzerJobRepository(), DaoAnalyzerRunRepository())
-    ).start()
+    AnalyzerComponent().start()
 }
