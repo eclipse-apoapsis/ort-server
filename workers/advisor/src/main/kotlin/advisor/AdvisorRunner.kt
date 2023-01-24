@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import kotlinx.coroutines.runBlocking
+
 import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
@@ -61,7 +63,7 @@ class AdvisorRunner {
         }
 
         val advisor = Advisor(advisorProviders, advisorConfig)
-        val newOrtResult = advisor.retrieveFindings(ortResult)
+        val newOrtResult = runBlocking { advisor.advise(ortResult) }
 
         with(newOrtResult.getVulnerabilities(omitExcluded = true)) {
             val totalPackageCount = newOrtResult.getPackages(omitExcluded = true).size
