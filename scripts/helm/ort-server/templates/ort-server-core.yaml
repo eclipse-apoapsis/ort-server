@@ -46,9 +46,9 @@ spec:
             - name: DB_URL
               value: "jdbc:postgresql://{{ .Release.Name }}-postgresql-hl:{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
             - name: JWT_URI
-              value: http://keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master/protocol/openid-connect/certs
+              value: http://{{ .Release.Name }}-keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master/protocol/openid-connect/certs
             - name: JWT_ISSUER
-              value: http://keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master
+              value: http://{{ .Release.Name }}-keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master
             - name: PORT
               value: "{{ .Values.ort_server.core.port }}"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
