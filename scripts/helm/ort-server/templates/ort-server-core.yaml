@@ -56,7 +56,7 @@ spec:
             - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
               value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
-              value: {{ .Values.ort_server.artemis.orchestratorSenderQueue }}
+              value: {{ .Values.ort_server.artemis.orchestratorQueue }}
           image: ort-server-core
           # Having a value of 'Never' makes sure that only the local images are used.
           # See https://kubernetes.io/docs/concepts/containers/images/#updating-images.
