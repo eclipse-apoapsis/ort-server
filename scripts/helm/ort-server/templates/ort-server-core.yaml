@@ -51,12 +51,14 @@ spec:
               value: http://{{ .Release.Name }}-keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master
             - name: PORT
               value: "{{ .Values.ort_server.core.port }}"
+            {{- if .Values.ort_server.artemis.enabled }}
             - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
               value: "activeMQ"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
               value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
               value: {{ .Values.ort_server.artemis.orchestratorQueue }}
+            {{- end }}
           image: ort-server-core
           # Having a value of 'Never' makes sure that only the local images are used.
           # See https://kubernetes.io/docs/concepts/containers/images/#updating-images.

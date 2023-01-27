@@ -1,3 +1,4 @@
+{{- if .Values.ort_server.artemis.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -61,3 +62,4 @@ spec:
       targetPort: amq-openwire
   selector:
     ort-server.service: {{ .Release.Name }}-artemis
+{{- end }}

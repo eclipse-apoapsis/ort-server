@@ -75,6 +75,7 @@ ort_server:
     ## Additionally, you can mount a directory of the host with `minikube mount` to this location.
     init_location: "/data/init-keycloak"
   artemis:
+    enabled: false
     user: "admin"
     password: "admin"
     # The queue for messages the Orchestrator will receive from the OrchestratorService (Core module).
