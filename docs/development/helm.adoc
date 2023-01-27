@@ -128,3 +128,20 @@ Access Token URL: http://ort-server-keycloak:8081/realms/master/protocol/openid-
 And you can send requests to the _core_ module of the ORT Server. Its SwaggerUI is reachable under the following URL:
 
   http://core:8080/swagger-ui/index.html
+
+== Troubleshooting
+
+Pod fails with:
+----
+Warning  Failed            2m4s (x2 over 4m31s)   kubelet            Failed to pull image "docker.io/bitnami/keycloak:20.0.3-debian-11-r5": rpc error: code = Unknown desc = context deadline exceeded
+Warning  Failed            2m4s (x2 over 4m31s)   kubelet            Error: ErrImagePull
+Normal   BackOff           112s (x2 over 4m30s)   kubelet            Back-off pulling image "docker.io/bitnami/keycloak:20.0.3-debian-11-r5"
+Warning  Failed            112s (x2 over 4m30s)   kubelet            Error: ImagePullBackOff
+----
+This can happen with large Docker images.
+
+Connect with `minikube ssh` to the cluster and run:
+
+  docker pull docker.io/bitnami/keycloak:20.0.3-debian-11-r5
+
+Should also work if you just run `docker pull` on the host after having run an `eval` as explained above.
