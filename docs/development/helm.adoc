@@ -65,9 +65,11 @@ Finally, mount the directory containing Keycloak initialization script:
 
 == Usage
 
-When a dependency changes in the chart, run:
+When a dependency changes in the chart, update the version in the Chart.yml and then run:
 
  scripts/helm/ort-server$ helm dependency update
+
+This will install the chart locally and update the `Chart.lock` file that you should commit.
 
 Validate the syntax of the chart:
 
