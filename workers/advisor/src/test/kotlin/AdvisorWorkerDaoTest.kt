@@ -31,9 +31,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
@@ -41,7 +43,8 @@ import org.ossreviewtoolkit.server.workers.advisor.AdvisorWorkerDao
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class AdvisorWorkerDaoTest : WordSpec({
-    val dao = AdvisorWorkerDao(DaoAdvisorJobRepository(), DaoAdvisorRunRepository())
+    val analyzerRunRepository = DaoAnalyzerRunRepository()
+    val dao = AdvisorWorkerDao(DaoAdvisorJobRepository(), DaoAdvisorRunRepository(), analyzerRunRepository)
     lateinit var fixtures: Fixtures
 
     extension(
@@ -49,6 +52,38 @@ class AdvisorWorkerDaoTest : WordSpec({
             fixtures = Fixtures()
         }
     )
+
+    "getAnalyzerRunByJobId" should {
+        "return an analyzer run" {
+            val createdAnalyzerRun = analyzerRunRepository.create(
+                analyzerJobId = fixtures.analyzerJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = AnalyzerConfiguration(),
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = emptyMap(),
+                dependencyGraphs = emptyMap()
+            )
+
+            val requestedAnalyzerRun = dao.getAnalyzerRunByJobId(fixtures.analyzerJob.id)
+
+            requestedAnalyzerRun shouldBe createdAnalyzerRun
+        }
+
+        "return null if run does not exist" {
+            dao.getAnalyzerRunByJobId(-1) shouldBe null
+        }
+    }
 
     "getAnalyzerJob" should {
         "return job if job does exist" {
