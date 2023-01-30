@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToModel
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 import org.slf4j.LoggerFactory
 
@@ -39,13 +40,16 @@ internal class AdvisorWorker(
 ) {
     fun start() = receiver.receive(::run)
 
-    private fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
+    private fun run(advisorJobId: Long, analyzerJobId: Long, traceId: String): RunResult = runCatching {
         val advisorJob = blockingQuery { getValidAdvisorJob(advisorJobId) }.getOrThrow()
+        val analyzerRun = blockingQuery { dao.getAnalyzerRunByJobId(analyzerJobId) }.getOrThrow()
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
-        // TODO: Pass the packages from the previous analyzer run.
-        val advisorRun = runner.run(emptySet(), advisorJob.configuration)
+        val advisorRun = runner.run(
+            packages = analyzerRun?.packages?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty(),
+            config = advisorJob.configuration
+        )
 
         blockingQuery {
             getValidAdvisorJob(advisorJobId)

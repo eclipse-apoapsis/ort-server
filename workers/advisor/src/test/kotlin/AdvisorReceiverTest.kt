@@ -55,7 +55,7 @@ private const val TRACE_ID = "42"
 private val header = MessageHeader(token = TOKEN, traceId = TRACE_ID)
 
 private interface Handler {
-    fun handle(advisorJobId: Long, traceId: String): RunResult
+    fun handle(advisorJobId: Long, analyzerRunId: Long, traceId: String): RunResult
 }
 
 private val config = ConfigFactory.parseMap(
@@ -81,7 +81,7 @@ class AdvisorReceiverTest : WordSpec({
             MessageReceiverFactoryForTesting.receive(AdvisorEndpoint, Message(header, advisorRequest))
 
             verify(exactly = 1) {
-                handler.handle(ADVISOR_JOB_ID, any())
+                handler.handle(ADVISOR_JOB_ID, ANALYZER_JOB_ID, any())
             }
         }
 
@@ -127,5 +127,5 @@ class AdvisorReceiverTest : WordSpec({
 })
 
 private fun createHandler(result: RunResult) = mockk<Handler> {
-    every { handle(any(), any()) } returns result
+    every { handle(any(), any(), any()) } returns result
 }
