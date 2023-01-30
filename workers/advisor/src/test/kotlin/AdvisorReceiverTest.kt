@@ -43,9 +43,11 @@ import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTest
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 import org.ossreviewtoolkit.server.workers.common.RunResult
 
-private const val JOB_ID = 1L
+private const val ADVISOR_JOB_ID = 1L
+private const val ANALYZER_JOB_ID = 1L
 private val advisorRequest = AdvisorRequest(
-    advisorJobId = JOB_ID
+    advisorJobId = ADVISOR_JOB_ID,
+    analyzerJobId = ANALYZER_JOB_ID
 )
 
 private const val TOKEN = "token"
@@ -79,7 +81,7 @@ class AdvisorReceiverTest : WordSpec({
             MessageReceiverFactoryForTesting.receive(AdvisorEndpoint, Message(header, advisorRequest))
 
             verify(exactly = 1) {
-                handler.handle(JOB_ID, any())
+                handler.handle(ADVISOR_JOB_ID, any())
             }
         }
 
@@ -93,7 +95,7 @@ class AdvisorReceiverTest : WordSpec({
 
             val response = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
             response.header shouldBe header
-            response.payload shouldBe AdvisorWorkerResult(JOB_ID)
+            response.payload shouldBe AdvisorWorkerResult(ADVISOR_JOB_ID)
         }
 
         "send a failure message if the handler returns a failure" {
@@ -106,7 +108,7 @@ class AdvisorReceiverTest : WordSpec({
 
             val response = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
             response.header shouldBe header
-            response.payload shouldBe AdvisorWorkerError(JOB_ID)
+            response.payload shouldBe AdvisorWorkerError(ADVISOR_JOB_ID)
         }
 
         "send no message if the handler ignores the job" {

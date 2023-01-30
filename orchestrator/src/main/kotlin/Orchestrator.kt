@@ -117,7 +117,10 @@ class Orchestrator(
         ortRun.jobs.advisor?.let { advisorJobConfiguration ->
             val advisorJob = advisorJobRepository.create(analyzerJob.ortRunId, advisorJobConfiguration)
 
-            publisher.publish(AdvisorEndpoint, Message(header = header, payload = AdvisorRequest(advisorJob.id)))
+            publisher.publish(
+                to = AdvisorEndpoint,
+                message = Message(header = header, payload = AdvisorRequest(advisorJob.id, analyzerJob.id))
+            )
 
             advisorJobRepository.update(
                 advisorJob.id,
