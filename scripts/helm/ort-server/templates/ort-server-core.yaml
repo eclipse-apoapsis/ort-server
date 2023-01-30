@@ -62,7 +62,7 @@ spec:
           # See https://kubernetes.io/docs/concepts/containers/images/#updating-images.
           imagePullPolicy: Never
           livenessProbe:
-            failureThreshold: 3
+            failureThreshold: 6
             httpGet:
               path: /api/v1/liveness
               port: {{ .Values.ort_server.core.port }}
