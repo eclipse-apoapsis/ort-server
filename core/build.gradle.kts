@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":services"))
     implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:spi"))
 
     implementation(libs.jsonSchemaSerialization)

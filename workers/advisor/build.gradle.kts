@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:kubernetes"))
+    implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:spi"))
     implementation(project(":workers:common"))
 
