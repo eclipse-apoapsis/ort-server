@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
+import org.ossreviewtoolkit.model.config.OsvConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 
 import org.slf4j.LoggerFactory
@@ -33,9 +34,11 @@ private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
 
 class AdvisorRunner {
     fun run(packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun {
-        // TODO: Find a way to make the AdvisorConfiguration configurable, otherwise the Advisor
-        //       will run without any AdvisorProvider due to the missing correspondent configuration.
-        val advisorConfig = AdvisorConfiguration()
+        // TODO: Find a way to make the AdvisorConfiguration configurable. Currently, it will only run with the
+        //       hard-coded OSV AdviceProvider.
+        val advisorConfig = AdvisorConfiguration(
+            osv = OsvConfiguration(serverUrl = "https://api.osv.dev")
+        )
 
         val advisorProviders = config.advisors.partition { Advisor.ALL.containsKey(it) }.let { (known, unknown) ->
             if (unknown.isNotEmpty()) {
