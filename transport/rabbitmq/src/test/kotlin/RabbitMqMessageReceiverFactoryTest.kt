@@ -50,6 +50,8 @@ import org.testcontainers.containers.RabbitMQContainer
 
 class RabbitMqMessageReceiverFactoryTest : StringSpec() {
     private val queueName = "TEST_QUEUE"
+    private val username = "guest"
+    private val password = "guest"
 
     private val rabbitMq = install(
         TestContainerExtension(
@@ -156,6 +158,8 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
         val configMap = mapOf(
             "orchestrator.receiver.serverUri" to "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
             "orchestrator.receiver.queueName" to queueName,
+            "orchestrator.receiver.username" to username,
+            "orchestrator.receiver.password" to password,
             "orchestrator.receiver.type" to "rabbitMQ"
         )
 

@@ -38,6 +38,8 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)
+            username = rabbitMqConfig.username
+            password = rabbitMqConfig.password
         }
         return createSenderWithConnection(to, connectionFactory, rabbitMqConfig.queueName)
     }

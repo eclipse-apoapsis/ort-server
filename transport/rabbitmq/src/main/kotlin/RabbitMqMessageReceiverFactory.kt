@@ -52,6 +52,8 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)
+            username = rabbitMqConfig.username
+            password = rabbitMqConfig.password
         }
         connectionFactory.newConnection().use { connection ->
             val channel = connection.createChannel()

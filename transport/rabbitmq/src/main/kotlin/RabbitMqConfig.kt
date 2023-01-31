@@ -31,7 +31,13 @@ class RabbitMqConfig(
     val serverUri: String,
 
     /** The name of the queue that is used for sending and receiving messages. */
-    val queueName: String
+    val queueName: String,
+
+    /** The username that is used to connect to RabbitMQ. */
+    val username: String,
+
+    /** The password that is used to connect to RabbitMQ. */
+    val password: String,
 ) {
     companion object {
         /**
@@ -45,6 +51,12 @@ class RabbitMqConfig(
 
         /** Name of the configuration property for the queue name. */
         private const val QUEUE_NAME_PROPERTY = "queueName"
+
+        /** Name of the configuration property for the username. */
+        private const val USERNAME_PROPERTY = "username"
+
+        /** Name of the configuration property for the password. */
+        private const val PASSWORD_PROPERTY = "password"
 
         /**
          * Create a [RabbitMqConfig] object for a sender to the given [endpoint] from the provided [config].
@@ -67,7 +79,9 @@ class RabbitMqConfig(
 
             return RabbitMqConfig(
                 serverUri = config.getString("$prefix.$SERVER_URI_PROPERTY"),
-                queueName = config.getString("$prefix.$QUEUE_NAME_PROPERTY")
+                queueName = config.getString("$prefix.$QUEUE_NAME_PROPERTY"),
+                username = config.getString("$prefix.$USERNAME_PROPERTY"),
+                password = config.getString("$prefix.$PASSWORD_PROPERTY"),
             )
         }
     }
