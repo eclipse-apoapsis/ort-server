@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-load-definition
+type: Opaque
+stringData:
+  load_definition.json: |-
+    {
+      "rabbit_version": "3.11.7",
+      "rabbitmq_version": "3.11.7",
+      "product_name": "RabbitMQ",
+      "product_version": "3.11.7",
+      "users": [
+        {
+          "name": "{{ .Values.rabbitmq.auth.username }}",
+          "password": "{{ .Values.rabbitmq.auth.password }}",
+          "tags": [
+            "administrator"
+          ],
+          "limits": {}
+        }
+      ],
+      "vhosts": [
+        {
+          "name": "/"
+        }
+      ],
+      "permissions": [
+        {
+          "user": "admin",
+          "vhost": "/",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
+        }
+      ],
+      "topic_permissions": [],
+      "parameters": [],
+      "global_parameters": [
+        {
+          "name": "internal_cluster_id",
+          "value": "rabbitmq-cluster-id-yQB_Mgk7Wrvryln02_mdrA"
+        }
+      ],
+      "policies": [],
+      "queues": [
+        {
+          "name": "{{ .Values.ort_server.orchestrator.queueName }}",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-queue-type": "classic"
+          }
+        }
+      ],
+      "exchanges": [],
+      "bindings": []
+    }

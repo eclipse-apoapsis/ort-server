@@ -62,7 +62,11 @@ rabbitmq:
   auth:
     username: admin
     password: admin
-# TODO create queue with a definition
+  loadDefinition:
+    enabled: true
+    existingSecret: rabbitmq-load-definition
+  extraConfiguration: |
+    load_definitions = /app/load_definition.json
 
 #######################################################
 # These variables are defined for ORT-Server chart.
