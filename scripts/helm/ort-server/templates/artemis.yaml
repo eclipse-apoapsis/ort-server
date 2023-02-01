@@ -22,7 +22,7 @@ spec:
               # 'relax-jolokia' allows to connect to the Artemis Console from all origins
               value: >-
                 --relax-jolokia
-                --queues {{ .Values.ort_server.artemis.orchestratorQueue }}:anycast
+                --queues {{ .Values.ort_server.orchestrator.queueName }}:anycast
                 --default-port {{ .Values.ort_server.artemis.openWirePort }}
                 --http-port {{ .Values.ort_server.artemis.managementConsolePort }}
             - name: AMQ_PASSWORD

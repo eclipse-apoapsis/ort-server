@@ -57,7 +57,7 @@ spec:
             - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
               value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
-              value: {{ .Values.ort_server.artemis.orchestratorQueue }}
+              value: {{ .Values.ort_server.orchestrator.queueName }}
             {{- end }}
           image: ort-server-core
           # Having a value of 'Never' makes sure that only the local images are used.
