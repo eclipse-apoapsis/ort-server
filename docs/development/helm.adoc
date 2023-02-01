@@ -114,7 +114,7 @@ The solution here is to start the following command (it should not be stopped):
 
 Then add an alias to localhost in the /etc/hosts file (or your platform equivalent) for each service being exposed:
 
- 127.0.0.1       localhost ort-server-keycloak postgres artemis core
+ 127.0.0.1       localhost ort-server-keycloak postgres artemis core rabbitmq
 
 Afterwards, you can configure a local ORT Service with the following JDBC URL:
 
@@ -130,6 +130,8 @@ Access Token URL: http://ort-server-keycloak:8081/realms/master/protocol/openid-
 And you can send requests to the _core_ module of the ORT Server. Its SwaggerUI is reachable under the following URL:
 
   http://core:8080/swagger-ui/index.html
+
+RabbitMQ administration URL is available http://rabbitmq:15672 (user=admin, password=admin).
 
 == Troubleshooting
 

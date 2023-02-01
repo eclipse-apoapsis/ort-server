@@ -28,6 +28,11 @@ spec:
         - name: init-keycloak
           image: busybox:latest
           command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-keycloak {{ .Values.keycloak.service.ports.http }}; do echo waiting for keycloak; sleep 2; done' ]
+        {{- if .Values.rabbitmq.enabled }}
+        - name: init-rabbitmq
+          image: busybox:latest
+          command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-rabbitmq-headless {{ .Values.rabbitmq.service.ports.amqp }}; do echo waiting for rabbitmq; sleep 2; done' ]
+        {{- end }}
       containers:
         - env:
             - name: DB_NAME
@@ -58,6 +63,18 @@ spec:
               value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
             - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
               value: {{ .Values.ort_server.orchestrator.queueName }}
+            {{- end }}
+            {{- if .Values.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: "rabbitMQ"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: "amqp://{{ .Release.Name }}-rabbitmq-headless:{{ .Values.rabbitmq.service.ports.amqp }}"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.ort_server.orchestrator.queueName }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_USERNAME
+              value: {{ .Values.rabbitmq.auth.username }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD
+              value: {{ .Values.rabbitmq.auth.password }}
             {{- end }}
           image: ort-server-core
           # Having a value of 'Never' makes sure that only the local images are used.

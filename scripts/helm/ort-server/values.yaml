@@ -51,6 +51,18 @@ keycloak:
         host        all             all     ::1/128         trust
     volumePermissions:
       enabled: true
+rabbitmq:
+  service:
+    type: "LoadBalancer"
+    ports:
+      amqp: "5672"
+      amqpTls: "5671"
+      manager: "15672"
+  enabled: true
+  auth:
+    username: admin
+    password: admin
+# TODO create queue with a definition
 
 #######################################################
 # These variables are defined for ORT-Server chart.

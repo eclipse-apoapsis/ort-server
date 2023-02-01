@@ -2,5 +2,8 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 13.0.2
-digest: sha256:4a4a644e4bd4c413c711876b48d8f79997623bec105563516f83e64c767e6432
-generated: "2023-01-27T08:26:27.121878074+01:00"
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.6.0
+digest: sha256:f6c5e4615b2abe0be5a43360096925b74c35b7038cb495f7b9447c2be6828eb9
+generated: "2023-01-27T13:38:41.977101099+01:00"

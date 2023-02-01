@@ -1,3 +1,6 @@
+{{- if and .Values.ort_server.artemis.enabled .Values.rabbitmq.enabled }}
+{{- fail "ActiveMQ Artemis and Artemis cannot be enabled at the same time."}}
+{{- end }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -59,6 +62,11 @@ spec:
           image: busybox:latest
           command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-artemis {{ .Values.ort_server.artemis.openWirePort }}; do echo waiting for artemis; sleep 2; done' ]
         {{- end }}
+        {{- if .Values.rabbitmq.enabled }}
+        - name: init-rabbitmq
+          image: busybox:latest
+          command: [ 'sh', '-c', 'until nc -zvw10 {{ .Release.Name }}-rabbitmq-headless {{ .Values.rabbitmq.service.ports.amqp }}; do echo waiting for rabbitmq; sleep 2; done' ]
+        {{- end }}
       containers:
         - env:
             - name: DB_NAME
@@ -85,6 +93,18 @@ spec:
               value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_QUEUE_NAME
               value: {{ .Values.ort_server.orchestrator.queueName }}
+            {{- end }}
+            {{- if .Values.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE
+              value: "rabbitMQ"
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI
+              value: "amqp://{{ .Release.Name }}-rabbitmq-headless:{{ .Values.rabbitmq.service.ports.amqp }}"
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.ort_server.orchestrator.queueName }}
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_USERNAME
+              value: {{ .Values.rabbitmq.auth.username }}
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_PASSWORD
+              value: {{ .Values.rabbitmq.auth.password }}
             {{- end }}
           image: ort-server-orchestrator
           imagePullPolicy: Never
