@@ -4,9 +4,9 @@
 
 ==== Configure Minikube
 
-Start minikube with one node due the limitation that `minikube mount` can only mount to one node.
+Start minikube with one node due the limitation that `minikube mount` can only mount to one node. By default minikube uses 2 CPUs and 2GB of memory. This might not be enough for a good startup performance and to run the ORT server at all, so it is recommended to increase the values, for example to 4 CPUs and 8GB.
 
- minikube start --nodes 1
+ minikube start --nodes 1 --cpus 4 --memory 8g
 
 Create the namespace for all the future deployments and enable it with https://github.com/ahmetb/kubectx/blob/master/kubens[KubeNS]:
 
