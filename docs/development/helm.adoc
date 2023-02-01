@@ -121,8 +121,8 @@ Afterwards, you can configure a local ORT Service with the following JDBC URL:
 And you can send requests to the ORT Server using the following Keycloak URLs:
 
 ----
-Authorization URL: http://keycloak:8081/realms/master/protocol/openid-connect/auth
-Access Token URL: http://keycloak:8081/realms/master/protocol/openid-connect/token
+Authorization URL: http://ort-server-keycloak:8081/realms/master/protocol/openid-connect/auth
+Access Token URL: http://ort-server-keycloak:8081/realms/master/protocol/openid-connect/token
 ----
 
 And you can send requests to the _core_ module of the ORT Server. Its SwaggerUI is reachable under the following URL:
