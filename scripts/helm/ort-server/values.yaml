@@ -2,6 +2,18 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+#######################################################
+# These variables are defined in HashiCorp sub-charts.
+#######################################################
+
+vault:
+  server:
+    dev:
+      enabled: true
+      devRootToken: admin
+  ui:
+    enabled: true
+    serviceType: LoadBalancer
 
 #######################################################
 # These variables are defined in Bitnami sub-charts.

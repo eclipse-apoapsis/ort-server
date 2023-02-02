@@ -30,3 +30,6 @@ dependencies:
   - name: rabbitmq
     version: ~11
     repository: "https://charts.bitnami.com/bitnami"
+  - name: vault
+    version: ~0.23.0
+    repository: "https://helm.releases.hashicorp.com"

@@ -23,6 +23,11 @@ Add the Bitnami repository to your Helm command:
 
  helm repo add bitnami https://charts.bitnami.com/bitnami
 
+
+Add the HashiCorp repository your Helm environment:
+
+ helm repo add hashicorp https://helm.releases.hashicorp.com
+
 ==== Delete previous database (if any)
 
 Please also delete your database content.
@@ -119,7 +124,7 @@ The solution here is to start the following command (it should not be stopped):
 
 Then add an alias to localhost in the /etc/hosts file (or your platform equivalent) for each service being exposed:
 
- 127.0.0.1       localhost ort-server-keycloak postgres artemis core rabbitmq
+ 127.0.0.1       localhost ort-server-keycloak postgres artemis core rabbitmq vault
 
 Afterwards, you can configure a local ORT Service with the following JDBC URL:
 
@@ -138,6 +143,10 @@ Its SwaggerUI is reachable under the following URL:
   http://core:8080/swagger-ui/index.html
 
 RabbitMQ administration URL is available http://rabbitmq:15672 (user=admin, password=admin).
+
+You can access the web UI of HashiCorp Vault Web UI with the following URL:
+
+ http://vault:8200/ui
 
 == Troubleshooting
 
