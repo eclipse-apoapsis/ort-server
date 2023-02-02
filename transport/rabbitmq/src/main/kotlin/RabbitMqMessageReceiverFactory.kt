@@ -43,7 +43,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
     override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
         val serializer = JsonSerializer.forClass(from.messageClass)
-        val rabbitMqConfig = RabbitMqConfig.createReceiverConfig(from, config)
+        val rabbitMqConfig = RabbitMqConfig.createConfig(config)
 
         logger.info(
             "Starting RabbitMQ message receiver for endpoint '${from.configPrefix}' using queue " +

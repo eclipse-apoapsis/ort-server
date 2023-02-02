@@ -21,8 +21,6 @@ package org.ossreviewtoolkit.server.transport.artemis
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.transport.Endpoint
-
 /**
  * A class defining the configuration settings used by the ActiveMQ Artemis Transport implementation.
  */
@@ -47,28 +45,12 @@ data class ArtemisConfig(
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
         /**
-         * Create an [ArtemisConfig] object for a sender to the given [endpoint] from the provided [config].
+         * Create an [ArtemisConfig] object from the provided [config].
          */
-        fun createSenderConfig(endpoint: Endpoint<*>, config: Config): ArtemisConfig =
-            createConfig(endpoint, "sender", config)
-
-        /**
-         * Create an [ArtemisConfig] object for a receiver of the given [endpoint] from the provided [config].
-         */
-        fun createReceiverConfig(endpoint: Endpoint<*>, config: Config): ArtemisConfig =
-            createConfig(endpoint, "receiver", config)
-
-        /**
-         * Create an [ArtemisConfig] object for the given [endpoint] and [transportType] (sender or receiver) from the
-         * provided [config].
-         */
-        private fun createConfig(endpoint: Endpoint<*>, transportType: String, config: Config): ArtemisConfig {
-            val prefix = "${endpoint.configPrefix}.$transportType"
-
-            return ArtemisConfig(
-                serverUri = config.getString("$prefix.$SERVER_URI_PROPERTY"),
-                queueName = config.getString("$prefix.$QUEUE_NAME_PROPERTY")
+        fun createConfig(config: Config) =
+            ArtemisConfig(
+                serverUri = config.getString(SERVER_URI_PROPERTY),
+                queueName = config.getString(QUEUE_NAME_PROPERTY)
             )
-        }
     }
 }

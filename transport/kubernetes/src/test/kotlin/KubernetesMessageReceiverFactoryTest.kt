@@ -43,11 +43,10 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
         )
 
         withEnvironment(env) {
-            val keyPrefix = "analyzer.receiver"
             val configMap = mapOf(
-                "$keyPrefix.type" to KubernetesConfig.TRANSPORT_NAME,
-                "$keyPrefix.namespace" to "test-namespace",
-                "$keyPrefix.imageName" to "busybox"
+                "type" to KubernetesConfig.TRANSPORT_NAME,
+                "namespace" to "test-namespace",
+                "imageName" to "busybox"
             )
 
             val config = ConfigFactory.parseMap(configMap)

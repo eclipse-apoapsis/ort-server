@@ -34,7 +34,7 @@ class ArtemisMessageSenderFactory : MessageSenderFactory {
     override val name: String = ArtemisConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val artemisConfig = ArtemisConfig.createSenderConfig(to, config)
+        val artemisConfig = ArtemisConfig.createConfig(config)
         return createSenderWithConnection(to, JmsConnectionFactory(artemisConfig.serverUri), artemisConfig.queueName)
     }
 

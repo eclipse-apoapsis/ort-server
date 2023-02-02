@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -28,31 +28,32 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-import io.mockk.every
-import io.mockk.mockk
-
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageSenderFactoryTest : StringSpec({
     "A correct MessageSender should be created" {
-        val config = mockk<Config> {
-            every { getString("analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}") } returns TEST_TRANSPORT_NAME
-        }
+        val config = ConfigFactory.parseMap(
+            mapOf(
+                "analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
+            )
+        )
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
 
         sender.shouldBeInstanceOf<MessageSenderForTesting<AnalyzerRequest>>()
         sender.endpoint shouldBe AnalyzerEndpoint
-        sender.config shouldBe config
+        sender.config shouldBe config.getConfig("analyzer.sender")
     }
 
     "An exception should be thrown for a non-existing MessageSenderFactory" {
         val invalidFactoryName = "a non existing message sender factory"
-        val config = mockk<Config> {
-            every { getString("orchestrator.${MessageSenderFactory.SENDER_TYPE_PROPERTY}") } returns invalidFactoryName
-        }
+        val config = ConfigFactory.parseMap(
+            mapOf(
+                "orchestrator.${MessageSenderFactory.SENDER_TYPE_PROPERTY}" to invalidFactoryName
+            )
+        )
 
         val exception = shouldThrow<IllegalStateException> {
             MessageSenderFactory.createSender(OrchestratorEndpoint, config)

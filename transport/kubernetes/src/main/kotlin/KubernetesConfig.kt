@@ -21,8 +21,6 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.transport.Endpoint
-
 /**
  * A configuration class used by the Kubernetes Transport implementation.
  */
@@ -46,27 +44,12 @@ data class KubernetesConfig(
         private const val IMAGE_NAME_PROPERTY = "imageName"
 
         /**
-         * Create a [KubernetesConfig] object for a sender to the given [endpoint] from the provided [config].
-         * */
-        fun createSenderConfig(endpoint: Endpoint<*>, config: Config): KubernetesConfig =
-            createConfig(endpoint, "sender", config)
-
-        /**
-         * Create a [KubernetesConfig] object for a receiver of the given [endpoint] from the provided [config].
+         * Create a [KubernetesConfig] from the provided [config].
          */
-        fun createReceiverConfig(endpoint: Endpoint<*>, config: Config): KubernetesConfig =
-            createConfig(endpoint, "receiver", config)
-
-        /**
-         * Create a [KubernetesConfig] object for the given [endpoint] and [transportType] from the provided [config].
-         */
-        private fun createConfig(endpoint: Endpoint<*>, transportType: String, config: Config): KubernetesConfig {
-            val prefix = "${endpoint.configPrefix}.$transportType"
-
-            return KubernetesConfig(
-                namespace = config.getString("$prefix.$NAMESPACE_PROPERTY"),
-                imageName = config.getString("$prefix.$IMAGE_NAME_PROPERTY")
+        fun createConfig(config: Config) =
+            KubernetesConfig(
+                namespace = config.getString(NAMESPACE_PROPERTY),
+                imageName = config.getString(IMAGE_NAME_PROPERTY)
             )
-        }
     }
 }

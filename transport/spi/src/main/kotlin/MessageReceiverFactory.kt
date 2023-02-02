@@ -52,6 +52,11 @@ interface MessageReceiverFactory {
          */
         const val RECEIVER_TYPE_PROPERTY = "receiver.type"
 
+        /**
+         * A prefix used for configuration properties of message receivers.
+         */
+        private const val CONFIG_PREFIX = "receiver"
+
         /** The service loader to load [MessageReceiverFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageReceiverFactory::class.java)
 
@@ -64,14 +69,15 @@ interface MessageReceiverFactory {
          * factory.
          */
         fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-            val factoryName = config.getString("${from.configPrefix}.$RECEIVER_TYPE_PROPERTY")
+            val endpointConfig = config.getConfig(from.configPrefix)
+            val factoryName = endpointConfig.getString(RECEIVER_TYPE_PROPERTY)
             log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageReceiverFactory with name '$factoryName' found on classpath."
             }
 
-            factory.createReceiver(from, config, handler)
+            factory.createReceiver(from, endpointConfig.getConfig(CONFIG_PREFIX), handler)
         }
     }
 

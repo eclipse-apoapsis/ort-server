@@ -27,10 +27,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-
 class RabbitMqConfigTest : WordSpec({
-    "createSenderConfig" should {
+    "createConfig" should {
         "create an instance from a Config object" {
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
@@ -38,36 +36,13 @@ class RabbitMqConfigTest : WordSpec({
             val password = "pass"
 
             val config = mockk<Config> {
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.serverUri") } returns serverUri
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.queueName") } returns queueName
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.username") } returns username
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.password") } returns password
+                every { getString("serverUri") } returns serverUri
+                every { getString("queueName") } returns queueName
+                every { getString("username") } returns username
+                every { getString("password") } returns password
             }
 
-            val rabbitMqConfig = RabbitMqConfig.createSenderConfig(AnalyzerEndpoint, config)
-
-            rabbitMqConfig.serverUri shouldBe serverUri
-            rabbitMqConfig.queueName shouldBe queueName
-            rabbitMqConfig.username shouldBe username
-            rabbitMqConfig.password shouldBe password
-        }
-    }
-
-    "createReceiverConfig" should {
-        "create an instance from a Config object" {
-            val serverUri = "tcp://example.org:5445"
-            val queueName = "testQueue"
-            val username = "user"
-            val password = "pass"
-
-            val config = mockk<Config> {
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.serverUri") } returns serverUri
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.queueName") } returns queueName
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.username") } returns username
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.password") } returns password
-            }
-
-            val rabbitMqConfig = RabbitMqConfig.createReceiverConfig(AnalyzerEndpoint, config)
+            val rabbitMqConfig = RabbitMqConfig.createConfig(config)
 
             rabbitMqConfig.serverUri shouldBe serverUri
             rabbitMqConfig.queueName shouldBe queueName

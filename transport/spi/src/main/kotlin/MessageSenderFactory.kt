@@ -41,6 +41,11 @@ interface MessageSenderFactory {
          */
         const val SENDER_TYPE_PROPERTY = "sender.type"
 
+        /**
+         * A prefix used for configuration properties of message senders.
+         */
+        private const val CONFIG_PREFIX = "sender"
+
         /** The service loader to load [MessageSenderFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageSenderFactory::class.java)
 
@@ -52,14 +57,15 @@ interface MessageSenderFactory {
          * Java Service Loader mechanism. Then create an instance using this factory.
          */
         fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-            val factoryName = config.getString("${to.configPrefix}.$SENDER_TYPE_PROPERTY")
+            val endpointConfig = config.getConfig(to.configPrefix)
+            val factoryName = endpointConfig.getString(SENDER_TYPE_PROPERTY)
             log.info("Creating a MessageSender of type '{}' for endpoint '{}'.", factoryName, to.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageSenderFactory with name '$factoryName' found on classpath."
             }
 
-            return factory.createSender(to, config)
+            return factory.createSender(to, endpointConfig.getConfig(CONFIG_PREFIX))
         }
     }
 

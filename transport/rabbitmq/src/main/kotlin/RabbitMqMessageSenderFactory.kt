@@ -34,7 +34,7 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
     override val name: String = RabbitMqConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val rabbitMqConfig = RabbitMqConfig.createSenderConfig(to, config)
+        val rabbitMqConfig = RabbitMqConfig.createConfig(config)
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)

@@ -21,8 +21,6 @@ package org.ossreviewtoolkit.server.transport.rabbitmq
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.transport.Endpoint
-
 /**
  * A class defining the configuration settings used by the RabbitMQ Transport implementation.
  */
@@ -59,30 +57,14 @@ class RabbitMqConfig(
         private const val PASSWORD_PROPERTY = "password"
 
         /**
-         * Create a [RabbitMqConfig] object for a sender to the given [endpoint] from the provided [config].
+         * Create a [RabbitMqConfig] from the provided [config].
          */
-        fun createSenderConfig(endpoint: Endpoint<*>, config: Config): RabbitMqConfig =
-            createConfig(endpoint, "sender", config)
-
-        /**
-         * Create a [RabbitMqConfig] object for a receiver of the given [endpoint] from the provided [config].
-         */
-        fun createReceiverConfig(endpoint: Endpoint<*>, config: Config): RabbitMqConfig =
-            createConfig(endpoint, "receiver", config)
-
-        /**
-         * Create a [RabbitMqConfig] object for the given [endpoint] and [transportType] (sender or receiver) from the
-         * provided [config].
-         */
-        private fun createConfig(endpoint: Endpoint<*>, transportType: String, config: Config): RabbitMqConfig {
-            val prefix = "${endpoint.configPrefix}.$transportType"
-
-            return RabbitMqConfig(
-                serverUri = config.getString("$prefix.$SERVER_URI_PROPERTY"),
-                queueName = config.getString("$prefix.$QUEUE_NAME_PROPERTY"),
-                username = config.getString("$prefix.$USERNAME_PROPERTY"),
-                password = config.getString("$prefix.$PASSWORD_PROPERTY"),
+        fun createConfig(config: Config) =
+            RabbitMqConfig(
+                serverUri = config.getString(SERVER_URI_PROPERTY),
+                queueName = config.getString(QUEUE_NAME_PROPERTY),
+                username = config.getString(USERNAME_PROPERTY),
+                password = config.getString(PASSWORD_PROPERTY),
             )
-        }
     }
 }

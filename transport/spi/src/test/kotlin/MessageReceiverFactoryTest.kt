@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -27,7 +27,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 
-import io.mockk.every
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -41,24 +40,26 @@ class MessageReceiverFactoryTest : StringSpec({
 
     "The correct factory should be invoked" {
         val handler = mockk<EndpointHandler<OrchestratorMessage>>()
-        val config = mockk<Config>()
-        every {
-            config.getString("orchestrator.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}")
-        } returns TEST_TRANSPORT_NAME
+        val config = ConfigFactory.parseMap(
+            mapOf(
+                "orchestrator.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
+            )
+        )
 
         MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, handler)
 
         MessageReceiverFactoryForTesting.createdEndpoint shouldBe OrchestratorEndpoint
-        MessageReceiverFactoryForTesting.createdConfig shouldBe config
+        MessageReceiverFactoryForTesting.createdConfig shouldBe config.getConfig("orchestrator.receiver")
         MessageReceiverFactoryForTesting.createdHandler shouldBe handler
     }
 
     "An exception should be thrown for a non-existing MessageReceiverFactory" {
         val invalidFactoryName = "a non existing message receiver factory"
-        val config = mockk<Config>()
-        every {
-            config.getString("analyzer.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}")
-        } returns invalidFactoryName
+        val config = ConfigFactory.parseMap(
+            mapOf(
+                "analyzer.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to invalidFactoryName
+            )
+        )
 
         val exception = shouldThrow<IllegalStateException> {
             MessageReceiverFactory.createReceiver(AnalyzerEndpoint, config, mockk())

@@ -39,7 +39,7 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
 
     override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
         val serializer = JsonSerializer.forClass(from.messageClass)
-        val kubernetesConfig = KubernetesConfig.createReceiverConfig(from, config)
+        val kubernetesConfig = KubernetesConfig.createConfig(config)
 
         logger.info(
             "Starting Kubernetes message receiver for endpoint '{}' using namespace '{}'.",

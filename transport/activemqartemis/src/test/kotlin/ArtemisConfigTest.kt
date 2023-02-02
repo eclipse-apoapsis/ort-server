@@ -27,37 +27,18 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-
 class ArtemisConfigTest : WordSpec({
-    "createSenderConfig" should {
+    "createConfig" should {
         "create an instance from a Config object" {
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
 
             val config = mockk<Config> {
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.serverUri") } returns serverUri
-                every { getString("${AnalyzerEndpoint.configPrefix}.sender.queueName") } returns queueName
+                every { getString("serverUri") } returns serverUri
+                every { getString("queueName") } returns queueName
             }
 
-            val artemisConfig = ArtemisConfig.createSenderConfig(AnalyzerEndpoint, config)
-
-            artemisConfig.serverUri shouldBe serverUri
-            artemisConfig.queueName shouldBe queueName
-        }
-    }
-
-    "createReceiverConfig" should {
-        "create an instance from a Config object" {
-            val serverUri = "tcp://example.org:5445"
-            val queueName = "testQueue"
-
-            val config = mockk<Config> {
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.serverUri") } returns serverUri
-                every { getString("${AnalyzerEndpoint.configPrefix}.receiver.queueName") } returns queueName
-            }
-
-            val artemisConfig = ArtemisConfig.createReceiverConfig(AnalyzerEndpoint, config)
+            val artemisConfig = ArtemisConfig.createConfig(config)
 
             artemisConfig.serverUri shouldBe serverUri
             artemisConfig.queueName shouldBe queueName

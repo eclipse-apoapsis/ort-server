@@ -87,8 +87,9 @@ class AdvisorWorkerTest : WordSpec({
                 ConfigFactory.parseMap(
                     mapOf(
                         "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
-                                "testMessageReceiverFactory",
-                        TEST_RECEIVER_PAYLOAD_CONFIG_KEY to serializer.toJson(advisorRequest)
+                                TEST_RECEIVER_FACTORY_NAME,
+                        "${AdvisorEndpoint.configPrefix}.receiver.$TEST_RECEIVER_PAYLOAD_CONFIG_KEY" to
+                                serializer.toJson(advisorRequest)
                     )
                 )
             )
@@ -143,7 +144,7 @@ private val advisorRequest = AdvisorRequest(
 private const val TEST_RECEIVER_FACTORY_NAME = "testMessageReceiverFactory"
 
 /** The config key for the mock message's payload which is received by this test receiver. */
-private const val TEST_RECEIVER_PAYLOAD_CONFIG_KEY = "test.receiver.payload"
+private const val TEST_RECEIVER_PAYLOAD_CONFIG_KEY = "payload"
 
 /**
  * A MessageReceiverFactory intended to be used for unit testing parts of the code that relies on the SPI receiver

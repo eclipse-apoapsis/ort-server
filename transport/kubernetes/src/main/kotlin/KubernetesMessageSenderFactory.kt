@@ -32,7 +32,7 @@ class KubernetesMessageSenderFactory : MessageSenderFactory {
     override val name: String = KubernetesConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val senderConfig = KubernetesConfig.createSenderConfig(to, config)
+        val senderConfig = KubernetesConfig.createConfig(config)
 
         return KubernetesMessageSender(
             api = BatchV1Api(defaultClient()),
