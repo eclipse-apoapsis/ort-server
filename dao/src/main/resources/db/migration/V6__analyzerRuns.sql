@@ -21,8 +21,8 @@ CREATE TABLE variables
 
 CREATE TABLE environments_variables
 (
-    environment_id          bigint REFERENCES environments NOT NULL,
-    variable_id bigint REFERENCES variables    NOT NULL,
+    environment_id bigint REFERENCES environments NOT NULL,
+    variable_id    bigint REFERENCES variables    NOT NULL,
 
     PRIMARY KEY (environment_id, variable_id)
 );
@@ -38,7 +38,7 @@ CREATE TABLE tool_versions
 
 CREATE TABLE environments_tool_versions
 (
-    environment_id              bigint REFERENCES environments  NOT NULL,
+    environment_id  bigint REFERENCES environments  NOT NULL,
     tool_version_id bigint REFERENCES tool_versions NOT NULL,
 
     PRIMARY KEY (environment_id, tool_version_id)
@@ -46,11 +46,11 @@ CREATE TABLE environments_tool_versions
 
 CREATE TABLE analyzer_runs
 (
-    id                        bigserial PRIMARY KEY,
-    analyzer_job_id           bigint REFERENCES analyzer_jobs           NOT NULL,
-    environment_id            bigint REFERENCES environments            NOT NULL,
-    start_time                timestamp                                 NOT NULL,
-    end_time                  timestamp                                 NOT NULL
+    id              bigserial PRIMARY KEY,
+    analyzer_job_id bigint REFERENCES analyzer_jobs NOT NULL,
+    environment_id  bigint REFERENCES environments  NOT NULL,
+    start_time      timestamp                       NOT NULL,
+    end_time        timestamp                       NOT NULL
 );
 
 CREATE TABLE analyzer_configurations

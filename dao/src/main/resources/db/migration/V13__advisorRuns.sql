@@ -12,8 +12,8 @@ CREATE TABLE github_defects_configurations
     id                                  bigserial PRIMARY KEY,
     endpoint_url                        text NULL,
     label_filter                        text NULL,
-    max_number_of_issues_per_repository int NULL,
-    parallel_requests                   int NULL,
+    max_number_of_issues_per_repository int  NULL,
+    parallel_requests                   int  NULL,
 
     UNIQUE (endpoint_url, label_filter, max_number_of_issues_per_repository, parallel_requests)
 );
@@ -47,9 +47,9 @@ CREATE TABLE advisor_configurations
 (
     id                               bigserial PRIMARY KEY,
     advisor_run_id                   bigint REFERENCES advisor_runs ON DELETE CASCADE NOT NULL,
-    github_defects_configuration_id  bigint REFERENCES github_defects_configurations NULL,
-    nexus_iq_configuration_id        bigint REFERENCES nexus_iq_configurations NULL,
-    osv_configuration_id             bigint REFERENCES osv_configurations NULL,
+    github_defects_configuration_id  bigint REFERENCES github_defects_configurations  NULL,
+    nexus_iq_configuration_id        bigint REFERENCES nexus_iq_configurations        NULL,
+    osv_configuration_id             bigint REFERENCES osv_configurations             NULL,
     vulnerable_code_configuration_id bigint REFERENCES vulnerable_code_configurations NULL
 );
 
@@ -64,17 +64,17 @@ CREATE TABLE advisor_configuration_options
 CREATE TABLE defects
 (
     id                  bigserial PRIMARY KEY,
-    external_id         text NOT NULL,
-    url                 text NOT NULL,
-    title               text NULL,
-    state               text NULL,
-    severity            text NULL,
-    description         text NULL,
+    external_id         text      NOT NULL,
+    url                 text      NOT NULL,
+    title               text      NULL,
+    state               text      NULL,
+    severity            text      NULL,
+    description         text      NULL,
     creation_time       timestamp NULL,
     modification_time   timestamp NULL,
     closing_time        timestamp NULL,
-    fix_release_version text NULL,
-    fix_release_url     text NULL
+    fix_release_version text      NULL,
+    fix_release_url     text      NULL
 );
 
 CREATE TABLE defect_labels
@@ -98,8 +98,8 @@ CREATE TABLE vulnerability_references
     id               bigserial PRIMARY KEY,
     vulnerability_id bigint REFERENCES vulnerabilities NOT NULL,
     url              text                              NOT NULL,
-    scoring_system   text NULL,
-    severity         text NULL
+    scoring_system   text                              NULL,
+    severity         text                              NULL
 );
 
 CREATE TABLE advisor_runs_identifiers

@@ -3,7 +3,7 @@ CREATE TABLE declared_licenses
     id   bigserial PRIMARY KEY,
     name text NOT NULL,
 
-    UNIQUE(name)
+    UNIQUE (name)
 );
 
 CREATE TABLE identifiers
