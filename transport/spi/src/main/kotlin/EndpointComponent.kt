@@ -46,7 +46,7 @@ abstract class EndpointComponent<T : Any>(
 
     /** The configuration for this endpoint. */
     val config: Config = ConfigFactory.load()
-    ) : KoinComponent {
+) : KoinComponent {
     abstract val endpointHandler: EndpointHandler<T>
 
     /**

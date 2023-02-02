@@ -132,8 +132,8 @@ class KeycloakClient(
      * will be thrown.
      */
     private suspend fun findClientId(clientId: String): String =
-        getClients().find { it.clientId == clientId }?.id ?:
-            throw KeycloakClientException("Could not find client with ID '$clientId'.")
+        getClients().find { it.clientId == clientId }?.id
+            ?: throw KeycloakClientException("Could not find client with ID '$clientId'.")
 
     /**
      * Return the [(internal) ID of the client][internalClientId] to be manipulated by this client. Retrieve it on

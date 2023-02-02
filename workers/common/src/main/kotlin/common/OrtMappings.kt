@@ -170,12 +170,12 @@ fun OrtDependencyGraphNode.mapToModel() =
     )
 
 fun OrtGitHubDefectsConfiguration.mapToModel() =
- GithubDefectsConfiguration(
-     endpointUrl = endpointUrl,
-     labelFilter = labelFilter,
-     maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository,
-     parallelRequests = parallelRequests
- )
+    GithubDefectsConfiguration(
+        endpointUrl = endpointUrl,
+        labelFilter = labelFilter,
+        maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository,
+        parallelRequests = parallelRequests
+    )
 
 fun RootDependencyIndex.mapToModel() =
     DependencyGraphRoot(
