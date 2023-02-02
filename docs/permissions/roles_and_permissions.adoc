@@ -4,9 +4,9 @@ This document describes the basic concept of how roles and permissions are manag
 
 == Keycloak
 
-The ORT Server is integrated with https://www.keycloak.org/[Keycloak] for identity and access management. Therefore, all
-roles and permissions are managed by Keycloak, and the server defines which roles and permissions exist. Keycloak itself
-knows only roles, therefore all roles and permissions described below will be represented by roles in Keycloak.
+The ORT Server is integrated with https://www.keycloak.org/[Keycloak] for identity and access management.
+Therefore, all roles and permissions are managed by Keycloak, and the server defines which roles and permissions exist.
+Keycloak itself knows only roles, therefore all roles and permissions described below will be represented by roles in Keycloak.
 
 == Entities
 
@@ -22,31 +22,29 @@ A role is a group of permissions.
 
 === User
 
-A single user that can log in to the ORT Server. A user can have assigned roles.
+A single user that can log in to the ORT Server.
+A user can have assigned roles.
 
 === Group
 
-A group of users than can have assigned roles. All users in the group inherit all roles from the group.
+A group of users than can have assigned roles.
+All users in the group inherit all roles from the group.
 
 == Specification
 
 This specifies the available roles and permissions for organizations, products, and repositories in the ORT Server.
 Other parts of the ORT Server data model are ignored for now, but should be implemented in a similar way.
 
-Organizations are a root entity used for grouping content in the ORT Server. Each organization can have multiple
-products, and each product can have multiple repositories. A repository represents a VCS repository, for example a Git
-repository on GitHub.
+Organizations are a root entity used for grouping content in the ORT Server.
+Each organization can have multiple products, and each product can have multiple repositories.
+A repository represents a VCS repository, for example a Git repository on GitHub.
 
-For now, the ORT Server will support a static role concept which might later be extended to support the customization
-of roles and permissions assigned to them. While it is possible to freely customize roles in Keycloak, the ORT Server
-needs to know the meaning of those roles to properly manage access and the management of roles will be handled by the
-ORT Server only, because manual changes to the roles in Keycloak can lead to unexpected results. However, assigning
-roles to users and groups and managing groups can be done in Keycloak, although the ORT Server might also provide an API
-to manage this. Note that the ORT Server will not provide a UI in the beginning, that means there will also not be a UI
-to manage users and groups and this can only be done in Keycloak.
+For now, the ORT Server will support a static role concept which might later be extended to support the customization of roles and permissions assigned to them.
+While it is possible to freely customize roles in Keycloak, the ORT Server needs to know the meaning of those roles to properly manage access and the management of roles will be handled by the ORT Server only, because manual changes to the roles in Keycloak can lead to unexpected results.
+However, assigning roles to users and groups and managing groups can be done in Keycloak, although the ORT Server might also provide an API to manage this.
+Note that the ORT Server will not provide a UI in the beginning, that means there will also not be a UI to manage users and groups and this can only be done in Keycloak.
 
-Please note that the roles and permissions below are just a draft and the defined roles and assigned permissions are
-subject to further discussion.
+Please note that the roles and permissions below are just a draft and the defined roles and assigned permissions are subject to further discussion.
 
 === Organizations
 
@@ -188,17 +186,13 @@ subject to further discussion.
 
 === Hierarchy
 
-The roles defined above are also hierarchical, that means that for example the reader role for an organization includes
-reader roles for all products in the organization, and the reader role for a product includes reader roles for all
-repositories in the product. Conversely, roles also sometimes need to contain permissions for the parent objects, for
-example the reader role for a product at least also needs the read permission for the related organization.
+The roles defined above are also hierarchical, that means that for example the reader role for an organization includes reader roles for all products in the organization, and the reader role for a product includes reader roles for all repositories in the product.
+Conversely, roles also sometimes need to contain permissions for the parent objects, for example the reader role for a product at least also needs the read permission for the related organization.
 
-The idea behind this is to simplify checking for access permissions in the backend, because there are often multiple
-roles that can give access to a resource. For example, an organization administrator is also an administrator for all
-products in the organization. So, when performing an action on a product that requires admin permissions the backend
-would have to check if the user is either an administrator for the product or an administrator for the organization.
-With the hierarchical concept it only needs to check for the specific permission, because the organization administrator
-role contains all product administrator roles and therefore also all permissions for all products.
+The idea behind this is to simplify checking for access permissions in the backend, because there are often multiple roles that can give access to a resource.
+For example, an organization administrator is also an administrator for all products in the organization.
+So, when performing an action on a product that requires admin permissions the backend would have to check if the user is either an administrator for the product or an administrator for the organization.
+With the hierarchical concept it only needs to check for the specific permission, because the organization administrator role contains all product administrator roles and therefore also all permissions for all products.
 
 === Examples
 

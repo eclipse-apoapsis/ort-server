@@ -1,10 +1,9 @@
 = API Design
 
-This document introduces the general API design of the ORT server, to provide a guideline when implementing new API
-endpoints. The actual implemented API will be documented using https://www.openapis.org[OpenAPI].
+This document introduces the general API design of the ORT server, to provide a guideline when implementing new API endpoints.
+The actual implemented API will be documented using https://www.openapis.org[OpenAPI].
 
-The use case for this design will focus on two entities. `Organizations` and `Products`: A product is always assigned to
-an organization, and an organization hosts multiple projects.
+The use case for this design will focus on two entities. `Organizations` and `Products`: A product is always assigned to an organization, and an organization hosts multiple projects.
 
 == Organizations
 
@@ -57,8 +56,7 @@ Response
 
 *Update organizations*
 
-Updating entities should be done via `PATCH` requests, which will only update the given values, while deleting entities
-should be explicitly stated via a `null` value.
+Updating entities should be done via `PATCH` requests, which will only update the given values, while deleting entities should be explicitly stated via a `null` value.
 
 ----
 PATCH /organizations/1
