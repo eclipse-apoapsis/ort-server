@@ -31,10 +31,12 @@ Choosing the worker tool for which to build the Docker image is made by
 selecting the correct submodule in the `workers` module.
 
 The following example presents how to build a Docker image for the **Analyzer** worker tool:
- * for a local Docker daemon
- * for an Azure Container Registry (ACR)
+
+* for a local Docker daemon
+* for an Azure Container Registry (ACR)
 
 The Docker images produced by these steps will be:
+
 * *ort-server-worker-base-image:analyzer-latest*: the base image for the Analyzer worker
 * *ort-server-analyzer-worker*: the image for the Analyzer worker
 
