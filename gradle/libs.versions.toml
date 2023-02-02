@@ -61,7 +61,7 @@ versionCatalogUpdate = { id = "nl.littlerobots.version-catalog-update", version.
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 
 [libraries]
-activeMQArtemis = {module = "org.apache.activemq:apache-artemis", version.ref = "activeMQArtemis" }
+activeMQArtemis = { module = "org.apache.activemq:apache-artemis", version.ref = "activeMQArtemis" }
 exposedCore = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposedDao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
@@ -77,8 +77,8 @@ kotestAssertionsKotlinxTime = { module = "io.kotest:kotest-assertions-kotlinx-ti
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
-kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime"}
-kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization"}
+kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -95,7 +95,7 @@ ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "kto
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
-ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi"}
+ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
