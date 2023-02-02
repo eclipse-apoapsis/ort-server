@@ -146,10 +146,10 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
 
     override val name: String = TEST_TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
         check(createdEndpoint == null) { "Too many invocations of createReceiver." }
 
-        createdEndpoint = endpoint
+        createdEndpoint = from
         createdConfig = config
         createdHandler = handler
     }

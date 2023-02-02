@@ -58,20 +58,20 @@ interface MessageReceiverFactory {
         private val log = LoggerFactory.getLogger(MessageReceiverFactory::class.java)
 
         /**
-         * Set up infrastructure to process messages for the given [endpoint] with the given [handler] function based
-         * on the provided [config]. Find the [MessageReceiverFactory] configured for this endpoint in the
+         * Set up infrastructure to process messages for the given [endpoint][from] with the given [handler] function
+         * based on the provided [config]. Find the [MessageReceiverFactory] configured for this endpoint in the
          * [RECEIVER_TYPE_PROPERTY] property via the Java Service Loader mechanism. Then create an instance using this
          * factory.
          */
-        fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-            val factoryName = config.getString("${endpoint.configPrefix}.$RECEIVER_TYPE_PROPERTY")
-            log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, endpoint.configPrefix)
+        fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+            val factoryName = config.getString("${from.configPrefix}.$RECEIVER_TYPE_PROPERTY")
+            log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageReceiverFactory with name '$factoryName' found on classpath."
             }
 
-            factory.createReceiver(endpoint, config, handler)
+            factory.createReceiver(from, config, handler)
         }
     }
 
@@ -82,8 +82,9 @@ interface MessageReceiverFactory {
     val name: String
 
     /**
-     * Set up infrastructure that is able to receive messages to the given [endpoint] and calls the provided [handler]
-     * function with the received messages. Use [config] as source of configuration settings for this infrastructure.
+     * Set up infrastructure that is able to receive messages to the given [endpoint][from] and calls the provided
+     * [handler] function with the received messages. Use [config] as source of configuration settings for this
+     * infrastructure.
      */
-    fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>)
+    fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>)
 }

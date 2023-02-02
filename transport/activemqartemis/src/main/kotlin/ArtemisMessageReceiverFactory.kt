@@ -55,13 +55,13 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = ArtemisConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        val serializer = JsonSerializer.forClass(endpoint.messageClass)
-        val artemisConfig = ArtemisConfig.createReceiverConfig(endpoint, config)
+    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+        val serializer = JsonSerializer.forClass(from.messageClass)
+        val artemisConfig = ArtemisConfig.createReceiverConfig(from, config)
 
         logger.info(
             "Starting Artemis message receiver for endpoint '{}' using queue '{}'.",
-            endpoint.configPrefix,
+            from.configPrefix,
             artemisConfig.queueName
         )
 

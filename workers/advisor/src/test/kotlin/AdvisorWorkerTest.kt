@@ -156,8 +156,8 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
      * A mock receiver implementation which immediately simulates the retrieval of a message. The message payload can be
      * set by setting the [config] key [TEST_RECEIVER_PAYLOAD_CONFIG_KEY].
      */
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        val serializer = JsonSerializer.forClass(endpoint.messageClass)
+    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+        val serializer = JsonSerializer.forClass(from.messageClass)
         val payload = config.getString(TEST_RECEIVER_PAYLOAD_CONFIG_KEY)
 
         handler(

@@ -41,12 +41,12 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = RabbitMqConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(endpoint: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        val serializer = JsonSerializer.forClass(endpoint.messageClass)
-        val rabbitMqConfig = RabbitMqConfig.createReceiverConfig(endpoint, config)
+    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+        val serializer = JsonSerializer.forClass(from.messageClass)
+        val rabbitMqConfig = RabbitMqConfig.createReceiverConfig(from, config)
 
         logger.info(
-            "Starting RabbitMQ message receiver for endpoint '${endpoint.configPrefix}' using queue " +
+            "Starting RabbitMQ message receiver for endpoint '${from.configPrefix}' using queue " +
                     "'${rabbitMqConfig.queueName}'"
         )
 
