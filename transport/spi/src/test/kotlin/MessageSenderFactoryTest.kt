@@ -33,11 +33,11 @@ import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageSenderFactoryTest : StringSpec({
+    val typePropertyPath = "${MessageSenderFactory.CONFIG_PREFIX}.${MessageSenderFactory.TYPE_PROPERTY}"
+
     "A correct MessageSender should be created" {
         val config = ConfigFactory.parseMap(
-            mapOf(
-                "analyzer.${MessageSenderFactory.SENDER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
-            )
+            mapOf("${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME)
         )
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
@@ -50,9 +50,7 @@ class MessageSenderFactoryTest : StringSpec({
     "An exception should be thrown for a non-existing MessageSenderFactory" {
         val invalidFactoryName = "a non existing message sender factory"
         val config = ConfigFactory.parseMap(
-            mapOf(
-                "orchestrator.${MessageSenderFactory.SENDER_TYPE_PROPERTY}" to invalidFactoryName
-            )
+            mapOf("${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName)
         )
 
         val exception = shouldThrow<IllegalStateException> {

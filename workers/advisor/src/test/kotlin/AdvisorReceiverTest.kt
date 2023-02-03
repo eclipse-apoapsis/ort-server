@@ -60,8 +60,10 @@ private interface Handler {
 
 private val config = ConfigFactory.parseMap(
     mapOf(
-        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME,
-        "${OrchestratorEndpoint.configPrefix}.${MessageSenderFactory.SENDER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
+        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.CONFIG_PREFIX}" +
+                ".${MessageReceiverFactory.TYPE_PROPERTY}" to TEST_TRANSPORT_NAME,
+        "${OrchestratorEndpoint.configPrefix}.${MessageSenderFactory.CONFIG_PREFIX}" +
+                ".${MessageSenderFactory.TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
     )
 )
 

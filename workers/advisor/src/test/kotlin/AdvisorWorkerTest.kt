@@ -86,10 +86,10 @@ class AdvisorWorkerTest : WordSpec({
             val receiver = AdvisorReceiver(
                 ConfigFactory.parseMap(
                     mapOf(
-                        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to
-                                TEST_RECEIVER_FACTORY_NAME,
-                        "${AdvisorEndpoint.configPrefix}.receiver.$TEST_RECEIVER_PAYLOAD_CONFIG_KEY" to
-                                serializer.toJson(advisorRequest)
+                        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.CONFIG_PREFIX}" +
+                                ".${MessageReceiverFactory.TYPE_PROPERTY}" to TEST_RECEIVER_FACTORY_NAME,
+                        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.CONFIG_PREFIX}" +
+                                ".$TEST_RECEIVER_PAYLOAD_CONFIG_KEY" to serializer.toJson(advisorRequest)
                     )
                 )
             )

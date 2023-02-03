@@ -46,16 +46,16 @@ typealias EndpointHandler<T> = (Message<T>) -> Unit
 interface MessageReceiverFactory {
     companion object {
         /**
+         * A prefix used for configuration properties of message receivers.
+         */
+        const val CONFIG_PREFIX = "receiver"
+
+        /**
          * The configuration property that defines the type of the receiver implementation to be used. To create a
          * receiver, a [MessageReceiverFactory] with a name matching the value of this configuration property is
          * looked up.
          */
-        const val RECEIVER_TYPE_PROPERTY = "receiver.type"
-
-        /**
-         * A prefix used for configuration properties of message receivers.
-         */
-        private const val CONFIG_PREFIX = "receiver"
+        const val TYPE_PROPERTY = "type"
 
         /** The service loader to load [MessageReceiverFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageReceiverFactory::class.java)
@@ -64,20 +64,19 @@ interface MessageReceiverFactory {
 
         /**
          * Set up infrastructure to process messages for the given [endpoint][from] with the given [handler] function
-         * based on the provided [config]. Find the [MessageReceiverFactory] configured for this endpoint in the
-         * [RECEIVER_TYPE_PROPERTY] property via the Java Service Loader mechanism. Then create an instance using this
-         * factory.
+         * based on the provided [config]. The concrete implementation of the [MessageSenderFactory] is determined from
+         * the [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
          */
         fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-            val endpointConfig = config.getConfig(from.configPrefix)
-            val factoryName = endpointConfig.getString(RECEIVER_TYPE_PROPERTY)
+            val receiverConfig = config.getConfig("${from.configPrefix}.$CONFIG_PREFIX")
+            val factoryName = receiverConfig.getString(TYPE_PROPERTY)
             log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageReceiverFactory with name '$factoryName' found on classpath."
             }
 
-            factory.createReceiver(from, endpointConfig.getConfig(CONFIG_PREFIX), handler)
+            factory.createReceiver(from, receiverConfig, handler)
         }
     }
 

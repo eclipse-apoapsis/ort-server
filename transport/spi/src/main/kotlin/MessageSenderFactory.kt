@@ -35,16 +35,16 @@ import org.slf4j.LoggerFactory
 interface MessageSenderFactory {
     companion object {
         /**
+         * A prefix used for configuration properties of message senders.
+         */
+        const val CONFIG_PREFIX = "sender"
+
+        /**
          * The configuration property that defines the type of the sender implementation to be used. To create a
          * [MessageSender], a [MessageSenderFactory] with a name matching the value of this configuration property is
          * looked up.
          */
-        const val SENDER_TYPE_PROPERTY = "sender.type"
-
-        /**
-         * A prefix used for configuration properties of message senders.
-         */
-        private const val CONFIG_PREFIX = "sender"
+        const val TYPE_PROPERTY = "type"
 
         /** The service loader to load [MessageSenderFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageSenderFactory::class.java)
@@ -53,19 +53,19 @@ interface MessageSenderFactory {
 
         /**
          * Create a [MessageSender] for sending messages to the given [endpoint][to] based on the given [config].
-         * Find the [MessageSenderFactory] configured for this endpoint in the [SENDER_TYPE_PROPERTY] property via the
-         * Java Service Loader mechanism. Then create an instance using this factory.
+         * The concrete implementation of the [MessageSenderFactory] is determined from the
+         * [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
          */
         fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-            val endpointConfig = config.getConfig(to.configPrefix)
-            val factoryName = endpointConfig.getString(SENDER_TYPE_PROPERTY)
+            val senderConfig = config.getConfig("${to.configPrefix}.$CONFIG_PREFIX")
+            val factoryName = senderConfig.getString(TYPE_PROPERTY)
             log.info("Creating a MessageSender of type '{}' for endpoint '{}'.", factoryName, to.configPrefix)
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageSenderFactory with name '$factoryName' found on classpath."
             }
 
-            return factory.createSender(to, endpointConfig.getConfig(CONFIG_PREFIX))
+            return factory.createSender(to, senderConfig)
         }
     }
 

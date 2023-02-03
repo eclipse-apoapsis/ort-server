@@ -34,6 +34,8 @@ import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTe
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageReceiverFactoryTest : StringSpec({
+    val typePropertyPath = "${MessageReceiverFactory.CONFIG_PREFIX}.${MessageReceiverFactory.TYPE_PROPERTY}"
+
     afterAny {
         MessageReceiverFactoryForTesting.reset()
     }
@@ -41,9 +43,7 @@ class MessageReceiverFactoryTest : StringSpec({
     "The correct factory should be invoked" {
         val handler = mockk<EndpointHandler<OrchestratorMessage>>()
         val config = ConfigFactory.parseMap(
-            mapOf(
-                "orchestrator.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to TEST_TRANSPORT_NAME
-            )
+            mapOf("${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME)
         )
 
         MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, handler)
@@ -56,9 +56,7 @@ class MessageReceiverFactoryTest : StringSpec({
     "An exception should be thrown for a non-existing MessageReceiverFactory" {
         val invalidFactoryName = "a non existing message receiver factory"
         val config = ConfigFactory.parseMap(
-            mapOf(
-                "analyzer.${MessageReceiverFactory.RECEIVER_TYPE_PROPERTY}" to invalidFactoryName
-            )
+            mapOf("${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName)
         )
 
         val exception = shouldThrow<IllegalStateException> {
