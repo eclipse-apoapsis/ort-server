@@ -23,7 +23,7 @@ set -eu
 
 KEYCLOAK_SCRIPT=/opt/keycloak/bin/kc.sh
 
-if [[ $# -gt 0 ]]
+if [[ $# -gt 1 ]]
 then
   KEYCLOAK_SCRIPT=$1
   shift
