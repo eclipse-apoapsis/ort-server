@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:spi")))
+    testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)

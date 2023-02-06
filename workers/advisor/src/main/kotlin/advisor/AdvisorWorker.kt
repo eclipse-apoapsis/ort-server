@@ -34,13 +34,10 @@ private val logger = LoggerFactory.getLogger(AdvisorWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AdvisorWorker(
-    private val receiver: AdvisorReceiver,
     private val runner: AdvisorRunner,
     private val dao: AdvisorWorkerDao
 ) {
-    fun start() = receiver.receive(::run)
-
-    private fun run(advisorJobId: Long, analyzerJobId: Long, traceId: String): RunResult = runCatching {
+    fun run(advisorJobId: Long, analyzerJobId: Long, traceId: String): RunResult = runCatching {
         val advisorJob = blockingQuery { getValidAdvisorJob(advisorJobId) }.getOrThrow()
         val analyzerRun = blockingQuery { dao.getAnalyzerRunByJobId(analyzerJobId) }.getOrThrow()
 

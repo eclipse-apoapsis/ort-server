@@ -19,111 +19,29 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-
-import io.kotest.core.spec.style.WordSpec
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.runs
-import io.mockk.spyk
-import io.mockk.unmockkAll
 import io.mockk.verify
+
+import kotlin.test.fail
 
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val ANALYZER_JOB_ID = 1L
 private const val ADVISOR_JOB_ID = 1L
-private const val TOKEN = "token"
 private const val TRACE_ID = "42"
-
-class AdvisorWorkerTest : WordSpec({
-    afterTest {
-        unmockkAll()
-    }
-
-    "AdvisorWorker" should {
-        "advise a set of packages and send the result to the transport SPI" {
-            val serializer = JsonSerializer.forClass(AdvisorRequest::class)
-
-            val msgSenderMock = mockk<MessageSender<OrchestratorMessage>> {
-                every { send(any()) } just runs
-            }
-
-            val dao = mockk<AdvisorWorkerDao> {
-                every { getAdvisorJob(any()) } returns advisorJob
-                every { storeAdvisorRun(any()) } just runs
-                every { getAnalyzerRunByJobId(any()) } returns null
-            }
-
-            mockkObject(MessageSenderFactory)
-            every { MessageSenderFactory.createSender(any<OrchestratorEndpoint>(), any()) } returns msgSenderMock
-
-            val receiver = AdvisorReceiver(
-                ConfigFactory.parseMap(
-                    mapOf(
-                        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.CONFIG_PREFIX}" +
-                                ".${MessageReceiverFactory.TYPE_PROPERTY}" to TEST_RECEIVER_FACTORY_NAME,
-                        "${AdvisorEndpoint.configPrefix}.${MessageReceiverFactory.CONFIG_PREFIX}" +
-                                ".$TEST_RECEIVER_PAYLOAD_CONFIG_KEY" to serializer.toJson(advisorRequest)
-                    )
-                )
-            )
-
-            val runner = AdvisorRunner()
-
-            val worker = spyk(
-                AdvisorWorker(receiver, runner, dao)
-            )
-
-            mockkTransaction { worker.start() }
-
-            verify(exactly = 1) {
-                msgSenderMock.send(
-                    Message(MessageHeader(TOKEN, TRACE_ID), AdvisorWorkerResult(ADVISOR_JOB_ID))
-                )
-
-                dao.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
-            }
-        }
-    }
-})
-
-private val analyzerJob = AnalyzerJob(
-    id = ANALYZER_JOB_ID,
-    ortRunId = 12,
-    createdAt = Clock.System.now(),
-    startedAt = Clock.System.now(),
-    finishedAt = null,
-    configuration = AnalyzerJobConfiguration(),
-    status = JobStatus.CREATED,
-    repositoryUrl = "https://example.com/git/repository.git",
-    repositoryRevision = "main"
-)
 
 private val advisorJob = AdvisorJob(
     id = ADVISOR_JOB_ID,
@@ -135,37 +53,60 @@ private val advisorJob = AdvisorJob(
     status = JobStatus.CREATED
 )
 
-private val advisorRequest = AdvisorRequest(
-    advisorJobId = advisorJob.id,
-    analyzerJobId = analyzerJob.id
-)
+class AdvisorWorkerTest : StringSpec({
+    "A project should be advised successfully" {
+        val analyzerRun = mockk<AnalyzerRun> {
+            every { analyzerJobId } returns ANALYZER_JOB_ID
+            every { packages } returns emptySet()
+        }
 
-/** The name reported by the test receiver factory. */
-private const val TEST_RECEIVER_FACTORY_NAME = "testMessageReceiverFactory"
+        val dao = mockk<AdvisorWorkerDao> {
+            every { getAdvisorJob(any()) } returns advisorJob
+            every { getAnalyzerRunByJobId(any()) } returns analyzerRun
+            every { storeAdvisorRun(any()) } just runs
+        }
 
-/** The config key for the mock message's payload which is received by this test receiver. */
-private const val TEST_RECEIVER_PAYLOAD_CONFIG_KEY = "payload"
+        val worker = AdvisorWorker(AdvisorRunner(), dao)
 
-/**
- * A MessageReceiverFactory intended to be used for unit testing parts of the code that relies on the SPI receiver
- * implementations.
- */
-class MessageReceiverFactoryForTesting : MessageReceiverFactory {
-    override val name: String = TEST_RECEIVER_FACTORY_NAME
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)
 
-    /**
-     * A mock receiver implementation which immediately simulates the retrieval of a message. The message payload can be
-     * set by setting the [config] key [TEST_RECEIVER_PAYLOAD_CONFIG_KEY].
-     */
-    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-        val serializer = JsonSerializer.forClass(from.messageClass)
-        val payload = config.getString(TEST_RECEIVER_PAYLOAD_CONFIG_KEY)
+            result shouldBe RunResult.Success
 
-        handler(
-            Message(
-                MessageHeader(TOKEN, TRACE_ID),
-                serializer.fromJson(payload)
-            )
-        )
+            verify(exactly = 1) {
+                dao.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
+            }
+        }
     }
-}
+
+    "A failure result should be returned in case of an error" {
+        val testException = IllegalStateException("Test exception")
+        val dao = mockk<AdvisorWorkerDao> {
+            every { getAdvisorJob(any()) } throws testException
+        }
+
+        val worker = AdvisorWorker(AdvisorRunner(), dao)
+
+        mockkTransaction {
+            when (val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)) {
+                is RunResult.Failed -> result.error shouldBe testException
+                else -> fail("Unexpected result: $result")
+            }
+        }
+    }
+
+    "An ignore result should be returned for an invalid job" {
+        val invalidJob = advisorJob.copy(status = JobStatus.FINISHED)
+        val dao = mockk<AdvisorWorkerDao> {
+            every { getAdvisorJob(any()) } returns invalidJob
+        }
+
+        val worker = AdvisorWorker(AdvisorRunner(), dao)
+
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, ADVISOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Ignored
+        }
+    }
+})

@@ -19,27 +19,16 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import com.typesafe.config.ConfigFactory
+import org.slf4j.LoggerFactory
 
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.createDatabaseConfig
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
 
 /**
  * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
  * interfacing on its APIs.
  */
 fun main() {
-    val config = ConfigFactory.load()
+    logger.info("Starting ORT-Server Advisor endpoint.")
 
-    createDataSource(createDatabaseConfig(config)).connect()
-
-    AdvisorWorker(
-        AdvisorReceiver(config),
-        AdvisorRunner(),
-        AdvisorWorkerDao(DaoAdvisorJobRepository(), DaoAdvisorRunRepository(), DaoAnalyzerRunRepository())
-    ).start()
+    AdvisorComponent().start()
 }
