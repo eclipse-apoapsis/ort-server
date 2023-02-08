@@ -56,15 +56,7 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
         val connection = connectionFactory.newConnection()
 
         return runCatching {
-            val channel = connection.createChannel().also {
-                it.queueDeclare(
-                    /* queue = */ queueName,
-                    /* durable = */ false,
-                    /* exclusive = */ false,
-                    /* autoDelete = */ false,
-                    /* arguments = */ emptyMap()
-                )
-            }
+            val channel = connection.createChannel()
 
             RabbitMqMessageSender(channel, queueName, to)
         }.onFailure {
