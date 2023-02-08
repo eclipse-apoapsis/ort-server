@@ -15,6 +15,12 @@ required containers using docker:
 docker compose up
 ```
 
+The Docker Compose script starts the following services:
+
+* ORT Server API: http://localhost:8080/swagger-ui
+* Keycloak: http://localhost:8081 (admin:admin)
+* PostgreSQL: http://localhost:5433 (postgres:postgres)
+
 To debug the ORT server in Intellij, you can use a composition without the server:
 
 ```shell
