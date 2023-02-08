@@ -79,6 +79,7 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
 
         singleOf(::AdvisorWorkerDao)
+        singleOf(::AdvisorConfigurator)
         singleOf(::AdvisorRunner)
         singleOf(::AdvisorWorker)
     }

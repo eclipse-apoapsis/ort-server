@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -53,6 +55,11 @@ private val advisorJob = AdvisorJob(
     status = JobStatus.CREATED
 )
 
+/**
+ * Return an [AdvisorRunner] to be used by tests.
+ */
+private fun createRunner(): AdvisorRunner = AdvisorRunner(AdvisorConfigurator(ConfigFactory.empty()))
+
 class AdvisorWorkerTest : StringSpec({
     "A project should be advised successfully" {
         val analyzerRun = mockk<AnalyzerRun> {
@@ -66,7 +73,7 @@ class AdvisorWorkerTest : StringSpec({
             every { storeAdvisorRun(any()) } just runs
         }
 
-        val worker = AdvisorWorker(AdvisorRunner(), dao)
+        val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)
@@ -85,7 +92,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getAdvisorJob(any()) } throws testException
         }
 
-        val worker = AdvisorWorker(AdvisorRunner(), dao)
+        val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
             when (val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)) {
@@ -101,7 +108,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getAdvisorJob(any()) } returns invalidJob
         }
 
-        val worker = AdvisorWorker(AdvisorRunner(), dao)
+        val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, ADVISOR_JOB_ID, TRACE_ID)

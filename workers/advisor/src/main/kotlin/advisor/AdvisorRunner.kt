@@ -24,45 +24,14 @@ import kotlinx.coroutines.runBlocking
 import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.Package
-import org.ossreviewtoolkit.model.config.AdvisorConfiguration
-import org.ossreviewtoolkit.model.config.OsvConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
-
-class AdvisorRunner {
+internal class AdvisorRunner(
+    /** The object to obtain an initialized [Advisor]. */
+    private val configurator: AdvisorConfigurator
+) {
     fun run(packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun {
-        // TODO: Find a way to make the AdvisorConfiguration configurable. Currently, it will only run with the
-        //       hard-coded OSV AdviceProvider.
-        val advisorConfig = AdvisorConfiguration(
-            osv = OsvConfiguration(serverUrl = "https://api.osv.dev")
-        )
-
-        val advisorProviders = config.advisors.partition { Advisor.ALL.containsKey(it) }.let { (known, unknown) ->
-            if (unknown.isNotEmpty()) {
-                logger.warn(
-                    """
-                        The following advisors are unknown:
-                            ${unknown.joinToString()}
-                    """.trimIndent()
-                )
-            }
-
-            if (known.isNotEmpty()) {
-                logger.info(
-                    """
-                        The following advisors are activated:
-                            ${known.joinToString()}
-                    """.trimIndent()
-                )
-            }
-
-            known.mapNotNull(Advisor.ALL::get).distinct()
-        }
-
-        val advisor = Advisor(advisorProviders, advisorConfig)
+        val advisor = configurator.createAdvisor(config.advisors)
 
         return runBlocking { advisor.advise(packages) }
     }
