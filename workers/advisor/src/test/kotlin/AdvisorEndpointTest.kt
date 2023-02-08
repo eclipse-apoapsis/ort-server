@@ -30,6 +30,7 @@ import io.mockk.mockkClass
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
@@ -52,6 +53,7 @@ private const val ADVISOR_JOB_ID = 1L
 private const val ANALYZER_JOB_ID = 1L
 private const val TOKEN = "token"
 private const val TRACE_ID = "42"
+private const val VULNERABLE_CODE_API_KEY = "vulnerable_code_api_key"
 
 private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
 
@@ -70,6 +72,18 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "The database module should be added" {
             runEndpointTest {
                 verifyDatabaseModuleIncluded()
+            }
+        }
+
+        "VulnerableCode is configured as advisor provider" {
+            runEndpointTest {
+                val configurator: AdvisorConfigurator by inject()
+
+                val advisorConfig = configurator.createAdvisorConfiguration(
+                    configurator.findConfiguredProviders(listOf("VulnerableCode"))
+                )
+
+                advisorConfig.vulnerableCode?.apiKey shouldBe VULNERABLE_CODE_API_KEY
             }
         }
 
@@ -133,7 +147,8 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ADVISOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME
+                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+                "VULNERABLE_CODE_API_KEY" to VULNERABLE_CODE_API_KEY
             )
 
             withEnvironment(environment) {
