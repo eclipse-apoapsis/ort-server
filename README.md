@@ -21,6 +21,8 @@ The Docker Compose script starts the following services:
 * Keycloak: http://localhost:8081 (admin:admin)
 * PostgreSQL: http://localhost:5433 (postgres:postgres)
 
+### Debugging
+
 To debug the ORT server in Intellij, you can use a composition without the server:
 
 ```shell
