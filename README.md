@@ -6,12 +6,24 @@ The ORT server is a standalone application to deploy the
 ## Local Setup
 
 To start the ORT server with the required 3rd party services, you can use
-[Docker Compose](https://docs.docker.com/compose/). In addition, the local setup requires existing worker images
-constructed by [Jib](https://github.com/GoogleContainerTools/jib). First, build the docker images and then start the
-required containers using docker:
+[Docker Compose](https://docs.docker.com/compose/).
+
+First, build the analyzer worker base image which contains the external tools used by the analyzer:
+
+```shell
+cd workers/analyzer/docker
+DOCKER_BUILDKIT=1 docker build . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
+```
+
+Then build all Docker images with [Jib](https://github.com/GoogleContainerTools/jib):
 
 ```shell
 ./gradlew jibDockerBuild
+```
+
+Finally, you can start Docker Compose:
+
+```shell
 docker compose up
 ```
 
