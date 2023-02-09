@@ -35,13 +35,13 @@ The Docker Compose script starts the following services:
 
 ### Debugging
 
-To debug the ORT server in Intellij, you can use a composition without the server:
+To debug the ORT server in IntelliJ, you can use a composition without the server:
 
 ```shell
 docker compose -f docker-compose-dev.yml up
 ```
 
-then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
+Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
 
 **Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
 without TLS.**
