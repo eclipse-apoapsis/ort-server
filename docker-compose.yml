@@ -60,6 +60,8 @@ services:
     - db:/var/lib/postgresql/data
 
   artemis:
+    profiles:
+      - artemis
     image: quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0
     restart: unless-stopped
     healthcheck:
@@ -75,6 +77,28 @@ services:
     ports:
       - "8161:8161"
       - "61616:61616"
+
+  rabbitmq:
+    profiles:
+      - rabbitmq
+    # Setting the hostname is necessary for persistence.
+    # See https://www.futurefundamentals.com/set-rabbitmq-with-data-persistent-with-docker-compose/.
+    hostname: ort-server-rabbitmq
+    image: rabbitmq:3.11.7
+    restart: unless-stopped
+    # See https://www.rabbitmq.com/monitoring.html#health-checks
+    healthcheck:
+      test: [ 'CMD-SHELL', 'rabbitmq-diagnostics check_running' ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - type: bind
+        source: ./scripts/docker/rabbitmq/
+        target: /etc/rabbitmq/
 
   keycloak:
     image: quay.io/keycloak/keycloak:20.0.3

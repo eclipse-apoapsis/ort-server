@@ -21,10 +21,11 @@ Then build all Docker images with [Jib](https://github.com/GoogleContainerTools/
 ./gradlew jibDockerBuild
 ```
 
-Finally, you can start Docker Compose:
+Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to choose the
+one to activate with a [profile](https://docs.docker.com/compose/profiles/):
 
 ```shell
-docker compose up
+docker compose --profile rabbitmq up
 ```
 
 **Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
@@ -37,13 +38,14 @@ without TLS.**
 | ORT Server API | http://localhost:8080/swagger-ui          | 
 | Keycloak       | http://localhost:8081 (admin:admin)       |
 | PostgreSQL     | http://localhost:5433 (postgres:postgres) |
+| RabbitMQ       | http://127.0.0.1:15672/#/                 |
 
 ## Debugging
 
 To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
 
 ```shell
-docker compose up keycloak 
+docker compose up rabbitmq keycloak 
 ```
 
 Please note that Postgres does not need to be explicitly passed: since it is a dependency of Keycloak, it will be
