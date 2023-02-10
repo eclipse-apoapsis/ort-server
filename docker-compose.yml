@@ -89,7 +89,8 @@ services:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 90s
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
