@@ -27,24 +27,29 @@ Finally, you can start Docker Compose:
 docker compose up
 ```
 
-The Docker Compose script starts the following services:
-
-* ORT Server API: http://localhost:8080/swagger-ui
-* Keycloak: http://localhost:8081 (admin:admin)
-* PostgreSQL: http://localhost:5433 (postgres:postgres)
-
-### Debugging
-
-To debug the ORT server in IntelliJ, you can use a composition without the server:
-
-```shell
-docker compose -f docker-compose-dev.yml up
-```
-
-Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
-
 **Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
 without TLS.**
+
+## Accessing the services
+
+| Service        | URL                                       |
+|----------------|-------------------------------------------|
+| ORT Server API | http://localhost:8080/swagger-ui          | 
+| Keycloak       | http://localhost:8081 (admin:admin)       |
+| PostgreSQL     | http://localhost:5433 (postgres:postgres) |
+
+## Debugging
+
+To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
+
+```shell
+docker compose up keycloak 
+```
+
+Please note that Postgres does not need to be explicitly passed: since it is a dependency of Keycloak, it will be
+automatically started.
+
+Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
 
 # License
 
