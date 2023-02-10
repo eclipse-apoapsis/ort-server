@@ -133,15 +133,15 @@ services:
   analyzer-worker:
     image: ort-server-analyzer-worker
     depends_on:
-      ort-server:
+      postgres:
         condition: service_healthy
-    network_mode: host
     environment:
-      ORT_SERVER_URL: "http://localhost:8080"
-      ORT_SERVER_USER: admin
-      ORT_SERVER_PASSWORD: admin
-      ORT_SERVER_AUTH_URL: "http://localhost:8081/realms/master/protocol/openid-connect/token"
-      ORT_SERVER_CLIENT_ID: "ort-server"
+      DB_URL: "jdbc:postgresql://postgres"
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
 
 volumes:
   db:
