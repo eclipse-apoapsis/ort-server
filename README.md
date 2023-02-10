@@ -61,3 +61,15 @@ See the [LICENSE](./LICENSE) file in the root of this project for license detail
 
 OSS Review Toolkit (ORT) is a [Linux Foundation project](https://www.linuxfoundation.org) and part of
 [ACT](https://automatecompliance.org/).
+
+# Troubleshooting
+
+When starting the ORT Server service you can run into the following error:
+`Exception in thread "main" org.flywaydb.core.api.exception.FlywayValidateException: Validate failed: Migrations have failed validation`
+
+You can solve this problem by cleaning the database. Please note that it will empty all ORT Server table.
+
+```shell
+docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
+```
+
