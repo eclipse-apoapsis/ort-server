@@ -142,7 +142,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
             }
 
             val connectionFactory = mockk<ConnectionFactory> {
-                every { newConnection() } returns connection
+                every { newConnection(any<String>()) } returns connection
             }
 
             val factory = RabbitMqMessageSenderFactory()

@@ -53,7 +53,9 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
         connectionFactory: ConnectionFactory,
         queueName: String
     ): MessageSender<T> {
-        val connection = connectionFactory.newConnection()
+        val connection = connectionFactory.newConnection(
+            "ort-server-${to.configPrefix}-${to.messageClass.simpleName}"
+        )
 
         return runCatching {
             val channel = connection.createChannel()
