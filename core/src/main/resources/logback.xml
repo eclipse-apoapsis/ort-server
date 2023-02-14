@@ -31,4 +31,6 @@
     <logger name="Exposed" level="DEBUG"/> <!-- Log SQL statements executed by Exposed -->
     <logger name="com.zaxxer.hikari" level="WARN"/>
     <logger name="org.flywaydb.core.internal.license.VersionPrinter" level="WARN"/>
+    <logger name="io.ktor" level="INFO"/>
+
 </configuration>
