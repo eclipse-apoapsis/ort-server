@@ -58,7 +58,10 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
         )
 
         return runCatching {
-            val channel = connection.createChannel()
+            val channel = connection.createChannel().also {
+                // Check that the queue exists. If it doesn't this operation fails with a channel level exception.
+                it.queueDeclarePassive(queueName)
+            }
 
             RabbitMqMessageSender(channel, queueName, to)
         }.onFailure {
