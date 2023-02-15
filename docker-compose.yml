@@ -167,6 +167,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_NAME: ort_server
@@ -174,6 +176,16 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_SSLMODE: disable
+      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
+      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      ANALYZER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      ANALYZER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ANALYZER_RECEIVER_TRANSPORT_QUEUE_NAME: analyzer_queue
+      ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
+      ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
 
 volumes:
   db:
