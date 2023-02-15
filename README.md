@@ -45,7 +45,7 @@ without TLS.**
 To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
 
 ```shell
-docker compose up rabbitmq keycloak 
+docker compose --profile rabbitmq up rabbitmq keycloak 
 ```
 
 Please note that Postgres does not need to be explicitly passed: since it is a dependency of Keycloak, it will be
