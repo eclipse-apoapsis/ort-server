@@ -44,6 +44,9 @@ class MessagePublisher(
     /** The sender to the Advisor endpoint. */
     private val advisorSender by lazy { MessageSenderFactory.createSender(AdvisorEndpoint, config) }
 
+    /** The sender to the Scanner endpoint. */
+    private val scannerSender by lazy { MessageSenderFactory.createSender(ScannerEndpoint, config) }
+
     /**
      * Send the given [message] to the specified [endpoint][to].
      */
@@ -53,6 +56,7 @@ class MessagePublisher(
             is OrchestratorEndpoint -> orchestratorSender
             is AnalyzerEndpoint -> analyzerSender
             is AdvisorEndpoint -> advisorSender
+            is ScannerEndpoint -> scannerSender
         } as MessageSender<T>
 
         sender.send(message)

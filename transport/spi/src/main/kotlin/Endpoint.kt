@@ -24,6 +24,7 @@ import kotlin.reflect.KClass
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 
 /**
  * A type describing the different endpoints supported by the ORT server.
@@ -60,3 +61,8 @@ object AnalyzerEndpoint : Endpoint<AnalyzerRequest>(AnalyzerRequest::class, "ana
  * A concrete [Endpoint] declaration representing the Advisor worker.
  */
 object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "advisor")
+
+/**
+ * A concrete [Endpoint] declaration representing the Scanner worker.
+ */
+object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")

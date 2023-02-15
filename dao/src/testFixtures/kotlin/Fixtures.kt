@@ -25,10 +25,12 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 
 /**
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
@@ -41,6 +43,7 @@ class Fixtures {
     private val ortRunRepository = DaoOrtRunRepository()
     private val analyzerJobRepository = DaoAnalyzerJobRepository()
     private val advisorJobRepository = DaoAdvisorJobRepository()
+    private val scannerJobRepository = DaoScannerJobRepository()
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
@@ -48,6 +51,7 @@ class Fixtures {
     val ortRun by lazy { createOrtRun() }
     val analyzerJob by lazy { createAnalyzerJob() }
     val advisorJob by lazy { createAdvisorJob() }
+    val scannerJob by lazy { createScannerJob() }
 
     val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
@@ -55,6 +59,9 @@ class Fixtures {
         ),
         advisor = AdvisorJobConfiguration(
             advisors = listOf("OSV")
+        ),
+        scanner = ScannerJobConfiguration(
+            false
         )
     )
 
@@ -88,4 +95,9 @@ class Fixtures {
         ortRunId: Long = ortRun.id,
         configuration: AdvisorJobConfiguration = jobConfigurations.advisor!!
     ) = advisorJobRepository.create(ortRunId, configuration)
+
+    fun createScannerJob(
+        ortRunId: Long = ortRun.id,
+        configuration: ScannerJobConfiguration = jobConfigurations.scanner!!
+    ) = scannerJobRepository.create(ortRunId, configuration)
 }

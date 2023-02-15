@@ -63,7 +63,8 @@ data class OrtRun(
 @Serializable
 data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
-    val advisor: AdvisorJobConfiguration? = null
+    val advisor: AdvisorJobConfiguration? = null,
+    val scanner: ScannerJobConfiguration? = null
 )
 
 /**
@@ -83,6 +84,17 @@ data class AdvisorJobConfiguration(
      * The Advisors to use (e.g. NexusIQ, VulnerableCode, DefectDB).
      */
     val advisors: List<String> = emptyList()
+)
+
+/**
+ * The configuration for a scanner job.
+ */
+@Serializable
+data class ScannerJobConfiguration(
+    /**
+     * Do not scan excluded projects or packages.
+     */
+    val skipExcluded: Boolean
 )
 
 enum class OrtRunStatus {

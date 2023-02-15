@@ -35,6 +35,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -69,6 +71,10 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is AdvisorWorkerResult -> orchestrator.handleAdvisorWorkerResult(payload)
 
             is AdvisorWorkerError -> orchestrator.handleAdvisorWorkerError(payload)
+
+            is ScannerWorkerResult -> orchestrator.handleScannerWorkerResult(payload)
+
+            is ScannerWorkerError -> orchestrator.handleScannerWorkerError(payload)
         }
     }
 

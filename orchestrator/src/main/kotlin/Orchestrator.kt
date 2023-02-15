@@ -30,10 +30,13 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
@@ -51,6 +54,7 @@ import org.slf4j.LoggerFactory
 class Orchestrator(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val advisorJobRepository: AdvisorJobRepository,
+    private val scannerJobRepository: ScannerJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
@@ -196,6 +200,50 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'AdviseError' message. No advisor job ORT run '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [ScannerWorkerResult].
+     */
+    fun handleScannerWorkerResult(scannerWorkerResult: ScannerWorkerResult) {
+        val jobId = scannerWorkerResult.jobId
+
+        val scannerJob = scannerJobRepository.get(jobId)
+
+        if (scannerJob != null) {
+            scannerJobRepository.update(
+                id = scannerJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'ScannerResult' message. No scanner job '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [ScannerWorkerError].
+     */
+    fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
+        val jobId = scannerWorkerError.jobId
+
+        val scannerJob = scannerJobRepository.get(jobId)
+
+        if (scannerJob != null) {
+            scannerJobRepository.update(
+                id = scannerJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            // If the scannerJob failed, the whole OrtRun will be treated as failed.
+            ortRunRepository.update(
+                id = scannerJob.ortRunId,
+                status = OrtRunStatus.FAILED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'ScannerError' message. No advisor job ORT run '$jobId' found.")
         }
     }
 }
