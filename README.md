@@ -33,12 +33,12 @@ without TLS.**
 
 ## Accessing the services
 
-| Service        | URL                                       |
-|----------------|-------------------------------------------|
-| ORT Server API | http://localhost:8080/swagger-ui          | 
-| Keycloak       | http://localhost:8081 (admin:admin)       |
-| PostgreSQL     | http://localhost:5433 (postgres:postgres) |
-| RabbitMQ       | http://localhost:15672 (admin:admin)      |
+| Service        | URL                              | Credentials       |
+|----------------|----------------------------------|-------------------|
+| ORT Server API | http://localhost:8080/swagger-ui |                   |
+| Keycloak       | http://localhost:8081            | admin:admin       |
+| PostgreSQL     | http://localhost:5433            | postgres:postgres |
+| RabbitMQ       | http://localhost:15672           | admin:admin       |
 
 ## Debugging
 
