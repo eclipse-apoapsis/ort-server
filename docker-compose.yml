@@ -161,6 +161,11 @@ services:
       ANALYZER_SENDER_TRANSPORT_QUEUE_NAME: analyzer_queue
       ANALYZER_SENDER_TRANSPORT_USERNAME: admin
       ANALYZER_SENDER_TRANSPORT_PASSWORD: admin
+      ADVISOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ADVISOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ADVISOR_SENDER_TRANSPORT_QUEUE_NAME: advisor_queue
+      ADVISOR_SENDER_TRANSPORT_USERNAME: admin
+      ADVISOR_SENDER_TRANSPORT_PASSWORD: admin
 
   analyzer-worker:
     image: ort-server-analyzer-worker
