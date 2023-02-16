@@ -86,5 +86,9 @@ dependencies {
 jib {
     from.image = "docker://ort-server-analyzer-worker-base-image:latest"
     to.image = "ort-server-analyzer-worker:latest"
-    container.mainClass = "org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt"
+
+    container {
+        mainClass = "org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt"
+        creationTime.set("USE_CURRENT_TIMESTAMP")
+    }
 }

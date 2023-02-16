@@ -56,5 +56,9 @@ dependencies {
 jib {
     from.image = "eclipse-temurin:17"
     to.image = "ort-server-advisor-worker:latest"
-    container.mainClass = "org.ossreviewtoolkit.server.workers.advisor.EntrypointKt"
+
+    container {
+        mainClass = "org.ossreviewtoolkit.server.workers.advisor.EntrypointKt"
+        creationTime.set("USE_CURRENT_TIMESTAMP")
+    }
 }

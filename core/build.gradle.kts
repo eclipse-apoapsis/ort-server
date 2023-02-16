@@ -80,5 +80,9 @@ dependencies {
 jib {
     from.image = "eclipse-temurin:17"
     to.image = "ort-server-core:latest"
-    container.mainClass = "io.ktor.server.netty.EngineMain"
+
+    container {
+        mainClass = "io.ktor.server.netty.EngineMain"
+        creationTime.set("USE_CURRENT_TIMESTAMP")
+    }
 }
