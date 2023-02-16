@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
@@ -41,6 +42,7 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
@@ -87,6 +89,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
         singleOf<RepositoryRepository>(::DaoRepositoryRepository)
         singleOf<OrtRunRepository>(::DaoOrtRunRepository)
+        singleOf<ScannerJobRepository>(::DaoScannerJobRepository)
 
         singleOf(::Orchestrator)
     }
