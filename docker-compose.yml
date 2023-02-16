@@ -187,6 +187,31 @@ services:
       ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
       ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
 
+  advisor-worker:
+    image: ort-server-advisor-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: "jdbc:postgresql://postgres"
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
+      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      ADVISOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      ADVISOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ADVISOR_RECEIVER_TRANSPORT_QUEUE_NAME: advisor_queue
+      ADVISOR_RECEIVER_TRANSPORT_USERNAME: admin
+      ADVISOR_RECEIVER_TRANSPORT_PASSWORD: admin
+
 volumes:
   db:
     driver: local
