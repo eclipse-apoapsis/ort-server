@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +17,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-RBENV_ROOT="/opt/rbenv"
-export RBENV_ROOT
-
-add_local_path "${RBENV_ROOT}/bin"
-add_local_path "${RBENV_ROOT}/shims"
-add_local_path "${RBENV_ROOT}/plugins/ruby-install/bin"
+if [ -n "$http_proxy" ]; then
+    cat << EOF > /etc/apt/apt.conf.d/proxy.conf
+Acquire {
+    HTTP::proxy "$http_proxy";
+    HTTPS::proxy "$http_proxy";
+}
+EOF
+fi
