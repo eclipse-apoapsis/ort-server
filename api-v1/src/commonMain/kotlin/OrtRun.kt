@@ -22,8 +22,6 @@ package org.ossreviewtoolkit.server.api.v1
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-
 @Serializable
 data class OrtRun(
     /**
