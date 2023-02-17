@@ -87,7 +87,7 @@ data class ScannerJobConfiguration(
     /**
      * Do not scan excluded projects or packages.
      */
-    val skipExcluded: Boolean
+    val skipExcluded: Boolean = false
 )
 
 /**
