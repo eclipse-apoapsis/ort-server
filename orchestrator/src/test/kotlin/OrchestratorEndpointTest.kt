@@ -34,6 +34,7 @@ import kotlinx.datetime.Instant
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
@@ -66,6 +67,13 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
         "The database module should be added" {
             runEndpointTest {
                 verifyDatabaseModuleIncluded()
+            }
+        }
+
+        "The DI configuration is correct" {
+            runEndpointTest {
+                val orchestrator: Orchestrator by inject()
+                orchestrator.toString()
             }
         }
 
