@@ -27,13 +27,21 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
+import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
+
+private val jobConfigurations = JobConfigurations(
+    analyzer = AnalyzerJobConfiguration(),
+    advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
+    scanner = ScannerJobConfiguration()
+)
 
 val getRepositoryById: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoryById"
@@ -111,7 +119,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
         jsonBody<CreateOrtRun> {
             example(
                 "Create ORT run",
-                CreateOrtRun("main", JobConfigurations(AnalyzerJobConfiguration(true)))
+                CreateOrtRun("main", jobConfigurations)
             )
         }
     }
@@ -128,7 +136,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = JobConfigurations()
+                            jobs = jobConfigurations
                         )
                     )
                 )
@@ -164,7 +172,7 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = JobConfigurations()
+                            jobs = jobConfigurations
                         )
                     )
                 )
