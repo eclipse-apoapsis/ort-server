@@ -30,11 +30,6 @@ data class AdvisorJob(
     val id: Long,
 
     /**
-     * The ID of the [OrtRun] this [AdvisorJob] is a part of.
-     */
-    val ortRunId: Long,
-
-    /**
      * The time the job was created.
      */
     val createdAt: Instant,

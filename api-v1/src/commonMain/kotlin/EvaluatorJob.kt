@@ -23,7 +23,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ScannerJob(
+data class EvaluatorJob(
     /**
      * The unique identifier.
      */
@@ -47,7 +47,7 @@ data class ScannerJob(
     /**
      * The job configuration.
      */
-    val configuration: ScannerJobConfiguration,
+    val configuration: EvaluatorJobConfiguration,
 
     /**
      * The job status.

@@ -30,6 +30,7 @@ import kotlinx.serialization.json.Json
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
+import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
@@ -40,7 +41,8 @@ import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 private val jobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(),
     advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
-    scanner = ScannerJobConfiguration()
+    scanner = ScannerJobConfiguration(),
+    evaluator = EvaluatorJobConfiguration()
 )
 
 val getRepositoryById: OpenApiRoute.() -> Unit = {

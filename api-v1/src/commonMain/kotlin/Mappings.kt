@@ -21,9 +21,12 @@
 
 package org.ossreviewtoolkit.server.api.v1
 
+import org.ossreviewtoolkit.server.api.v1.AdvisorJob as ApiAdvisorJob
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.EvaluatorJob as ApiEvaluatorJob
+import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
@@ -31,9 +34,14 @@ import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
+import org.ossreviewtoolkit.server.api.v1.ScannerJob as ApiScannerJob
+import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration as ApiScannerJobConfiguration
+import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.EvaluatorJob
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.Organization
@@ -41,7 +49,23 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.ScannerJob
+import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+
+fun AdvisorJob.mapToApi() =
+    ApiAdvisorJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi()
+    )
+
+fun AdvisorJobConfiguration.mapToApi() = ApiAdvisorJobConfiguration(advisors)
+
+fun ApiAdvisorJobConfiguration.mapToModel() = AdvisorJobConfiguration(advisors)
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
@@ -59,15 +83,29 @@ fun AnalyzerJobConfiguration.mapToApi() = ApiAnalyzerJobConfiguration(allowDynam
 
 fun ApiAnalyzerJobConfiguration.mapToModel() = AnalyzerJobConfiguration(allowDynamicVersions)
 
-fun ApiAdvisorJobConfiguration.mapToModel() = AdvisorJobConfiguration(advisors)
+fun EvaluatorJob.mapToApi() =
+    ApiEvaluatorJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi()
+    )
+
+fun EvaluatorJobConfiguration.mapToApi() = ApiEvaluatorJobConfiguration(ruleSet)
+
+fun ApiEvaluatorJobConfiguration.mapToModel() = EvaluatorJobConfiguration(ruleSet)
 
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
 
 fun ApiJobStatus.mapToModel() = JobStatus.valueOf(name)
 
-fun JobConfigurations.mapToApi() = ApiJobConfigurations(analyzer.mapToApi())
+fun JobConfigurations.mapToApi() =
+    ApiJobConfigurations(analyzer.mapToApi(), advisor?.mapToApi(), scanner?.mapToApi(), evaluator?.mapToApi())
 
-fun ApiJobConfigurations.mapToModel() = JobConfigurations(analyzer.mapToModel(), advisor?.mapToModel())
+fun ApiJobConfigurations.mapToModel() =
+    JobConfigurations(analyzer.mapToModel(), advisor?.mapToModel(), scanner?.mapToModel(), evaluator?.mapToModel())
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
@@ -82,3 +120,17 @@ fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 fun ApiRepositoryType.mapToModel() = RepositoryType.valueOf(name)
 
 fun OptionalValue<ApiRepositoryType>.mapToModel() = map { it.mapToModel() }
+
+fun ScannerJob.mapToApi() =
+    ApiScannerJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi()
+    )
+
+fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(skipExcluded)
+
+fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(skipExcluded)
