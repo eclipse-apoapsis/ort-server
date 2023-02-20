@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 
@@ -66,6 +67,9 @@ class Fixtures {
         ),
         evaluator = EvaluatorJobConfiguration(
             ruleSet = "default"
+        ),
+        reporter = ReporterJobConfiguration(
+            formats = listOf("WebApp")
         )
     )
 
