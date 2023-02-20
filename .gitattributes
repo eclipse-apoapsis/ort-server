@@ -1,0 +1,7 @@
+# Set the default behavior for all files
+* text=auto
+
+# Explicitly set line endings to Unix format for Unix shell executable files. This fixes an issue
+# when git automatically converted line endings for .sh files to CRLF on Windows hence making them
+# invisible when mounted to a Docker container
+*.sh text eol=lf
