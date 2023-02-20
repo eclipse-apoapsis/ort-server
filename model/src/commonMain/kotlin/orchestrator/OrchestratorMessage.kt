@@ -84,6 +84,24 @@ data class ScannerWorkerError(
 ) : OrchestratorMessage()
 
 /**
+ * A message notifying the Orchestrator about a result produced by the Scanner Worker.
+ */
+@Serializable
+data class EvaluatorWorkerResult(
+    /** The ID of the Evaluator job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about a failed Evaluator worker job.
+ */
+@Serializable
+data class EvaluatorWorkerError(
+    /** The ID of the Evaluator job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
  * A message notifying the Orchestrator about a new ORT run.
  */
 @Serializable

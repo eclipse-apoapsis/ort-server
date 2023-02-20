@@ -52,6 +52,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
@@ -129,6 +130,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository,
                     mockk(),
                     mockk(),
+                    mockk(),
                     repositoryRepository,
                     mockk(),
                     publisher
@@ -187,6 +189,7 @@ class OrchestratorTest : WordSpec() {
                     advisorJobRepository,
                     mockk(),
                     mockk(),
+                    mockk(),
                     ortRunRepository,
                     publisher
                 ).handleAnalyzerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), analyzerWorkerResult)
@@ -222,6 +225,7 @@ class OrchestratorTest : WordSpec() {
                 val advisorJobRepository = mockk<AdvisorJobRepository>()
                 val analyzerJobRepository = mockk<AnalyzerJobRepository>()
                 val scannerJobRepository = mockk<ScannerJobRepository>()
+                val evaluatorJobRepository = mockk<EvaluatorJobRepository>()
                 val repositoryRepository = mockk<RepositoryRepository>()
                 val ortRunRepository = mockk<OrtRunRepository>()
                 val publisher = mockk<MessagePublisher>()
@@ -236,6 +240,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository,
                     advisorJobRepository,
                     scannerJobRepository,
+                    evaluatorJobRepository,
                     repositoryRepository,
                     ortRunRepository,
                     publisher

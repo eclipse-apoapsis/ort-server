@@ -27,6 +27,7 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
@@ -35,11 +36,14 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
@@ -77,6 +81,10 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is ScannerWorkerResult -> orchestrator.handleScannerWorkerResult(payload)
 
             is ScannerWorkerError -> orchestrator.handleScannerWorkerError(payload)
+
+            is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(payload)
+
+            is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
         }
     }
 
@@ -87,6 +95,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
     private fun orchestratorModule(): Module = module {
         singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
         singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
+        singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
         singleOf<RepositoryRepository>(::DaoRepositoryRepository)
         singleOf<OrtRunRepository>(::DaoOrtRunRepository)
         singleOf<ScannerJobRepository>(::DaoScannerJobRepository)

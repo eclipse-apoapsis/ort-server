@@ -30,10 +30,13 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
@@ -55,6 +58,7 @@ class Orchestrator(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val advisorJobRepository: AdvisorJobRepository,
     private val scannerJobRepository: ScannerJobRepository,
+    private val evaluatorJobRepository: EvaluatorJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
@@ -244,6 +248,50 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'ScannerError' message. No advisor job ORT run '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [EvaluatorWorkerResult].
+     */
+    fun handleEvaluatorWorkerResult(evaluatorWorkerResult: EvaluatorWorkerResult) {
+        val jobId = evaluatorWorkerResult.jobId
+
+        val evaluatorJob = evaluatorJobRepository.get(jobId)
+
+        if (evaluatorJob != null) {
+            evaluatorJobRepository.update(
+                id = evaluatorJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'EvaluatorResult' message. No evaluator job '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [EvaluatorWorkerError].
+     */
+    fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
+        val jobId = evaluatorWorkerError.jobId
+
+        val evaluatorJob = evaluatorJobRepository.get(jobId)
+
+        if (evaluatorJob != null) {
+            evaluatorJobRepository.update(
+                id = evaluatorJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            // If the evaluatorJob failed, the whole OrtRun will be treated as failed.
+            ortRunRepository.update(
+                id = evaluatorJob.ortRunId,
+                status = OrtRunStatus.FAILED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'EvaluatorError' message. No advisor job ORT run '$jobId' found.")
         }
     }
 }

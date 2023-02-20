@@ -23,6 +23,7 @@ import kotlin.reflect.KClass
 
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 
@@ -66,3 +67,8 @@ object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "adviso
  * A concrete [Endpoint] declaration representing the Scanner worker.
  */
 object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")
+
+/**
+ * A concrete [Endpoint] declaration representing the Scanner worker.
+ */
+object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
