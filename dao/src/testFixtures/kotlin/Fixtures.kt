@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
@@ -62,6 +63,9 @@ class Fixtures {
         ),
         scanner = ScannerJobConfiguration(
             false
+        ),
+        evaluator = EvaluatorJobConfiguration(
+            ruleSet = "default"
         )
     )
 

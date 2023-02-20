@@ -28,7 +28,8 @@ import kotlinx.serialization.Serializable
 data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
     val advisor: AdvisorJobConfiguration? = null,
-    val scanner: ScannerJobConfiguration? = null
+    val scanner: ScannerJobConfiguration? = null,
+    val evaluator: EvaluatorJobConfiguration? = null
 )
 
 /**
@@ -59,4 +60,15 @@ data class ScannerJobConfiguration(
      * Do not scan excluded projects or packages.
      */
     val skipExcluded: Boolean = false
+)
+
+/**
+ * The configuration for an evaluator job.
+ */
+@Serializable
+data class EvaluatorJobConfiguration(
+    /**
+     * The id of the rule set to use for the evaluation.
+     */
+    val ruleSet: String? = null
 )
