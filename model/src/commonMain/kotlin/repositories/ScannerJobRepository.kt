@@ -56,7 +56,7 @@ interface ScannerJobRepository {
     ): ScannerJob
 
     /**
-     * Delete an scanner job by [id].
+     * Delete a scanner job by [id].
      */
     fun delete(id: Long)
 }
