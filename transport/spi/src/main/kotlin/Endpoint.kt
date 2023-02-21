@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 
 /**
@@ -69,6 +70,6 @@ object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "adviso
 object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")
 
 /**
- * A concrete [Endpoint] declaration representing the Scanner worker.
+ * A concrete [Endpoint] declaration representing the Evaluator worker.
  */
 object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")

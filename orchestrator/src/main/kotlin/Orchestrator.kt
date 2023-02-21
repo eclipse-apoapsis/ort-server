@@ -291,7 +291,7 @@ class Orchestrator(
                 status = OrtRunStatus.FAILED.asPresent()
             )
         } else {
-            log.warn("Failed to handle 'EvaluatorError' message. No advisor job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'EvaluatorError' message. No evaluator job ORT run '$jobId' found.")
         }
     }
 }

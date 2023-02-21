@@ -84,7 +84,7 @@ data class ScannerWorkerError(
 ) : OrchestratorMessage()
 
 /**
- * A message notifying the Orchestrator about a result produced by the Scanner Worker.
+ * A message notifying the Orchestrator about a result produced by the Evaluator Worker.
  */
 @Serializable
 data class EvaluatorWorkerResult(
