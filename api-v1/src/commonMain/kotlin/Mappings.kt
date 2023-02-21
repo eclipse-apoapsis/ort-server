@@ -32,6 +32,8 @@ import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
+import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
+import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.ScannerJob as ApiScannerJob
@@ -47,6 +49,8 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.ReporterJob
+import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJob
@@ -120,6 +124,20 @@ fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 fun ApiRepositoryType.mapToModel() = RepositoryType.valueOf(name)
 
 fun OptionalValue<ApiRepositoryType>.mapToModel() = map { it.mapToModel() }
+
+fun ReporterJob.mapToApi() =
+    ApiReporterJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi()
+    )
+
+fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats)
+
+fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats)
 
 fun ScannerJob.mapToApi() =
     ApiScannerJob(

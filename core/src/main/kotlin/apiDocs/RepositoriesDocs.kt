@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
+import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
 import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
@@ -42,7 +43,8 @@ private val jobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(),
     advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
     scanner = ScannerJobConfiguration(),
-    evaluator = EvaluatorJobConfiguration()
+    evaluator = EvaluatorJobConfiguration(),
+    reporter = ReporterJobConfiguration(formats = listOf("WebApp"))
 )
 
 val getRepositoryById: OpenApiRoute.() -> Unit = {

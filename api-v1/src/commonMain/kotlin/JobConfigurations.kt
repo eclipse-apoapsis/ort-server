@@ -29,7 +29,8 @@ data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
     val advisor: AdvisorJobConfiguration? = null,
     val scanner: ScannerJobConfiguration? = null,
-    val evaluator: EvaluatorJobConfiguration? = null
+    val evaluator: EvaluatorJobConfiguration? = null,
+    val reporter: ReporterJobConfiguration? = null
 )
 
 /**
@@ -71,4 +72,15 @@ data class EvaluatorJobConfiguration(
      * The id of the rule set to use for the evaluation.
      */
     val ruleSet: String? = null
+)
+
+/**
+ * The configuration for a reporter job.
+ */
+@Serializable
+data class ReporterJobConfiguration(
+    /**
+     * The report formats to generate.
+     */
+    val formats: List<String> = emptyList()
 )
