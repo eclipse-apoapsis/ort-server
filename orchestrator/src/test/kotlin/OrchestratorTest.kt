@@ -54,6 +54,7 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -131,6 +132,7 @@ class OrchestratorTest : WordSpec() {
                     mockk(),
                     mockk(),
                     mockk(),
+                    mockk(),
                     repositoryRepository,
                     mockk(),
                     publisher
@@ -190,6 +192,7 @@ class OrchestratorTest : WordSpec() {
                     mockk(),
                     mockk(),
                     mockk(),
+                    mockk(),
                     ortRunRepository,
                     publisher
                 ).handleAnalyzerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), analyzerWorkerResult)
@@ -226,6 +229,7 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository = mockk<AnalyzerJobRepository>()
                 val scannerJobRepository = mockk<ScannerJobRepository>()
                 val evaluatorJobRepository = mockk<EvaluatorJobRepository>()
+                val reporterJobRepository = mockk<ReporterJobRepository>()
                 val repositoryRepository = mockk<RepositoryRepository>()
                 val ortRunRepository = mockk<OrtRunRepository>()
                 val publisher = mockk<MessagePublisher>()
@@ -241,6 +245,7 @@ class OrchestratorTest : WordSpec() {
                     advisorJobRepository,
                     scannerJobRepository,
                     evaluatorJobRepository,
+                    reporterJobRepository,
                     repositoryRepository,
                     ortRunRepository,
                     publisher

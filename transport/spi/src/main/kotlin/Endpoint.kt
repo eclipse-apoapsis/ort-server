@@ -73,3 +73,8 @@ object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanne
  * A concrete [Endpoint] declaration representing the Evaluator worker.
  */
 object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
+
+/**
+ * A concrete [Endpoint] declaration representing the Reporter worker.
+ */
+object ReporterEndpoint : Endpoint<ReporterRequest>(ReporterRequest::class, "reporter")

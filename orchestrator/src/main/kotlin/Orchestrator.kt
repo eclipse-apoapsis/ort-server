@@ -32,12 +32,15 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.asPresent
@@ -54,11 +57,13 @@ import org.slf4j.LoggerFactory
  * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
  * produced by the workers until the complete ORT result is available or the run has failed.
  */
+@Suppress("LongParameterList", "TooManyFunctions")
 class Orchestrator(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val advisorJobRepository: AdvisorJobRepository,
     private val scannerJobRepository: ScannerJobRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
+    private val reporterJobRepository: ReporterJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
@@ -292,6 +297,50 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'EvaluatorError' message. No evaluator job ORT run '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [ReporterWorkerResult].
+     */
+    fun handleReporterWorkerResult(reporterWorkerResult: ReporterWorkerResult) {
+        val jobId = reporterWorkerResult.jobId
+
+        val reporterJob = reporterJobRepository.get(jobId)
+
+        if (reporterJob != null) {
+            reporterJobRepository.update(
+                id = reporterJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'ReporterResult' message. No reporter job '$jobId' found.")
+        }
+    }
+
+    /**
+     * Handle messages of the type [ReporterWorkerError].
+     */
+    fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
+        val jobId = reporterWorkerError.jobId
+
+        val reporterJob = reporterJobRepository.get(jobId)
+
+        if (reporterJob != null) {
+            reporterJobRepository.update(
+                id = reporterJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            // If the reporterJob failed, the whole OrtRun will be treated as failed.
+            ortRunRepository.update(
+                id = reporterJob.ortRunId,
+                status = OrtRunStatus.FAILED.asPresent()
+            )
+        } else {
+            log.warn("Failed to handle 'ReporterError' message. No reporter job ORT run '$jobId' found.")
         }
     }
 }
