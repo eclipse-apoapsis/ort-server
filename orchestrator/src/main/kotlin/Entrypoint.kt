@@ -69,21 +69,13 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
 
         when (val payload = message.payload) {
             is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, payload)
-
             is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(message.header, payload)
-
             is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(payload)
-
             is AdvisorWorkerResult -> orchestrator.handleAdvisorWorkerResult(payload)
-
             is AdvisorWorkerError -> orchestrator.handleAdvisorWorkerError(payload)
-
             is ScannerWorkerResult -> orchestrator.handleScannerWorkerResult(payload)
-
             is ScannerWorkerError -> orchestrator.handleScannerWorkerError(payload)
-
             is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(payload)
-
             is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
         }
     }
