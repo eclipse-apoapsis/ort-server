@@ -53,15 +53,6 @@ automatically started.
 
 Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
 
-# License
-
-See the [NOTICE](./NOTICE) file in the root of this project for the copyright details.
-
-See the [LICENSE](./LICENSE) file in the root of this project for license details.
-
-OSS Review Toolkit (ORT) is a [Linux Foundation project](https://www.linuxfoundation.org) and part of
-[ACT](https://automatecompliance.org/).
-
 # Troubleshooting
 
 When starting the ORT Server service you can run into the following error:
@@ -73,3 +64,11 @@ You can solve this problem by cleaning the database. Please note that it will em
 docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 ```
 
+# License
+
+See the [NOTICE](./NOTICE) file in the root of this project for the copyright details.
+
+See the [LICENSE](./LICENSE) file in the root of this project for license details.
+
+OSS Review Toolkit (ORT) is a [Linux Foundation project](https://www.linuxfoundation.org) and part of
+[ACT](https://automatecompliance.org/).
