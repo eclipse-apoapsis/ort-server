@@ -45,6 +45,10 @@ class RepositoryService(
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)
     }.getOrThrow()
 
+    suspend fun getOrtRuns(repositoryId: Long): List<OrtRun> = dbQuery {
+        ortRunRepository.listForRepository(repositoryId)
+    }.getOrThrow()
+
     /**
      * Get a repository by [repositoryId]. Returns null if the repository is not found.
      */

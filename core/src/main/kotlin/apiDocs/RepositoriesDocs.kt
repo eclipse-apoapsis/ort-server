@@ -110,6 +110,47 @@ val deleteRepositoryById: OpenApiRoute.() -> Unit = {
     }
 }
 
+fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRuns"
+    summary = "Get details of all ORT runs."
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<OrtRun> {
+                example(
+                    "Get ORT runs",
+                    json.encodeToString(
+                        listOf(
+                            OrtRun(
+                                id = 1,
+                                repositoryId = 1,
+                                revision = "main",
+                                createdAt = Clock.System.now(),
+                                jobs = jobConfigurations
+                            ),
+                            OrtRun(
+                                id = 2,
+                                repositoryId = 1,
+                                revision = "main",
+                                createdAt = Clock.System.now(),
+                                jobs = jobConfigurations
+                            )
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
 fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
     operationId = "postOrtRun"
     summary = "Create an ORT run for a repository."
