@@ -76,7 +76,7 @@ repositories {
 }
 
 jib {
-    from.image = "eclipse-temurin:17"
+    from.image = "docker://ort-server-scanner-worker-base-image:latest"
     to.image = "ort-server-scanner-worker:latest"
 
     container {
