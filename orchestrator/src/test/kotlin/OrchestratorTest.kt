@@ -50,6 +50,8 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
@@ -385,6 +387,73 @@ class OrchestratorTest : WordSpec() {
                     // The ORT run status was updated.
                     ortRunRepository.update(
                         id = withArg { it shouldBe analyzerJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
+                    )
+                }
+            }
+        }
+
+        "handleAdvisorWorkerResult" should {
+            "update the job in the database" {
+                val advisorWorkerResult = AdvisorWorkerResult(advisorJob.id)
+
+                 val advisorJobRepository = mockk<AdvisorJobRepository> {
+                     every { get(advisorWorkerResult.jobId) } returns advisorJob
+                     every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                 }
+
+                val publisher = mockk<MessagePublisher> {
+                    every { publish(any<Endpoint<*>>(), any()) } just runs
+                }
+
+                Orchestrator(mockk(), advisorJobRepository, mockk(), mockk(), mockk(), mockk(), mockk(), publisher)
+                    .handleAdvisorWorkerResult(advisorWorkerResult)
+
+                verify(exactly = 1) {
+                    advisorJobRepository.update(
+                        id = withArg { it shouldBe advisorJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.FINISHED) }
+                    )
+                }
+            }
+        }
+
+        "handleAdvisorWorkerError" should {
+            "update the job and the ORT run in the database " {
+                val advisorJobRepository = mockk<AdvisorJobRepository> {
+                    every { get(advisorJob.id) } returns advisorJob
+                    every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { update(advisorJob.ortRunId, any()) } returns mockk()
+                }
+
+                val publisher = mockk<MessagePublisher>()
+
+                val advisorWorkerError = AdvisorWorkerError(advisorJob.id)
+
+                Orchestrator(
+                    mockk(),
+                    advisorJobRepository,
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    mockk(),
+                    ortRunRepository,
+                    publisher
+                ).handleAdvisorWorkerError(advisorWorkerError)
+
+                verify(exactly = 1) {
+                    advisorJobRepository.update(
+                        id = withArg { it shouldBe advisorJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe advisorJob.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }

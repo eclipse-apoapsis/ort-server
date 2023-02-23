@@ -43,6 +43,8 @@ import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
@@ -134,6 +136,40 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleAnalyzerWorkerError(analyzerWorkerError)
+                }
+            }
+        }
+
+        "AdvisorWorkerResult messages should be handled" {
+            val advisorWorkerResult = AdvisorWorkerResult(11)
+            val message = Message(msgHeader, advisorWorkerResult)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleAdvisorWorkerResult(any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleAdvisorWorkerResult(advisorWorkerResult)
+                }
+            }
+        }
+
+        "AdvisorWorkerError messages should be handled" {
+            val advisorWorkerError = AdvisorWorkerError(22)
+            val message = Message(msgHeader, advisorWorkerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleAdvisorWorkerError(any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleAdvisorWorkerError(advisorWorkerError)
                 }
             }
         }
