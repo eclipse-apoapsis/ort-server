@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.transport.rabbitmq
 
 import com.typesafe.config.Config
 
+import org.slf4j.Logger
+
 /**
  * A class defining the configuration settings used by the RabbitMQ Transport implementation.
  */
@@ -66,5 +68,16 @@ class RabbitMqConfig(
                 username = config.getString(USERNAME_PROPERTY),
                 password = config.getString(PASSWORD_PROPERTY),
             )
+    }
+
+    /**
+     * Log this configuration using the provided [logger].
+     */
+    fun log(logger: Logger) {
+        if (logger.isInfoEnabled) {
+            logger.info("RabbitMQ server URI: '$serverUri'")
+            logger.info("RabbitMQ user: '$username'")
+            logger.info("RabbitMQ queue: '$queueName'")
+        }
     }
 }

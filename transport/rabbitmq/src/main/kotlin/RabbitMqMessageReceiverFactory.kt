@@ -45,10 +45,8 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         val serializer = JsonSerializer.forClass(from.messageClass)
         val rabbitMqConfig = RabbitMqConfig.createConfig(config)
 
-        logger.info(
-            "Starting RabbitMQ message receiver for endpoint '${from.configPrefix}' using queue " +
-                    "'${rabbitMqConfig.queueName}'"
-        )
+        logger.info("Starting RabbitMQ message receiver for endpoint '${from.configPrefix}'.")
+        rabbitMqConfig.log(logger)
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)

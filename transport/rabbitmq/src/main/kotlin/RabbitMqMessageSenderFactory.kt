@@ -27,14 +27,23 @@ import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
+import org.slf4j.LoggerFactory
+
 /**
  * Implementation of the [MessageSenderFactory] interface for RabbitMQ.
  */
 class RabbitMqMessageSenderFactory : MessageSenderFactory {
+    companion object {
+        private val logger = LoggerFactory.getLogger(this::class.java)
+    }
+
     override val name: String = RabbitMqConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
         val rabbitMqConfig = RabbitMqConfig.createConfig(config)
+
+        logger.info("Creating RabbitMQ sender for endpoint '${to.configPrefix}'.")
+        rabbitMqConfig.log(logger)
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)
