@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
+import io.kotest.core.config.configuration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.kotlinx.datetime.shouldBeBetween
 import io.kotest.matchers.shouldBe
@@ -46,6 +47,8 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.ScannerJob
+import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
@@ -99,13 +102,23 @@ class OrchestratorTest : WordSpec() {
         status = JobStatus.CREATED
     )
 
+    private val scannerJob = ScannerJob(
+        id = 789,
+        ortRunId = 1,
+        createdAt = Clock.System.now(),
+        startedAt = null,
+        finishedAt = null,
+        configuration = ScannerJobConfiguration(),
+        status = JobStatus.CREATED
+    )
+
     private val ortRun = OrtRun(
         id = 1,
         index = 12,
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
-        jobs = JobConfigurations(analyzerJob.configuration, advisorJob.configuration),
+        jobs = JobConfigurations(analyzerJob.configuration, advisorJob.configuration, scannerJob.configuration),
         status = OrtRunStatus.CREATED
     )
 
@@ -165,8 +178,13 @@ class OrchestratorTest : WordSpec() {
         }
 
         "handleAnalyzerWorkerResult" should {
-            "update the job in the database and create an advisor job" {
+            "update the job in the database and create an advisor and scanner job" {
                 val analyzerWorkerResult = AnalyzerWorkerResult(123)
+
+                val scannerJobRepository = mockk<ScannerJobRepository> {
+                    every { create(ortRun.id, any()) } returns scannerJob
+                    every { update(scannerJob.id, any(), any(), any()) } returns mockk()
+                }
 
                 val advisorJobRepository = mockk<AdvisorJobRepository> {
                     every { create(ortRun.id, any()) } returns advisorJob
@@ -189,7 +207,7 @@ class OrchestratorTest : WordSpec() {
                 Orchestrator(
                     analyzerJobRepository,
                     advisorJobRepository,
-                    mockk(),
+                    scannerJobRepository,
                     mockk(),
                     mockk(),
                     mockk(),
@@ -207,6 +225,10 @@ class OrchestratorTest : WordSpec() {
                         ortRunId = withArg { it shouldBe ortRun.id },
                         configuration = withArg { it shouldBe advisorJob.configuration }
                     )
+                    scannerJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe scannerJob.configuration }
+                    )
                     publisher.publish(
                         to = withArg<AdvisorEndpoint> { it shouldBe AdvisorEndpoint },
                         message = withArg {
@@ -216,6 +238,11 @@ class OrchestratorTest : WordSpec() {
                     )
                     advisorJobRepository.update(
                         id = withArg { it shouldBe advisorJob.id },
+                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                    scannerJobRepository.update(
+                        id = withArg { it shouldBe scannerJob.id },
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )

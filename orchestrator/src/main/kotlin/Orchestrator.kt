@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
@@ -49,6 +50,7 @@ import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessagePublisher
+import org.ossreviewtoolkit.server.transport.ScannerEndpoint
 
 import org.slf4j.LoggerFactory
 
@@ -137,6 +139,21 @@ class Orchestrator(
 
             advisorJobRepository.update(
                 advisorJob.id,
+                startedAt = Clock.System.now().asPresent(),
+                status = JobStatus.SCHEDULED.asPresent()
+            )
+        }
+
+        ortRun.jobs.scanner?.let { scannerJobConfiguration ->
+            val scannerJob = scannerJobRepository.create(analyzerJob.ortRunId, scannerJobConfiguration)
+
+            publisher.publish(
+                to = ScannerEndpoint,
+                message = Message(header = header, payload = ScannerRequest(scannerJob.id))
+            )
+
+            scannerJobRepository.update(
+                id = scannerJob.id,
                 startedAt = Clock.System.now().asPresent(),
                 status = JobStatus.SCHEDULED.asPresent()
             )
