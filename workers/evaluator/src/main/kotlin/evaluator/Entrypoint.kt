@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.workers.evaluator
 
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(::main::class.java)
+private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
 
 /**
  * This is the entry point of the Evaluator worker. It calls the Evaluator from ORT programmatically by
@@ -29,4 +29,6 @@ private val logger = LoggerFactory.getLogger(::main::class.java)
  */
 fun main() {
     logger.info("Starting ORT-Server Evaluator endpoint.")
+
+    EvaluatorComponent().start()
 }
