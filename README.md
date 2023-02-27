@@ -8,11 +8,14 @@ The ORT server is a standalone application to deploy the
 To start the ORT server with the required 3rd party services, you can use
 [Docker Compose](https://docs.docker.com/compose/).
 
-First, build the analyzer worker base image which contains the external tools used by the analyzer:
+First, build the base images for the analyzer and scanner which contains the external tools:
 
 ```shell
 cd workers/analyzer/docker
 DOCKER_BUILDKIT=1 docker build . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
+
+cd workers/scanner/docker
+DOCKER_BUILDKIT=1 docker build . -f Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```
 
 Then build all Docker images with [Jib](https://github.com/GoogleContainerTools/jib):
