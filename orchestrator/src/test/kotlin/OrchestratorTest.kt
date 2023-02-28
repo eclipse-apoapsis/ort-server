@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
-import io.kotest.core.config.configuration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.kotlinx.datetime.shouldBeBetween
 import io.kotest.matchers.shouldBe
@@ -41,6 +40,8 @@ import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.EvaluatorJob
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -53,6 +54,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
@@ -64,6 +66,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
+import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessagePublisher
@@ -102,6 +105,16 @@ class OrchestratorTest : WordSpec() {
         status = JobStatus.CREATED
     )
 
+    private val advisorJobFinished = AdvisorJob(
+        id = 456,
+        ortRunId = 1,
+        createdAt = Clock.System.now(),
+        startedAt = Clock.System.now(),
+        finishedAt = Clock.System.now(),
+        configuration = AdvisorJobConfiguration(),
+        status = JobStatus.FINISHED
+    )
+
     private val scannerJob = ScannerJob(
         id = 789,
         ortRunId = 1,
@@ -112,13 +125,28 @@ class OrchestratorTest : WordSpec() {
         status = JobStatus.CREATED
     )
 
+    private val evaluatorJob = EvaluatorJob(
+        id = 765,
+        ortRunId = 1,
+        createdAt = Clock.System.now(),
+        startedAt = null,
+        finishedAt = null,
+        configuration = EvaluatorJobConfiguration(),
+        status = JobStatus.CREATED
+    )
+
     private val ortRun = OrtRun(
         id = 1,
         index = 12,
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
-        jobs = JobConfigurations(analyzerJob.configuration, advisorJob.configuration, scannerJob.configuration),
+        jobs = JobConfigurations(
+            analyzerJob.configuration,
+            advisorJob.configuration,
+            scannerJob.configuration,
+            evaluatorJob.configuration
+        ),
         status = OrtRunStatus.CREATED
     )
 
@@ -186,6 +214,11 @@ class OrchestratorTest : WordSpec() {
                     every { update(scannerJob.id, any(), any(), any()) } returns mockk()
                 }
 
+                val evaluatorJobRepository = mockk<EvaluatorJobRepository> {
+                    every { create(ortRun.id, any()) } returns evaluatorJob
+                    every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
+                }
+
                 val advisorJobRepository = mockk<AdvisorJobRepository> {
                     every { create(ortRun.id, any()) } returns advisorJob
                     every { update(advisorJob.id, any(), any(), any()) } returns mockk()
@@ -208,7 +241,7 @@ class OrchestratorTest : WordSpec() {
                     analyzerJobRepository,
                     advisorJobRepository,
                     scannerJobRepository,
-                    mockk(),
+                    evaluatorJobRepository,
                     mockk(),
                     mockk(),
                     ortRunRepository,
@@ -245,6 +278,69 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe scannerJob.id },
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                }
+            }
+        }
+
+        "handleScannerWorkerResult" should {
+            "update the job in the database and create an evaluator job" {
+                val scannerWorkerResult = ScannerWorkerResult(789)
+                val scannerJobRepository = mockk<ScannerJobRepository> {
+                    every { get(scannerWorkerResult.jobId) } returns scannerJob
+                    every { update(scannerJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val evaluatorJobRepository = mockk<EvaluatorJobRepository> {
+                    every { create(ortRun.id, any()) } returns evaluatorJob
+                    every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val advisorJobRepository = mockk<AdvisorJobRepository> {
+                    every { getForOrtRun(ortRun.id) } returns advisorJobFinished
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { get(advisorJob.ortRunId) } returns ortRun
+                    every { get(scannerJob.ortRunId) } returns ortRun
+                }
+
+                val publisher = mockk<MessagePublisher> {
+                    every { publish(any<Endpoint<*>>(), any()) } just runs
+                }
+
+                Orchestrator(
+                    mockk(),
+                    advisorJobRepository,
+                    scannerJobRepository,
+                    evaluatorJobRepository,
+                    mockk(),
+                    mockk(),
+                    ortRunRepository,
+                    publisher
+                ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+
+                verify(exactly = 1) {
+                    evaluatorJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe evaluatorJob.configuration }
+                    )
+                    publisher.publish(
+                        to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
+                        message = withArg {
+                            it.header shouldBe msgHeader
+                            it.payload.evaluatorJobId shouldBe evaluatorJob.id
+                        }
+                    )
+                    evaluatorJobRepository.update(
+                        id = withArg { it shouldBe evaluatorJob.id },
+                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                    scannerJobRepository.update(
+                        id = withArg { it shouldBe scannerWorkerResult.jobId },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.FINISHED) }
                     )
                 }
             }

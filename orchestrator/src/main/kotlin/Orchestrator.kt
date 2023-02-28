@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.orchestrator
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
@@ -30,6 +31,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
@@ -47,6 +49,7 @@ import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessagePublisher
@@ -158,6 +161,13 @@ class Orchestrator(
                 status = JobStatus.SCHEDULED.asPresent()
             )
         }
+
+        /**
+         * Create an evaluator job if both advisor and scanner jobs are disabled
+         */
+        if (ortRun.jobs.advisor == null && ortRun.jobs.scanner == null) {
+            createEvaluatorJob(ortRun, header)
+        }
     }
 
     /**
@@ -188,7 +198,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [AdvisorWorkerResult].
      */
-    fun handleAdvisorWorkerResult(advisorWorkerResult: AdvisorWorkerResult) {
+    fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
         val jobId = advisorWorkerResult.jobId
 
         val advisorJob = advisorJobRepository.get(jobId)
@@ -201,6 +211,20 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'AdviseResult' message. No advisor job '$jobId' found.")
+            return
+        }
+
+        val ortRun = ortRunRepository.get(advisorJob.ortRunId)
+        if (ortRun == null) {
+            log.warn("Failed to handle 'AdviseResult' message. No ORT run '${advisorJob.ortRunId}' found.")
+            return
+        }
+
+        /**
+         * Create an Evaluator job only if Advisor and Scanner jobs have finished successfully
+         */
+        if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
+            createEvaluatorJob(ortRun, header)
         }
     }
 
@@ -232,7 +256,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [ScannerWorkerResult].
      */
-    fun handleScannerWorkerResult(scannerWorkerResult: ScannerWorkerResult) {
+    fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
         val jobId = scannerWorkerResult.jobId
 
         val scannerJob = scannerJobRepository.get(jobId)
@@ -245,6 +269,20 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'ScannerResult' message. No scanner job '$jobId' found.")
+            return
+        }
+
+        val ortRun = ortRunRepository.get(scannerJob.ortRunId)
+        if (ortRun == null) {
+            log.warn("Failed to handle 'ScannerResult' message. No ORT run '${scannerJob.ortRunId}' found.")
+            return
+        }
+
+        /**
+         * Create an Evaluator job only if Advisor and Scanner jobs have finished successfully
+         */
+        if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
+            createEvaluatorJob(ortRun, header)
         }
     }
 
@@ -358,6 +396,23 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'ReporterError' message. No reporter job ORT run '$jobId' found.")
+        }
+    }
+
+    private fun createEvaluatorJob(ortRun: OrtRun, header: MessageHeader) {
+        ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
+            val evaluatorJob = evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
+
+            publisher.publish(
+                to = EvaluatorEndpoint,
+                message = Message(header = header, payload = EvaluatorRequest(evaluatorJob.id))
+            )
+
+            evaluatorJobRepository.update(
+                id = evaluatorJob.id,
+                startedAt = Clock.System.now().asPresent(),
+                status = JobStatus.SCHEDULED.asPresent()
+            )
         }
     }
 }
