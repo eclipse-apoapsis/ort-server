@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,12 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+package org.ossreviewtoolkit.server.workers.reporter
 
-include(":api-v1")
-include(":clients:keycloak")
-include(":core")
-include(":dao")
-include(":model")
-include(":orchestrator")
-include(":services")
-include(":transport:activemqartemis")
-include(":transport:kubernetes")
-include(":transport:rabbitmq")
-include(":transport:spi")
-include(":workers:advisor")
-include(":workers:analyzer")
-include(":workers:common")
-include(":workers:evaluator")
-include(":workers:reporter")
-include(":workers:scanner")
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(::main::class.java)
+
+fun main() {
+    logger.info("Starting ORT-Server Reporter endpoint.")
+}
