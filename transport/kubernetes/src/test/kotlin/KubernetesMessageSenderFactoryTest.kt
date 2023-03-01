@@ -23,6 +23,9 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainInOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 
@@ -32,7 +35,11 @@ import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
 private const val NAMESPACE = "test-namespace"
-private const val IMAGENAME = "busybox"
+private const val IMAGE_NAME = "busybox"
+private const val RESTART_POLICY = "sometimes"
+private const val IMAGE_PULL_POLICY = "frequently"
+private const val BACKOFF_LIMIT = 42
+private const val COMMANDS = "foo bar \"hello world\" baz"
 
 class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created" {
@@ -40,20 +47,52 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         val configMap = mapOf(
             "$keyPrefix.type" to KubernetesConfig.TRANSPORT_NAME,
             "$keyPrefix.namespace" to NAMESPACE,
-            "$keyPrefix.imageName" to IMAGENAME
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.restartPolicy" to RESTART_POLICY,
+            "$keyPrefix.imagePullPolicy" to IMAGE_PULL_POLICY,
+            "$keyPrefix.commands" to COMMANDS,
+            "$keyPrefix.backoffLimit" to BACKOFF_LIMIT
         )
         val config = ConfigFactory.parseMap(configMap)
 
-        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig").toURI()).toFile().absolutePath
+        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
         val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
             MessageSenderFactory.createSender(AnalyzerEndpoint, config)
         }
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-        sender.namespace shouldBe NAMESPACE
-        sender.imageName shouldBe IMAGENAME
-        sender.commands shouldBe emptyList()
-        sender.envVars shouldBe System.getenv()
+        with(sender.config) {
+            namespace shouldBe NAMESPACE
+            imageName shouldBe IMAGE_NAME
+            imagePullPolicy shouldBe IMAGE_PULL_POLICY
+            commands shouldContainInOrder listOf("foo", "bar", "hello world", "baz")
+            backoffLimit shouldBe BACKOFF_LIMIT
+            restartPolicy shouldBe RESTART_POLICY
+        }
+    }
+
+    "A correct MessageSender can be created with default configuration settings" {
+        val keyPrefix = "analyzer.sender"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME
+        )
+        val config = ConfigFactory.parseMap(configMap)
+
+        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
+
+        val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
+            MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        }
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+        with(sender.config) {
+            commands should beEmpty()
+            backoffLimit shouldBe 2
+            imagePullPolicy shouldBe "Never"
+            restartPolicy shouldBe "OnFailure"
+        }
     }
 })

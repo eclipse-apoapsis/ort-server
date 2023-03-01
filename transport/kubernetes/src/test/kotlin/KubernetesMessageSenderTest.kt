@@ -20,6 +20,9 @@
 package org.ossreviewtoolkit.server.transport.kubernetes
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -55,17 +58,28 @@ class KubernetesMessageSenderTest : StringSpec({
         )
         val namespace = "test-namespace"
         val imageName = "busybox"
+        val expectedImagePullPolicy = "Always"
+        val expectedRestartPolicy = "Never"
+        val expectedBackoffLimit = 11
 
-        val sender = KubernetesMessageSender(
-            api = client,
+        val config = KubernetesConfig(
             namespace = namespace,
             imageName = imageName,
             commands = commands,
-            envVars = envVars,
+            imagePullPolicy = expectedImagePullPolicy,
+            restartPolicy = expectedRestartPolicy,
+            backoffLimit = expectedBackoffLimit
+        )
+
+        val sender = KubernetesMessageSender(
+            api = client,
+            config = config,
             endpoint = AnalyzerEndpoint
         )
 
-        sender.send(message)
+        withEnvironment(envVars, OverrideMode.SetOrOverride) {
+            sender.send(message)
+        }
 
         val job = slot<V1Job>()
         verify(exactly = 1) {
@@ -81,8 +95,12 @@ class KubernetesMessageSenderTest : StringSpec({
 
         job.captured.spec?.template?.spec?.containers?.single().shouldNotBeNull {
             image shouldBe imageName
+            imagePullPolicy shouldBe expectedImagePullPolicy
             command shouldBe commands
-            env?.associate { it.name to it.value } shouldBe envVars
+            env!!.associate { it.name to it.value } shouldContainAll envVars
         }
+
+        job.captured.spec?.backoffLimit shouldBe expectedBackoffLimit
+        job.captured.spec?.template?.spec?.restartPolicy shouldBe expectedRestartPolicy
     }
 })

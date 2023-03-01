@@ -36,10 +36,7 @@ class KubernetesMessageSenderFactory : MessageSenderFactory {
 
         return KubernetesMessageSender(
             api = BatchV1Api(defaultClient()),
-            namespace = senderConfig.namespace,
-            imageName = senderConfig.imageName,
-            commands = emptyList(),
-            envVars = System.getenv(),
+            config = senderConfig,
             endpoint = to
         )
     }

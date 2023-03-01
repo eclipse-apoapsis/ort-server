@@ -35,18 +35,10 @@ internal class KubernetesMessageSender<T : Any>(
     /** The Kubernetes API for creating jobs. */
     val api: BatchV1Api,
 
-    /** The namespace inside the Kubernetes Cluster to interact with. */
-    val namespace: String,
+    /** The configuration defining the job to be created. */
+    val config: KubernetesConfig,
 
-    /** The image name for the container. */
-    val imageName: String,
-
-    /** A list of commands for the container that runs in the Pod. **/
-    val commands: List<String>,
-
-    /** A map for environment variables, which will be set for the container that runs in the Pod. **/
-    val envVars: Map<String, String>,
-
+    /** Determines the target endpoint. */
     val endpoint: Endpoint<T>
 ) : MessageSender<T> {
     /** The object to serialize the payload of messages. */
@@ -59,30 +51,29 @@ internal class KubernetesMessageSender<T : Any>(
             "payload" to serializer.toJson(message.payload)
         )
 
-        // TODO: Certain parameters like e.g. restartPolicy, backoffLimit are currently hard-coded and may be made
-        //       configurable in the future.
+        val envVars = System.getenv()
+
         val jobBody = V1JobBuilder()
             .withNewMetadata()
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .endMetadata()
             .withNewSpec()
-            .withBackoffLimit(2)
+            .withBackoffLimit(config.backoffLimit)
             .withNewTemplate()
             .withNewSpec()
-            .withRestartPolicy("Always")
+            .withRestartPolicy(config.restartPolicy)
             .addNewContainer()
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
-            .withImage(imageName)
-            .withCommand(commands)
-            .withImagePullPolicy("Never")
+            .withImage(config.imageName)
+            .withCommand(config.commands)
+            .withImagePullPolicy(config.imagePullPolicy)
             .withEnv((envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() })
             .endContainer()
-            .withRestartPolicy("OnFailure")
             .endSpec()
             .endTemplate()
             .endSpec()
             .build()
 
-        api.createNamespacedJob(namespace, jobBody, null, null, null, null)
+        api.createNamespacedJob(config.namespace, jobBody, null, null, null, null)
     }
 }
