@@ -34,8 +34,10 @@ class KubernetesMessageSenderFactory : MessageSenderFactory {
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
         val senderConfig = KubernetesConfig.createConfig(config)
 
+        val client = defaultClient().setDebugging(senderConfig.enableDebugLogging)
+
         return KubernetesMessageSender(
-            api = BatchV1Api(defaultClient()),
+            api = BatchV1Api(client),
             config = senderConfig,
             endpoint = to
         )

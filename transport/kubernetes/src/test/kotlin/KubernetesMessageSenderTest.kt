@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
@@ -56,19 +57,15 @@ class KubernetesMessageSenderTest : StringSpec({
             "traceId" to header.traceId,
             "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
         )
-        val namespace = "test-namespace"
-        val imageName = "busybox"
-        val expectedImagePullPolicy = "Always"
-        val expectedRestartPolicy = "Never"
-        val expectedBackoffLimit = 11
 
         val config = KubernetesConfig(
-            namespace = namespace,
-            imageName = imageName,
+            namespace = "test-namespace",
+            imageName = "busybox",
             commands = commands,
-            imagePullPolicy = expectedImagePullPolicy,
-            restartPolicy = expectedRestartPolicy,
-            backoffLimit = expectedBackoffLimit
+            imagePullPolicy = "Always",
+            restartPolicy = "Never",
+            backoffLimit = 11,
+            imagePullSecret = "image_pull_secret"
         )
 
         val sender = KubernetesMessageSender(
@@ -84,7 +81,7 @@ class KubernetesMessageSenderTest : StringSpec({
         val job = slot<V1Job>()
         verify(exactly = 1) {
             client.createNamespacedJob(
-                namespace,
+                "test-namespace",
                 capture(job),
                 null,
                 null,
@@ -94,13 +91,15 @@ class KubernetesMessageSenderTest : StringSpec({
         }
 
         job.captured.spec?.template?.spec?.containers?.single().shouldNotBeNull {
-            image shouldBe imageName
-            imagePullPolicy shouldBe expectedImagePullPolicy
-            command shouldBe commands
+            image shouldBe config.imageName
+            imagePullPolicy shouldBe config.imagePullPolicy
+            command shouldBe config.commands
             env!!.associate { it.name to it.value } shouldContainAll envVars
         }
 
-        job.captured.spec?.backoffLimit shouldBe expectedBackoffLimit
-        job.captured.spec?.template?.spec?.restartPolicy shouldBe expectedRestartPolicy
+        job.captured.spec?.backoffLimit shouldBe config.backoffLimit
+        job.captured.spec?.template?.spec?.restartPolicy shouldBe config.restartPolicy
+        job.captured.spec?.template?.spec?.imagePullSecrets.orEmpty()
+            .map { it.name } shouldContainOnly listOf(config.imagePullSecret)
     }
 })

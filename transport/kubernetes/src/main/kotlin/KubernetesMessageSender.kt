@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
+import io.kubernetes.client.openapi.models.V1LocalObjectReference
 
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -62,6 +63,9 @@ internal class KubernetesMessageSender<T : Any>(
             .withNewTemplate()
             .withNewSpec()
             .withRestartPolicy(config.restartPolicy)
+            .withImagePullSecrets(
+                listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }
+            )
             .addNewContainer()
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .withImage(config.imageName)

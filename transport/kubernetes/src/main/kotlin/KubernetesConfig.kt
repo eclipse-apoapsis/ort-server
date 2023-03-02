@@ -34,6 +34,9 @@ data class KubernetesConfig(
     /** The policy when pulling images. */
     val imagePullPolicy: String = DEFAULT_IMAGE_PULL_POLICY,
 
+    /** A secret required for pulling the image from the container registry. */
+    val imagePullSecret: String? = null,
+
     /** The restart policy for the job. */
     val restartPolicy: String = DEFAULT_RESTART_POLICY,
 
@@ -41,7 +44,10 @@ data class KubernetesConfig(
     val backoffLimit: Int = DEFAULT_BACKOFF_LIMIT,
 
     /** The commands to be executed when running the container. */
-    val commands: List<String> = emptyList()
+    val commands: List<String> = emptyList(),
+
+    /** Allows enabling debug logs when interacting with the Kubernetes API. */
+    val enableDebugLogging: Boolean = false
 ) {
     companion object {
         /**
@@ -64,8 +70,14 @@ data class KubernetesConfig(
         /** The name of the configuration property defining the image pull policy. */
         private const val IMAGE_PULL_POLICY_PROPERTY = "imagePullPolicy"
 
+        /** The name of the configuration property defining the image pull secret. */
+        private const val IMAGE_PULL_SECRET_PROPERTY = "imagePullSecret"
+
         /** The name of the configuration property for the container commands. */
         private const val COMMANDS_PROPERTY = "commands"
+
+        /** The name of the configuration property that controls debug logging. */
+        private const val ENABLE_DEBUG_LOGGING_PROPERTY = "enableDebugLogging"
 
         /** The default value for the restart policy property. */
         private const val DEFAULT_RESTART_POLICY = "OnFailure"
@@ -90,9 +102,11 @@ data class KubernetesConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
                 imageName = config.getString(IMAGE_NAME_PROPERTY),
                 imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
+                imagePullSecret = config.getStringOrNull(IMAGE_PULL_SECRET_PROPERTY),
                 restartPolicy = config.getStringOrDefault(RESTART_POLICY_PROPERTY, DEFAULT_RESTART_POLICY),
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
-                commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace()
+                commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
+                enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
             )
 
         /**
@@ -107,13 +121,27 @@ data class KubernetesConfig(
 }
 
 /**
+ * Return this [Config] if it contains the given [path] or null if not.
+ */
+private fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
+
+/**
+ * Return the configuration setting with the given [path] or null if it cannot be found.
+ */
+private fun Config.getStringOrNull(path: String): String? = withPath(path)?.getString(path)
+
+/**
  * Return the configuration setting with the given [path] or [default] if it cannot be found.
  */
-private fun Config.getStringOrDefault(path: String, default: String): String =
-    takeIf { hasPath(path) }?.getString(path) ?: default
+private fun Config.getStringOrDefault(path: String, default: String): String = getStringOrNull(path) ?: default
 
 /**
  * Return the numeric configuration setting with the given [path] or [default] if it cannot be found.
  */
-private fun Config.getIntOrDefault(path: String, default: Int): Int =
-    takeIf { hasPath(path) }?.getInt(path) ?: default
+private fun Config.getIntOrDefault(path: String, default: Int): Int = withPath(path)?.getInt(path) ?: default
+
+/**
+ * Return the boolean configuration setting with the given [path] or [default] it it cannot be found.
+ */
+private fun Config.getBooleanOrDefault(path: String, default: Boolean): Boolean =
+    withPath(path)?.getBoolean(path) ?: default

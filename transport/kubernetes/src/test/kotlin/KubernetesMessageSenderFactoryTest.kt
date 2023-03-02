@@ -25,6 +25,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainInOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -38,6 +39,7 @@ private const val NAMESPACE = "test-namespace"
 private const val IMAGE_NAME = "busybox"
 private const val RESTART_POLICY = "sometimes"
 private const val IMAGE_PULL_POLICY = "frequently"
+private const val IMAGE_PULL_SECRET = "image_pull_secret"
 private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
 
@@ -50,8 +52,10 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.restartPolicy" to RESTART_POLICY,
             "$keyPrefix.imagePullPolicy" to IMAGE_PULL_POLICY,
+            "$keyPrefix.imagePullSecret" to IMAGE_PULL_SECRET,
             "$keyPrefix.commands" to COMMANDS,
-            "$keyPrefix.backoffLimit" to BACKOFF_LIMIT
+            "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
+            "$keyPrefix.enableDebugLogging" to "true"
         )
         val config = ConfigFactory.parseMap(configMap)
 
@@ -66,10 +70,14 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             namespace shouldBe NAMESPACE
             imageName shouldBe IMAGE_NAME
             imagePullPolicy shouldBe IMAGE_PULL_POLICY
+            imagePullSecret shouldBe IMAGE_PULL_SECRET
             commands shouldContainInOrder listOf("foo", "bar", "hello world", "baz")
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
+            enableDebugLogging shouldBe true
         }
+
+        sender.api.apiClient.isDebugging shouldBe true
     }
 
     "A correct MessageSender can be created with default configuration settings" {
@@ -93,6 +101,10 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             backoffLimit shouldBe 2
             imagePullPolicy shouldBe "Never"
             restartPolicy shouldBe "OnFailure"
+            imagePullSecret should beNull()
+            enableDebugLogging shouldBe false
         }
+
+        sender.api.apiClient.isDebugging shouldBe false
     }
 })
