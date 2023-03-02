@@ -180,6 +180,11 @@ services:
       EVALUATOR_SENDER_TRANSPORT_QUEUE_NAME: evaluator_queue
       EVALUATOR_SENDER_TRANSPORT_USERNAME: admin
       EVALUATOR_SENDER_TRANSPORT_PASSWORD: admin
+      REPORTER_SENDER_TRANSPORT_TYPE: rabbitMQ
+      REPORTER_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      REPORTER_SENDER_TRANSPORT_QUEUE_NAME: reporter_queue
+      REPORTER_SENDER_TRANSPORT_USERNAME: admin
+      REPORTER_SENDER_TRANSPORT_PASSWORD: admin
 
   analyzer-worker:
     image: ort-server-analyzer-worker
@@ -280,6 +285,31 @@ services:
       EVALUATOR_RECEIVER_TRANSPORT_QUEUE_NAME: evaluator_queue
       EVALUATOR_RECEIVER_TRANSPORT_USERNAME: admin
       EVALUATOR_RECEIVER_TRANSPORT_PASSWORD: admin
+
+  reporter-worker:
+    image: ort-server-reporter-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: "jdbc:postgresql://postgres"
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
+      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      REPORTER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      REPORTER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      REPORTER_RECEIVER_TRANSPORT_QUEUE_NAME: reporter_queue
+      REPORTER_RECEIVER_TRANSPORT_USERNAME: admin
+      REPORTER_RECEIVER_TRANSPORT_PASSWORD: admin
 
 volumes:
   db:
