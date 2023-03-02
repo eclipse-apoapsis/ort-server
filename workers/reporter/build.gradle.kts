@@ -33,7 +33,23 @@ group = "ort.ossreviewtoolkit.server.workers"
 version = "0.0.1"
 
 dependencies {
+    implementation(project(":dao"))
+    implementation(project(":model"))
+    implementation(project(":transport:activemqartemis"))
+    implementation(project(":transport:kubernetes"))
+    implementation(project(":transport:rabbitmq"))
+    implementation(project(":transport:spi"))
+
     implementation(libs.logback)
+    implementation(libs.typesafeConfig)
+
+    testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":transport:spi")))
+
+    testImplementation(libs.koinTest)
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
 }
 
 jib {

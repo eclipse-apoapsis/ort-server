@@ -25,4 +25,6 @@ private val logger = LoggerFactory.getLogger(::main::class.java)
 
 fun main() {
     logger.info("Starting ORT-Server Reporter endpoint.")
+
+    ReporterComponent().start()
 }
