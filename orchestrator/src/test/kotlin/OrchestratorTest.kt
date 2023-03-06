@@ -406,8 +406,24 @@ class OrchestratorTest : WordSpec() {
                     every { publish(any<Endpoint<*>>(), any()) } just runs
                 }
 
-                Orchestrator(mockk(), advisorJobRepository, mockk(), mockk(), mockk(), mockk(), mockk(), publisher)
-                    .handleAdvisorWorkerResult(advisorWorkerResult)
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { get(advisorJob.ortRunId) } returns ortRun
+                }
+
+                val scannerJobRepository = mockk<ScannerJobRepository> {
+                    every { getForOrtRun(ortRun.id) } returns scannerJob
+                }
+
+                Orchestrator(
+                    analyzerJobRepository = mockk(),
+                    advisorJobRepository = advisorJobRepository,
+                    scannerJobRepository = scannerJobRepository,
+                    evaluatorJobRepository = mockk(),
+                    reporterJobRepository = mockk(),
+                    repositoryRepository = mockk(),
+                    ortRunRepository = ortRunRepository,
+                    publisher = publisher
+                ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
 
                 verify(exactly = 1) {
                     advisorJobRepository.update(
