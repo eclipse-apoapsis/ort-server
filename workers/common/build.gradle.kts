@@ -39,4 +39,7 @@ dependencies {
     implementation(project(":model"))
 
     api(libs.ortModel)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
 }
