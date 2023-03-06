@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
@@ -53,6 +54,7 @@ import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessagePublisher
+import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 import org.ossreviewtoolkit.server.transport.ScannerEndpoint
 
 import org.slf4j.LoggerFactory
@@ -314,7 +316,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [EvaluatorWorkerResult].
      */
-    fun handleEvaluatorWorkerResult(evaluatorWorkerResult: EvaluatorWorkerResult) {
+    fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
         val jobId = evaluatorWorkerResult.jobId
 
         val evaluatorJob = evaluatorJobRepository.get(jobId)
@@ -327,7 +329,16 @@ class Orchestrator(
             )
         } else {
             log.warn("Failed to handle 'EvaluatorResult' message. No evaluator job '$jobId' found.")
+            return
         }
+
+        val ortRun = ortRunRepository.get(evaluatorJob.ortRunId)
+        if (ortRun == null) {
+            log.warn("Failed to handle 'EvaluatorResult' message. No ORT run '${evaluatorJob.ortRunId}' found.")
+            return
+        }
+
+        createReporterJob(ortRun, header)
     }
 
     /**
@@ -399,6 +410,9 @@ class Orchestrator(
         }
     }
 
+    /**
+     * Create an Evaluator job if it is enabled; otherwise, delegate to [createReporterJob]
+     */
     private fun createEvaluatorJob(ortRun: OrtRun, header: MessageHeader) {
         ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
             val evaluatorJob = evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
@@ -410,6 +424,23 @@ class Orchestrator(
 
             evaluatorJobRepository.update(
                 id = evaluatorJob.id,
+                startedAt = Clock.System.now().asPresent(),
+                status = JobStatus.SCHEDULED.asPresent()
+            )
+        } ?: createReporterJob(ortRun, header)
+    }
+
+    private fun createReporterJob(ortRun: OrtRun, header: MessageHeader) {
+        ortRun.jobs.reporter?.let { reporterJobConfiguration ->
+            val reporterJob = reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
+
+            publisher.publish(
+                to = ReporterEndpoint,
+                message = Message(header = header, payload = ReporterRequest(reporterJob.id))
+            )
+
+            reporterJobRepository.update(
+                id = reporterJob.id,
                 startedAt = Clock.System.now().asPresent(),
                 status = JobStatus.SCHEDULED.asPresent()
             )

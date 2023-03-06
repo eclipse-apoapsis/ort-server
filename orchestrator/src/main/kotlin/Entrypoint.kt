@@ -79,7 +79,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is AdvisorWorkerError -> orchestrator.handleAdvisorWorkerError(payload)
             is ScannerWorkerResult -> orchestrator.handleScannerWorkerResult(message.header, payload)
             is ScannerWorkerError -> orchestrator.handleScannerWorkerError(payload)
-            is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(payload)
+            is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(message.header, payload)
             is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
             is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(payload)
             is ReporterWorkerError -> orchestrator.handleReporterWorkerError(payload)
