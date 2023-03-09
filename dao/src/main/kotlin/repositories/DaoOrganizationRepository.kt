@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
@@ -36,7 +37,7 @@ class DaoOrganizationRepository : OrganizationRepository {
         }
     }.getOrThrow().mapToModel()
 
-    override fun get(id: Long) = blockingQuery { OrganizationDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = entityQuery { OrganizationDao[id].mapToModel() }
 
     override fun list() = blockingQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
 

@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -185,6 +186,10 @@ class DaoAdvisorRunRepositoryTest : StringSpec() {
                     ).toList()
                 )
             )
+        }
+
+        "get should return null" {
+            advisorRunRepository.get(1L).shouldBeNull()
         }
     }
 }

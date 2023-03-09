@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -102,6 +103,16 @@ class DaoOrganizationRepositoryTest : StringSpec() {
             organizationRepository.delete(createdOrg.id)
 
             organizationRepository.list() shouldBe emptyList()
+        }
+
+        "get should return null" {
+            organizationRepository.get(1L).shouldBeNull()
+        }
+
+        "get should return the organization" {
+            val organization = organizationRepository.create("name", "description")
+
+            organizationRepository.get(organization.id) shouldBe organization
         }
     }
 }

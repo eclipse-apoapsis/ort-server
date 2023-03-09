@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -242,6 +243,10 @@ class DaoAnalyzerRunRepositoryTest : StringSpec() {
                 issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision()))),
                 dependencyGraphs = dependencyGraphs
             )
+        }
+
+        "get should return null" {
+            analyzerRunRepository.get(1L).shouldBeNull()
         }
     }
 }

@@ -26,6 +26,7 @@ import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
@@ -102,7 +103,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         analyzerRun.mapToModel()
     }.getOrThrow()
 
-    override fun get(id: Long): AnalyzerRun? = blockingQuery { AnalyzerRunDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long): AnalyzerRun? = entityQuery { AnalyzerRunDao[id].mapToModel() }
 
     override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQuery {
         AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()

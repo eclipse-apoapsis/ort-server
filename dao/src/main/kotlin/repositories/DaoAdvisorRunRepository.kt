@@ -24,6 +24,7 @@ import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationsOptionDao
@@ -106,7 +107,7 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         advisorRunDao.mapToModel()
     }.getOrThrow()
 
-    override fun get(id: Long): AdvisorRun? = blockingQuery { AdvisorRunDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long): AdvisorRun? = entityQuery { AdvisorRunDao[id].mapToModel() }
 }
 
 private fun createAdvisorConfiguration(

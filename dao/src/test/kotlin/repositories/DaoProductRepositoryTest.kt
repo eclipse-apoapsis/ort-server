@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -114,6 +115,16 @@ class DaoProductRepositoryTest : StringSpec() {
             productRepository.delete(createdProduct.id)
 
             productRepository.listForOrganization(orgId) shouldBe emptyList()
+        }
+
+        "get should return null" {
+            productRepository.get(1L).shouldBeNull()
+        }
+
+        "get should return the product" {
+            val product = productRepository.create("name", "description", orgId)
+
+            productRepository.get(product.id) shouldBe product
         }
     }
 }

@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
@@ -36,7 +37,7 @@ class DaoRepositoryRepository : RepositoryRepository {
         }.mapToModel()
     }.getOrThrow()
 
-    override fun get(id: Long) = blockingQuery { RepositoryDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = entityQuery { RepositoryDao[id].mapToModel() }
 
     override fun listForProduct(productId: Long) = blockingQuery {
         RepositoryDao.find { RepositoriesTable.productId eq productId }.map { it.mapToModel() }

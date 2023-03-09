@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -84,6 +85,16 @@ class DaoOrtRunRepositoryTest : StringSpec() {
             val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
 
             ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
+        }
+
+        "get should return null" {
+            ortRunRepository.get(1L).shouldBeNull()
+        }
+
+        "get should return the run" {
+            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+
+            ortRunRepository.get(ortRun.id) shouldBe ortRun
         }
 
         "listForRepositories should return all runs for a repository" {

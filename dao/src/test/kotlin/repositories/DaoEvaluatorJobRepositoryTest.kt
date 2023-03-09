@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.dao.test.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -74,6 +75,16 @@ class DaoEvaluatorJobRepositoryTest : StringSpec() {
             val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
 
             evaluatorJobRepository.getForOrtRun(ortRunId) shouldBe evaluatorJob
+        }
+
+        "get should return null" {
+            evaluatorJobRepository.get(1L).shouldBeNull()
+        }
+
+        "get should return the job" {
+            val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+            evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob
         }
 
         "update should update an entry in the database" {

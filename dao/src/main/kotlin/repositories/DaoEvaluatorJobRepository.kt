@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobsTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -42,7 +43,7 @@ class DaoEvaluatorJobRepository : EvaluatorJobRepository {
         }.mapToModel()
     }.getOrThrow()
 
-    override fun get(id: Long) = blockingQuery { EvaluatorJobDao[id].mapToModel() }.getOrNull()
+    override fun get(id: Long) = entityQuery { EvaluatorJobDao[id].mapToModel() }
 
     override fun getForOrtRun(ortRunId: Long): EvaluatorJob? = blockingQuery {
         EvaluatorJobDao.find { EvaluatorJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
