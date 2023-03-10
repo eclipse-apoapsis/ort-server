@@ -25,6 +25,13 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockkObject
+import io.mockk.runs
+import io.mockk.unmockkAll
+import io.mockk.verify
+
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -32,6 +39,15 @@ import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageReceiverFactoryTest : StringSpec({
+    beforeAny {
+        mockkObject(KubernetesMessageReceiverFactory)
+        every { KubernetesMessageReceiverFactory.exit(any()) } just runs
+    }
+
+    afterAny {
+        unmockkAll()
+    }
+
     "Messages can be received via the Kubernetes transport" {
         val payload = AnalyzerRequest(1)
         val header = MessageHeader(token = "testToken", traceId = "testTraceId")
@@ -60,6 +76,38 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
                 this.header.token shouldBe header.token
                 this.header.traceId shouldBe header.traceId
                 this.payload shouldBe payload
+            }
+
+            verify {
+                KubernetesMessageReceiverFactory.exit(0)
+            }
+        }
+    }
+
+    "The process is terminated even if an exception is thrown by the handler" {
+        val payload = AnalyzerRequest(1)
+        val header = MessageHeader(token = "testToken", traceId = "testTraceId")
+
+        val env = mapOf(
+            "token" to header.token,
+            "traceId" to header.traceId,
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+
+        withEnvironment(env) {
+            val configMap = mapOf(
+                "type" to KubernetesConfig.TRANSPORT_NAME,
+                "namespace" to "test-namespace",
+                "imageName" to "busybox"
+            )
+            val config = ConfigFactory.parseMap(configMap)
+
+            KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, config) { _ ->
+                throw IllegalStateException("Test exception")
+            }
+
+            verify {
+                KubernetesMessageReceiverFactory.exit(1)
             }
         }
     }

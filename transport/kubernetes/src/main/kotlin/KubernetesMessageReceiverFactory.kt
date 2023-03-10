@@ -21,6 +21,10 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 
 import com.typesafe.config.Config
 
+import java.lang.Exception
+
+import kotlin.system.exitProcess
+
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.Message
@@ -33,6 +37,13 @@ import org.slf4j.LoggerFactory
 class KubernetesMessageReceiverFactory : MessageReceiverFactory {
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesMessageReceiverFactory::class.java)
+
+        /**
+         * Exit this process. This is necessary to make sure that the Java process terminates after the job has run.
+         */
+        internal fun exit(status: Int) {
+            exitProcess(status)
+        }
     }
 
     override val name = KubernetesConfig.TRANSPORT_NAME
@@ -53,6 +64,14 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
 
         val msg = Message(MessageHeader(token, traceId), serializer.fromJson(payload))
 
-        handler(msg)
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            handler(msg)
+        } catch (e: Exception) {
+            logger.error("Message processing caused an exception.", e)
+            exit(1)
+        } finally {
+            exit(0)
+        }
     }
 }
