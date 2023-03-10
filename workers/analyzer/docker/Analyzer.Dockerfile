@@ -302,6 +302,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG COMPOSER_VERSION=2.2
 RUN curl -ksS https://getcomposer.org/installer | php -- --install-dir=/bin --filename=composer --$COMPOSER_VERSION
 
+# Make sure the user executing the container has access rights in the home directory.
+RUN chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
+
 USER $USERNAME
 WORKDIR $HOMEDIR
 
