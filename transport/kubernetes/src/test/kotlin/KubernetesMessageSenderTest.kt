@@ -52,11 +52,17 @@ class KubernetesMessageSenderTest : StringSpec({
 
         val commands = listOf("/bin/echo", "Hello World")
         val envVars = mapOf(
+            "SPECIFIC_PROPERTY" to "bar",
             "SHELL" to "/bin/bash",
             "token" to header.token,
             "traceId" to header.traceId,
-            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}",
+            "ANALYZER_SPECIFIC_PROPERTY" to "foo"
         )
+
+        val expectedEnvVars = envVars.toMutableMap()
+        expectedEnvVars["SPECIFIC_PROPERTY"] = "foo"
+        expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
 
         val config = KubernetesConfig(
             namespace = "test-namespace",
@@ -94,7 +100,7 @@ class KubernetesMessageSenderTest : StringSpec({
             image shouldBe config.imageName
             imagePullPolicy shouldBe config.imagePullPolicy
             command shouldBe config.commands
-            env!!.associate { it.name to it.value } shouldContainAll envVars
+            env!!.associate { it.name to it.value } shouldContainAll expectedEnvVars
         }
 
         job.captured.spec?.backoffLimit shouldBe config.backoffLimit

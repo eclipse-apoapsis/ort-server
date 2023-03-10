@@ -52,7 +52,7 @@ internal class KubernetesMessageSender<T : Any>(
             "payload" to serializer.toJson(message.payload)
         )
 
-        val envVars = System.getenv()
+        val envVars = createEnvironment()
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()
@@ -79,5 +79,18 @@ internal class KubernetesMessageSender<T : Any>(
             .build()
 
         api.createNamespacedJob(config.namespace, jobBody, null, null, null, null)
+    }
+
+    /**
+     * Prepare the environment for the job to create. This environment contains all the variables from the current
+     * environment, but if a variable starts with a prefix named like the target [Endpoint], this prefix is removed.
+     * This way, variables can be set for specific containers without clashing with other containers.
+     */
+    private fun createEnvironment(): Map<String, String> {
+        val endpointPrefix = "${endpoint.configPrefix.uppercase()}_"
+        val endPointVariables = System.getenv().filter { it.key.startsWith(endpointPrefix) }
+            .mapKeys { it.key.removePrefix(endpointPrefix) }
+
+        return System.getenv() + endPointVariables
     }
 }
