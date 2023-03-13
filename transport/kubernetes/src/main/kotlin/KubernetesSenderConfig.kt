@@ -22,9 +22,13 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 import com.typesafe.config.Config
 
 /**
- * A configuration class used by the Kubernetes Transport implementation.
+ * A configuration class used by the sender part of the Kubernetes Transport implementation.
+ *
+ * Note that there is an asymmetry between the configuration requirements of the sender and the receiver part: The
+ * sender does the heavy work of creating a Kubernetes job and thus needs to be rather flexible and configurable.
+ * The receiver in contrast just receives some parameters from environment variables.
  */
-data class KubernetesConfig(
+data class KubernetesSenderConfig(
     /** The namespace inside the Kubernetes Cluster. */
     val namespace: String,
 
@@ -95,10 +99,10 @@ data class KubernetesConfig(
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
         /**
-         * Create a [KubernetesConfig] from the provided [config].
+         * Create a [KubernetesSenderConfig] from the provided [config].
          */
         fun createConfig(config: Config) =
-            KubernetesConfig(
+            KubernetesSenderConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
                 imageName = config.getString(IMAGE_NAME_PROPERTY),
                 imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),

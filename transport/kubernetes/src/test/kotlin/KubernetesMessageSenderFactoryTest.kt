@@ -47,7 +47,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created" {
         val keyPrefix = "analyzer.sender"
         val configMap = mapOf(
-            "$keyPrefix.type" to KubernetesConfig.TRANSPORT_NAME,
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
             "$keyPrefix.namespace" to NAMESPACE,
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.restartPolicy" to RESTART_POLICY,
@@ -83,7 +83,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created with default configuration settings" {
         val keyPrefix = "analyzer.sender"
         val configMap = mapOf(
-            "$keyPrefix.type" to KubernetesConfig.TRANSPORT_NAME,
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
             "$keyPrefix.namespace" to NAMESPACE,
             "$keyPrefix.imageName" to IMAGE_NAME
         )

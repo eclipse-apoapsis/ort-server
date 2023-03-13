@@ -64,7 +64,7 @@ class KubernetesMessageSenderTest : StringSpec({
         expectedEnvVars["SPECIFIC_PROPERTY"] = "foo"
         expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
 
-        val config = KubernetesConfig(
+        val config = KubernetesSenderConfig(
             namespace = "test-namespace",
             imageName = "busybox",
             commands = commands,

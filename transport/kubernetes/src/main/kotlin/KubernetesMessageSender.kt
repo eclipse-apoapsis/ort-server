@@ -37,7 +37,7 @@ internal class KubernetesMessageSender<T : Any>(
     val api: BatchV1Api,
 
     /** The configuration defining the job to be created. */
-    val config: KubernetesConfig,
+    val config: KubernetesSenderConfig,
 
     /** Determines the target endpoint. */
     val endpoint: Endpoint<T>

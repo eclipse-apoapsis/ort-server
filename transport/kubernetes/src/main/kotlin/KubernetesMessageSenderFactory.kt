@@ -29,10 +29,10 @@ import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
 class KubernetesMessageSenderFactory : MessageSenderFactory {
-    override val name: String = KubernetesConfig.TRANSPORT_NAME
+    override val name: String = KubernetesSenderConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val senderConfig = KubernetesConfig.createConfig(config)
+        val senderConfig = KubernetesSenderConfig.createConfig(config)
 
         val client = defaultClient().setDebugging(senderConfig.enableDebugLogging)
 

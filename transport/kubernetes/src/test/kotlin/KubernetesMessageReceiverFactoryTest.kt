@@ -60,7 +60,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
 
         withEnvironment(env) {
             val configMap = mapOf(
-                "type" to KubernetesConfig.TRANSPORT_NAME,
+                "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
                 "imageName" to "busybox"
             )
@@ -96,7 +96,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
 
         withEnvironment(env) {
             val configMap = mapOf(
-                "type" to KubernetesConfig.TRANSPORT_NAME,
+                "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
                 "imageName" to "busybox"
             )

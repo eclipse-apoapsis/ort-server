@@ -46,17 +46,12 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
         }
     }
 
-    override val name = KubernetesConfig.TRANSPORT_NAME
+    override val name = KubernetesSenderConfig.TRANSPORT_NAME
 
     override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
         val serializer = JsonSerializer.forClass(from.messageClass)
-        val kubernetesConfig = KubernetesConfig.createConfig(config)
 
-        logger.info(
-            "Starting Kubernetes message receiver for endpoint '{}' using namespace '{}'.",
-            from.configPrefix,
-            kubernetesConfig.namespace
-        )
+        logger.info("Starting Kubernetes message receiver for endpoint '{}'.", from.configPrefix)
 
         val token = System.getenv("token")
         val traceId = System.getenv("traceId")
