@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.ossreviewtoolkit.server.dao
 
 import com.typesafe.config.Config
@@ -32,6 +34,7 @@ import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -136,6 +139,17 @@ suspend fun <T> dbQuery(block: () -> T): Result<T> =
  * Execute the [block] in a database [transaction].
  */
 fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }.mapExceptions()
+
+/**
+ * Execute the [block] in a [blockingQuery] and return the encapsulated value or null if an [EntityNotFoundException]
+ * is thrown. Otherwise, throw the exception.
+ */
+fun <T> entityQuery(block: () -> T): T? = blockingQuery { block() }.getOrElse {
+    when (it) {
+        is EntityNotFoundException -> null
+        else -> throw it
+    }
+}
 
 /**
  * Map the generic database exceptions to more specific exceptions.
