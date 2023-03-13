@@ -12,16 +12,80 @@ The container started by the Kubernetes Job acts as the receiver and constructs 
 == Configuration
 
 In order to use this module, the `type` property in the transport configuration must be set to `kubernetes`.
-The `namespace` property specifies the namespace inside the Kubernetes Cluster, in which the Jobs will be created.
-And the `imageName` property specifies the container image, that will run inside the Job.
+For the sender part, a number of properties can be provided as shown in the fragment below:
 
 [source]
 ----
 endpoint {
-    sender/receiver {
+    sender {
         type = "kubernetes"
         namespace = "namespace-inside-cluster"
         imageName = "image-to-run"
+        imagePullPolicy = "Always"
+        imagePullSecret = "my-secret"
+        restartPolicy = ""
+        backoffLimit = 5
+        commands = "java my.pkg.MyClass"
     }
 }
 ----
+
+The properties have the following meaning:
+
+|===
+|Property |Description |Default
+
+|namespace
+|The namespace inside the Kubernetes cluster, in which the job will be created.
+|none
+
+|imageName
+|The full name of the container image from which the pod is created, including the tag name.
+|none
+
+|imagePullPolicy
+|Defines the https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy[pull policy] for the container
+image, one of `IfNotPresent`, `Always`, or `Never`.
+|`Never`
+
+|imagePullSecret
+|The name of the secret to be used to connect to the container registry when pulling the container image. This is
+needed when using private registries that require authentication.
+|empty
+
+|restartPolicy
+|The https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy[restart policy] for the
+container, one of `Always`, `OnFailure`, or `Never`.
+|`OnFailure`
+
+|backoffLimit
+|Defines the https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy[backup failure policy]
+for the job to be created. This is the number of retries for failed pods attempted by Kubernetes before it considers
+the job as failed.
+|2
+
+|commands
+|The commands to be executed in the container. This can be used to overwrite the container's default command. Here a
+string can be specified. In order to obtain the array with commands expected by the Kubernetes job specification, the
+string is split at whitespaces, unless the whitespace occurs in double quotes.
+|empty
+|===
+
+NOTE: The receiver part does not need any specific configuration settings except for the transport type itself.
+
+== Inheritance of environment variables
+Per default, when creating a new job, the `KubernetesMessageSender` passes all environment variables defined for the
+current pod to the specification of the new job. That way common variables like service credentials can be shared
+between pods.
+
+A problem can arise though if there are name clashes with environment variables, e.g. if the new job requires a
+different value in a variable than the current pod. To address such problems, the Kubernetes transport protocol
+supports a simple mapping mechanism for variable names that start with a prefix derived from the target endpoint:
+When setting up the environment variables for the new job it checks for variables whose name starts with the prefix
+name of the target endpoint in capital letters followed by an underscore. This prefix is then removed from the
+variable in the environment of the new job.
+
+For instance, in order to set the `HOME` variable for the Analyzer worker to a specific value, define a variable
+`ANALYZER_HOME` in the Orchestrator pod. When then a new Analyzer job is created, its `HOME` variable get initialized
+from the value of the `ANALYZER_HOME` variable. An existing `HOME` variable in the Orchestrator pod will not conflict
+with this other value.
