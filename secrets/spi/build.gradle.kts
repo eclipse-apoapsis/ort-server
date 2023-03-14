@@ -19,6 +19,8 @@
 
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
+    `java-test-fixtures`
+
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
