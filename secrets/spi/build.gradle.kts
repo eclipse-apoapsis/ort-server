@@ -31,6 +31,8 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    api(libs.typesafeConfig)
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
