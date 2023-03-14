@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,22 @@
  * License-Filename: LICENSE
  */
 
-rootProject.name = "ort-server"
+@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
+plugins {
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinxSerialization)
+}
 
-include(":api-v1")
-include(":clients:keycloak")
-include(":core")
-include(":dao")
-include(":model")
-include(":orchestrator")
-include(":secrets:spi")
-include(":services")
-include(":transport:activemqartemis")
-include(":transport:kubernetes")
-include(":transport:rabbitmq")
-include(":transport:spi")
-include(":workers:advisor")
-include(":workers:analyzer")
-include(":workers:common")
-include(":workers:evaluator")
-include(":workers:reporter")
-include(":workers:scanner")
+group = "org.ossreviewtoolkit.server"
+version = "0.0.1"
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+dependencies {
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
+}
