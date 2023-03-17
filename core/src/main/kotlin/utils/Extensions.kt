@@ -23,6 +23,9 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.ApplicationConfig
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 
 /**
  * Get the parameter from this [ApplicationCall].
@@ -41,3 +44,42 @@ fun ApplicationConfig.createKeycloakClientConfiguration() =
             apiSecret = property("apiSecret").getString()
         )
     }
+
+/**
+ * Return a [ListQueryParameters] object with the standard query parameters defined for this [ApplicationCall]. This
+ * can then be used when calling services.
+ */
+fun ApplicationCall.listQueryParameters(): ListQueryParameters =
+    ListQueryParameters(
+        limit = parameters["limit"]?.toInt(),
+        offset = parameters["offset"]?.toLong(),
+        sortFields = parameters["sort"]?.let(::processSortParameter).orEmpty()
+    )
+
+/**
+ * Converts the given [sort] parameter with the fields to sort query results to a list of [OrderField] objects. The
+ * parameter is expected to contain a comma-separated list of field names. To define the sort order for each field, it
+ * can have one of the prefixes "+" for ascending or "-" for descending. If no prefix is provided, ascending is
+ * assumed.
+ */
+private fun processSortParameter(sort: String): List<OrderField> {
+    val fields = sort.split(',')
+
+    return fields.map(String::toOrderField)
+}
+
+/** A map to associate sort order prefixes with the corresponding constants. */
+private val orderPrefixes = mapOf(
+    '+' to OrderDirection.ASCENDING,
+    '-' to OrderDirection.DESCENDING
+)
+
+/**
+ * Convert this string to an [OrderField]. The string is expected to contain a field name with an option prefix
+ * determining the sort order.
+ */
+private fun String.toOrderField(): OrderField {
+    val orderFromPrefix = orderPrefixes.filterKeys { prefix -> startsWith(prefix) }.map { it.value }.firstOrNull()
+    return orderFromPrefix?.let { OrderField(substring(1), orderFromPrefix) }
+        ?: OrderField(this, OrderDirection.ASCENDING)
+}
