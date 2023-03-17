@@ -84,9 +84,13 @@ spec:
               value: disable
             - name: DB_URL
               value: "jdbc:postgresql://{{ .Release.Name }}-postgresql-hl:{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
-            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
-              value: "kubernetes"
             {{- if .Values.ort_server.artemis.enabled }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: "activeMQ"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: "amqp://{{ .Release.Name }}-artemis:{{ .Values.ort_server.artemis.openWirePort }}"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.ort_server.orchestrator.queueName }}
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE
               value: "activeMQ"
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI
@@ -95,6 +99,16 @@ spec:
               value: {{ .Values.ort_server.orchestrator.queueName }}
             {{- end }}
             {{- if .Values.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: "rabbitMQ"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: "amqp://{{ .Release.Name }}-rabbitmq-headless:{{ .Values.rabbitmq.service.ports.amqp }}"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.ort_server.orchestrator.queueName }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_USERNAME
+              value: {{ .Values.rabbitmq.auth.username }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD
+              value: {{ .Values.rabbitmq.auth.password }}
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE
               value: "rabbitMQ"
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI
