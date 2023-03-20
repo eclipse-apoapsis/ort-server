@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.model.repositories
 
 import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -37,9 +38,9 @@ interface OrganizationRepository {
     fun get(id: Long): Organization?
 
     /**
-     * List all organizations.
+     * List all organizations according to the given [parameters].
      */
-    fun list(): List<Organization>
+    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Organization>
 
     /**
      * Update an organization by [id] with the [present][OptionalValue.Present] values.

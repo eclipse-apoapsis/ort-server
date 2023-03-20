@@ -23,7 +23,9 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
+import org.ossreviewtoolkit.server.dao.utils.list
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -39,7 +41,8 @@ class DaoOrganizationRepository : OrganizationRepository {
 
     override fun get(id: Long) = entityQuery { OrganizationDao[id].mapToModel() }
 
-    override fun list() = blockingQuery { OrganizationDao.all().map { it.mapToModel() } }.getOrThrow()
+    override fun list(parameters: ListQueryParameters) =
+        blockingQuery { OrganizationDao.list(parameters).map { it.mapToModel() } }.getOrThrow()
 
     override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
         val org = OrganizationDao[id]

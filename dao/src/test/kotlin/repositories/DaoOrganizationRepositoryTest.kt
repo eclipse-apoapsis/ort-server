@@ -27,7 +27,10 @@ import io.kotest.matchers.shouldBe
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrganizationRepositoryTest : StringSpec() {
@@ -60,6 +63,26 @@ class DaoOrganizationRepositoryTest : StringSpec() {
 
             organizationRepository.list() shouldBe listOf(
                 Organization(createdOrg1.id, name1, description1),
+                Organization(createdOrg2.id, name2, description2)
+            )
+        }
+
+        "list should apply parameters" {
+            val name1 = "name1"
+            val description1 = "description1"
+
+            val name2 = "name2"
+            val description2 = "description2"
+
+            organizationRepository.create(name1, description1)
+            val createdOrg2 = organizationRepository.create(name2, description2)
+
+            val parameters = ListQueryParameters(
+                sortFields = listOf(OrderField("name", OrderDirection.DESCENDING)),
+                limit = 1
+            )
+
+            organizationRepository.list(parameters) shouldBe listOf(
                 Organization(createdOrg2.id, name2, description2)
             )
         }
