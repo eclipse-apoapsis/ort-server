@@ -41,6 +41,29 @@ Response
 ]
 ----
 
+For operations that return multiple entities, a number of default parameters are available that support typical use
+cases like paging or sorting. They can be added to the request URL as query parameters as shown below:
+
+ GET /organizations?limit=25&offset=100&sort=-name
+
+The query parameters have the following meaning:
+
+|===
+|Parameter |Description
+
+|limit
+|Restricts the number of results to be retrieved. For paging, this parameter defines the page size.
+
+|Offset
+|Defines the offset of the first result to be retrieved.
+
+|sort
+|A comma-separated list of fields by which the result should be sorted. The field names correspond to the properties
+of the entity in the result. They can be prefixed with "-" for descending order or "+" for ascending order (which is
+the default).
+|===
+
+
 *Read single organization*
 
 ----
