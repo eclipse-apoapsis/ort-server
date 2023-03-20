@@ -55,6 +55,10 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
     summary = "List all organizations."
     tags = listOf("Organizations")
 
+    request {
+        standardListQueryParameters()
+    }
+
     response {
         HttpStatusCode.OK to {
             description = "Success"
@@ -143,6 +147,8 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
+
+        standardListQueryParameters()
     }
 
     response {

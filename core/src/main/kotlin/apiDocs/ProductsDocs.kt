@@ -101,6 +101,8 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
         pathParameter<Long>("productId") {
             description = "The product's ID."
         }
+
+        standardListQueryParameters()
     }
 
     response {

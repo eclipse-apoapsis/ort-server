@@ -119,6 +119,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
         pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
+
+        standardListQueryParameters()
     }
 
     response {

@@ -36,3 +36,21 @@ inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiSimpleBod
         mediaType(ContentType.Application.Json)
         block()
     }
+
+/**
+ * Generate documentation for standard list query parameters.
+ */
+fun OpenApiRequest.standardListQueryParameters() {
+    queryParameter<Int>("limit") {
+        description = "The maximum number of items to retrieve."
+    }
+    queryParameter<Long>("offset") {
+        description = "The offset of the first item in the result. Together with 'limit', this can be used to " +
+                "implement paging."
+    }
+    queryParameter<String>("sort") {
+        description = "Comma-separated list of fields by which the result is sorted. The listed fields must be " +
+                "supported by the endpoint. Putting a minus ('-') before a field name, reverts the sort order " +
+                "for this field."
+    }
+}
