@@ -24,8 +24,10 @@ import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
+import org.ossreviewtoolkit.server.dao.utils.apply
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoRepositoryRepository : RepositoryRepository {
@@ -39,8 +41,10 @@ class DaoRepositoryRepository : RepositoryRepository {
 
     override fun get(id: Long) = entityQuery { RepositoryDao[id].mapToModel() }
 
-    override fun listForProduct(productId: Long) = blockingQuery {
-        RepositoryDao.find { RepositoriesTable.productId eq productId }.map { it.mapToModel() }
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters) = blockingQuery {
+        RepositoryDao.find { RepositoriesTable.productId eq productId }
+            .apply(RepositoriesTable, parameters)
+            .map { it.mapToModel() }
     }.getOrDefault(emptyList())
 
     override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = blockingQuery {

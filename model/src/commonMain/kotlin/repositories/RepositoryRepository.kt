@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.model.repositories
 
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -38,9 +39,12 @@ interface RepositoryRepository {
     fun get(id: Long): Repository?
 
     /**
-     * List all repositories for a [product][productId].
+     * List all repositories for a [product][productId] according to the given [parameters].
      */
-    fun listForProduct(productId: Long): List<Repository>
+    fun listForProduct(
+        productId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Repository>
 
     /**
      * Update a repository by [id] with the [present][OptionalValue.Present] values.

@@ -31,7 +31,10 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoRepositoryRepositoryTest : StringSpec() {
@@ -82,6 +85,25 @@ class DaoRepositoryRepositoryTest : StringSpec() {
 
             repositoryRepository.listForProduct(productId) shouldBe listOf(
                 Repository(createdRepository1.id, type, url1),
+                Repository(createdRepository2.id, type, url2)
+            )
+        }
+
+        "listForProduct should apply query parameters" {
+            val type = RepositoryType.GIT
+
+            val url1 = "https://example.com/repo1.git"
+            val url2 = "https://example.com/repo2.git"
+
+            val parameters = ListQueryParameters(
+                sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
+                limit = 1
+            )
+
+            repositoryRepository.create(type, url1, productId)
+            val createdRepository2 = repositoryRepository.create(type, url2, productId)
+
+            repositoryRepository.listForProduct(productId, parameters) shouldBe listOf(
                 Repository(createdRepository2.id, type, url2)
             )
         }
