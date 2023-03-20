@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.logback)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
+    implementation(platform(libs.ortPackageCurationProviders))
+    implementation(platform(libs.ortPackageManagers))
     implementation(libs.ortDownloader)
 
     testImplementation(testFixtures(project(":dao")))

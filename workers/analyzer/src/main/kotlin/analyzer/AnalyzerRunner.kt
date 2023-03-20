@@ -23,10 +23,10 @@ import java.io.File
 
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.PackageManager
-import org.ossreviewtoolkit.analyzer.curation.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+import org.ossreviewtoolkit.plugins.packagecurationproviders.ortconfig.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 
 import org.slf4j.LoggerFactory
@@ -61,7 +61,7 @@ class AnalyzerRunner {
 
         // TODO: Add support for curation providers.
         val curationProvider = OrtConfigPackageCurationProvider()
-        val ortResult = analyzer.analyze(info, curationProvider)
+        val ortResult = analyzer.analyze(info, listOf("OrtConfig" to curationProvider))
 
         val projectCount = ortResult.getProjects().size
         val packageCount = ortResult.getPackages().size

@@ -33,7 +33,6 @@ import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary as OrtAdvisorSummary
 import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
-import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
 import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
@@ -42,7 +41,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
-import org.ossreviewtoolkit.model.OrtIssue
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageLinkage as OrtPackageLinkage
@@ -112,7 +111,7 @@ fun OrtRun.mapToOrt(
 fun Repository.mapToOrt(revision: String, path: String = "") =
     OrtRepository(
         vcs = OrtVcsInfo(
-            type = OrtVcsType(type.name),
+            type = OrtVcsType.forName(type.name),
             url = url,
             revision = revision,
             // TODO: The path of the repository is not stored at all.
@@ -183,9 +182,8 @@ fun AnalyzerRun.mapToOrt() =
         config = config.mapToOrt(),
         result = OrtAnalyzerResult(
             projects = projects.mapTo(mutableSetOf(), Project::mapToOrt),
-            // TODO: Currently, curations are not stored at all, therefore the mapping just creates the
-            //       OrtCuratedPackage with the OrtPackage.
-            packages = packages.mapTo(mutableSetOf()) { OrtCuratedPackage(it.mapToOrt()) },
+            // TODO: Currently, curations are not stored at all, therefore the mapping just creates the OrtPackage.
+            packages = packages.mapTo(mutableSetOf()) { it.mapToOrt() },
             issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(OrtServerIssue::mapToOrt) },
             dependencyGraphs = dependencyGraphs.mapValues { it.value.mapToOrt() }
         )
@@ -265,7 +263,7 @@ fun Project.mapToOrt() =
         scopeNames = scopeNames.toSortedSet()
     )
 
-fun OrtServerIssue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
+fun OrtServerIssue.mapToOrt() = Issue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
 
 fun Package.mapToOrt() =
     OrtPackage(
@@ -295,4 +293,4 @@ fun RemoteArtifact.mapToOrt() =
         )
     )
 
-fun VcsInfo.mapToOrt() = OrtVcsInfo(OrtVcsType(type.name), url, revision, path)
+fun VcsInfo.mapToOrt() = OrtVcsInfo(OrtVcsType.forName(type.name), url, revision, path)

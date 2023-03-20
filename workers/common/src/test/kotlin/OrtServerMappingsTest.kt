@@ -35,13 +35,12 @@ import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary as OrtAdvisorSummary
 import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
-import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
-import org.ossreviewtoolkit.model.OrtIssue
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
@@ -413,7 +412,7 @@ class OrtServerMappingsTest : WordSpec({
                 isModified = true
             )
 
-            val ortIssue = OrtIssue(
+            val ortIssue = Issue(
                 timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                 source = "tool-x",
                 message = "An issue occured.",
@@ -436,7 +435,7 @@ class OrtServerMappingsTest : WordSpec({
                 config = ortAnalyzerConfiguration,
                 result = OrtAnalyzerResult(
                     projects = setOf(ortProject),
-                    packages = setOf(OrtCuratedPackage(ortPkg)),
+                    packages = setOf(ortPkg),
                     issues = mapOf(ortPkgIdentifier to listOf(ortIssue)),
                     dependencyGraphs = mapOf("Maven" to ortDependencyGraph)
                 )

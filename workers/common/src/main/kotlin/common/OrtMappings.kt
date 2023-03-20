@@ -31,7 +31,7 @@ import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
-import org.ossreviewtoolkit.model.OrtIssue as OrtOrtIssue
+import org.ossreviewtoolkit.model.Issue as OrtOrtIssue
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
@@ -126,7 +126,7 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
         environment = environment.mapToModel(),
         config = config.mapToModel(),
         projects = result.projects.mapTo(mutableSetOf()) { it.mapToModel() },
-        packages = result.packages.mapTo(mutableSetOf()) { it.metadata.mapToModel() },
+        packages = result.packages.mapTo(mutableSetOf()) { it.mapToModel() },
         issues = result.issues.mapKeys { it.key.mapToModel() }.mapValues { it.value.map { it.mapToModel() } },
         dependencyGraphs = result.dependencyGraphs.mapValues { it.value.mapToModel() }
     )
