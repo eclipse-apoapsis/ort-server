@@ -175,6 +175,36 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
+        "GET /products/{id}/repositories should support query parameters" {
+            ortServerTestApplication(noDbConfig) {
+                val client = createJsonClient()
+
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+
+                val type = RepositoryType.GIT
+                val url1 = "https://example.com/repo1.git"
+                val url2 = "https://example.com/repo2.git"
+
+                repositoryRepository.create(type = type, url = url1, productId = createdProduct.id)
+                val createdRepository2 =
+                    repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
+
+                val response = client.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Repository>>() shouldBe listOf(
+                        Repository(createdRepository2.id, type.mapToApi(), url2)
+                    )
+                }
+            }
+        }
+
         "POST /products/{id}/repositories should create a repository" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()

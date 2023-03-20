@@ -42,6 +42,7 @@ import org.ossreviewtoolkit.server.core.apiDocs.getProductById
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoriesByProductId
 import org.ossreviewtoolkit.server.core.apiDocs.patchProductById
 import org.ossreviewtoolkit.server.core.apiDocs.postRepository
+import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.ProductService
 
@@ -84,7 +85,7 @@ fun Route.products() = route("products/{productId}") {
 
             call.respond(
                 HttpStatusCode.OK,
-                productService.listRepositoriesForProduct(id).map { it.mapToApi() }
+                productService.listRepositoriesForProduct(id, call.listQueryParameters()).map { it.mapToApi() }
             )
         }
 

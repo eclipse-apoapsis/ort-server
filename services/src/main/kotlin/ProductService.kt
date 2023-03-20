@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -56,11 +57,12 @@ class ProductService(
     }.getOrNull()
 
     /**
-     * List all repositories for a [product][productId].
+     * List all repositories for a [product][productId] according to the given [parameters].
      */
-    suspend fun listRepositoriesForProduct(productId: Long): List<Repository> = dbQuery {
-        repositoryRepository.listForProduct(productId)
-    }.getOrThrow()
+    suspend fun listRepositoriesForProduct(productId: Long, parameters: ListQueryParameters): List<Repository> =
+        dbQuery {
+            repositoryRepository.listForProduct(productId, parameters)
+        }.getOrThrow()
 
     /**
      * Update a product by [productId] with the [present][OptionalValue.Present] values.
