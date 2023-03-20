@@ -28,7 +28,7 @@ versionsPlugin = "0.44.0"
 
 activeMQArtemis = "2.27.1"
 exposed = "0.41.1"
-flyway = "9.11.0"
+flyway = "9.16.1"
 hikari = "5.0.1"
 jsonSchemaSerialization = "0.6.6"
 keycloakTestcontainerVersion = "2.5.0"
