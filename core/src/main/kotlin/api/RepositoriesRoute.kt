@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
 import org.ossreviewtoolkit.server.core.apiDocs.postOrtRun
 import org.ossreviewtoolkit.server.core.services.OrchestratorService
+import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.RepositoryService
 
@@ -83,7 +84,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         get(getOrtRuns(json)) {
             val repositoryId = call.requireParameter("repositoryId").toLong()
 
-            val ortRuns = repositoryService.getOrtRuns(repositoryId)
+            val ortRuns = repositoryService.getOrtRuns(repositoryId, call.listQueryParameters())
             call.respond(HttpStatusCode.OK, ortRuns.map { it.mapToApi() })
         }
 

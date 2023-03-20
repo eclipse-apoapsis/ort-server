@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -45,8 +46,11 @@ class RepositoryService(
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)
     }.getOrThrow()
 
-    suspend fun getOrtRuns(repositoryId: Long): List<OrtRun> = dbQuery {
-        ortRunRepository.listForRepository(repositoryId)
+    /**
+     * Get the runs executed on the given [repository][repositoryId] according to the given [parameters].
+     */
+    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = dbQuery {
+        ortRunRepository.listForRepository(repositoryId, parameters)
     }.getOrThrow()
 
     /**

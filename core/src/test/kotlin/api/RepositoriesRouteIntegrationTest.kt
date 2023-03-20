@@ -30,6 +30,7 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
@@ -43,6 +44,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -147,6 +149,58 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
                 response.status shouldBe HttpStatusCode.NoContent
                 repositoryRepository.listForProduct(productId) shouldBe emptyList()
+            }
+        }
+
+        "GET /repositories/{repositoryId}/runs should return the ORT runs on a repository" {
+            ortServerTestApplication(noDbConfig) {
+                val createdRepository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                val run1 = ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations())
+                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations())
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/repositories/${createdRepository.id}/runs") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<OrtRun>>() shouldBe listOf(run1.mapToApi(), run2.mapToApi())
+                }
+            }
+        }
+
+        "GET /repositories/{repositoryId}/runs should support query parameters" {
+            ortServerTestApplication(noDbConfig) {
+                val createdRepository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations())
+                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations())
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/repositories/${createdRepository.id}/runs?sort=-createdAt&limit=1") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<OrtRun>>() shouldBe listOf(run2.mapToApi())
+                }
             }
         }
     }
