@@ -335,5 +335,34 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+
+        "GET /organizations/{orgId}/products should support query parameters" {
+            ortServerTestApplication(noDbConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val name1 = "name1"
+                val name2 = "name2"
+                val description = "description"
+
+                productRepository.create(name = name1, description = description, organizationId = orgId)
+                val createdProduct2 =
+                    productRepository.create(name = name2, description = description, organizationId = orgId)
+
+                val response = client.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Product>>() shouldBe listOf(
+                        Product(createdProduct2.id, name2, description)
+                    )
+                }
+            }
+        }
     }
 }

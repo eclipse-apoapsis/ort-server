@@ -98,7 +98,8 @@ fun Route.organizations() = route("organizations") {
 
             call.respond(
                 HttpStatusCode.OK,
-                organizationService.listProductsForOrganization(orgId).map { it.mapToApi() }
+                organizationService.listProductsForOrganization(orgId, call.listQueryParameters())
+                    .map { it.mapToApi() }
             )
         }
 

@@ -71,8 +71,8 @@ class OrganizationService(
     /**
      * List all products for an [organization][organizationId].
      */
-    suspend fun listProductsForOrganization(organizationId: Long) = dbQuery {
-        productRepository.listForOrganization(organizationId)
+    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = dbQuery {
+        productRepository.listForOrganization(organizationId, parameters)
     }.getOrThrow()
 
     /**
