@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.model.repositories
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -44,9 +45,12 @@ interface OrtRunRepository {
     fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
 
     /**
-     * List all ORT runs for a [repository][repositoryId].
+     * List all ORT runs for a [repository][repositoryId] according to the given [parameters].
      */
-    fun listForRepository(repositoryId: Long): List<OrtRun>
+    fun listForRepository(
+        repositoryId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<OrtRun>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values.

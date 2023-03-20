@@ -31,6 +31,9 @@ import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrtRunRepositoryTest : StringSpec() {
@@ -102,6 +105,18 @@ class DaoOrtRunRepositoryTest : StringSpec() {
             val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
 
             ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
+        }
+
+        "listForRepositories should apply query parameters" {
+            ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
+            val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
+
+            val parameters = ListQueryParameters(
+                sortFields = listOf(OrderField("revision", OrderDirection.DESCENDING)),
+                limit = 1
+            )
+
+            ortRunRepository.listForRepository(repositoryId, parameters) shouldBe listOf(ortRun2)
         }
 
         "update should update an entry in the database" {

@@ -28,11 +28,13 @@ import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
+import org.ossreviewtoolkit.server.dao.utils.apply
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 import org.slf4j.LoggerFactory
@@ -61,8 +63,10 @@ class DaoOrtRunRepository : OrtRunRepository {
             .firstOrNull()?.mapToModel()
     }.getOrNull()
 
-    override fun listForRepository(repositoryId: Long): List<OrtRun> = blockingQuery {
-        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }.map { it.mapToModel() }
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = blockingQuery {
+        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }
+            .apply(OrtRunsTable, parameters)
+            .map { it.mapToModel() }
     }.getOrElse {
         logger.error("Cannot list repository for id $repositoryId.", it)
         emptyList()
