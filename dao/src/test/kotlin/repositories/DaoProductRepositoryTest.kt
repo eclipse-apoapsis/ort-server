@@ -30,6 +30,9 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoProductRepositoryTest : StringSpec() {
@@ -84,6 +87,29 @@ class DaoProductRepositoryTest : StringSpec() {
 
             productRepository.listForOrganization(orgId) shouldBe listOf(
                 Product(createdProduct1.id, name1, description1),
+                Product(createdProduct2.id, name2, description2)
+            )
+        }
+
+        "listForOrganization should apply query parameters" {
+            val otherOrgId = fixtures.createOrganization(name = "ortherOrg").id
+
+            val name1 = "name1"
+            val description1 = "description1"
+
+            val name2 = "name2"
+            val description2 = "description2"
+
+            val parameters = ListQueryParameters(
+                sortFields = listOf(OrderField("name", OrderDirection.DESCENDING)),
+                limit = 1
+            )
+
+            productRepository.create(name1, description1, orgId)
+            val createdProduct2 = productRepository.create(name2, description2, orgId)
+            productRepository.create(name1, description1, otherOrgId)
+
+            productRepository.listForOrganization(orgId, parameters) shouldBe listOf(
                 Product(createdProduct2.id, name2, description2)
             )
         }
