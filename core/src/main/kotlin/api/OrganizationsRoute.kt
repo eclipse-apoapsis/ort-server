@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.core.apiDocs.getOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.patchOrganizationById
 import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.postProduct
+import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.OrganizationService
 
@@ -51,7 +52,7 @@ fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
 
     get(getOrganizations) {
-        val organizations = organizationService.listOrganizations()
+        val organizations = organizationService.listOrganizations(call.listQueryParameters())
 
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApi() })
     }

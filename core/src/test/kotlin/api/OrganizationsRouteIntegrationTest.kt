@@ -84,6 +84,26 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
             }
         }
 
+        "GET /organizations should support query parameters" {
+            ortServerTestApplication(noDbConfig) {
+                organizationRepository.create(name = "name1", description = "description1")
+                val org2 = organizationRepository.create(name = "name2", description = "description2")
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/organizations?sort=-name&limit=1") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Organization>>() shouldBe listOf(org2.mapToApi())
+                }
+            }
+        }
+
         "GET /organizations/{organizationId} should return a single organization" {
             ortServerTestApplication(noDbConfig) {
                 val name = "name"

@@ -23,6 +23,7 @@ import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -61,10 +62,10 @@ class OrganizationService(
     }.getOrNull()
 
     /**
-     * List all organizations.
+     * List all organizations according to the given [parameters].
      */
-    suspend fun listOrganizations(): List<Organization> = dbQuery {
-        organizationRepository.list()
+    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = dbQuery {
+        organizationRepository.list(parameters)
     }.getOrThrow()
 
     /**
