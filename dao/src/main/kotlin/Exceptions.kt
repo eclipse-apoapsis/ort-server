@@ -27,3 +27,8 @@ enum class PostgresErrorCodes(val value: String) {
 }
 
 class UniqueConstraintException(msg: String, cause: Throwable) : RuntimeException(msg, cause)
+
+/**
+ * An exception class indicating that invalid query parameters have been passed to a query function.
+ */
+class QueryParametersException(msg: String, cause: Throwable? = null) : RuntimeException(msg, cause)

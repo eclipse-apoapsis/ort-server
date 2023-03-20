@@ -23,6 +23,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.ApplicationConfig
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
+import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
@@ -33,6 +34,20 @@ import org.ossreviewtoolkit.server.model.util.OrderField
 fun ApplicationCall.requireParameter(name: String) = requireNotNull(parameters[name]) {
     "Parameter '$name' cannot be null."
 }
+
+/**
+ * Return the numeric value of the parameter with the given [name]. Throw a [QueryParametersException] if a value
+ * is provided which cannot be converted to a number.
+ */
+fun ApplicationCall.numberParameter(name: String): Number? =
+    try {
+        parameters[name]?.toLong()
+    } catch (e: NumberFormatException) {
+        throw QueryParametersException(
+            "Invalid value for parameter '$name': Expected a number, was '${parameters[name]}'.",
+            e
+        )
+    }
 
 fun ApplicationConfig.createKeycloakClientConfiguration() =
     with(config("keycloak")) {
@@ -51,8 +66,8 @@ fun ApplicationConfig.createKeycloakClientConfiguration() =
  */
 fun ApplicationCall.listQueryParameters(): ListQueryParameters =
     ListQueryParameters(
-        limit = parameters["limit"]?.toInt(),
-        offset = parameters["offset"]?.toLong(),
+        limit = numberParameter("limit")?.toInt(),
+        offset = numberParameter("offset")?.toLong(),
         sortFields = parameters["sort"]?.let(::processSortParameter).orEmpty()
     )
 

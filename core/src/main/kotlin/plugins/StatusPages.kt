@@ -30,6 +30,7 @@ import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.ossreviewtoolkit.server.core.api.AuthenticationException
 import org.ossreviewtoolkit.server.core.api.AuthorizationException
 import org.ossreviewtoolkit.server.core.api.ErrorResponse
+import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 
 fun Application.configureStatusPages() {
@@ -47,6 +48,12 @@ fun Application.configureStatusPages() {
             call.respond(
                 HttpStatusCode.Conflict,
                 ErrorResponse("The entity you tried to create already exists.", e.message)
+            )
+        }
+        exception<QueryParametersException> { call, e ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Invalid query parameters.", e.message)
             )
         }
     }

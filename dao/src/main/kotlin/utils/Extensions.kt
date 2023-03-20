@@ -30,6 +30,7 @@ import org.jetbrains.exposed.sql.ColumnSet
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
 
+import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 
@@ -57,10 +58,12 @@ internal fun <T> SizedIterable<T>.apply(columns: ColumnSet, parameters: ListQuer
 }
 
 /**
- * Return the column of this [ColumnSet] matching the given [name] (ignoring case) or fail if no such column exists.
- * TODO: Improve exception handling for unknown columns.
+ * Return the column of this [ColumnSet] matching the given [name] (ignoring case) or throw a
+ * [QueryParametersException] if no such column exists.
  */
-private fun ColumnSet.column(name: String): Column<*> = columns.find { it.matchesProperty(name) }!!
+private fun ColumnSet.column(name: String): Column<*> =
+    columns.find { it.matchesProperty(name) }
+        ?: throw QueryParametersException("Unsupported field for sorting: '$name'.")
 
 /**
  * Test whether this column matches the property identified by the given [name].
