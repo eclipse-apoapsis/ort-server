@@ -191,7 +191,8 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
                 val client = createJsonClient()
 
-                val response = client.get("/api/v1/repositories/${createdRepository.id}/runs?sort=-createdAt&limit=1") {
+                val query = "?sort=-revision,-createdAt&limit=1"
+                val response = client.get("/api/v1/repositories/${createdRepository.id}/runs$query") {
                     headers {
                         basicTestAuth()
                     }
