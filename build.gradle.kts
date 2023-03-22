@@ -96,6 +96,28 @@ subprojects {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
             jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")
         }
+
+        val testSystemProperties = mutableListOf("gradle.build.dir" to project.buildDir.path)
+
+        listOf(
+            "kotest.assertions.multi-line-diff",
+            "kotest.tags"
+        ).mapNotNullTo(testSystemProperties) { key ->
+            System.getProperty(key)?.let { key to it }
+        }
+
+        systemProperties = testSystemProperties.toMap()
+
+        testLogging {
+            events = setOf(
+                org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+            )
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showStandardStreams = false
+        }
     }
 }
 
