@@ -106,10 +106,22 @@ fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
 fun ApiJobStatus.mapToModel() = JobStatus.valueOf(name)
 
 fun JobConfigurations.mapToApi() =
-    ApiJobConfigurations(analyzer.mapToApi(), advisor?.mapToApi(), scanner?.mapToApi(), evaluator?.mapToApi())
+    ApiJobConfigurations(
+        analyzer.mapToApi(),
+        advisor?.mapToApi(),
+        scanner?.mapToApi(),
+        evaluator?.mapToApi(),
+        reporter?.mapToApi()
+    )
 
 fun ApiJobConfigurations.mapToModel() =
-    JobConfigurations(analyzer.mapToModel(), advisor?.mapToModel(), scanner?.mapToModel(), evaluator?.mapToModel())
+    JobConfigurations(
+        analyzer.mapToModel(),
+        advisor?.mapToModel(),
+        scanner?.mapToModel(),
+        evaluator?.mapToModel(),
+        reporter?.mapToModel()
+    )
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
