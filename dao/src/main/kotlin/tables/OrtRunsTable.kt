@@ -57,6 +57,12 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var jobConfigurations by OrtRunsTable.jobConfigurations
     var status by OrtRunsTable.status
 
+    val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
+    val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
+    val evaluatorJob by EvaluatorJobDao optionalBackReferencedOn EvaluatorJobsTable.ortRunId
+    val scannerJob by ScannerJobDao optionalBackReferencedOn ScannerJobsTable.ortRunId
+    val reporterJob by ReporterJobDao optionalBackReferencedOn ReporterJobsTable.ortRunId
+
     fun mapToModel() = OrtRun(
         id = id.value,
         index = index,
