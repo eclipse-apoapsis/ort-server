@@ -54,6 +54,9 @@ data class OrtRun(
      */
     val jobs: JobConfigurations,
 
+    /**
+     * The status of this run.
+     */
     val status: OrtRunStatus
 )
 
