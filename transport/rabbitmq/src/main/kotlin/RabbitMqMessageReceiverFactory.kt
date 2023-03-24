@@ -19,10 +19,17 @@
 
 package org.ossreviewtoolkit.server.transport.rabbitmq
 
+import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.Consumer
+import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Delivery
+import com.rabbitmq.client.Envelope
 
 import com.typesafe.config.Config
+
+import java.util.concurrent.CountDownLatch
 
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -55,34 +62,68 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         }
         connectionFactory.newConnection().use { connection ->
             val channel = connection.createChannel()
+            val latchCanceled = CountDownLatch(1)
 
-            var running = true
-            do {
-                channel.basicConsume(
-                    /* queue = */ rabbitMqConfig.queueName,
-                    /* autoAck = */ true,
-                    /* deliverCallback = */ { _: String, delivery: Delivery ->
-                        runCatching {
-                            val message = RabbitMqMessageConverter.toTransportMessage(delivery, serializer)
+            val consumer = createConsumer(channel, serializer, handler, latchCanceled)
+            channel.basicConsume(
+                /* queue = */ rabbitMqConfig.queueName,
+                /* autoAck = */ true,
+                consumer
+            )
 
-                            if (logger.isDebugEnabled) {
-                                logger.debug(
-                                    "Received message '${message.header.traceId}' with payload of type " +
-                                            "'${message.payload.javaClass.name}'."
-                                )
-                            }
+            // basicConsume() immediately returns; incoming messages are passed to the consumer's callback.
+            // Since the receiver factory is expected to not return until message processing is done, the current
+            // thread is blocked until the consumer is canceled.
+            latchCanceled.await()
 
-                            handler(message)
-                        }.onFailure {
-                            logger.error("Error during message processing.", it)
-                        }
-                    },
-                    /* cancelCallback = */ { _: String ->
-                        logger.error("Message retrieval was canceled.")
-                        running = false
+            logger.error("Message consumer was canceled.")
+        }
+    }
+
+    /**
+     * Create a [Consumer] for processing the messages received via the given [channel] by invoking the given
+     * [handler]. Use the provided [serializer] to de-serialize messages. Trigger the given [latch][latchCanceled]
+     * when the consumer is canceled. The thread that started the consumer waits on this latch until the cancellation.
+     */
+    private fun <T : Any> createConsumer(
+        channel: Channel,
+        serializer: JsonSerializer<T>,
+        handler: EndpointHandler<T>,
+        latchCanceled: CountDownLatch
+    ): Consumer {
+        return object : DefaultConsumer(channel) {
+            override fun handleCancelOk(consumerTag: String?) {
+                logger.info("handleCancelOk() callback.")
+                latchCanceled.countDown()
+            }
+
+            override fun handleCancel(consumerTag: String?) {
+                logger.info("handleCancel() callback.")
+                latchCanceled.countDown()
+            }
+
+            override fun handleDelivery(
+                consumerTag: String?,
+                envelope: Envelope?,
+                properties: AMQP.BasicProperties?,
+                body: ByteArray?
+            ) {
+                runCatching {
+                    val delivery = Delivery(envelope, properties, body)
+                    val message = RabbitMqMessageConverter.toTransportMessage(delivery, serializer)
+
+                    if (logger.isDebugEnabled) {
+                        logger.debug(
+                            "Received message '${message.header.traceId}' with payload of type " +
+                                    "'${message.payload.javaClass.name}'."
+                        )
                     }
-                )
-            } while (running)
+
+                    handler(message)
+                }.onFailure {
+                    logger.error("Error during message processing.", it)
+                }
+            }
         }
     }
 }
