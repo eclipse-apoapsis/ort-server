@@ -155,6 +155,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
 
 fun PackageProvenanceDao.mapToModel(): PackageProvenanceResolutionResult? = when {
     errorMessage is String -> UnresolvedPackageProvenance(errorMessage.orEmpty())
+
     artifact is RemoteArtifactDao -> artifact?.let {
         ResolvedArtifactProvenance(
             provenance = ArtifactProvenance(
@@ -168,6 +169,7 @@ fun PackageProvenanceDao.mapToModel(): PackageProvenanceResolutionResult? = when
             )
         )
     }
+
     vcs is VcsInfoDao -> vcs?.let {
         ResolvedRepositoryProvenance(
             provenance = RepositoryProvenance(
@@ -183,5 +185,6 @@ fun PackageProvenanceDao.mapToModel(): PackageProvenanceResolutionResult? = when
             isFixedRevision = isFixedRevision ?: false
         )
     }
+
     else -> null
 }
