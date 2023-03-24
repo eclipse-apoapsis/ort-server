@@ -50,26 +50,30 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         id: Identifier,
         sourceArtifact: RemoteArtifact
     ): PackageProvenanceResolutionResult? = blockingQuery {
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
+        val sourceArtifactDao = RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())
+
         PackageProvenanceDao.find(
-            PackageProvenancesTable.identifierId eq IdentifierDao.findByIdentifier(id.mapToModel())?.id?.value and
-                    (
-                            PackageProvenancesTable.artifactId eq
-                                    RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())?.id?.value
-                            )
+            PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
+                    (PackageProvenancesTable.artifactId eq sourceArtifactDao?.id?.value)
         ).singleOrNull()?.mapToModel()
     }.getOrThrow()
 
     override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = blockingQuery {
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
+        val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel())
+
         PackageProvenanceDao.find(
-            PackageProvenancesTable.identifierId eq IdentifierDao.findByIdentifier(id.mapToModel())?.id?.value and
-                    (PackageProvenancesTable.vcsId eq VcsInfoDao.findByVcsInfo(vcs.mapToModel())?.id?.value)
+            PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
+                    (PackageProvenancesTable.vcsId eq vcsInfoDao?.id?.value)
         ).singleOrNull()?.mapToModel()
     }.getOrThrow()
 
     override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = blockingQuery {
-        PackageProvenanceDao.find(
-            PackageProvenancesTable.identifierId eq IdentifierDao.findByIdentifier(id.mapToModel())?.id?.value
-        ).mapNotNull { it.mapToModel() }
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
+
+        PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierDao?.id?.value)
+            .mapNotNull { it.mapToModel() }
     }.getOrThrow()
 
     override fun putProvenance(
@@ -78,12 +82,6 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         result: PackageProvenanceResolutionResult
     ) {
         blockingQuery {
-            PackageProvenancesTable.deleteWhere {
-                identifierId eq IdentifierDao.findByIdentifier(id.mapToModel())?.id?.value and
-                        (artifactId.isNotNull()) and
-                        (artifactId eq RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())?.id?.value)
-            }
-
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -97,6 +95,12 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
                     hashValue = sourceArtifact.hash.value
                     hashAlgorithm = sourceArtifact.hash.algorithm.toString()
                 }
+
+            PackageProvenancesTable.deleteWhere {
+                identifierId eq identifierDao.id.value and
+                        (artifactId.isNotNull()) and
+                        (artifactId eq artifactDao.id.value)
+            }
 
             PackageProvenanceDao.new {
                 identifier = identifierDao
@@ -114,12 +118,6 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         result: PackageProvenanceResolutionResult
     ) {
         blockingQuery {
-            PackageProvenancesTable.deleteWhere {
-                identifierId eq IdentifierDao.findByIdentifier(id.mapToModel())?.id?.value and
-                        (vcsId.isNotNull()) and
-                        (vcsId eq VcsInfoDao.findByVcsInfo(vcs.mapToModel())?.id?.value)
-            }
-
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -132,6 +130,12 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
                 url = vcs.url
                 revision = vcs.revision
                 path = vcs.path
+            }
+
+            PackageProvenancesTable.deleteWhere {
+                identifierId eq identifierDao.id.value and
+                        (vcsId.isNotNull()) and
+                        (vcsId eq vcsDao.id.value)
             }
 
             PackageProvenanceDao.new {
