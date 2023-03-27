@@ -71,6 +71,16 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
             }
 
+            "create an unresolved provenance in the database" {
+                val id = createIdentifier()
+                val vcsInfo = createVcsInfo()
+                val provenance = UnresolvedPackageProvenance("message")
+
+                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
+
+                packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
+            }
+
             "replace an existing provenance in the database" {
                 val id = createIdentifier()
                 val vcsInfo = createVcsInfo()
