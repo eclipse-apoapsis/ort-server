@@ -43,6 +43,7 @@ private const val IMAGE_PULL_SECRET = "image_pull_secret"
 private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
+private const val SECRET_MOUNTS = "secret1->/mnt/sec1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other\""
 
 class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created" {
@@ -57,7 +58,8 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.commands" to COMMANDS,
             "$keyPrefix.args" to ARGS,
             "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
-            "$keyPrefix.enableDebugLogging" to "true"
+            "$keyPrefix.enableDebugLogging" to "true",
+            "$keyPrefix.mountSecrets" to SECRET_MOUNTS
         )
         val config = ConfigFactory.parseMap(configMap)
 
@@ -77,6 +79,11 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             args shouldContainInOrder listOf("run", "all tests", "fast")
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
+            secretVolumes shouldContainInOrder listOf(
+                SecretVolumeMount("secret1", "/mnt/sec1"),
+                SecretVolumeMount("secret2", "/path/with/white space"),
+                SecretVolumeMount("secret3", "/mnt/other")
+            )
             enableDebugLogging shouldBe true
         }
 
@@ -106,9 +113,30 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             imagePullPolicy shouldBe "Never"
             restartPolicy shouldBe "OnFailure"
             imagePullSecret should beNull()
+            secretVolumes should beEmpty()
             enableDebugLogging shouldBe false
         }
 
         sender.api.apiClient.isDebugging shouldBe false
+    }
+
+    "Invalid secret mount declarations are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.mountSecrets" to "$SECRET_MOUNTS plus invalid secret mounts->"
+        )
+        val config = ConfigFactory.parseMap(configMap)
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+        sender.config.secretVolumes shouldContainInOrder listOf(
+            SecretVolumeMount("secret1", "/mnt/sec1"),
+            SecretVolumeMount("secret2", "/path/with/white space"),
+            SecretVolumeMount("secret3", "/mnt/other")
+        )
     }
 })

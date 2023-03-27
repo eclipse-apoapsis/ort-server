@@ -23,11 +23,17 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
+import io.kubernetes.client.openapi.models.V1SecretVolumeSource
+import io.kubernetes.client.openapi.models.V1Volume
+import io.kubernetes.client.openapi.models.V1VolumeMount
 
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+
+/** A prefix for generating names for secret volumes. */
+private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
 /**
  * Implementation of the [MessageSender] interface for Kubernetes.
@@ -73,7 +79,9 @@ internal class KubernetesMessageSender<T : Any>(
             .withArgs(config.args)
             .withImagePullPolicy(config.imagePullPolicy)
             .withEnv((envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() })
+            .withVolumeMounts(createVolumeMounts())
             .endContainer()
+            .withVolumes(createVolumes())
             .endSpec()
             .endTemplate()
             .endSpec()
@@ -94,4 +102,25 @@ internal class KubernetesMessageSender<T : Any>(
 
         return System.getenv() + endPointVariables
     }
+
+    /**
+     * Return a list with volumes for the [SecretVolumeMount]s contained in the sender configuration.
+     */
+    private fun createVolumes(): List<V1Volume> =
+        config.secretVolumes.mapIndexed { index, volumeMount ->
+            V1Volume()
+                .name("$SECRET_VOLUME_PREFIX${index + 1}")
+                .secret(V1SecretVolumeSource().secretName(volumeMount.secretName))
+        }
+
+    /**
+     * Return a list with volume mounts for the [SecretVolumeMount]s contained in the sender configuration.
+     */
+    private fun createVolumeMounts(): List<V1VolumeMount> =
+        config.secretVolumes.mapIndexed { index, volumeMount ->
+            V1VolumeMount()
+                .name("$SECRET_VOLUME_PREFIX${index + 1}")
+                .mountPath(volumeMount.mountPath)
+                .readOnly(true)
+        }
 }

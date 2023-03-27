@@ -22,7 +22,9 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainOnly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
@@ -73,7 +75,11 @@ class KubernetesMessageSenderTest : StringSpec({
             imagePullPolicy = "Always",
             restartPolicy = "Never",
             backoffLimit = 11,
-            imagePullSecret = "image_pull_secret"
+            imagePullSecret = "image_pull_secret",
+            secretVolumes = listOf(
+                SecretVolumeMount("secretService", "/mnt/secret"),
+                SecretVolumeMount("topSecret", "/mnt/top/secret")
+            )
         )
 
         val sender = KubernetesMessageSender(
@@ -104,11 +110,30 @@ class KubernetesMessageSenderTest : StringSpec({
             command shouldBe config.commands
             args shouldBe config.args
             env!!.associate { it.name to it.value } shouldContainAll expectedEnvVars
+
+            val mounts = volumeMounts.orEmpty()
+            mounts shouldHaveSize 2
+            with(mounts[0]) {
+                readOnly shouldBe true
+                name shouldBe "secret-volume-1"
+                mountPath shouldBe "/mnt/secret"
+            }
+            with(mounts[1]) {
+                readOnly shouldBe true
+                name shouldBe "secret-volume-2"
+                mountPath shouldBe "/mnt/top/secret"
+            }
         }
 
         job.captured.spec?.backoffLimit shouldBe config.backoffLimit
         job.captured.spec?.template?.spec?.restartPolicy shouldBe config.restartPolicy
         job.captured.spec?.template?.spec?.imagePullSecrets.orEmpty()
             .map { it.name } shouldContainOnly listOf(config.imagePullSecret)
+
+        val volumes = job.captured.spec?.template?.spec?.volumes.orEmpty()
+        volumes shouldHaveSize 2
+        volumes.map { it.name } shouldContainExactly listOf("secret-volume-1", "secret-volume-2")
+        val secrets = volumes.mapNotNull { it.secret?.secretName }
+        secrets shouldContainExactly listOf("secretService", "topSecret")
     }
 })
