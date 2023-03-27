@@ -41,6 +41,8 @@ import io.mockk.spyk
 import io.mockk.verify
 
 import java.lang.IllegalStateException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -92,27 +94,28 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
                 val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)
                 sender.send(message)
 
+                val latch = CountDownLatch(1)
                 channel.basicConsume(
                     queueName,
                     true,
                     { _: String, delivery: Delivery ->
-                        channel.messageCount(queueName) shouldBe 1
-
                         val receivedMessage = String(delivery.body)
 
-                        delivery.properties.headers["token"] shouldBe header.token
-                        delivery.properties.headers["traceId"] shouldBe header.traceId
+                        delivery.properties.headers["token"].toString() shouldBe header.token
+                        delivery.properties.headers["traceId"].toString() shouldBe header.traceId
 
                         val serializer = JsonSerializer.forType<OrchestratorMessage>()
                         val receivedPayload = serializer.fromJson(receivedMessage)
 
                         receivedPayload shouldBe payload
+
+                        latch.countDown()
                     },
                     { _: String -> true shouldBe false }
                 )
 
-                // Ensure that the callback was called.
-                verify { channel.messageCount(queueName) }
+                // Ensure that the callback was called asynchronously.
+                latch.await(3, TimeUnit.SECONDS) shouldBe true
             }
         }
 
