@@ -39,7 +39,7 @@ import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 
-class PackageProvenanceStorageTest : StringSpec() {
+class OrtServerPackageProvenanceStorageTest : StringSpec() {
     private val packageProvenanceStorage = OrtServerPackageProvenanceStorage()
 
     private lateinit var fixtures: Fixtures
