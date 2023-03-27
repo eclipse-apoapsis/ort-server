@@ -21,7 +21,6 @@ package org.ossreviewtoolkit.server.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -59,10 +58,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 packageProvenanceStorage.putProvenance(id, sourceArtifact, provenance)
 
-                val dbEntry = packageProvenanceStorage.readProvenance(id, sourceArtifact)
-
-                dbEntry.shouldNotBeNull()
-                dbEntry shouldBe provenance
+                packageProvenanceStorage.readProvenance(id, sourceArtifact) shouldBe provenance
             }
 
             "create a repository provenance in the database" {
@@ -72,33 +68,26 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
 
-                val dbEntry = packageProvenanceStorage.readProvenance(id, vcsInfo)
-
-                dbEntry.shouldNotBeNull()
-                dbEntry shouldBe provenance
+                packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
             }
 
             "replace an existing provenance in the database" {
                 val id = createIdentifier()
                 val vcsInfo = createVcsInfo()
                 val provenance = createRepositoryProvenance(vcsInfo)
-
-                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
-
                 val errorProvenance = createErrorProvenance("Provenance error")
 
+                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
                 packageProvenanceStorage.putProvenance(id, vcsInfo, errorProvenance)
 
-                val dbEntry = packageProvenanceStorage.readProvenance(id, vcsInfo)
-
-                dbEntry.shouldNotBeNull()
-                dbEntry shouldBe errorProvenance
+                packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe errorProvenance
             }
         }
 
         "read" should {
             "return all stored results" {
                 val id = createIdentifier()
+
                 val sourceArtifact = createRemoteArtifact()
                 val artifactProvenance = createArtifactProvenance(sourceArtifact)
                 packageProvenanceStorage.putProvenance(id, sourceArtifact, artifactProvenance)
