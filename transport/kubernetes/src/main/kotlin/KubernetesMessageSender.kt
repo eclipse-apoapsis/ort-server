@@ -70,6 +70,7 @@ internal class KubernetesMessageSender<T : Any>(
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .withImage(config.imageName)
             .withCommand(config.commands)
+            .withArgs(config.args)
             .withImagePullPolicy(config.imagePullPolicy)
             .withEnv((envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() })
             .endContainer()

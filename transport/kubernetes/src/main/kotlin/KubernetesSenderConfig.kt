@@ -50,6 +50,9 @@ data class KubernetesSenderConfig(
     /** The commands to be executed when running the container. */
     val commands: List<String> = emptyList(),
 
+    /** A list with arguments for the container command. */
+    val args: List<String> = emptyList(),
+
     /** Allows enabling debug logs when interacting with the Kubernetes API. */
     val enableDebugLogging: Boolean = false
 ) {
@@ -79,6 +82,9 @@ data class KubernetesSenderConfig(
 
         /** The name of the configuration property for the container commands. */
         private const val COMMANDS_PROPERTY = "commands"
+
+        /** The name of the configuration property for the command arguments. */
+        private const val ARGS_PROPERTY = "args"
 
         /** The name of the configuration property that controls debug logging. */
         private const val ENABLE_DEBUG_LOGGING_PROPERTY = "enableDebugLogging"
@@ -110,6 +116,7 @@ data class KubernetesSenderConfig(
                 restartPolicy = config.getStringOrDefault(RESTART_POLICY_PROPERTY, DEFAULT_RESTART_POLICY),
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
+                args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
             )
 

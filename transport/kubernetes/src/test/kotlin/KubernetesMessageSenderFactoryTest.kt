@@ -42,6 +42,7 @@ private const val IMAGE_PULL_POLICY = "frequently"
 private const val IMAGE_PULL_SECRET = "image_pull_secret"
 private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
+private const val ARGS = "run \"all tests\" fast"
 
 class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created" {
@@ -54,6 +55,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imagePullPolicy" to IMAGE_PULL_POLICY,
             "$keyPrefix.imagePullSecret" to IMAGE_PULL_SECRET,
             "$keyPrefix.commands" to COMMANDS,
+            "$keyPrefix.args" to ARGS,
             "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
             "$keyPrefix.enableDebugLogging" to "true"
         )
@@ -72,6 +74,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             imagePullPolicy shouldBe IMAGE_PULL_POLICY
             imagePullSecret shouldBe IMAGE_PULL_SECRET
             commands shouldContainInOrder listOf("foo", "bar", "hello world", "baz")
+            args shouldContainInOrder listOf("run", "all tests", "fast")
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
             enableDebugLogging shouldBe true
@@ -98,6 +101,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         with(sender.config) {
             commands should beEmpty()
+            args should beEmpty()
             backoffLimit shouldBe 2
             imagePullPolicy shouldBe "Never"
             restartPolicy shouldBe "OnFailure"

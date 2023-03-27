@@ -50,7 +50,8 @@ class KubernetesMessageSenderTest : StringSpec({
         val header = MessageHeader(token = "testToken", traceId = "testTraceId")
         val message = Message(header, payload)
 
-        val commands = listOf("/bin/echo", "Hello World")
+        val commands = listOf("/bin/sh")
+        val arguments = listOf("-c", "exec java -cp @/app/jib-classpath-file @/app/jib-main-class-file")
         val envVars = mapOf(
             "SPECIFIC_PROPERTY" to "bar",
             "SHELL" to "/bin/bash",
@@ -68,6 +69,7 @@ class KubernetesMessageSenderTest : StringSpec({
             namespace = "test-namespace",
             imageName = "busybox",
             commands = commands,
+            args = arguments,
             imagePullPolicy = "Always",
             restartPolicy = "Never",
             backoffLimit = 11,
@@ -100,6 +102,7 @@ class KubernetesMessageSenderTest : StringSpec({
             image shouldBe config.imageName
             imagePullPolicy shouldBe config.imagePullPolicy
             command shouldBe config.commands
+            args shouldBe config.args
             env!!.associate { it.name to it.value } shouldContainAll expectedEnvVars
         }
 
