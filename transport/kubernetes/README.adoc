@@ -12,7 +12,8 @@ The container started by the Kubernetes Job acts as the receiver and constructs 
 == Configuration
 
 In order to use this module, the `type` property in the transport configuration must be set to `kubernetes`.
-For the sender part, a number of properties can be provided as shown in the fragment below:
+For the sender part, a number of properties can be provided to configure the resulting pods as shown in the fragment
+below:
 
 [source]
 ----
@@ -25,7 +26,9 @@ endpoint {
         imagePullSecret = "my-secret"
         restartPolicy = ""
         backoffLimit = 5
-        commands = "java my.pkg.MyClass"
+        commands = "/bin/sh"
+        args = "-c java my.pkg.MyClass"
+        mountSecrets = "server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
     }
 }
 ----
@@ -65,9 +68,31 @@ the job as failed.
 |2
 
 |commands
-|The commands to be executed in the container. This can be used to overwrite the container's default command. Here a
-string can be specified. In order to obtain the array with commands expected by the Kubernetes job specification, the
-string is split at whitespaces, unless the whitespace occurs in double quotes.
+|The commands to be executed in the container. This can be used to overwrite the container's default command and
+corresponds to the `command` property in the
+https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/[Kubernetes pod configuration].
+Here a string can be specified. In order to obtain the array with commands expected by Kubernetes, the string is split
+at whitespaces, unless the whitespace occurs in double quotes.
+|empty
+
+|args
+|The arguments to be passed to the container's start command. This corresponds to the `args` property in the
+https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/[Kubernetes pod configuration].
+It is confusing that Kubernetes treats both properties, `command` and `args`, as arrays. In most examples, a single
+string is used as `command`, while multiple arguments can be provided in the `args` array. Analogously to the
+`commands` property, the string provided here is split at whitespaces to obtain the arguments. If a single argument
+contains whitespaces, it needs to be surrounded by double quotes.
+|empty
+
+|mountSecrets
+|With this property, it is possible to mount the contents of Kubernetes
+https://kubernetes.io/docs/concepts/configuration/secret/[secrets] as files into the resulting pod. The string is
+interpreted as a sequence of mount declarations separated by whitespace. Each mount declaration has the form
+_secret->mountPath_, where _secret_ is the name of a secret, and _mountPath_ is a path in the container where the
+content of the secret should be made available. At this path, for each key of the secret a file is created whose
+content is the value of the key. To achieve this, the Kubernetes Transport implementation generates corresponding
+`volume` and `volumeMount` declarations in the pod configuration. This mechanism is useful not only for secrets but
+also for other kinds of external data that should be accessible from a pod, for instance custom certificates.
 |empty
 |===
 
