@@ -37,6 +37,12 @@ class ToolVersionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ToolVersionDao>(ToolVersionsTable) {
         fun findByNameAndVersion(name: String, version: String): ToolVersionDao? =
             find { ToolVersionsTable.name eq name and (ToolVersionsTable.version eq version) }.singleOrNull()
+
+        fun getOrPut(name: String, version: String): ToolVersionDao =
+            findByNameAndVersion(name, version) ?: new {
+                this.name = name
+                this.version = version
+            }
     }
 
     val environments by EnvironmentDao via EnvironmentsToolVersionsTable

@@ -33,27 +33,23 @@ import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunIdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.DefectDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.DefectLabelDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.GithubDefectsConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.NexusIqConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.OsvConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.VulnerabilityDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.VulnerabilityReferenceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.VulnerableCodeConfigurationDao
-import org.ossreviewtoolkit.server.dao.utils.getOrPutEnvironment
-import org.ossreviewtoolkit.server.dao.utils.getOrPutIdentifier
-import org.ossreviewtoolkit.server.dao.utils.getOrPutIssue
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.advisor.Defect
 import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 
 /**
@@ -68,7 +64,7 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         config: AdvisorConfiguration,
         advisorRecords: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun = blockingQuery {
-        val environmentDao = getOrPutEnvironment(environment)
+        val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val advisorRunDao = AdvisorRunDao.new {
             this.advisorJob = AdvisorJobDao[advisorJobId]
@@ -80,7 +76,7 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         createAdvisorConfiguration(advisorRunDao, config)
 
         advisorRecords.forEach { (id, results) ->
-            val identifierDao = getOrPutIdentifier(id)
+            val identifierDao = IdentifierDao.getOrPut(id)
 
             val advisorRunIdentifierDao = AdvisorRunIdentifierDao.new {
                 this.advisorRun = advisorRunDao
@@ -88,9 +84,9 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
             }
 
             results.forEach { result ->
-                val issues = result.issues.map(::getOrPutIssue)
-                val defects = result.defects.map(::getOrPutDefect)
-                val vulnerabilities = result.vulnerabilities.map(::getOrPutVulnerability)
+                val issues = result.issues.map(OrtIssueDao::getOrPut)
+                val defects = result.defects.map(DefectDao::getOrPut)
+                val vulnerabilities = result.vulnerabilities.map(VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {
                     this.advisorRunIdentifier = advisorRunIdentifierDao
                     this.advisorName = result.advisorName
@@ -163,42 +159,3 @@ private fun createGitHubDefectsConfiguration(
     this.maxNumberOfIssuesPerRepository = githubDefectsConfiguration.maxNumberOfIssuesPerRepository
     this.parallelRequests = githubDefectsConfiguration.parallelRequests
 }
-
-private fun getOrPutDefect(defect: Defect): DefectDao =
-    DefectDao.findByDefect(defect) ?: DefectDao.new {
-        externalId = defect.externalId
-        url = defect.url
-        title = defect.title
-        state = defect.state
-        severity = defect.severity
-        description = defect.description
-        creationTime = defect.creationTime
-        modificationTime = defect.modificationTime
-        closingTime = defect.closingTime
-        fixReleaseVersion = defect.fixReleaseVersion
-        fixReleaseUrl = defect.fixReleaseUrl
-    }.also {
-        defect.labels.forEach { (key, value) ->
-            DefectLabelDao.new {
-                this.defect = it
-                this.key = key
-                this.value = value
-            }
-        }
-    }
-
-private fun getOrPutVulnerability(vulnerability: Vulnerability): VulnerabilityDao =
-    VulnerabilityDao.findByVulnerability(vulnerability) ?: VulnerabilityDao.new {
-        externalId = vulnerability.externalId
-        summary = vulnerability.summary
-        description = vulnerability.description
-    }.also {
-        vulnerability.references.forEach { reference ->
-            VulnerabilityReferenceDao.new {
-                this.vulnerability = it
-                this.url = reference.url
-                this.scoringSystem = reference.scoringSystem
-                this.severity = reference.severity
-            }
-        }
-    }

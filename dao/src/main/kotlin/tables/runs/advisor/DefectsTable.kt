@@ -64,6 +64,29 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
             }.singleOrNull {
                 it.labels.associate { it.key to it.value } == defect.labels
             }
+
+        fun getOrPut(defect: Defect): DefectDao =
+            findByDefect(defect) ?: new {
+                externalId = defect.externalId
+                url = defect.url
+                title = defect.title
+                state = defect.state
+                severity = defect.severity
+                description = defect.description
+                creationTime = defect.creationTime
+                modificationTime = defect.modificationTime
+                closingTime = defect.closingTime
+                fixReleaseVersion = defect.fixReleaseVersion
+                fixReleaseUrl = defect.fixReleaseUrl
+            }.also {
+                defect.labels.forEach { (key, value) ->
+                    DefectLabelDao.new {
+                        this.defect = it
+                        this.key = key
+                        this.value = value
+                    }
+                }
+            }
     }
 
     var externalId by DefectsTable.externalId

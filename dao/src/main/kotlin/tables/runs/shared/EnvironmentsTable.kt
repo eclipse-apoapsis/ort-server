@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.model.runs.Environment
 
@@ -51,6 +52,33 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
             }.singleOrNull {
                 it.variables.associate { it.name to it.value } == environment.variables &&
                         it.toolVersions.associate { it.name to it.version } == environment.toolVersions
+            }
+
+        fun getOrPut(environment: Environment): EnvironmentDao =
+            findByEnvironment(environment) ?: new {
+                ortVersion = environment.ortVersion
+                javaVersion = environment.javaVersion
+                os = environment.os
+                processors = environment.processors
+                maxMemory = environment.maxMemory
+            }.also { environmentDao ->
+                environment.toolVersions.forEach { (name, version) ->
+                    val toolVersionDao = ToolVersionDao.getOrPut(name, version)
+
+                    EnvironmentsToolVersionsTable.insert {
+                        it[environmentId] = environmentDao.id
+                        it[toolVersionId] = toolVersionDao.id
+                    }
+                }
+
+                environment.variables.forEach { (name, value) ->
+                    val variableDao = VariableDao.getOrPut(name, value)
+
+                    EnvironmentsVariablesTable.insert {
+                        it[environmentId] = environmentDao.id
+                        it[variableId] = variableDao.id
+                    }
+                }
             }
     }
 

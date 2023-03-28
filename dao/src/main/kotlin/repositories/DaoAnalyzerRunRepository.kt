@@ -44,14 +44,12 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectScopeDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.utils.getOrPutEnvironment
-import org.ossreviewtoolkit.server.dao.utils.getOrPutIdentifier
-import org.ossreviewtoolkit.server.dao.utils.getOrPutIssue
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
@@ -62,8 +60,6 @@ import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.Project
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
 
 /**
  * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].
@@ -80,7 +76,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         issues: Map<Identifier, List<OrtIssue>>,
         dependencyGraphs: Map<String, DependencyGraph>
     ): AnalyzerRun = blockingQuery {
-        val environmentDao = getOrPutEnvironment(environment)
+        val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val analyzerRun = AnalyzerRunDao.new {
             this.analyzerJob = AnalyzerJobDao[analyzerJobId]
@@ -96,7 +92,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         packages.forEach { createPackage(analyzerRun, it) }
 
         issues.forEach { (id, issues) ->
-            val identifier = getOrPutIdentifier(id)
+            val identifier = IdentifierDao.getOrPut(id)
             issues.forEach { createIssue(analyzerRun, identifier, it) }
         }
 
@@ -142,10 +138,10 @@ private fun createAnalyzerConfiguration(
 }
 
 private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): ProjectDao {
-    val identifier = getOrPutIdentifier(project.identifier)
+    val identifier = IdentifierDao.getOrPut(project.identifier)
 
-    val vcs = getOrPutVcsInfo(project.vcs)
-    val vcsProcessed = getOrPutVcsInfo(project.vcsProcessed)
+    val vcs = VcsInfoDao.getOrPut(project.vcs)
+    val vcsProcessed = VcsInfoDao.getOrPut(project.vcsProcessed)
 
     val projectDao = ProjectDao.findByProject(project) ?: ProjectDao.new {
         this.analyzerRun = analyzerRun
@@ -159,7 +155,7 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
     }
 
     project.authors.forEach { author ->
-        val authorDao = getOrPutAuthor(author)
+        val authorDao = AuthorDao.getOrPut(author)
         ProjectsAuthorsTable.insert {
             it[authorId] = authorDao.id
             it[projectId] = projectDao.id
@@ -167,7 +163,7 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
     }
 
     project.declaredLicenses.forEach { declaredLicense ->
-        val declaredLicenseDao = getOrPutDeclaredLicense(declaredLicense)
+        val declaredLicenseDao = DeclaredLicenseDao.getOrPut(declaredLicense)
         ProjectsDeclaredLicensesTable.insert {
             it[declaredLicenseId] = declaredLicenseDao.id
             it[projectId] = projectDao.id
@@ -185,13 +181,13 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
 }
 
 private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao {
-    val identifier = getOrPutIdentifier(pkg.identifier)
+    val identifier = IdentifierDao.getOrPut(pkg.identifier)
 
-    val vcs = getOrPutVcsInfo(pkg.vcs)
-    val vcsProcessed = getOrPutVcsInfo(pkg.vcsProcessed)
+    val vcs = VcsInfoDao.getOrPut(pkg.vcs)
+    val vcsProcessed = VcsInfoDao.getOrPut(pkg.vcsProcessed)
 
-    val binaryArtifact = getOrPutArtifact(pkg.binaryArtifact)
-    val sourceArtifact = getOrPutArtifact(pkg.sourceArtifact)
+    val binaryArtifact = RemoteArtifactDao.getOrPut(pkg.binaryArtifact)
+    val sourceArtifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
 
     val pkgDao = PackageDao.findByPackage(pkg) ?: PackageDao.new {
         this.identifier = identifier
@@ -214,7 +210,7 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     }
 
     pkg.authors.forEach { author ->
-        val authorDao = getOrPutAuthor(author)
+        val authorDao = AuthorDao.getOrPut(author)
         PackagesAuthorsTable.insert {
             it[authorId] = authorDao.id
             it[packageId] = pkgDao.id
@@ -222,7 +218,7 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     }
 
     pkg.declaredLicenses.forEach { declaredLicense ->
-        val declaredLicenseDao = getOrPutDeclaredLicense(declaredLicense)
+        val declaredLicenseDao = DeclaredLicenseDao.getOrPut(declaredLicense)
         PackagesDeclaredLicensesTable.insert {
             it[declaredLicenseId] = declaredLicenseDao.id
             it[packageId] = pkgDao.id
@@ -233,9 +229,9 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
 }
 
 private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: OrtIssue): OrtIssueDao {
-    val issueDao = getOrPutIssue(issue)
+    val issueDao = OrtIssueDao.getOrPut(issue)
 
-    val identifiersOrtIssueDao = getOrPutIdentifierOrtIssue(identifier, issueDao)
+    val identifiersOrtIssueDao = IdentifierOrtIssueDao.getOrPut(identifier, issueDao)
 
     AnalyzerRunsIdentifiersOrtIssuesTable.insert {
         it[analyzerRunId] = analyzerRun.id
@@ -244,34 +240,3 @@ private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, 
 
     return issueDao
 }
-
-private fun getOrPutArtifact(artifact: RemoteArtifact): RemoteArtifactDao =
-    RemoteArtifactDao.findByRemoteArtifact(artifact) ?: RemoteArtifactDao.new {
-        url = artifact.url
-        hashValue = artifact.hashValue
-        hashAlgorithm = artifact.hashAlgorithm
-    }
-
-private fun getOrPutAuthor(author: String): AuthorDao =
-    AuthorDao.findByName(author) ?: AuthorDao.new {
-        name = author
-    }
-
-private fun getOrPutDeclaredLicense(declaredLicense: String): DeclaredLicenseDao =
-    DeclaredLicenseDao.findByName(declaredLicense) ?: DeclaredLicenseDao.new {
-        name = declaredLicense
-    }
-
-private fun getOrPutIdentifierOrtIssue(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao =
-    IdentifierOrtIssueDao.findByIdentifierAndIssue(identifier, issue) ?: IdentifierOrtIssueDao.new {
-        this.identifier = identifier
-        this.ortIssueDao = issue
-    }
-
-private fun getOrPutVcsInfo(vcsInfo: VcsInfo): VcsInfoDao =
-    VcsInfoDao.findByVcsInfo(vcsInfo) ?: VcsInfoDao.new {
-        type = vcsInfo.type
-        url = vcsInfo.url
-        revision = vcsInfo.revision
-        path = vcsInfo.path
-    }

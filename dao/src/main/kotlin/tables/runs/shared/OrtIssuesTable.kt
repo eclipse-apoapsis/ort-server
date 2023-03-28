@@ -48,6 +48,14 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
                         (OrtIssuesTable.message eq issue.message) and
                         (OrtIssuesTable.severity eq issue.severity)
             }.singleOrNull()
+
+        fun getOrPut(issue: OrtIssue): OrtIssueDao =
+            findByIssue(issue) ?: new {
+                timestamp = issue.timestamp
+                source = issue.source
+                message = issue.message
+                severity = issue.severity
+            }
     }
 
     var timestamp by OrtIssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })

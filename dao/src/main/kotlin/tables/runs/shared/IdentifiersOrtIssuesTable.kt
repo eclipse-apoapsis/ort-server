@@ -40,6 +40,12 @@ class IdentifierOrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
                 IdentifiersOrtIssuesTable.identifierId eq identifier.id and
                         (IdentifiersOrtIssuesTable.ortIssueId eq issue.id)
             }.singleOrNull()
+
+        fun getOrPut(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao =
+            findByIdentifierAndIssue(identifier, issue) ?: new {
+                this.identifier = identifier
+                this.ortIssueDao = issue
+            }
     }
 
     var identifier by IdentifierDao referencedOn IdentifiersOrtIssuesTable.identifierId

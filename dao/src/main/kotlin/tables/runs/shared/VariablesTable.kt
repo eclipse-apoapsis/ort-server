@@ -37,6 +37,12 @@ class VariableDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<VariableDao>(VariablesTable) {
         fun findByNameAndValue(name: String, value: String): VariableDao? =
             find { VariablesTable.name eq name and (VariablesTable.value eq value) }.singleOrNull()
+
+        fun getOrPut(name: String, value: String): VariableDao =
+            findByNameAndValue(name, value) ?: new {
+                this.name = name
+                this.value = value
+            }
     }
 
     val environments by EnvironmentDao via EnvironmentsVariablesTable

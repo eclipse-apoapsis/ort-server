@@ -46,6 +46,14 @@ class IdentifierDao(id: EntityID<Long>) : LongEntity(id) {
                         (IdentifiersTable.name eq identifier.name) and
                         (IdentifiersTable.version eq identifier.version)
             }.singleOrNull()
+
+        fun getOrPut(identifier: Identifier): IdentifierDao =
+            findByIdentifier(identifier) ?: new {
+                type = identifier.type
+                namespace = identifier.namespace
+                name = identifier.name
+                version = identifier.version
+            }
     }
 
     var type by IdentifiersTable.type

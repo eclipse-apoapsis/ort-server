@@ -44,6 +44,22 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
                         (VulnerabilitiesTable.summary eq vulnerability.summary) and
                         (VulnerabilitiesTable.description eq vulnerability.description)
             }.singleOrNull { it.references.map(VulnerabilityReferenceDao::mapToModel) == vulnerability.references }
+
+        fun getOrPut(vulnerability: Vulnerability): VulnerabilityDao =
+            findByVulnerability(vulnerability) ?: new {
+                externalId = vulnerability.externalId
+                summary = vulnerability.summary
+                description = vulnerability.description
+            }.also {
+                vulnerability.references.forEach { reference ->
+                    VulnerabilityReferenceDao.new {
+                        this.vulnerability = it
+                        this.url = reference.url
+                        this.scoringSystem = reference.scoringSystem
+                        this.severity = reference.severity
+                    }
+                }
+            }
     }
 
     var externalId by VulnerabilitiesTable.externalId
