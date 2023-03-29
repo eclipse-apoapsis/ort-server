@@ -31,8 +31,8 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
  * An intermediate table to store references from [AdvisorRunsTable] and [IdentifiersTable].
  */
 object AdvisorRunsIdentifiersTable : LongIdTable("advisor_runs_identifiers") {
-    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id)
-    val identifierId = reference("identifier_id", IdentifiersTable.id)
+    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable)
+    val identifierId = reference("identifier_id", IdentifiersTable)
 }
 
 class AdvisorRunIdentifierDao(id: EntityID<Long>) : LongEntity(id) {

@@ -35,7 +35,7 @@ import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
  * A table to represent a reporter job.
  */
 object ReporterJobsTable : LongIdTable("reporter_jobs") {
-    val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+    val ortRunId = reference("ort_run_id", OrtRunsTable)
 
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()

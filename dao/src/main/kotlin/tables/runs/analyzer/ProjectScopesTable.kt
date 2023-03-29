@@ -28,7 +28,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  * A table to represent project scopes.
  */
 object ProjectScopesTable : LongIdTable("project_scopes") {
-    var projectId = reference("project_id", ProjectsTable.id)
+    var projectId = reference("project_id", ProjectsTable)
     var name = text("name")
 }
 

@@ -39,8 +39,8 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
  * A table to represent an analyzer run.
  */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
-    val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable.id)
-    val environmentId = reference("environment_id", EnvironmentsTable.id)
+    val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable)
+    val environmentId = reference("environment_id", EnvironmentsTable)
 
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")

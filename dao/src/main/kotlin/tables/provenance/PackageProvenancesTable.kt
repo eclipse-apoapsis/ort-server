@@ -32,9 +32,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 
 object PackageProvenancesTable : LongIdTable("package_provenances") {
-    val identifierId = reference("identifier_id", IdentifiersTable.id)
-    val artifactId = reference("artifact_id", RemoteArtifactsTable.id).nullable()
-    val vcsId = reference("vcs_id", VcsInfoTable.id).nullable()
+    val identifierId = reference("identifier_id", IdentifiersTable)
+    val artifactId = reference("artifact_id", RemoteArtifactsTable).nullable()
+    val vcsId = reference("vcs_id", VcsInfoTable).nullable()
 
     val resolvedRevision = text("resolved_revision").nullable()
     val clonedRevision = text("cloned_revision").nullable()

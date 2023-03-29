@@ -28,7 +28,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  * A table to represent a key-value pair, which belongs to an option for an [AdvisorConfigurationsTable].
  */
 object AdvisorConfigurationsOptionsTable : LongIdTable("advisor_configuration_options") {
-    val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable.id)
+    val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable)
 
     val key = text("key")
     val value = text("value")

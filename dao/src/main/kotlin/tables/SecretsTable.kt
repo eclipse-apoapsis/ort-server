@@ -27,9 +27,9 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.ossreviewtoolkit.server.model.Secret
 
 object SecretsTable : LongIdTable("secrets") {
-    val organizationId = reference("organization_id", OrganizationsTable.id).nullable()
-    val productId = reference("product_id", ProductsTable.id).nullable()
-    val repositoryId = reference("repository_id", RepositoriesTable.id).nullable()
+    val organizationId = reference("organization_id", OrganizationsTable).nullable()
+    val productId = reference("product_id", ProductsTable).nullable()
+    val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 
     val path = text("path")
     val name = text("name").nullable()

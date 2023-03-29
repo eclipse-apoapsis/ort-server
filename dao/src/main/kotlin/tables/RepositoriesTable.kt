@@ -31,7 +31,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
  * A table to represent a repository inside a product.
  */
 object RepositoriesTable : LongIdTable("repositories") {
-    val productId = reference("product_id", ProductsTable.id)
+    val productId = reference("product_id", ProductsTable)
 
     val type = enumerationByName<RepositoryType>("type", 128)
     val url = text("url")

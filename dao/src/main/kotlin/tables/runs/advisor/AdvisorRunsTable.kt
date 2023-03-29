@@ -36,8 +36,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
  * A table to represent a summary of an advisor run.
  */
 object AdvisorRunsTable : LongIdTable("advisor_runs") {
-    val advisorJobId = reference("advisor_job_id", AdvisorJobsTable.id)
-    val environmentId = reference("environment_id", EnvironmentsTable.id)
+    val advisorJobId = reference("advisor_job_id", AdvisorJobsTable)
+    val environmentId = reference("environment_id", EnvironmentsTable)
 
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")

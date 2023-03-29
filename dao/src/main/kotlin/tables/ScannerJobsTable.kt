@@ -35,7 +35,7 @@ import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
  * A table to represent a scanner job.
  */
 object ScannerJobsTable : LongIdTable("scanner_jobs") {
-    val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+    val ortRunId = reference("ort_run_id", OrtRunsTable)
 
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()

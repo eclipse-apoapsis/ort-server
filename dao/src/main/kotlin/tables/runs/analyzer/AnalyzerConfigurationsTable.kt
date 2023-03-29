@@ -30,7 +30,7 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
  * A table to represent an analyzer configuration.
  */
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
-    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
 
     val allowDynamicVersions = bool("allow_dynamic_versions")
     val enabledPackageManagers = text("enabled_package_managers").nullable()

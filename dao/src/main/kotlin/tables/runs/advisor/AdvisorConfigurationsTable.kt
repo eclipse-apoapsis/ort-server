@@ -30,13 +30,13 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
  * A table to represent an advisor configuration.
  */
 object AdvisorConfigurationsTable : LongIdTable("advisor_configurations") {
-    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id)
+    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable)
     val githubDefectsConfigurationId =
-        reference("github_defects_configuration_id", GithubDefectsConfigurationsTable.id).nullable()
-    val nexusIqConfigurationId = reference("nexus_iq_configuration_id", NexusIqConfigurationsTable.id).nullable()
-    val osvConfigurationId = reference("osv_configuration_id", OsvConfigurationsTable.id).nullable()
+        reference("github_defects_configuration_id", GithubDefectsConfigurationsTable).nullable()
+    val nexusIqConfigurationId = reference("nexus_iq_configuration_id", NexusIqConfigurationsTable).nullable()
+    val osvConfigurationId = reference("osv_configuration_id", OsvConfigurationsTable).nullable()
     val vulnerableCodeConfigurationId =
-        reference("vulnerable_code_configuration_id", VulnerableCodeConfigurationsTable.id).nullable()
+        reference("vulnerable_code_configuration_id", VulnerableCodeConfigurationsTable).nullable()
 }
 
 class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {

@@ -28,7 +28,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  * A table to represent a key-value pair, which belongs to a label for a [DefectsTable].
  */
 object DefectLabelsTable : LongIdTable("defect_labels") {
-    val defectId = reference("defect_id", DefectsTable.id)
+    val defectId = reference("defect_id", DefectsTable)
 
     val key = text("key")
     val value = text("value")

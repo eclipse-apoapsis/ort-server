@@ -30,7 +30,7 @@ import org.ossreviewtoolkit.server.model.Product
  * A product is a collection of repositories which are combined into one software product.
  */
 object ProductsTable : LongIdTable("products") {
-    val organizationId = reference("organization_id", OrganizationsTable.id)
+    val organizationId = reference("organization_id", OrganizationsTable)
 
     val name = text("name")
     val description = text("description").nullable()

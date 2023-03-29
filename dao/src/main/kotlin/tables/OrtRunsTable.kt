@@ -35,7 +35,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
  * A table to represent an ORT run.
  */
 object OrtRunsTable : LongIdTable("ort_runs") {
-    val repositoryId = reference("repository_id", RepositoriesTable.id)
+    val repositoryId = reference("repository_id", RepositoriesTable)
 
     val index = long("index")
     val revision = text("revision")

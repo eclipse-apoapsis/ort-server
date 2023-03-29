@@ -30,7 +30,7 @@ import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
  * A table to represent a package manager configuration.
  */
 object PackageManagerConfigurationsTable : LongIdTable("package_manager_configurations") {
-    val analyzerConfigurationId = reference("analyzer_configuration_id", AnalyzerConfigurationsTable.id)
+    val analyzerConfigurationId = reference("analyzer_configuration_id", AnalyzerConfigurationsTable)
 
     val name = text("name")
     val mustRunAfter = text("must_run_after").nullable()

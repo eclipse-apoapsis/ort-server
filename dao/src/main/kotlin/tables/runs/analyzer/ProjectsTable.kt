@@ -36,10 +36,10 @@ import org.ossreviewtoolkit.server.model.runs.Project
  * A table to represent a software package as a project.
  */
 object ProjectsTable : LongIdTable("projects") {
-    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id)
-    val identifierId = reference("identifier_id", IdentifiersTable.id)
-    val vcsId = reference("vcs_id", VcsInfoTable.id)
-    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
+    val identifierId = reference("identifier_id", IdentifiersTable)
+    val vcsId = reference("vcs_id", VcsInfoTable)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable)
 
     val cpe = text("cpe").nullable()
     val definitionFilePath = text("definition_file_path")

@@ -38,11 +38,11 @@ import org.ossreviewtoolkit.server.model.runs.Package
  * A table to represent all metadata for a software package.
  */
 object PackagesTable : LongIdTable("packages") {
-    val identifierId = reference("identifier_id", IdentifiersTable.id)
-    val vcsId = reference("vcs_id", VcsInfoTable.id)
-    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id)
-    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id)
-    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id)
+    val identifierId = reference("identifier_id", IdentifiersTable)
+    val vcsId = reference("vcs_id", VcsInfoTable)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable)
+    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable)
+    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable)
 
     val purl = text("purl")
     val cpe = text("cpe").nullable()

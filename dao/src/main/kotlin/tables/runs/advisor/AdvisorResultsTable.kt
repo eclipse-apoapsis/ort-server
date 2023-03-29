@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
  * A table to represent a result of an advisor for a single identifier.
  */
 object AdvisorResultsTable : LongIdTable("advisor_results") {
-    val advisorRunIdentifierId = reference("advisor_run_identifier_id", AdvisorRunsIdentifiersTable.id)
+    val advisorRunIdentifierId = reference("advisor_run_identifier_id", AdvisorRunsIdentifiersTable)
 
     val advisorName = text("advisor_name")
     val capabilities = text("capabilities")
