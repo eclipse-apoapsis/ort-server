@@ -36,18 +36,13 @@ import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 
 class OrtServerPackageProvenanceStorageTest : WordSpec() {
     private val packageProvenanceStorage = OrtServerPackageProvenanceStorage()
 
-    private lateinit var fixtures: Fixtures
-
     init {
         extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-            }
+            DatabaseTestExtension()
         )
 
         "put" should {
