@@ -30,6 +30,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 object PackageManagerConfigurationOptionsTable : LongIdTable("package_manager_configuration_options") {
     val packageManagerConfigurationId =
         reference("package_manager_configuration_id", PackageManagerConfigurationsTable.id)
+
     val name = text("name")
     val value = text("value")
 }
@@ -39,6 +40,7 @@ class PackageManagerConfigurationOptionDao(id: EntityID<Long>) : LongEntity(id) 
 
     var packageManagerConfiguration by PackageManagerConfigurationDao referencedOn
             PackageManagerConfigurationOptionsTable.packageManagerConfigurationId
+
     var name by PackageManagerConfigurationOptionsTable.name
     var value by PackageManagerConfigurationOptionsTable.value
 }

@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
  */
 object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
@@ -47,11 +48,13 @@ class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EvaluatorJobDao>(EvaluatorJobsTable)
 
     var ortRun by OrtRunDao referencedOn EvaluatorJobsTable.ortRunId
+
     var createdAt by EvaluatorJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by EvaluatorJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
     var finishedAt by EvaluatorJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by EvaluatorJobsTable.configuration
     var status by EvaluatorJobsTable.status
+
     // TODO: Add `evaluatorRun` property when implementing the evaluator run model.
 
     fun mapToModel() = EvaluatorJob(

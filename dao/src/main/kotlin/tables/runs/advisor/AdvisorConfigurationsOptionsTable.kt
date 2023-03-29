@@ -29,6 +29,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  */
 object AdvisorConfigurationsOptionsTable : LongIdTable("advisor_configuration_options") {
     val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable.id)
+
     val key = text("key")
     val value = text("value")
 }
@@ -38,6 +39,7 @@ class AdvisorConfigurationsOptionDao(id: EntityID<Long>) : LongEntity(id) {
 
     var advisorConfiguration by AdvisorConfigurationDao referencedOn
             AdvisorConfigurationsOptionsTable.advisorConfigurationId
+
     var key by AdvisorConfigurationsOptionsTable.key
     var value by AdvisorConfigurationsOptionsTable.value
 }

@@ -30,17 +30,19 @@ import org.ossreviewtoolkit.server.model.Product
  * A product is a collection of repositories which are combined into one software product.
  */
 object ProductsTable : LongIdTable("products") {
+    val organizationId = reference("organization_id", OrganizationsTable.id)
+
     val name = text("name")
     val description = text("description").nullable()
-    val organizationId = reference("organization_id", OrganizationsTable.id)
 }
 
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ProductDao>(ProductsTable)
 
+    var organization by OrganizationDao referencedOn ProductsTable.organizationId
+
     var name by ProductsTable.name
     var description by ProductsTable.description
-    var organization by OrganizationDao referencedOn ProductsTable.organizationId
 
     fun mapToModel() = Product(id = id.value, name = name, description = description)
 }

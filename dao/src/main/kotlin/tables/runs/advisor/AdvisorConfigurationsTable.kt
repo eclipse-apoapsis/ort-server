@@ -50,6 +50,7 @@ class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var osvConfiguration by OsvConfigurationDao optionalReferencedOn AdvisorConfigurationsTable.osvConfigurationId
     var vulnerableCodeConfiguration by VulnerableCodeConfigurationDao optionalReferencedOn
             AdvisorConfigurationsTable.vulnerableCodeConfigurationId
+
     val options by AdvisorConfigurationsOptionDao referrersOn AdvisorConfigurationsOptionsTable.advisorConfigurationId
 
     fun mapToModel() = AdvisorConfiguration(

@@ -31,17 +31,19 @@ import org.ossreviewtoolkit.server.model.RepositoryType
  * A table to represent a repository inside a product.
  */
 object RepositoriesTable : LongIdTable("repositories") {
+    val productId = reference("product_id", ProductsTable.id)
+
     val type = enumerationByName<RepositoryType>("type", 128)
     val url = text("url")
-    val productId = reference("product_id", ProductsTable.id)
 }
 
 class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<RepositoryDao>(RepositoriesTable)
 
+    var product by ProductDao referencedOn RepositoriesTable.productId
+
     var type by RepositoriesTable.type
     var url by RepositoriesTable.url
-    var product by ProductDao referencedOn RepositoriesTable.productId
 
     fun mapToModel() = Repository(id = id.value, type = type, url = url)
 }

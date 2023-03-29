@@ -48,6 +48,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     var identifier by IdentifierDao referencedOn PackageProvenancesTable.identifierId
     var artifact by RemoteArtifactDao optionalReferencedOn PackageProvenancesTable.artifactId
     var vcs by VcsInfoDao optionalReferencedOn PackageProvenancesTable.vcsId
+
     var resolvedRevision by PackageProvenancesTable.resolvedRevision
     var isFixedRevision by PackageProvenancesTable.isFixedRevision
     var clonedRevision by PackageProvenancesTable.clonedRevision

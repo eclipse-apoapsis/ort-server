@@ -45,8 +45,8 @@ class VariableDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    val environments by EnvironmentDao via EnvironmentsVariablesTable
-
     var name by VariablesTable.name
     var value by VariablesTable.value
+
+    val environments by EnvironmentDao via EnvironmentsVariablesTable
 }

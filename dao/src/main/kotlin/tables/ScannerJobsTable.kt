@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
  */
 object ScannerJobsTable : LongIdTable("scanner_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
@@ -47,11 +48,13 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerJobDao>(ScannerJobsTable)
 
     var ortRun by OrtRunDao referencedOn ScannerJobsTable.ortRunId
+
     var createdAt by ScannerJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by ScannerJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
     var finishedAt by ScannerJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by ScannerJobsTable.configuration
     var status by ScannerJobsTable.status
+
     // TODO: Add `scannerRun` property when implementing scanner run model and worker
 
     fun mapToModel() = ScannerJob(

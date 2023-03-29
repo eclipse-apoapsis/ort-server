@@ -82,14 +82,14 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    val variables by VariableDao via EnvironmentsVariablesTable
-    val toolVersions by ToolVersionDao via EnvironmentsToolVersionsTable
-
     var ortVersion by EnvironmentsTable.ortVersion
     var javaVersion by EnvironmentsTable.javaVersion
     var os by EnvironmentsTable.os
     var processors by EnvironmentsTable.processors
     var maxMemory by EnvironmentsTable.maxMemory
+
+    val variables by VariableDao via EnvironmentsVariablesTable
+    val toolVersions by ToolVersionDao via EnvironmentsToolVersionsTable
 
     fun mapToModel() = Environment(
         ortVersion = ortVersion,

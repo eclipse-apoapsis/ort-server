@@ -100,6 +100,7 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
     var closingTime by DefectsTable.closingTime.transform({ it?.toDatabasePrecision() }, { it })
     var fixReleaseVersion by DefectsTable.fixReleaseVersion
     var fixReleaseUrl by DefectsTable.fixReleaseUrl
+
     val labels by DefectLabelDao referrersOn DefectLabelsTable.defectId
 
     fun mapToModel() = Defect(

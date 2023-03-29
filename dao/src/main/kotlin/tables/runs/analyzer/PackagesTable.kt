@@ -77,11 +77,8 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var identifier by IdentifierDao referencedOn PackagesTable.identifierId
     var vcs by VcsInfoDao referencedOn PackagesTable.vcsId
     var vcsProcessed by VcsInfoDao referencedOn PackagesTable.vcsProcessedId
-    var authors by AuthorDao via PackagesAuthorsTable
     var binaryArtifact by RemoteArtifactDao referencedOn PackagesTable.binaryArtifactId
     var sourceArtifact by RemoteArtifactDao referencedOn PackagesTable.sourceArtifactId
-    var declaredLicenses by DeclaredLicenseDao via PackagesDeclaredLicensesTable
-    var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
     var purl by PackagesTable.purl
     var cpe by PackagesTable.cpe
@@ -89,6 +86,10 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var homepageUrl by PackagesTable.homepageUrl
     var isMetadataOnly by PackagesTable.isMetadataOnly
     var isModified by PackagesTable.isModified
+
+    var authors by AuthorDao via PackagesAuthorsTable
+    var declaredLicenses by DeclaredLicenseDao via PackagesDeclaredLicensesTable
+    var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
     fun mapToModel() = Package(
         identifier = identifier.mapToModel(),

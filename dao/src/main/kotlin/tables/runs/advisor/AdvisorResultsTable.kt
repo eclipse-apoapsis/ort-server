@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
  */
 object AdvisorResultsTable : LongIdTable("advisor_results") {
     val advisorRunIdentifierId = reference("advisor_run_identifier_id", AdvisorRunsIdentifiersTable.id)
+
     val advisorName = text("advisor_name")
     val capabilities = text("capabilities")
     val startTime = timestamp("start_time")
@@ -44,11 +45,13 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AdvisorResultDao>(AdvisorResultsTable)
 
     var advisorRunIdentifier by AdvisorRunIdentifierDao referencedOn AdvisorResultsTable.advisorRunIdentifierId
+
     var advisorName by AdvisorResultsTable.advisorName
     var capabilities by AdvisorResultsTable.capabilities
         .transform({ it.joinToString(",") }, { it.split(",") })
     var startTime by AdvisorResultsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AdvisorResultsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
     var defects by DefectDao via AdvisorResultsDefectsTable
     var issues by OrtIssueDao via AdvisorResultsIssuesTable

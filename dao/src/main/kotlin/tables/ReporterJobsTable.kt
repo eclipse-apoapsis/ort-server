@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
  */
 object ReporterJobsTable : LongIdTable("reporter_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
@@ -47,6 +48,7 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ReporterJobDao>(ReporterJobsTable)
 
     var ortRun by OrtRunDao referencedOn ReporterJobsTable.ortRunId
+
     var createdAt by ReporterJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by ReporterJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
     var finishedAt by ReporterJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })

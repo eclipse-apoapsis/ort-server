@@ -45,8 +45,8 @@ class ToolVersionDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    val environments by EnvironmentDao via EnvironmentsToolVersionsTable
-
     var name by ToolVersionsTable.name
     var version by ToolVersionsTable.version
+
+    val environments by EnvironmentDao via EnvironmentsToolVersionsTable
 }

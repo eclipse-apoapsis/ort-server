@@ -38,6 +38,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
  */
 object AdvisorJobsTable : LongIdTable("advisor_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable.id)
+
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
@@ -49,11 +50,13 @@ class AdvisorJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AdvisorJobDao>(AdvisorJobsTable)
 
     var ortRun by OrtRunDao referencedOn AdvisorJobsTable.ortRunId
+
     var createdAt by AdvisorJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by AdvisorJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
     var finishedAt by AdvisorJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var configuration by AdvisorJobsTable.configuration
     var status by AdvisorJobsTable.status
+
     val advisorRun by AdvisorRunDao optionalBackReferencedOn AdvisorRunsTable.advisorJobId
 
     fun mapToModel() = AdvisorJob(

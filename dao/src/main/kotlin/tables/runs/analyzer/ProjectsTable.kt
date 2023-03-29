@@ -64,15 +64,16 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
 
     var analyzerRun by AnalyzerRunDao referencedOn ProjectsTable.analyzerRunId
     var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
-    var authors by AuthorDao via ProjectsAuthorsTable
-    var declaredLicenses by DeclaredLicenseDao via ProjectsDeclaredLicensesTable
     var vcs by VcsInfoDao referencedOn ProjectsTable.vcsId
     var vcsProcessed by VcsInfoDao referencedOn ProjectsTable.vcsProcessedId
-    val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     var cpe by ProjectsTable.cpe
     var definitionFilePath by ProjectsTable.definitionFilePath
     var homepageUrl by ProjectsTable.homepageUrl
+
+    var authors by AuthorDao via ProjectsAuthorsTable
+    var declaredLicenses by DeclaredLicenseDao via ProjectsDeclaredLicensesTable
+    val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
     fun mapToModel() = Project(
         identifier = identifier.mapToModel(),

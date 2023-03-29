@@ -31,6 +31,7 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
  */
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id)
+
     val allowDynamicVersions = bool("allow_dynamic_versions")
     val enabledPackageManagers = text("enabled_package_managers").nullable()
     val disabledPackageManagers = text("disabled_package_managers").nullable()
@@ -40,11 +41,13 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerConfigurationDao>(AnalyzerConfigurationsTable)
 
     var analyzerRun by AnalyzerRunDao referencedOn AnalyzerConfigurationsTable.analyzerRunId
+
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
+
     val packageManagerConfigurations by PackageManagerConfigurationDao referrersOn
             PackageManagerConfigurationsTable.analyzerConfigurationId
 

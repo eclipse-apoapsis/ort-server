@@ -29,6 +29,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  */
 object DefectLabelsTable : LongIdTable("defect_labels") {
     val defectId = reference("defect_id", DefectsTable.id)
+
     val key = text("key")
     val value = text("value")
 }
@@ -37,6 +38,7 @@ class DefectLabelDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<DefectLabelDao>(DefectLabelsTable)
 
     var defect by DefectDao referencedOn DefectLabelsTable.defectId
+
     var key by DefectLabelsTable.key
     var value by DefectLabelsTable.value
 }

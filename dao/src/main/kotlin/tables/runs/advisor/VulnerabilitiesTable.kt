@@ -65,6 +65,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
     var externalId by VulnerabilitiesTable.externalId
     var summary by VulnerabilitiesTable.summary
     var description by VulnerabilitiesTable.description
+
     val references by VulnerabilityReferenceDao referrersOn VulnerabilityReferencesTable.vulnerabilityId
 
     fun mapToModel() = Vulnerability(

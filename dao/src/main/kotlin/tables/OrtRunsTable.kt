@@ -35,8 +35,9 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
  * A table to represent an ORT run.
  */
 object OrtRunsTable : LongIdTable("ort_runs") {
-    val index = long("index")
     val repositoryId = reference("repository_id", RepositoriesTable.id)
+
+    val index = long("index")
     val revision = text("revision")
     val createdAt = timestamp("created_at")
 
@@ -49,8 +50,9 @@ object OrtRunsTable : LongIdTable("ort_runs") {
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtRunDao>(OrtRunsTable)
 
-    var index by OrtRunsTable.index
     var repository by RepositoryDao referencedOn OrtRunsTable.repositoryId
+
+    var index by OrtRunsTable.index
     var revision by OrtRunsTable.revision
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var jobConfigurations by OrtRunsTable.jobConfigurations

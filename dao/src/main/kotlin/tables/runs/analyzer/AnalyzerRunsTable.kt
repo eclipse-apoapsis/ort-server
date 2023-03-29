@@ -40,9 +40,10 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
  */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable.id)
+    val environmentId = reference("environment_id", EnvironmentsTable.id)
+
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val environmentId = reference("environment_id", EnvironmentsTable.id)
     val dependencyGraphs = jsonb("dependency_graphs", DependencyGraphsWrapper::class)
 }
 
@@ -50,14 +51,16 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable)
 
     var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJobId
+    var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
+
     var startTime by AnalyzerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
-    var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
+    var dependencyGraphsWrapper by AnalyzerRunsTable.dependencyGraphs
+
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
     var packages by PackageDao via PackagesAnalyzerRunsTable
     var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
-    var dependencyGraphsWrapper by AnalyzerRunsTable.dependencyGraphs
 
     fun mapToModel() = AnalyzerRun(
         id = id.value,

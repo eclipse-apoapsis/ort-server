@@ -31,6 +31,7 @@ import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
  */
 object PackageManagerConfigurationsTable : LongIdTable("package_manager_configurations") {
     val analyzerConfigurationId = reference("analyzer_configuration_id", AnalyzerConfigurationsTable.id)
+
     val name = text("name")
     val mustRunAfter = text("must_run_after").nullable()
     val hasOptions = bool("has_options")
@@ -41,12 +42,14 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var analyzerConfiguration by AnalyzerConfigurationDao referencedOn
             PackageManagerConfigurationsTable.analyzerConfigurationId
+
     var name by PackageManagerConfigurationsTable.name
     var mustRunAfter: List<String>? by PackageManagerConfigurationsTable.mustRunAfter
         .transform({ it?.joinToString(",") }, { it?.split(",") })
+    var hasOptions by PackageManagerConfigurationsTable.hasOptions
+
     val options by PackageManagerConfigurationOptionDao referrersOn
             PackageManagerConfigurationOptionsTable.packageManagerConfigurationId
-    var hasOptions by PackageManagerConfigurationsTable.hasOptions
 
     fun mapToModel() = PackageManagerConfiguration(
         mustRunAfter = mustRunAfter,

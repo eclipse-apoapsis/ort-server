@@ -36,19 +36,22 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
  * A table to represent a summary of an advisor run.
  */
 object AdvisorRunsTable : LongIdTable("advisor_runs") {
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
     val advisorJobId = reference("advisor_job_id", AdvisorJobsTable.id)
     val environmentId = reference("environment_id", EnvironmentsTable.id)
+
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
 }
 
 class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AdvisorRunDao>(AdvisorRunsTable)
 
     var advisorJob by AdvisorJobDao referencedOn AdvisorRunsTable.advisorJobId
+    var environment by EnvironmentDao referencedOn AdvisorRunsTable.environmentId
+
     var startTime by AdvisorRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by AdvisorRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
-    var environment by EnvironmentDao referencedOn AdvisorRunsTable.environmentId
+
     val advisorConfiguration by AdvisorConfigurationDao backReferencedOn AdvisorConfigurationsTable.advisorRunId
     val advisorRecords by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId
 
