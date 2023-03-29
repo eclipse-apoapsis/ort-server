@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.Secret
 
@@ -31,9 +30,9 @@ object SecretsTable : LongIdTable("secrets") {
     val path = text("path")
     val name = text("name").nullable()
     val description = text("description").nullable()
-    val organizationId = reference("organization_id", OrganizationsTable.id, ReferenceOption.CASCADE).nullable()
-    val productId = reference("product_id", ProductsTable.id, ReferenceOption.CASCADE).nullable()
-    val repositoryId = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE).nullable()
+    val organizationId = reference("organization_id", OrganizationsTable.id).nullable()
+    val productId = reference("product_id", ProductsTable.id).nullable()
+    val repositoryId = reference("repository_id", RepositoriesTable.id).nullable()
 }
 
 class SecretDao(id: EntityID<Long>) : LongEntity(id) {

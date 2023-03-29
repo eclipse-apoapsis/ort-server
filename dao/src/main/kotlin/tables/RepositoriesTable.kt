@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -34,7 +33,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 object RepositoriesTable : LongIdTable("repositories") {
     val type = enumerationByName<RepositoryType>("type", 128)
     val url = text("url")
-    val productId = reference("product_id", ProductsTable.id, ReferenceOption.CASCADE)
+    val productId = reference("product_id", ProductsTable.id)
 }
 
 class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {

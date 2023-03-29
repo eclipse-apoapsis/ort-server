@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
@@ -32,8 +31,8 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
  * An intermediate table to store references from [AdvisorRunsTable] and [IdentifiersTable].
  */
 object AdvisorRunsIdentifiersTable : LongIdTable("advisor_runs_identifiers") {
-    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id, ReferenceOption.CASCADE)
-    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
+    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id)
+    val identifierId = reference("identifier_id", IdentifiersTable.id)
 }
 
 class AdvisorRunIdentifierDao(id: EntityID<Long>) : LongEntity(id) {

@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
@@ -40,10 +39,10 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
  * A table to represent an analyzer run.
  */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
-    val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable.id, ReferenceOption.CASCADE)
+    val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable.id)
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val environmentId = reference("environment_id", EnvironmentsTable.id)
     val dependencyGraphs = jsonb("dependency_graphs", DependencyGraphsWrapper::class)
 }
 

@@ -23,17 +23,12 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 /**
  * A table to represent a key-value pair, which belongs to an option for an [AdvisorConfigurationsTable].
  */
 object AdvisorConfigurationsOptionsTable : LongIdTable("advisor_configuration_options") {
-    val advisorConfigurationId = reference(
-        "advisor_configuration_id",
-        AdvisorConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    )
+    val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable.id)
     val key = text("key")
     val value = text("value")
 }

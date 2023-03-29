@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.Product
 
@@ -33,7 +32,7 @@ import org.ossreviewtoolkit.server.model.Product
 object ProductsTable : LongIdTable("products") {
     val name = text("name")
     val description = text("description").nullable()
-    val organizationId = reference("organization_id", OrganizationsTable.id, ReferenceOption.CASCADE)
+    val organizationId = reference("organization_id", OrganizationsTable.id)
 }
 
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {

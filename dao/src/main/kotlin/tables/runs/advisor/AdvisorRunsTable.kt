@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
@@ -39,8 +38,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 object AdvisorRunsTable : LongIdTable("advisor_runs") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val advisorJobId = reference("advisor_job_id", AdvisorJobsTable.id, ReferenceOption.CASCADE)
-    val environmentId = reference("environment_id", EnvironmentsTable.id, ReferenceOption.CASCADE)
+    val advisorJobId = reference("advisor_job_id", AdvisorJobsTable.id)
+    val environmentId = reference("environment_id", EnvironmentsTable.id)
 }
 
 class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {

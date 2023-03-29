@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.jsonb
@@ -36,7 +35,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
  * A table to represent an evaluator job.
  */
 object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
-    val ortRunId = reference("ort_run_id", OrtRunsTable.id, ReferenceOption.CASCADE)
+    val ortRunId = reference("ort_run_id", OrtRunsTable.id)
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()

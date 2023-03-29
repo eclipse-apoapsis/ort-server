@@ -23,13 +23,12 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 /**
  * A table to represent project scopes.
  */
 object ProjectScopesTable : LongIdTable("project_scopes") {
-    var projectId = reference("project_id", ProjectsTable.id, ReferenceOption.CASCADE)
+    var projectId = reference("project_id", ProjectsTable.id)
     var name = text("name")
 }
 

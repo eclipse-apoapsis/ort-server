@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.utils.jsonb
@@ -37,7 +36,7 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
  */
 object OrtRunsTable : LongIdTable("ort_runs") {
     val index = long("index")
-    val repositoryId = reference("repository_id", RepositoriesTable.id, ReferenceOption.CASCADE)
+    val repositoryId = reference("repository_id", RepositoriesTable.id)
     val revision = text("revision")
     val createdAt = timestamp("created_at")
 

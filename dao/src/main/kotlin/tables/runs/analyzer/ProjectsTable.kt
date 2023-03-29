@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
@@ -37,10 +36,10 @@ import org.ossreviewtoolkit.server.model.runs.Project
  * A table to represent a software package as a project.
  */
 object ProjectsTable : LongIdTable("projects") {
-    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id, ReferenceOption.CASCADE)
-    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
-    val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
+    val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable.id)
+    val identifierId = reference("identifier_id", IdentifiersTable.id)
+    val vcsId = reference("vcs_id", VcsInfoTable.id)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id)
 
     val cpe = text("cpe").nullable()
     val definitionFilePath = text("definition_file_path")

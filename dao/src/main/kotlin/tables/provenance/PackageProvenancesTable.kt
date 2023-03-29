@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
@@ -33,9 +32,9 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 
 object PackageProvenancesTable : LongIdTable("package_provenances") {
-    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
-    val artifactId = reference("artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE).nullable()
-    val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE).nullable()
+    val identifierId = reference("identifier_id", IdentifiersTable.id)
+    val artifactId = reference("artifact_id", RemoteArtifactsTable.id).nullable()
+    val vcsId = reference("vcs_id", VcsInfoTable.id).nullable()
 
     val resolvedRevision = text("resolved_revision").nullable()
     val clonedRevision = text("cloned_revision").nullable()

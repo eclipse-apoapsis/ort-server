@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
@@ -34,11 +33,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
  * A table to represent a result of an advisor for a single identifier.
  */
 object AdvisorResultsTable : LongIdTable("advisor_results") {
-    val advisorRunIdentifierId = reference(
-        "advisor_run_identifier_id",
-        AdvisorRunsIdentifiersTable.id,
-        ReferenceOption.CASCADE
-    )
+    val advisorRunIdentifierId = reference("advisor_run_identifier_id", AdvisorRunsIdentifiersTable.id)
     val advisorName = text("advisor_name")
     val capabilities = text("capabilities")
     val startTime = timestamp("start_time")

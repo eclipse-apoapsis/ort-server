@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
@@ -39,11 +38,11 @@ import org.ossreviewtoolkit.server.model.runs.Package
  * A table to represent all metadata for a software package.
  */
 object PackagesTable : LongIdTable("packages") {
-    val identifierId = reference("identifier_id", IdentifiersTable.id, ReferenceOption.CASCADE)
-    val vcsId = reference("vcs_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id, ReferenceOption.CASCADE)
-    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
-    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id, ReferenceOption.CASCADE)
+    val identifierId = reference("identifier_id", IdentifiersTable.id)
+    val vcsId = reference("vcs_id", VcsInfoTable.id)
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable.id)
+    val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable.id)
+    val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable.id)
 
     val purl = text("purl")
     val cpe = text("cpe").nullable()

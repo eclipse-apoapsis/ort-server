@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 
@@ -31,11 +30,7 @@ import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
  * A table to represent a package manager configuration.
  */
 object PackageManagerConfigurationsTable : LongIdTable("package_manager_configurations") {
-    val analyzerConfigurationId = reference(
-        "analyzer_configuration_id",
-        AnalyzerConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    )
+    val analyzerConfigurationId = reference("analyzer_configuration_id", AnalyzerConfigurationsTable.id)
     val name = text("name")
     val mustRunAfter = text("must_run_after").nullable()
     val hasOptions = bool("has_options")

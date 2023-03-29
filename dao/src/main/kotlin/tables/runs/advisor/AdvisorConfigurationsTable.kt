@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
 
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 
@@ -31,27 +30,13 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
  * A table to represent an advisor configuration.
  */
 object AdvisorConfigurationsTable : LongIdTable("advisor_configurations") {
-    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id, ReferenceOption.CASCADE)
-    val githubDefectsConfigurationId = reference(
-        "github_defects_configuration_id",
-        GithubDefectsConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
-    val nexusIqConfigurationId = reference(
-        "nexus_iq_configuration_id",
-        NexusIqConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
-    val osvConfigurationId = reference(
-        "osv_configuration_id",
-        OsvConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
-    val vulnerableCodeConfigurationId = reference(
-        "vulnerable_code_configuration_id",
-        VulnerableCodeConfigurationsTable.id,
-        ReferenceOption.CASCADE
-    ).nullable()
+    val advisorRunId = reference("advisor_run_id", AdvisorRunsTable.id)
+    val githubDefectsConfigurationId =
+        reference("github_defects_configuration_id", GithubDefectsConfigurationsTable.id).nullable()
+    val nexusIqConfigurationId = reference("nexus_iq_configuration_id", NexusIqConfigurationsTable.id).nullable()
+    val osvConfigurationId = reference("osv_configuration_id", OsvConfigurationsTable.id).nullable()
+    val vulnerableCodeConfigurationId =
+        reference("vulnerable_code_configuration_id", VulnerableCodeConfigurationsTable.id).nullable()
 }
 
 class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
