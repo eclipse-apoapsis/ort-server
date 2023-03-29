@@ -45,7 +45,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
             DatabaseTestExtension()
         )
 
-        "put" should {
+        "putProvenance" should {
             "create an artifact provenance in the database" {
                 val id = createIdentifier()
                 val sourceArtifact = createRemoteArtifact()
@@ -89,7 +89,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
             }
         }
 
-        "read" should {
+        "readProvenances" should {
             "return all stored results" {
                 val id = createIdentifier()
 
