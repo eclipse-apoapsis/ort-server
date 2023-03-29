@@ -38,8 +38,8 @@ import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.PackageProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
