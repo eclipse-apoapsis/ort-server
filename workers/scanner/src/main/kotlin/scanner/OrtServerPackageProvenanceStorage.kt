@@ -25,13 +25,10 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.Hash
-import org.ossreviewtoolkit.model.HashAlgorithm
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceStorage
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
@@ -44,6 +41,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.workers.common.mapToModel
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
     override fun readProvenance(
@@ -159,13 +157,7 @@ fun PackageProvenanceDao.mapToOrt(): PackageProvenanceResolutionResult? = when {
     artifact is RemoteArtifactDao -> artifact?.let {
         ResolvedArtifactProvenance(
             provenance = ArtifactProvenance(
-                sourceArtifact = RemoteArtifact(
-                    url = it.url,
-                    hash = Hash(
-                        value = it.hashValue,
-                        algorithm = HashAlgorithm.fromString(it.hashAlgorithm)
-                    )
-                )
+                sourceArtifact = it.mapToModel().mapToOrt()
             )
         )
     }
@@ -173,12 +165,7 @@ fun PackageProvenanceDao.mapToOrt(): PackageProvenanceResolutionResult? = when {
     vcs is VcsInfoDao -> vcs?.let {
         ResolvedRepositoryProvenance(
             provenance = RepositoryProvenance(
-                vcsInfo = VcsInfo(
-                    path = it.path,
-                    url = it.url,
-                    revision = it.revision,
-                    type = VcsType.forName(it.type.name)
-                ),
+                vcsInfo = it.mapToModel().mapToOrt(),
                 resolvedRevision = resolvedRevision.orEmpty()
             ),
             clonedRevision = clonedRevision.orEmpty(),
