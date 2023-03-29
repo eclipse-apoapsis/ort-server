@@ -56,7 +56,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         PackageProvenanceDao.find(
             PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
                     (PackageProvenancesTable.artifactId eq sourceArtifactDao?.id?.value)
-        ).singleOrNull()?.mapToModel()
+        ).singleOrNull()?.mapToOrt()
     }.getOrThrow()
 
     override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = blockingQuery {
@@ -66,14 +66,14 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         PackageProvenanceDao.find(
             PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
                     (PackageProvenancesTable.vcsId eq vcsInfoDao?.id?.value)
-        ).singleOrNull()?.mapToModel()
+        ).singleOrNull()?.mapToOrt()
     }.getOrThrow()
 
     override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
 
         PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierDao?.id?.value)
-            .mapNotNull { it.mapToModel() }
+            .mapNotNull { it.mapToOrt() }
     }.getOrThrow()
 
     override fun putProvenance(
@@ -153,7 +153,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
     }
 }
 
-fun PackageProvenanceDao.mapToModel(): PackageProvenanceResolutionResult? = when {
+fun PackageProvenanceDao.mapToOrt(): PackageProvenanceResolutionResult? = when {
     errorMessage is String -> UnresolvedPackageProvenance(errorMessage.orEmpty())
 
     artifact is RemoteArtifactDao -> artifact?.let {
