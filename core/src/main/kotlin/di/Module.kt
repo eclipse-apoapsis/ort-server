@@ -48,6 +48,7 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.RepositoryService
+import org.ossreviewtoolkit.server.services.SecretService
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
@@ -77,4 +78,5 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { ProductService(get(), get()) }
     single { RepositoryService(get(), get()) }
     single { SecretStorage(get()) }
+    single { SecretService(get(), get()) }
 }
