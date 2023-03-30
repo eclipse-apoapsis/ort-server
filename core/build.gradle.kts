@@ -45,6 +45,8 @@ dependencies {
     implementation(project(":clients:keycloak"))
     implementation(project(":dao"))
     implementation(project(":model"))
+    implementation(project(":secrets:secrets-spi"))
+    implementation(project(":secrets:vault"))
     implementation(project(":services"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:rabbitmq"))
@@ -66,6 +68,7 @@ dependencies {
     implementation(libs.logback)
 
     testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":secrets:secrets-spi")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

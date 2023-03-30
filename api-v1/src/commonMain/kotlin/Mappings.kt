@@ -172,4 +172,3 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(skipExcluded
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(skipExcluded)
 
 fun Secret.mapToApi() = ApiSecret(name, description)
-
