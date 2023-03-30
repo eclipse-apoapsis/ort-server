@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepo
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
+import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -45,7 +46,11 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
     ) = blockingQuery {
         val resolvedVcs = root.getResolvedVcs()
 
-        // Remove any old entries for the provided root provenance.
+        removeOldResults(resolvedVcs)
+        storeResult(resolvedVcs, root, result)
+    }.getOrThrow()
+
+    private fun removeOldResults(resolvedVcs: VcsInfo) {
         val oldEntries = NestedProvenancesTable.innerJoin(VcsInfoTable)
             .slice(NestedProvenancesTable.id)
             .select {
@@ -56,8 +61,13 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
 
         NestedProvenanceSubRepositoriesTable.deleteWhere { nestedProvenanceId inList oldEntries }
         NestedProvenancesTable.deleteWhere { id inList oldEntries }
+    }
 
-        // Store the nested provenance result.
+    private fun storeResult(
+        resolvedVcs: VcsInfo,
+        root: RepositoryProvenance,
+        result: NestedProvenanceResolutionResult
+    ) {
         val vcsDao = VcsInfoDao.getOrPut(resolvedVcs)
 
         val nestedProvenanceDao = NestedProvenanceDao.new {
@@ -76,7 +86,7 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
                 this.path = path
             }
         }
-    }.getOrThrow()
+    }
 
     override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? = blockingQuery {
         val resolvedVcs = root.getResolvedVcs()
