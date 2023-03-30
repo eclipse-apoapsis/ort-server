@@ -27,11 +27,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Secret(
     /**
-     * The path to the secret.
-     */
-    val path: String,
-
-    /**
      * The name of the secret.
      */
     val name: String,
@@ -39,20 +34,5 @@ data class Secret(
     /**
      * The description of the secret.
      */
-    val description: String?,
-
-    /**
-     * The [Organization] to which the secret belongs.
-     */
-    val organizationId: Long?,
-
-    /**
-     * The [Product] to which the secret belongs.
-     */
-    val productId: Long?,
-
-    /**
-     * The [Repository] to which the secret belongs.
-     */
-    val repositoryId: Long?
+    val description: String?
 )

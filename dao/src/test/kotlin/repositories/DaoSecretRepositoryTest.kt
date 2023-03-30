@@ -58,32 +58,56 @@ class DaoSecretRepositoryTest : StringSpec() {
         )
 
         "create should create an entry in the database" {
-            val secret = createSecret("secret1", organizationId, null, null)
+            val name = "secret1"
+            val secret = createSecret(name, organizationId, null, null)
 
-            val dbEntry = secretRepository.get(secret.id)
+            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe secret
         }
 
-        "update should update an entry in the database" {
-            val secret = createSecret("secret2", null, productId, null)
-            val name = "outdated rsa certificate".asPresent()
+        "update should update an organization secret in the database" {
+            val name = "secret2"
+            val secret = createSecret(name, organizationId, null, null)
 
-            secretRepository.update(
-                secret.id,
-                path.asPresent(),
+            secretRepository.updateForOrganizationAndName(
+                organizationId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.get(secret.id)
+            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
                 secret.id,
-                path,
-                name.value,
+                path + name,
+                name,
+                description,
+                fixtures.organization,
+                null,
+                null
+            )
+        }
+
+        "update should update a product secret in the database" {
+            val name = "secret3"
+            val secret = createSecret(name, null, productId, null)
+
+            secretRepository.updateForProductAndName(
+                productId,
+                name,
+                description.asPresent()
+            )
+
+            val dbEntry = secretRepository.getByProductIdAndName(productId, name)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe Secret(
+                secret.id,
+                path + name,
+                name,
                 description,
                 null,
                 fixtures.product,
@@ -91,10 +115,35 @@ class DaoSecretRepositoryTest : StringSpec() {
             )
         }
 
-        "delete should delete the database entry" {
-            val createdSecret = createSecret("secret3", null, null, repositoryId)
+        "update should update a repository secret in the database" {
+            val name = "secret2"
+            val secret = createSecret(name, null, null, repositoryId)
 
-            secretRepository.delete(createdSecret.id)
+            secretRepository.updateForRepositoryAndName(
+                repositoryId,
+                name,
+                description.asPresent()
+            )
+
+            val dbEntry = secretRepository.getByRepositoryIdAndName(repositoryId, name)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe Secret(
+                secret.id,
+                path + name,
+                name,
+                description,
+                null,
+                null,
+                fixtures.repository
+            )
+        }
+
+        "delete should delete the database entry" {
+            val name = "secret3"
+            createSecret(name, null, null, repositoryId)
+
+            secretRepository.deleteForRepositoryAndName(repositoryId, name)
 
             secretRepository.listForRepository(repositoryId) shouldBe emptyList()
         }

@@ -37,7 +37,7 @@ data class Secret(
     /**
      * The name of the secret.
      */
-    val name: String?,
+    val name: String,
 
     /**
      * The description of the secret.

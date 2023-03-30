@@ -32,7 +32,7 @@ object SecretsTable : LongIdTable("secrets") {
     val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 
     val path = text("path")
-    val name = text("name").nullable()
+    val name = text("name")
     val description = text("description").nullable()
 }
 

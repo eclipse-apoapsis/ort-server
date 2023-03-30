@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 /**
  * A repository of [secrets][Secret].
  */
+@Suppress("TooManyFunctions")
 interface SecretRepository {
     /**
      * Create a secret for either [organization][organizationId], [product][productId] or [repository][repositoryId]
@@ -33,16 +34,26 @@ interface SecretRepository {
     fun create(
         path: String,
         name: String,
-        description: String,
+        description: String?,
         organizationId: Long?,
         productId: Long?,
         repositoryId: Long?
     ): Secret
 
     /**
-     * Get a secret by [id]. Returns null if the secret is not found.
+     * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
      */
-    fun get(id: Long): Secret?
+    fun getByOrganizationIdAndName(organizationId: Long, name: String): Secret?
+
+    /**
+     * Get a secret by [productId] and [name]. Returns null if the secret is not found.
+     */
+    fun getByProductIdAndName(productId: Long, name: String): Secret?
+
+    /**
+     * Get a secret by [repositoryId] and [name]. Returns null if the secret is not found.
+     */
+    fun getByRepositoryIdAndName(repositoryId: Long, name: String): Secret?
 
     /**
      * List all secrets for an [organization][organizationId] according to the given [parameters].
@@ -69,17 +80,44 @@ interface SecretRepository {
     ): List<Secret>
 
     /**
-     * Update a secret by [id] with the [present][OptionalValue.Present] values.
+     * Update a secret by [organizationId] and name with the [present][OptionalValue.Present] values.
      */
-    fun update(
-        id: Long,
-        path: OptionalValue<String>,
-        name: OptionalValue<String>,
+    fun updateForOrganizationAndName(
+        organizationId: Long,
+        name: String,
         description: OptionalValue<String?>
     ): Secret
 
     /**
-     * Delete a secret by [id].
+     * Update a secret by [productId] and name with the [present][OptionalValue.Present] values.
      */
-    fun delete(id: Long)
+    fun updateForProductAndName(
+        productId: Long,
+        name: String,
+        description: OptionalValue<String?>
+    ): Secret
+
+    /**
+     * Update a secret by [repositoryId] and name with the [present][OptionalValue.Present] values.
+     */
+    fun updateForRepositoryAndName(
+        repositoryId: Long,
+        name: String,
+        description: OptionalValue<String?>
+    ): Secret
+
+    /**
+     * Delete a secret by [organizationId] and secret's [name].
+     */
+    fun deleteForOrganizationAndName(organizationId: Long, name: String)
+
+    /**
+     * Delete a secret by [productId] and secret's [name].
+     */
+    fun deleteForProductAndName(productId: Long, name: String)
+
+    /**
+     * Delete a secret by [repositoryId] and secret's [name].
+     */
+    fun deleteForRepositoryAndName(repositoryId: Long, name: String)
 }

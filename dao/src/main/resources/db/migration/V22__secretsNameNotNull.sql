@@ -1,0 +1,2 @@
+ALTER TABLE secrets
+ALTER COLUMN name SET NOT NULL;
