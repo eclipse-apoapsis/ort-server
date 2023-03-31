@@ -23,7 +23,6 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -209,49 +208,6 @@ class SecretStorageTest : WordSpec({
 
         "return a failure result for a failed operation" {
             val result = createStorage().removeSecretCatching(ERROR_PATH)
-
-            result shouldBeFailure { exception ->
-                exception should beInstanceOf<SecretStorageException>()
-                exception.cause should beInstanceOf<IllegalArgumentException>()
-            }
-        }
-    }
-
-    "listPaths" should {
-        "return a list with sub paths" {
-            val paths = createStorage().listPaths(SecretsProviderFactoryForTesting.PARENT_PATH)
-
-            paths shouldContainExactlyInAnyOrder listOf(
-                PASSWORD_PATH,
-                SecretsProviderFactoryForTesting.SERVICE_PATH,
-                SecretsProviderFactoryForTesting.TOKEN_PATH
-            )
-        }
-
-        "throw an exception if listing fails" {
-            val exception = shouldThrow<SecretStorageException> {
-                createStorage().listPaths(ERROR_PATH)
-            }
-
-            exception.cause should beInstanceOf<IllegalArgumentException>()
-        }
-    }
-
-    "listPathsCatching" should {
-        "return a success result if the operation is successful" {
-            val result = createStorage().listPathsCatching(SecretsProviderFactoryForTesting.PARENT_PATH)
-
-            result shouldBeSuccess { paths ->
-                paths shouldContainExactlyInAnyOrder listOf(
-                    PASSWORD_PATH,
-                    SecretsProviderFactoryForTesting.SERVICE_PATH,
-                    SecretsProviderFactoryForTesting.TOKEN_PATH
-                )
-            }
-        }
-
-        "return a failure result for a failed operation" {
-            val result = createStorage().listPathsCatching(ERROR_PATH)
 
             result shouldBeFailure { exception ->
                 exception should beInstanceOf<SecretStorageException>()

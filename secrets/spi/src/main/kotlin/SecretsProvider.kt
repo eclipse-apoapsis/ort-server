@@ -48,12 +48,4 @@ interface SecretsProvider {
      * should throw an exception if the operation failed.
      */
     fun removeSecret(path: Path)
-
-    /**
-     * List the sub paths of the given [path] that are associated with [Secret]s. This function assumes a certain
-     * hierarchical organization of paths and secrets. An implementation should return an empty list if no valid
-     * sub paths can be found. It may throw a proprietary exception if there was a problem when accessing the
-     * underlying secret storage.
-     */
-    fun listPaths(path: Path): Set<Path>
 }

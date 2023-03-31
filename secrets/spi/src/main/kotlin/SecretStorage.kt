@@ -129,18 +129,6 @@ class SecretStorage(
      * thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the [Result].
      */
     fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
-
-    /**
-     * Return a set with the sub paths existing under the given [path]. Throw a [SecretStorageException] if this
-     * fails.
-     */
-    fun listPaths(path: Path): Set<Path> = wrapExceptions { provider.listPaths(path) }
-
-    /**
-     * Return a [Result] with a set with the sub paths existing under the given [path]. Exceptions thrown by the
-     * [SecretsProvider] are wrapped in a [SecretStorageException].
-     */
-    fun listPathsCatching(path: Path): Result<Set<Path>> = runCatching { listPaths(path) }
 }
 
 /**

@@ -59,9 +59,6 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         /** The predefined service secret. */
         val SERVICE_SECRET = Secret("db_data")
 
-        /** The path under which the defined secrets are stored. */
-        val PARENT_PATH = Path(PREFIX)
-
         /**
          * Return a map to be used as internal secret store that is already populated with the test secrets.
          */
@@ -92,12 +89,6 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
 
             override fun removeSecret(path: Path) {
                 storage -= checkPath(path)
-            }
-
-            override fun listPaths(path: Path): Set<Path> {
-                val prefix = "${checkPath(path).path}."
-
-                return storage.keys.filter { it.path.startsWith(prefix) }.toSet()
             }
         }
     }
