@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.secrets.vault
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.assertions.fail
 import io.kotest.common.runBlocking
 import io.kotest.core.extensions.install
@@ -155,6 +158,22 @@ class VaultTestContainer {
     fun createProvider(rootPath: String = PATH): VaultSecretsProvider {
         val config = VaultConfiguration(vault.httpHostAddress, credentials, rootPath)
         return VaultSecretsProvider(config)
+    }
+
+    /**
+     * Create a [Config] that can be used to obtain a secret storage backed by the managed Vault container.
+     */
+    fun createApplicationConfig(): Config {
+        val properties = mapOf(
+            "name" to "vault",
+            "vaultUri" to vault.httpHostAddress,
+            "vaultRoleId" to credentials.roleId,
+            "vaultSecretId" to credentials.secretId,
+            "vaultRootPath" to PATH
+        )
+        val configMap = mapOf("secretsProvider" to properties)
+
+        return ConfigFactory.parseMap(configMap)
     }
 
     /**
