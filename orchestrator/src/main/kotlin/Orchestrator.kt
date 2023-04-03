@@ -21,9 +21,11 @@ package org.ossreviewtoolkit.server.orchestrator
 
 import kotlinx.datetime.Clock
 
+import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
@@ -226,9 +228,7 @@ class Orchestrator(
             return
         }
 
-        /**
-         * Create an Evaluator job only if Advisor and Scanner jobs have finished successfully
-         */
+         // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
         if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
             createEvaluatorJob(ortRun, header)
         }
@@ -286,9 +286,7 @@ class Orchestrator(
             return
         }
 
-        /**
-         * Create an Evaluator job only if Advisor and Scanner jobs have finished successfully
-         */
+        // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
         if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
             createEvaluatorJob(ortRun, header)
         }
@@ -422,7 +420,7 @@ class Orchestrator(
     }
 
     /**
-     * Create an Evaluator job if it is enabled; otherwise, delegate to [createReporterJob]
+     * Create an [EvaluatorJob] if it is enabled; otherwise, delegate to [createReporterJob].
      */
     private fun createEvaluatorJob(ortRun: OrtRun, header: MessageHeader) {
         ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
@@ -441,6 +439,9 @@ class Orchestrator(
         } ?: createReporterJob(ortRun, header)
     }
 
+    /**
+     * Create a [ReporterJob] if it is enabled.
+     */
     private fun createReporterJob(ortRun: OrtRun, header: MessageHeader) {
         ortRun.jobs.reporter?.let { reporterJobConfiguration ->
             val reporterJob = reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
