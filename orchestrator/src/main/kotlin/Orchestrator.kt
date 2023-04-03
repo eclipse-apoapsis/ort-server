@@ -84,28 +84,30 @@ class Orchestrator(
         val ortRun = createOrtRun.ortRun
 
         val repository = repositoryRepository.get(ortRun.repositoryId)
-        if (repository != null) {
-            val analyzerJob = analyzerJobRepository.create(
-                ortRun.id,
-                ortRun.jobs.analyzer
-            )
 
-            publisher.publish(
-                AnalyzerEndpoint,
-                Message(
-                    header = header,
-                    payload = AnalyzerRequest(analyzerJob.id)
-                )
-            )
-
-            analyzerJobRepository.update(
-                analyzerJob.id,
-                startedAt = Clock.System.now().asPresent(),
-                status = JobStatus.SCHEDULED.asPresent()
-            )
-        } else {
+        if (repository == null) {
             log.warn("Failed to schedule Analyzer job. Repository '${ortRun.repositoryId}' not found.")
+            return
         }
+
+        val analyzerJob = analyzerJobRepository.create(
+            ortRun.id,
+            ortRun.jobs.analyzer
+        )
+
+        publisher.publish(
+            AnalyzerEndpoint,
+            Message(
+                header = header,
+                payload = AnalyzerRequest(analyzerJob.id)
+            )
+        )
+
+        analyzerJobRepository.update(
+            analyzerJob.id,
+            startedAt = Clock.System.now().asPresent(),
+            status = JobStatus.SCHEDULED.asPresent()
+        )
     }
 
     /**
@@ -116,16 +118,16 @@ class Orchestrator(
 
         val analyzerJob = analyzerJobRepository.get(jobId)
 
-        if (analyzerJob != null) {
-            analyzerJobRepository.update(
-                id = analyzerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        } else {
+        if (analyzerJob == null) {
             log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
             return
         }
+
+        analyzerJobRepository.update(
+            id = analyzerJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FINISHED.asPresent()
+        )
 
         val ortRun = ortRunRepository.get(analyzerJob.ortRunId)
 
@@ -180,21 +182,22 @@ class Orchestrator(
 
         val analyzerJob = analyzerJobRepository.get(jobId)
 
-        if (analyzerJob != null) {
-            analyzerJobRepository.update(
-                id = analyzerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the analyzerJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = analyzerJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
-        } else {
+        if (analyzerJob == null) {
             log.warn("Failed to handle 'AnalyzeError' message. No analyzer job ORT run '$jobId' found.")
+            return
         }
+
+        analyzerJobRepository.update(
+            id = analyzerJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FAILED.asPresent()
+        )
+
+        // If the analyzerJob failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = analyzerJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
     }
 
     /**
@@ -205,18 +208,19 @@ class Orchestrator(
 
         val advisorJob = advisorJobRepository.get(jobId)
 
-        if (advisorJob != null) {
-            advisorJobRepository.update(
-                id = advisorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        } else {
+        if (advisorJob == null) {
             log.warn("Failed to handle 'AdviseResult' message. No advisor job '$jobId' found.")
             return
         }
 
+        advisorJobRepository.update(
+            id = advisorJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FINISHED.asPresent()
+        )
+
         val ortRun = ortRunRepository.get(advisorJob.ortRunId)
+
         if (ortRun == null) {
             log.warn("Failed to handle 'AdviseResult' message. No ORT run '${advisorJob.ortRunId}' found.")
             return
@@ -238,21 +242,22 @@ class Orchestrator(
 
         val advisorJob = advisorJobRepository.get(jobId)
 
-        if (advisorJob != null) {
-            advisorJobRepository.update(
-                id = advisorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the advisorJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = advisorJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
-        } else {
+        if (advisorJob == null) {
             log.warn("Failed to handle 'AdviseError' message. No advisor job ORT run '$jobId' found.")
+            return
         }
+
+        advisorJobRepository.update(
+            id = advisorJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FAILED.asPresent()
+        )
+
+        // If the advisorJob failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = advisorJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
     }
 
     /**
@@ -263,18 +268,19 @@ class Orchestrator(
 
         val scannerJob = scannerJobRepository.get(jobId)
 
-        if (scannerJob != null) {
-            scannerJobRepository.update(
-                id = scannerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        } else {
+        if (scannerJob == null) {
             log.warn("Failed to handle 'ScannerResult' message. No scanner job '$jobId' found.")
             return
         }
 
+        scannerJobRepository.update(
+            id = scannerJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FINISHED.asPresent()
+        )
+
         val ortRun = ortRunRepository.get(scannerJob.ortRunId)
+
         if (ortRun == null) {
             log.warn("Failed to handle 'ScannerResult' message. No ORT run '${scannerJob.ortRunId}' found.")
             return
@@ -296,21 +302,22 @@ class Orchestrator(
 
         val scannerJob = scannerJobRepository.get(jobId)
 
-        if (scannerJob != null) {
-            scannerJobRepository.update(
-                id = scannerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the scannerJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = scannerJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
-        } else {
+        if (scannerJob == null) {
             log.warn("Failed to handle 'ScannerError' message. No advisor job ORT run '$jobId' found.")
+            return
         }
+
+        scannerJobRepository.update(
+            id = scannerJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FAILED.asPresent()
+        )
+
+        // If the scannerJob failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = scannerJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
     }
 
     /**
@@ -321,18 +328,19 @@ class Orchestrator(
 
         val evaluatorJob = evaluatorJobRepository.get(jobId)
 
-        if (evaluatorJob != null) {
-            evaluatorJobRepository.update(
-                id = evaluatorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        } else {
+        if (evaluatorJob == null) {
             log.warn("Failed to handle 'EvaluatorResult' message. No evaluator job '$jobId' found.")
             return
         }
 
+        evaluatorJobRepository.update(
+            id = evaluatorJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FINISHED.asPresent()
+        )
+
         val ortRun = ortRunRepository.get(evaluatorJob.ortRunId)
+
         if (ortRun == null) {
             log.warn("Failed to handle 'EvaluatorResult' message. No ORT run '${evaluatorJob.ortRunId}' found.")
             return
@@ -349,21 +357,22 @@ class Orchestrator(
 
         val evaluatorJob = evaluatorJobRepository.get(jobId)
 
-        if (evaluatorJob != null) {
-            evaluatorJobRepository.update(
-                id = evaluatorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the evaluatorJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = evaluatorJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
-        } else {
+        if (evaluatorJob == null) {
             log.warn("Failed to handle 'EvaluatorError' message. No evaluator job ORT run '$jobId' found.")
+            return
         }
+
+        evaluatorJobRepository.update(
+            id = evaluatorJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FAILED.asPresent()
+        )
+
+        // If the evaluatorJob failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = evaluatorJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
     }
 
     /**
@@ -374,15 +383,16 @@ class Orchestrator(
 
         val reporterJob = reporterJobRepository.get(jobId)
 
-        if (reporterJob != null) {
-            reporterJobRepository.update(
-                id = reporterJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        } else {
+        if (reporterJob == null) {
             log.warn("Failed to handle 'ReporterResult' message. No reporter job '$jobId' found.")
+            return
         }
+
+        reporterJobRepository.update(
+            id = reporterJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FINISHED.asPresent()
+        )
     }
 
     /**
@@ -393,21 +403,22 @@ class Orchestrator(
 
         val reporterJob = reporterJobRepository.get(jobId)
 
-        if (reporterJob != null) {
-            reporterJobRepository.update(
-                id = reporterJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the reporterJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = reporterJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
-        } else {
+        if (reporterJob == null) {
             log.warn("Failed to handle 'ReporterError' message. No reporter job ORT run '$jobId' found.")
+            return
         }
+
+        reporterJobRepository.update(
+            id = reporterJob.id,
+            finishedAt = Clock.System.now().asPresent(),
+            status = JobStatus.FAILED.asPresent()
+        )
+
+        // If the reporterJob failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = reporterJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
     }
 
     /**
