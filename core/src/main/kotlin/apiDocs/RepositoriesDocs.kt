@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
+import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
@@ -136,14 +137,16 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
-                                jobs = jobConfigurations
+                                jobs = jobConfigurations,
+                                status = OrtRunStatus.FINISHED
                             ),
                             OrtRun(
                                 id = 2,
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
-                                jobs = jobConfigurations
+                                jobs = jobConfigurations,
+                                status = OrtRunStatus.ACTIVE
                             )
                         )
                     )
@@ -183,7 +186,8 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = jobConfigurations
+                            jobs = jobConfigurations,
+                            status = OrtRunStatus.CREATED
                         )
                     )
                 )
@@ -219,7 +223,8 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = jobConfigurations
+                            jobs = jobConfigurations,
+                            status = OrtRunStatus.ACTIVE
                         )
                     )
                 )

@@ -47,7 +47,12 @@ data class OrtRun(
     /**
      * The job configurations for this run.
      */
-    val jobs: JobConfigurations
+    val jobs: JobConfigurations,
+
+    /**
+     * The status of this run.
+     */
+    val status: OrtRunStatus
 )
 
 /**
@@ -65,3 +70,11 @@ data class CreateOrtRun(
      */
     val jobs: JobConfigurations
 )
+
+@Serializable
+enum class OrtRunStatus {
+    CREATED,
+    ACTIVE,
+    FINISHED,
+    FAILED
+}

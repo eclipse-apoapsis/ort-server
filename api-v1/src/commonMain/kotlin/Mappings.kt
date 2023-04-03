@@ -31,6 +31,7 @@ import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurati
 import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
+import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
@@ -48,6 +49,7 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
@@ -125,7 +127,9 @@ fun ApiJobConfigurations.mapToModel() =
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
-fun OrtRun.mapToApi() = ApiOrtRun(id = index, repositoryId, revision, createdAt, jobs.mapToApi())
+fun OrtRun.mapToApi() = ApiOrtRun(id = index, repositoryId, revision, createdAt, jobs.mapToApi(), status.mapToApi())
+
+fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
 fun Product.mapToApi() = ApiProduct(id, name, description)
 
