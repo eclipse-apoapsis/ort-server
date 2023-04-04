@@ -35,21 +35,30 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
+import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
+import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.apiDocs.deleteOrganizationById
+import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByOrganizationIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationById
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationProducts
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizations
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretByOrganizationIdAndName
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByOrganizationId
 import org.ossreviewtoolkit.server.core.apiDocs.patchOrganizationById
+import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByOrganizationIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.postProduct
+import org.ossreviewtoolkit.server.core.apiDocs.postSecretForOrganization
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.OrganizationService
+import org.ossreviewtoolkit.server.services.SecretService
 
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
+    val secretService by inject<SecretService>()
 
     get(getOrganizations) {
         val organizations = organizationService.listOrganizations(call.listQueryParameters())
@@ -110,6 +119,67 @@ fun Route.organizations() = route("organizations") {
             val createdProduct = organizationService.createProduct(createProduct.name, createProduct.description, orgId)
 
             call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
+        }
+
+        route("secrets") {
+            get(getSecretsByOrganizationId) {
+                val id = call.requireParameter("organizationId").toLong()
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    secretService.listForOrganization(id, call.listQueryParameters()).map { it.mapToApi() }
+                )
+            }
+
+            route("{secretName}") {
+                get(getSecretByOrganizationIdAndName) {
+                    val organizationId = call.requireParameter("organizationId").toLong()
+                    val secretName = call.requireParameter("secretName")
+
+                    secretService.getSecretByOrganizationIdAndName(organizationId, secretName)
+                        ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                        ?: call.respond(HttpStatusCode.NotFound)
+                }
+
+                patch(patchSecretByOrganizationIdAndName) {
+                    val organizationId = call.requireParameter("organizationId").toLong()
+                    val secretName = call.requireParameter("secretName")
+                    val updateSecret = call.receive<UpdateSecret>()
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        secretService.updateSecretByOrganizationAndName(
+                            organizationId,
+                            secretName,
+                            updateSecret.description
+                        ).mapToApi()
+                    )
+                }
+
+                delete(deleteSecretByOrganizationIdAndName) {
+                    val organizationId = call.requireParameter("organizationId").toLong()
+                    val secretName = call.requireParameter("secretName")
+
+                    secretService.deleteSecretByOrganizationAndName(organizationId, secretName)
+
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            post(postSecretForOrganization) {
+                val createSecret = call.receive<CreateSecret>()
+
+                call.respond(
+                    HttpStatusCode.Created,
+                    secretService.createSecret(
+                        createSecret.name,
+                        createSecret.description,
+                        createSecret.organizationId,
+                        createSecret.productId,
+                        createSecret.repositoryId
+                    ).mapToApi()
+                )
+            }
         }
     }
 }

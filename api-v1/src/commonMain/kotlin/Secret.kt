@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.model.util.OptionalValue
+
 /**
  * Response object for the Secrets Metadata endpoint.
  */
@@ -35,4 +37,25 @@ data class Secret(
      * The description of the secret.
      */
     val description: String?
+)
+
+/**
+ * Request object for the create secret endpoint.
+ */
+@Serializable
+data class CreateSecret(
+    val name: String,
+    val description: String?,
+    val organizationId: Long?,
+    val productId: Long?,
+    val repositoryId: Long?
+)
+
+/**
+ * Request object for the update secret endpoint.
+ */
+@Serializable
+data class UpdateSecret(
+    val name: OptionalValue<String> = OptionalValue.Absent,
+    val description: OptionalValue<String> = OptionalValue.Absent,
 )

@@ -34,20 +34,29 @@ import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
+import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
+import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.apiDocs.deleteProductById
+import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByProductIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.getProductById
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoriesByProductId
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretByProductIdAndName
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByProductId
 import org.ossreviewtoolkit.server.core.apiDocs.patchProductById
+import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByProductIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.postRepository
+import org.ossreviewtoolkit.server.core.apiDocs.postSecretForProduct
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.ProductService
+import org.ossreviewtoolkit.server.services.SecretService
 
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
+    val secretService by inject<SecretService>()
 
     get(getProductById) {
         val id = call.requireParameter("productId").toLong()
@@ -97,6 +106,67 @@ fun Route.products() = route("products/{productId}") {
                 HttpStatusCode.Created,
                 productService.createRepository(createRepository.type.mapToModel(), createRepository.url, id)
                     .mapToApi()
+            )
+        }
+    }
+
+    route("secrets") {
+        get(getSecretsByProductId) {
+            val productId = call.requireParameter("productId").toLong()
+
+            call.respond(
+                HttpStatusCode.OK,
+                secretService.listForProduct(productId, call.listQueryParameters()).map { it.mapToApi() }
+            )
+        }
+
+        route("{secretName}") {
+            get(getSecretByProductIdAndName) {
+                val productId = call.requireParameter("productId").toLong()
+                val secretName = call.requireParameter("secretName")
+
+                secretService.getSecretByProductIdAndName(productId, secretName)
+                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                    ?: call.respond(HttpStatusCode.NotFound)
+            }
+
+            patch(patchSecretByProductIdAndName) {
+                val productId = call.requireParameter("productId").toLong()
+                val secretName = call.requireParameter("secretName")
+                val updateSecret = call.receive<UpdateSecret>()
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    secretService.updateSecretByProductAndName(
+                        productId,
+                        secretName,
+                        updateSecret.description
+                    ).mapToApi()
+                )
+            }
+
+            delete(deleteSecretByProductIdAndName) {
+                val productId = call.requireParameter("productId").toLong()
+                val secretName = call.requireParameter("secretName")
+
+                secretService.deleteSecretByProductAndName(productId, secretName)
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
+        post(postSecretForProduct) {
+            val createSecret = call.receive<CreateSecret>()
+
+            call.respond(
+                HttpStatusCode.Created,
+                secretService.createSecret(
+                    createSecret.name,
+                    createSecret.description,
+                    createSecret.organizationId,
+                    createSecret.productId,
+                    createSecret.repositoryId
+                ).mapToApi()
             )
         }
     }

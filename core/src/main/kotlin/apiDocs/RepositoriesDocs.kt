@@ -30,6 +30,7 @@ import kotlinx.serialization.json.Json
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
+import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
@@ -38,7 +39,10 @@ import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
 import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
+import org.ossreviewtoolkit.server.api.v1.UpdateSecret
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 private val jobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(),
@@ -229,6 +233,167 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                     )
                 )
             }
+        }
+    }
+}
+
+val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
+    operationId = "GetSecretsByRepositoryId"
+    summary = "List all secrets for a specific repository."
+    tags = listOf("Secrets")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The ID of a repository."
+        }
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<List<Secret>> {
+                example(
+                    "List all secrets for a specific repository",
+                    listOf(
+                        Secret(
+                            "rsa",
+                            "ssh rsa certificate"
+                        ),
+                        Secret(
+                            "secret",
+                            "another secret"
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
+val getSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
+    operationId = "GetSecretByRepositoryIdAndName"
+    summary = "Get details of a secret by repository id and name."
+    tags = listOf("Secrets")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("secretName") {
+            description = "The secret's name."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Secret> {
+                example(
+                    "Get Secret",
+                    Secret(
+                        "rsa",
+                        "rsa certificate"
+                    )
+                )
+            }
+        }
+    }
+}
+
+val postSecretForRepository: OpenApiRoute.() -> Unit = {
+    operationId = "PostSecretForRepository"
+    summary = "Create a secret for repositoryId."
+    tags = listOf("Secrets")
+
+    request {
+        jsonBody<CreateSecret> {
+            example(
+                "Create Secret",
+                CreateSecret(
+                    "New secret",
+                    "The new repo secret",
+                    null,
+                    1,
+                    null
+                )
+            )
+        }
+    }
+
+    response {
+        HttpStatusCode.Created to {
+            description = "Success"
+            jsonBody<Secret> {
+                example(
+                    "Create Secret",
+                    Secret(
+                        "rsa",
+                        "New secret"
+                    )
+                )
+            }
+        }
+    }
+}
+
+val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
+    operationId = "PatchSecretByRepositoryIdIdAndName"
+    summary = "Update a secret by repository id id and name."
+    tags = listOf("Secrets")
+
+    request {
+        pathParameter<Long>("repositoryIdId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("secretName") {
+            description = "The secret's name."
+        }
+        jsonBody<UpdateSecret> {
+            example(
+                "Update Secret",
+                UpdateSecret(
+                    "My updated Secret".asPresent(),
+                    "Updated description".asPresent()
+                )
+            )
+            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Secret> {
+                example(
+                    "Update Secret",
+                    Secret(
+                        "My updated Secret",
+                        "Updated description."
+                    )
+                )
+            }
+        }
+    }
+}
+
+val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteSecretByRepositoryIdAndName"
+    summary = "Delete a secret by repository id and name."
+    tags = listOf("Secrets")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("secretName") {
+            description = "The secret's name."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
         }
     }
 }

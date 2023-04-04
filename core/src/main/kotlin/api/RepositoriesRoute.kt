@@ -36,23 +36,32 @@ import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
+import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
+import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.api.v1.mapToModel
 import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByRepositoryIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.getOrtRunByIndex
 import org.ossreviewtoolkit.server.core.apiDocs.getOrtRuns
 import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretByRepositoryIdAndName
+import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByRepositoryId
 import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
+import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByRepositoryIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.postOrtRun
+import org.ossreviewtoolkit.server.core.apiDocs.postSecretForRepository
 import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.RepositoryService
+import org.ossreviewtoolkit.server.services.SecretService
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val repositoryService by inject<RepositoryService>()
+    val secretService by inject<SecretService>()
     val json by inject<Json>()
 
     get(getRepositoryById) {
@@ -108,6 +117,67 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                     ?: call.respond(HttpStatusCode.NotFound)
             }
+        }
+    }
+
+    route("secrets") {
+        get(getSecretsByRepositoryId) {
+            val repositoryId = call.requireParameter("repositoryId").toLong()
+
+            call.respond(
+                HttpStatusCode.OK,
+                secretService.listForRepository(repositoryId, call.listQueryParameters()).map { it.mapToApi() }
+            )
+        }
+
+        route("{secretName}") {
+            get(getSecretByRepositoryIdAndName) {
+                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val secretName = call.requireParameter("secretName")
+
+                secretService.getSecretByRepositoryIdAndName(repositoryId, secretName)
+                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                    ?: call.respond(HttpStatusCode.NotFound)
+            }
+
+            patch(patchSecretByRepositoryIdAndName) {
+                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val secretName = call.requireParameter("secretName")
+                val updateSecret = call.receive<UpdateSecret>()
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    secretService.updateSecretByRepositoryAndName(
+                        repositoryId,
+                        secretName,
+                        updateSecret.description
+                    ).mapToApi()
+                )
+            }
+
+            delete(deleteSecretByRepositoryIdAndName) {
+                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val secretName = call.requireParameter("secretName")
+
+                secretService.deleteSecretByRepositoryAndName(repositoryId, secretName)
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
+        post(postSecretForRepository) {
+            val createSecret = call.receive<CreateSecret>()
+
+            call.respond(
+                HttpStatusCode.Created,
+                secretService.createSecret(
+                    createSecret.name,
+                    createSecret.description,
+                    createSecret.organizationId,
+                    createSecret.productId,
+                    createSecret.repositoryId
+                ).mapToApi()
+            )
         }
     }
 }

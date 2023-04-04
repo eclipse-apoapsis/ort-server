@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
@@ -44,6 +45,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.secrets.SecretStorage
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
@@ -72,6 +74,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<OrtRunRepository> { DaoOrtRunRepository() }
     single<ProductRepository> { DaoProductRepository() }
     single<RepositoryRepository> { DaoRepositoryRepository() }
+    single<SecretRepository> { DaoSecretRepository() }
 
     single { OrchestratorService(get(), get()) }
     single { OrganizationService(get(), get()) }
