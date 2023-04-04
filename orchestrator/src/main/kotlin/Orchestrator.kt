@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
+import java.sql.Connection
+
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -82,12 +84,13 @@ class Orchestrator(
     private val publisher: MessagePublisher
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
     /**
      * Handle messages of the type [CreateOrtRun].
      */
     fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val ortRun = createOrtRun.ortRun
 
             requireNotNull(repositoryRepository.get(ortRun.repositoryId)) {
@@ -108,7 +111,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerResult].
      */
     fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = analyzerWorkerResult.jobId
 
             val analyzerJob = requireNotNull(analyzerJobRepository.get(jobId)) {
@@ -153,7 +156,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = analyzerWorkerError.jobId
 
             val analyzerJob = requireNotNull(analyzerJobRepository.get(jobId)) {
@@ -180,7 +183,7 @@ class Orchestrator(
      * Handle messages of the type [AdvisorWorkerResult].
      */
     fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = advisorWorkerResult.jobId
 
             val advisorJob = requireNotNull(advisorJobRepository.get(jobId)) {
@@ -220,7 +223,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = advisorWorkerError.jobId
 
             val advisorJob = requireNotNull(advisorJobRepository.get(jobId)) {
@@ -247,7 +250,7 @@ class Orchestrator(
      * Handle messages of the type [ScannerWorkerResult].
      */
     fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = scannerWorkerResult.jobId
 
             val scannerJob = requireNotNull(scannerJobRepository.get(jobId)) {
@@ -287,7 +290,7 @@ class Orchestrator(
      * Handle messages of the type [ScannerWorkerError].
      */
     fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = scannerWorkerError.jobId
 
             val scannerJob = requireNotNull(scannerJobRepository.get(jobId)) {
@@ -314,7 +317,7 @@ class Orchestrator(
      * Handle messages of the type [EvaluatorWorkerResult].
      */
     fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = evaluatorWorkerResult.jobId
 
             val evaluatorJob = requireNotNull(evaluatorJobRepository.get(jobId)) {
@@ -345,7 +348,7 @@ class Orchestrator(
      * Handle messages of the type [EvaluatorWorkerError].
      */
     fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = evaluatorWorkerError.jobId
 
             val evaluatorJob = requireNotNull(evaluatorJobRepository.get(jobId)) {
@@ -372,7 +375,7 @@ class Orchestrator(
      * Handle messages of the type [ReporterWorkerResult].
      */
     fun handleReporterWorkerResult(reporterWorkerResult: ReporterWorkerResult) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = reporterWorkerResult.jobId
 
             val reporterJob = requireNotNull(reporterJobRepository.get(jobId)) {
@@ -393,7 +396,7 @@ class Orchestrator(
      * Handle messages of the type [ReporterWorkerError].
      */
     fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
-        blockingQuery {
+        blockingQuery(transactionIsolation = isolationLevel) {
             val jobId = reporterWorkerError.jobId
 
             val reporterJob = requireNotNull(reporterJobRepository.get(jobId)) {
