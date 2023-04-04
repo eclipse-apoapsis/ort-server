@@ -69,14 +69,14 @@ class AdvisorWorkerTest : StringSpec({
 
         val dao = mockk<AdvisorWorkerDao> {
             every { getAdvisorJob(any()) } returns advisorJob
-            every { getAnalyzerRunByJobId(any()) } returns analyzerRun
+            every { getAnalyzerRunForAdvisorJob(any()) } returns analyzerRun
             every { storeAdvisorRun(any()) } just runs
         }
 
         val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
-            val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Success
 
@@ -95,7 +95,7 @@ class AdvisorWorkerTest : StringSpec({
         val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
-            when (val result = worker.run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID)) {
+            when (val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> fail("Unexpected result: $result")
             }
@@ -111,7 +111,7 @@ class AdvisorWorkerTest : StringSpec({
         val worker = AdvisorWorker(createRunner(), dao)
 
         mockkTransaction {
-            val result = worker.run(ADVISOR_JOB_ID, ADVISOR_JOB_ID, TRACE_ID)
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Ignored
         }

@@ -27,13 +27,17 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -52,9 +56,8 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         val publisher by inject<MessagePublisher>()
 
         val advisorJobId = message.payload.advisorJobId
-        val analyzerJobId = message.payload.analyzerJobId
 
-        val response = when (val result = advisorWorker.run(advisorJobId, analyzerJobId, message.header.traceId)) {
+        val response = when (val result = advisorWorker.run(advisorJobId, message.header.traceId)) {
             is RunResult.Success -> {
                 logger.info("Advisor job '$advisorJobId' succeeded.")
                 Message(message.header, AdvisorWorkerResult(advisorJobId))
@@ -76,7 +79,9 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
     private fun advisorModule(): Module = module {
         singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
         singleOf<AdvisorRunRepository>(::DaoAdvisorRunRepository)
+        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
         singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
+        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
 
         singleOf(::AdvisorWorkerDao)
         singleOf(::AdvisorConfigurator)

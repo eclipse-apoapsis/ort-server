@@ -125,7 +125,7 @@ class Orchestrator(
         }
 
         val advisorJob = createAdvisorJob(ortRun)
-        if (advisorJob != null) scheduleAdvisorJob(advisorJob, analyzerJob, header)
+        if (advisorJob != null) scheduleAdvisorJob(advisorJob, header)
 
         val scannerJob = createScannerJob(ortRun)
         if (scannerJob != null) scheduleScannerJob(scannerJob, header)
@@ -470,10 +470,10 @@ class Orchestrator(
     /**
      * Publish a message to the [AdvisorEndpoint] and update the [advisorJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleAdvisorJob(advisorJob: AdvisorJob, analyzerJob: AnalyzerJob, header: MessageHeader) {
+    private fun scheduleAdvisorJob(advisorJob: AdvisorJob, header: MessageHeader) {
         publisher.publish(
             to = AdvisorEndpoint,
-            message = Message(header = header, payload = AdvisorRequest(advisorJob.id, analyzerJob.id))
+            message = Message(header = header, payload = AdvisorRequest(advisorJob.id))
         )
 
         advisorJobRepository.update(

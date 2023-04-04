@@ -50,7 +50,6 @@ import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val ADVISOR_JOB_ID = 1L
-private const val ANALYZER_JOB_ID = 1L
 private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 private const val VULNERABLE_CODE_API_KEY = "vulnerable_code_api_key"
@@ -58,8 +57,7 @@ private const val VULNERABLE_CODE_API_KEY = "vulnerable_code_api_key"
 private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
 
 private val advisorRequest = AdvisorRequest(
-    advisorJobId = ADVISOR_JOB_ID,
-    analyzerJobId = ANALYZER_JOB_ID
+    advisorJobId = ADVISOR_JOB_ID
 )
 
 class AdvisorEndpointTest : KoinTest, StringSpec() {
@@ -90,7 +88,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "A message to advice a project should be processed" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID) } returns RunResult.Success
+                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Success
                 }
             }
 
@@ -104,7 +102,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "An error message should be sent back in case of a processing error" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID) } returns
+                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns
                             RunResult.Failed(IllegalStateException("Test exception"))
 
                     sendAdvisorRequest()
@@ -119,7 +117,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "No response should be sent if the request is ignored" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, ANALYZER_JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Ignored
                 }
 
                 sendAdvisorRequest()

@@ -37,9 +37,9 @@ internal class AdvisorWorker(
     private val runner: AdvisorRunner,
     private val dao: AdvisorWorkerDao
 ) {
-    fun run(advisorJobId: Long, analyzerJobId: Long, traceId: String): RunResult = runCatching {
+    fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
         val advisorJob = blockingQuery { getValidAdvisorJob(advisorJobId) }.getOrThrow()
-        val analyzerRun = blockingQuery { dao.getAnalyzerRunByJobId(analyzerJobId) }.getOrThrow()
+        val analyzerRun = blockingQuery { dao.getAnalyzerRunForAdvisorJob(advisorJob) }.getOrThrow()
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 

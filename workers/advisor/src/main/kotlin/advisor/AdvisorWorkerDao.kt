@@ -19,15 +19,21 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 
 class AdvisorWorkerDao(
     private val advisorJobRepository: AdvisorJobRepository,
     private val advisorRunRepository: AdvisorRunRepository,
-    private val analyzerRunRepository: AnalyzerRunRepository
+    private val analyzerJobRepository: AnalyzerJobRepository,
+    private val analyzerRunRepository: AnalyzerRunRepository,
+    private val ortRunRepository: OrtRunRepository
 ) {
     fun getAdvisorJob(advisorJobId: Long) = advisorJobRepository.get(advisorJobId)
 
@@ -42,5 +48,9 @@ class AdvisorWorkerDao(
         )
     }
 
-    fun getAnalyzerRunByJobId(analyzerJobId: Long) = analyzerRunRepository.getByJobId(analyzerJobId)
+    fun getAnalyzerRunForAdvisorJob(advisorJob: AdvisorJob): AnalyzerRun? {
+        val ortRun = ortRunRepository.get(advisorJob.ortRunId) ?: return null
+        val analyzerJob = analyzerJobRepository.getForOrtRun(ortRun.id) ?: return null
+        return analyzerRunRepository.getByJobId(analyzerJob.id)
+    }
 }

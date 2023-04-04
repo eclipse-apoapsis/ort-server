@@ -26,6 +26,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AdvisorRequest(
-    val advisorJobId: Long,
-    val analyzerJobId: Long
+    val advisorJobId: Long
 )

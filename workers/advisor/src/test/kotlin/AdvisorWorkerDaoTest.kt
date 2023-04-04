@@ -31,7 +31,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
@@ -44,7 +46,13 @@ import org.ossreviewtoolkit.utils.common.gibibytes
 
 class AdvisorWorkerDaoTest : WordSpec({
     val analyzerRunRepository = DaoAnalyzerRunRepository()
-    val dao = AdvisorWorkerDao(DaoAdvisorJobRepository(), DaoAdvisorRunRepository(), analyzerRunRepository)
+    val dao = AdvisorWorkerDao(
+        DaoAdvisorJobRepository(),
+        DaoAdvisorRunRepository(),
+        DaoAnalyzerJobRepository(),
+        analyzerRunRepository,
+        DaoOrtRunRepository()
+    )
     lateinit var fixtures: Fixtures
 
     extension(
@@ -75,13 +83,13 @@ class AdvisorWorkerDaoTest : WordSpec({
                 dependencyGraphs = emptyMap()
             )
 
-            val requestedAnalyzerRun = dao.getAnalyzerRunByJobId(fixtures.analyzerJob.id)
+            val requestedAnalyzerRun = dao.getAnalyzerRunForAdvisorJob(fixtures.advisorJob)
 
             requestedAnalyzerRun shouldBe createdAnalyzerRun
         }
 
         "return null if run does not exist" {
-            dao.getAnalyzerRunByJobId(-1) shouldBe null
+            dao.getAnalyzerRunForAdvisorJob(fixtures.advisorJob.copy(ortRunId = -1L)) shouldBe null
         }
     }
 
