@@ -417,6 +417,38 @@ class Orchestrator(
         )
 
     /**
+     * Create an [AdvisorJob] if it is enabled.
+     */
+    private fun createAdvisorJob(ortRun: OrtRun): AdvisorJob? =
+        ortRun.jobs.advisor?.let { advisorJobConfiguration ->
+            advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
+        }
+
+    /**
+     * Create a [ScannerJob] if it is enabled.
+     */
+    private fun createScannerJob(ortRun: OrtRun): ScannerJob? =
+        ortRun.jobs.scanner?.let { scannerJobConfiguration ->
+            scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
+        }
+
+    /**
+     * Create an [EvaluatorJob] if it is enabled.
+     */
+    private fun createEvaluatorJob(ortRun: OrtRun): EvaluatorJob? =
+        ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
+            evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
+        }
+
+    /**
+     * Create a [ReporterJob] if it is enabled.
+     */
+    private fun createReporterJob(ortRun: OrtRun): ReporterJob? =
+        ortRun.jobs.reporter?.let { reporterJobConfiguration ->
+            reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
+        }
+
+    /**
      * Publish a message to the [AnalyzerEndpoint] and update the [analyzerJob] status to [JobStatus.SCHEDULED].
      */
     private fun scheduleAnalyzerJob(analyzerJob: AnalyzerJob, header: MessageHeader) {
@@ -436,14 +468,6 @@ class Orchestrator(
     }
 
     /**
-     * Create an [AdvisorJob] if it is enabled.
-     */
-    private fun createAdvisorJob(ortRun: OrtRun): AdvisorJob? =
-        ortRun.jobs.advisor?.let { advisorJobConfiguration ->
-            advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
-        }
-
-    /**
      * Publish a message to the [AdvisorEndpoint] and update the [advisorJob] status to [JobStatus.SCHEDULED].
      */
     private fun scheduleAdvisorJob(advisorJob: AdvisorJob, analyzerJob: AnalyzerJob, header: MessageHeader) {
@@ -458,14 +482,6 @@ class Orchestrator(
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
-
-    /**
-     * Create a [ScannerJob] if it is enabled.
-     */
-    private fun createScannerJob(ortRun: OrtRun): ScannerJob? =
-        ortRun.jobs.scanner?.let { scannerJobConfiguration ->
-            scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
-        }
 
     /**
      * Publish a message to the [ScannerEndpoint] and update the [scannerJob] status to [JobStatus.SCHEDULED].
@@ -484,14 +500,6 @@ class Orchestrator(
     }
 
     /**
-     * Create an [EvaluatorJob] if it is enabled.
-     */
-    private fun createEvaluatorJob(ortRun: OrtRun): EvaluatorJob? =
-        ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
-            evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
-        }
-
-    /**
      * Publish a message to the [EvaluatorEndpoint] and update the [evaluatorJob] status to [JobStatus.SCHEDULED].
      */
     private fun scheduleEvaluatorJob(evaluatorJob: EvaluatorJob, header: MessageHeader) {
@@ -506,14 +514,6 @@ class Orchestrator(
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
-
-    /**
-     * Create a [ReporterJob] if it is enabled.
-     */
-    private fun createReporterJob(ortRun: OrtRun): ReporterJob? =
-        ortRun.jobs.reporter?.let { reporterJobConfiguration ->
-            reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
-        }
 
     /**
      * Publish a message to the [ReporterEndpoint] and update the [reporterJob] status to [JobStatus.SCHEDULED].
