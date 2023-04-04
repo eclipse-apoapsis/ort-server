@@ -95,7 +95,11 @@ class Orchestrator(
             return
         }
 
-        scheduleAnalyzerJob(createAnalyzerJob(ortRun), header)
+        val createdJobs = CreatedJobs(
+            analyzerJob = createAnalyzerJob(ortRun)
+        )
+
+        scheduleCreatedJobs(createdJobs, header)
     }
 
     /**
@@ -124,26 +128,22 @@ class Orchestrator(
             return
         }
 
-        val advisorJob = createAdvisorJob(ortRun)
-        if (advisorJob != null) scheduleAdvisorJob(advisorJob, header)
+        val createdJobs = CreatedJobs(
+            advisorJob = createAdvisorJob(ortRun),
+            scannerJob = createScannerJob(ortRun)
+        )
 
-        val scannerJob = createScannerJob(ortRun)
-        if (scannerJob != null) scheduleScannerJob(scannerJob, header)
-
-        /**
-         * Create an evaluator job if both advisor and scanner jobs are disabled
-         */
-        if (advisorJob == null && scannerJob == null) {
+        if (createdJobs.advisorJob == null && createdJobs.scannerJob == null) {
             if (ortRun.jobs.evaluator != null) {
-                createEvaluatorJob(ortRun)?.let {
-                    scheduleEvaluatorJob(it, header)
-                }
+                // Create an evaluator job if no advisor or scanner job is configured.
+                createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
             } else {
-                createReporterJob(ortRun)?.let {
-                    scheduleReporterJob(it, header)
-                }
+                // Create a reporter job if no advisor, scanner or reporter job is configured.
+                createdJobs.reporterJob = createReporterJob(ortRun)
             }
         }
+
+        scheduleCreatedJobs(createdJobs, header)
     }
 
     /**
@@ -198,18 +198,18 @@ class Orchestrator(
             return
         }
 
-        // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
+        val createdJobs = CreatedJobs()
+
+        // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
         if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
             if (ortRun.jobs.evaluator != null) {
-                createEvaluatorJob(ortRun)?.let {
-                    scheduleEvaluatorJob(it, header)
-                }
+                createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
             } else {
-                createReporterJob(ortRun)?.let {
-                    scheduleReporterJob(it, header)
-                }
+                createdJobs.reporterJob = createReporterJob(ortRun)
             }
         }
+
+        scheduleCreatedJobs(createdJobs, header)
     }
 
     /**
@@ -264,18 +264,18 @@ class Orchestrator(
             return
         }
 
-        // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
+        val createdJobs = CreatedJobs()
+
+        // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
         if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
             if (ortRun.jobs.evaluator != null) {
-                createEvaluatorJob(ortRun)?.let {
-                    scheduleEvaluatorJob(it, header)
-                }
+                createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
             } else {
-                createReporterJob(ortRun)?.let {
-                    scheduleReporterJob(it, header)
-                }
+                createdJobs.reporterJob = createReporterJob(ortRun)
             }
         }
+
+        scheduleCreatedJobs(createdJobs, header)
     }
 
     /**
@@ -330,9 +330,11 @@ class Orchestrator(
             return
         }
 
-        createReporterJob(ortRun)?.let {
-            scheduleReporterJob(it, header)
-        }
+        val createdJobs = CreatedJobs(
+            reporterJob = createReporterJob(ortRun)
+        )
+
+        scheduleCreatedJobs(createdJobs, header)
     }
 
     /**
@@ -448,6 +450,14 @@ class Orchestrator(
             reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
+    private fun scheduleCreatedJobs(createdJobs: CreatedJobs, header: MessageHeader) {
+        createdJobs.analyzerJob?.let { scheduleAnalyzerJob(it, header) }
+        createdJobs.advisorJob?.let { scheduleAdvisorJob(it, header) }
+        createdJobs.scannerJob?.let { scheduleScannerJob(it, header) }
+        createdJobs.evaluatorJob?.let { scheduleEvaluatorJob(it, header) }
+        createdJobs.reporterJob?.let { scheduleReporterJob(it, header) }
+    }
+
     /**
      * Publish a message to the [AnalyzerEndpoint] and update the [analyzerJob] status to [JobStatus.SCHEDULED].
      */
@@ -531,3 +541,14 @@ class Orchestrator(
         )
     }
 }
+
+/**
+ * A class to collect all jobs created within an orchestrator callback.
+ */
+private class CreatedJobs(
+    var analyzerJob: AnalyzerJob? = null,
+    var advisorJob: AdvisorJob? = null,
+    var scannerJob: ScannerJob? = null,
+    var evaluatorJob: EvaluatorJob? = null,
+    var reporterJob: ReporterJob? = null
+)
