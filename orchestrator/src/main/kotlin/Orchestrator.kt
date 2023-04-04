@@ -131,7 +131,11 @@ class Orchestrator(
          * Create an evaluator job if both advisor and scanner jobs are disabled
          */
         if (ortRun.jobs.advisor == null && ortRun.jobs.scanner == null) {
-            createEvaluatorJob(ortRun, header)
+            if (ortRun.jobs.evaluator != null) {
+                createEvaluatorJob(ortRun, header)
+            } else {
+                createReporterJob(ortRun, header)
+            }
         }
     }
 
@@ -189,7 +193,11 @@ class Orchestrator(
 
          // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
         if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
-            createEvaluatorJob(ortRun, header)
+            if (ortRun.jobs.evaluator != null) {
+                createEvaluatorJob(ortRun, header)
+            } else {
+                createReporterJob(ortRun, header)
+            }
         }
     }
 
@@ -247,7 +255,11 @@ class Orchestrator(
 
         // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
         if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
-            createEvaluatorJob(ortRun, header)
+            if (ortRun.jobs.evaluator != null) {
+                createEvaluatorJob(ortRun, header)
+            } else {
+                createReporterJob(ortRun, header)
+            }
         }
     }
 
@@ -443,7 +455,7 @@ class Orchestrator(
     }
 
     /**
-     * Create an [EvaluatorJob] if it is enabled; otherwise, delegate to [createReporterJob].
+     * Create an [EvaluatorJob] if it is enabled.
      */
     private fun createEvaluatorJob(ortRun: OrtRun, header: MessageHeader) {
         ortRun.jobs.evaluator?.let { evaluatorJobConfiguration ->
@@ -459,7 +471,7 @@ class Orchestrator(
                 startedAt = Clock.System.now().asPresent(),
                 status = JobStatus.SCHEDULED.asPresent()
             )
-        } ?: createReporterJob(ortRun, header)
+        }
     }
 
     /**
