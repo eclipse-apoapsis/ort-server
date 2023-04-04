@@ -36,6 +36,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
@@ -202,16 +203,18 @@ class OrchestratorTest : WordSpec() {
 
                 val createOrtRun = CreateOrtRun(ortRun)
 
-                Orchestrator(
-                    analyzerJobRepository,
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    repositoryRepository,
-                    mockk(),
-                    publisher
-                ).handleCreateOrtRun(msgHeader, createOrtRun)
+                mockkTransaction {
+                    Orchestrator(
+                        analyzerJobRepository,
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        repositoryRepository,
+                        mockk(),
+                        publisher
+                    ).handleCreateOrtRun(msgHeader, createOrtRun)
+                }
 
                 verify(exactly = 1) {
                     // The job was created in the database
@@ -266,16 +269,21 @@ class OrchestratorTest : WordSpec() {
                     every { publish(any<Endpoint<*>>(), any()) } just runs
                 }
 
-                Orchestrator(
-                    analyzerJobRepository,
-                    advisorJobRepository,
-                    scannerJobRepository,
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    ortRunRepository,
-                    publisher
-                ).handleAnalyzerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), analyzerWorkerResult)
+                mockkTransaction {
+                    Orchestrator(
+                        analyzerJobRepository,
+                        advisorJobRepository,
+                        scannerJobRepository,
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleAnalyzerWorkerResult(
+                        MessageHeader(msgHeader.token, msgHeader.traceId),
+                        analyzerWorkerResult
+                    )
+                }
 
                 verify(exactly = 1) {
                     analyzerJobRepository.update(
@@ -334,16 +342,21 @@ class OrchestratorTest : WordSpec() {
                     every { publish(any<Endpoint<*>>(), any()) } just runs
                 }
 
-                Orchestrator(
-                    analyzerJobRepository,
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    reporterJobRepository,
-                    mockk(),
-                    ortRunRepository,
-                    publisher
-                ).handleAnalyzerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), analyzerWorkerResult)
+                mockkTransaction {
+                    Orchestrator(
+                        analyzerJobRepository,
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        reporterJobRepository,
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleAnalyzerWorkerResult(
+                        MessageHeader(msgHeader.token, msgHeader.traceId),
+                        analyzerWorkerResult
+                    )
+                }
 
                 verify(exactly = 1) {
                     analyzerJobRepository.update(
@@ -388,16 +401,18 @@ class OrchestratorTest : WordSpec() {
                     every { publish(any<Endpoint<*>>(), any()) } just runs
                 }
 
-                Orchestrator(
-                    mockk(),
-                    advisorJobRepository,
-                    scannerJobRepository,
-                    evaluatorJobRepository,
-                    mockk(),
-                    mockk(),
-                    ortRunRepository,
-                    publisher
-                ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        advisorJobRepository,
+                        scannerJobRepository,
+                        evaluatorJobRepository,
+                        mockk(),
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+                }
 
                 verify(exactly = 1) {
                     evaluatorJobRepository.create(
@@ -442,16 +457,18 @@ class OrchestratorTest : WordSpec() {
                 every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
                 every { ortRunRepository.update(any(), any()) } returns mockk()
 
-                Orchestrator(
-                    analyzerJobRepository,
-                    advisorJobRepository,
-                    scannerJobRepository,
-                    evaluatorJobRepository,
-                    reporterJobRepository,
-                    repositoryRepository,
-                    ortRunRepository,
-                    publisher
-                ).handleAnalyzerWorkerError(analyzerWorkerError)
+                mockkTransaction {
+                    Orchestrator(
+                        analyzerJobRepository,
+                        advisorJobRepository,
+                        scannerJobRepository,
+                        evaluatorJobRepository,
+                        reporterJobRepository,
+                        repositoryRepository,
+                        ortRunRepository,
+                        publisher
+                    ).handleAnalyzerWorkerError(analyzerWorkerError)
+                }
 
                 verify(exactly = 1) {
                     // The job status was updated.
@@ -491,16 +508,18 @@ class OrchestratorTest : WordSpec() {
                     every { getForOrtRun(ortRun.id) } returns scannerJob
                 }
 
-                Orchestrator(
-                    analyzerJobRepository = mockk(),
-                    advisorJobRepository = advisorJobRepository,
-                    scannerJobRepository = scannerJobRepository,
-                    evaluatorJobRepository = mockk(),
-                    reporterJobRepository = mockk(),
-                    repositoryRepository = mockk(),
-                    ortRunRepository = ortRunRepository,
-                    publisher = publisher
-                ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
+                mockkTransaction {
+                    Orchestrator(
+                        analyzerJobRepository = mockk(),
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = mockk(),
+                        reporterJobRepository = mockk(),
+                        repositoryRepository = mockk(),
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
+                }
 
                 verify(exactly = 1) {
                     advisorJobRepository.update(
@@ -527,16 +546,18 @@ class OrchestratorTest : WordSpec() {
 
                 val advisorWorkerError = AdvisorWorkerError(advisorJob.id)
 
-                Orchestrator(
-                    mockk(),
-                    advisorJobRepository,
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    ortRunRepository,
-                    publisher
-                ).handleAdvisorWorkerError(advisorWorkerError)
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        advisorJobRepository,
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleAdvisorWorkerError(advisorWorkerError)
+                }
 
                 verify(exactly = 1) {
                     advisorJobRepository.update(
@@ -574,16 +595,21 @@ class OrchestratorTest : WordSpec() {
                     every { publish(any<Endpoint<*>>(), any()) } just runs
                 }
 
-                Orchestrator(
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    evaluatorJobRepository,
-                    reporterJobRepository,
-                    mockk(),
-                    ortRunRepository,
-                    publisher
-                ).handleEvaluatorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), evaluatorWorkerResult)
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        evaluatorJobRepository,
+                        reporterJobRepository,
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleEvaluatorWorkerResult(
+                        MessageHeader(msgHeader.token, msgHeader.traceId),
+                        evaluatorWorkerResult
+                    )
+                }
 
                 verify(exactly = 1) {
                     reporterJobRepository.create(
@@ -620,16 +646,18 @@ class OrchestratorTest : WordSpec() {
                     every { update(any(), any()) } returns mockk()
                 }
 
-                Orchestrator(
-                    mockk(),
-                    mockk(),
-                    mockk(),
-                    evaluatorJobRepository,
-                    reporterJobRepository,
-                    mockk(),
-                    ortRunRepository,
-                    mockk()
-                ).handleEvaluatorWorkerError(evaluatorWorkerError)
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        evaluatorJobRepository,
+                        reporterJobRepository,
+                        mockk(),
+                        ortRunRepository,
+                        mockk()
+                    ).handleEvaluatorWorkerError(evaluatorWorkerError)
+                }
 
                 verify(exactly = 1) {
                     evaluatorJobRepository.update(
