@@ -37,6 +37,7 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.koin.core.module.Module
@@ -128,23 +129,48 @@ fun databaseModule(): Module = module {
  */
 private fun Config.getStringOrNull(path: String) = if (hasPath(path)) getString(path) else null
 
-suspend fun <T> dbQuery(block: () -> T): Result<T> =
+/**
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
+ * [repetitionAttempts], and [readOnly].
+ */
+suspend fun <T> dbQuery(
+    // As we currently use only one database, we can use the default transaction manager to get the default values.
+    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
+    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
+    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+    block: () -> T
+): Result<T> =
     runCatching {
         withContext(Dispatchers.IO) {
-            transaction { block() }
+            transaction(transactionIsolation, repetitionAttempts, readOnly) { block() }
         }
     }.mapExceptions()
 
 /**
- * Execute the [block] in a database [transaction].
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
+ * [repetitionAttempts], and [readOnly].
  */
-fun <T> blockingQuery(block: () -> T): Result<T> = runCatching { transaction { block() } }.mapExceptions()
+fun <T> blockingQuery(
+    // As we currently use only one database, we can use the default transaction manager to get the default values.
+    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
+    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
+    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+    block: () -> T
+): Result<T> =
+    runCatching { transaction(transactionIsolation, repetitionAttempts, readOnly) { block() } }.mapExceptions()
 
 /**
- * Execute the [block] in a [blockingQuery] and return the encapsulated value or null if an [EntityNotFoundException]
- * is thrown. Otherwise, throw the exception.
+ * Execute the [block] in a [blockingQuery], configured with the provided [transactionIsolation], [repetitionAttempts],
+ * and [readOnly]. Return the encapsulated value or null if an [EntityNotFoundException] is thrown. Otherwise, throw the
+ * exception.
  */
-fun <T> entityQuery(block: () -> T): T? = blockingQuery { block() }.getOrElse {
+fun <T> entityQuery(
+    // As we currently use only one database, we can use the default transaction manager to get the default values.
+    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
+    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
+    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+    block: () -> T
+): T? = blockingQuery(transactionIsolation, repetitionAttempts, readOnly, block).getOrElse {
     when (it) {
         is EntityNotFoundException -> null
         else -> throw it

@@ -39,9 +39,8 @@ fun mockkTransaction() {
     val slot = slot<Transaction.() -> Any>()
 
     mockkStatic(TRANSACTION_MANAGER_CLASS)
-    every { transaction(any(), capture(slot)) } answers {
-        slot.invoke(mockk())
-    }
+    every { transaction(any(), capture(slot)) } answers { slot.invoke(mockk()) }
+    every { transaction(any(), any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
 }
 
 /**
