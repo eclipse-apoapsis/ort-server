@@ -107,7 +107,7 @@ class Orchestrator(
         val analyzerJob = analyzerJobRepository.get(jobId)
 
         if (analyzerJob == null) {
-            log.warn("Failed to handle 'AnalyzeResult' message. No analyzer job '$jobId' found.")
+            log.warn("Failed to handle 'AnalyzerWorkerResult' message. No analyzer job '$jobId' found.")
             return
         }
 
@@ -120,7 +120,7 @@ class Orchestrator(
         val ortRun = ortRunRepository.get(analyzerJob.ortRunId)
 
         if (ortRun == null) {
-            log.warn("Failed to handle 'AnalyzeResult' message. No ORT run '${analyzerJob.ortRunId}' found.")
+            log.warn("Failed to handle 'AnalyzerWorkerResult' message. No ORT run '${analyzerJob.ortRunId}' found.")
             return
         }
 
@@ -148,7 +148,7 @@ class Orchestrator(
         val analyzerJob = analyzerJobRepository.get(jobId)
 
         if (analyzerJob == null) {
-            log.warn("Failed to handle 'AnalyzeError' message. No analyzer job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'AnalyzerWorkerError' message. No analyzer job ORT run '$jobId' found.")
             return
         }
 
@@ -174,7 +174,7 @@ class Orchestrator(
         val advisorJob = advisorJobRepository.get(jobId)
 
         if (advisorJob == null) {
-            log.warn("Failed to handle 'AdviseResult' message. No advisor job '$jobId' found.")
+            log.warn("Failed to handle 'AdvisorWorkerResult' message. No advisor job '$jobId' found.")
             return
         }
 
@@ -187,7 +187,7 @@ class Orchestrator(
         val ortRun = ortRunRepository.get(advisorJob.ortRunId)
 
         if (ortRun == null) {
-            log.warn("Failed to handle 'AdviseResult' message. No ORT run '${advisorJob.ortRunId}' found.")
+            log.warn("Failed to handle 'AdvisorWorkerResult' message. No ORT run '${advisorJob.ortRunId}' found.")
             return
         }
 
@@ -210,7 +210,7 @@ class Orchestrator(
         val advisorJob = advisorJobRepository.get(jobId)
 
         if (advisorJob == null) {
-            log.warn("Failed to handle 'AdviseError' message. No advisor job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'AdvisorWorkerError' message. No advisor job ORT run '$jobId' found.")
             return
         }
 
@@ -236,7 +236,7 @@ class Orchestrator(
         val scannerJob = scannerJobRepository.get(jobId)
 
         if (scannerJob == null) {
-            log.warn("Failed to handle 'ScannerResult' message. No scanner job '$jobId' found.")
+            log.warn("Failed to handle 'ScannerWorkerResult' message. No scanner job '$jobId' found.")
             return
         }
 
@@ -249,7 +249,7 @@ class Orchestrator(
         val ortRun = ortRunRepository.get(scannerJob.ortRunId)
 
         if (ortRun == null) {
-            log.warn("Failed to handle 'ScannerResult' message. No ORT run '${scannerJob.ortRunId}' found.")
+            log.warn("Failed to handle 'ScannerWorkerResult' message. No ORT run '${scannerJob.ortRunId}' found.")
             return
         }
 
@@ -272,7 +272,7 @@ class Orchestrator(
         val scannerJob = scannerJobRepository.get(jobId)
 
         if (scannerJob == null) {
-            log.warn("Failed to handle 'ScannerError' message. No advisor job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'ScannerWorkerError' message. No advisor job ORT run '$jobId' found.")
             return
         }
 
@@ -298,7 +298,7 @@ class Orchestrator(
         val evaluatorJob = evaluatorJobRepository.get(jobId)
 
         if (evaluatorJob == null) {
-            log.warn("Failed to handle 'EvaluatorResult' message. No evaluator job '$jobId' found.")
+            log.warn("Failed to handle 'EvaluatorWorkerResult' message. No evaluator job '$jobId' found.")
             return
         }
 
@@ -311,7 +311,7 @@ class Orchestrator(
         val ortRun = ortRunRepository.get(evaluatorJob.ortRunId)
 
         if (ortRun == null) {
-            log.warn("Failed to handle 'EvaluatorResult' message. No ORT run '${evaluatorJob.ortRunId}' found.")
+            log.warn("Failed to handle 'EvaluatorWorkerResult' message. No ORT run '${evaluatorJob.ortRunId}' found.")
             return
         }
 
@@ -327,7 +327,7 @@ class Orchestrator(
         val evaluatorJob = evaluatorJobRepository.get(jobId)
 
         if (evaluatorJob == null) {
-            log.warn("Failed to handle 'EvaluatorError' message. No evaluator job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'EvaluatorWorkerError' message. No evaluator job ORT run '$jobId' found.")
             return
         }
 
@@ -353,7 +353,7 @@ class Orchestrator(
         val reporterJob = reporterJobRepository.get(jobId)
 
         if (reporterJob == null) {
-            log.warn("Failed to handle 'ReporterResult' message. No reporter job '$jobId' found.")
+            log.warn("Failed to handle 'ReporterWorkerResult' message. No reporter job '$jobId' found.")
             return
         }
 
@@ -373,7 +373,7 @@ class Orchestrator(
         val reporterJob = reporterJobRepository.get(jobId)
 
         if (reporterJob == null) {
-            log.warn("Failed to handle 'ReporterError' message. No reporter job ORT run '$jobId' found.")
+            log.warn("Failed to handle 'ReporterWorkerError' message. No reporter job ORT run '$jobId' found.")
             return
         }
 
