@@ -48,4 +48,10 @@ interface SecretsProvider {
      * should throw an exception if the operation failed.
      */
     fun removeSecret(path: Path)
+
+    /**
+     * Generate a [Path] for the secret basing on [organizationId], [productId] or [repositoryId] they belong to
+     * and [secretName]
+     */
+    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path
 }

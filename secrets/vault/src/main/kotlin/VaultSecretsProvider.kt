@@ -106,6 +106,18 @@ class VaultSecretsProvider(
         }
     }
 
+    override fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path {
+        val secretType = when {
+            organizationId != null -> "organization"
+            productId != null -> "product"
+            repositoryId != null -> "repository"
+            else -> throw IllegalArgumentException(
+                "Either one of organizationId, productId or repositoryId should be specified to create a path."
+            )
+        }
+        return Path(listOfNotNull(secretType, organizationId, productId, repositoryId, secretName).joinToString("_"))
+    }
+
     /**
      * Create an [HttpClient] that can be used for sending API requests against the Vault service. The client is
      * configured to provide the required authentication headers.

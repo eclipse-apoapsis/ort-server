@@ -215,6 +215,29 @@ class SecretStorageTest : WordSpec({
             }
         }
     }
+
+    "createPath" should {
+        "generate a path for an organization secret" {
+            val storage = createStorage()
+            val result = storage.createPath(1, null, null, "newSecret")
+
+            result shouldBe Path("organization_1_newSecret")
+        }
+
+        "generate a path for a product secret" {
+            val storage = createStorage()
+            val result = storage.createPath(null, 1, null, "newSecret")
+
+            result shouldBe Path("product_1_newSecret")
+        }
+
+        "generate a path for a repository secret" {
+            val storage = createStorage()
+            val result = storage.createPath(null, null, 1, "newSecret")
+
+            result shouldBe Path("repository_1_newSecret")
+        }
+    }
 })
 
 /** The path that causes errors. */

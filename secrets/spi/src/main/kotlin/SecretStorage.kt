@@ -129,6 +129,13 @@ class SecretStorage(
      * thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the [Result].
      */
     fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
+
+    /**
+     * Generate a [Path] for the secret basing on the [organizationId], [productId] or [repositoryId] they belong to
+     * and the [secretName].
+     */
+    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String) =
+        wrapExceptions { provider.createPath(organizationId, productId, repositoryId, secretName) }
 }
 
 /**

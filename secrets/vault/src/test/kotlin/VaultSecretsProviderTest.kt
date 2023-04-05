@@ -115,5 +115,28 @@ class VaultSecretsProviderTest : WordSpec() {
                 provider.readSecret(targetPath) should beNull()
             }
         }
+
+        "createPath" should {
+            "generate a path for an organization secret" {
+                val provider = vault.createProvider()
+                val result = provider.createPath(1, null, null, "newSecret")
+
+                result shouldBe Path("organization_1_newSecret")
+            }
+
+            "generate a path for a product secret" {
+                val provider = vault.createProvider()
+                val result = provider.createPath(null, 1, null, "newSecret")
+
+                result shouldBe Path("product_1_newSecret")
+            }
+
+            "generate a path for a repository secret" {
+                val provider = vault.createProvider()
+                val result = provider.createPath(null, null, 1, "newSecret")
+
+                result shouldBe Path("repository_1_newSecret")
+            }
+        }
     }
 }
