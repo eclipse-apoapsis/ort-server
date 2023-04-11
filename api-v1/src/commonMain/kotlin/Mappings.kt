@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.ScannerJob as ApiScannerJob
 import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration as ApiScannerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.Secret as ApiSecret
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
@@ -57,6 +58,7 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 fun AdvisorJob.mapToApi() =
@@ -168,3 +170,6 @@ fun ScannerJob.mapToApi() =
 fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(skipExcluded)
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(skipExcluded)
+
+fun Secret.mapToApi() = ApiSecret(name, description)
+
