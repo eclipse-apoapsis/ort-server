@@ -44,7 +44,7 @@ class DaoProductRepository : ProductRepository {
         ProductDao.find { ProductsTable.organizationId eq organizationId }
             .apply(ProductsTable, parameters)
             .map { it.mapToModel() }
-    }.getOrDefault(emptyList())
+    }.getOrThrow()
 
     override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
         val product = ProductDao[id]
