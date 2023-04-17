@@ -22,6 +22,7 @@ plugins {
     `java-test-fixtures`
 
     alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.ossreviewtoolkit.server"
