@@ -25,6 +25,7 @@ import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContainAll
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
@@ -109,7 +110,9 @@ class KubernetesMessageSenderTest : StringSpec({
             imagePullPolicy shouldBe config.imagePullPolicy
             command shouldBe config.commands
             args shouldBe config.args
-            env!!.associate { it.name to it.value } shouldContainAll expectedEnvVars
+            val jobEnvironment = env!!.associate { it.name to it.value }
+            jobEnvironment shouldContainAll expectedEnvVars
+            jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
 
             val mounts = volumeMounts.orEmpty()
             mounts shouldHaveSize 2

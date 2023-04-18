@@ -36,6 +36,12 @@ import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
 /**
+ * A set with the names of environment variables that should not be passed to the environment of newly created jobs.
+ * These variables have a special meaning and make no sense or can even cause problems in the context of another pod.
+ */
+private val VARIABLES_NOT_TO_PROPAGATE = setOf("_", "HOME", "PATH", "PWD")
+
+/**
  * Implementation of the [MessageSender] interface for Kubernetes.
  */
 internal class KubernetesMessageSender<T : Any>(
@@ -100,7 +106,7 @@ internal class KubernetesMessageSender<T : Any>(
         val endPointVariables = System.getenv().filter { it.key.startsWith(endpointPrefix) }
             .mapKeys { it.key.removePrefix(endpointPrefix) }
 
-        return System.getenv() + endPointVariables
+        return System.getenv().filterNot { it.key in VARIABLES_NOT_TO_PROPAGATE } + endPointVariables
     }
 
     /**
