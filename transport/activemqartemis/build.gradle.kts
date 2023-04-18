@@ -31,7 +31,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":transport:spi"))
+    implementation(project(":transport:transport-spi"))
 
     implementation(libs.activeMQArtemis)
     implementation(libs.kotlinxSerializationJson)

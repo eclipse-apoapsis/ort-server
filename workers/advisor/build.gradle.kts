@@ -38,7 +38,7 @@ dependencies {
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:rabbitmq"))
-    implementation(project(":transport:spi"))
+    implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
     implementation(libs.logback)
@@ -46,7 +46,7 @@ dependencies {
     implementation(libs.typesafeConfig)
 
     testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":transport:spi")))
+    testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

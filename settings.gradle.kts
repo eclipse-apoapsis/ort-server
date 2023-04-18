@@ -38,3 +38,6 @@ include(":workers:common")
 include(":workers:evaluator")
 include(":workers:reporter")
 include(":workers:scanner")
+
+project(":secrets:spi").name = "secrets-spi"
+project(":transport:spi").name = "transport-spi"

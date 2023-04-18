@@ -48,7 +48,7 @@ dependencies {
     implementation(project(":services"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:rabbitmq"))
-    implementation(project(":transport:spi"))
+    implementation(project(":transport:transport-spi"))
 
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)

@@ -31,7 +31,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":secrets:spi"))
+    implementation(project(":secrets:secrets-spi"))
     implementation(libs.ktorClientCore)
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientOkHttp)
