@@ -47,7 +47,7 @@ class DaoScannerJobRepository : ScannerJobRepository {
 
     override fun getForOrtRun(ortRunId: Long): ScannerJob? = blockingQuery {
         ScannerJobDao.find { ScannerJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
-    }.getOrNull()
+    }.getOrThrow()
 
     override fun update(
         id: Long,

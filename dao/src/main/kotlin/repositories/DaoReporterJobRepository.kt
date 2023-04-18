@@ -47,7 +47,7 @@ class DaoReporterJobRepository : ReporterJobRepository {
 
     override fun getForOrtRun(ortRunId: Long): ReporterJob? = blockingQuery {
         ReporterJobDao.find { ReporterJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
-    }.getOrNull()
+    }.getOrThrow()
 
     override fun update(
         id: Long,

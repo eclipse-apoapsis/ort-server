@@ -103,7 +103,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
 
     override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQuery {
         AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()
-    }.getOrNull()
+    }.getOrThrow()
 }
 
 private fun createAnalyzerConfiguration(

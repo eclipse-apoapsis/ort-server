@@ -47,7 +47,7 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
 
     override fun getForOrtRun(ortRunId: Long): AnalyzerJob? = blockingQuery {
         AnalyzerJobDao.find { AnalyzerJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
-    }.getOrNull()
+    }.getOrThrow()
 
     override fun update(
         id: Long,
