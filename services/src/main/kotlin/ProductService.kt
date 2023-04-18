@@ -54,7 +54,7 @@ class ProductService(
      */
     suspend fun getProduct(productId: Long): Product? = dbQuery {
         productRepository.get(productId)
-    }.getOrNull()
+    }.getOrThrow()
 
     /**
      * List all repositories for a [product][productId] according to the given [parameters].

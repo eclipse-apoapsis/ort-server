@@ -59,7 +59,7 @@ class OrganizationService(
      */
     suspend fun getOrganization(organizationId: Long): Organization? = dbQuery {
         organizationRepository.get(organizationId)
-    }.getOrNull()
+    }.getOrThrow()
 
     /**
      * List all organizations according to the given [parameters].

@@ -58,7 +58,7 @@ class RepositoryService(
      */
     suspend fun getRepository(repositoryId: Long): Repository? = dbQuery {
         repositoryRepository.get(repositoryId)
-    }.getOrNull()
+    }.getOrThrow()
 
     /**
      * Update a repository by [repositoryId] with the [present][OptionalValue.Present] values.
