@@ -80,7 +80,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         )
 
-        "GET /organizations/{organizationId/secrets} should return all secrets for this organizations" {
+        "GET /organizations/{organizationId}/secrets should return all secrets for this organization" {
             ortServerTestApplication(noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -114,7 +114,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /organizations/{organizationId/secrets should support query parameters" {
+        "GET /organizations/{organizationId}/secrets should support query parameters" {
             ortServerTestApplication(noDbConfig) {
                 organizationRepository.create(name = "name1", description = "description1")
                 secretRepository.create(
@@ -149,7 +149,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /organizations/{organizationId/secrets/{secretId} should return a single secret" {
+        "GET /organizations/{organizationId}/secrets/{secretId} should return a single secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -172,7 +172,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /organizations/{organizationId/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "GET /organizations/{organizationId}/secrets/{secretId} should respond with NotFound if no secret exists" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -188,7 +188,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /organizations/{organizationId/secrets should create a secret in the database" {
+        "POST /organizations/{organizationId}/secrets should create a secret in the database" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -223,7 +223,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /organizations/{organizationId/secrets with existing organization should respond with CONFLICT" {
+        "POST /organizations/{organizationId}/secrets with existing organization should respond with CONFLICT" {
             ortServerTestApplication(noDbConfig) {
                 val name = "New secret 7"
                 val description = "description"
@@ -256,7 +256,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /organizations/{organizationId/secrets/{secretName} should update a secret" {
+        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret" {
             ortServerTestApplication(noDbConfig) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -285,7 +285,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /organizations/{organizationId/secrets/{secretName} should delete a secret" {
+        "DELETE /organizations/{organizationId}/secrets/{secretName} should delete a secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_8"
                 val name = "New secret 8"
@@ -307,7 +307,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId/secrets} should return all secrets for this products" {
+        "GET /products/{productId}/secrets should return all secrets for this product" {
             ortServerTestApplication(noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -341,7 +341,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId/secrets should support query parameters" {
+        "GET /products/{productId}/secrets should support query parameters" {
             ortServerTestApplication(noDbConfig) {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -375,7 +375,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId/secrets/{secretId} should return a single secret" {
+        "GET /products/{productId}/secrets/{secretId} should return a single secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -398,7 +398,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "GET /products/{productId}/secrets/{secretId} should respond with NotFound if no secret exists" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -414,7 +414,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /products/{productId/secrets should create a secret in the database" {
+        "POST /products/{productId}/secrets should create a secret in the database" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -449,7 +449,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /products/{productId/secrets with already existing product should respond with CONFLICT" {
+        "POST /products/{productId}/secrets with already existing product should respond with CONFLICT" {
             ortServerTestApplication(noDbConfig) {
                 val name = "New secret 7"
                 val description = "description"
@@ -482,7 +482,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /products/{productId/secrets/{secretName} should update a secret" {
+        "PATCH /products/{productId}/secrets/{secretName} should update a secret" {
             ortServerTestApplication(noDbConfig) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -511,7 +511,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /products/{productId/secrets/{secretName} should delete a secret" {
+        "DELETE /products/{productId}/secrets/{secretName} should delete a secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_8"
                 val name = "New secret 8"
@@ -533,7 +533,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId/secrets} should return all secrets for this products" {
+        "GET /repositories/{repositoryId}/secrets should return all secrets for this repository" {
             ortServerTestApplication(noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -567,7 +567,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId/secrets should support query parameters" {
+        "GET /repositories/{repositoryId}/secrets should support query parameters" {
             ortServerTestApplication(noDbConfig) {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -601,7 +601,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId/secrets/{secretId} should return a single secret" {
+        "GET /repositories/{repositoryId}/secrets/{secretId} should return a single secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -624,7 +624,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "GET /repositories/{repositoryId}/secrets/{secretId} should respond with NotFound if no secret exists" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -640,7 +640,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /repositories/{repositoryId/secrets should create a secret in the database" {
+        "POST /repositories/{repositoryId}/secrets should create a secret in the database" {
             ortServerTestApplication(noDbConfig) {
                 val client = createJsonClient()
 
@@ -675,7 +675,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /repositories/{repositoryId/secrets with already existing product should respond with CONFLICT" {
+        "POST /repositories/{repositoryId}/secrets with already existing product should respond with CONFLICT" {
             ortServerTestApplication(noDbConfig) {
                 val name = "New secret 7"
                 val description = "description"
@@ -708,7 +708,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /repositories/{repositoryId/secrets/{secretName} should update a secret" {
+        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret" {
             ortServerTestApplication(noDbConfig) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -737,7 +737,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /repositories/{repositoryId/secrets/{secretName} should delete a secret" {
+        "DELETE /repositories/{repositoryId}/secrets/{secretName} should delete a secret" {
             ortServerTestApplication(noDbConfig) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_8"
                 val name = "New secret 8"
