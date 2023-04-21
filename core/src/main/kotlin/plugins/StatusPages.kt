@@ -33,6 +33,10 @@ import org.ossreviewtoolkit.server.core.api.ErrorResponse
 import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("StatusPages")
+
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<AuthenticationException> { call, _ ->
@@ -54,6 +58,15 @@ fun Application.configureStatusPages() {
             call.respond(
                 HttpStatusCode.BadRequest,
                 ErrorResponse("Invalid query parameters.", e.message)
+            )
+        }
+
+        // catch all handler
+        exception<Throwable> { call, e ->
+            logger.error("Internal Server Error", e)
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ErrorResponse("Error when processing the request.", e.message)
             )
         }
     }

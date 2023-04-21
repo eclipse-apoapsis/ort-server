@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -31,6 +33,7 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.ApplicationTestBuilder
 
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.Secret
@@ -52,7 +55,14 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
+import org.ossreviewtoolkit.server.secrets.Path
+import org.ossreviewtoolkit.server.secrets.SecretStorage
+import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 
+private const val SECRET = "unguessable-secret-value"
+private const val ERROR_PATH = "thisWillThrow"
+
+@Suppress("LargeClass")
 class SecretsRouteIntegrationTest : StringSpec() {
     private lateinit var fixtures: Fixtures
     private lateinit var secretRepository: SecretRepository
@@ -115,7 +125,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{organizationId}/secrets should support query parameters" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 organizationRepository.create(name = "name1", description = "description1")
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -150,7 +160,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{organizationId}/secrets/{secretId} should return a single secret" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
                 val description = "description"
@@ -173,7 +183,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{organizationId}/secrets/{secretId} should respond with NotFound if no secret exists" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/$organizationId/secrets/999999") {
@@ -189,13 +199,14 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations/{organizationId}/secrets should create a secret in the database" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val name = "New secret 6"
 
                 val secret = CreateSecret(
                     name,
+                    SECRET,
                     "The new org secret",
                     organizationId,
                     null,
@@ -220,15 +231,19 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 secretRepository.getByOrganizationIdAndName(organizationId, name)?.mapToApi().shouldBe(
                     Secret(secret.name, secret.description)
                 )
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
             }
         }
 
         "POST /organizations/{organizationId}/secrets with existing organization should respond with CONFLICT" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, description, organizationId, null, null)
+                val secret1 = CreateSecret(name, SECRET, description, organizationId, null, null)
+                val secret2 = secret1.copy(value = "someOtherValue")
 
                 val client = createJsonClient()
 
@@ -236,7 +251,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     headers {
                         basicTestAuth()
                     }
-                    setBody(secret)
+                    setBody(secret1)
                 }
 
                 with(response1) {
@@ -247,25 +262,29 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     headers {
                         basicTestAuth()
                     }
-                    setBody(secret)
+                    setBody(secret2)
                 }
 
                 with(response2) {
                     status shouldBe HttpStatusCode.Conflict
                 }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
             }
         }
 
-        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret" {
-            ortServerTestApplication(noDbConfig) {
+        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret's metadata" {
+            secretsTestApplication {
                 val updatedDescription = "updated description"
                 val name = "name"
+                val path = "path"
 
-                secretRepository.create("path", name, "description", organizationId, null, null)
+                secretRepository.create(path, name, "description", organizationId, null, null)
 
                 val client = createJsonClient()
 
-                val updateSecret = UpdateSecret(name.asPresent(), updatedDescription.asPresent())
+                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
                     headers {
                         basicTestAuth()
@@ -282,14 +301,73 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     organizationId,
                     (updateSecret.name as OptionalValue.Present).value
                 )?.mapToApi() shouldBe Secret(name, updatedDescription)
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path)) should beNull()
+            }
+        }
+
+        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret's value" {
+            secretsTestApplication {
+                val name = "name"
+                val desc = "description"
+                val path = "path"
+
+                secretRepository.create(path, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
+                val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, desc)
+                }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path))?.value shouldBe SECRET
+            }
+        }
+
+        "PATCH /organizations/{organizationId}/secrets/{secretName} should handle failures of the SecretStorage" {
+            secretsTestApplication {
+                val name = "name"
+                val desc = "description"
+
+                secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent(), "newDesc".asPresent())
+                val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByOrganizationIdAndName(
+                    organizationId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
 
         "DELETE /organizations/{organizationId}/secrets/{secretName} should delete a secret" {
-            ortServerTestApplication(noDbConfig) {
-                val path = "https://secret-storage.com/ssh_host_rsa_key_8"
+            secretsTestApplication {
+                val path = SecretsProviderFactoryForTesting.TOKEN_PATH
                 val name = "New secret 8"
-                secretRepository.create(path, name, "description", organizationId, null, null)
+                secretRepository.create(path.path, name, "description", organizationId, null, null)
 
                 val client = createJsonClient()
 
@@ -304,6 +382,34 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
 
                 secretRepository.listForOrganization(organizationId) shouldBe emptyList()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(path) should beNull()
+            }
+        }
+
+        "DELETE /organizations/{organizationId}/secrets/{secretName} should handle a failure from the SecretStorage" {
+            secretsTestApplication {
+                val name = "New secret 8"
+                val desc = "description"
+                secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByOrganizationIdAndName(
+                    organizationId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
 
@@ -342,7 +448,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{productId}/secrets should support query parameters" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
                     "New secret 3",
@@ -376,7 +482,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{productId}/secrets/{secretId} should return a single secret" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
                 val description = "description"
@@ -399,7 +505,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{productId}/secrets/{secretId} should respond with NotFound if no secret exists" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/products/$organizationId/secrets/999999") {
@@ -415,13 +521,14 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /products/{productId}/secrets should create a secret in the database" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val name = "New secret 6"
 
                 val secret = CreateSecret(
                     name,
+                    SECRET,
                     "The new prod secret",
                     null,
                     productId,
@@ -446,15 +553,18 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 secretRepository.getByProductIdAndName(productId, name)?.mapToApi().shouldBe(
                     Secret(secret.name, secret.description)
                 )
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("product_${productId}_$name"))?.value shouldBe SECRET
             }
         }
 
         "POST /products/{productId}/secrets with already existing product should respond with CONFLICT" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, description, null, productId, null)
+                val secret = CreateSecret(name, SECRET, description, null, productId, null)
 
                 val client = createJsonClient()
 
@@ -482,16 +592,17 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /products/{productId}/secrets/{secretName} should update a secret" {
-            ortServerTestApplication(noDbConfig) {
+        "PATCH /products/{productId}/secrets/{secretName} should update a secret's metadata" {
+            secretsTestApplication {
                 val updatedDescription = "updated description"
                 val name = "name"
+                val path = "path"
 
-                secretRepository.create("path", "name", "description", null, productId, null)
+                secretRepository.create(path, name, "description", null, productId, null)
 
                 val client = createJsonClient()
 
-                val updateSecret = UpdateSecret(name.asPresent(), updatedDescription.asPresent())
+                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/products/$productId/secrets/$name") {
                     headers {
                         basicTestAuth()
@@ -508,14 +619,73 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     organizationId,
                     (updateSecret.name as OptionalValue.Present).value
                 )?.mapToApi() shouldBe Secret(name, updatedDescription)
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path)) should beNull()
+            }
+        }
+
+        "PATCH /products/{productId}/secrets/{secretName} should update a secret's value" {
+            secretsTestApplication {
+                val name = "name"
+                val path = "path"
+                val desc = "some description"
+
+                secretRepository.create(path, name, desc, null, productId, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
+                val response = client.patch("/api/v1/products/$productId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, desc)
+                }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path))?.value shouldBe SECRET
+            }
+        }
+
+        "PATCH /products/{productId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+            secretsTestApplication {
+                val name = "name"
+                val desc = "description"
+
+                secretRepository.create(ERROR_PATH, name, desc, null, productId, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
+                val response = client.patch("/api/v1/products/$productId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByProductIdAndName(
+                    organizationId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
 
         "DELETE /products/{productId}/secrets/{secretName} should delete a secret" {
-            ortServerTestApplication(noDbConfig) {
-                val path = "https://secret-storage.com/ssh_host_rsa_key_8"
+            secretsTestApplication {
+                val path = SecretsProviderFactoryForTesting.PASSWORD_PATH
                 val name = "New secret 8"
-                secretRepository.create(path, name, "description", null, productId, null)
+                secretRepository.create(path.path, name, "description", null, productId, null)
 
                 val client = createJsonClient()
 
@@ -529,7 +699,35 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     status shouldBe HttpStatusCode.NoContent
                 }
 
-                secretRepository.listForProduct(organizationId) shouldBe emptyList()
+                secretRepository.listForProduct(productId) shouldBe emptyList()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(path) should beNull()
+            }
+        }
+
+        "DELETE /products/{productId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+            secretsTestApplication {
+                val name = "New secret 8"
+                val desc = "description"
+                secretRepository.create(ERROR_PATH, name, desc, null, productId, null)
+
+                val client = createJsonClient()
+
+                val response = client.delete("/api/v1/products/$productId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByProductIdAndName(
+                    productId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
 
@@ -568,7 +766,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/secrets should support query parameters" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
                     "New secret 3",
@@ -602,7 +800,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/secrets/{secretId} should return a single secret" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
                 val description = "description"
@@ -625,7 +823,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/secrets/{secretId} should respond with NotFound if no secret exists" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/$repositoryId/secrets/999999") {
@@ -641,13 +839,14 @@ class SecretsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /repositories/{repositoryId}/secrets should create a secret in the database" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val client = createJsonClient()
 
                 val name = "New secret 6"
 
                 val secret = CreateSecret(
                     name,
+                    SECRET,
                     "The new repo secret",
                     null,
                     null,
@@ -672,15 +871,18 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 secretRepository.getByRepositoryIdAndName(repositoryId, name)?.mapToApi().shouldBe(
                     Secret(secret.name, secret.description)
                 )
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("repository_${repositoryId}_$name"))?.value shouldBe SECRET
             }
         }
 
         "POST /repositories/{repositoryId}/secrets with already existing product should respond with CONFLICT" {
-            ortServerTestApplication(noDbConfig) {
+            secretsTestApplication {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, description, null, null, repositoryId)
+                val secret = CreateSecret(name, SECRET, description, null, null, repositoryId)
 
                 val client = createJsonClient()
 
@@ -708,16 +910,17 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret" {
-            ortServerTestApplication(noDbConfig) {
+        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret's metadata" {
+            secretsTestApplication {
                 val updatedDescription = "updated description"
                 val name = "name"
+                val path = "path"
 
-                secretRepository.create("path", "name", "description", null, null, repositoryId)
+                secretRepository.create(path, name, "description", null, null, repositoryId)
 
                 val client = createJsonClient()
 
-                val updateSecret = UpdateSecret(name.asPresent(), updatedDescription.asPresent())
+                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
                     headers {
                         basicTestAuth()
@@ -734,14 +937,73 @@ class SecretsRouteIntegrationTest : StringSpec() {
                     repositoryId,
                     (updateSecret.name as OptionalValue.Present).value
                 )?.mapToApi() shouldBe Secret(name, updatedDescription)
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path)) should beNull()
+            }
+        }
+
+        "PATCH /repositories/{repositoryId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+            secretsTestApplication {
+                val name = "name"
+                val desc = "description"
+
+                secretRepository.create(ERROR_PATH, name, desc, null, null, repositoryId)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
+                val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByRepositoryIdAndName(
+                    repositoryId,
+                    (updateSecret.name as OptionalValue.Present).value
+                )?.mapToApi() shouldBe Secret(name, desc)
+            }
+        }
+
+        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret's value" {
+            secretsTestApplication {
+                val name = "name"
+                val path = "path"
+                val desc = "some description"
+
+                secretRepository.create(path, name, desc, null, null, repositoryId)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
+                val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, desc)
+                }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path))?.value shouldBe SECRET
             }
         }
 
         "DELETE /repositories/{repositoryId}/secrets/{secretName} should delete a secret" {
-            ortServerTestApplication(noDbConfig) {
-                val path = "https://secret-storage.com/ssh_host_rsa_key_8"
+            secretsTestApplication {
+                val path = SecretsProviderFactoryForTesting.SERVICE_PATH
                 val name = "New secret 8"
-                secretRepository.create(path, name, "description", null, null, repositoryId)
+                secretRepository.create(path.path, name, "description", null, null, repositoryId)
 
                 val client = createJsonClient()
 
@@ -756,7 +1018,47 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
 
                 secretRepository.listForRepository(repositoryId) shouldBe emptyList()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(path) should beNull()
+            }
+        }
+
+        "DELETE /repositories/{repositoryId}/secrets/{secretName} should handle failures from the SecretStorage" {
+            secretsTestApplication {
+                val name = "New secret 8"
+                val desc = "description"
+                secretRepository.create(ERROR_PATH, name, desc, null, null, repositoryId)
+
+                val client = createJsonClient()
+
+                val response = client.delete("/api/v1/repositories/$repositoryId/secrets/$name") {
+                    headers {
+                        basicTestAuth()
+                    }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByRepositoryIdAndName(
+                    repositoryId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
     }
+}
+
+/**
+ * Helper function to create a test application running [block] which is configured to use the test secrets provider
+ * implementation.
+ */
+fun secretsTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+    val config = mapOf(
+        "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
+        "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH
+    )
+    ortServerTestApplication(noDbConfig, config, block)
 }

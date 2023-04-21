@@ -45,6 +45,7 @@ data class Secret(
 @Serializable
 data class CreateSecret(
     val name: String,
+    val value: String,
     val description: String?,
     val organizationId: Long?,
     val productId: Long?,
@@ -57,5 +58,6 @@ data class CreateSecret(
 @Serializable
 data class UpdateSecret(
     val name: OptionalValue<String> = OptionalValue.Absent,
+    val value: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String> = OptionalValue.Absent,
 )

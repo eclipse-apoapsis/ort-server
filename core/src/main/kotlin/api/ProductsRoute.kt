@@ -140,6 +140,7 @@ fun Route.products() = route("products/{productId}") {
                     secretService.updateSecretByProductAndName(
                         productId,
                         secretName,
+                        updateSecret.value,
                         updateSecret.description
                     ).mapToApi()
                 )
@@ -162,6 +163,7 @@ fun Route.products() = route("products/{productId}") {
                 HttpStatusCode.Created,
                 secretService.createSecret(
                     createSecret.name,
+                    createSecret.value,
                     createSecret.description,
                     createSecret.organizationId,
                     createSecret.productId,

@@ -24,6 +24,8 @@ import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.secrets.Path
+import org.ossreviewtoolkit.server.secrets.Secret as SecretValue
 import org.ossreviewtoolkit.server.secrets.SecretStorage
 
 /**
@@ -34,11 +36,13 @@ class SecretService(
     private val secretStorage: SecretStorage
 ) {
     /**
-     * Create a secret. As the secret can only belong to an organization, a product, or a repository, a respective
-     * [check][requireUnambiguousSecret] validates the input data.
+     * Create a secret with the given metadata [name] and [description], and the provided [value]. As the secret can
+     * only belong to an organization, a product, or a repository, a respective [check][requireUnambiguousSecret]
+     * validates the input data.
      */
     suspend fun createSecret(
         name: String,
+        value: String,
         description: String?,
         organizationId: Long?,
         productId: Long?,
@@ -48,28 +52,38 @@ class SecretService(
 
         val path = secretStorage.createPath(organizationId, productId, repositoryId, name)
 
-        secretRepository.create(path.path, name, description, organizationId, productId, repositoryId)
+        val secret = secretRepository.create(path.path, name, description, organizationId, productId, repositoryId)
+
+        secretStorage.writeSecret(path, SecretValue(value))
+
+        secret
     }.getOrThrow()
 
     /**
      * Delete a secret by [organizationId] and [name].
      */
-    suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String): Unit = dbQuery {
+    suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String) = dbQuery {
+        val secret = secretRepository.getByOrganizationIdAndName(organizationId, name)
         secretRepository.deleteForOrganizationAndName(organizationId, name)
+        secret?.deleteValue()
     }.getOrThrow()
 
     /**
      * Delete a secret by [productId] and [name].
      */
-    suspend fun deleteSecretByProductAndName(productId: Long, name: String): Unit = dbQuery {
+    suspend fun deleteSecretByProductAndName(productId: Long, name: String) = dbQuery {
+        val secret = secretRepository.getByProductIdAndName(productId, name)
         secretRepository.deleteForProductAndName(productId, name)
+        secret?.deleteValue()
     }.getOrThrow()
 
     /**
      * Delete a secret by [repositoryId] and [name].
      */
-    suspend fun deleteSecretByRepositoryAndName(repositoryId: Long, name: String): Unit = dbQuery {
+    suspend fun deleteSecretByRepositoryAndName(repositoryId: Long, name: String) = dbQuery {
+        val secret = secretRepository.getByRepositoryIdAndName(repositoryId, name)
         secretRepository.deleteForRepositoryAndName(repositoryId, name)
+        secret?.deleteValue()
     }.getOrThrow()
 
     /**
@@ -120,9 +134,16 @@ class SecretService(
     suspend fun updateSecretByOrganizationAndName(
         organizationId: Long,
         name: String,
+        value: OptionalValue<String>,
         description: OptionalValue<String?>
     ): Secret = dbQuery {
-        secretRepository.updateForOrganizationAndName(organizationId, name, description)
+        val secret = secretRepository.updateForOrganizationAndName(organizationId, name, description)
+
+        value.ifPresent {
+            secretRepository.getByOrganizationIdAndName(organizationId, name)?.updateValue(it)
+        }
+
+        secret
     }.getOrThrow()
 
     /**
@@ -131,9 +152,16 @@ class SecretService(
     suspend fun updateSecretByProductAndName(
         productId: Long,
         name: String,
+        value: OptionalValue<String>,
         description: OptionalValue<String?>
     ): Secret = dbQuery {
-        secretRepository.updateForProductAndName(productId, name, description)
+        val secret = secretRepository.updateForProductAndName(productId, name, description)
+
+        value.ifPresent {
+            secretRepository.getByProductIdAndName(productId, name)?.updateValue(it)
+        }
+
+        secret
     }.getOrThrow()
 
     /**
@@ -142,14 +170,35 @@ class SecretService(
     suspend fun updateSecretByRepositoryAndName(
         repositoryId: Long,
         name: String,
+        value: OptionalValue<String>,
         description: OptionalValue<String?>
     ): Secret = dbQuery {
-        secretRepository.updateForRepositoryAndName(repositoryId, name, description)
+        val secret = secretRepository.updateForRepositoryAndName(repositoryId, name, description)
+
+        value.ifPresent {
+            secretRepository.getByRepositoryIdAndName(repositoryId, name)?.updateValue(it)
+        }
+
+        secret
     }.getOrThrow()
 
     private fun requireUnambiguousSecret(organizationId: Long?, productId: Long?, repositoryId: Long?) {
         require(listOfNotNull(organizationId, productId, repositoryId).size == 1) {
             "The secret should belong to one of the following: Organization, Product or Repository."
         }
+    }
+
+    /**
+     * Update the [value] of this [Secret] in the [SecretStorage].
+     */
+    private fun Secret.updateValue(value: String) {
+        secretStorage.writeSecret(Path(path), SecretValue(value))
+    }
+
+    /**
+     * Remove the value of this [Secret] from the [SecretStorage].
+     */
+    private fun Secret.deleteValue() {
+        secretStorage.removeSecret(Path(path))
     }
 }

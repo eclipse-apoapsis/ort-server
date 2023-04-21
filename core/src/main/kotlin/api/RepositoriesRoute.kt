@@ -150,6 +150,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     secretService.updateSecretByRepositoryAndName(
                         repositoryId,
                         secretName,
+                        updateSecret.value,
                         updateSecret.description
                     ).mapToApi()
                 )
@@ -172,6 +173,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 HttpStatusCode.Created,
                 secretService.createSecret(
                     createSecret.name,
+                    createSecret.value,
                     createSecret.description,
                     createSecret.organizationId,
                     createSecret.productId,

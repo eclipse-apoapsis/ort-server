@@ -312,6 +312,7 @@ val postSecretForRepository: OpenApiRoute.() -> Unit = {
                 "Create Secret",
                 CreateSecret(
                     "New secret",
+                    "r3p0-s3cr3t-08_15",
                     "The new repo secret",
                     null,
                     1,

@@ -151,6 +151,7 @@ fun Route.organizations() = route("organizations") {
                         secretService.updateSecretByOrganizationAndName(
                             organizationId,
                             secretName,
+                            updateSecret.value,
                             updateSecret.description
                         ).mapToApi()
                     )
@@ -173,6 +174,7 @@ fun Route.organizations() = route("organizations") {
                     HttpStatusCode.Created,
                     secretService.createSecret(
                         createSecret.name,
+                        createSecret.value,
                         createSecret.description,
                         createSecret.organizationId,
                         createSecret.productId,
