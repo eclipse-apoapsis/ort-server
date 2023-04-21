@@ -19,11 +19,6 @@
 
 package org.ossreviewtoolkit.server.services
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-
-import io.ktor.server.config.ApplicationConfig
-
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
@@ -36,11 +31,8 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
  */
 class SecretService(
     private val secretRepository: SecretRepository,
-    applicationConfig: ApplicationConfig
+    private val secretStorage: SecretStorage
 ) {
-    private val config: Config = ConfigFactory.parseMap(applicationConfig.toMap())
-    private val secretStorage by lazy { SecretStorage.createStorage(config) }
-
     /**
      * Create a secret. As the secret can only belong to an organization, a product, or a repository, a respective
      * [check][requireUnambiguousSecret] validates the input data.

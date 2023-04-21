@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.core.di
 
+import com.typesafe.config.ConfigFactory
+
 import io.ktor.server.config.ApplicationConfig
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -55,6 +57,7 @@ import org.ossreviewtoolkit.server.services.SecretService
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
     single { config }
+    single { ConfigFactory.parseMap(config.toMap()) }
 
     single {
         Json {
@@ -76,10 +79,11 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<RepositoryRepository> { DaoRepositoryRepository() }
     single<SecretRepository> { DaoSecretRepository() }
 
+    single { SecretStorage.createStorage(get()) }
+
     single { OrchestratorService(get(), get()) }
     single { OrganizationService(get(), get()) }
     single { ProductService(get(), get()) }
     single { RepositoryService(get(), get()) }
-    single { SecretStorage(get()) }
     single { SecretService(get(), get()) }
 }
