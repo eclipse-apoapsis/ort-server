@@ -123,7 +123,7 @@ class SecretService(
     }.getOrThrow()
 
     /**
-     * Update a secret by [organizationId] and [name][oldName] with the [present][OptionalValue.Present] values.
+     * Update a secret by [organizationId] and [name] with the [present][OptionalValue.Present] values.
      */
     suspend fun updateSecretByOrganizationAndName(
         organizationId: Long,
@@ -134,7 +134,7 @@ class SecretService(
     }.getOrThrow()
 
     /**
-     * Update a secret by [productId] and [name][oldName] with the [present][OptionalValue.Present] values.
+     * Update a secret by [productId] and [name] with the [present][OptionalValue.Present] values.
      */
     suspend fun updateSecretByProductAndName(
         productId: Long,
