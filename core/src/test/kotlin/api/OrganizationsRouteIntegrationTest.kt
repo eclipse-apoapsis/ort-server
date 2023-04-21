@@ -32,8 +32,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import kotlinx.serialization.json.Json
-
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.Organization
@@ -231,7 +229,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
 
                 val createdOrg = organizationRepository.create(name = name, description = description)
 
-                val client = createJsonClient(Json)
+                val client = createJsonClient()
 
                 val organizationUpdateRequest = UpdateOrganization(
                     name = OptionalValue.Absent,

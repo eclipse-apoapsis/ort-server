@@ -24,10 +24,8 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.headers
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.util.KtorDsl
@@ -41,7 +39,7 @@ import kotlinx.serialization.json.Json
  */
 @KtorDsl
 fun ApplicationTestBuilder.createJsonClient(
-    json: Json = DefaultJson,
+    json: Json = Json,
     block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit = {}
 ): HttpClient = createClient {
     install(ContentNegotiation) {
