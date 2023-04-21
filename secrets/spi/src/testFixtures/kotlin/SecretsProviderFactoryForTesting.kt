@@ -60,6 +60,18 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         val SERVICE_SECRET = Secret("db_data")
 
         /**
+         * Stores the latest provider instance that has been created. This can be used to access this instance from
+         * outside and to test the content of its storage.
+         */
+        private var latestInstance: SecretsProvider? = null
+
+        /**
+         * Return the last [SecretsProvider] instance that has been created by this factory or fail if there is none.
+         */
+        fun instance(): SecretsProvider = latestInstance
+            ?: throw AssertionError("No SecretsProviderForTesting instance has been created.")
+
+        /**
          * Return a map to be used as internal secret store that is already populated with the test secrets.
          */
         private fun createStorage(): MutableMap<Path, Secret> =
@@ -115,6 +127,6 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
                     ).joinToString("_")
                 )
             }
-        }
+        }.also { latestInstance = it }
     }
 }
