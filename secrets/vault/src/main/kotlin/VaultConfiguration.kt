@@ -38,7 +38,20 @@ data class VaultConfiguration(
      * from this root path. Using this mechanism, different parts of the vault storage can be made available to
      * different clients.
      */
-    val rootPath: String
+    val rootPath: String,
+
+    /**
+     * The path prefix under which the secrets engine is located. Vault allows enabling the KV secrets engine under
+     * different paths. Using this property, the concrete path prefix to use can be specified.
+     */
+    val prefix: String = DEFAULT_PREFIX,
+
+    /**
+     * Defines the namespace. Namespaces are a feature of the enterprise version of vault supporting the separation
+     * of multiple tenants. In an environment that uses namespaces, it is necessary to pass the target namespace as
+     * a header when sending requests to the Vault service. If this property is not *null*, such a header is added.
+     */
+    val namespace: String? = null
 ) {
     companion object {
         /** Name of the configuration property for the URI of the Vault service. */
@@ -53,6 +66,15 @@ data class VaultConfiguration(
         /** Name of the configuration property defining the root path in Vault. */
         private const val ROOT_PATH_PROPERTY = "vaultRootPath"
 
+        /** Name of the configuration property defining the prefix for paths. */
+        private const val PREFIX_PROPERTY = "vaultPrefix"
+
+        /** Name of the configuration property defining the namespace to be passed to the vault service. */
+        private const val NAMESPACE_PROPERTY = "vaultNamespace"
+
+        /** The default path prefix under which the KV Secrets Engine is available. */
+        private const val DEFAULT_PREFIX = "secret"
+
         /** The separator for hierarchical paths. */
         private const val PATH_SEPARATOR = "/"
 
@@ -66,7 +88,9 @@ data class VaultConfiguration(
                     config.getString(ROLE_ID_PROPERTY),
                     config.getString(SECRET_ID_PROPERTY)
                 ),
-                rootPath = getOptionalRootPath(config)
+                rootPath = getOptionalRootPath(config),
+                prefix = getOptionalPrefix(config),
+                namespace = getOptionalNamespace(config)
             )
         }
 
@@ -76,11 +100,27 @@ data class VaultConfiguration(
          * - If a root path is defined, make sure that is has a trailing separator character.
          */
         private fun getOptionalRootPath(config: Config): String =
-            if (config.hasPath(ROOT_PATH_PROPERTY)) {
-                val rootPath = config.getString(ROOT_PATH_PROPERTY)
+            config.withPath(ROOT_PATH_PROPERTY)?.let { c ->
+                val rootPath = c.getString(ROOT_PATH_PROPERTY)
                 rootPath.takeIf { it.endsWith(PATH_SEPARATOR) } ?: "$rootPath$PATH_SEPARATOR"
-            } else {
-                ""
-            }
+            } ?: ""
+
+        /**
+         * Return the prefix for paths from the given [config] or the default prefix.
+         */
+        private fun getOptionalPrefix(config: Config): String =
+            config.withPath(PREFIX_PROPERTY)?.getString(PREFIX_PROPERTY)?.removeSuffix(PATH_SEPARATOR)
+                ?: DEFAULT_PREFIX
+
+        /**
+         * Return the Vault namespace from the given [config] if it is defined or *null* otherwise.
+         */
+        private fun getOptionalNamespace(config: Config): String? =
+            config.withPath(NAMESPACE_PROPERTY)?.getString(NAMESPACE_PROPERTY)
+
+        /**
+         * Return this [Config] if it contains the given [path] or *null* otherwise.
+         */
+        private fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
     }
 }

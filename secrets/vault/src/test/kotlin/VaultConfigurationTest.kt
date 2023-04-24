@@ -22,6 +22,8 @@ package org.ossreviewtoolkit.server.secrets.vault
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
@@ -30,6 +32,8 @@ private const val VAULT_URI = "https://vault.example.org:8765"
 private const val ROLE_ID = "test-role"
 private const val SECRET_ID = "777"
 private const val ROOT_PATH = "/path/to/my/secrets/"
+private const val PREFIX = "my-secrets"
+private const val NAMESPACE = "my/name/space"
 
 class VaultConfigurationTest : StringSpec({
     "An instance can be created from a Config" {
@@ -37,7 +41,9 @@ class VaultConfigurationTest : StringSpec({
             "vaultUri" to VAULT_URI,
             "vaultRoleId" to ROLE_ID,
             "vaultSecretId" to SECRET_ID,
-            "vaultRootPath" to ROOT_PATH
+            "vaultRootPath" to ROOT_PATH,
+            "vaultPrefix" to PREFIX,
+            "vaultNamespace" to NAMESPACE
         )
         val config = ConfigFactory.parseMap(properties)
 
@@ -46,6 +52,8 @@ class VaultConfigurationTest : StringSpec({
         vaultConfig.vaultUri shouldBe VAULT_URI
         vaultConfig.rootPath shouldBe ROOT_PATH
         vaultConfig.credentials shouldBe VaultCredentials(ROLE_ID, SECRET_ID)
+        vaultConfig.prefix shouldBe PREFIX
+        vaultConfig.namespace shouldBe NAMESPACE
     }
 
     "Default values are set" {
@@ -59,6 +67,8 @@ class VaultConfigurationTest : StringSpec({
         val vaultConfig = VaultConfiguration.create(config)
 
         vaultConfig.rootPath shouldBe ""
+        vaultConfig.prefix shouldBe "secret"
+        vaultConfig.namespace should beNull()
     }
 
     "A trailing slash is added to the root path if necessary" {
@@ -73,5 +83,19 @@ class VaultConfigurationTest : StringSpec({
         val vaultConfig = VaultConfiguration.create(config)
 
         vaultConfig.rootPath shouldBe ROOT_PATH
+    }
+
+    "A trailing slash is removed from the prefix if necessary" {
+        val properties = mapOf(
+            "vaultUri" to VAULT_URI,
+            "vaultRoleId" to ROLE_ID,
+            "vaultSecretId" to SECRET_ID,
+            "vaultPrefix" to "$PREFIX/"
+        )
+        val config = ConfigFactory.parseMap(properties)
+
+        val vaultConfig = VaultConfiguration.create(config)
+
+        vaultConfig.prefix shouldBe PREFIX
     }
 })
