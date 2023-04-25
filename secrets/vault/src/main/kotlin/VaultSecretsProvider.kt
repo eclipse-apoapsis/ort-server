@@ -50,11 +50,14 @@ import org.ossreviewtoolkit.server.secrets.vault.model.VaultSecretResponse
 /** The header in which vault expects the authorization token. */
 private const val TOKEN_HEADER = "X-Vault-Token"
 
+/** The header to specify the Vault namespace. */
+private const val NAMESPACE_HEADER = "X-Vault-Namespace"
+
 /** The URL prefix used by most requests to access secrets. */
-private const val SECRET_ACCESS_PREFIX = "secret/data"
+private const val SECRET_ACCESS_PREFIX = "data"
 
 /** The URL prefix to delete all the versions of a secret. */
-private const val SECRET_DELETE_PREFIX = "secret/metadata"
+private const val SECRET_DELETE_PREFIX = "metadata"
 
 /**
  * An implementation of the [SecretsProvider] interface based on HashiCorp Vault [1].
@@ -142,6 +145,7 @@ class VaultSecretsProvider(
             defaultRequest {
                 url(config.vaultUri)
                 header(TOKEN_HEADER, authToken)
+                config.namespace?.let { header(NAMESPACE_HEADER, it) }
                 contentType(ContentType.Application.Json)
             }
 
@@ -165,9 +169,9 @@ class VaultSecretsProvider(
     }
 
     /**
-     * Convert this [Path] to a URI for accessing the corresponding secret. Take the configured
-     * [VaultConfiguration.rootPath] into account and use the given [prefix] as prefix. Some operations require a
-     * different prefix.
+     * Convert this [Path] to a URI for accessing the corresponding secret. Take the configuration settings
+     * and the given [operation] into account.
      */
-    private fun Path.toUri(prefix: String = SECRET_ACCESS_PREFIX): String = "/v1/$prefix/${config.rootPath}$path"
+    private fun Path.toUri(operation: String = SECRET_ACCESS_PREFIX): String =
+        "/v1/${config.prefix}/$operation/${config.rootPath}$path"
 }

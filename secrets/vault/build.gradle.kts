@@ -42,4 +42,5 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainersVault)
+    testImplementation(libs.wiremockStandalone)
 }
