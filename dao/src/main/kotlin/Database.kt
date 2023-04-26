@@ -43,6 +43,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+
 /**
  * Connect the database.
  */
@@ -122,12 +124,6 @@ fun databaseModule(): Module = module {
 
     single(createdAtStart = true) { createDataSource(get()).connect() }
 }
-
-/**
- * Read the configuration from [this] configuration defined in [path]. Returns *null* if the [path] is not available in
- * the configuration.
- */
-private fun Config.getStringOrNull(path: String) = if (hasPath(path)) getString(path) else null
 
 /**
  * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],

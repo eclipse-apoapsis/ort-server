@@ -33,6 +33,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":model"))
+    implementation(project(":utils:config"))
 
     api(libs.exposedDao)
     api(libs.koinCore)
