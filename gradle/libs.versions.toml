@@ -104,6 +104,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
+ortEvaluator = { module = "com.github.oss-review-toolkit.ort:evaluator", version.ref = "ort" }
 ortPackageCurationProviders = { module = "com.github.oss-review-toolkit.ort:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "com.github.oss-review-toolkit.ort:package-managers", version.ref = "ort" }
 ortScanner = { module = "com.github.oss-review-toolkit.ort:scanner", version.ref = "ort" }

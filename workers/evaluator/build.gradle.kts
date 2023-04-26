@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":transport:transport-spi"))
 
     implementation(libs.logback)
+    implementation(libs.ortEvaluator)
     implementation(libs.typesafeConfig)
 
     testImplementation(testFixtures(project(":dao")))
