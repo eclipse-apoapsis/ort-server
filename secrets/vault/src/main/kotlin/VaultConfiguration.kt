@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.secrets.vault
 import com.typesafe.config.Config
 
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
  * A data class storing the supported configuration options for the HashiVault secrets provider implementation.
@@ -90,7 +91,7 @@ data class VaultConfiguration(
                 ),
                 rootPath = getOptionalRootPath(config),
                 prefix = getOptionalPrefix(config),
-                namespace = getOptionalNamespace(config)
+                namespace = config.getStringOrNull(NAMESPACE_PROPERTY)
             )
         }
 
@@ -100,8 +101,7 @@ data class VaultConfiguration(
          * - If a root path is defined, make sure that is has a trailing separator character.
          */
         private fun getOptionalRootPath(config: Config): String =
-            config.withPath(ROOT_PATH_PROPERTY)?.let { c ->
-                val rootPath = c.getString(ROOT_PATH_PROPERTY)
+            config.getStringOrNull(ROOT_PATH_PROPERTY)?.let { rootPath ->
                 rootPath.takeIf { it.endsWith(PATH_SEPARATOR) } ?: "$rootPath$PATH_SEPARATOR"
             } ?: ""
 
@@ -109,18 +109,6 @@ data class VaultConfiguration(
          * Return the prefix for paths from the given [config] or the default prefix.
          */
         private fun getOptionalPrefix(config: Config): String =
-            config.withPath(PREFIX_PROPERTY)?.getString(PREFIX_PROPERTY)?.removeSuffix(PATH_SEPARATOR)
-                ?: DEFAULT_PREFIX
-
-        /**
-         * Return the Vault namespace from the given [config] if it is defined or *null* otherwise.
-         */
-        private fun getOptionalNamespace(config: Config): String? =
-            config.withPath(NAMESPACE_PROPERTY)?.getString(NAMESPACE_PROPERTY)
-
-        /**
-         * Return this [Config] if it contains the given [path] or *null* otherwise.
-         */
-        private fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
+            config.getStringOrNull(PREFIX_PROPERTY)?.removeSuffix(PATH_SEPARATOR) ?: DEFAULT_PREFIX
     }
 }
