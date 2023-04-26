@@ -1,0 +1,98 @@
+/*
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.dao.tables.runs.evaluator
+
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
+
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
+
+/**
+ * A table to represent a rule violation.
+ */
+object RuleViolationsTable : LongIdTable("rule_violations") {
+    val rule = text("rule")
+    val packageIdentifierId = reference("package_identifier_id", IdentifiersTable).nullable()
+    val license = text("license").nullable()
+    val licenseSource = text("license_source").nullable()
+    val severity = text("severity")
+    val message = text("message")
+    val howToFix = text("how_to_fix")
+}
+
+class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<RuleViolationDao>(RuleViolationsTable) {
+        fun getOrPut(ruleViolation: OrtRuleViolation): RuleViolationDao =
+            findByRuleViolation(ruleViolation) ?: RuleViolationDao.new {
+                rule = ruleViolation.rule
+                packageIdentifierId = getPackageIdentifierDaoOrNull(ruleViolation)
+                license = ruleViolation.license
+                licenseSource = ruleViolation.licenseSource
+                severity = ruleViolation.severity
+                message = ruleViolation.message
+                howToFix = ruleViolation.howToFix
+            }
+
+        private fun findByRuleViolation(ruleViolation: OrtRuleViolation): RuleViolationDao? {
+            val identifierDao = getPackageIdentifierDaoOrNull(ruleViolation)
+
+            return RuleViolationDao.find {
+                RuleViolationsTable.rule eq ruleViolation.rule and
+                        (RuleViolationsTable.packageIdentifierId eq identifierDao?.id) and
+                        (RuleViolationsTable.license eq ruleViolation.license) and
+                        (RuleViolationsTable.licenseSource eq ruleViolation.licenseSource) and
+                        (RuleViolationsTable.severity eq ruleViolation.severity) and
+                        (RuleViolationsTable.message eq ruleViolation.message) and
+                        (RuleViolationsTable.howToFix eq ruleViolation.howToFix)
+            }.singleOrNull()
+        }
+
+        private fun getPackageIdentifierDaoOrNull(ruleViolation: OrtRuleViolation): IdentifierDao? {
+            val packageId = ruleViolation.packageId
+            return when {
+                packageId != null -> IdentifierDao.findByIdentifier(packageId)
+                else -> null
+            }
+        }
+    }
+
+    var rule by RuleViolationsTable.rule
+    var packageIdentifierId by IdentifierDao optionalReferencedOn RuleViolationsTable.packageIdentifierId
+    var license by RuleViolationsTable.license
+    var licenseSource by RuleViolationsTable.licenseSource
+    var severity by RuleViolationsTable.severity
+    var message by RuleViolationsTable.message
+    var howToFix by RuleViolationsTable.howToFix
+
+    fun mapToModel() = OrtRuleViolation(
+        rule = rule,
+        packageId = packageIdentifierId?.mapToModel(),
+        license = license,
+        licenseSource = licenseSource,
+        severity = severity,
+        message = message,
+        howToFix = howToFix,
+    )
+}
