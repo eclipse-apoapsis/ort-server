@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:transport-spi"))
+    implementation(project(":workers:common"))
 
     implementation(libs.logback)
     implementation(libs.ortEvaluator)
