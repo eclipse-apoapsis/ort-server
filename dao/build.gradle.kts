@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     `java-test-fixtures`
 
