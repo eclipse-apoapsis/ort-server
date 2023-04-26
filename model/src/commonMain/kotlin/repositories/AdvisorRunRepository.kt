@@ -47,4 +47,9 @@ interface AdvisorRunRepository {
      * Get an advisor run by [id]. Returns null if the advisor run is not found.
      */
     fun get(id: Long): AdvisorRun?
+
+    /**
+     * Get an advisor run by [advisorJobId]. Returns null if the advisor run is not found.
+     */
+    fun getByJobId(advisorJobId: Long): AdvisorRun?
 }

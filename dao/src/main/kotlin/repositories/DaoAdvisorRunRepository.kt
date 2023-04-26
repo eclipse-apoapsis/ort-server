@@ -104,6 +104,10 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
     }.getOrThrow()
 
     override fun get(id: Long): AdvisorRun? = entityQuery { AdvisorRunDao[id].mapToModel() }
+
+    override fun getByJobId(advisorJobId: Long): AdvisorRun? = entityQuery {
+        AdvisorRunDao.find { AdvisorRunsTable.advisorJobId eq advisorJobId }.firstOrNull()?.mapToModel()
+    }
 }
 
 private fun createAdvisorConfiguration(
