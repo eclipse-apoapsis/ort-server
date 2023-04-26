@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.test
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
@@ -46,6 +47,7 @@ class Fixtures {
     private val analyzerJobRepository = DaoAnalyzerJobRepository()
     private val advisorJobRepository = DaoAdvisorJobRepository()
     private val scannerJobRepository = DaoScannerJobRepository()
+    private val evaluatorJobRepository = DaoEvaluatorJobRepository()
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
@@ -54,6 +56,7 @@ class Fixtures {
     val analyzerJob by lazy { createAnalyzerJob() }
     val advisorJob by lazy { createAdvisorJob() }
     val scannerJob by lazy { createScannerJob() }
+    val evaluatorJob by lazy { createEvaluatorJob() }
 
     val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
@@ -108,4 +111,9 @@ class Fixtures {
         ortRunId: Long = ortRun.id,
         configuration: ScannerJobConfiguration = jobConfigurations.scanner!!
     ) = scannerJobRepository.create(ortRunId, configuration)
+
+    fun createEvaluatorJob(
+        ortRunId: Long = ortRun.id,
+        configuration: EvaluatorJobConfiguration = jobConfigurations.evaluator!!
+    ) = evaluatorJobRepository.create(ortRunId, configuration)
 }
