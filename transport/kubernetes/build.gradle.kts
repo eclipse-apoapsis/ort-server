@@ -31,6 +31,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":transport:transport-spi"))
+    implementation(project(":utils:config"))
 
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)

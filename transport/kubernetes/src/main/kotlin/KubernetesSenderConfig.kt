@@ -21,6 +21,11 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 
 import com.typesafe.config.Config
 
+import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
+import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
+import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -184,29 +189,3 @@ data class KubernetesSenderConfig(
         }
     }
 }
-
-/**
- * Return this [Config] if it contains the given [path] or null if not.
- */
-private fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
-
-/**
- * Return the configuration setting with the given [path] or null if it cannot be found.
- */
-private fun Config.getStringOrNull(path: String): String? = withPath(path)?.getString(path)
-
-/**
- * Return the configuration setting with the given [path] or [default] if it cannot be found.
- */
-private fun Config.getStringOrDefault(path: String, default: String): String = getStringOrNull(path) ?: default
-
-/**
- * Return the numeric configuration setting with the given [path] or [default] if it cannot be found.
- */
-private fun Config.getIntOrDefault(path: String, default: Int): Int = withPath(path)?.getInt(path) ?: default
-
-/**
- * Return the boolean configuration setting with the given [path] or [default] it it cannot be found.
- */
-private fun Config.getBooleanOrDefault(path: String, default: Boolean): Boolean =
-    withPath(path)?.getBoolean(path) ?: default
