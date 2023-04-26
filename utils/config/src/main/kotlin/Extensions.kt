@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.utils.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 
 /**
  * Return the boolean value with the given [path] or [default] if it cannot be found.
@@ -30,6 +31,12 @@ fun Config.getBooleanOrDefault(path: String, default: Boolean): Boolean = getBoo
  * Return the boolean value with the given [path] or `null` if it cannot be found.
  */
 fun Config.getBooleanOrNull(path: String): Boolean? = withPath(path)?.getBoolean(path)
+
+/**
+ * Return the sub configuration at the given [path] or an empty [Config] if this path is not defined.
+ */
+fun Config.getConfigOrEmpty(path: String): Config =
+    if (hasPath(path)) getConfig(path) else ConfigFactory.empty()
 
 /**
  * Return the int value with the given [path] or [default] if it cannot be found.

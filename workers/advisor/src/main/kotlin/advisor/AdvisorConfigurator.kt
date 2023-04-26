@@ -20,13 +20,15 @@
 package org.ossreviewtoolkit.server.workers.advisor
 
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 
 import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.model.config.NexusIqConfiguration
 import org.ossreviewtoolkit.model.config.OsvConfiguration
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.utils.config.getConfigOrEmpty
+import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 import org.slf4j.LoggerFactory
 
@@ -66,18 +68,6 @@ internal class AdvisorConfigurator(
         private const val OSV_DEFAULT_URL = "https://api.osv.dev"
 
         private val logger = LoggerFactory.getLogger(AdvisorConfigurator::class.java)
-
-        /**
-         * Return the value of the given [key] from this [Config] or [defaultValue] if it is not defined.
-         */
-        private fun Config.getStringOrDefault(key: String, defaultValue: String? = null): String? =
-            if (hasPath(key)) getString(key) else defaultValue
-
-        /**
-         * Return the sub configuration at the given [path] or an empty [Config] if this path is not defined.
-         */
-        private fun Config.getConfigOrEmpty(path: String): Config =
-            if (hasPath(path)) getConfig(path) else ConfigFactory.empty()
 
         /**
          * Generate a string that can be used to log the advisor providers in this collection. Use [caption] as
@@ -166,9 +156,9 @@ internal class AdvisorConfigurator(
                 val iqServerUrl = providerConfig.getString(SERVER_URL_PROPERTY)
                 val iqConfig = NexusIqConfiguration(
                     serverUrl = iqServerUrl,
-                    browseUrl = providerConfig.getStringOrDefault(BROWSE_URL_PROPERTY, iqServerUrl)!!,
-                    username = providerConfig.getStringOrDefault(USERNAME_PROPERTY),
-                    password = providerConfig.getStringOrDefault(PASSWORD_PROPERTY)
+                    browseUrl = providerConfig.getStringOrDefault(BROWSE_URL_PROPERTY, iqServerUrl),
+                    username = providerConfig.getStringOrNull(USERNAME_PROPERTY),
+                    password = providerConfig.getStringOrNull(PASSWORD_PROPERTY)
                 )
                 return advisorConfiguration.copy(nexusIq = iqConfig)
             }
@@ -189,8 +179,8 @@ internal class AdvisorConfigurator(
                 providerConfig: Config,
                 advisorConfiguration: AdvisorConfiguration
             ): AdvisorConfiguration {
-                val vcServer = providerConfig.getStringOrDefault(SERVER_URL_PROPERTY)
-                val vcKey = providerConfig.getStringOrDefault(API_KEY_PROPERTY)
+                val vcServer = providerConfig.getStringOrNull(SERVER_URL_PROPERTY)
+                val vcKey = providerConfig.getStringOrNull(API_KEY_PROPERTY)
                 return advisorConfiguration.copy(vulnerableCode = VulnerableCodeConfiguration(vcServer, vcKey))
             }
         };
