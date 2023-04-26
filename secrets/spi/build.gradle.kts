@@ -38,4 +38,6 @@ dependencies {
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
+
+    testFixturesImplementation(project(":utils:config"))
 }

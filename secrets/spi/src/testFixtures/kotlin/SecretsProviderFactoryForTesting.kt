@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.secrets
 
 import com.typesafe.config.Config
 
+import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+
 /**
  * A simple implementation of the [SecretsProviderFactory] interface for testing purposes that uses an in-memory
  * storage to manage its secrets. A newly created provider instance is already populated with a number of secrets.
@@ -87,7 +89,7 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
 
     override fun createProvider(config: Config): SecretsProvider {
         val storage = createStorage()
-        val errorPath = if (config.hasPath(ERROR_PATH_PROPERTY)) config.getString(ERROR_PATH_PROPERTY) else "."
+        val errorPath = config.getStringOrDefault(ERROR_PATH_PROPERTY, ".")
 
         fun checkPath(path: Path): Path =
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")
