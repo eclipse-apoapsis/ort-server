@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.test
 
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
@@ -27,6 +28,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
@@ -34,6 +36,7 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 
 /**
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
@@ -57,6 +60,8 @@ class Fixtures {
     val advisorJob by lazy { createAdvisorJob() }
     val scannerJob by lazy { createScannerJob() }
     val evaluatorJob by lazy { createEvaluatorJob() }
+    val identifier by lazy { createIdentifier() }
+    val ruleViolation by lazy { getViolation() }
 
     val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
@@ -116,4 +121,23 @@ class Fixtures {
         ortRunId: Long = ortRun.id,
         configuration: EvaluatorJobConfiguration = jobConfigurations.evaluator!!
     ) = evaluatorJobRepository.create(ortRunId, configuration)
+
+    fun createIdentifier() = blockingQuery {
+        IdentifierDao.new {
+            type = "identifier_type"
+            namespace = "identifier_namespace"
+            name = "identifier_package"
+            version = "identifier_version"
+        }.mapToModel()
+    }.getOrThrow()
+
+    fun getViolation() = OrtRuleViolation(
+        rule = "rule",
+        packageId = identifier,
+        license = "license",
+        licenseSource = "license source",
+        message = "message",
+        severity = "severity",
+        howToFix = "how to fix"
+    )
 }
