@@ -21,16 +21,34 @@ package org.ossreviewtoolkit.server.workers.evaluator
 
 import org.koin.core.component.inject
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.dao.databaseModule
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
+import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 import org.slf4j.LoggerFactory
 
@@ -38,13 +56,40 @@ private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
 
 class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint) {
     override val endpointHandler: EndpointHandler<EvaluatorRequest> = { message ->
+        val evaluatorWorker by inject<EvaluatorWorker>()
         val publisher by inject<MessagePublisher>()
         val evaluatorJobId = message.payload.evaluatorJobId
 
-        logger.info("Evaluator job '$evaluatorJobId' succeeded.")
+        val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
+            is RunResult.Success -> {
+                logger.info("Evaluator job '$evaluatorJobId' succeeded.")
+                Message(message.header, EvaluatorWorkerResult(evaluatorJobId))
+            }
 
-        publisher.publish(OrchestratorEndpoint, Message(message.header, EvaluatorWorkerResult(evaluatorJobId)))
+            is RunResult.Failed -> {
+                logger.error("Evaluator job '$evaluatorJobId' failed.", result.error)
+                Message(message.header, EvaluatorWorkerError(evaluatorJobId))
+            }
+
+            is RunResult.Ignored -> null
+        }
+
+        if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(databaseModule())
+    override fun customModules(): List<Module> = listOf(evaluatorModule(), databaseModule())
+
+    private fun evaluatorModule(): Module = module {
+        singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
+        singleOf<AdvisorRunRepository>(::DaoAdvisorRunRepository)
+        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
+        singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
+        singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
+        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
+        singleOf<RepositoryRepository>(::DaoRepositoryRepository)
+
+        singleOf(::EvaluatorWorkerDao)
+        singleOf(::EvaluatorRunner)
+        singleOf(::EvaluatorWorker)
+    }
 }
