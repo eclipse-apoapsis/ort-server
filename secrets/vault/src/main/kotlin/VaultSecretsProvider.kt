@@ -23,9 +23,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.expectSuccess
+import io.ktor.client.plugins.plugin
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -37,7 +39,11 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 
+import java.util.concurrent.atomic.AtomicReference
+
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.secrets.Path
@@ -46,6 +52,8 @@ import org.ossreviewtoolkit.server.secrets.SecretsProvider
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultLoginResponse
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultSecretData
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultSecretResponse
+
+import org.slf4j.LoggerFactory
 
 /** The header in which vault expects the authorization token. */
 private const val TOKEN_HEADER = "X-Vault-Token"
@@ -72,8 +80,12 @@ private const val SECRET_DELETE_PREFIX = "metadata"
 class VaultSecretsProvider(
     private val config: VaultConfiguration
 ) : SecretsProvider {
+    companion object {
+        private val logger = LoggerFactory.getLogger(VaultSecretsProvider::class.java)
+    }
+
     /** The client to interact with the Vault service. */
-    private val vaultClient = createAuthorizedClient()
+    private val vaultClient = createClient()
 
     override fun readSecret(path: Path): Secret? {
         return vaultRequest {
@@ -122,29 +134,13 @@ class VaultSecretsProvider(
     }
 
     /**
-     * Create an [HttpClient] that can be used for sending API requests against the Vault service. The client is
-     * configured to provide the required authentication headers.
+     * Create an [HttpClient] with a configuration to communicate with the Vault service. The client is prepared to
+     * obtain a new client token if necessary.
      */
-    private fun createAuthorizedClient(): HttpClient = runBlocking {
-        createClient(null).use { client ->
-            val loginResponse: VaultLoginResponse = client.post("/v1/auth/approle/login") {
-                setBody(config.credentials)
-            }.body()
-
-            createClient(loginResponse.auth.clientToken)
-        }
-    }
-
-    /**
-     * Create an [HttpClient] with a configuration to communicate with the Vault service. If an
-     * [authorization token][authToken] is already known, the client is prepared to add a corresponding header for all
-     * requests.
-     */
-    private fun createClient(authToken: String?): HttpClient =
-        HttpClient(OkHttp) {
+    private fun createClient(): HttpClient {
+        val client = HttpClient(OkHttp) {
             defaultRequest {
                 url(config.vaultUri)
-                header(TOKEN_HEADER, authToken)
                 config.namespace?.let { header(NAMESPACE_HEADER, it) }
                 contentType(ContentType.Application.Json)
             }
@@ -159,6 +155,56 @@ class VaultSecretsProvider(
 
             expectSuccess = true
         }
+
+        configureTokenHandling(client)
+
+        return client
+    }
+
+    /**
+     * Configure the given [client] to request a new Vault token if necessary, i.e. if a request with the previous
+     * token is rejected with a Forbidden status. Vault is a bit special in this regard; so it uses a proprietary
+     * header for the token and does not return the default 401 Unauthorized status code. Therefore, the standard
+     * bearer-authentication offered by KTor cannot be used here.
+     */
+    private fun configureTokenHandling(client: HttpClient) {
+        val token = runBlocking { AtomicReference(fetchToken(client)) }
+        val mutex = Mutex()
+
+        client.plugin(HttpSend).intercept { request ->
+            val currentToken = token.get()
+            request.header(TOKEN_HEADER, currentToken)
+            val call = execute(request)
+
+            if (call.response.status == HttpStatusCode.Forbidden) {
+                // Synchronize, since theoretically there could be multiple callers at the same time.
+                mutex.withLock {
+                    // Check that no other caller has already renewed the token.
+                    if (token.get() == currentToken) {
+                        token.set(fetchToken(client))
+                    }
+                }
+
+                request.headers[TOKEN_HEADER] = token.get()
+                execute(request)
+            } else {
+                call
+            }
+        }
+    }
+
+    /**
+     * Send a login request to the Vault API to obtain an access token for the configured role ID and secret ID. Use
+     * [client] for this purpose.
+     */
+    private suspend fun fetchToken(client: HttpClient): String {
+        logger.info("Requesting new Vault token.")
+        val loginResponse: VaultLoginResponse = client.post("/v1/auth/approle/login") {
+            setBody(config.credentials)
+        }.body()
+
+        return loginResponse.auth.clientToken
+    }
 
     /**
      * Execute a request defined by the given [block] using the configured HTTP client. This is a convenience
