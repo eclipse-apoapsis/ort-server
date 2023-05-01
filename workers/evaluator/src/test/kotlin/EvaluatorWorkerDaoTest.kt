@@ -23,24 +23,31 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.utils.common.gibibytes
+
+private const val TIME_STAMP_SECONDS = 1678119934L
 
 class EvaluatorWorkerDaoTest : WordSpec({
     val advisorRunRepository = DaoAdvisorRunRepository()
     val analyzerRunRepository = DaoAnalyzerRunRepository()
+    val evaluatorRunRepository = DaoEvaluatorRunRepository()
     val dao = EvaluatorWorkerDao(
         advisorJobRepository = DaoAdvisorJobRepository(),
         advisorRunRepository = advisorRunRepository,
@@ -48,7 +55,8 @@ class EvaluatorWorkerDaoTest : WordSpec({
         analyzerRunRepository = analyzerRunRepository,
         evaluatorJobRepository = DaoEvaluatorJobRepository(),
         ortRunRepository = DaoOrtRunRepository(),
-        repositoryRepository = DaoRepositoryRepository()
+        repositoryRepository = DaoRepositoryRepository(),
+        evaluatorRunRepository = evaluatorRunRepository
     )
     lateinit var fixtures: Fixtures
 
@@ -152,6 +160,32 @@ class EvaluatorWorkerDaoTest : WordSpec({
 
         "return null if run does not exist" {
             dao.getAdvisorRunForEvaluatorJob(fixtures.evaluatorJob.copy(ortRunId = -1L)) shouldBe null
+        }
+    }
+
+    "storeEvaluatorRun" should {
+        "store an evaluator run in the database" {
+            val evaluatorRun = EvaluatorRun(
+                id = 1L,
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                violations = listOf(
+                    OrtRuleViolation(
+                        rule = "rule",
+                        fixtures.identifier,
+                        license = "license",
+                        licenseSource = "license source",
+                        severity = "ERROR",
+                        message = "the rule is violated",
+                        howToFix = "how to fix info"
+                    )
+                )
+            )
+
+            dao.storeEvaluatorRun(evaluatorRun)
+
+            evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
         }
     }
 })

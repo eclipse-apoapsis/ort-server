@@ -25,9 +25,11 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 
 class EvaluatorWorkerDao(
@@ -36,6 +38,7 @@ class EvaluatorWorkerDao(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
+    private val evaluatorRunRepository: EvaluatorRunRepository,
     private val ortRunRepository: OrtRunRepository,
     private val repositoryRepository: RepositoryRepository
 ) {
@@ -55,5 +58,14 @@ class EvaluatorWorkerDao(
         val ortRun = ortRunRepository.get(evaluatorJob.ortRunId) ?: return null
         val advisorJob = advisorJobRepository.getForOrtRun(ortRun.id) ?: return null
         return advisorRunRepository.getByJobId(advisorJob.id)
+    }
+
+    fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
+        evaluatorRunRepository.create(
+            evaluatorRun.evaluatorJobId,
+            evaluatorRun.startTime,
+            evaluatorRun.endTime,
+            evaluatorRun.violations
+        )
     }
 }

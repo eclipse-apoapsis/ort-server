@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
@@ -89,6 +90,8 @@ class EvaluatorWorkerTest : StringSpec({
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Success
+
+            verify(exactly = 1) { dao.storeEvaluatorRun(any()) }
         }
     }
 

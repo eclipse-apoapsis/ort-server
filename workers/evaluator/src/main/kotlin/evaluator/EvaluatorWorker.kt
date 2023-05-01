@@ -24,6 +24,7 @@ import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 import org.slf4j.LoggerFactory
@@ -55,7 +56,12 @@ internal class EvaluatorWorker(private val runner: EvaluatorRunner, private val 
             advisorRun = advisorRun?.mapToOrt()
         )
 
-        runner.run(ortResult, evaluatorJob.configuration)
+        val evaluatorRun = runner.run(ortResult, evaluatorJob.configuration)
+
+        blockingQuery {
+            getValidEvaluatorJob(evaluatorJob.id)
+            dao.storeEvaluatorRun(evaluatorRun.mapToModel(evaluatorJob.id))
+        }
 
         RunResult.Success
     }.getOrElse {
