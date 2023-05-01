@@ -30,12 +30,14 @@ import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
+import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtOrtIssue
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.RootDependencyIndex
+import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
@@ -55,8 +57,10 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraphEdge
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphNode
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphRoot
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation as RuleViolation
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
@@ -279,3 +283,22 @@ fun OrtVulnerabilityReference.mapToModel() =
     )
 
 fun OrtVulnerableCodeConfiguration.mapToModel() = VulnerableCodeConfiguration(serverUrl = serverUrl)
+
+fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
+    EvaluatorRun(
+        id = -1,
+        evaluatorJobId = evaluatorJobId,
+        startTime = startTime.toKotlinInstant(),
+        endTime = endTime.toKotlinInstant(),
+        violations = violations.map(OrtRuleViolation::mapToModel)
+    )
+
+fun OrtRuleViolation.mapToModel() = RuleViolation(
+    rule = rule,
+    packageId = pkg?.mapToModel(),
+    severity = severity.name,
+    message = message,
+    howToFix = howToFix,
+    license = license?.toString(),
+    licenseSource = licenseSource?.name
+)
