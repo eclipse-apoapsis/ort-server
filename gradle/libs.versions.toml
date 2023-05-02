@@ -108,6 +108,7 @@ ortEvaluator = { module = "com.github.oss-review-toolkit.ort:evaluator", version
 ortPackageCurationProviders = { module = "com.github.oss-review-toolkit.ort:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "com.github.oss-review-toolkit.ort:package-managers", version.ref = "ort" }
 ortScanner = { module = "com.github.oss-review-toolkit.ort:scanner", version.ref = "ort" }
+ortReporter = { module = "com.github.oss-review-toolkit.ort:reporter", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "ort" }
 ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
