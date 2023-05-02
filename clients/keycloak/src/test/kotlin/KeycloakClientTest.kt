@@ -27,7 +27,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.testcontainers.TestContainerExtension
 import io.kotest.extensions.testcontainers.perSpec
-import io.kotest.matchers.collections.shouldContainAnyOf
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -69,7 +69,7 @@ class KeycloakClientTest : WordSpec() {
 
                 val groups = client.getGroups()
 
-                groups shouldContainAnyOf setOf(groupOrgA, groupOrgB, groupOrgC)
+                groups shouldContainExactlyInAnyOrder setOf(groupOrgA, groupOrgB, groupOrgC)
             }
         }
 
@@ -166,7 +166,7 @@ class KeycloakClientTest : WordSpec() {
 
                 val roles = client.getRoles()
 
-                roles shouldContainAnyOf listOf(adminRole, visitorRole)
+                roles shouldContainExactlyInAnyOrder listOf(adminRole, visitorRole)
             }
         }
 
@@ -278,7 +278,7 @@ class KeycloakClientTest : WordSpec() {
 
                 val users = client.getUsers()
 
-                users shouldContainAnyOf setOf(adminUser, ortAdminUser, visitorUser)
+                users shouldContainExactlyInAnyOrder setOf(adminUser, ortAdminUser, visitorUser)
             }
         }
 
