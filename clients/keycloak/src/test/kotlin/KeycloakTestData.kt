@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak
 
+// The test data in this file must be kept in sync with the data in resources/test-realm.json.
+
 internal val groupOrgA = Group(
     id = "e6a8bf53-32e1-43d9-9962-ece3863fe4ce",
     name = "Organization-A",
