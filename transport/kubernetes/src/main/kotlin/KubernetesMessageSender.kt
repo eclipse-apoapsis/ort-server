@@ -32,6 +32,12 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.json.JsonSerializer
 
+/** A prefix for the name of a label storing a part of the trace ID. */
+private const val TRACE_LABEL_PREFIX = "trace-id-"
+
+/** The maximum length of the value of a trace label. */
+private const val TRACE_LABEL_LENGTH = 60
+
 /** A prefix for generating names for secret volumes. */
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
@@ -69,6 +75,7 @@ internal class KubernetesMessageSender<T : Any>(
         val jobBody = V1JobBuilder()
             .withNewMetadata()
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
+            .withLabels<String, String>(createTraceIdLabels(message.header.traceId))
             .endMetadata()
             .withNewSpec()
             .withBackoffLimit(config.backoffLimit)
@@ -128,5 +135,14 @@ internal class KubernetesMessageSender<T : Any>(
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
                 .readOnly(true)
+        }
+
+    /**
+     * Create a map with labels to cover the given [traceId]. The [traceId] may be longer than the maximum size
+     * allowed for a label value. Therefore, may be split into multiple labels.
+     */
+    private fun createTraceIdLabels(traceId: String): Map<String, String> =
+        traceId.chunked(TRACE_LABEL_LENGTH).withIndex().fold(mapOf()) { map, value ->
+            map + ("$TRACE_LABEL_PREFIX${value.index}" to value.value)
         }
 }

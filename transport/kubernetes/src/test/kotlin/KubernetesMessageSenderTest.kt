@@ -49,8 +49,9 @@ class KubernetesMessageSenderTest : StringSpec({
             every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
         }
 
+        val traceId = "0123456789".repeat(20)
         val payload = AnalyzerRequest(1)
-        val header = MessageHeader(token = "testToken", traceId = "testTraceId")
+        val header = MessageHeader(token = "testToken", traceId = traceId)
         val message = Message(header, payload)
 
         val commands = listOf("/bin/sh")
@@ -138,5 +139,11 @@ class KubernetesMessageSenderTest : StringSpec({
         volumes.map { it.name } shouldContainExactly listOf("secret-volume-1", "secret-volume-2")
         val secrets = volumes.mapNotNull { it.secret?.secretName }
         secrets shouldContainExactly listOf("secretService", "topSecret")
+
+        val labels = job.captured.metadata?.labels.orEmpty()
+        val traceIdFromLabels = (0..3).fold("") { id, idx ->
+            id + labels.getValue("trace-id-$idx")
+        }
+        traceIdFromLabels shouldBe traceId
     }
 })
