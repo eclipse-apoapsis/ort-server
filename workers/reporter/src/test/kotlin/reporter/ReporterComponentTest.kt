@@ -25,15 +25,18 @@ import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 
+import io.mockk.every
 import io.mockk.mockkClass
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.mock.MockProvider
+import org.koin.test.mock.declareMock
 
 import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
 import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -42,6 +45,7 @@ import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val REPORTER_JOB_ID = 1L
 private const val TOKEN = "token"
@@ -66,11 +70,42 @@ class ReporterComponentTest : KoinTest, StringSpec() {
 
         "A message to create a project report should be processed" {
             runEndpointTest {
+                declareMock<ReporterWorker> {
+                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Success
+                }
+
                 sendReporterRequest()
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
                 resultMessage.payload shouldBe ReporterWorkerResult(REPORTER_JOB_ID)
+            }
+        }
+
+        "An error message should be sent back in case of a processing error" {
+            runEndpointTest {
+                declareMock<ReporterWorker> {
+                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns
+                            RunResult.Failed(IllegalStateException("Test Exception"))
+                }
+
+                sendReporterRequest()
+
+                val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+                resultMessage.header shouldBe messageHeader
+                resultMessage.payload shouldBe ReporterWorkerError(REPORTER_JOB_ID)
+            }
+        }
+
+        "No response should be sent if the request is ignored" {
+            runEndpointTest {
+                declareMock<ReporterWorker> {
+                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                }
+
+                sendReporterRequest()
+
+                MessageSenderFactoryForTesting.expectNoMessage(OrchestratorEndpoint)
             }
         }
     }
