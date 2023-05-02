@@ -42,6 +42,7 @@ import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageLinkage as OrtPackageLinkage
@@ -49,6 +50,7 @@ import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
 import org.ossreviewtoolkit.model.RootDependencyIndex as OrtRootDependencyIndex
+import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
@@ -72,8 +74,10 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraphEdge
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphNode
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphRoot
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue as OrtServerIssue
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation as RuleViolation
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
@@ -91,6 +95,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 
 fun OrtRun.mapToOrt(
     repository: OrtRepository,
@@ -121,6 +126,24 @@ fun Repository.mapToOrt(revision: String, path: String = "") =
         nestedRepositories = emptyMap(),
         // TODO: The repository configuration is not stored at all.
         config = OrtRepositoryConfiguration()
+    )
+
+fun EvaluatorRun.mapToOrt() =
+    OrtEvaluatorRun(
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
+        violations = violations.map(RuleViolation::mapToOrt)
+    )
+
+fun RuleViolation.mapToOrt() =
+    OrtRuleViolation(
+        rule = rule,
+        pkg = packageId?.mapToOrt(),
+        license = license?.let { SpdxSingleLicenseExpression.parse(it) },
+        licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
+        severity = OrtSeverity.valueOf(severity),
+        message = message,
+        howToFix = howToFix
     )
 
 fun AdvisorRun.mapToOrt() =
