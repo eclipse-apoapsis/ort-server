@@ -92,7 +92,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "createGroup" should {
-            "add successfully a new realm group" {
+            "successfully add a new realm group" {
                 val client = keycloak.createTestClient()
 
                 val response = client.createGroup("TEST_GROUP")
@@ -112,7 +112,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "updateGroup" should {
-            "update successfully the given realm group" {
+            "successfully update the given realm group" {
                 val client = keycloak.createTestClient()
 
                 val updatedGroup = groupOrgA.copy(name = "New-Organization-A")
@@ -141,7 +141,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "deleteGroup" should {
-            "delete successfully the given realm group" {
+            "successfully delete the given realm group" {
                 val client = keycloak.createTestClient()
 
                 val response = client.deleteGroup(groupOrgA.id)
@@ -189,7 +189,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "createRole" should {
-            "add successfully a new client role" {
+            "successfully add a new client role" {
                 val client = keycloak.createTestClient()
 
                 val response = client.createRole("TEST_ROLE", "Created for testing purposes.")
@@ -231,7 +231,7 @@ class KeycloakClientTest : WordSpec() {
                 updatedKeycloakRole shouldBe updatedRole
             }
 
-            "update successfully the given client role" {
+            "successfully update the given client role" {
                 val client = keycloak.createTestClient()
 
                 val updatedRole = adminRole.copy(name = "UPDATED_ADMIN", description = "The updated role description.")
@@ -252,7 +252,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "deleteRole" should {
-            "delete successfully the given client role" {
+            "successfully delete the given client role" {
                 val client = keycloak.createTestClient()
 
                 val role = visitorRole.copy(name = "UPDATED_VISITOR")
@@ -301,7 +301,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "createUser" should {
-            "add successfully a new realm user" {
+            "successfully add a new realm user" {
                 val client = keycloak.createTestClient()
 
                 val response = client.createUser("new-test-user")
@@ -332,7 +332,7 @@ class KeycloakClientTest : WordSpec() {
                 updatedKeycloakUser shouldBe updatedUser
             }
 
-            "update successfully the given realm user" {
+            "successfully update the given realm user" {
                 val client = keycloak.createTestClient()
 
                 val updatedUser = visitorUser.copy(email = "updated-visitor-mail@org.com")
@@ -360,7 +360,7 @@ class KeycloakClientTest : WordSpec() {
         }
 
         "deleteUser" should {
-            "delete successfully the given realm user" {
+            "successfully delete the given realm user" {
                 val client = keycloak.createTestClient()
 
                 val response = client.deleteUser(visitorUser.id)
