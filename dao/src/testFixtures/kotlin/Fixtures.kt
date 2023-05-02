@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -51,6 +52,7 @@ class Fixtures {
     private val advisorJobRepository = DaoAdvisorJobRepository()
     private val scannerJobRepository = DaoScannerJobRepository()
     private val evaluatorJobRepository = DaoEvaluatorJobRepository()
+    private val reporterJobRepository = DaoReporterJobRepository()
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
@@ -60,6 +62,7 @@ class Fixtures {
     val advisorJob by lazy { createAdvisorJob() }
     val scannerJob by lazy { createScannerJob() }
     val evaluatorJob by lazy { createEvaluatorJob() }
+    val reporterJob by lazy { createReporterJob() }
     val identifier by lazy { createIdentifier() }
     val ruleViolation by lazy { getViolation() }
 
@@ -121,6 +124,11 @@ class Fixtures {
         ortRunId: Long = ortRun.id,
         configuration: EvaluatorJobConfiguration = jobConfigurations.evaluator!!
     ) = evaluatorJobRepository.create(ortRunId, configuration)
+
+    fun createReporterJob(
+        ortRunId: Long = ortRun.id,
+        configuration: ReporterJobConfiguration = jobConfigurations.reporter!!
+    ) = reporterJobRepository.create(ortRunId, configuration)
 
     fun createIdentifier() = blockingQuery {
         IdentifierDao.new {
