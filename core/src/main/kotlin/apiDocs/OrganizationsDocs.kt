@@ -271,10 +271,7 @@ val postSecretForOrganization: OpenApiRoute.() -> Unit = {
                 CreateSecret(
                     "New secret",
                     "0rg-s3cr3t-08_15",
-                    "The new org secret",
-                    1,
-                    null,
-                    null
+                    "The new org secret"
                 )
             )
         }

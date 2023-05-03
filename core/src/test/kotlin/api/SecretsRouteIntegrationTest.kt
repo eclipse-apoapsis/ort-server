@@ -207,10 +207,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val secret = CreateSecret(
                     name,
                     SECRET,
-                    "The new org secret",
-                    organizationId,
-                    null,
-                    null
+                    "The new org secret"
                 )
 
                 val response = client.post("/api/v1/organizations/$organizationId/secrets") {
@@ -242,7 +239,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret1 = CreateSecret(name, SECRET, description, organizationId, null, null)
+                val secret1 = CreateSecret(name, SECRET, description)
                 val secret2 = secret1.copy(value = "someOtherValue")
 
                 val client = createJsonClient()
@@ -529,10 +526,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val secret = CreateSecret(
                     name,
                     SECRET,
-                    "The new prod secret",
-                    null,
-                    productId,
-                    null
+                    "The new prod secret"
                 )
 
                 val response = client.post("/api/v1/products/$productId/secrets") {
@@ -564,7 +558,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, SECRET, description, null, productId, null)
+                val secret = CreateSecret(name, SECRET, description)
 
                 val client = createJsonClient()
 
@@ -847,10 +841,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val secret = CreateSecret(
                     name,
                     SECRET,
-                    "The new repo secret",
-                    null,
-                    null,
-                    repositoryId
+                    "The new repo secret"
                 )
 
                 val response = client.post("/api/v1/repositories/$repositoryId/secrets") {
@@ -882,7 +873,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, SECRET, description, null, null, repositoryId)
+                val secret = CreateSecret(name, SECRET, description)
 
                 val client = createJsonClient()
 

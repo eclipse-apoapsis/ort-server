@@ -157,6 +157,7 @@ fun Route.products() = route("products/{productId}") {
         }
 
         post(postSecretForProduct) {
+            val productId = call.requireParameter("productId").toLong()
             val createSecret = call.receive<CreateSecret>()
 
             call.respond(
@@ -165,9 +166,9 @@ fun Route.products() = route("products/{productId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    createSecret.organizationId,
-                    createSecret.productId,
-                    createSecret.repositoryId
+                    null,
+                    productId,
+                    null
                 ).mapToApi()
             )
         }

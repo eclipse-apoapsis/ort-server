@@ -167,6 +167,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         post(postSecretForRepository) {
+            val repositoryId = call.requireParameter("repositoryId").toLong()
             val createSecret = call.receive<CreateSecret>()
 
             call.respond(
@@ -175,9 +176,9 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    createSecret.organizationId,
-                    createSecret.productId,
-                    createSecret.repositoryId
+                    null,
+                    null,
+                    repositoryId
                 ).mapToApi()
             )
         }

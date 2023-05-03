@@ -46,10 +46,7 @@ data class Secret(
 data class CreateSecret(
     val name: String,
     val value: String,
-    val description: String?,
-    val organizationId: Long?,
-    val productId: Long?,
-    val repositoryId: Long?
+    val description: String?
 )
 
 /**

@@ -225,10 +225,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
                 CreateSecret(
                     "New secret",
                     "pr0d-s3cr3t-08_15",
-                    "The new prod secret",
-                    null,
-                    1,
-                    null
+                    "The new prod secret"
                 )
             )
         }

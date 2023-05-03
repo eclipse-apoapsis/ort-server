@@ -168,6 +168,7 @@ fun Route.organizations() = route("organizations") {
             }
 
             post(postSecretForOrganization) {
+                val organizationId = call.requireParameter("organizationId").toLong()
                 val createSecret = call.receive<CreateSecret>()
 
                 call.respond(
@@ -176,9 +177,9 @@ fun Route.organizations() = route("organizations") {
                         createSecret.name,
                         createSecret.value,
                         createSecret.description,
-                        createSecret.organizationId,
-                        createSecret.productId,
-                        createSecret.repositoryId
+                        organizationId,
+                        null,
+                        null
                     ).mapToApi()
                 )
             }
