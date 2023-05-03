@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
@@ -83,6 +84,9 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
             is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(payload)
             is ReporterWorkerError -> orchestrator.handleReporterWorkerError(payload)
+            is WorkerError ->
+                // TODO: Handle fatal worker errors.
+                log.error("Received worker error: $payload.")
         }
     }
 
