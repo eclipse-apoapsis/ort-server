@@ -20,6 +20,7 @@ buildConfigPlugin = "3.1.0"
 detektPlugin = "1.22.0"
 jibPlugin = "3.3.1"
 kotlinPlugin = "1.8.10"
+kotlinxCoroutines = "1.6.4"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.5.0"
 rabbitMq = "5.16.0"
@@ -78,6 +79,7 @@ kotestAssertionsKotlinxTime = { module = "io.kotest:kotest-assertions-kotlinx-ti
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }

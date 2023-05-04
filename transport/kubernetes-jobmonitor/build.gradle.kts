@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":transport:transport-spi"))
     implementation(project(":utils:config"))
 
+    implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
     implementation(libs.kubernetesClientExtended)
