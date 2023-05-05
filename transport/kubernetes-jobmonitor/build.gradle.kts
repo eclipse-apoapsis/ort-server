@@ -20,6 +20,7 @@
 plugins {
     application
 
+    alias(libs.plugins.jib)
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
@@ -36,6 +37,11 @@ dependencies {
     implementation(project(":transport:transport-spi"))
     implementation(project(":utils:config"))
 
+    runtimeOnly(project(":transport:activemqartemis"))
+    runtimeOnly(project(":transport:kubernetes"))
+    runtimeOnly(project(":transport:rabbitmq"))
+
+    implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
@@ -49,4 +55,14 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.ortTestUtils)
+}
+
+jib {
+    from.image = "eclipse-temurin:17"
+    to.image = "ort-server-kubernetes-jobmonitor:latest"
+
+    container {
+        mainClass = "org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.EntrypointKt"
+        creationTime.set("USE_CURRENT_TIMESTAMP")
+    }
 }
