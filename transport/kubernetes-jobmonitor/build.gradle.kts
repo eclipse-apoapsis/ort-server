@@ -41,7 +41,10 @@ dependencies {
     implementation(libs.kubernetesClient)
     implementation(libs.kubernetesClientExtended)
     implementation(libs.logback)
+    implementation(libs.typesafeConfig)
 
+    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
