@@ -25,7 +25,7 @@ import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.insert
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
@@ -75,7 +75,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         packages: Set<Package>,
         issues: Map<Identifier, List<OrtIssue>>,
         dependencyGraphs: Map<String, DependencyGraph>
-    ): AnalyzerRun = blockingQueryCatching {
+    ): AnalyzerRun = blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val analyzerRun = AnalyzerRunDao.new {
@@ -97,13 +97,13 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         }
 
         analyzerRun.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long): AnalyzerRun? = entityQuery { AnalyzerRunDao[id].mapToModel() }
 
-    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQueryCatching {
+    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQuery {
         AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()
-    }.getOrThrow()
+    }
 }
 
 private fun createAnalyzerConfiguration(

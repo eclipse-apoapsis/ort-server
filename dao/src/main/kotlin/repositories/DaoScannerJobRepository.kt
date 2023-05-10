@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
@@ -34,27 +34,27 @@ import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoScannerJobRepository : ScannerJobRepository {
-    override fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob = blockingQueryCatching {
+    override fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob = blockingQuery {
         ScannerJobDao.new {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
             this.configuration = configuration
             status = JobStatus.CREATED
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long) = entityQuery { ScannerJobDao[id].mapToModel() }
 
-    override fun getForOrtRun(ortRunId: Long): ScannerJob? = blockingQueryCatching {
+    override fun getForOrtRun(ortRunId: Long): ScannerJob? = blockingQuery {
         ScannerJobDao.find { ScannerJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun update(
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>
-    ): ScannerJob = blockingQueryCatching {
+    ): ScannerJob = blockingQuery {
         val scannerJob = ScannerJobDao[id]
 
         startedAt.ifPresent { scannerJob.startedAt = it }
@@ -62,7 +62,7 @@ class DaoScannerJobRepository : ScannerJobRepository {
         status.ifPresent { scannerJob.status = it }
 
         ScannerJobDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { ScannerJobDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { ScannerJobDao[id].delete() }
 }

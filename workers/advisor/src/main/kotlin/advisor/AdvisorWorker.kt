@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
@@ -38,8 +38,8 @@ internal class AdvisorWorker(
     private val dao: AdvisorWorkerDao
 ) {
     fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
-        val advisorJob = blockingQueryCatching { getValidAdvisorJob(advisorJobId) }.getOrThrow()
-        val analyzerRun = blockingQueryCatching { dao.getAnalyzerRunForAdvisorJob(advisorJob) }.getOrThrow()
+        val advisorJob = blockingQuery { getValidAdvisorJob(advisorJobId) }
+        val analyzerRun = blockingQuery { dao.getAnalyzerRunForAdvisorJob(advisorJob) }
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
@@ -48,7 +48,7 @@ internal class AdvisorWorker(
             config = advisorJob.configuration
         )
 
-        blockingQueryCatching {
+        blockingQuery {
             getValidAdvisorJob(advisorJobId)
             dao.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
         }

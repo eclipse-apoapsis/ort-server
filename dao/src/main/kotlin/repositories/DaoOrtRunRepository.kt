@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -43,7 +44,7 @@ private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
 
 class DaoOrtRunRepository : OrtRunRepository {
     override fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun =
-        blockingQueryCatching {
+        blockingQuery {
             val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
 
             OrtRunDao.new {
@@ -54,31 +55,32 @@ class DaoOrtRunRepository : OrtRunRepository {
                 this.jobConfigurations = jobConfigurations
                 this.status = OrtRunStatus.CREATED
             }.mapToModel()
-        }.getOrThrow()
+        }
 
     override fun get(id: Long): OrtRun? = entityQuery { OrtRunDao[id].mapToModel() }
 
-    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQueryCatching {
+    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQuery {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.mapToModel()
-    }.getOrThrow()
-
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = blockingQueryCatching {
-        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }
-            .apply(OrtRunsTable, parameters)
-            .map { it.mapToModel() }
-    }.getOrElse {
-        logger.error("Cannot list repository for id $repositoryId.", it)
-        emptyList()
     }
 
-    override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = blockingQueryCatching {
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> =
+        blockingQueryCatching {
+            OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }
+                .apply(OrtRunsTable, parameters)
+                .map { it.mapToModel() }
+        }.getOrElse {
+            logger.error("Cannot list repository for id $repositoryId.", it)
+            emptyList()
+        }
+
+    override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = blockingQuery {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent { ortRun.status = it }
 
         OrtRunDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { OrtRunDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { OrtRunDao[id].delete() }
 }

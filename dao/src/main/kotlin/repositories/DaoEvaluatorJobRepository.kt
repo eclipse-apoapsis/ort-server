@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobsTable
@@ -34,27 +34,27 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoEvaluatorJobRepository : EvaluatorJobRepository {
-    override fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob = blockingQueryCatching {
+    override fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob = blockingQuery {
         EvaluatorJobDao.new {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
             this.configuration = configuration
             status = JobStatus.CREATED
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long) = entityQuery { EvaluatorJobDao[id].mapToModel() }
 
-    override fun getForOrtRun(ortRunId: Long): EvaluatorJob? = blockingQueryCatching {
+    override fun getForOrtRun(ortRunId: Long): EvaluatorJob? = blockingQuery {
         EvaluatorJobDao.find { EvaluatorJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun update(
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>
-    ): EvaluatorJob = blockingQueryCatching {
+    ): EvaluatorJob = blockingQuery {
         val evaluatorJob = EvaluatorJobDao[id]
 
         startedAt.ifPresent { evaluatorJob.startedAt = it }
@@ -62,7 +62,7 @@ class DaoEvaluatorJobRepository : EvaluatorJobRepository {
         status.ifPresent { evaluatorJob.status = it }
 
         EvaluatorJobDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { EvaluatorJobDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { EvaluatorJobDao[id].delete() }
 }

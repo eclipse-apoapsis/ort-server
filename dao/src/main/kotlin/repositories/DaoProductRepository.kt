@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
@@ -30,30 +30,30 @@ import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoProductRepository : ProductRepository {
-    override fun create(name: String, description: String?, organizationId: Long) = blockingQueryCatching {
+    override fun create(name: String, description: String?, organizationId: Long) = blockingQuery {
         ProductDao.new {
             this.name = name
             this.description = description
             this.organization = OrganizationDao[organizationId]
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long) = entityQuery { ProductDao[id].mapToModel() }
 
-    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = blockingQueryCatching {
+    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = blockingQuery {
         ProductDao.find { ProductsTable.organizationId eq organizationId }
             .apply(ProductsTable, parameters)
             .map { it.mapToModel() }
-    }.getOrThrow()
+    }
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQueryCatching {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
         val product = ProductDao[id]
 
         name.ifPresent { product.name = it }
         description.ifPresent { product.description = it }
 
         ProductDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { ProductDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { ProductDao[id].delete() }
 }

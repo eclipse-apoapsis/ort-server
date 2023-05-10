@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
@@ -46,7 +47,7 @@ class DaoSecretRepository : SecretRepository {
         organizationId: Long?,
         productId: Long?,
         repositoryId: Long?
-    ) = blockingQueryCatching {
+    ) = blockingQuery {
         SecretDao.new {
             this.path = path
             this.name = name
@@ -55,7 +56,7 @@ class DaoSecretRepository : SecretRepository {
             this.product = productId?.let { ProductDao[it] }
             this.repository = repositoryId?.let { RepositoryDao[it] }
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun getByOrganizationIdAndName(organizationId: Long, name: String) = entityQuery {
         findSecretByParentEntityId(organizationId, null, null, name)?.mapToModel()
@@ -78,86 +79,88 @@ class DaoSecretRepository : SecretRepository {
         throw it
     }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = blockingQueryCatching {
-        SecretDao.find { SecretsTable.productId eq productId }
-            .apply(SecretsTable, parameters)
-            .map { it.mapToModel() }
-    }.getOrElse {
-        logger.error("Cannot list secrets for product id $productId.", it)
-        throw it
-    }
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> =
+        blockingQueryCatching {
+            SecretDao.find { SecretsTable.productId eq productId }
+                .apply(SecretsTable, parameters)
+                .map { it.mapToModel() }
+        }.getOrElse {
+            logger.error("Cannot list secrets for product id $productId.", it)
+            throw it
+        }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = blockingQueryCatching {
-        SecretDao.find { SecretsTable.repositoryId eq repositoryId }
-            .apply(SecretsTable, parameters)
-            .map { it.mapToModel() }
-    }.getOrElse {
-        logger.error("Cannot list secrets for repository id $repositoryId.", it)
-        throw it
-    }
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> =
+        blockingQueryCatching {
+            SecretDao.find { SecretsTable.repositoryId eq repositoryId }
+                .apply(SecretsTable, parameters)
+                .map { it.mapToModel() }
+        }.getOrElse {
+            logger.error("Cannot list secrets for repository id $repositoryId.", it)
+            throw it
+        }
 
     override fun updateForOrganizationAndName(
         organizationId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQueryCatching {
+    ): Secret = blockingQuery {
         val secret = findSecretByParentEntityId(organizationId, null, null, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
 
         description.ifPresent { secret.description = it }
 
         secret.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun updateForProductAndName(
         productId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQueryCatching {
+    ): Secret = blockingQuery {
         val secret = findSecretByParentEntityId(null, productId, null, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
 
         description.ifPresent { secret.description = it }
 
         secret.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun updateForRepositoryAndName(
         repositoryId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQueryCatching {
+    ): Secret = blockingQuery {
         val secret = findSecretByParentEntityId(null, null, repositoryId, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
 
         description.ifPresent { secret.description = it }
 
         secret.mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun deleteForOrganizationAndName(organizationId: Long, name: String) = blockingQueryCatching {
+    override fun deleteForOrganizationAndName(organizationId: Long, name: String) = blockingQuery {
         val secret =
             findSecretByParentEntityId(organizationId, null, null, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
 
         secret.delete()
-    }.getOrThrow()
+    }
 
-    override fun deleteForProductAndName(productId: Long, name: String) = blockingQueryCatching {
+    override fun deleteForProductAndName(productId: Long, name: String) = blockingQuery {
         val secret =
             findSecretByParentEntityId(null, productId, null, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
 
         secret.delete()
-    }.getOrThrow()
+    }
 
-    override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = blockingQueryCatching {
+    override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = blockingQuery {
         val secret =
             findSecretByParentEntityId(null, null, repositoryId, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
 
         secret.delete()
-    }.getOrThrow()
+    }
 
     private fun findSecretByParentEntityId(
         organizationId: Long?,

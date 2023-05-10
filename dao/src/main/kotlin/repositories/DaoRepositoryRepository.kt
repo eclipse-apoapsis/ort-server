@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
@@ -31,30 +31,30 @@ import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoRepositoryRepository : RepositoryRepository {
-    override fun create(type: RepositoryType, url: String, productId: Long) = blockingQueryCatching {
+    override fun create(type: RepositoryType, url: String, productId: Long) = blockingQuery {
         RepositoryDao.new {
             this.type = type
             this.url = url
             product = ProductDao[productId]
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long) = entityQuery { RepositoryDao[id].mapToModel() }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters) = blockingQueryCatching {
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters) = blockingQuery {
         RepositoryDao.find { RepositoriesTable.productId eq productId }
             .apply(RepositoriesTable, parameters)
             .map { it.mapToModel() }
-    }.getOrThrow()
+    }
 
-    override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = blockingQueryCatching {
+    override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = blockingQuery {
         val repository = RepositoryDao[id]
 
         type.ifPresent { repository.type = it }
         url.ifPresent { repository.url = it }
 
         RepositoryDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { RepositoryDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { RepositoryDao[id].delete() }
 }

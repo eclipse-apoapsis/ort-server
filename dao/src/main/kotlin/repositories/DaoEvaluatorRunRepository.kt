@@ -23,7 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.SizedCollection
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.EvaluatorRunDao
@@ -42,7 +42,7 @@ class DaoEvaluatorRunRepository : EvaluatorRunRepository {
         startTime: Instant,
         endTime: Instant,
         violations: List<OrtRuleViolation>
-    ): EvaluatorRun = blockingQueryCatching {
+    ): EvaluatorRun = blockingQuery {
         val ruleViolations = violations.map(RuleViolationDao::getOrPut)
 
         EvaluatorRunDao.new {
@@ -51,7 +51,7 @@ class DaoEvaluatorRunRepository : EvaluatorRunRepository {
             this.endTime = endTime
             this.violations = SizedCollection(ruleViolations)
         }.mapToModel()
-    }.getOrThrow()
+    }
 
     override fun get(id: Long): EvaluatorRun? = entityQuery { EvaluatorRunDao[id].mapToModel() }
 

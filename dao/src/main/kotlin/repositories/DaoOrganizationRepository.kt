@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.OrganizationsTable
@@ -31,26 +31,26 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
  */
 class DaoOrganizationRepository : OrganizationRepository {
-    override fun create(name: String, description: String?) = blockingQueryCatching {
+    override fun create(name: String, description: String?) = blockingQuery {
         OrganizationDao.new {
             this.name = name
             this.description = description
         }
-    }.getOrThrow().mapToModel()
+    }.mapToModel()
 
     override fun get(id: Long) = entityQuery { OrganizationDao[id].mapToModel() }
 
     override fun list(parameters: ListQueryParameters) =
-        blockingQueryCatching { OrganizationDao.list(parameters).map { it.mapToModel() } }.getOrThrow()
+        blockingQuery { OrganizationDao.list(parameters).map { it.mapToModel() } }
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQueryCatching {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
         val org = OrganizationDao[id]
 
         name.ifPresent { org.name = it }
         description.ifPresent { org.description = it }
 
         OrganizationDao[id].mapToModel()
-    }.getOrThrow()
+    }
 
-    override fun delete(id: Long) = blockingQueryCatching { OrganizationDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQuery { OrganizationDao[id].delete() }
 }

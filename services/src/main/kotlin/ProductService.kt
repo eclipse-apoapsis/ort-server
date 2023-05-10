@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.services
 
-import org.ossreviewtoolkit.server.dao.dbQueryCatching
+import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -38,31 +38,31 @@ class ProductService(
     /**
      * Create a repository inside a [product][productId].
      */
-    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQueryCatching {
+    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQuery {
         repositoryRepository.create(type, url, productId)
-    }.getOrThrow()
+    }
 
     /**
      * Delete a product by [productId].
      */
-    suspend fun deleteProduct(productId: Long): Unit = dbQueryCatching {
+    suspend fun deleteProduct(productId: Long): Unit = dbQuery {
         productRepository.delete(productId)
-    }.getOrThrow()
+    }
 
     /**
      * Get a product by [productId]. Returns null if the product is not found.
      */
-    suspend fun getProduct(productId: Long): Product? = dbQueryCatching {
+    suspend fun getProduct(productId: Long): Product? = dbQuery {
         productRepository.get(productId)
-    }.getOrThrow()
+    }
 
     /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     suspend fun listRepositoriesForProduct(productId: Long, parameters: ListQueryParameters): List<Repository> =
-        dbQueryCatching {
+        dbQuery {
             repositoryRepository.listForProduct(productId, parameters)
-        }.getOrThrow()
+        }
 
     /**
      * Update a product by [productId] with the [present][OptionalValue.Present] values.
@@ -71,8 +71,7 @@ class ProductService(
         productId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Product =
-        dbQueryCatching {
-            productRepository.update(productId, name, description)
-        }.getOrThrow()
+    ): Product = dbQuery {
+        productRepository.update(productId, name, description)
+    }
 }

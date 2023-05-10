@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.services
 
-import org.ossreviewtoolkit.server.dao.dbQueryCatching
+import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -38,27 +38,27 @@ class RepositoryService(
     /**
      * Delete a repository by [repositoryId].
      */
-    suspend fun deleteRepository(repositoryId: Long): Unit = dbQueryCatching {
+    suspend fun deleteRepository(repositoryId: Long): Unit = dbQuery {
         repositoryRepository.delete(repositoryId)
-    }.getOrThrow()
+    }
 
-    suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = dbQueryCatching {
+    suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = dbQuery {
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)
-    }.getOrThrow()
+    }
 
     /**
      * Get the runs executed on the given [repository][repositoryId] according to the given [parameters].
      */
-    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = dbQueryCatching {
+    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = dbQuery {
         ortRunRepository.listForRepository(repositoryId, parameters)
-    }.getOrThrow()
+    }
 
     /**
      * Get a repository by [repositoryId]. Returns null if the repository is not found.
      */
-    suspend fun getRepository(repositoryId: Long): Repository? = dbQueryCatching {
+    suspend fun getRepository(repositoryId: Long): Repository? = dbQuery {
         repositoryRepository.get(repositoryId)
-    }.getOrThrow()
+    }
 
     /**
      * Update a repository by [repositoryId] with the [present][OptionalValue.Present] values.
@@ -67,7 +67,7 @@ class RepositoryService(
         repositoryId: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent
-    ): Repository = dbQueryCatching {
+    ): Repository = dbQuery {
         repositoryRepository.update(repositoryId, type, url)
-    }.getOrThrow()
+    }
 }

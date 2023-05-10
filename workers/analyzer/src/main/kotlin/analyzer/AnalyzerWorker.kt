@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
@@ -38,7 +38,7 @@ internal class AnalyzerWorker(
     private val dao: AnalyzerWorkerDao
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val job = blockingQueryCatching { getValidAnalyzerJob(jobId) }.getOrThrow()
+        val job = blockingQuery { getValidAnalyzerJob(jobId) }
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
 
@@ -51,7 +51,7 @@ internal class AnalyzerWorker(
                     "'${analyzerRun.result.issues.values.size}' issues."
         )
 
-        blockingQueryCatching {
+        blockingQuery {
             getValidAnalyzerJob(jobId)
             dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
         }

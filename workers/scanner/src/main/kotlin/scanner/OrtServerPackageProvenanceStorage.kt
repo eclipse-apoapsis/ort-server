@@ -34,7 +34,7 @@ import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceStorage
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -47,7 +47,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
     override fun readProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact
-    ): PackageProvenanceResolutionResult? = blockingQueryCatching {
+    ): PackageProvenanceResolutionResult? = blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
         val sourceArtifactDao = RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())
 
@@ -55,9 +55,9 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
             PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
                     (PackageProvenancesTable.artifactId eq sourceArtifactDao?.id?.value)
         ).singleOrNull()?.mapToOrt()
-    }.getOrThrow()
+    }
 
-    override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = blockingQueryCatching {
+    override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
         val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel())
 
@@ -65,21 +65,21 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
             PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
                     (PackageProvenancesTable.vcsId eq vcsInfoDao?.id?.value)
         ).singleOrNull()?.mapToOrt()
-    }.getOrThrow()
+    }
 
-    override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = blockingQueryCatching {
+    override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
 
         PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierDao?.id?.value)
             .mapNotNull { it.mapToOrt() }
-    }.getOrThrow()
+    }
 
     override fun putProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact,
         result: PackageProvenanceResolutionResult
     ) {
-        blockingQueryCatching {
+        blockingQuery {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -107,7 +107,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
                     errorMessage = result.message
                 }
             }
-        }.getOrThrow()
+        }
     }
 
     override fun putProvenance(
@@ -115,7 +115,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         vcs: VcsInfo,
         result: PackageProvenanceResolutionResult
     ) {
-        blockingQueryCatching {
+        blockingQuery {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -147,7 +147,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
                     this.errorMessage = result.message
                 }
             }
-        }.getOrThrow()
+        }
     }
 }
 
