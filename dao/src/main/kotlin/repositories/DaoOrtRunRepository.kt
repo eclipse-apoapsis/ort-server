@@ -23,7 +23,7 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.and
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
@@ -43,7 +43,7 @@ private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
 
 class DaoOrtRunRepository : OrtRunRepository {
     override fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun =
-        blockingQuery {
+        blockingQueryCatching {
             val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
 
             OrtRunDao.new {
@@ -58,12 +58,12 @@ class DaoOrtRunRepository : OrtRunRepository {
 
     override fun get(id: Long): OrtRun? = entityQuery { OrtRunDao[id].mapToModel() }
 
-    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQuery {
+    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = blockingQueryCatching {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.mapToModel()
     }.getOrThrow()
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = blockingQuery {
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = blockingQueryCatching {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }
             .apply(OrtRunsTable, parameters)
             .map { it.mapToModel() }
@@ -72,7 +72,7 @@ class DaoOrtRunRepository : OrtRunRepository {
         emptyList()
     }
 
-    override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = blockingQuery {
+    override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = blockingQueryCatching {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent { ortRun.status = it }
@@ -80,5 +80,5 @@ class DaoOrtRunRepository : OrtRunRepository {
         OrtRunDao[id].mapToModel()
     }.getOrThrow()
 
-    override fun delete(id: Long) = blockingQuery { OrtRunDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQueryCatching { OrtRunDao[id].delete() }.getOrThrow()
 }

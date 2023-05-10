@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.test
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
@@ -130,7 +130,7 @@ class Fixtures {
         configuration: ReporterJobConfiguration = jobConfigurations.reporter!!
     ) = reporterJobRepository.create(ortRunId, configuration)
 
-    fun createIdentifier() = blockingQuery {
+    fun createIdentifier() = blockingQueryCatching {
         IdentifierDao.new {
             type = "identifier_type"
             namespace = "identifier_namespace"

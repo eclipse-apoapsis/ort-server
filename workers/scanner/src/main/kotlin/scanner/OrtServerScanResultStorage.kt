@@ -39,7 +39,7 @@ import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.tables.AdditionalScanResultData
 import org.ossreviewtoolkit.server.dao.tables.CopyrightFindingDao
 import org.ossreviewtoolkit.server.dao.tables.LicenseFindingDao
@@ -59,7 +59,7 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
  * Throws a [ScanStorageException] if an error occurs while reading from the storage.
  */
 class OrtServerScanResultStorage : ProvenanceBasedScanStorage {
-    override fun read(provenance: KnownProvenance): List<ScanResult> = blockingQuery {
+    override fun read(provenance: KnownProvenance): List<ScanResult> = blockingQueryCatching {
             when (provenance) {
                 is ArtifactProvenance -> {
                     ScanResultDao.find(
@@ -99,7 +99,7 @@ class OrtServerScanResultStorage : ProvenanceBasedScanStorage {
         if (provenance is RepositoryProvenance && provenance.vcsInfo.path.isNotEmpty()) {
             throw ScanStorageException("Repository provenances with a non-empty VCS path are not supported.")
         }
-        blockingQuery {
+        blockingQueryCatching {
             ScanResultDao.new {
                 when (provenance) {
                     is ArtifactProvenance -> {

@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.evaluator
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
@@ -35,19 +35,19 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class EvaluatorWorker(private val runner: EvaluatorRunner, private val dao: EvaluatorWorkerDao) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val evaluatorJob = blockingQuery { getValidEvaluatorJob(jobId) }.getOrThrow()
-        val ortRun = blockingQuery { dao.getOrtRun(evaluatorJob.ortRunId) }.getOrThrow()
+        val evaluatorJob = blockingQueryCatching { getValidEvaluatorJob(jobId) }.getOrThrow()
+        val ortRun = blockingQueryCatching { dao.getOrtRun(evaluatorJob.ortRunId) }.getOrThrow()
         requireNotNull(ortRun) {
             "ORT run '${evaluatorJob.ortRunId}' not found."
         }
 
-        val repository = blockingQuery { dao.getRepository(ortRun.repositoryId) }.getOrThrow()
+        val repository = blockingQueryCatching { dao.getRepository(ortRun.repositoryId) }.getOrThrow()
         requireNotNull(repository) {
             "Repository '${ortRun.repositoryId}' not found."
         }
 
-        val analyzerRun = blockingQuery { dao.getAnalyzerRunForEvaluatorJob(evaluatorJob) }.getOrThrow()
-        val advisorRun = blockingQuery { dao.getAdvisorRunForEvaluatorJob(evaluatorJob) }.getOrThrow()
+        val analyzerRun = blockingQueryCatching { dao.getAnalyzerRunForEvaluatorJob(evaluatorJob) }.getOrThrow()
+        val advisorRun = blockingQueryCatching { dao.getAdvisorRunForEvaluatorJob(evaluatorJob) }.getOrThrow()
 
         // TODO: As soon as ScannerRun is implemented, it should be considered also in the mapping of an OrtResult.
         val ortResult = ortRun.mapToOrt(
@@ -58,7 +58,7 @@ internal class EvaluatorWorker(private val runner: EvaluatorRunner, private val 
 
         val evaluatorRun = runner.run(ortResult, evaluatorJob.configuration)
 
-        blockingQuery {
+        blockingQueryCatching {
             getValidEvaluatorJob(evaluatorJob.id)
             dao.storeEvaluatorRun(evaluatorRun.mapToModel(evaluatorJob.id))
         }

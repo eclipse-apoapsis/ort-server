@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobsTable
@@ -34,7 +34,7 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoAdvisorJobRepository : AdvisorJobRepository {
-    override fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob = blockingQuery {
+    override fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob = blockingQueryCatching {
         AdvisorJobDao.new {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
@@ -45,7 +45,7 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
 
     override fun get(id: Long) = entityQuery { AdvisorJobDao[id].mapToModel() }
 
-    override fun getForOrtRun(ortRunId: Long): AdvisorJob? = blockingQuery {
+    override fun getForOrtRun(ortRunId: Long): AdvisorJob? = blockingQueryCatching {
         AdvisorJobDao.find { AdvisorJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }.getOrThrow()
 
@@ -54,7 +54,7 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>
-    ): AdvisorJob = blockingQuery {
+    ): AdvisorJob = blockingQueryCatching {
         val advisorJob = AdvisorJobDao[id]
 
         startedAt.ifPresent { advisorJob.startedAt = it }
@@ -64,5 +64,5 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
         AdvisorJobDao[id].mapToModel()
     }.getOrThrow()
 
-    override fun delete(id: Long) = blockingQuery { AdvisorJobDao[id].delete() }.getOrThrow()
+    override fun delete(id: Long) = blockingQueryCatching { AdvisorJobDao[id].delete() }.getOrThrow()
 }

@@ -28,7 +28,7 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceStorage
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
@@ -43,7 +43,7 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
     override fun putNestedProvenance(
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
-    ) = blockingQuery {
+    ) = blockingQueryCatching {
         val resolvedVcs = root.getResolvedVcs()
 
         removeOldResults(resolvedVcs)
@@ -88,7 +88,7 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
         }
     }
 
-    override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? = blockingQuery {
+    override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? = blockingQueryCatching {
         val resolvedVcs = root.getResolvedVcs()
 
         NestedProvenancesTable.innerJoin(VcsInfoTable)

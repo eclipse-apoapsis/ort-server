@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.services
 
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
@@ -36,42 +36,42 @@ class OrganizationService(
     /**
      * Create an organization.
      */
-    suspend fun createOrganization(name: String, description: String?): Organization = dbQuery {
+    suspend fun createOrganization(name: String, description: String?): Organization = dbQueryCatching {
         organizationRepository.create(name, description)
     }.getOrThrow()
 
     /**
      * Create a product inside an [organization][organizationId].
      */
-    suspend fun createProduct(name: String, description: String?, organizationId: Long) = dbQuery {
+    suspend fun createProduct(name: String, description: String?, organizationId: Long) = dbQueryCatching {
         productRepository.create(name, description, organizationId)
     }.getOrThrow()
 
     /**
      * Delete an organization by [organizationId].
      */
-    suspend fun deleteOrganization(organizationId: Long): Unit = dbQuery {
+    suspend fun deleteOrganization(organizationId: Long): Unit = dbQueryCatching {
         organizationRepository.delete(organizationId)
     }.getOrThrow()
 
     /**
      * Get an organization by [organizationId]. Returns null if the organization is not found.
      */
-    suspend fun getOrganization(organizationId: Long): Organization? = dbQuery {
+    suspend fun getOrganization(organizationId: Long): Organization? = dbQueryCatching {
         organizationRepository.get(organizationId)
     }.getOrThrow()
 
     /**
      * List all organizations according to the given [parameters].
      */
-    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = dbQuery {
+    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = dbQueryCatching {
         organizationRepository.list(parameters)
     }.getOrThrow()
 
     /**
      * List all products for an [organization][organizationId].
      */
-    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = dbQuery {
+    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = dbQueryCatching {
         productRepository.listForOrganization(organizationId, parameters)
     }.getOrThrow()
 
@@ -82,7 +82,7 @@ class OrganizationService(
         organizationId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Organization = dbQuery {
+    ): Organization = dbQueryCatching {
         organizationRepository.update(organizationId, name, description)
     }.getOrThrow()
 }

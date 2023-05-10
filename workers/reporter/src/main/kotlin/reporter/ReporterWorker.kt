@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.reporter
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
@@ -34,7 +34,7 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class ReporterWorker(private val runner: ReporterRunner, private val dao: ReporterWorkerDao) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val (reporterJob, ortResult) = blockingQuery {
+        val (reporterJob, ortResult) = blockingQueryCatching {
             val reporterJob = getValidReporterJob(jobId)
             val ortRun = dao.getOrtRun(reporterJob.ortRunId)
             requireNotNull(ortRun) {

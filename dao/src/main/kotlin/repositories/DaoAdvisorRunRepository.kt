@@ -23,7 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.SizedCollection
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationDao
@@ -63,7 +63,7 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         environment: Environment,
         config: AdvisorConfiguration,
         advisorRecords: Map<Identifier, List<AdvisorResult>>
-    ): AdvisorRun = blockingQuery {
+    ): AdvisorRun = blockingQueryCatching {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val advisorRunDao = AdvisorRunDao.new {

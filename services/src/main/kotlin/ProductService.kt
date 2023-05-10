@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.services
 
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -38,21 +38,21 @@ class ProductService(
     /**
      * Create a repository inside a [product][productId].
      */
-    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQuery {
+    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQueryCatching {
         repositoryRepository.create(type, url, productId)
     }.getOrThrow()
 
     /**
      * Delete a product by [productId].
      */
-    suspend fun deleteProduct(productId: Long): Unit = dbQuery {
+    suspend fun deleteProduct(productId: Long): Unit = dbQueryCatching {
         productRepository.delete(productId)
     }.getOrThrow()
 
     /**
      * Get a product by [productId]. Returns null if the product is not found.
      */
-    suspend fun getProduct(productId: Long): Product? = dbQuery {
+    suspend fun getProduct(productId: Long): Product? = dbQueryCatching {
         productRepository.get(productId)
     }.getOrThrow()
 
@@ -60,7 +60,7 @@ class ProductService(
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     suspend fun listRepositoriesForProduct(productId: Long, parameters: ListQueryParameters): List<Repository> =
-        dbQuery {
+        dbQueryCatching {
             repositoryRepository.listForProduct(productId, parameters)
         }.getOrThrow()
 
@@ -72,7 +72,7 @@ class ProductService(
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Product =
-        dbQuery {
+        dbQueryCatching {
             productRepository.update(productId, name, description)
         }.getOrThrow()
 }

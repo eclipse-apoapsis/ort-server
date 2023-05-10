@@ -26,7 +26,7 @@ import io.ktor.server.config.ApplicationConfig
 
 import java.util.UUID
 
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
@@ -51,7 +51,7 @@ class OrchestratorService(
      * Create an ORT run in the database and notify the Orchestrator to handle this run.
      */
     suspend fun createOrtRun(repositoryId: Long, revision: String, jobConfig: JobConfigurations): OrtRun {
-        val ortRun = dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig) }.getOrThrow()
+        val ortRun = dbQueryCatching { ortRunRepository.create(repositoryId, revision, jobConfig) }.getOrThrow()
 
         // TODO: Set the correct token.
         orchestratorSender.send(

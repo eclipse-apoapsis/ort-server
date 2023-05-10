@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import org.jetbrains.exposed.sql.and
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
@@ -46,7 +46,7 @@ class DaoSecretRepository : SecretRepository {
         organizationId: Long?,
         productId: Long?,
         repositoryId: Long?
-    ) = blockingQuery {
+    ) = blockingQueryCatching {
         SecretDao.new {
             this.path = path
             this.name = name
@@ -69,7 +69,7 @@ class DaoSecretRepository : SecretRepository {
         findSecretByParentEntityId(null, null, repositoryId, name)?.mapToModel()
     }
 
-    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = blockingQuery {
+    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = blockingQueryCatching {
         SecretDao.find { SecretsTable.organizationId eq organizationId }
             .apply(SecretsTable, parameters)
             .map { it.mapToModel() }
@@ -78,7 +78,7 @@ class DaoSecretRepository : SecretRepository {
         throw it
     }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = blockingQuery {
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = blockingQueryCatching {
         SecretDao.find { SecretsTable.productId eq productId }
             .apply(SecretsTable, parameters)
             .map { it.mapToModel() }
@@ -87,7 +87,7 @@ class DaoSecretRepository : SecretRepository {
         throw it
     }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = blockingQuery {
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = blockingQueryCatching {
         SecretDao.find { SecretsTable.repositoryId eq repositoryId }
             .apply(SecretsTable, parameters)
             .map { it.mapToModel() }
@@ -100,7 +100,7 @@ class DaoSecretRepository : SecretRepository {
         organizationId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQuery {
+    ): Secret = blockingQueryCatching {
         val secret = findSecretByParentEntityId(organizationId, null, null, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
 
@@ -113,7 +113,7 @@ class DaoSecretRepository : SecretRepository {
         productId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQuery {
+    ): Secret = blockingQueryCatching {
         val secret = findSecretByParentEntityId(null, productId, null, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
 
@@ -126,7 +126,7 @@ class DaoSecretRepository : SecretRepository {
         repositoryId: Long,
         name: String,
         description: OptionalValue<String?>
-    ): Secret = blockingQuery {
+    ): Secret = blockingQueryCatching {
         val secret = findSecretByParentEntityId(null, null, repositoryId, name)
             ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
 
@@ -135,7 +135,7 @@ class DaoSecretRepository : SecretRepository {
         secret.mapToModel()
     }.getOrThrow()
 
-    override fun deleteForOrganizationAndName(organizationId: Long, name: String) = blockingQuery {
+    override fun deleteForOrganizationAndName(organizationId: Long, name: String) = blockingQueryCatching {
         val secret =
             findSecretByParentEntityId(organizationId, null, null, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
@@ -143,7 +143,7 @@ class DaoSecretRepository : SecretRepository {
         secret.delete()
     }.getOrThrow()
 
-    override fun deleteForProductAndName(productId: Long, name: String) = blockingQuery {
+    override fun deleteForProductAndName(productId: Long, name: String) = blockingQueryCatching {
         val secret =
             findSecretByParentEntityId(null, productId, null, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
@@ -151,7 +151,7 @@ class DaoSecretRepository : SecretRepository {
         secret.delete()
     }.getOrThrow()
 
-    override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = blockingQuery {
+    override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = blockingQueryCatching {
         val secret =
             findSecretByParentEntityId(null, null, repositoryId, name)
                 ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
