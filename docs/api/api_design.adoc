@@ -48,6 +48,7 @@ cases like paging or sorting. They can be added to the request URL as query para
 
 The query parameters have the following meaning:
 
+[cols="1,4",options="header"]
 |===
 |Parameter |Description
 
@@ -58,9 +59,13 @@ The query parameters have the following meaning:
 |Defines the offset of the first result to be retrieved.
 
 |sort
-|A comma-separated list of fields by which the result should be sorted. The field names correspond to the properties
-of the entity in the result. They can be prefixed with "-" for descending order or "+" for ascending order (which is
-the default).
+|A comma-separated list of fields by which the result should be sorted. The field names are logic property names
+which do not necessarily correspond to the database column names. (In many cases they do, but when defining an
+entity, the developer can specify a deviating property name. Also, property names are case-sensitive.) They can be
+prefixed with "-" for descending order or "+" for ascending order (which is the default). Note that only a subset of
+the properties offered by an entity can be referenced as sort field; these properties must have been marked
+explicitly in the table definition. This restriction was introduced to prevent poor performance of database queries,
+since for efficient sorting typically an index needs to be defined on the affected column.
 |===
 
 
