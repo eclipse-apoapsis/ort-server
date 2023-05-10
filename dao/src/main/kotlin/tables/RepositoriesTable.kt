@@ -20,25 +20,25 @@
 package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
+import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 
 /**
  * A table to represent a repository inside a product.
  */
-object RepositoriesTable : LongIdTable("repositories") {
+object RepositoriesTable : SortableTable("repositories") {
     val productId = reference("product_id", ProductsTable)
 
-    val type = enumerationByName<RepositoryType>("type", 128)
-    val url = text("url")
+    val type = enumerationByName<RepositoryType>("type", 128).sortable()
+    val url = text("url").sortable()
 }
 
 class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<RepositoryDao>(RepositoriesTable)
+    companion object : SortableEntityClass<RepositoryDao>(RepositoriesTable)
 
     var product by ProductDao referencedOn RepositoriesTable.productId
 

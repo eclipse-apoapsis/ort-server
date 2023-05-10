@@ -19,18 +19,27 @@
 
 package org.ossreviewtoolkit.server.dao.utils
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import java.util.Locale
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
+import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
@@ -41,7 +50,7 @@ private const val ORGANIZATION_DESC = "Description"
 
 /**
  * A test class that tests the generic mechanism of applying query parameters for list queries. The test uses the
- * repository for organizations as example.
+ * repositories for organizations and repositories as example.
  */
 class ListQueryTest : StringSpec() {
     private val organizationRepository = DaoOrganizationRepository()
@@ -62,7 +71,7 @@ class ListQueryTest : StringSpec() {
         }
 
         "Order fields can be case insensitive" {
-            val parameters = ListQueryParameters(sortFields = listOf(OrderField("NamE", OrderDirection.ASCENDING)))
+            val parameters = ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)))
 
             val organizations = query(parameters)
 
@@ -78,24 +87,71 @@ class ListQueryTest : StringSpec() {
         }
 
         "Entities can be ordered by multiple fields" {
-            val description = ORGANIZATION_DESC.appendIndex(COUNT)
-            organizationRepository.create(ORGANIZATION_NAME.appendIndex(COUNT + 1), description)
-            organizationRepository.create(ORGANIZATION_NAME.appendIndex(COUNT + 2), description)
-            organizationRepository.create(ORGANIZATION_NAME.appendIndex(COUNT + 3), description)
+            val repositoryUrl = "https://repo.example.org/test"
+            val productRepository = DaoProductRepository()
+            val repositoryRepository = DaoRepositoryRepository()
+
+            val organization = organizationRepository.create("Another Organization", "for testing")
+            val product = productRepository.create("TestProduct", null, organization.id)
+
+            val repo1 = repositoryRepository.create(RepositoryType.GIT, repositoryUrl.appendIndex(1), product.id)
+            val repo2 =
+                repositoryRepository.create(RepositoryType.SUBVERSION, repositoryUrl.appendIndex(2), product.id)
+            val repo3 = repositoryRepository.create(RepositoryType.GIT, repositoryUrl.appendIndex(3), product.id)
 
             val parameters = ListQueryParameters(
                 sortFields = listOf(
-                    OrderField("description", OrderDirection.DESCENDING),
-                    OrderField("name", OrderDirection.ASCENDING)
+                    OrderField("type", OrderDirection.DESCENDING),
+                    OrderField("url", OrderDirection.ASCENDING)
                 )
             )
 
-            val organizations = query(parameters).take(4)
-
-            organizations.forEachIndexed { index, organization ->
-                organization.name shouldBe ORGANIZATION_NAME.appendIndex(COUNT + index)
-                organization.description shouldBe description
+            val repositories = transaction {
+                repositoryRepository.listForProduct(product.id, parameters)
             }
+
+            repositories shouldContainExactly listOf(repo2, repo1, repo3)
+        }
+
+        "Sorting is only allowed for properties marked as sortable" {
+            val parameters = ListQueryParameters(
+                sortFields = listOf(
+                    OrderField("name", OrderDirection.ASCENDING),
+                    OrderField("description", OrderDirection.ASCENDING)
+                )
+            )
+
+            val exception = shouldThrow<QueryParametersException> {
+                query(parameters)
+            }
+
+            exception.localizedMessage shouldContain "description"
+        }
+
+        "Logic property names are used to define the sort order" {
+            val productRepository = DaoProductRepository()
+            val repositoryRepository = DaoRepositoryRepository()
+            val runRepository = DaoOrtRunRepository()
+
+            val organization = organizationRepository.create("Run Organization", null)
+            val product = productRepository.create("Run Product", null, organization.id)
+            val repo =
+                repositoryRepository.create(RepositoryType.GIT, "https://repo.example.org/run.git", product.id)
+            val runs = (1..3).map {
+                runRepository.create(repo.id, "test", JobConfigurations())
+            }
+
+            val parameters = ListQueryParameters(
+                sortFields = listOf(
+                    OrderField("createdAt", OrderDirection.ASCENDING)
+                )
+            )
+
+            val runsFromQuery = transaction {
+                runRepository.listForRepository(repo.id, parameters)
+            }
+
+            runsFromQuery shouldContainExactly runs
         }
 
         "A limit can be set for queries" {

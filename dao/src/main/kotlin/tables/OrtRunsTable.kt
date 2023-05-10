@@ -20,11 +20,11 @@
 package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
+import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.JobConfigurations
@@ -34,12 +34,12 @@ import org.ossreviewtoolkit.server.model.OrtRunStatus
 /**
  * A table to represent an ORT run.
  */
-object OrtRunsTable : LongIdTable("ort_runs") {
+object OrtRunsTable : SortableTable("ort_runs") {
     val repositoryId = reference("repository_id", RepositoriesTable)
 
-    val index = long("index")
-    val revision = text("revision")
-    val createdAt = timestamp("created_at")
+    val index = long("index").sortable()
+    val revision = text("revision").sortable()
+    val createdAt = timestamp("created_at").sortable("createdAt")
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
@@ -48,7 +48,7 @@ object OrtRunsTable : LongIdTable("ort_runs") {
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OrtRunDao>(OrtRunsTable)
+    companion object : SortableEntityClass<OrtRunDao>(OrtRunsTable)
 
     var repository by RepositoryDao referencedOn OrtRunsTable.repositoryId
 

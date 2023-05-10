@@ -23,10 +23,6 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
-import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnSet
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
 
@@ -42,36 +38,18 @@ import org.ossreviewtoolkit.server.model.util.OrderDirection
 internal fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
 
 /**
- * Query all entities from this [EntityClass] and apply the given [parameters].
+ * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.
  */
-internal fun<ID : Comparable<ID>, T : Entity<ID>> EntityClass<ID, T>.list(parameters: ListQueryParameters):
-        SizedIterable<T> = all().apply(table, parameters)
-
-/**
- * Apply the given [parameters] to this query result using [columns] to resolve the columns to be sorted by.
- */
-internal fun <T> SizedIterable<T>.apply(columns: ColumnSet, parameters: ListQueryParameters): SizedIterable<T> {
-    val orders = parameters.sortFields.map { columns.column(it.name) to it.direction.toSortOrder() }.toTypedArray()
+internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
+    val orders = parameters.sortFields.map {
+        val column = table.sortableColumn(it.name)
+            ?: throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
+        column to it.direction.toSortOrder()
+    }.toTypedArray()
 
     val orderedQuery = orderBy(*orders)
     return parameters.limit?.let { orderedQuery.limit(it, parameters.offset ?: 0) } ?: orderedQuery
 }
-
-/**
- * Return the column of this [ColumnSet] matching the given [name] (ignoring case) or throw a
- * [QueryParametersException] if no such column exists.
- */
-private fun ColumnSet.column(name: String): Column<*> =
-    columns.find { it.matchesProperty(name) }
-        ?: throw QueryParametersException("Unsupported field for sorting: '$name'.")
-
-/**
- * Test whether this column matches the property identified by the given [name].
- * TODO: This implementation expects a 1:1 relation between a camel-case property name and a snake-case column name.
- *       Implement a more sophisticated mapping.
- */
-private fun Column<*>.matchesProperty(name: String): Boolean =
-    this.name.replace("_", "").equals(name, ignoreCase = true)
 
 /**
  * Convert this [OrderDirection] constant to the corresponding [SortOrder].

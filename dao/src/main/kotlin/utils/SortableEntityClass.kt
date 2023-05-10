@@ -21,6 +21,9 @@ package org.ossreviewtoolkit.server.dao.utils
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.sql.SizedIterable
+
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 
 /**
  * A specialized base class for entities with support for sorting. This class differs from its superclass
@@ -29,4 +32,10 @@ import org.jetbrains.exposed.dao.LongEntityClass
 open class SortableEntityClass<out E : LongEntity>(
     /** The [SortableTable] associated with this entity. */
     val sortableTable: SortableTable
-) : LongEntityClass<E>(sortableTable)
+) : LongEntityClass<E>(sortableTable) {
+    /**
+     * Query all entities from this class and apply the given [parameters].
+     */
+    fun list(parameters: ListQueryParameters): SizedIterable<E> =
+        all().apply(sortableTable, parameters)
+}

@@ -20,19 +20,19 @@
 package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
+import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.model.Organization
 
-object OrganizationsTable : LongIdTable("organizations") {
-    val name = text("name")
+object OrganizationsTable : SortableTable("organizations") {
+    val name = text("name").sortable()
     val description = text("description").nullable()
 }
 
 class OrganizationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OrganizationDao>(OrganizationsTable)
+    companion object : SortableEntityClass<OrganizationDao>(OrganizationsTable)
 
     var name by OrganizationsTable.name
     var description by OrganizationsTable.description

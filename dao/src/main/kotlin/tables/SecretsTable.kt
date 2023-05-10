@@ -20,24 +20,24 @@
 package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
+import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.model.Secret
 
-object SecretsTable : LongIdTable("secrets") {
+object SecretsTable : SortableTable("secrets") {
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
     val productId = reference("product_id", ProductsTable).nullable()
     val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 
     val path = text("path")
-    val name = text("name")
+    val name = text("name").sortable()
     val description = text("description").nullable()
 }
 
 class SecretDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<SecretDao>(SecretsTable)
+    companion object : SortableEntityClass<SecretDao>(SecretsTable)
 
     var organization by OrganizationDao optionalReferencedOn SecretsTable.organizationId
     var product by ProductDao optionalReferencedOn SecretsTable.productId

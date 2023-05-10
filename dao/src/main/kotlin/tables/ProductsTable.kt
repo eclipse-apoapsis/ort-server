@@ -20,24 +20,24 @@
 package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
+import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.model.Product
 
 /**
  * A product is a collection of repositories which are combined into one software product.
  */
-object ProductsTable : LongIdTable("products") {
+object ProductsTable : SortableTable("products") {
     val organizationId = reference("organization_id", OrganizationsTable)
 
-    val name = text("name")
+    val name = text("name").sortable()
     val description = text("description").nullable()
 }
 
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ProductDao>(ProductsTable)
+    companion object : SortableEntityClass<ProductDao>(ProductsTable)
 
     var organization by OrganizationDao referencedOn ProductsTable.organizationId
 
