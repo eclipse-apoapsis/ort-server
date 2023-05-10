@@ -128,6 +128,22 @@ fun databaseModule(): Module = module {
 /**
  * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
  * [repetitionAttempts], and [readOnly].
+ *
+ * Returns the actual result type. Throws an exception in case of a failure.
+ */
+suspend fun <T> dbQueryDirect(
+    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
+    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
+    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+    block: () -> T
+): T =
+    dbQuery(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
+
+/**
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
+ * [repetitionAttempts], and [readOnly].
+ *
+ * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
 suspend fun <T> dbQuery(
     // As we currently use only one database, we can use the default transaction manager to get the default values.
@@ -145,6 +161,23 @@ suspend fun <T> dbQuery(
 /**
  * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
  * [repetitionAttempts], and [readOnly].
+ *
+ * Returns the actual result type. Throws an exception in case of a failure.
+ */
+fun <T> blockingQueryDirect(
+    // As we currently use only one database, we can use the default transaction manager to get the default values.
+    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
+    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
+    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+    block: () -> T
+): T =
+    blockingQuery(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
+
+/**
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
+ * [repetitionAttempts], and [readOnly].
+ *
+ * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
 fun <T> blockingQuery(
     // As we currently use only one database, we can use the default transaction manager to get the default values.
