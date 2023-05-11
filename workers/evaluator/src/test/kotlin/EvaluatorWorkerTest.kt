@@ -80,6 +80,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getAnalyzerRunForEvaluatorJob(any()) } returns analyzerRun
             every { getAdvisorRunForEvaluatorJob(any()) } returns advisorRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
+            every { storeEvaluatorRun(any()) } returns mockk()
             every { getOrtRun(any()) } returns ortRun
             every { getRepository(any()) } returns repository
         }
