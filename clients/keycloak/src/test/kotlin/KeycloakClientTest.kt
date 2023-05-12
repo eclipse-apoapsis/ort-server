@@ -28,7 +28,6 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.testcontainers.TestContainerExtension
 import io.kotest.extensions.testcontainers.perSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 
@@ -45,6 +44,9 @@ class KeycloakClientTest : WordSpec() {
     )
 
     override suspend fun beforeSpec(spec: Spec) {
+        // For performance reasons the test container must be started once per spec. Therefore, all tests that modify
+        // data must not modify the predefined test data and clean up after themselves to ensure that tests are
+        // isolated.
         listeners(keycloak.perSpec())
     }
 
@@ -103,10 +105,12 @@ class KeycloakClientTest : WordSpec() {
         "createGroup" should {
             "successfully add a new realm group" {
                 val response = client.createGroup("TEST_GROUP")
-                val keycloakGroups = client.getGroups()
+                val group = client.getGroupByName("TEST_GROUP")
 
                 response.status shouldBe HttpStatusCode.Created
-                keycloakGroups.size shouldBe 4
+                group.name shouldBe "TEST_GROUP"
+
+                client.deleteGroup(group.id)
             }
 
             "throw an exception if a group with the name already exists" {
@@ -118,12 +122,17 @@ class KeycloakClientTest : WordSpec() {
 
         "updateGroup" should {
             "successfully update the given realm group" {
-                val updatedGroup = groupOrgA.copy(name = "New-Organization-A")
-                val response = client.updateGroup(groupOrgA.id, updatedGroup.name)
-                val updatedKeycloakGroup = client.getGroup(groupOrgA.id)
+                client.createGroup("TEST_GROUP")
+                val group = client.getGroupByName("TEST_GROUP")
+                val updatedGroup = group.copy(name = "UPDATED_TEST_GROUP")
+
+                val response = client.updateGroup(group.id, updatedGroup.name)
+                val updatedKeycloakGroup = client.getGroupByName("UPDATED_TEST_GROUP")
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakGroup shouldBe updatedGroup
+
+                client.deleteGroup(updatedGroup.id)
             }
 
             "throw an exception if the group does not exist" {
@@ -141,11 +150,16 @@ class KeycloakClientTest : WordSpec() {
 
         "deleteGroup" should {
             "successfully delete the given realm group" {
-                val response = client.deleteGroup(groupOrgA.id)
-                val groups = client.getGroups()
+                client.createGroup("TEST_GROUP")
+                val group = client.getGroupByName("TEST_GROUP")
+
+                val response = client.deleteGroup(group.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
-                groups.map(Group::name) shouldNotContain groupOrgA.name
+
+                shouldThrow<KeycloakClientException> {
+                    client.getGroupByName("TEST_GROUP")
+                }
             }
 
             "throw an exception if the group does not exist" {
@@ -179,11 +193,16 @@ class KeycloakClientTest : WordSpec() {
 
         "createRole" should {
             "successfully add a new client role" {
-                val response = client.createRole("TEST_ROLE", "Created for testing purposes.")
-                val keycloakRoles = client.getRoles()
+                val response = client.createRole("TEST_ROLE", "DESCRIPTION")
+                val role = client.getRole("TEST_ROLE")
 
                 response.status shouldBe HttpStatusCode.Created
-                keycloakRoles.size shouldBe 3
+                with(role) {
+                    name shouldBe "TEST_ROLE"
+                    description shouldBe "DESCRIPTION"
+                }
+
+                client.deleteRole("TEST_ROLE")
             }
 
             "throw an exception if a role with the name already exists" {
@@ -195,47 +214,66 @@ class KeycloakClientTest : WordSpec() {
 
         "updateRole" should {
             "update only the name of the given client role" {
-                val updatedRole = visitorRole.copy(name = "UPDATED_VISITOR")
-                val response = client.updateRole(visitorRole.name, updatedRole.name, updatedRole.description)
+                client.createRole("TEST_ROLE", "DESCRIPTION")
+                val role = client.getRole("TEST_ROLE")
+
+                val updatedRole = role.copy(name = "UPDATED_ROLE")
+                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
+
+                client.deleteRole("UPDATED_ROLE")
             }
 
             "update only the description of the given client role" {
-                val updatedRole = adminRole.copy(description = "This role is for admins.")
-                val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
+                client.createRole("TEST_ROLE", "DESCRIPTION")
+                val role = client.getRole("TEST_ROLE")
+
+                val updatedRole = role.copy(description = "UPDATED_DESCRIPTION")
+                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
+
+                client.deleteRole("TEST_ROLE")
             }
 
             "successfully update the given client role" {
-                val updatedRole = adminRole.copy(name = "UPDATED_ADMIN", description = "The updated role description.")
-                val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
-                val updatedKeycloakclient = client.getRole(updatedRole.name)
+                client.createRole("TEST_ROLE", "DESCRIPTION")
+                val role = client.getRole("TEST_ROLE")
+
+                val updatedRole = role.copy(name = "UPDATED_ROLE", description = "UPDATED_DESCRIPTION")
+                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
+                val updatedKeycloakRole = client.getRole(updatedRole.name)
 
                 response.status shouldBe HttpStatusCode.NoContent
-                updatedKeycloakclient shouldBe updatedRole
+                updatedKeycloakRole shouldBe updatedRole
+
+                client.deleteRole("UPDATED_ROLE")
             }
 
             "throw an exception if a role cannot be updated" {
                 shouldThrow<KeycloakClientException> {
-                    client.updateRole("UNKOWN_ROLE", "UPDATED_UNKNOWN_ROLE", null)
+                    client.updateRole("UNKNOWN_ROLE", "UPDATED_UNKNOWN_ROLE", null)
                 }
             }
         }
 
         "deleteRole" should {
             "successfully delete the given client role" {
-                val role = visitorRole.copy(name = "UPDATED_VISITOR")
+                client.createRole("TEST_ROLE", "DESCRIPTION")
+                val role = client.getRole("TEST_ROLE")
+
                 val response = client.deleteRole(role.name)
-                val keycloakRoles = client.getRoles()
 
                 response.status shouldBe HttpStatusCode.NoContent
-                keycloakRoles.map(Role::name) shouldNotContain role.name
+
+                shouldThrow<KeycloakClientException> {
+                    client.getRole("TEST_ROLE")
+                }
             }
 
             "throw an exception if the role does not exist" {
@@ -281,11 +319,14 @@ class KeycloakClientTest : WordSpec() {
 
         "createUser" should {
             "successfully add a new realm user" {
-                val response = client.createUser("new-test-user")
-                val keycloakUsers = client.getUsers()
+                val response = client.createUser("test_user")
+                val user = client.getUserByName("test_user")
 
                 response.status shouldBe HttpStatusCode.Created
-                keycloakUsers.size shouldBe 4
+
+                user.username shouldBe "test_user"
+
+                client.deleteUser(user.id)
             }
 
             "throw an exception if a user with the username already exists" {
@@ -297,28 +338,47 @@ class KeycloakClientTest : WordSpec() {
 
         "updateUser" should {
             "update only the firstname of the user" {
-                val updatedUser = visitorUser.copy(firstName = "New First Name")
-                val response = client.updateUser(id = visitorUser.id, firstName = updatedUser.firstName)
-                val updatedKeycloakUser = client.getUser(visitorUser.id)
+                client.createUser("test_user", firstName = "firstName")
+                val user = client.getUserByName("test_user")
+
+                val updatedUser = user.copy(firstName = "updatedFirstName")
+                val response = client.updateUser(id = user.id, firstName = updatedUser.firstName)
+                val updatedKeycloakUser = client.getUser(user.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
+
+                client.deleteUser(user.id)
             }
 
             "successfully update the given realm user" {
-                val updatedUser = visitorUser.copy(email = "updated-visitor-mail@org.com")
+                client.createUser(
+                    "test_user",
+                    firstName = "firstName",
+                    lastName = "lastName",
+                    email = "email@example.com"
+                )
+                val user = client.getUserByName("test_user")
+
+                val updatedUser = user.copy(
+                    firstName = "updatedFirstName",
+                    lastName = "updatedLastName",
+                    email = "updated_email@example.com"
+                )
                 val response = client.updateUser(
-                    updatedUser.id,
+                    user.id,
                     updatedUser.username,
                     updatedUser.firstName,
                     updatedUser.lastName,
                     updatedUser.email
                 )
 
-                val updatedKeycloakUser = client.getUser(visitorUser.id)
+                val updatedKeycloakUser = client.getUser(user.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
+
+                client.deleteUser(user.id)
             }
 
             "throw an exception if a user cannot be updated" {
@@ -330,11 +390,16 @@ class KeycloakClientTest : WordSpec() {
 
         "deleteUser" should {
             "successfully delete the given realm user" {
-                val response = client.deleteUser(visitorUser.id)
-                val keycloakUsers = client.getUsers()
+                client.createUser("test_user")
+                val user = client.getUserByName("test_user")
+
+                val response = client.deleteUser(user.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
-                keycloakUsers.map(User::username) shouldNotContain visitorUser.username
+
+                shouldThrow<KeycloakClientException> {
+                    client.getUser(user.id)
+                }
             }
 
             "throw an exception if the user does not exist" {
