@@ -19,28 +19,27 @@
 
 package org.ossreviewtoolkit.server.storage
 
+import io.kotest.core.spec.style.StringSpec
+
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
+
 import java.io.InputStream
 
-/**
- * A data class to represent an entry in a storage.
- *
- * Instances of this class are returned by the [StorageProvider.read] function. They allow access to the actual data
- * and can contain some additional metadata.
- *
- * The data is provided as an [InputStream]. It is in the responsibility of a storage client to close it after it has
- * been consumed. To simplify this, this class implements the [AutoCloseable] interface.
- */
-data class StorageEntry(
-    /**
-     * A stream to obtain the data of this entry. The stream can be consumed once and should then be closed by the
-     * caller.
-     */
-    val data: InputStream,
+class StorageEntryTest : StringSpec({
+    "The InputStream with data should be closed" {
+        val stream = mockk<InputStream>()
+        every { stream.close() } just runs
 
-    /** The content type associated with this entry if any. */
-    val contentType: String?
-) : AutoCloseable {
-    override fun close() {
-        data.close()
+        val entry = StorageEntry(stream, "some-content")
+
+        entry.close()
+
+        verify {
+            stream.close()
+        }
     }
-}
+})
