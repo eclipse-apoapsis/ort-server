@@ -49,14 +49,16 @@ class KeycloakClientTest : WordSpec() {
     }
 
     init {
+        val client = keycloak.createTestClient()
+
         "create" should {
             "not throw any instantiation exception" {
                 val incorrectConfig = keycloak.createConfig("falseSecret")
 
-                val client = KeycloakClient.create(incorrectConfig, createJson())
+                val invalidClient = KeycloakClient.create(incorrectConfig, createJson())
 
                 val exception = shouldThrow<KeycloakClientException> {
-                    client.getRoles()
+                    invalidClient.getRoles()
                 }
 
                 exception.message shouldStartWith "Failed to load roles"
@@ -65,8 +67,6 @@ class KeycloakClientTest : WordSpec() {
 
         "getGroups" should {
             "return the correct realm groups" {
-                val client = keycloak.createTestClient()
-
                 val groups = client.getGroups()
 
                 groups shouldContainExactlyInAnyOrder setOf(groupOrgA, groupOrgB, groupOrgC)
@@ -75,16 +75,12 @@ class KeycloakClientTest : WordSpec() {
 
         "getGroup by ID" should {
             "return the correct realm group" {
-                val client = keycloak.createTestClient()
-
                 val group = client.getGroup(groupOrgA.id)
 
                 group shouldBe groupOrgA
             }
 
             "throw an exception if the group does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.getGroup("1")
                 }
@@ -93,8 +89,6 @@ class KeycloakClientTest : WordSpec() {
 
         "createGroup" should {
             "successfully add a new realm group" {
-                val client = keycloak.createTestClient()
-
                 val response = client.createGroup("TEST_GROUP")
                 val keycloakGroups = client.getGroups()
 
@@ -103,8 +97,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if a group with the name already exists" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.createGroup(groupOrgA.name)
                 }
@@ -113,8 +105,6 @@ class KeycloakClientTest : WordSpec() {
 
         "updateGroup" should {
             "successfully update the given realm group" {
-                val client = keycloak.createTestClient()
-
                 val updatedGroup = groupOrgA.copy(name = "New-Organization-A")
                 val response = client.updateGroup(groupOrgA.id, updatedGroup.name)
                 val updatedKeycloakGroup = client.getGroup(groupOrgA.id)
@@ -124,16 +114,12 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if the group does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.updateGroup("1", "New-Organization")
                 }
             }
 
             "throw an exception if a group with the name already exists" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.updateGroup(groupOrgA.id, groupOrgB.name)
                 }
@@ -142,8 +128,6 @@ class KeycloakClientTest : WordSpec() {
 
         "deleteGroup" should {
             "successfully delete the given realm group" {
-                val client = keycloak.createTestClient()
-
                 val response = client.deleteGroup(groupOrgA.id)
                 val groups = client.getGroups()
 
@@ -152,8 +136,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if the group does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.deleteGroup("1")
                 }
@@ -162,8 +144,6 @@ class KeycloakClientTest : WordSpec() {
 
         "getRoles" should {
             "return the correct client roles" {
-                val client = keycloak.createTestClient()
-
                 val roles = client.getRoles()
 
                 roles shouldContainExactlyInAnyOrder listOf(adminRole, visitorRole)
@@ -172,16 +152,12 @@ class KeycloakClientTest : WordSpec() {
 
         "getRole by name" should {
             "return the correct client role" {
-                val client = keycloak.createTestClient()
-
                 val role = client.getRole(adminRole.name)
 
                 role shouldBe adminRole
             }
 
             "throw an exception if the role does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.getRole("UNKNOWN_ROLE")
                 }
@@ -190,8 +166,6 @@ class KeycloakClientTest : WordSpec() {
 
         "createRole" should {
             "successfully add a new client role" {
-                val client = keycloak.createTestClient()
-
                 val response = client.createRole("TEST_ROLE", "Created for testing purposes.")
                 val keycloakRoles = client.getRoles()
 
@@ -200,8 +174,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if a role with the name already exists" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.createRole("ADMIN")
                 }
@@ -210,8 +182,6 @@ class KeycloakClientTest : WordSpec() {
 
         "updateRole" should {
             "update only the name of the given client role" {
-                val client = keycloak.createTestClient()
-
                 val updatedRole = visitorRole.copy(name = "UPDATED_VISITOR")
                 val response = client.updateRole(visitorRole.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
@@ -221,8 +191,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "update only the description of the given client role" {
-                val client = keycloak.createTestClient()
-
                 val updatedRole = adminRole.copy(description = "This role is for admins.")
                 val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
@@ -232,8 +200,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "successfully update the given client role" {
-                val client = keycloak.createTestClient()
-
                 val updatedRole = adminRole.copy(name = "UPDATED_ADMIN", description = "The updated role description.")
                 val response = client.updateRole(adminRole.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakclient = client.getRole(updatedRole.name)
@@ -243,8 +209,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if a role cannot be updated" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.updateRole("UNKOWN_ROLE", "UPDATED_UNKNOWN_ROLE", null)
                 }
@@ -253,8 +217,6 @@ class KeycloakClientTest : WordSpec() {
 
         "deleteRole" should {
             "successfully delete the given client role" {
-                val client = keycloak.createTestClient()
-
                 val role = visitorRole.copy(name = "UPDATED_VISITOR")
                 val response = client.deleteRole(role.name)
                 val keycloakRoles = client.getRoles()
@@ -264,8 +226,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if the role does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.deleteRole("UNKNOWN_ROLE")
                 }
@@ -274,8 +234,6 @@ class KeycloakClientTest : WordSpec() {
 
         "getUsers" should {
             "return the correct realm users" {
-                val client = keycloak.createTestClient()
-
                 val users = client.getUsers()
 
                 users shouldContainExactlyInAnyOrder setOf(adminUser, ortAdminUser, visitorUser)
@@ -284,16 +242,12 @@ class KeycloakClientTest : WordSpec() {
 
         "getUser by ID" should {
             "return the correct realm user" {
-                val client = keycloak.createTestClient()
-
                 val user = client.getUser(adminUser.id)
 
                 user shouldBe adminUser
             }
 
             "throw an exception if the user does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.getUser("1")
                 }
@@ -302,8 +256,6 @@ class KeycloakClientTest : WordSpec() {
 
         "createUser" should {
             "successfully add a new realm user" {
-                val client = keycloak.createTestClient()
-
                 val response = client.createUser("new-test-user")
                 val keycloakUsers = client.getUsers()
 
@@ -312,8 +264,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if a user with the username already exists" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.createUser(adminUser.username)
                 }
@@ -322,8 +272,6 @@ class KeycloakClientTest : WordSpec() {
 
         "updateUser" should {
             "update only the firstname of the user" {
-                val client = keycloak.createTestClient()
-
                 val updatedUser = visitorUser.copy(firstName = "New First Name")
                 val response = client.updateUser(id = visitorUser.id, firstName = updatedUser.firstName)
                 val updatedKeycloakUser = client.getUser(visitorUser.id)
@@ -333,8 +281,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "successfully update the given realm user" {
-                val client = keycloak.createTestClient()
-
                 val updatedUser = visitorUser.copy(email = "updated-visitor-mail@org.com")
                 val response = client.updateUser(
                     updatedUser.id,
@@ -351,8 +297,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if a user cannot be updated" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.updateUser(visitorUser.id, email = adminUser.email)
                 }
@@ -361,8 +305,6 @@ class KeycloakClientTest : WordSpec() {
 
         "deleteUser" should {
             "successfully delete the given realm user" {
-                val client = keycloak.createTestClient()
-
                 val response = client.deleteUser(visitorUser.id)
                 val keycloakUsers = client.getUsers()
 
@@ -371,8 +313,6 @@ class KeycloakClientTest : WordSpec() {
             }
 
             "throw an exception if the user does not exist" {
-                val client = keycloak.createTestClient()
-
                 shouldThrow<KeycloakClientException> {
                     client.deleteUser("1")
                 }
