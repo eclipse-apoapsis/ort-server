@@ -275,6 +275,31 @@ class KeycloakClient(
         }.getOrElse { throw KeycloakClientException("Failed to delete role '$name'.", it) }
 
     /**
+     * Add the role identified by [compositeRoleId] to the composites of the role identified by [name].
+     */
+    suspend fun addCompositeRole(name: String, compositeRoleId: String): HttpResponse =
+        runCatching {
+            httpClient.post("$apiUrl/clients/${getClientId()}/roles/$name/composites") {
+                setBody(listOf(RoleId(compositeRoleId)))
+            }
+        }.getOrElse {
+            throw KeycloakClientException(
+                "Failed to add composite role with id '$compositeRoleId' to role '$name'.",
+                it
+            )
+        }
+
+    /**
+     * Get all composite roles of the [role][Role] with the given [name].
+     */
+    suspend fun getCompositeRoles(name: String): List<Role> =
+        runCatching {
+            httpClient.get("$apiUrl/clients/${getClientId()}/roles/$name/composites")
+        }.getOrElse {
+            throw KeycloakClientException("Failed to find composites for role '$name'.", it)
+        }.body()
+
+    /**
      * Return a set of all [users][User], which currently exist in the Keycloak realm.
      */
     suspend fun getUsers(): Set<User> =
@@ -407,6 +432,11 @@ data class Role(
 data class RoleRequest(
     val name: String,
     val description: String?
+)
+
+@Serializable
+data class RoleId(
+    val id: String
 )
 
 /**

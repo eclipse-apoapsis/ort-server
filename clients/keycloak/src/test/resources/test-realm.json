@@ -248,6 +248,21 @@
         "id" : "c3e85536-548b-4c9f-bb40-d5686c362819",
         "name" : "VISITOR",
         "description" : "This is a test visitor role.",
+        "composite" : true,
+        "composites" : {
+          "client": {
+            "test-server": [
+              "COMPOSITE"
+            ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "d6fa01bd-525d-4b3c-aa75-c3ff0bb1bd1c",
+        "attributes" : { }
+      }, {
+        "id" : "c3e02976-7abe-4a41-86f0-c8f012d0ca3b",
+        "name" : "COMPOSITE",
+        "description" : "This is a test composite role.",
         "composite" : false,
         "clientRole" : true,
         "containerId" : "d6fa01bd-525d-4b3c-aa75-c3ff0bb1bd1c",

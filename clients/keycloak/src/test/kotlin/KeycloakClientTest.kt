@@ -27,7 +27,10 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.testcontainers.TestContainerExtension
 import io.kotest.extensions.testcontainers.perSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 
@@ -173,7 +176,7 @@ class KeycloakClientTest : WordSpec() {
             "return the correct client roles" {
                 val roles = client.getRoles()
 
-                roles shouldContainExactlyInAnyOrder listOf(adminRole, visitorRole)
+                roles shouldContainExactlyInAnyOrder listOf(adminRole, visitorRole, compositeRole)
             }
         }
 
@@ -280,6 +283,39 @@ class KeycloakClientTest : WordSpec() {
                 shouldThrow<KeycloakClientException> {
                     client.deleteRole("UNKNOWN_ROLE")
                 }
+            }
+        }
+
+        "addCompositeRole" should {
+            "successfully add a composite role" {
+                client.createRole("root")
+                client.createRole("composite")
+                val compositeRole = client.getRole("composite")
+
+                client.addCompositeRole("root", compositeRole.id)
+                val composites = client.getCompositeRoles("root")
+
+                composites shouldContainExactly listOf(compositeRole)
+
+                client.deleteRole("root")
+                client.deleteRole("composite")
+            }
+
+            "fail if the composite role does not exist" {
+                client.createRole("root")
+
+                shouldThrow<KeycloakClientException> {
+                    client.addCompositeRole("root", "invalid id")
+                }
+
+                client.deleteRole("root")
+            }
+        }
+
+        "getCompositeRoles" should {
+            "return the correct composite roles" {
+                client.getCompositeRoles(adminRole.name) should beEmpty()
+                client.getCompositeRoles(visitorRole.name) shouldContainExactly listOf(compositeRole)
             }
         }
 

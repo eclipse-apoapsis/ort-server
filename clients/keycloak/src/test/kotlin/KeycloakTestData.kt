@@ -63,6 +63,12 @@ internal val visitorRole = Role(
     description = "This is a test visitor role."
 )
 
+internal val compositeRole = Role(
+    id = "c3e02976-7abe-4a41-86f0-c8f012d0ca3b",
+    name = "COMPOSITE",
+    description = "This is a test composite role."
+)
+
 internal val adminUser = User(
     id = "002a40cc-3bef-4c8e-8045-ac7d00f36b19",
     username = "admin",
