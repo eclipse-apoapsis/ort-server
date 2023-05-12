@@ -27,7 +27,7 @@ internal val groupOrgA = Group(
     subGroups = emptySet()
 )
 
-private val subGroupOrgB1 = Group(
+internal val subGroupOrgB1 = Group(
     id = "0e5b6055-adc4-47c6-97a9-a2adf4be96f0",
     name = "Sub-Orga-B1",
     subGroups = emptySet()

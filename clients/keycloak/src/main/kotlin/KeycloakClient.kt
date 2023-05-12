@@ -164,6 +164,23 @@ class KeycloakClient(
         }.body()
 
     /**
+     * Return the [group][Group] with the given [name].
+     */
+    suspend fun getGroupByName(name: String): Group =
+        runCatching {
+            // Keycloak does not provide an API to get a group by name, so use a search query and filter the result.
+            httpClient.get("$apiUrl/groups") {
+                url {
+                    parameters.append("search", name)
+                    parameters.append("exact", "true")
+                }
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Could not find group with name '$name'.", it)
+        }.body<List<Group>>().findByName(name).takeIf { it != null }
+            ?: throw KeycloakClientException("Could not find group with name '$name'.")
+
+    /**
      * Add a new [group][Group] to the Keycloak realm with the given [name].
      */
     suspend fun createGroup(name: String): HttpResponse =
@@ -388,6 +405,19 @@ data class Group(
     /** A set of groups, which represents the subgroup hierarchy. */
     val subGroups: Set<Group>
 )
+
+/**
+ * Recursively search for a group with the provided [name].
+ */
+private fun Collection<Group>.findByName(name: String): Group? {
+    forEach {
+        if (it.name == name) return it
+        val group = it.subGroups.findByName(name)
+        if (group != null) return group
+    }
+
+    return null
+}
 
 @Serializable
 private data class GroupRequest(
