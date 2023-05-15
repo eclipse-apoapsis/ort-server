@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.storage
+
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
+
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.util.ServiceLoader
+
+/**
+ * A class allowing convenient access to a concrete [StorageProvider] implementation.
+ *
+ * Instead of directly interacting with a [StorageProvider], an instance of this class can be used for this purpose.
+ * The [create] factory function looks up the correct provider based on the provided parameters and obtains a
+ * properly initialized instance. Via this instance, the storage can be queried and updated using a richer API.
+ * Also, proprietary exceptions thrown by the underlying [StorageProvider] implementation are caught and mapped to
+ * [StorageException] exceptions.
+ */
+class Storage(
+    /** The wrapped [StorageProvider]. */
+    private val provider: StorageProvider
+) {
+    companion object {
+        /** The name of the configuration property for selecting a [StorageProviderFactory]. */
+        private const val FACTORY_NAME_PROPERTY = "name"
+
+        /** The service loader for loading factory implementations from the classpath. */
+        private val LOADER = ServiceLoader.load(StorageProviderFactory::class.java)
+
+        /**
+         * Return a [Storage] instance that can be used to interact with a concrete storage implementation. Obtain
+         * the underlying [StorageProvider] by looking up the factory that has been configured in the given [config]
+         * for the given [storageType].
+         */
+        fun create(storageType: String, config: Config): Storage = try {
+            val storageConfig = config.getConfig(storageType)
+            val factoryName = storageConfig.getString(FACTORY_NAME_PROPERTY)
+
+            val factory = LOADER.find { it.name == factoryName }
+                ?: throw StorageException("StorageProviderFactory '$factoryName' not found on classpath.")
+
+            Storage(factory.createProvider(storageConfig))
+        } catch (e: ConfigException.Missing) {
+            throw StorageException("No storage configuration found for storage type '$storageType'.", e)
+        }
+
+        /**
+         * Return the data stored in this [StorageEntry] as an array of bytes. Note: This reads all data into memory.
+         */
+        val StorageEntry.dataArray: ByteArray
+            get() = data.readAllBytes()
+
+        /**
+         * Return the data stored in this [StorageEntry] as a string. Note: This reads all data into memory.
+         */
+        val StorageEntry.dataString: String
+            get() = String(dataArray)
+    }
+
+    /**
+     * Return the [StorageEntry] associated with the given [key]. Throw a [StorageEntry] if this operation fails.
+     */
+    fun read(key: Key): StorageEntry =
+        wrapException {
+            read(key)
+        }
+
+    /**
+     * Write the given [data] with the given [length] and optional [contentType] into this storage and associate it
+     * with the given [key]. Throw a [StorageException] if this operation fails.
+     */
+    fun write(key: Key, data: InputStream, length: Long, contentType: String? = null) {
+        wrapException {
+            write(key, data, length, contentType)
+        }
+    }
+
+    /**
+     * Write the given [array][data] into this storage and associate it with the given [key]. Set the optional
+     * [contentType]. Throw a [StorageException] if this operation fails.
+     */
+    fun write(key: Key, data: ByteArray, contentType: String? = null) {
+        write(key, ByteArrayInputStream(data), data.size.toLong(), contentType)
+    }
+
+    /**
+     * Write the given [string][data] into this storage and associate it with the given [key]. Set the optional
+     * [contentType]. Throw a [StorageException] if this operation fails.
+     */
+    fun write(key: Key, data: String, contentType: String? = null) {
+        write(key, data.toByteArray(), contentType)
+    }
+
+    /**
+     * Return a flag whether the given [key] is contained in this storage. Throw a [StorageException] if this
+     * operation fails.
+     */
+    fun containsKey(key: Key): Boolean = wrapException { contains(key) }
+
+    /**
+     * Delete the given [key] from this storage and return a flag whether it existed before. Throw a
+     * [StorageException] if this operation fails.
+     */
+    fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
+
+    /**
+     * Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s.
+     */
+    private fun <T> wrapException(block: StorageProvider.() -> T): T =
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            provider.block()
+        } catch (e: Exception) {
+            throw StorageException("Exception from StorageProvider.", e)
+        }
+}
+
+/**
+ * An exception class for reporting all error conditions related to dealing with a [Storage] instance.
+ *
+ * The [Storage] class wraps all exceptions thrown by the wrapped [StorageProvider] into exceptions of this type.
+ */
+class StorageException(message: String, cause: Throwable? = null) : Exception(message, cause)
