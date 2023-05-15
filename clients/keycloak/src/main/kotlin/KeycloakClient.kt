@@ -301,6 +301,24 @@ class KeycloakClient(
         }.body()
 
     /**
+     * Return the [user][User] with the given [username].
+     */
+    suspend fun getUserByName(username: String): User =
+        runCatching {
+            // Keycloak does not provide an API to get a single user by name, so use a search query and filter the
+            // result.
+            httpClient.get("$apiUrl/users") {
+                url {
+                    parameters.append("username", username)
+                    parameters.append("exact", "true")
+                }
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Could not find user with name '$username'.", it)
+        }.body<List<User>>().find { it.username == username }
+            ?: throw KeycloakClientException("Could not find user with name '$username'.")
+
+    /**
      * Create a new [user][User] in the Keycloak realm with the given [username], [firstName], [lastName] and [email].
      */
     suspend fun createUser(

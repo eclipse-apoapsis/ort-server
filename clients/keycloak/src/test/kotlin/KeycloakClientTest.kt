@@ -253,7 +253,7 @@ class KeycloakClientTest : WordSpec() {
             }
         }
 
-        "getUser by ID" should {
+        "getUser" should {
             "return the correct realm user" {
                 val user = client.getUser(adminUser.id)
 
@@ -263,6 +263,18 @@ class KeycloakClientTest : WordSpec() {
             "throw an exception if the user does not exist" {
                 shouldThrow<KeycloakClientException> {
                     client.getUser("1")
+                }
+            }
+        }
+
+        "getUserByName" should {
+            "return the correct realm user" {
+                client.getUserByName(adminUser.username) shouldBe adminUser
+            }
+
+            "throw an exception if the user does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.getUserByName("1")
                 }
             }
         }
