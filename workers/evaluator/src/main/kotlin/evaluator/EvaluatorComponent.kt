@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
@@ -40,6 +41,7 @@ import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.transport.EndpointComponent
@@ -85,6 +87,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
         singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
         singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
+        singleOf<EvaluatorRunRepository>(::DaoEvaluatorRunRepository)
         singleOf<OrtRunRepository>(::DaoOrtRunRepository)
         singleOf<RepositoryRepository>(::DaoRepositoryRepository)
 
