@@ -54,7 +54,7 @@ dependencies {
 }
 
 jib {
-    from.image = "eclipse-temurin:17"
+    from.image = "docker://ort-server-evaluator-worker-base-image:latest"
     to.image = "ort-server-evaluator-worker:latest"
 
     container {
