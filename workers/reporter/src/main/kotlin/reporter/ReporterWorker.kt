@@ -21,7 +21,9 @@ package org.ossreviewtoolkit.server.workers.reporter
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.ReporterJob
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
@@ -52,7 +54,7 @@ internal class ReporterWorker(private val runner: ReporterRunner, private val da
 
             // TODO: As soon as ScannerRun is implemented, it should be considered also in the mapping of an OrtResult.
             val ortResult = ortRun.mapToOrt(
-                repository = repository.mapToOrt(ortRun.revision),
+                repository = repository.mapToOrt(findResolvedRevision(ortRun, analyzerRun)),
                 analyzerRun = analyzerRun?.mapToOrt(),
                 advisorRun = advisorRun?.mapToOrt(),
                 evaluatorRun = evaluatorRun?.mapToOrt()
@@ -88,3 +90,10 @@ internal class ReporterWorker(private val runner: ReporterRunner, private val da
         }
     }
 }
+
+/**
+ * Obtain the correct resolved revision for the current [ortRun] and [analyzerRun].
+ * TODO: This is a work-around. The resolved revision should be stored already when creating the Analyzer result.
+ */
+internal fun findResolvedRevision(ortRun: OrtRun, analyzerRun: AnalyzerRun?): String =
+    analyzerRun?.projects?.find { "/" !in it.definitionFilePath }?.vcsProcessed?.revision ?: ortRun.revision

@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 
 import kotlinx.datetime.Clock
 
@@ -60,6 +61,18 @@ private val reporterJob = ReporterJob(
 )
 
 class ReporterWorkerTest : StringSpec({
+    beforeSpec {
+        mockkStatic(::findResolvedRevision)
+
+        every {
+            findResolvedRevision(any(), any())
+        } returns "some_revision"
+    }
+
+    afterSpec {
+        unmockkAll()
+    }
+
     "Reports for a project should be created successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
