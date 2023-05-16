@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(platform(libs.ortReporters))
+
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
 
