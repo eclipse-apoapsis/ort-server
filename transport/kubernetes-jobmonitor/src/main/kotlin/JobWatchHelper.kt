@@ -60,22 +60,26 @@ internal class JobWatchHelper(
          * resource version is obtained by listing the current job state.
          */
         fun create(jobApi: BatchV1Api, namespace: String, resourceVersion: String? = null): JobWatchHelper =
-            JobWatchHelper(
-                jobApi,
-                namespace,
-                resourceVersion ?: fetchInitialResourceVersion(jobApi, namespace)
-            )
+            JobWatchHelper(jobApi, namespace, resourceVersion)
 
         /**
-         * Obtain the initial resource version for starting watching on [namespace] using the given [jobApi].
+         * Obtain the current resource version for starting watching on [namespace] by querying the list of current
+         * jobs using the given [jobApi].
          */
-        private fun fetchInitialResourceVersion(jobApi: BatchV1Api, namespace: String): String? =
+        private fun fetchResourceVersion(jobApi: BatchV1Api, namespace: String): String? =
             jobApi.listNamespacedJob(namespace, null, false, null, null, null, 1, null, null, null, false)
                 .metadata?.resourceVersion
     }
 
     /** The latest resource version. */
     private var resourceVersion: String? = initialResourceVersion
+
+    /**
+     * Stores the resource version that was used to create the latest watch. When creating a new watch, it is checked
+     * whether the current resource version is different from this one. Otherwise, watching seems to have stalled,
+     * and the list with jobs is to requested anew.
+     */
+    private var watchResourceVersion: String? = null
 
     /** The current iterator over watch events. */
     private var watchIterator: Iterator<Watch.Response<V1Job>>? = null
@@ -110,7 +114,14 @@ internal class JobWatchHelper(
      * Create a new [Watch] object to monitor jobs.
      */
     private fun createWatch(): Iterator<Watch.Response<V1Job>> {
-        logger.info("Creating new Watch starting a resource version '$resourceVersion'.")
+        if (resourceVersion == watchResourceVersion) {
+            logger.info("Querying jobs to retrieve an updated resource version.")
+            resourceVersion = fetchResourceVersion(jobApi, namespace)
+        }
+
+        logger.info("Creating new Watch starting at resource version '$resourceVersion'.")
+
+        watchResourceVersion = resourceVersion
 
         return Watch.createWatch<V1Job?>(
             jobApi.apiClient,

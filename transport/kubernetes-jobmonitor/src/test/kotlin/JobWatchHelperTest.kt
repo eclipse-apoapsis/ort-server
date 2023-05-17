@@ -128,21 +128,33 @@ class JobWatchHelperTest : StringSpec({
 
     "The initial resource version is obtained if not specified" {
         val initialResourceVersion = "rvInit"
-        val meta = V1ListMeta().apply {
-            resourceVersion = initialResourceVersion
-        }
-        val jobList = V1JobList().apply {
-            metadata = meta
-        }
 
         val jobApi = createApiMock()
-        every {
-            jobApi.listNamespacedJob(NAMESPACE, null, false, null, null, null, 1, null, null, null, false)
-        } returns jobList
+        jobApi.expectJobListRequests(initialResourceVersion)
 
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
         val watch = createWatchWithEvents(event)
         mockWatchCreation(jobApi, initialResourceVersion, watch)
+
+        val helper = JobWatchHelper.create(jobApi, NAMESPACE)
+
+        helper.nextEvent() shouldBe event
+    }
+
+    "A stalled watch iterator is detected" {
+        val initialResourceVersion = "rvInitial"
+        val updatedResourceVersion = "rvNext"
+
+        val jobApi = createApiMock()
+        jobApi.expectJobListRequests(initialResourceVersion, updatedResourceVersion)
+
+        val eventIgnored = Watch.Response("ignored", createJobWithResourceVersion("x1"))
+        val watch1 = createWatchWithEvents(eventIgnored)
+        mockWatchCreation(jobApi, initialResourceVersion, watch1)
+
+        val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
+        val watch2 = createWatchWithEvents(event)
+        mockWatchCreation(jobApi, updatedResourceVersion, watch2)
 
         val helper = JobWatchHelper.create(jobApi, NAMESPACE)
 
@@ -204,4 +216,23 @@ private fun createJobWithResourceVersion(resourceVersion: String): V1Job = V1Job
     metadata(
         V1ObjectMeta().apply { resourceVersion(resourceVersion) }
     )
+}
+
+/**
+ * Prepare this mock for the Job API to expect requests for the list of jobs. Answer these requests with mock job
+ * lists that report the specified [jobListResourceVersions].
+ */
+private fun BatchV1Api.expectJobListRequests(vararg jobListResourceVersions: String) {
+    val jobLists = jobListResourceVersions.map { version ->
+        val meta = V1ListMeta().apply {
+            resourceVersion = version
+        }
+        V1JobList().apply {
+            metadata = meta
+        }
+    }
+
+    every {
+        listNamespacedJob(NAMESPACE, null, false, null, null, null, 1, null, null, null, false)
+    } returnsMany jobLists
 }
