@@ -22,72 +22,72 @@ package org.ossreviewtoolkit.server.clients.keycloak
 // The test data in this file must be kept in sync with the data in resources/test-realm.json.
 
 internal val groupOrgA = Group(
-    id = "e6a8bf53-32e1-43d9-9962-ece3863fe4ce",
-    name = "Organization-A",
+    id = GroupId("e6a8bf53-32e1-43d9-9962-ece3863fe4ce"),
+    name = GroupName("Organization-A"),
     subGroups = emptySet()
 )
 
 internal val subGroupOrgB1 = Group(
-    id = "0e5b6055-adc4-47c6-97a9-a2adf4be96f0",
-    name = "Sub-Orga-B1",
+    id = GroupId("0e5b6055-adc4-47c6-97a9-a2adf4be96f0"),
+    name = GroupName("Sub-Orga-B1"),
     subGroups = emptySet()
 )
 
 private val subGroupOrgB2 = Group(
-    id = "1e7526ff-1548-4621-824c-290540cd6264",
-    name = "Sub-Orga-B2",
+    id = GroupId("1e7526ff-1548-4621-824c-290540cd6264"),
+    name = GroupName("Sub-Orga-B2"),
     subGroups = emptySet()
 )
 
 internal val groupOrgB = Group(
-    id = "2ec7f144-1810-4c4d-84a2-e5d026388b92",
-    name = "Organization-B",
+    id = GroupId("2ec7f144-1810-4c4d-84a2-e5d026388b92"),
+    name = GroupName("Organization-B"),
     subGroups = setOf(subGroupOrgB1, subGroupOrgB2)
 )
 
 internal val groupOrgC = Group(
-    id = "db48d4f2-ac1e-43da-af9e-b0c1273e97d3",
-    name = "Organization-C",
+    id = GroupId("db48d4f2-ac1e-43da-af9e-b0c1273e97d3"),
+    name = GroupName("Organization-C"),
     subGroups = emptySet()
 )
 
 internal val adminRole = Role(
-    id = "d9e21fcd-807e-4336-9ccc-e6a84137d530",
-    name = "ADMIN",
+    id = RoleId("d9e21fcd-807e-4336-9ccc-e6a84137d530"),
+    name = RoleName("ADMIN"),
     description = "This is a test admin role."
 )
 
 internal val visitorRole = Role(
-    id = "c3e85536-548b-4c9f-bb40-d5686c362819",
-    name = "VISITOR",
+    id = RoleId("c3e85536-548b-4c9f-bb40-d5686c362819"),
+    name = RoleName("VISITOR"),
     description = "This is a test visitor role."
 )
 
 internal val compositeRole = Role(
-    id = "c3e02976-7abe-4a41-86f0-c8f012d0ca3b",
-    name = "COMPOSITE",
+    id = RoleId("c3e02976-7abe-4a41-86f0-c8f012d0ca3b"),
+    name = RoleName("COMPOSITE"),
     description = "This is a test composite role."
 )
 
 internal val adminUser = User(
-    id = "002a40cc-3bef-4c8e-8045-ac7d00f36b19",
-    username = "admin",
+    id = UserId("002a40cc-3bef-4c8e-8045-ac7d00f36b19"),
+    username = UserName("admin"),
     firstName = "Admin",
     lastName = "User",
     email = "realm-admin@org.com"
 )
 
 internal val ortAdminUser = User(
-    id = "28414e51-b0bb-42eb-8b42-f0b4740f4f44",
-    username = "ort-test-admin",
+    id = UserId("28414e51-b0bb-42eb-8b42-f0b4740f4f44"),
+    username = UserName("ort-test-admin"),
     firstName = "Test",
     lastName = "User",
     email = "admin@org.com"
 )
 
 internal val visitorUser = User(
-    id = "cc07c45f-11e9-4c9b-8ff0-873c93351d42",
-    username = "visitor",
+    id = UserId("cc07c45f-11e9-4c9b-8ff0-873c93351d42"),
+    username = UserName("visitor"),
     firstName = "Test",
     lastName = "Visitor",
     email = "visitor@org.com"

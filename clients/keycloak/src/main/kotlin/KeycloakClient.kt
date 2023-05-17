@@ -156,69 +156,69 @@ class KeycloakClient(
     /**
      * Return exactly the [group][Group] with the given [id].
      */
-    suspend fun getGroup(id: String): Group =
+    suspend fun getGroup(id: GroupId): Group =
         runCatching {
-            httpClient.get("$apiUrl/groups/$id")
+            httpClient.get("$apiUrl/groups/${id.value}")
         }.getOrElse {
-            throw KeycloakClientException("Could not find group '$id'.", it)
+            throw KeycloakClientException("Could not find group '${id.value}'.", it)
         }.body()
 
     /**
      * Return the [group][Group] with the given [name].
      */
-    suspend fun getGroupByName(name: String): Group =
+    suspend fun getGroupByName(name: GroupName): Group =
         runCatching {
             // Keycloak does not provide an API to get a group by name, so use a search query and filter the result.
             httpClient.get("$apiUrl/groups") {
                 url {
-                    parameters.append("search", name)
+                    parameters.append("search", name.value)
                     parameters.append("exact", "true")
                 }
             }
         }.getOrElse {
-            throw KeycloakClientException("Could not find group with name '$name'.", it)
+            throw KeycloakClientException("Could not find group with name '${name.value}'.", it)
         }.body<List<Group>>().findByName(name).takeIf { it != null }
-            ?: throw KeycloakClientException("Could not find group with name '$name'.")
+            ?: throw KeycloakClientException("Could not find group with name '${name.value}'.")
 
     /**
      * Add a new [group][Group] to the Keycloak realm with the given [name].
      */
-    suspend fun createGroup(name: String): HttpResponse =
+    suspend fun createGroup(name: GroupName): HttpResponse =
         runCatching {
             httpClient.post("$apiUrl/groups") {
                 setBody(GroupRequest(name))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create group '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create group '${name.value}'.", it) }
 
     /**
      * Add a new [subgroup][Group] with the given [name] to the [group][Group] with the given [id].
      */
-    suspend fun createSubGroup(id: String, name: String): Group =
+    suspend fun createSubGroup(id: GroupId, name: GroupName): Group =
         runCatching {
-            httpClient.post("$apiUrl/groups/$id/children") {
+            httpClient.post("$apiUrl/groups/${id.value}/children") {
                 setBody(GroupRequest(name))
             }
         }.getOrElse {
-            throw KeycloakClientException("Failed to add subgroup '$name' to the group '$id'.", it)
+            throw KeycloakClientException("Failed to add subgroup '${name.value}' to the group '${id.value}'.", it)
         }.body()
 
     /**
      * Update the [group][Group] with the given [id], with the new [name] in the Keycloak realm.
      */
-    suspend fun updateGroup(id: String, name: String): HttpResponse =
+    suspend fun updateGroup(id: GroupId, name: GroupName): HttpResponse =
         runCatching {
-            httpClient.put("$apiUrl/groups/$id") {
+            httpClient.put("$apiUrl/groups/${id.value}") {
                 setBody(GroupRequest(name))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to update group '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update group '${id.value}'.", it) }
 
     /**
      * Delete the [group][Group] within the Keycloak realm with the given [id].
      */
-    suspend fun deleteGroup(id: String): HttpResponse =
+    suspend fun deleteGroup(id: GroupId): HttpResponse =
         runCatching {
-            httpClient.delete("$apiUrl/groups/$id")
-        }.getOrElse { throw KeycloakClientException("Failed to delete group '$id'.", it) }
+            httpClient.delete("$apiUrl/groups/${id.value}")
+        }.getOrElse { throw KeycloakClientException("Failed to delete group '${id.value}'.", it) }
 
     /**
      * Return a set of all [roles][Role] that are currently defined for the configured [client][clientId].
@@ -233,58 +233,58 @@ class KeycloakClient(
     /**
      * Return exactly the client [role][Role] with the given [name].
      */
-    suspend fun getRole(name: String): Role =
+    suspend fun getRole(name: RoleName): Role =
         runCatching {
-            httpClient.get("$apiUrl/clients/${getClientId()}/roles/$name")
+            httpClient.get("$apiUrl/clients/${getClientId()}/roles/${name.value}")
         }.getOrElse {
-            throw KeycloakClientException("Could not find role '$name'.", it)
+            throw KeycloakClientException("Could not find role '${name.value}'.", it)
         }.body()
 
     /**
      * Add a new [role][Role] to the configured [client][clientId] with the given [name] and [description].
      */
-    suspend fun createRole(name: String, description: String? = null): HttpResponse =
+    suspend fun createRole(name: RoleName, description: String? = null): HttpResponse =
         runCatching {
             httpClient.post("$apiUrl/clients/${getClientId()}/roles") {
                 setBody(RoleRequest(name, description))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create role '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create role '${name.value}'.", it) }
 
     /**
      * Update the [role][Role] within the configured [client][clientId] with the new [updatedName] and
      * [updatedDescription].
      */
-    suspend fun updateRole(name: String, updatedName: String, updatedDescription: String?): HttpResponse {
+    suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?): HttpResponse {
         val oldRole = getRole(name)
 
         val roleDescription = getUpdatedValue(oldRole.description, updatedDescription)
 
         return runCatching {
-            httpClient.put("$apiUrl/clients/${getClientId()}/roles/$name") {
+            httpClient.put("$apiUrl/clients/${getClientId()}/roles/${name.value}") {
                 setBody(RoleRequest(updatedName, roleDescription))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to update role '$name'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update role '${name.value}'.", it) }
     }
 
     /**
      * Delete the [role][Role] within the configured [client][clientId] with the given [name].
      */
-    suspend fun deleteRole(name: String): HttpResponse =
+    suspend fun deleteRole(name: RoleName): HttpResponse =
         runCatching {
-            httpClient.delete("$apiUrl/clients/${getClientId()}/roles/$name")
-        }.getOrElse { throw KeycloakClientException("Failed to delete role '$name'.", it) }
+            httpClient.delete("$apiUrl/clients/${getClientId()}/roles/${name.value}")
+        }.getOrElse { throw KeycloakClientException("Failed to delete role '${name.value}'.", it) }
 
     /**
      * Add the role identified by [compositeRoleId] to the composites of the role identified by [name].
      */
-    suspend fun addCompositeRole(name: String, compositeRoleId: String): HttpResponse =
+    suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse =
         runCatching {
-            httpClient.post("$apiUrl/clients/${getClientId()}/roles/$name/composites") {
-                setBody(listOf(RoleId(compositeRoleId)))
+            httpClient.post("$apiUrl/clients/${getClientId()}/roles/${name.value}/composites") {
+                setBody(listOf(RoleIdHolder(compositeRoleId)))
             }
         }.getOrElse {
             throw KeycloakClientException(
-                "Failed to add composite role with id '$compositeRoleId' to role '$name'.",
+                "Failed to add composite role with id '${compositeRoleId.value}' to role '${name.value}'.",
                 it
             )
         }
@@ -292,11 +292,11 @@ class KeycloakClient(
     /**
      * Get all composite roles of the [role][Role] with the given [name].
      */
-    suspend fun getCompositeRoles(name: String): List<Role> =
+    suspend fun getCompositeRoles(name: RoleName): List<Role> =
         runCatching {
-            httpClient.get("$apiUrl/clients/${getClientId()}/roles/$name/composites")
+            httpClient.get("$apiUrl/clients/${getClientId()}/roles/${name.value}/composites")
         }.getOrElse {
-            throw KeycloakClientException("Failed to find composites for role '$name'.", it)
+            throw KeycloakClientException("Failed to find composites for role '${name.value}'.", it)
         }.body()
 
     /**
@@ -318,36 +318,36 @@ class KeycloakClient(
     /**
      * Return exactly the [user][User] with the given [id].
      */
-    suspend fun getUser(id: String): User =
+    suspend fun getUser(id: UserId): User =
         runCatching {
-            httpClient.get("$apiUrl/users/$id")
+            httpClient.get("$apiUrl/users/${id.value}")
         }.getOrElse {
-            throw KeycloakClientException("Could not find user '$id'.", it)
+            throw KeycloakClientException("Could not find user '${id.value}'.", it)
         }.body()
 
     /**
      * Return the [user][User] with the given [username].
      */
-    suspend fun getUserByName(username: String): User =
+    suspend fun getUserByName(username: UserName): User =
         runCatching {
             // Keycloak does not provide an API to get a single user by name, so use a search query and filter the
             // result.
             httpClient.get("$apiUrl/users") {
                 url {
-                    parameters.append("username", username)
+                    parameters.append("username", username.value)
                     parameters.append("exact", "true")
                 }
             }
         }.getOrElse {
-            throw KeycloakClientException("Could not find user with name '$username'.", it)
+            throw KeycloakClientException("Could not find user with name '${username.value}'.", it)
         }.body<List<User>>().find { it.username == username }
-            ?: throw KeycloakClientException("Could not find user with name '$username'.")
+            ?: throw KeycloakClientException("Could not find user with name '${username.value}'.")
 
     /**
      * Create a new [user][User] in the Keycloak realm with the given [username], [firstName], [lastName] and [email].
      */
     suspend fun createUser(
-        username: String,
+        username: UserName,
         firstName: String? = null,
         lastName: String? = null,
         email: String? = null
@@ -356,40 +356,40 @@ class KeycloakClient(
             httpClient.post("$apiUrl/users") {
                 setBody(UserRequest(username, firstName, lastName, email))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create user '$username'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to create user '${username.value}'.", it) }
 
     /**
      * Update the [user][User] with the given [id] within the Keycloak realm with the new [username], [firstName],
      * [lastName] and [email].
      */
     suspend fun updateUser(
-        id: String,
-        username: String? = null,
+        id: UserId,
+        username: UserName? = null,
         firstName: String? = null,
         lastName: String? = null,
         email: String? = null
     ): HttpResponse {
         val oldUser = getUser(id)
 
-        val correctUsername = getUpdatedValue(oldUser.username, username)
+        val correctUsername = getUpdatedValue(oldUser.username.value, username?.value)?.let { UserName(it) }
         val correctFirstName = getUpdatedValue(oldUser.firstName, firstName)
         val correctLastName = getUpdatedValue(oldUser.lastName, lastName)
         val correctEmail = getUpdatedValue(oldUser.email, email)
 
         return runCatching {
-            httpClient.put("$apiUrl/users/$id") {
+            httpClient.put("$apiUrl/users/${id.value}") {
                 setBody(UserRequest(correctUsername, correctFirstName, correctLastName, correctEmail))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to update user '$id'.", it) }
+        }.getOrElse { throw KeycloakClientException("Failed to update user '${id.value}'.", it) }
     }
 
     /**
      * Delete the [user][User] with the given [id] from the Keycloak realm.
      */
-    suspend fun deleteUser(id: String): HttpResponse =
+    suspend fun deleteUser(id: UserId): HttpResponse =
         runCatching {
-            httpClient.delete("$apiUrl/users/$id")
-        }.getOrElse { throw KeycloakClientException("Failed to delete user '$id'.", it) }
+            httpClient.delete("$apiUrl/users/${id.value}")
+        }.getOrElse { throw KeycloakClientException("Failed to delete user '${id.value}'.", it) }
 }
 
 /**
@@ -413,16 +413,24 @@ private data class Client(
     val clientId: String
 )
 
+@JvmInline
+@Serializable
+value class RoleId(val value: String)
+
+@JvmInline
+@Serializable
+value class RoleName(val value: String)
+
 /**
  * A data class representing a role managed by Keycloak.
  */
 @Serializable
 data class Role(
     /** The internal ID of the role. */
-    val id: String,
+    val id: RoleId,
 
     /** The role name. */
-    val name: String,
+    val name: RoleName,
 
     /** The description of the role. */
     val description: String? = null
@@ -430,14 +438,22 @@ data class Role(
 
 @Serializable
 data class RoleRequest(
-    val name: String,
+    val name: RoleName,
     val description: String?
 )
 
 @Serializable
-data class RoleId(
-    val id: String
+data class RoleIdHolder(
+    val id: RoleId
 )
+
+@JvmInline
+@Serializable
+value class GroupId(val value: String)
+
+@JvmInline
+@Serializable
+value class GroupName(val value: String)
 
 /**
  * A data class representing a group managed by Keycloak.
@@ -445,10 +461,10 @@ data class RoleId(
 @Serializable
 data class Group(
     /** The internal ID of the group. */
-    val id: String,
+    val id: GroupId,
 
     /** The group name. */
-    val name: String,
+    val name: GroupName,
 
     /** A set of groups, which represents the subgroup hierarchy. */
     val subGroups: Set<Group>
@@ -457,7 +473,7 @@ data class Group(
 /**
  * Recursively search for a group with the provided [name].
  */
-private fun Collection<Group>.findByName(name: String): Group? {
+private fun Collection<Group>.findByName(name: GroupName): Group? {
     forEach {
         if (it.name == name) return it
         val group = it.subGroups.findByName(name)
@@ -469,8 +485,16 @@ private fun Collection<Group>.findByName(name: String): Group? {
 
 @Serializable
 private data class GroupRequest(
-    val name: String,
+    val name: GroupName,
 )
+
+@JvmInline
+@Serializable
+value class UserId(val value: String)
+
+@JvmInline
+@Serializable
+value class UserName(val value: String)
 
 /**
  * A data class representing a user managed by Keycloak.
@@ -478,10 +502,10 @@ private data class GroupRequest(
 @Serializable
 data class User(
     /** The internal ID of the user. */
-    val id: String,
+    val id: UserId,
 
     /** The username of the user. */
-    val username: String,
+    val username: UserName,
 
     /** The first name of the user. */
     val firstName: String? = null,
@@ -498,7 +522,7 @@ data class User(
 
 @Serializable
 private data class UserRequest(
-    val username: String?,
+    val username: UserName?,
     val firstName: String?,
     val lastName: String?,
     val email: String?,
