@@ -35,8 +35,8 @@ helps to clean the project and stop the Gradle Daemon:
 ./gradlew --stop
 ```
 
-Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to choose the
-one to activate with a [profile](https://docs.docker.com/compose/profiles/):
+Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to
+choose the one to activate with a [profile](https://docs.docker.com/compose/profiles/):
 
 ```shell
 docker compose --profile rabbitmq up
