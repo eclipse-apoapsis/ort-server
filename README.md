@@ -27,6 +27,14 @@ Then build all Docker images with [Jib](https://github.com/GoogleContainerTools/
 ./gradlew jibDockerBuild
 ```
 
+The `jibDockerBuild` task occasionally gets stuck while pulling the Eclipse Temurin base image. In this case it usually
+helps to clean the project and stop the Gradle Daemon:
+
+```shell
+./gradlew clean
+./gradlew --stop
+```
+
 Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to choose the
 one to activate with a [profile](https://docs.docker.com/compose/profiles/):
 
