@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -28,6 +29,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
@@ -38,11 +41,14 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
  * Integration test class testing some error conditions during API requests and how they are handled.
  */
 class ErrorsIntegrationTest : StringSpec() {
+    private val keycloak = install(KeycloakTestExtension())
+    private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+
     init {
         extension(DatabaseTestExtension())
 
         "An unauthorized call yields the correct status code" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations")
@@ -52,7 +58,7 @@ class ErrorsIntegrationTest : StringSpec() {
         }
 
         "Sorting by an unsupported field should be handled" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?sort=color") {
@@ -71,7 +77,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid limit parameter should be handled" {
             val limitValue = "a-couple-of"
 
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=$limitValue") {
@@ -92,7 +98,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid offset parameter should be handled" {
             val offsetValue = "a-quarter"
 
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue") {

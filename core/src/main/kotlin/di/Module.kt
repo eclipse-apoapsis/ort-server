@@ -85,7 +85,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single<AuthorizationService> { DefaultAuthorizationService(get()) }
     single { OrchestratorService(get(), get()) }
-    single { OrganizationService(get(), get()) }
+    single { OrganizationService(get(), get(), get()) }
     single { ProductService(get(), get()) }
     single { RepositoryService(get(), get()) }
     single { SecretService(get(), get()) }

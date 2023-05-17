@@ -20,25 +20,37 @@
 package org.ossreviewtoolkit.server.services
 
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
+
 /**
  * A service providing functions for working with [organizations][Organization].
  */
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Create an organization.
      */
-    suspend fun createOrganization(name: String, description: String?): Organization = dbQuery {
+    suspend fun createOrganization(name: String, description: String?): Organization = dbQueryCatching {
         organizationRepository.create(name, description)
-    }
+    }.onSuccess { organization ->
+        runCatching {
+            authorizationService.createOrganizationPermissions(organization.id)
+        }.onFailure {
+            logger.error("Could not create permissions for organization '${organization.id}'.", it)
+        }
+    }.getOrThrow()
 
     /**
      * Create a product inside an [organization][organizationId].
@@ -50,9 +62,15 @@ class OrganizationService(
     /**
      * Delete an organization by [organizationId].
      */
-    suspend fun deleteOrganization(organizationId: Long): Unit = dbQuery {
+    suspend fun deleteOrganization(organizationId: Long): Unit = dbQueryCatching {
         organizationRepository.delete(organizationId)
-    }
+    }.onSuccess {
+        runCatching {
+            authorizationService.deleteOrganizationPermissions(organizationId)
+        }.onFailure {
+            logger.error("Could not delete permissions for organization '$organizationId'.", it)
+        }
+    }.getOrThrow()
 
     /**
      * Get an organization by [organizationId]. Returns null if the organization is not found.
