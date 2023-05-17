@@ -94,13 +94,13 @@ class KeycloakClientTest : WordSpec() {
 
         "getGroupByName" should {
             "return the correct realm group" {
-                client.getGroupByName(groupOrgA.name) shouldBe groupOrgA
-                client.getGroupByName(subGroupOrgB1.name) shouldBe subGroupOrgB1
+                client.getGroup(groupOrgA.name) shouldBe groupOrgA
+                client.getGroup(subGroupOrgB1.name) shouldBe subGroupOrgB1
             }
 
             "throw an exception if the group does not exist" {
                 shouldThrow<KeycloakClientException> {
-                    client.getGroupByName(GroupName("1"))
+                    client.getGroup(GroupName("1"))
                 }
             }
         }
@@ -108,7 +108,7 @@ class KeycloakClientTest : WordSpec() {
         "createGroup" should {
             "successfully add a new realm group" {
                 val response = client.createGroup(GroupName("TEST_GROUP"))
-                val group = client.getGroupByName(GroupName("TEST_GROUP"))
+                val group = client.getGroup(GroupName("TEST_GROUP"))
 
                 response.status shouldBe HttpStatusCode.Created
                 group.name shouldBe GroupName("TEST_GROUP")
@@ -126,11 +126,11 @@ class KeycloakClientTest : WordSpec() {
         "updateGroup" should {
             "successfully update the given realm group" {
                 client.createGroup(GroupName("TEST_GROUP"))
-                val group = client.getGroupByName(GroupName("TEST_GROUP"))
+                val group = client.getGroup(GroupName("TEST_GROUP"))
                 val updatedGroup = group.copy(name = GroupName("UPDATED_TEST_GROUP"))
 
                 val response = client.updateGroup(group.id, updatedGroup.name)
-                val updatedKeycloakGroup = client.getGroupByName(GroupName("UPDATED_TEST_GROUP"))
+                val updatedKeycloakGroup = client.getGroup(GroupName("UPDATED_TEST_GROUP"))
 
                 response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakGroup shouldBe updatedGroup
@@ -154,14 +154,14 @@ class KeycloakClientTest : WordSpec() {
         "deleteGroup" should {
             "successfully delete the given realm group" {
                 client.createGroup(GroupName("TEST_GROUP"))
-                val group = client.getGroupByName(GroupName("TEST_GROUP"))
+                val group = client.getGroup(GroupName("TEST_GROUP"))
 
                 val response = client.deleteGroup(group.id)
 
                 response.status shouldBe HttpStatusCode.NoContent
 
                 shouldThrow<KeycloakClientException> {
-                    client.getGroupByName(GroupName("TEST_GROUP"))
+                    client.getGroup(GroupName("TEST_GROUP"))
                 }
             }
 
@@ -343,12 +343,12 @@ class KeycloakClientTest : WordSpec() {
 
         "getUserByName" should {
             "return the correct realm user" {
-                client.getUserByName(adminUser.username) shouldBe adminUser
+                client.getUser(adminUser.username) shouldBe adminUser
             }
 
             "throw an exception if the user does not exist" {
                 shouldThrow<KeycloakClientException> {
-                    client.getUserByName(UserName("1"))
+                    client.getUser(UserName("1"))
                 }
             }
         }
@@ -356,7 +356,7 @@ class KeycloakClientTest : WordSpec() {
         "createUser" should {
             "successfully add a new realm user" {
                 val response = client.createUser(UserName("test_user"))
-                val user = client.getUserByName(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
 
                 response.status shouldBe HttpStatusCode.Created
 
@@ -375,7 +375,7 @@ class KeycloakClientTest : WordSpec() {
         "updateUser" should {
             "update only the firstname of the user" {
                 client.createUser(UserName("test_user"), firstName = "firstName")
-                val user = client.getUserByName(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
 
                 val updatedUser = user.copy(firstName = "updatedFirstName")
                 val response = client.updateUser(id = user.id, firstName = updatedUser.firstName)
@@ -394,7 +394,7 @@ class KeycloakClientTest : WordSpec() {
                     lastName = "lastName",
                     email = "email@example.com"
                 )
-                val user = client.getUserByName(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
 
                 val updatedUser = user.copy(
                     firstName = "updatedFirstName",
@@ -427,7 +427,7 @@ class KeycloakClientTest : WordSpec() {
         "deleteUser" should {
             "successfully delete the given realm user" {
                 client.createUser(UserName("test_user"))
-                val user = client.getUserByName(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
 
                 val response = client.deleteUser(user.id)
 

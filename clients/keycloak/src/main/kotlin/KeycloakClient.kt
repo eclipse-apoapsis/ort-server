@@ -166,7 +166,7 @@ class KeycloakClient(
     /**
      * Return the [group][Group] with the given [name].
      */
-    suspend fun getGroupByName(name: GroupName): Group =
+    suspend fun getGroup(name: GroupName): Group =
         runCatching {
             // Keycloak does not provide an API to get a group by name, so use a search query and filter the result.
             httpClient.get("$apiUrl/groups") {
@@ -328,7 +328,7 @@ class KeycloakClient(
     /**
      * Return the [user][User] with the given [username].
      */
-    suspend fun getUserByName(username: UserName): User =
+    suspend fun getUser(username: UserName): User =
         runCatching {
             // Keycloak does not provide an API to get a single user by name, so use a search query and filter the
             // result.
