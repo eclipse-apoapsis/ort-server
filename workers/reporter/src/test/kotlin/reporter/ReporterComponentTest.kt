@@ -23,13 +23,16 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.mockkClass
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
@@ -65,6 +68,14 @@ class ReporterComponentTest : KoinTest, StringSpec() {
         "The database module should be added" {
             runEndpointTest {
                 verifyDatabaseModuleIncluded()
+            }
+        }
+
+        "Dependency injection is correctly set up" {
+            runEndpointTest {
+                val reporterWorker by inject<ReporterWorker>()
+
+                reporterWorker shouldNot beNull()
             }
         }
 
