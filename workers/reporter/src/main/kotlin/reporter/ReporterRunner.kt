@@ -55,7 +55,7 @@ class ReporterRunner(
         //       reporter worker.
         val reporterInput = ReporterInput(ortResult)
 
-        val results = runBlocking(Dispatchers.Default) {
+        val results = runBlocking(Dispatchers.IO) {
             reporters.map { reporter ->
                 async {
                     logger.info("Generating the '${reporter.type}' report...")
