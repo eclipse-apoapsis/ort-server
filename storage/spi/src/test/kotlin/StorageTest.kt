@@ -73,7 +73,9 @@ class StorageTest : WordSpec({
             val key = Key("testData")
 
             val storage = createStorage()
-            storage.write(key, ByteArrayInputStream(data), data.size.toLong(), CONTENT_TYPE)
+            ByteArrayInputStream(data).use { stream ->
+                storage.write(key, stream, data.size.toLong(), CONTENT_TYPE)
+            }
 
             val entry = StorageProviderFactoryForTesting.getEntry(key)
             entry.contentType shouldBe CONTENT_TYPE
@@ -85,7 +87,9 @@ class StorageTest : WordSpec({
             val storage = createStorage()
 
             shouldThrow<StorageException> {
-                storage.write(Key(ERROR_KEY), ByteArrayInputStream(ByteArray(1)), 1L)
+                ByteArrayInputStream(ByteArray(1)).use { stream ->
+                    storage.write(Key(ERROR_KEY), stream, 1L)
+                }
             }
         }
 

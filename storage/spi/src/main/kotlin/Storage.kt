@@ -86,7 +86,8 @@ class Storage(
 
     /**
      * Write the given [data] with the given [length] and optional [contentType] into this storage and associate it
-     * with the given [key]. Throw a [StorageException] if this operation fails.
+     * with the given [key].  Throw a [StorageException] if this operation fails. Note that the caller is responsible
+     * for closing the provided [InputStream].
      */
     fun write(key: Key, data: InputStream, length: Long, contentType: String? = null) {
         wrapException {
@@ -99,7 +100,9 @@ class Storage(
      * [contentType]. Throw a [StorageException] if this operation fails.
      */
     fun write(key: Key, data: ByteArray, contentType: String? = null) {
-        write(key, ByteArrayInputStream(data), data.size.toLong(), contentType)
+        ByteArrayInputStream(data).use { stream ->
+            write(key, stream, data.size.toLong(), contentType)
+        }
     }
 
     /**
