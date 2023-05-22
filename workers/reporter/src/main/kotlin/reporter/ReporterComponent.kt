@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.storage.Storage
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.Message
@@ -94,6 +95,9 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         singleOf<ReporterJobRepository>(::DaoReporterJobRepository)
         singleOf<RepositoryRepository>(::DaoRepositoryRepository)
 
+        single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
+
+        singleOf(::ReportStorage)
         singleOf(::ReporterWorkerDao)
         singleOf(::ReporterRunner)
         singleOf(::ReporterWorker)

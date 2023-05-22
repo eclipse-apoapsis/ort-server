@@ -26,9 +26,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.unmockkObject
+import io.mockk.verify
 
 import java.io.FileNotFoundException
 
@@ -36,20 +39,28 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 
-class ReporterRunnerTest : WordSpec({
-    val runner = ReporterRunner()
+private const val RUN_ID = 20230522093727L
 
+class ReporterRunnerTest : WordSpec({
     afterEach {
         unmockkObject(Reporter)
     }
 
     "run" should {
         "return a map with report format and directory" {
-            val result = runner.run(OrtResult.EMPTY, ReporterJobConfiguration(listOf("WebApp")))
+            val storage = mockk<ReportStorage>()
+            every { storage.storeReportFiles(any(), any()) } just runs
+            val runner = ReporterRunner(storage)
+
+            val result = runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf("WebApp")))
 
             result.shouldMatchAll(
                 "WebApp" to { it.size shouldBe 1 }
             )
+
+            verify {
+                storage.storeReportFiles(RUN_ID, result.getValue("WebApp"))
+            }
         }
 
         "should throw an exception when a reporter fails" {
@@ -67,15 +78,19 @@ class ReporterRunnerTest : WordSpec({
             }
 
             val exception = shouldThrow<IllegalArgumentException> {
-                runner.run(OrtResult.EMPTY, ReporterJobConfiguration(listOf(reportFormat)))
+                val runner = ReporterRunner(mockk(relaxed = true))
+
+                runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf(reportFormat)))
             }
 
             exception.message shouldContain "TestFormat: .*FileNotFoundException = Something went wrong".toRegex()
         }
 
         "should throw an exception when requesting an unknown report format" {
+            val runner = ReporterRunner(mockk(relaxed = true))
+
             shouldThrow<IllegalArgumentException> {
-                runner.run(OrtResult.EMPTY, ReporterJobConfiguration(listOf("UnknownFormat")))
+                runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf("UnknownFormat")))
             }
         }
     }

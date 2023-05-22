@@ -63,7 +63,7 @@ internal class ReporterWorker(private val runner: ReporterRunner, private val da
             Pair(reporterJob, ortResult)
         }
 
-        runner.run(ortResult, reporterJob.configuration)
+        runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration)
 
         RunResult.Success
     }.getOrElse {

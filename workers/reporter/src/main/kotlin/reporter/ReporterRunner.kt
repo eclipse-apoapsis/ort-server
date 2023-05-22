@@ -37,8 +37,11 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ReporterRunner::class.java)
 
-class ReporterRunner {
-    fun run(ortResult: OrtResult, config: ReporterJobConfiguration): Map<String, List<File>> {
+class ReporterRunner(
+    /** The object to store the generated report files. */
+    private val reportStorage: ReportStorage
+) {
+    fun run(runId: Long, ortResult: OrtResult, config: ReporterJobConfiguration): Map<String, List<File>> {
         val reporters = config.formats.map { format ->
             requireNotNull(Reporter.ALL[format]) {
                 "No reporter found for the configured format '$format'."
@@ -56,7 +59,11 @@ class ReporterRunner {
             reporters.map { reporter ->
                 async {
                     logger.info("Generating the '${reporter.type}' report...")
-                    reporter to runCatching { reporter.generateReport(reporterInput, outputDir) }
+                    reporter to runCatching {
+                        reporter.generateReport(reporterInput, outputDir).also {
+                            reportStorage.storeReportFiles(runId, it)
+                        }
+                    }
                 }
             }.awaitAll()
         }.partition { it.second.isSuccess }

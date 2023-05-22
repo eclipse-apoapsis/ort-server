@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.typesafeConfig)
 
     runtimeOnly(platform(libs.ortReporters))
+    runtimeOnly(project(":storage:database"))
 
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":storage:spi")))

@@ -61,6 +61,8 @@ private val reporterJob = ReporterJob(
 )
 
 class ReporterWorkerTest : StringSpec({
+    val runner = ReporterRunner(mockk(relaxed = true))
+
     beforeSpec {
         mockkStatic(::findResolvedRevision)
 
@@ -100,7 +102,7 @@ class ReporterWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = ReporterWorker(ReporterRunner(), dao)
+        val worker = ReporterWorker(runner, dao)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
@@ -115,7 +117,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } throws testException
         }
 
-        val worker = ReporterWorker(ReporterRunner(), dao)
+        val worker = ReporterWorker(runner, dao)
 
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
@@ -131,7 +133,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns invalidJob
         }
 
-        val worker = ReporterWorker(ReporterRunner(), dao)
+        val worker = ReporterWorker(runner, dao)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
