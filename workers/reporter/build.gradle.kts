@@ -34,6 +34,7 @@ version = "0.0.1"
 dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
+    implementation(project(":storage:spi"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:kubernetes"))
     implementation(project(":transport:rabbitmq"))
@@ -47,6 +48,7 @@ dependencies {
     runtimeOnly(platform(libs.ortReporters))
 
     testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":storage:spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
 
     testImplementation(libs.koinTest)
