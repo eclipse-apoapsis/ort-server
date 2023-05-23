@@ -23,10 +23,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
-import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.extensions.testcontainers.TestContainerExtension
-import io.kotest.extensions.testcontainers.perSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -38,18 +35,17 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_PASSWORD
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_USERNAME
+import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
+
 class KeycloakClientTest : WordSpec() {
-    private val keycloak = install(TestContainerExtension(KeycloakContainer()))
-
-    override suspend fun beforeSpec(spec: Spec) {
-        // For performance reasons the test container must be started once per spec.
-        listeners(keycloak.perSpec())
-
-        // Creating the test realm takes about two seconds and deleting it would take another second, so create the
-        // realm only once per spec to improve test performance. Therefore, all tests that modify data must not modify
-        // the predefined test data and clean up after themselves to ensure that tests are isolated.
-        keycloak.keycloakAdminClient.realms().create(testRealm)
-    }
+    // For performance reasons the test realm is created only once per spec. Therefore, all tests that modify data must
+    // not modify the predefined test data and clean up after themselves to ensure that tests are isolated.
+    private val keycloak = install(KeycloakTestExtension(clientTestRealm))
 
     init {
         val client = keycloak.createTestClient()
@@ -321,7 +317,7 @@ class KeycloakClientTest : WordSpec() {
             "return the correct realm users" {
                 val users = client.getUsers()
 
-                users shouldContainExactlyInAnyOrder setOf(adminUser, ortAdminUser, visitorUser)
+                users shouldContainExactlyInAnyOrder setOf(testRealmAdmin, adminUser, visitorUser)
             }
         }
 
@@ -454,12 +450,12 @@ private fun KeycloakContainer.createTestClient(): KeycloakClient =
 /**
  * Generate a configuration with test properties based on this container to be consumed by a test client instance.
  */
-private fun KeycloakContainer.createConfig(secret: String = API_SECRET) =
+private fun KeycloakContainer.createConfig(secret: String = TEST_REALM_ADMIN_PASSWORD) =
     KeycloakClientConfiguration(
-        apiUrl = "${authServerUrl}admin/realms/$REALM",
-        clientId = CLIENT_ID,
-        accessTokenUrl = "${authServerUrl}realms/$REALM/protocol/openid-connect/token",
-        apiUser = API_USER,
+        apiUrl = "${authServerUrl}admin/realms/$TEST_REALM",
+        clientId = TEST_CLIENT,
+        accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
+        apiUser = TEST_REALM_ADMIN_USERNAME,
         apiSecret = secret
     )
 

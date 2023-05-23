@@ -19,10 +19,11 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak
 
-import org.keycloak.representations.idm.ClientRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RolesRepresentation
 
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.toGroupRepresentation
 import org.ossreviewtoolkit.server.clients.keycloak.test.toRoleRepresentation
 import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
@@ -83,14 +84,6 @@ internal val adminUser = User(
     email = "realm-admin@org.com"
 )
 
-internal val ortAdminUser = User(
-    id = UserId("28414e51-b0bb-42eb-8b42-f0b4740f4f44"),
-    username = UserName("ort-test-admin"),
-    firstName = "Test",
-    lastName = "User",
-    email = "admin@org.com"
-)
-
 internal val visitorUser = User(
     id = UserId("cc07c45f-11e9-4c9b-8ff0-873c93351d42"),
     username = UserName("visitor"),
@@ -99,39 +92,17 @@ internal val visitorUser = User(
     email = "visitor@org.com"
 )
 
-/** The name of the realm containing the test data. */
-internal const val REALM = "ort"
-
-/** The clientId of the Keycloak test client. */
-internal const val CLIENT_ID = "test-server"
-
-/** The internal ID of the Keycloak test client (not clientId). */
-internal const val INTERNAL_ID = "d6fa01bd-525d-4b3c-aa75-c3ff0bb1bd1c"
-
-/** The API user to access the Keycloak REST API. */
-internal const val API_USER = "ort-test-admin"
-
-/** The secret used by the API user to access the Keycloak REST API. */
-internal const val API_SECRET = "secret"
-
-internal val testRealm = RealmRepresentation().apply {
-    realm = REALM
+val clientTestRealm = RealmRepresentation().apply {
+    realm = testRealm.realm
     isEnabled = true
 
-    clients = listOf(
-        ClientRepresentation().apply {
-            id = CLIENT_ID
-            isEnabled = true
-            isPublicClient = true
-            isDirectAccessGrantsEnabled = true
-        }
-    )
+    clients = testRealm.clients
 
     roles = RolesRepresentation().apply {
         client = mapOf(
-            CLIENT_ID to listOf(
+            TEST_CLIENT to listOf(
                 visitorRole.toRoleRepresentation(
-                    compositeClientRoles = mapOf(CLIENT_ID to listOf(compositeRole.name))
+                    compositeClientRoles = mapOf(TEST_CLIENT to listOf(compositeRole.name))
                 ),
                 compositeRole.toRoleRepresentation(),
                 adminRole.toRoleRepresentation()
@@ -139,14 +110,8 @@ internal val testRealm = RealmRepresentation().apply {
         )
     }
 
-    users = listOf(
+    users = testRealm.users + listOf(
         adminUser.toUserRepresentation(),
-        ortAdminUser.toUserRepresentation(
-            password = API_SECRET,
-            clientRoles = mapOf(
-                "realm-management" to listOf(RoleName("realm-admin"))
-            )
-        ),
         visitorUser.toUserRepresentation()
     )
 
