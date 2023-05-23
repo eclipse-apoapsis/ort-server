@@ -27,6 +27,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 
 /**
  * A table to represent a scan result.
@@ -46,4 +47,13 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
     var issues by OrtIssueDao via ScanSummariesIssuesTable
+
+    fun mapToModel() = ScanSummary(
+        startTime = startTime,
+        endTime = endTime,
+        packageVerificationCode = packageVerificationCode,
+        licenseFindings = licenseFindings.map(LicenseFindingDao::mapToModel).toSet(),
+        copyrightFindings = copyrightFindings.map(CopyrightFindingDao::mapToModel).toSet(),
+        issues = issues.map(OrtIssueDao::mapToModel)
+    )
 }
