@@ -24,6 +24,9 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.scanner.LicenseFinding
+import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
+
 /**
  * A table to represent a license finding.
  */
@@ -45,4 +48,14 @@ class LicenseFindingDao(id: EntityID<Long>) : LongEntity(id) {
     var endLine by LicenseFindingsTable.endLine
     var score by LicenseFindingsTable.score
     var scanSummary by ScanSummaryDao referencedOn LicenseFindingsTable.scanSummaryId
+
+    fun mapToModel() = LicenseFinding(
+        spdxLicense = license,
+        location = TextLocation(
+            path = path,
+            startLine = startLine,
+            endLine = endLine,
+        ),
+        score = score
+    )
 }
