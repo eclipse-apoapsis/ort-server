@@ -27,6 +27,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.utils.jsonb
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
+import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 
 /**
  * A table to represent a scan result.
@@ -57,6 +60,19 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
     var scannerVersion by ScanResultsTable.scannerVersion
     var scannerConfiguration by ScanResultsTable.scannerConfiguration
     var additionalScanResultData by ScanResultsTable.additionalScanResultData
+
+    fun mapToModel() = ScanResult(
+        // TODO: Create a relation between the ScanResultsTable and PackageProvenancesTable to retrieve the
+        //       respective provenance for the scan result.
+        provenance = UnknownProvenance,
+        scanner = ScannerDetail(
+            name = scannerName,
+            version = scannerVersion,
+            configuration = scannerConfiguration
+        ),
+        summary = scanSummary.mapToModel(),
+        additionalData = additionalScanResultData?.data.orEmpty()
+    )
 }
 
 @Serializable
