@@ -39,18 +39,16 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 
 class KeycloakClientTest : WordSpec() {
-    private val keycloak = install(
-        TestContainerExtension(
-            KeycloakContainer()
-                .withRealmImportFile("test-realm.json")
-        )
-    )
+    private val keycloak = install(TestContainerExtension(KeycloakContainer()))
 
     override suspend fun beforeSpec(spec: Spec) {
-        // For performance reasons the test container must be started once per spec. Therefore, all tests that modify
-        // data must not modify the predefined test data and clean up after themselves to ensure that tests are
-        // isolated.
+        // For performance reasons the test container must be started once per spec.
         listeners(keycloak.perSpec())
+
+        // Creating the test realm takes about two seconds and deleting it would take another second, so create the
+        // realm only once per spec to improve test performance. Therefore, all tests that modify data must not modify
+        // the predefined test data and clean up after themselves to ensure that tests are isolated.
+        keycloak.keycloakAdminClient.realms().create(testRealm)
     }
 
     init {

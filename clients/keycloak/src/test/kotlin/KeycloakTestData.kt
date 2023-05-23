@@ -19,7 +19,13 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak
 
-// The test data in this file must be kept in sync with the data in resources/test-realm.json.
+import org.keycloak.representations.idm.ClientRepresentation
+import org.keycloak.representations.idm.CredentialRepresentation
+import org.keycloak.representations.idm.GroupRepresentation
+import org.keycloak.representations.idm.RealmRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
+import org.keycloak.representations.idm.RolesRepresentation
+import org.keycloak.representations.idm.UserRepresentation
 
 internal val groupOrgA = Group(
     id = GroupId("e6a8bf53-32e1-43d9-9962-ece3863fe4ce"),
@@ -107,3 +113,108 @@ internal const val API_USER = "ort-test-admin"
 
 /** The secret used by the API user to access the Keycloak REST API. */
 internal const val API_SECRET = "secret"
+
+internal val testRealm = RealmRepresentation().apply {
+    realm = REALM
+    isEnabled = true
+
+    clients = listOf(
+        ClientRepresentation().apply {
+            id = CLIENT_ID
+            isEnabled = true
+            isPublicClient = true
+            isDirectAccessGrantsEnabled = true
+        }
+    )
+
+    roles = RolesRepresentation().apply {
+        client = mapOf(
+            CLIENT_ID to listOf(
+                RoleRepresentation().apply {
+                    id = visitorRole.id.value
+                    name = visitorRole.name.value
+                    description = visitorRole.description
+                    isComposite = true
+                    composites = RoleRepresentation.Composites().apply {
+                        client = mapOf(
+                            CLIENT_ID to listOf(compositeRole.name.value)
+                        )
+                    }
+                },
+                RoleRepresentation().apply {
+                    id = compositeRole.id.value
+                    name = compositeRole.name.value
+                    description = compositeRole.description
+                },
+                RoleRepresentation().apply {
+                    id = adminRole.id.value
+                    name = adminRole.name.value
+                    description = adminRole.description
+                }
+            )
+        )
+    }
+
+    users = listOf(
+        UserRepresentation().apply {
+            id = adminUser.id.value
+            username = adminUser.username.value
+            firstName = adminUser.firstName
+            lastName = adminUser.lastName
+            email = adminUser.email
+            isEnabled = true
+        },
+        UserRepresentation().apply {
+            id = ortAdminUser.id.value
+            username = ortAdminUser.username.value
+            firstName = ortAdminUser.firstName
+            lastName = ortAdminUser.lastName
+            email = ortAdminUser.email
+            isEnabled = true
+            credentials = listOf(
+                CredentialRepresentation().apply {
+                    type = CredentialRepresentation.PASSWORD
+                    value = API_SECRET
+                }
+            )
+            clientRoles = mapOf(
+                "realm-management" to listOf(
+                    "realm-admin"
+                )
+            )
+        },
+        UserRepresentation().apply {
+            id = visitorUser.id.value
+            username = visitorUser.username.value
+            firstName = visitorUser.firstName
+            lastName = visitorUser.lastName
+            email = visitorUser.email
+            isEnabled = true
+        }
+    )
+
+    groups = listOf(
+        GroupRepresentation().apply {
+            id = groupOrgA.id.value
+            name = groupOrgA.name.value
+        },
+        GroupRepresentation().apply {
+            id = groupOrgB.id.value
+            name = groupOrgB.name.value
+            subGroups = listOf(
+                GroupRepresentation().apply {
+                    id = subGroupOrgB1.id.value
+                    name = subGroupOrgB1.name.value
+                },
+                GroupRepresentation().apply {
+                    id = subGroupOrgB2.id.value
+                    name = subGroupOrgB2.name.value
+                }
+            )
+        },
+        GroupRepresentation().apply {
+            id = groupOrgC.id.value
+            name = groupOrgC.name.value
+        }
+    )
+}
