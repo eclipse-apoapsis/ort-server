@@ -18,6 +18,8 @@
  */
 
 plugins {
+    `java-test-fixtures`
+
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
@@ -40,5 +42,7 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.testContainersKeycloak)
+
+    testFixturesApi(libs.kotestFrameworkApi)
+    testFixturesApi(libs.testContainersKeycloak)
 }
