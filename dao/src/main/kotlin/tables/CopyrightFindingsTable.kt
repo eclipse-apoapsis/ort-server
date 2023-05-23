@@ -24,6 +24,9 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.scanner.CopyrightFinding
+import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
+
 /**
  * A table to represent a copyright finding.
  */
@@ -43,4 +46,13 @@ class CopyrightFindingDao(id: EntityID<Long>) : LongEntity(id) {
     var startLine by CopyrightFindingsTable.startLine
     var endLine by CopyrightFindingsTable.endLine
     var scanSummary by ScanSummaryDao referencedOn CopyrightFindingsTable.scanSummaryId
+
+    fun mapToModel() = CopyrightFinding(
+        statement = statement,
+        location = TextLocation(
+            path = path,
+            startLine = startLine,
+            endLine = endLine
+        )
+    )
 }
