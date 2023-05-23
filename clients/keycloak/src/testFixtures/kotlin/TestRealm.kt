@@ -20,11 +20,10 @@
 package org.ossreviewtoolkit.server.clients.keycloak.test
 
 import org.keycloak.representations.idm.ClientRepresentation
-import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
-import org.keycloak.representations.idm.UserRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
+import org.ossreviewtoolkit.server.clients.keycloak.RoleName
 import org.ossreviewtoolkit.server.clients.keycloak.User
 import org.ossreviewtoolkit.server.clients.keycloak.UserId
 import org.ossreviewtoolkit.server.clients.keycloak.UserName
@@ -69,24 +68,11 @@ val testRealm = RealmRepresentation().apply {
     )
 
     users = listOf(
-        UserRepresentation().apply {
-            id = testRealmAdmin.id.value
-            username = testRealmAdmin.username.value
-            firstName = testRealmAdmin.firstName
-            lastName = testRealmAdmin.lastName
-            email = testRealmAdmin.email
-            isEnabled = true
-            credentials = listOf(
-                CredentialRepresentation().apply {
-                    type = CredentialRepresentation.PASSWORD
-                    value = TEST_REALM_ADMIN_PASSWORD
-                }
-            )
+        testRealmAdmin.toUserRepresentation(
+            password = TEST_REALM_ADMIN_PASSWORD,
             clientRoles = mapOf(
-                "realm-management" to listOf(
-                    "realm-admin"
-                )
+                "realm-management" to listOf(RoleName("realm-admin"))
             )
-        }
+        )
     )
 }
