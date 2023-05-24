@@ -36,10 +36,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_PASSWORD
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_USERNAME
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
 
 class KeycloakClientTest : WordSpec() {
@@ -52,7 +49,7 @@ class KeycloakClientTest : WordSpec() {
 
         "create" should {
             "not throw any instantiation exception" {
-                val incorrectConfig = keycloak.createConfig("falseSecret")
+                val incorrectConfig = keycloak.createKeycloakClientConfigurationForTestRealm("falseSecret")
 
                 val invalidClient = KeycloakClient.create(incorrectConfig, createJson())
 
@@ -445,19 +442,7 @@ class KeycloakClientTest : WordSpec() {
  * Create a test client instance that is configured to access the Keycloak instance managed by this container.
  */
 private fun KeycloakContainer.createTestClient(): KeycloakClient =
-    KeycloakClient.create(createConfig(), createJson())
-
-/**
- * Generate a configuration with test properties based on this container to be consumed by a test client instance.
- */
-private fun KeycloakContainer.createConfig(secret: String = TEST_REALM_ADMIN_PASSWORD) =
-    KeycloakClientConfiguration(
-        apiUrl = "${authServerUrl}admin/realms/$TEST_REALM",
-        clientId = TEST_CLIENT,
-        accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
-        apiUser = TEST_REALM_ADMIN_USERNAME,
-        apiSecret = secret
-    )
+    KeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), createJson())
 
 /**
  * Create the [Json] instance required by the test client.

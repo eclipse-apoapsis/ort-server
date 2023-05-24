@@ -19,12 +19,15 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak.test
 
+import dasniko.testcontainers.keycloak.KeycloakContainer
+
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.Group
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
 import org.ossreviewtoolkit.server.clients.keycloak.Role
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
 import org.ossreviewtoolkit.server.clients.keycloak.User
@@ -84,3 +87,15 @@ fun User.toUserRepresentation(
             user.clientRoles = clientRoles.mapValues { (_, roles) -> roles.map { it.value } }
         }
     }
+
+/**
+ * Create a [KeycloakClientConfiguration] for the [testRealm] and this [KeycloakContainer].
+ */
+fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(secret: String = TEST_REALM_ADMIN_PASSWORD) =
+    KeycloakClientConfiguration(
+        apiUrl = "${authServerUrl}admin/realms/$TEST_REALM",
+        clientId = TEST_CLIENT,
+        accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
+        apiUser = TEST_REALM_ADMIN_USERNAME,
+        apiSecret = secret
+    )
