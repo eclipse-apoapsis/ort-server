@@ -27,6 +27,7 @@ import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.Group
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
 import org.ossreviewtoolkit.server.clients.keycloak.Role
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
@@ -99,3 +100,18 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(secret: Stri
         apiUser = TEST_REALM_ADMIN_USERNAME,
         apiSecret = secret
     )
+
+/**
+ * Create a map containing configuration properties for the [testRealm] and this [KeycloakContainer]. The map can be
+ * used when creating a [KeycloakClient] from configuration.
+ */
+fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
+    createKeycloakClientConfigurationForTestRealm().let { config ->
+        mapOf(
+            "keycloak.apiUrl" to config.apiUrl,
+            "keycloak.clientId" to config.clientId,
+            "keycloak.accessTokenUrl" to config.accessTokenUrl,
+            "keycloak.apiUser" to config.apiUser,
+            "keycloak.apiSecret" to config.apiSecret
+        )
+    }
