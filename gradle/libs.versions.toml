@@ -21,6 +21,7 @@
 eclipseTemurin = "17.0.7_7-jdk-jammy@sha256:d3b5da78625955ac2ce903df64bfba33e7d788b67b3eb28275b808f71d2ec922"
 
 # Gradle plugins
+dependencyAnalysisPlugin = "1.20.0"
 detektPlugin = "1.23.0"
 jibPlugin = "3.3.2"
 kotlinPlugin = "1.8.22"
@@ -60,6 +61,7 @@ vaultTestcontainerVersion = "1.17.6"
 wiremock = "2.35.0"
 
 [plugins]
+dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektPlugin" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
