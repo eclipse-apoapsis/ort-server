@@ -22,8 +22,12 @@ package org.ossreviewtoolkit.server.clients.keycloak.test
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import io.kotest.core.extensions.MountableExtension
+import io.kotest.core.listeners.AfterEachListener
 import io.kotest.core.listeners.AfterSpecListener
+import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.spec.Spec
+import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,9 +37,14 @@ import org.keycloak.representations.idm.RealmRepresentation
 
 /**
  * A test extension for integration tests that need access to Keycloak. The extension sets up a
- * [Keycloak test container][KeycloakContainer] with the provided [realm] which defaults to [testRealm]. The realm can
- * be further configured using the [Keycloak admin client][Keycloak] when installing the extension. For example, a role
- * can be added like this:
+ * [Keycloak test container][KeycloakContainer] with the provided [realm] which defaults to [testRealm].
+ *
+ * By default, the extension creates the realm once per spec. If [createRealmPerTest] is set to `true` the realm is
+ * created once per test. This provides better isolation of tests but also extends the duration of each test case by
+ * about 2-3 seconds.
+ *
+ * The realm can be further configured using the [Keycloak admin client][Keycloak] when installing the extension. For
+ * example, a role can be added like this:
  *
  * ```
  * install(KeycloakTestExtension()) {
@@ -50,14 +59,18 @@ import org.keycloak.representations.idm.RealmRepresentation
  *
  * The container is started on installation of the extension and stopped when the [Spec] is completed.
  */
-class KeycloakTestExtension(private val realm: RealmRepresentation = testRealm) :
-    MountableExtension<Keycloak, KeycloakContainer>, AfterSpecListener {
+class KeycloakTestExtension(
+    private val realm: RealmRepresentation = testRealm,
+    private val createRealmPerTest: Boolean = false
+) : MountableExtension<Keycloak, KeycloakContainer>, AfterSpecListener, BeforeEachListener, AfterEachListener {
     private val keycloak = KeycloakContainer()
 
+    private lateinit var configureRealm: Keycloak.() -> Unit
+
     override fun mount(configure: Keycloak.() -> Unit): KeycloakContainer {
+        configureRealm = configure
         keycloak.start()
-        keycloak.keycloakAdminClient.realms().create(realm)
-        keycloak.keycloakAdminClient.configure()
+        if (!createRealmPerTest) createRealm()
         return keycloak
     }
 
@@ -65,5 +78,22 @@ class KeycloakTestExtension(private val realm: RealmRepresentation = testRealm) 
         if (keycloak.isRunning) {
             withContext(Dispatchers.IO) { keycloak.stop() }
         }
+    }
+
+    override suspend fun beforeEach(testCase: TestCase) {
+        if (createRealmPerTest) createRealm()
+    }
+
+    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
+        if (createRealmPerTest) removeRealm()
+    }
+
+    private fun createRealm() {
+        keycloak.keycloakAdminClient.realms().create(realm)
+        keycloak.keycloakAdminClient.configureRealm()
+    }
+
+    private fun removeRealm() {
+        keycloak.keycloakAdminClient.realm(realm.realm).remove()
     }
 }
