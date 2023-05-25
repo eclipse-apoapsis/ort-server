@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":secrets:secrets-spi"))
     implementation(project(":secrets:vault"))
     implementation(project(":services"))
+    implementation(project(":storage:spi"))
     implementation(project(":transport:activemqartemis"))
     implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:transport-spi"))
@@ -65,6 +66,8 @@ dependencies {
     implementation(libs.ktorServerStatusPages)
     implementation(libs.ktorSwaggerUi)
     implementation(libs.logback)
+
+    runtimeOnly(project(":storage:database"))
 
     testImplementation(testFixtures(project(":clients:keycloak")))
     testImplementation(testFixtures(project(":dao")))

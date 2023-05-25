@@ -26,6 +26,7 @@ import io.ktor.server.config.ApplicationConfig
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
@@ -53,8 +54,10 @@ import org.ossreviewtoolkit.server.services.AuthorizationService
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
+import org.ossreviewtoolkit.server.services.ReportStorageService
 import org.ossreviewtoolkit.server.services.RepositoryService
 import org.ossreviewtoolkit.server.services.SecretService
+import org.ossreviewtoolkit.server.storage.Storage
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
@@ -82,6 +85,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<SecretRepository> { DaoSecretRepository() }
 
     single { SecretStorage.createStorage(get()) }
+    single { Storage.create("reportStorage", get()) }
 
     single<AuthorizationService> { DefaultAuthorizationService(get()) }
     single { OrchestratorService(get(), get()) }
@@ -89,4 +93,5 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { ProductService(get(), get(), get()) }
     single { RepositoryService(get(), get(), get()) }
     single { SecretService(get(), get()) }
+    singleOf(::ReportStorageService)
 }

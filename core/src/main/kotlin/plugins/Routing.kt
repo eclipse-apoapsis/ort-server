@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.core.api.healthChecks
 import org.ossreviewtoolkit.server.core.api.organizations
 import org.ossreviewtoolkit.server.core.api.products
 import org.ossreviewtoolkit.server.core.api.repositories
+import org.ossreviewtoolkit.server.core.api.runs
 
 fun Application.configureRouting() {
     routing {
@@ -37,6 +38,7 @@ fun Application.configureRouting() {
                 organizations()
                 products()
                 repositories()
+                runs()
             }
         }
     }
