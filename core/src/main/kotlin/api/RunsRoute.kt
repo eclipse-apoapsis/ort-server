@@ -19,14 +19,16 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.get
+
 import io.ktor.server.application.call
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.core.apiDocs.getReportByRunIdAndFileName
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.services.ReportStorageService
 
@@ -37,7 +39,7 @@ fun Route.runs() = route("runs/{runId}") {
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
 
-        get {
+        get(getReportByRunIdAndFileName) {
             val runId = call.requireParameter("runId").toLong()
             val fileName = call.requireParameter("fileName")
 
