@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.clients.keycloak.test
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
+import kotlinx.serialization.json.Json
+
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
@@ -115,3 +117,9 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
             "keycloak.apiSecret" to config.apiSecret
         )
     }
+
+/**
+ * Create a [KeycloakClient] for the [testRealm] and this [KeycloakContainer].
+ */
+fun KeycloakContainer.createKeycloakClientForTestRealm() =
+    KeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), Json { ignoreUnknownKeys = true })
