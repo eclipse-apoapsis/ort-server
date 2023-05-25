@@ -23,6 +23,9 @@ import io.kotest.core.extensions.install
 import io.kotest.core.listeners.AfterTestListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.listeners.BeforeTestListener
+import io.kotest.core.spec.Spec
+import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
 import io.kotest.extensions.testcontainers.JdbcTestContainerExtension
 
 import javax.sql.DataSource
@@ -55,7 +58,7 @@ class DatabaseTestExtension(
 
     private lateinit var dataSource: DataSource
 
-    override suspend fun beforeSpec(spec: io.kotest.core.spec.Spec) {
+    override suspend fun beforeSpec(spec: Spec) {
         dataSource = spec.install(JdbcTestContainerExtension(postgres)) {
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5
@@ -63,14 +66,14 @@ class DatabaseTestExtension(
         }
     }
 
-    override suspend fun beforeTest(testCase: io.kotest.core.test.TestCase) {
+    override suspend fun beforeTest(testCase: TestCase) {
         dataSource.connect()
         dataSource.migrate()
 
         fixture()
     }
 
-    override suspend fun afterTest(testCase: io.kotest.core.test.TestCase, result: io.kotest.core.test.TestResult) {
+    override suspend fun afterTest(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
         clean(dataSource)
     }
