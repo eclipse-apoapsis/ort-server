@@ -19,8 +19,11 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -35,6 +38,9 @@ import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
@@ -46,6 +52,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
@@ -54,6 +61,10 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class RepositoriesRouteIntegrationTest : StringSpec() {
+    private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
+    private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+    private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var ortRunRepository: OrtRunRepository
     private lateinit var productRepository: ProductRepository
@@ -77,7 +88,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         )
 
         "GET /repositories/{repositoryId} should return a single repository" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val type = RepositoryType.GIT
@@ -97,7 +108,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /repositories/{repositoryId} should update a repository" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -128,7 +139,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /repositories/{repositoryId} should delete a repository" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -146,8 +157,28 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
             }
         }
 
+        "DELETE /repositories/{repositoryId} should delete Keycloak roles" {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val createdRepository = repositoryRepository.create(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                client.delete("/api/v1/repositories/${createdRepository.id}") {
+                    headers { basicTestAuth() }
+                }
+
+                keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
+                    RepositoryPermission.getRolesForRepository(createdRepository.id)
+                )
+            }
+        }
+
         "GET /repositories/{repositoryId}/runs should return the ORT runs on a repository" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
@@ -171,7 +202,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/runs should support query parameters" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",

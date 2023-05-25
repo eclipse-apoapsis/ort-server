@@ -21,7 +21,9 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
@@ -53,6 +55,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -240,6 +243,25 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     status shouldBe HttpStatusCode.Created
                     body<Repository>() shouldBe Repository(1, repository.type, repository.url)
                 }
+            }
+        }
+
+        "POST /products/{id}/repositories should create Keycloak roles" {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val createdRepository = client.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    headers { basicTestAuth() }
+                    setBody(repository)
+                }.body<Repository>()
+
+                keycloakClient.getRoles().map { it.name.value } should containAll(
+                    RepositoryPermission.getRolesForRepository(createdRepository.id)
+                )
             }
         }
     }

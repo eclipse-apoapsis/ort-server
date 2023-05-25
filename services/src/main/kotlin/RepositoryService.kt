@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.services
 
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -28,19 +29,30 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
+
 /**
  * A service providing functions for working with [repositories][Repository].
  */
 class RepositoryService(
     private val ortRunRepository: OrtRunRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Delete a repository by [repositoryId].
      */
-    suspend fun deleteRepository(repositoryId: Long): Unit = dbQuery {
+    suspend fun deleteRepository(repositoryId: Long): Unit = dbQueryCatching {
         repositoryRepository.delete(repositoryId)
-    }
+    }.onSuccess {
+        runCatching {
+            authorizationService.deleteRepositoryPermissions(repositoryId)
+        }.onFailure {
+            logger.error("Could not delete permissions for repository '$repositoryId'.", it)
+        }
+    }.getOrThrow()
 
     suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = dbQuery {
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)

@@ -27,47 +27,30 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.model.RepositoryType
 
-class ProductServiceTest : WordSpec({
-    val productRepository = DaoProductRepository()
+class RepositoryServiceTest : WordSpec({
+    val ortRunRepository = DaoOrtRunRepository()
     val repositoryRepository = DaoRepositoryRepository()
 
     lateinit var fixtures: Fixtures
 
     extension(DatabaseTestExtension { fixtures = Fixtures() })
 
-    "createRepository" should {
-        "create Keycloak permissions" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createRepositoryPermissions(any()) } just runs
-            }
-
-            val service = ProductService(productRepository, repositoryRepository, authorizationService)
-            val repository =
-                service.createRepository(RepositoryType.GIT, "https://example.com/repo.git", fixtures.product.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.createRepositoryPermissions(repository.id)
-            }
-        }
-    }
-
-    "deleteProduct" should {
+    "deleteRepository" should {
         "delete Keycloak permissions" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { deleteProductPermissions(any()) } just runs
+                coEvery { deleteRepositoryPermissions(any()) } just runs
             }
 
-            val service = ProductService(productRepository, repositoryRepository, authorizationService)
-            service.deleteProduct(fixtures.product.id)
+            val service = RepositoryService(ortRunRepository, repositoryRepository, authorizationService)
+            service.deleteRepository(fixtures.repository.id)
 
             coVerify(exactly = 1) {
-                authorizationService.deleteProductPermissions(fixtures.product.id)
+                authorizationService.deleteRepositoryPermissions(fixtures.repository.id)
             }
         }
     }

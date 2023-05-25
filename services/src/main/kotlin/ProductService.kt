@@ -44,9 +44,15 @@ class ProductService(
     /**
      * Create a repository inside a [product][productId].
      */
-    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQuery {
+    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQueryCatching {
         repositoryRepository.create(type, url, productId)
-    }
+    }.onSuccess { repository ->
+        runCatching {
+            authorizationService.createRepositoryPermissions(repository.id)
+        }.onFailure {
+            logger.error("Could not create permissions for repository '${repository.id}'.", it)
+        }
+    }.getOrThrow()
 
     /**
      * Delete a product by [productId].
