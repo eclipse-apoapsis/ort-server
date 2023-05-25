@@ -62,9 +62,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?sort=color") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -81,9 +79,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=$limitValue") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -102,9 +98,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {

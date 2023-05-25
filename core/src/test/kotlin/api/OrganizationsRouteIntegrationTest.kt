@@ -83,9 +83,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -103,9 +101,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?sort=-name&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -125,9 +121,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/${createdOrganization.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -142,9 +136,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/999999") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -160,9 +152,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val org = CreateOrganization(name = "name", description = "description")
 
                 val response = client.post("/api/v1/organizations") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(org)
                 }
 
@@ -184,9 +174,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val org = CreateOrganization(name = "name", description = "description")
 
                 val createdOrg = client.post("/api/v1/organizations") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(org)
                 }.body<Organization>()
 
@@ -208,9 +196,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.post("/api/v1/organizations") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(org)
                 }
 
@@ -231,9 +217,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                     "updated description of testOrg".asPresent()
                 )
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updatedOrganization)
                 }
 
@@ -269,9 +253,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(organizationUpdateRequest)
                 }
 
@@ -299,9 +281,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/organizations/${createdOrg.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -319,9 +299,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 client.delete("/api/v1/organizations/${createdOrg.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
@@ -338,9 +316,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
 
                 val product = CreateProduct("product", "description")
                 val response = client.post("/api/v1/organizations/$orgId/products") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(product)
                 }
 
@@ -369,9 +345,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                     productRepository.create(name = name2, description = description, organizationId = orgId)
 
                 val response = client.get("/api/v1/organizations/$orgId/products") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -399,9 +373,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                     productRepository.create(name = name2, description = description, organizationId = orgId)
 
                 val response = client.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {

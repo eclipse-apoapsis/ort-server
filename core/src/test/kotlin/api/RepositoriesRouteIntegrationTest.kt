@@ -86,9 +86,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 val createdRepository = repositoryRepository.create(type = type, url = url, productId = productId)
 
                 val response = client.get("/api/v1/repositories/${createdRepository.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -114,9 +112,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.patch("/api/v1/repositories/${createdRepository.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateRepository)
                 }
 
@@ -142,9 +138,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.delete("/api/v1/repositories/${createdRepository.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 response.status shouldBe HttpStatusCode.NoContent
@@ -166,9 +160,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/${createdRepository.id}/runs") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -193,9 +185,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
                 val query = "?sort=-revision,-createdAt&limit=1"
                 val response = client.get("/api/v1/repositories/${createdRepository.id}/runs$query") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {

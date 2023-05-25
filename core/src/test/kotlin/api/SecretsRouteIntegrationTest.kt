@@ -112,9 +112,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/$organizationId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -147,9 +145,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -170,9 +166,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -187,9 +181,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/$organizationId/secrets/999999") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -211,9 +203,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -245,9 +235,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response1 = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret1)
                 }
 
@@ -256,9 +244,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
 
                 val response2 = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret2)
                 }
 
@@ -283,9 +269,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -316,9 +300,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -343,9 +325,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent(), "newDesc".asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -369,9 +349,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -394,9 +372,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -432,9 +408,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/products/$productId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -466,9 +440,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/products/$productId/secrets?sort=-name&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -489,9 +461,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -506,9 +476,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/products/$organizationId/secrets/999999") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -530,9 +498,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.post("/api/v1/products/$productId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -563,9 +529,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response1 = client.post("/api/v1/products/$productId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -574,9 +538,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
 
                 val response2 = client.post("/api/v1/products/$productId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -598,9 +560,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -631,9 +591,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
                 val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -658,9 +616,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
                 val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -684,9 +640,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -709,9 +663,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/products/$productId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -747,9 +699,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/$repositoryId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -781,9 +731,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/$repositoryId/secrets?sort=-name&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -804,9 +752,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -821,9 +767,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/repositories/$repositoryId/secrets/999999") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -845,9 +789,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )
 
                 val response = client.post("/api/v1/repositories/$repositoryId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -878,9 +820,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response1 = client.post("/api/v1/repositories/$repositoryId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -889,9 +829,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
 
                 val response2 = client.post("/api/v1/repositories/$repositoryId/secrets") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -913,9 +851,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -945,9 +881,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
                 val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -974,9 +908,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
                 val response = client.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -999,9 +931,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -1024,9 +954,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 val client = createJsonClient()
 
                 val response = client.delete("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {

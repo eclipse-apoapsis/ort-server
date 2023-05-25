@@ -81,9 +81,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     productRepository.create(name = name, description = description, organizationId = orgId)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -105,9 +103,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     "updateDescription".asPresent()
                 )
                 val response = client.patch("/api/v1/products/${createdProduct.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(updatedProduct)
                 }
 
@@ -130,9 +126,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     productRepository.create(name = "name", description = "description", organizationId = orgId)
 
                 val response = client.delete("/api/v1/products/${createdProduct.id}") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -160,9 +154,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}/repositories") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -191,9 +183,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                 }
 
                 with(response) {
@@ -214,9 +204,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
 
                 val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 val response = client.post("/api/v1/products/${createdProduct.id}/repositories") {
-                    headers {
-                        basicTestAuth()
-                    }
+                    headers { basicTestAuth() }
                     setBody(repository)
                 }
 
