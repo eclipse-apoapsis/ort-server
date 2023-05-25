@@ -20,9 +20,9 @@
 package org.ossreviewtoolkit.server.dao.test
 
 import io.kotest.core.extensions.install
-import io.kotest.core.listeners.AfterTestListener
+import io.kotest.core.listeners.AfterEachListener
+import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.listeners.BeforeSpecListener
-import io.kotest.core.listeners.BeforeTestListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
@@ -51,7 +51,7 @@ class DatabaseTestExtension(
      * function of the extension; therefore, no database access is possible there.)
      */
     private val fixture: () -> Unit = {}
-) : BeforeSpecListener, BeforeTestListener, AfterTestListener {
+) : BeforeSpecListener, BeforeEachListener, AfterEachListener {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
     }
@@ -66,14 +66,14 @@ class DatabaseTestExtension(
         }
     }
 
-    override suspend fun beforeTest(testCase: TestCase) {
+    override suspend fun beforeEach(testCase: TestCase) {
         dataSource.connect()
         dataSource.migrate()
 
         fixture()
     }
 
-    override suspend fun afterTest(testCase: TestCase, result: TestResult) {
+    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
         clean(dataSource)
     }
