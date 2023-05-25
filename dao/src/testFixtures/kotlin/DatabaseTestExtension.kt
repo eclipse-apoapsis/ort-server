@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.test
 
 import io.kotest.core.extensions.install
 import io.kotest.core.listeners.AfterEachListener
+import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
@@ -29,6 +30,9 @@ import io.kotest.core.test.TestResult
 import io.kotest.extensions.testcontainers.JdbcTestContainerExtension
 
 import javax.sql.DataSource
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
@@ -51,7 +55,7 @@ class DatabaseTestExtension(
      * function of the extension; therefore, no database access is possible there.)
      */
     private val fixture: () -> Unit = {}
-) : BeforeSpecListener, BeforeEachListener, AfterEachListener {
+) : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
     }
@@ -63,6 +67,12 @@ class DatabaseTestExtension(
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5
             schema = TEST_DB_SCHEMA
+        }
+    }
+
+    override suspend fun afterSpec(spec: Spec) {
+        if (postgres.isRunning) {
+            withContext(Dispatchers.IO) { postgres.stop() }
         }
     }
 
