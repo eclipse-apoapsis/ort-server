@@ -55,6 +55,21 @@ class OrganizationServiceTest : WordSpec({
         }
     }
 
+    "createProduct" should {
+        "create Keycloak permissions" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { createProductPermissions(any()) } just runs
+            }
+
+            val service = OrganizationService(organizationRepository, productRepository, authorizationService)
+            val product = service.createProduct("name", "description", fixtures.organization.id)
+
+            coVerify(exactly = 1) {
+                authorizationService.createProductPermissions(product.id)
+            }
+        }
+    }
+
     "deleteOrganization" should {
         "delete Keycloak permissions" {
             val authorizationService = mockk<AuthorizationService> {

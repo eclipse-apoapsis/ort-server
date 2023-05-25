@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.services
 
 import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -28,12 +29,17 @@ import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
+
 /**
  * A service providing functions for working with [products][Product].
  */
 class ProductService(
     private val productRepository: ProductRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Create a repository inside a [product][productId].
@@ -45,9 +51,15 @@ class ProductService(
     /**
      * Delete a product by [productId].
      */
-    suspend fun deleteProduct(productId: Long): Unit = dbQuery {
+    suspend fun deleteProduct(productId: Long): Unit = dbQueryCatching {
         productRepository.delete(productId)
-    }
+    }.onSuccess {
+        runCatching {
+            authorizationService.deleteProductPermissions(productId)
+        }.onFailure {
+            logger.error("Could not delete permissions for product '$productId'.", it)
+        }
+    }.getOrThrow()
 
     /**
      * Get a product by [productId]. Returns null if the product is not found.

@@ -54,6 +54,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
+import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -326,6 +327,24 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 }
 
                 productRepository.get(1)?.mapToApi() shouldBe Product(1, product.name, product.description)
+            }
+        }
+
+        "POST /organizations/{orgId}/products should create Keycloak roles" {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val product = CreateProduct(name = "product", description = "description")
+                val createdProduct = client.post("/api/v1/organizations/$orgId/products") {
+                    headers { basicTestAuth() }
+                    setBody(product)
+                }.body<Product>()
+
+                keycloakClient.getRoles().map { it.name.value } should containAll(
+                    ProductPermission.getRolesForProduct(createdProduct.id)
+                )
             }
         }
 

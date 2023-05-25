@@ -19,8 +19,11 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -37,6 +40,9 @@ import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
@@ -46,6 +52,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -53,6 +60,10 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class ProductsRouteIntegrationTest : StringSpec() {
+    private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
+    private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+    private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
     private lateinit var repositoryRepository: RepositoryRepository
@@ -71,7 +82,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         )
 
         "GET /products/{productId} should return a single product" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val name = "name"
@@ -92,7 +103,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /products/{id} should update a product" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -119,7 +130,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /products/{id} should delete a product" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -137,8 +148,25 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
+        "DELETE /products/{id} should delete Keycloak roles" {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val createdProduct =
+                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+
+                client.delete("/api/v1/products/${createdProduct.id}") {
+                    headers { basicTestAuth() }
+                }
+
+                keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
+                    ProductPermission.getRolesForProduct(createdProduct.id)
+                )
+            }
+        }
+
         "GET /products/{id}/repositories should return all repositories of an organization" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -168,7 +196,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{id}/repositories should support query parameters" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -196,7 +224,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /products/{id}/repositories should create a repository" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =

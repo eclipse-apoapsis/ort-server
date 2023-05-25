@@ -55,9 +55,15 @@ class OrganizationService(
     /**
      * Create a product inside an [organization][organizationId].
      */
-    suspend fun createProduct(name: String, description: String?, organizationId: Long) = dbQuery {
+    suspend fun createProduct(name: String, description: String?, organizationId: Long) = dbQueryCatching {
         productRepository.create(name, description, organizationId)
-    }
+    }.onSuccess { product ->
+        runCatching {
+            authorizationService.createProductPermissions(product.id)
+        }.onFailure {
+            logger.error("Could not create permissions for product '${product.id}'.", it)
+        }
+    }.getOrThrow()
 
     /**
      * Delete an organization by [organizationId].
