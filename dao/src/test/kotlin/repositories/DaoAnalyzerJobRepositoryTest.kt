@@ -35,86 +35,84 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoAnalyzerJobRepositoryTest : StringSpec() {
-    private val analyzerJobRepository = DaoAnalyzerJobRepository()
+class DaoAnalyzerJobRepositoryTest : StringSpec({
+    val analyzerJobRepository = DaoAnalyzerJobRepository()
 
-    private lateinit var fixtures: Fixtures
-    private lateinit var jobConfigurations: JobConfigurations
-    private var ortRunId = -1L
+    lateinit var fixtures: Fixtures
+    lateinit var jobConfigurations: JobConfigurations
+    var ortRunId = -1L
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                ortRunId = fixtures.ortRun.id
-                jobConfigurations = fixtures.jobConfigurations
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            ortRunId = fixtures.ortRun.id
+            jobConfigurations = fixtures.jobConfigurations
+        }
+    )
+
+    "create should create an entry in the database" {
+        val createdAnalyzerJob =
+            analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        val dbEntry = analyzerJobRepository.get(createdAnalyzerJob.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe AnalyzerJob(
+            id = createdAnalyzerJob.id,
+            ortRunId = ortRunId,
+            createdAt = createdAnalyzerJob.createdAt,
+            startedAt = null,
+            finishedAt = null,
+            configuration = jobConfigurations.analyzer,
+            status = JobStatus.CREATED,
+            repositoryUrl = fixtures.repository.url,
+            repositoryRevision = fixtures.ortRun.revision
         )
-
-        "create should create an entry in the database" {
-            val createdAnalyzerJob =
-                analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-
-            val dbEntry = analyzerJobRepository.get(createdAnalyzerJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe AnalyzerJob(
-                id = createdAnalyzerJob.id,
-                ortRunId = ortRunId,
-                createdAt = createdAnalyzerJob.createdAt,
-                startedAt = null,
-                finishedAt = null,
-                configuration = jobConfigurations.analyzer,
-                status = JobStatus.CREATED,
-                repositoryUrl = fixtures.repository.url,
-                repositoryRevision = fixtures.ortRun.revision
-            )
-        }
-
-        "getForOrtRun should return the job for a run" {
-            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-
-            analyzerJobRepository.getForOrtRun(ortRunId) shouldBe analyzerJob
-        }
-
-        "get should return null" {
-            analyzerJobRepository.get(1L).shouldBeNull()
-        }
-
-        "get should return the job" {
-            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-
-            analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob
-        }
-
-        "update should update an entry in the database" {
-            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-
-            val updateStartedAt = Clock.System.now().asPresent()
-            val updatedFinishedAt = Clock.System.now().asPresent()
-            val updateStatus = JobStatus.FINISHED.asPresent()
-
-            val updateResult =
-                analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
-
-            updateResult shouldBe analyzerJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-            analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-        }
-
-        "delete should delete the database entry" {
-            val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
-
-            analyzerJobRepository.delete(analyzerJob.id)
-
-            analyzerJobRepository.get(analyzerJob.id) shouldBe null
-        }
     }
-}
+
+    "getForOrtRun should return the job for a run" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        analyzerJobRepository.getForOrtRun(ortRunId) shouldBe analyzerJob
+    }
+
+    "get should return null" {
+        analyzerJobRepository.get(1L).shouldBeNull()
+    }
+
+    "get should return the job" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob
+    }
+
+    "update should update an entry in the database" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        val updateStartedAt = Clock.System.now().asPresent()
+        val updatedFinishedAt = Clock.System.now().asPresent()
+        val updateStatus = JobStatus.FINISHED.asPresent()
+
+        val updateResult =
+            analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe analyzerJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+        analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+    }
+
+    "delete should delete the database entry" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        analyzerJobRepository.delete(analyzerJob.id)
+
+        analyzerJobRepository.get(analyzerJob.id) shouldBe null
+    }
+})

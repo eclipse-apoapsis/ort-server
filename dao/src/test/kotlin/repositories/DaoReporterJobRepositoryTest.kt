@@ -35,85 +35,83 @@ import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoReporterJobRepositoryTest : StringSpec() {
-    private val reporterJobRepository = DaoReporterJobRepository()
+class DaoReporterJobRepositoryTest : StringSpec({
+    val reporterJobRepository = DaoReporterJobRepository()
 
-    private lateinit var fixtures: Fixtures
-    private lateinit var jobConfigurations: JobConfigurations
-    private lateinit var reporterJobConfiguration: ReporterJobConfiguration
-    private var ortRunId = -1L
+    lateinit var fixtures: Fixtures
+    lateinit var jobConfigurations: JobConfigurations
+    lateinit var reporterJobConfiguration: ReporterJobConfiguration
+    var ortRunId = -1L
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                ortRunId = fixtures.ortRun.id
-                jobConfigurations = fixtures.jobConfigurations
-                reporterJobConfiguration = jobConfigurations.reporter!!
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            ortRunId = fixtures.ortRun.id
+            jobConfigurations = fixtures.jobConfigurations
+            reporterJobConfiguration = jobConfigurations.reporter!!
+        }
+    )
+
+    "create should create an entry in the database" {
+        val createdReporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        val dbEntry = reporterJobRepository.get(createdReporterJob.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe ReporterJob(
+            id = createdReporterJob.id,
+            ortRunId = ortRunId,
+            createdAt = createdReporterJob.createdAt,
+            startedAt = null,
+            finishedAt = null,
+            configuration = reporterJobConfiguration,
+            status = JobStatus.CREATED,
         )
-
-        "create should create an entry in the database" {
-            val createdReporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
-
-            val dbEntry = reporterJobRepository.get(createdReporterJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe ReporterJob(
-                id = createdReporterJob.id,
-                ortRunId = ortRunId,
-                createdAt = createdReporterJob.createdAt,
-                startedAt = null,
-                finishedAt = null,
-                configuration = reporterJobConfiguration,
-                status = JobStatus.CREATED,
-            )
-        }
-
-        "getForOrtRun should return the job for a run" {
-            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
-
-            reporterJobRepository.getForOrtRun(ortRunId) shouldBe reporterJob
-        }
-
-        "get should return null" {
-            reporterJobRepository.get(1L).shouldBeNull()
-        }
-
-        "get should return the job" {
-            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
-
-            reporterJobRepository.get(reporterJob.id) shouldBe reporterJob
-        }
-
-        "update should update an entry in the database" {
-            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
-
-            val updateStartedAt = Clock.System.now().asPresent()
-            val updatedFinishedAt = Clock.System.now().asPresent()
-            val updateStatus = JobStatus.FINISHED.asPresent()
-
-            val updateResult =
-                reporterJobRepository.update(reporterJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
-
-            updateResult shouldBe reporterJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-            reporterJobRepository.get(reporterJob.id) shouldBe reporterJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-        }
-
-        "delete should delete the database entry" {
-            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
-
-            reporterJobRepository.delete(reporterJob.id)
-
-            reporterJobRepository.get(reporterJob.id) shouldBe null
-        }
     }
-}
+
+    "getForOrtRun should return the job for a run" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        reporterJobRepository.getForOrtRun(ortRunId) shouldBe reporterJob
+    }
+
+    "get should return null" {
+        reporterJobRepository.get(1L).shouldBeNull()
+    }
+
+    "get should return the job" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        reporterJobRepository.get(reporterJob.id) shouldBe reporterJob
+    }
+
+    "update should update an entry in the database" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        val updateStartedAt = Clock.System.now().asPresent()
+        val updatedFinishedAt = Clock.System.now().asPresent()
+        val updateStatus = JobStatus.FINISHED.asPresent()
+
+        val updateResult =
+            reporterJobRepository.update(reporterJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe reporterJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+        reporterJobRepository.get(reporterJob.id) shouldBe reporterJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+    }
+
+    "delete should delete the database entry" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        reporterJobRepository.delete(reporterJob.id)
+
+        reporterJobRepository.get(reporterJob.id) shouldBe null
+    }
+})

@@ -31,63 +31,61 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 
-class DaoEvaluatorRunRepositoryTest : StringSpec() {
-    private val evaluatorRunRepository = DaoEvaluatorRunRepository()
+class DaoEvaluatorRunRepositoryTest : StringSpec({
+    val evaluatorRunRepository = DaoEvaluatorRunRepository()
 
-    private lateinit var fixtures: Fixtures
-    private var evaluatorJobId = -1L
+    lateinit var fixtures: Fixtures
+    var evaluatorJobId = -1L
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                evaluatorJobId = fixtures.evaluatorJob.id
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            evaluatorJobId = fixtures.evaluatorJob.id
+        }
+    )
+
+    "create should create an entry in the database" {
+        val createdEvaluatorRun = evaluatorRunRepository.create(
+            evaluatorJobId = evaluatorJobId,
+            startTime = Clock.System.now(),
+            endTime = Clock.System.now(),
+            violations = listOf(fixtures.ruleViolation)
         )
 
-        "create should create an entry in the database" {
-            val createdEvaluatorRun = evaluatorRunRepository.create(
-                evaluatorJobId = evaluatorJobId,
-                startTime = Clock.System.now(),
-                endTime = Clock.System.now(),
-                violations = listOf(fixtures.ruleViolation)
-            )
+        val dbEntry = evaluatorRunRepository.get(createdEvaluatorRun.id)
 
-            val dbEntry = evaluatorRunRepository.get(createdEvaluatorRun.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe EvaluatorRun(
-                id = createdEvaluatorRun.id,
-                evaluatorJobId = evaluatorJobId,
-                startTime = createdEvaluatorRun.startTime,
-                endTime = createdEvaluatorRun.endTime,
-                violations = listOf(fixtures.ruleViolation)
-            )
-        }
-
-        "get should return null if evaluator run was not found" {
-            evaluatorRunRepository.get(1L).shouldBeNull()
-        }
-
-        "get should find an evaluator run by evaluator job id" {
-            val createdEvaluatorRun = evaluatorRunRepository.create(
-                evaluatorJobId = evaluatorJobId,
-                startTime = Clock.System.now(),
-                endTime = Clock.System.now(),
-                violations = listOf(fixtures.ruleViolation)
-            )
-
-            evaluatorRunRepository.getByJobId(evaluatorJobId) shouldBe EvaluatorRun(
-                id = createdEvaluatorRun.id,
-                evaluatorJobId = evaluatorJobId,
-                startTime = createdEvaluatorRun.startTime,
-                endTime = createdEvaluatorRun.endTime,
-                violations = listOf(fixtures.ruleViolation)
-            )
-        }
-
-        "get should not find an evaluator run by non-existing evaluator job id" {
-            evaluatorRunRepository.getByJobId(1L).shouldBeNull()
-        }
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe EvaluatorRun(
+            id = createdEvaluatorRun.id,
+            evaluatorJobId = evaluatorJobId,
+            startTime = createdEvaluatorRun.startTime,
+            endTime = createdEvaluatorRun.endTime,
+            violations = listOf(fixtures.ruleViolation)
+        )
     }
-}
+
+    "get should return null if evaluator run was not found" {
+        evaluatorRunRepository.get(1L).shouldBeNull()
+    }
+
+    "get should find an evaluator run by evaluator job id" {
+        val createdEvaluatorRun = evaluatorRunRepository.create(
+            evaluatorJobId = evaluatorJobId,
+            startTime = Clock.System.now(),
+            endTime = Clock.System.now(),
+            violations = listOf(fixtures.ruleViolation)
+        )
+
+        evaluatorRunRepository.getByJobId(evaluatorJobId) shouldBe EvaluatorRun(
+            id = createdEvaluatorRun.id,
+            evaluatorJobId = evaluatorJobId,
+            startTime = createdEvaluatorRun.startTime,
+            endTime = createdEvaluatorRun.endTime,
+            violations = listOf(fixtures.ruleViolation)
+        )
+    }
+
+    "get should not find an evaluator run by non-existing evaluator job id" {
+        evaluatorRunRepository.getByJobId(1L).shouldBeNull()
+    }
+})

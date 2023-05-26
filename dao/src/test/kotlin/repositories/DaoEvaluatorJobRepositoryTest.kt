@@ -36,85 +36,83 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoEvaluatorJobRepositoryTest : StringSpec() {
-    private val evaluatorJobRepository = DaoEvaluatorJobRepository()
+class DaoEvaluatorJobRepositoryTest : StringSpec({
+    val evaluatorJobRepository = DaoEvaluatorJobRepository()
 
-    private lateinit var fixtures: Fixtures
-    private lateinit var jobConfigurations: JobConfigurations
-    private lateinit var evaluatorJobConfiguration: EvaluatorJobConfiguration
-    private var ortRunId = -1L
+    lateinit var fixtures: Fixtures
+    lateinit var jobConfigurations: JobConfigurations
+    lateinit var evaluatorJobConfiguration: EvaluatorJobConfiguration
+    var ortRunId = -1L
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                ortRunId = fixtures.ortRun.id
-                jobConfigurations = fixtures.jobConfigurations
-                evaluatorJobConfiguration = jobConfigurations.evaluator!!
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            ortRunId = fixtures.ortRun.id
+            jobConfigurations = fixtures.jobConfigurations
+            evaluatorJobConfiguration = jobConfigurations.evaluator!!
+        }
+    )
+
+    "create should create an entry in the database" {
+        val createdEvaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        val dbEntry = evaluatorJobRepository.get(createdEvaluatorJob.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe EvaluatorJob(
+            id = createdEvaluatorJob.id,
+            ortRunId = ortRunId,
+            createdAt = createdEvaluatorJob.createdAt,
+            startedAt = null,
+            finishedAt = null,
+            configuration = evaluatorJobConfiguration,
+            status = JobStatus.CREATED,
         )
-
-        "create should create an entry in the database" {
-            val createdEvaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
-
-            val dbEntry = evaluatorJobRepository.get(createdEvaluatorJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe EvaluatorJob(
-                id = createdEvaluatorJob.id,
-                ortRunId = ortRunId,
-                createdAt = createdEvaluatorJob.createdAt,
-                startedAt = null,
-                finishedAt = null,
-                configuration = evaluatorJobConfiguration,
-                status = JobStatus.CREATED,
-            )
-        }
-
-        "getForOrtRun should return the job for a run" {
-            val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
-
-            evaluatorJobRepository.getForOrtRun(ortRunId) shouldBe evaluatorJob
-        }
-
-        "get should return null" {
-            evaluatorJobRepository.get(1L).shouldBeNull()
-        }
-
-        "get should return the job" {
-            val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
-
-            evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob
-        }
-
-        "update should update an entry in the database" {
-            val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
-
-            val updateStartedAt = Clock.System.now().asPresent()
-            val updatedFinishedAt = Clock.System.now().asPresent()
-            val updateStatus = JobStatus.FINISHED.asPresent()
-
-            val updateResult =
-                evaluatorJobRepository.update(evaluatorJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
-
-            updateResult shouldBe evaluatorJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-            evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-        }
-
-        "delete should delete the database entry" {
-            val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
-
-            evaluatorJobRepository.delete(evaluatorJob.id)
-
-            evaluatorJobRepository.get(evaluatorJob.id) shouldBe null
-        }
     }
-}
+
+    "getForOrtRun should return the job for a run" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        evaluatorJobRepository.getForOrtRun(ortRunId) shouldBe evaluatorJob
+    }
+
+    "get should return null" {
+        evaluatorJobRepository.get(1L).shouldBeNull()
+    }
+
+    "get should return the job" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob
+    }
+
+    "update should update an entry in the database" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        val updateStartedAt = Clock.System.now().asPresent()
+        val updatedFinishedAt = Clock.System.now().asPresent()
+        val updateStatus = JobStatus.FINISHED.asPresent()
+
+        val updateResult =
+            evaluatorJobRepository.update(evaluatorJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe evaluatorJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+    }
+
+    "delete should delete the database entry" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        evaluatorJobRepository.delete(evaluatorJob.id)
+
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe null
+    }
+})

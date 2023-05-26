@@ -36,85 +36,82 @@ import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoScannerJobRepositoryTest : StringSpec() {
-    private val scannerJobRepository = DaoScannerJobRepository()
+class DaoScannerJobRepositoryTest : StringSpec({
+    val scannerJobRepository = DaoScannerJobRepository()
 
-    private lateinit var fixtures: Fixtures
-    private lateinit var jobConfigurations: JobConfigurations
-    private lateinit var scannerJobConfiguration: ScannerJobConfiguration
-    private var ortRunId = -1L
+    lateinit var fixtures: Fixtures
+    lateinit var jobConfigurations: JobConfigurations
+    lateinit var scannerJobConfiguration: ScannerJobConfiguration
+    var ortRunId = -1L
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                ortRunId = fixtures.ortRun.id
-                jobConfigurations = fixtures.jobConfigurations
-                scannerJobConfiguration = jobConfigurations.scanner!!
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            ortRunId = fixtures.ortRun.id
+            jobConfigurations = fixtures.jobConfigurations
+            scannerJobConfiguration = jobConfigurations.scanner!!
+        }
+    )
+
+    "create should create an entry in the database" {
+        val createdScannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        val dbEntry = scannerJobRepository.get(createdScannerJob.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe ScannerJob(
+            id = createdScannerJob.id,
+            ortRunId = ortRunId,
+            createdAt = createdScannerJob.createdAt,
+            startedAt = null,
+            finishedAt = null,
+            configuration = scannerJobConfiguration,
+            status = JobStatus.CREATED,
         )
-
-        "create should create an entry in the database" {
-            val createdScannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
-
-            val dbEntry = scannerJobRepository.get(createdScannerJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe ScannerJob(
-                id = createdScannerJob.id,
-                ortRunId = ortRunId,
-                createdAt = createdScannerJob.createdAt,
-                startedAt = null,
-                finishedAt = null,
-                configuration = scannerJobConfiguration,
-                status = JobStatus.CREATED,
-            )
-        }
-
-        "getForOrtRun should return the job for a run" {
-            val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
-
-            scannerJobRepository.getForOrtRun(ortRunId) shouldBe scannerJob
-        }
-
-        "get should return null" {
-            scannerJobRepository.get(1L).shouldBeNull()
-        }
-
-        "get should return the job" {
-            val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
-
-            scannerJobRepository.get(scannerJob.id) shouldBe scannerJob
-        }
-
-        "update should update an entry in the database" {
-            val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
-
-            val updateStartedAt = Clock.System.now().asPresent()
-            val updatedFinishedAt = Clock.System.now().asPresent()
-            val updateStatus = JobStatus.FINISHED.asPresent()
-
-            val updateResult =
-                scannerJobRepository.update(scannerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
-
-            updateResult shouldBe scannerJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-            scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
-                startedAt = updateStartedAt.value.toDatabasePrecision(),
-                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
-            )
-        }
-
-        "delete should delete the database entry" {
-            val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
-
-            scannerJobRepository.delete(scannerJob.id)
-
-            scannerJobRepository.get(scannerJob.id) shouldBe null
-        }
     }
-}
+
+    "getForOrtRun should return the job for a run" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        scannerJobRepository.getForOrtRun(ortRunId) shouldBe scannerJob
+    }
+
+    "get should return null" {
+        scannerJobRepository.get(1L).shouldBeNull()
+    }
+
+    "get should return the job" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        scannerJobRepository.get(scannerJob.id) shouldBe scannerJob
+    }
+
+    "update should update an entry in the database" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        val updateStartedAt = Clock.System.now().asPresent()
+        val updatedFinishedAt = Clock.System.now().asPresent()
+        val updateStatus = JobStatus.FINISHED.asPresent()
+
+        val updateResult = scannerJobRepository.update(scannerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe scannerJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+        scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
+            startedAt = updateStartedAt.value.toDatabasePrecision(),
+            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+            status = updateStatus.value
+        )
+    }
+
+    "delete should delete the database entry" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        scannerJobRepository.delete(scannerJob.id)
+
+        scannerJobRepository.get(scannerJob.id) shouldBe null
+    }
+})

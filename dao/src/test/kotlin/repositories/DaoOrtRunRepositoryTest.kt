@@ -36,106 +36,104 @@ import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoOrtRunRepositoryTest : StringSpec() {
-    private val ortRunRepository = DaoOrtRunRepository()
+class DaoOrtRunRepositoryTest : StringSpec({
+    val ortRunRepository = DaoOrtRunRepository()
 
-    private lateinit var fixtures: Fixtures
-    private var repositoryId = -1L
+    lateinit var fixtures: Fixtures
+    var repositoryId = -1L
 
-    private val jobConfigurations = JobConfigurations(
+    val jobConfigurations = JobConfigurations(
         analyzer = AnalyzerJobConfiguration(
             allowDynamicVersions = true
         )
     )
 
-    init {
-        extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
-                repositoryId = fixtures.repository.id
-            }
+    extension(
+        DatabaseTestExtension {
+            fixtures = Fixtures()
+            repositoryId = fixtures.repository.id
+        }
+    )
+
+    "create should create an entry in the database" {
+        val revision = "revision"
+
+        val createdOrtRun = ortRunRepository.create(repositoryId, revision, jobConfigurations)
+
+        val dbEntry = ortRunRepository.get(createdOrtRun.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe OrtRun(
+            id = createdOrtRun.id,
+            index = createdOrtRun.id,
+            repositoryId = repositoryId,
+            revision = revision,
+            createdAt = createdOrtRun.createdAt,
+            jobs = jobConfigurations,
+            status = OrtRunStatus.CREATED
+        )
+    }
+
+    "create should create sequential indexes for different repositories" {
+        val otherRepository = fixtures.createRepository(url = "https://example.com/repo2.git")
+
+        ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
+        ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 1
+        ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 2
+        ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 2
+    }
+
+    "getByIndex should return the correct run" {
+        val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+
+        ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
+    }
+
+    "get should return null" {
+        ortRunRepository.get(1L).shouldBeNull()
+    }
+
+    "get should return the run" {
+        val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+
+        ortRunRepository.get(ortRun.id) shouldBe ortRun
+    }
+
+    "listForRepositories should return all runs for a repository" {
+        val ortRun1 = ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
+        val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
+
+        ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
+    }
+
+    "listForRepositories should apply query parameters" {
+        ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
+        val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
+
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("revision", OrderDirection.DESCENDING)),
+            limit = 1
         )
 
-        "create should create an entry in the database" {
-            val revision = "revision"
-
-            val createdOrtRun = ortRunRepository.create(repositoryId, revision, jobConfigurations)
-
-            val dbEntry = ortRunRepository.get(createdOrtRun.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry shouldBe OrtRun(
-                id = createdOrtRun.id,
-                index = createdOrtRun.id,
-                repositoryId = repositoryId,
-                revision = revision,
-                createdAt = createdOrtRun.createdAt,
-                jobs = jobConfigurations,
-                status = OrtRunStatus.CREATED
-            )
-        }
-
-        "create should create sequential indexes for different repositories" {
-            val otherRepository = fixtures.createRepository(url = "https://example.com/repo2.git")
-
-            ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
-            ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 1
-            ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 2
-            ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 2
-        }
-
-        "getByIndex should return the correct run" {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
-
-            ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
-        }
-
-        "get should return null" {
-            ortRunRepository.get(1L).shouldBeNull()
-        }
-
-        "get should return the run" {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
-
-            ortRunRepository.get(ortRun.id) shouldBe ortRun
-        }
-
-        "listForRepositories should return all runs for a repository" {
-            val ortRun1 = ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
-            val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
-
-            ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
-        }
-
-        "listForRepositories should apply query parameters" {
-            ortRunRepository.create(repositoryId, "revision1", jobConfigurations)
-            val ortRun2 = ortRunRepository.create(repositoryId, "revision2", jobConfigurations)
-
-            val parameters = ListQueryParameters(
-                sortFields = listOf(OrderField("revision", OrderDirection.DESCENDING)),
-                limit = 1
-            )
-
-            ortRunRepository.listForRepository(repositoryId, parameters) shouldBe listOf(ortRun2)
-        }
-
-        "update should update an entry in the database" {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
-
-            val updateStatus = OrtRunStatus.ACTIVE.asPresent()
-
-            val updateResult = ortRunRepository.update(ortRun.id, updateStatus)
-
-            updateResult shouldBe ortRun.copy(status = updateStatus.value)
-            ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(status = updateStatus.value)
-        }
-
-        "delete should delete the database entry" {
-            val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
-
-            ortRunRepository.delete(ortRun.id)
-
-            ortRunRepository.listForRepository(repositoryId) shouldBe emptyList()
-        }
+        ortRunRepository.listForRepository(repositoryId, parameters) shouldBe listOf(ortRun2)
     }
-}
+
+    "update should update an entry in the database" {
+        val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+
+        val updateStatus = OrtRunStatus.ACTIVE.asPresent()
+
+        val updateResult = ortRunRepository.update(ortRun.id, updateStatus)
+
+        updateResult shouldBe ortRun.copy(status = updateStatus.value)
+        ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(status = updateStatus.value)
+    }
+
+    "delete should delete the database entry" {
+        val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations)
+
+        ortRunRepository.delete(ortRun.id)
+
+        ortRunRepository.listForRepository(repositoryId) shouldBe emptyList()
+    }
+})
