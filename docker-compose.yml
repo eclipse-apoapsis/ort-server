@@ -140,6 +140,12 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      SECRETS_PROVIDER_NAME: fileBasedSecretsProvider
+      FILE_BASED_PATH: "/etc/fileBasedSecretStorage/secrets.storage"
+    volumes:
+      - type: bind
+        source: ~/.ort/server/secrets
+        target: /etc/fileBasedSecretStorage
 
   orchestrator:
     image: ort-server-orchestrator
