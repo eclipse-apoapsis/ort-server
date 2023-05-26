@@ -37,6 +37,8 @@ import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
+import org.jetbrains.exposed.sql.transactions.TransactionManager
+
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.migrate
 
@@ -77,6 +79,11 @@ class DatabaseTestExtension(
     }
 
     override suspend fun beforeEach(testCase: TestCase) {
+        // Make sure that the transaction manager from any previous test using this extension is closed. Otherwise, it
+        // can happen that the first transaction on the new connection still uses the transaction manager from the
+        // previous connection. See: https://github.com/JetBrains/Exposed/issues/454
+        TransactionManager.defaultDatabase?.let { TransactionManager.closeAndUnregister(it) }
+
         dataSource.connect()
         dataSource.migrate()
 
