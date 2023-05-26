@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":clients:keycloak"))
     implementation(project(":dao"))
     implementation(project(":model"))
+    implementation(project(":secrets:file"))
     implementation(project(":secrets:secrets-spi"))
     implementation(project(":secrets:vault"))
     implementation(project(":services"))
