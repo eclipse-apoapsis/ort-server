@@ -60,46 +60,43 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
         "create an entry in the database" {
             val createdAdvisorRun = advisorRunRepository.create(
                 advisorJobId = advisorJobId,
-                startTime = Clock.System.now(),
-                endTime = Clock.System.now(),
-                environment = environment,
-                config = advisorConfiguration,
-                advisorRecords = mapOf(identifier to listOf(advisorResult))
+                startTime = advisorRun.startTime,
+                endTime = advisorRun.endTime,
+                environment = advisorRun.environment,
+                config = advisorRun.config,
+                advisorRecords = advisorRun.advisorRecords
             )
 
             val dbEntry = advisorRunRepository.get(createdAdvisorRun.id)
 
             dbEntry.shouldNotBeNull()
-            dbEntry shouldBe AdvisorRun(
-                id = createdAdvisorRun.id,
-                advisorJobId = advisorJobId,
-                startTime = createdAdvisorRun.startTime,
-                endTime = createdAdvisorRun.endTime,
-                environment = environment,
-                config = advisorConfiguration,
-                advisorRecords = mapOf(
-                    identifier to listOf(
-                        advisorResult.copy(
-                            startTime = advisorResult.startTime.toDatabasePrecision(),
-                            endTime = advisorResult.endTime.toDatabasePrecision(),
-                            issues = listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision())),
-                            defects = listOf(
-                                defect.copy(
-                                    creationTime = defect.creationTime?.toDatabasePrecision(),
-                                    modificationTime = defect.modificationTime?.toDatabasePrecision(),
-                                    closingTime = defect.modificationTime?.toDatabasePrecision()
-                                )
-                            )
-                        )
-                    ).toList()
-                )
-            )
+            dbEntry shouldBe advisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
         }
     }
 
     "get" should {
         "return null if the advisor run does not exist" {
-            advisorRunRepository.get(1L).shouldBeNull()
+            advisorRunRepository.get(advisorJobId).shouldBeNull()
+        }
+    }
+
+    "getByJobId" should {
+        "return the correct advisor run" {
+            val createdAdvisorRun = advisorRunRepository.create(
+                advisorJobId = advisorJobId,
+                startTime = advisorRun.startTime,
+                endTime = advisorRun.endTime,
+                environment = advisorRun.environment,
+                config = advisorRun.config,
+                advisorRecords = advisorRun.advisorRecords
+            )
+
+            advisorRunRepository.getByJobId(advisorJobId) shouldBe
+                    advisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
+        }
+
+        "return null if there is no run for the job id" {
+            advisorRunRepository.getByJobId(advisorJobId).shouldBeNull()
         }
     }
 })
@@ -152,7 +149,7 @@ val identifier = Identifier(
 )
 
 val issue = OrtIssue(
-    timestamp = Clock.System.now(),
+    timestamp = Clock.System.now().toDatabasePrecision(),
     source = "source",
     message = "message",
     severity = "ERROR"
@@ -165,9 +162,9 @@ val defect = Defect(
     state = "state",
     severity = "ERROR",
     description = "description",
-    creationTime = Clock.System.now(),
-    modificationTime = Clock.System.now(),
-    closingTime = Clock.System.now(),
+    creationTime = Clock.System.now().toDatabasePrecision(),
+    modificationTime = Clock.System.now().toDatabasePrecision(),
+    closingTime = Clock.System.now().toDatabasePrecision(),
     fixReleaseVersion = "version",
     fixReleaseUrl = "url",
     labels = mapOf("key" to "value")
@@ -189,9 +186,19 @@ val vulnerability = Vulnerability(
 val advisorResult = AdvisorResult(
     advisorName = "NexusIQ",
     capabilities = emptyList(),
-    startTime = Clock.System.now(),
-    endTime = Clock.System.now(),
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
     issues = listOf(issue),
     defects = listOf(defect),
     vulnerabilities = listOf(vulnerability)
+)
+
+val advisorRun = AdvisorRun(
+    id = -1L,
+    advisorJobId = -1L,
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    environment = environment,
+    config = advisorConfiguration,
+    advisorRecords = mapOf(identifier to listOf(advisorResult))
 )
