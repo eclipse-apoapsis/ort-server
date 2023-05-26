@@ -58,98 +58,6 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
 
     "create" should {
         "create an entry in the database" {
-            val variables = mapOf(
-                "SHELL" to "/bin/bash",
-                "TERM" to "xterm-256color"
-            )
-
-            val toolVersions = mapOf(
-                "Conan" to "1.53.0",
-                "NPM" to "8.15.1"
-            )
-
-            val environment = Environment(
-                ortVersion = "1.0",
-                javaVersion = "11.0.16",
-                os = "Linux",
-                processors = 8,
-                maxMemory = 8321499136,
-                variables = variables,
-                toolVersions = toolVersions
-            )
-
-            val advisorConfiguration = AdvisorConfiguration(
-                githubDefectsConfiguration = GithubDefectsConfiguration(
-                    endpointUrl = "https://github.com/defects",
-                    labelFilter = listOf("!any"),
-                    maxNumberOfIssuesPerRepository = 5,
-                    parallelRequests = 2
-                ),
-                nexusIqConfiguration = NexusIqConfiguration(
-                    serverUrl = "https://nexus-iq.com",
-                    browseUrl = "https://nexus-iq.com/browse"
-                ),
-                osvConfiguration = OsvConfiguration(
-                    serverUrl = "https://google.com/osv"
-                ),
-                vulnerableCodeConfiguration = VulnerableCodeConfiguration(
-                    serverUrl = "https://vulnerable-code.com"
-                ),
-                options = mapOf("config-key1" to "config-value1")
-            )
-
-            val identifier = Identifier(
-                type = "type",
-                namespace = "namespace",
-                name = "name",
-                version = "version"
-            )
-
-            val issue = OrtIssue(
-                timestamp = Clock.System.now(),
-                source = "source",
-                message = "message",
-                severity = "ERROR"
-            )
-
-            val defect = Defect(
-                externalId = "external-id",
-                url = "https://example.com/external-id",
-                title = "title",
-                state = "state",
-                severity = "ERROR",
-                description = "description",
-                creationTime = Clock.System.now(),
-                modificationTime = Clock.System.now(),
-                closingTime = Clock.System.now(),
-                fixReleaseVersion = "version",
-                fixReleaseUrl = "url",
-                labels = mapOf("key" to "value")
-            )
-
-            val vulnerability = Vulnerability(
-                externalId = "external-id",
-                summary = "summary",
-                description = "description",
-                references = listOf(
-                    VulnerabilityReference(
-                        url = "url",
-                        scoringSystem = "scoring-system",
-                        severity = "ERROR"
-                    )
-                )
-            )
-
-            val advisorResult = AdvisorResult(
-                advisorName = "NexusIQ",
-                capabilities = emptyList(),
-                startTime = Clock.System.now(),
-                endTime = Clock.System.now(),
-                issues = listOf(issue),
-                defects = listOf(defect),
-                vulnerabilities = listOf(vulnerability)
-            )
-
             val createdAdvisorRun = advisorRunRepository.create(
                 advisorJobId = advisorJobId,
                 startTime = Clock.System.now(),
@@ -195,3 +103,95 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
         }
     }
 })
+
+val variables = mapOf(
+    "SHELL" to "/bin/bash",
+    "TERM" to "xterm-256color"
+)
+
+val toolVersions = mapOf(
+    "Conan" to "1.53.0",
+    "NPM" to "8.15.1"
+)
+
+val environment = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = variables,
+    toolVersions = toolVersions
+)
+
+val advisorConfiguration = AdvisorConfiguration(
+    githubDefectsConfiguration = GithubDefectsConfiguration(
+        endpointUrl = "https://github.com/defects",
+        labelFilter = listOf("!any"),
+        maxNumberOfIssuesPerRepository = 5,
+        parallelRequests = 2
+    ),
+    nexusIqConfiguration = NexusIqConfiguration(
+        serverUrl = "https://nexus-iq.com",
+        browseUrl = "https://nexus-iq.com/browse"
+    ),
+    osvConfiguration = OsvConfiguration(
+        serverUrl = "https://google.com/osv"
+    ),
+    vulnerableCodeConfiguration = VulnerableCodeConfiguration(
+        serverUrl = "https://vulnerable-code.com"
+    ),
+    options = mapOf("config-key1" to "config-value1")
+)
+
+val identifier = Identifier(
+    type = "type",
+    namespace = "namespace",
+    name = "name",
+    version = "version"
+)
+
+val issue = OrtIssue(
+    timestamp = Clock.System.now(),
+    source = "source",
+    message = "message",
+    severity = "ERROR"
+)
+
+val defect = Defect(
+    externalId = "external-id",
+    url = "https://example.com/external-id",
+    title = "title",
+    state = "state",
+    severity = "ERROR",
+    description = "description",
+    creationTime = Clock.System.now(),
+    modificationTime = Clock.System.now(),
+    closingTime = Clock.System.now(),
+    fixReleaseVersion = "version",
+    fixReleaseUrl = "url",
+    labels = mapOf("key" to "value")
+)
+
+val vulnerability = Vulnerability(
+    externalId = "external-id",
+    summary = "summary",
+    description = "description",
+    references = listOf(
+        VulnerabilityReference(
+            url = "url",
+            scoringSystem = "scoring-system",
+            severity = "ERROR"
+        )
+    )
+)
+
+val advisorResult = AdvisorResult(
+    advisorName = "NexusIQ",
+    capabilities = emptyList(),
+    startTime = Clock.System.now(),
+    endTime = Clock.System.now(),
+    issues = listOf(issue),
+    defects = listOf(defect),
+    vulnerabilities = listOf(vulnerability)
+)
