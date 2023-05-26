@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
 
@@ -37,7 +38,35 @@ object GithubDefectsConfigurationsTable : LongIdTable("github_defects_configurat
 }
 
 class GithubDefectsConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<GithubDefectsConfigurationDao>(GithubDefectsConfigurationsTable)
+    companion object : LongEntityClass<GithubDefectsConfigurationDao>(GithubDefectsConfigurationsTable) {
+        fun find(
+            endpointUrl: String?,
+            labelFilter: List<String>?,
+            maxNumberOfIssuesPerRepository: Int?,
+            parallelRequests: Int?
+        ): GithubDefectsConfigurationDao? =
+            find {
+                with(GithubDefectsConfigurationsTable) {
+                    this.endpointUrl eq endpointUrl and
+                            (this.labelFilter eq labelFilter?.joinToString(",")) and
+                            (this.maxNumberOfIssuesPerRepository eq maxNumberOfIssuesPerRepository) and
+                            (this.parallelRequests eq parallelRequests)
+                }
+            }.singleOrNull()
+
+        fun getOrPut(
+            endpointUrl: String?,
+            labelFilter: List<String>?,
+            maxNumberOfIssuesPerRepository: Int?,
+            parallelRequests: Int?
+        ): GithubDefectsConfigurationDao =
+            find(endpointUrl, labelFilter, maxNumberOfIssuesPerRepository, parallelRequests) ?: new {
+                this.endpointUrl = endpointUrl
+                this.labelFilter = labelFilter
+                this.maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository
+                this.parallelRequests = parallelRequests
+            }
+    }
 
     var endpointUrl by GithubDefectsConfigurationsTable.endpointUrl
     var labelFilter by GithubDefectsConfigurationsTable.labelFilter

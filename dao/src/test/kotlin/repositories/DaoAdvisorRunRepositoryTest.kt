@@ -58,19 +58,28 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
 
     "create" should {
         "create an entry in the database" {
-            val createdAdvisorRun = advisorRunRepository.create(
-                advisorJobId = advisorJobId,
-                startTime = advisorRun.startTime,
-                endTime = advisorRun.endTime,
-                environment = advisorRun.environment,
-                config = advisorRun.config,
-                advisorRecords = advisorRun.advisorRecords
-            )
+            val createdAdvisorRun = advisorRunRepository.create(advisorJobId, advisorRun)
 
             val dbEntry = advisorRunRepository.get(createdAdvisorRun.id)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe advisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
+        }
+
+        "be able to store multiple runs" {
+            val ortRun2 = fixtures.createOrtRun(fixtures.repository.id)
+            val ortRun3 = fixtures.createOrtRun(fixtures.repository.id)
+
+            val advisorJob2 = fixtures.createAdvisorJob(ortRun2.id)
+            val advisorJob3 = fixtures.createAdvisorJob(ortRun3.id)
+
+            val createdAdvisorRun1 = advisorRunRepository.create(advisorJobId, advisorRun)
+            val createdAdvisorRun2 = advisorRunRepository.create(advisorJob2.id, advisorRun)
+            val createdAdvisorRun3 = advisorRunRepository.create(advisorJob3.id, advisorRun)
+
+            createdAdvisorRun1 shouldBe advisorRun.copy(id = createdAdvisorRun1.id, advisorJobId = advisorJobId)
+            createdAdvisorRun2 shouldBe advisorRun.copy(id = createdAdvisorRun2.id, advisorJobId = advisorJob2.id)
+            createdAdvisorRun3 shouldBe advisorRun.copy(id = createdAdvisorRun3.id, advisorJobId = advisorJob3.id)
         }
     }
 
@@ -82,14 +91,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
 
     "getByJobId" should {
         "return the correct advisor run" {
-            val createdAdvisorRun = advisorRunRepository.create(
-                advisorJobId = advisorJobId,
-                startTime = advisorRun.startTime,
-                endTime = advisorRun.endTime,
-                environment = advisorRun.environment,
-                config = advisorRun.config,
-                advisorRecords = advisorRun.advisorRecords
-            )
+            val createdAdvisorRun = advisorRunRepository.create(advisorJobId, advisorRun)
 
             advisorRunRepository.getByJobId(advisorJobId) shouldBe
                     advisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
@@ -100,6 +102,15 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
         }
     }
 })
+
+fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) = create(
+    advisorJobId = advisorJobId,
+    startTime = advisorRun.startTime,
+    endTime = advisorRun.endTime,
+    environment = advisorRun.environment,
+    config = advisorRun.config,
+    advisorRecords = advisorRun.advisorRecords
+)
 
 val variables = mapOf(
     "SHELL" to "/bin/bash",

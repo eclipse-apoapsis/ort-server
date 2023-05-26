@@ -34,7 +34,15 @@ object OsvConfigurationsTable : LongIdTable("osv_configurations") {
 }
 
 class OsvConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OsvConfigurationDao>(OsvConfigurationsTable)
+    companion object : LongEntityClass<OsvConfigurationDao>(OsvConfigurationsTable) {
+        fun findByServerUrl(serverUrl: String?): OsvConfigurationDao? =
+            find { OsvConfigurationsTable.serverUrl eq serverUrl }.singleOrNull()
+
+        fun getOrPut(serverUrl: String?): OsvConfigurationDao =
+            findByServerUrl(serverUrl) ?: new {
+                this.serverUrl = serverUrl
+            }
+    }
 
     var serverUrl by OsvConfigurationsTable.serverUrl
 

@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
 
@@ -35,7 +36,19 @@ object NexusIqConfigurationsTable : LongIdTable("nexus_iq_configurations") {
 }
 
 class NexusIqConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<NexusIqConfigurationDao>(NexusIqConfigurationsTable)
+    companion object : LongEntityClass<NexusIqConfigurationDao>(NexusIqConfigurationsTable) {
+        fun findByServerUrlAndBrowserUrl(serverUrl: String, browseUrl: String): NexusIqConfigurationDao? =
+            find {
+                NexusIqConfigurationsTable.serverUrl eq serverUrl and
+                        (NexusIqConfigurationsTable.browseUrl eq browseUrl)
+            }.singleOrNull()
+
+        fun getOrPut(serverUrl: String, browserUrl: String): NexusIqConfigurationDao =
+            findByServerUrlAndBrowserUrl(serverUrl, browserUrl) ?: new {
+                this.serverUrl = serverUrl
+                this.browseUrl = browserUrl
+            }
+    }
 
     var serverUrl by NexusIqConfigurationsTable.serverUrl
     var browseUrl by NexusIqConfigurationsTable.browseUrl

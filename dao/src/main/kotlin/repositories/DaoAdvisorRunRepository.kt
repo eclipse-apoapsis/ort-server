@@ -47,10 +47,6 @@ import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 
 /**
  * An implementation of [AdvisorRunRepository] that stores the advisor runs in [AdvisorRunsTable].
@@ -116,14 +112,24 @@ private fun createAdvisorConfiguration(
 ): AdvisorConfigurationDao {
     val advisorConfigurationDao = AdvisorConfigurationDao.new {
         advisorRun = advisorRunDao
-        osvConfiguration = advisorConfiguration.osvConfiguration?.let { createOsvConfiguration(it) }
-        nexusIqConfiguration = advisorConfiguration.nexusIqConfiguration?.let { createNexusIqConfiguration(it) }
-        vulnerableCodeConfiguration = advisorConfiguration.vulnerableCodeConfiguration?.let {
-            createVulnerableCodeConfiguration(it)
-        }
 
         githubDefectsConfiguration = advisorConfiguration.githubDefectsConfiguration?.let {
-            createGitHubDefectsConfiguration(it)
+            GithubDefectsConfigurationDao.getOrPut(
+                it.endpointUrl,
+                it.labelFilter,
+                it.maxNumberOfIssuesPerRepository,
+                it.parallelRequests
+            )
+        }
+
+        nexusIqConfiguration = advisorConfiguration.nexusIqConfiguration?.let {
+            NexusIqConfigurationDao.getOrPut(it.serverUrl, it.browseUrl)
+        }
+
+        osvConfiguration = advisorConfiguration.osvConfiguration?.let { OsvConfigurationDao.getOrPut(it.serverUrl) }
+
+        vulnerableCodeConfiguration = advisorConfiguration.vulnerableCodeConfiguration?.let {
+            VulnerableCodeConfigurationDao.getOrPut(it.serverUrl)
         }
     }
 
@@ -136,30 +142,4 @@ private fun createAdvisorConfiguration(
     }
 
     return advisorConfigurationDao
-}
-
-fun createVulnerableCodeConfiguration(
-    vulnerableCodeConfiguration: VulnerableCodeConfiguration
-): VulnerableCodeConfigurationDao =
-    VulnerableCodeConfigurationDao.new {
-        this.serverUrl = vulnerableCodeConfiguration.serverUrl
-    }
-
-fun createNexusIqConfiguration(nexusIqConfiguration: NexusIqConfiguration): NexusIqConfigurationDao =
-    NexusIqConfigurationDao.new {
-        serverUrl = nexusIqConfiguration.serverUrl
-        browseUrl = nexusIqConfiguration.browseUrl
-    }
-
-private fun createOsvConfiguration(osvConfiguration: OsvConfiguration): OsvConfigurationDao = OsvConfigurationDao.new {
-    this.serverUrl = osvConfiguration.serverUrl
-}
-
-private fun createGitHubDefectsConfiguration(
-    githubDefectsConfiguration: GithubDefectsConfiguration
-): GithubDefectsConfigurationDao = GithubDefectsConfigurationDao.new {
-    this.endpointUrl = githubDefectsConfiguration.endpointUrl
-    this.labelFilter = githubDefectsConfiguration.labelFilter
-    this.maxNumberOfIssuesPerRepository = githubDefectsConfiguration.maxNumberOfIssuesPerRepository
-    this.parallelRequests = githubDefectsConfiguration.parallelRequests
 }

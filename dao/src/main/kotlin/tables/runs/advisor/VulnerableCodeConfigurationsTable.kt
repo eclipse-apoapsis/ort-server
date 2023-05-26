@@ -34,7 +34,15 @@ object VulnerableCodeConfigurationsTable : LongIdTable("vulnerable_code_configur
 }
 
 class VulnerableCodeConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VulnerableCodeConfigurationDao>(VulnerableCodeConfigurationsTable)
+    companion object : LongEntityClass<VulnerableCodeConfigurationDao>(VulnerableCodeConfigurationsTable) {
+        fun findByServerUrl(serverUrl: String?): VulnerableCodeConfigurationDao? =
+            find { VulnerableCodeConfigurationsTable.serverUrl eq serverUrl }.singleOrNull()
+
+        fun getOrPut(serverUrl: String?): VulnerableCodeConfigurationDao =
+            findByServerUrl(serverUrl) ?: new {
+                this.serverUrl = serverUrl
+            }
+    }
 
     var serverUrl by VulnerableCodeConfigurationsTable.serverUrl
 
