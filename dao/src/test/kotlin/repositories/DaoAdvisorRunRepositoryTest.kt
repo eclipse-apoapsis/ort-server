@@ -98,7 +98,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
     }
 
     "get" should {
-        "return null" {
+        "return null if the advisor run does not exist" {
             advisorRunRepository.get(1L).shouldBeNull()
         }
     }
