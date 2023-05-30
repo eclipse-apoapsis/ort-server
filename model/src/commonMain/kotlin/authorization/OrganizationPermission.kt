@@ -48,10 +48,13 @@ enum class OrganizationPermission {
          */
         fun getRolesForOrganization(organizationId: Long) =
             enumValues<OrganizationPermission>().map { it.roleName(organizationId) }
+
+        /**
+         * A unique prefix for the roles for the provided [organizationId].
+         */
+        fun rolePrefix(organizationId: Long) = "permission_organization_$organizationId"
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */
-    fun roleName(organizationId: Long): String = "${prefix(organizationId)}_${name.lowercase()}"
-
-    private fun prefix(organizationId: Long) = "permission_organization_$organizationId"
+    fun roleName(organizationId: Long): String = "${rolePrefix(organizationId)}_${name.lowercase()}"
 }

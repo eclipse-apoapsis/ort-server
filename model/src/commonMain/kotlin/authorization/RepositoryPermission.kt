@@ -51,10 +51,13 @@ enum class RepositoryPermission {
          */
         fun getRolesForRepository(repositoryId: Long) =
             enumValues<RepositoryPermission>().map { it.roleName(repositoryId) }
+
+        /**
+         * A unique prefix for the roles for the provided [repositoryId].
+         */
+        fun rolePrefix(repositoryId: Long) = "permission_repository_$repositoryId"
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */
-    fun roleName(repositoryId: Long): String = "${prefix(repositoryId)}_${name.lowercase()}"
-
-    private fun prefix(repositoryId: Long) = "permission_repository_$repositoryId"
+    fun roleName(repositoryId: Long): String = "${rolePrefix(repositoryId)}_${name.lowercase()}"
 }

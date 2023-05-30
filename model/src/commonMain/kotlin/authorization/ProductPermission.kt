@@ -47,10 +47,13 @@ enum class ProductPermission {
          */
         fun getRolesForProduct(productId: Long) =
             enumValues<ProductPermission>().map { it.roleName(productId) }
+
+        /**
+         * A unique prefix for the roles for the provided [productId].
+         */
+        fun rolePrefix(productId: Long) = "permission_product_$productId"
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */
-    fun roleName(productId: Long): String = "${prefix(productId)}_${name.lowercase()}"
-
-    private fun prefix(productId: Long) = "permission_product_$productId"
+    fun roleName(productId: Long): String = "${rolePrefix(productId)}_${name.lowercase()}"
 }
