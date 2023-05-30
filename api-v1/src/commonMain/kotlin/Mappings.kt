@@ -129,7 +129,8 @@ fun ApiJobConfigurations.mapToModel() =
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
-fun OrtRun.mapToApi() = ApiOrtRun(id = index, repositoryId, revision, createdAt, jobs.mapToApi(), status.mapToApi())
+fun OrtRun.mapToApi() =
+    ApiOrtRun(id = id, index = index, repositoryId, revision, createdAt, jobs.mapToApi(), status.mapToApi())
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 

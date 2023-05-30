@@ -30,6 +30,12 @@ data class OrtRun(
     val id: Long,
 
     /**
+     * The index of this ORT run for the affected repository. Together with the [repositoryId], this property uniquely
+     * identifies an ORT run.
+     */
+    val index: Long,
+
+    /**
      * The id of the repository for this run.
      */
     val repositoryId: Long,

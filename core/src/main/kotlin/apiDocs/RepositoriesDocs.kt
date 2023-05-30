@@ -137,7 +137,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                     json.encodeToString(
                         listOf(
                             OrtRun(
-                                id = 1,
+                                id = 2,
+                                index = 1,
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
@@ -145,7 +146,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 status = OrtRunStatus.FINISHED
                             ),
                             OrtRun(
-                                id = 2,
+                                id = 3,
+                                index = 2,
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
@@ -187,6 +189,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                     json.encodeToString(
                         OrtRun(
                             id = 1,
+                            index = 2,
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
@@ -224,6 +227,7 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                     json.encodeToString(
                         OrtRun(
                             id = 1,
+                            index = 2,
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
