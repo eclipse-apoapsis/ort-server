@@ -87,7 +87,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
 
-    single<AuthorizationService> { DefaultAuthorizationService(get()) }
+    single<AuthorizationService> { DefaultAuthorizationService(get(), get(), get(), get(), get()) }
     single { OrchestratorService(get(), get(), get()) }
     single { OrganizationService(get(), get(), get(), get()) }
     single { ProductService(get(), get(), get(), get()) }

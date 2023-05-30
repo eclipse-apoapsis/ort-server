@@ -56,4 +56,13 @@ interface AuthorizationService {
      * Delete the [permissions][RepositoryPermission.getRolesForRepository] for the provided [repositoryId].
      */
     suspend fun deleteRepositoryPermissions(repositoryId: Long)
+
+    /**
+     * Synchronize the permissions in Keycloak with the database entities to ensure that the correct Keycloak roles
+     * exist. This is required for the following scenarios:
+     * * The roles in Keycloak were manually changed.
+     * * The permission definitions have changed and therefore the Keycloak roles created when creating the database
+     *   entities are not correct anymore.
+     */
+    suspend fun synchronizePermissions()
 }
