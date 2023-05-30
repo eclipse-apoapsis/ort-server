@@ -29,7 +29,7 @@ data class Product(
     val id: Long,
 
     /**
-     * The name of the product. Must be unqiue within an [Organization].
+     * The name of the product. Must be unique within an [Organization].
      */
     val name: String,
 

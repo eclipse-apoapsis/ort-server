@@ -25,7 +25,7 @@ package org.ossreviewtoolkit.server.model
  */
 data class Organization(
     /**
-     * The unqiue identifier of the organization.
+     * The unique identifier of the organization.
      */
     val id: Long,
 
