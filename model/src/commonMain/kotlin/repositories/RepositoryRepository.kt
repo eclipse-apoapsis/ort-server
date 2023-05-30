@@ -39,6 +39,11 @@ interface RepositoryRepository {
     fun get(id: Long): Repository?
 
     /**
+     * List all repositories according to the given [parameters].
+     */
+    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Repository>
+
+    /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     fun listForProduct(
