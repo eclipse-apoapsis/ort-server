@@ -36,6 +36,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Repository
@@ -67,6 +69,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
+    private lateinit var db: Database
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
     private lateinit var repositoryRepository: RepositoryRepository
@@ -75,17 +78,18 @@ class ProductsRouteIntegrationTest : StringSpec() {
 
     init {
         extension(
-            DatabaseTestExtension {
-                organizationRepository = DaoOrganizationRepository()
-                productRepository = DaoProductRepository()
-                repositoryRepository = DaoRepositoryRepository()
+            DatabaseTestExtension { db ->
+                this.db = db
+                organizationRepository = DaoOrganizationRepository(db)
+                productRepository = DaoProductRepository(db)
+                repositoryRepository = DaoRepositoryRepository(db)
 
                 orgId = organizationRepository.create(name = "name", description = "description").id
             }
         )
 
         "GET /products/{productId} should return a single product" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val name = "name"
@@ -106,7 +110,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /products/{id} should update a product" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -133,7 +137,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /products/{id} should delete a product" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -152,7 +156,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /products/{id} should delete Keycloak roles" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -169,7 +173,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{id}/repositories should return all repositories of an organization" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -199,7 +203,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /products/{id}/repositories should support query parameters" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -227,7 +231,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /products/{id}/repositories should create a repository" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =
@@ -247,7 +251,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /products/{id}/repositories should create Keycloak roles" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdProduct =

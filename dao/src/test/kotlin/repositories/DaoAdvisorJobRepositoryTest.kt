@@ -36,16 +36,16 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoAdvisorJobRepositoryTest : StringSpec({
-    val advisorJobRepository = DaoAdvisorJobRepository()
-
+    lateinit var advisorJobRepository: DaoAdvisorJobRepository
     lateinit var fixtures: Fixtures
     lateinit var jobConfigurations: JobConfigurations
     lateinit var advisorJobConfiguration: AdvisorJobConfiguration
     var ortRunId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            advisorJobRepository = DaoAdvisorJobRepository(db)
+            fixtures = Fixtures(db)
             ortRunId = fixtures.ortRun.id
             jobConfigurations = fixtures.jobConfigurations
             advisorJobConfiguration = jobConfigurations.advisor!!

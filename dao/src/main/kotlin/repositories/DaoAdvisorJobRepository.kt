@@ -22,6 +22,8 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
@@ -33,8 +35,8 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
-class DaoAdvisorJobRepository : AdvisorJobRepository {
-    override fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob = blockingQuery {
+class DaoAdvisorJobRepository(private val db: Database) : AdvisorJobRepository {
+    override fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob = db.blockingQuery {
         AdvisorJobDao.new {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
@@ -43,9 +45,9 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long) = entityQuery { AdvisorJobDao[id].mapToModel() }
+    override fun get(id: Long) = db.entityQuery { AdvisorJobDao[id].mapToModel() }
 
-    override fun getForOrtRun(ortRunId: Long): AdvisorJob? = blockingQuery {
+    override fun getForOrtRun(ortRunId: Long): AdvisorJob? = db.blockingQuery {
         AdvisorJobDao.find { AdvisorJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }
 
@@ -54,7 +56,7 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>
-    ): AdvisorJob = blockingQuery {
+    ): AdvisorJob = db.blockingQuery {
         val advisorJob = AdvisorJobDao[id]
 
         startedAt.ifPresent { advisorJob.startedAt = it }
@@ -64,5 +66,5 @@ class DaoAdvisorJobRepository : AdvisorJobRepository {
         AdvisorJobDao[id].mapToModel()
     }
 
-    override fun delete(id: Long) = blockingQuery { AdvisorJobDao[id].delete() }
+    override fun delete(id: Long) = db.blockingQuery { AdvisorJobDao[id].delete() }
 }

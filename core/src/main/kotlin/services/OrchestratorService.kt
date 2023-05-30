@@ -26,6 +26,8 @@ import io.ktor.server.config.ApplicationConfig
 
 import java.util.UUID
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -40,6 +42,7 @@ import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
  * A service responsible for the communication with the Orchestrator.
  */
 class OrchestratorService(
+    private val db: Database,
     private val ortRunRepository: OrtRunRepository,
     applicationConfig: ApplicationConfig
 ) {
@@ -51,7 +54,7 @@ class OrchestratorService(
      * Create an ORT run in the database and notify the Orchestrator to handle this run.
      */
     suspend fun createOrtRun(repositoryId: Long, revision: String, jobConfig: JobConfigurations): OrtRun {
-        val ortRun = dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig) }
+        val ortRun = db.dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig) }
 
         // TODO: Set the correct token.
         orchestratorSender.send(

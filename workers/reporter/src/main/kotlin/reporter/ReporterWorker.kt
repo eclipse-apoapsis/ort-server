@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.reporter
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -34,9 +36,13 @@ private val logger = LoggerFactory.getLogger(ReporterWorker::class.java)
 
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
-internal class ReporterWorker(private val runner: ReporterRunner, private val dao: ReporterWorkerDao) {
+internal class ReporterWorker(
+    private val db: Database,
+    private val runner: ReporterRunner,
+    private val dao: ReporterWorkerDao
+) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val (reporterJob, ortResult) = blockingQuery {
+        val (reporterJob, ortResult) = db.blockingQuery {
             val reporterJob = getValidReporterJob(jobId)
             val ortRun = dao.getOrtRun(reporterJob.ortRunId)
             requireNotNull(ortRun) {

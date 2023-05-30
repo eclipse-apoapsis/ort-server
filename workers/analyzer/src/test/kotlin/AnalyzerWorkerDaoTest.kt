@@ -38,12 +38,13 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 class AnalyzerWorkerDaoTest : WordSpec({
-    val dao = AnalyzerWorkerDao(DaoAnalyzerJobRepository(), DaoAnalyzerRunRepository())
+    lateinit var dao: AnalyzerWorkerDao
     lateinit var fixtures: Fixtures
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            dao = AnalyzerWorkerDao(DaoAnalyzerJobRepository(db), DaoAnalyzerRunRepository(db))
+            fixtures = Fixtures(db)
         }
     )
 

@@ -22,6 +22,8 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
@@ -33,8 +35,8 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
-class DaoAnalyzerJobRepository : AnalyzerJobRepository {
-    override fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob = blockingQuery {
+class DaoAnalyzerJobRepository(private val db: Database) : AnalyzerJobRepository {
+    override fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob = db.blockingQuery {
         AnalyzerJobDao.new {
             ortRun = OrtRunDao[ortRunId]
             createdAt = Clock.System.now()
@@ -43,9 +45,9 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long) = entityQuery { AnalyzerJobDao[id].mapToModel() }
+    override fun get(id: Long) = db.entityQuery { AnalyzerJobDao[id].mapToModel() }
 
-    override fun getForOrtRun(ortRunId: Long): AnalyzerJob? = blockingQuery {
+    override fun getForOrtRun(ortRunId: Long): AnalyzerJob? = db.blockingQuery {
         AnalyzerJobDao.find { AnalyzerJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }
 
@@ -54,7 +56,7 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>
-    ): AnalyzerJob = blockingQuery {
+    ): AnalyzerJob = db.blockingQuery {
         val analyzerJob = AnalyzerJobDao[id]
 
         startedAt.ifPresent { analyzerJob.startedAt = it }
@@ -64,5 +66,5 @@ class DaoAnalyzerJobRepository : AnalyzerJobRepository {
         AnalyzerJobDao[id].mapToModel()
     }
 
-    override fun delete(id: Long) = blockingQuery { AnalyzerJobDao[id].delete() }
+    override fun delete(id: Long) = db.blockingQuery { AnalyzerJobDao[id].delete() }
 }

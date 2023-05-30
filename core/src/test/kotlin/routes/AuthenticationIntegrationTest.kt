@@ -179,7 +179,7 @@ class AuthenticationIntegrationTest : FunSpec() {
     }
 
     private fun authTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
-        ortServerTestApplication(authNoDbConfig, testJwtConfigs) {
+        ortServerTestApplication(config = authNoDbConfig, additionalConfigs = testJwtConfigs) {
             routing {
                 route("api/v1") {
                     authenticate(SecurityConfigurations.token) {

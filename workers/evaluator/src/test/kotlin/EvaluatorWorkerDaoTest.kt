@@ -45,24 +45,28 @@ import org.ossreviewtoolkit.utils.common.gibibytes
 private const val TIME_STAMP_SECONDS = 1678119934L
 
 class EvaluatorWorkerDaoTest : WordSpec({
-    val advisorRunRepository = DaoAdvisorRunRepository()
-    val analyzerRunRepository = DaoAnalyzerRunRepository()
-    val evaluatorRunRepository = DaoEvaluatorRunRepository()
-    val dao = EvaluatorWorkerDao(
-        advisorJobRepository = DaoAdvisorJobRepository(),
-        advisorRunRepository = advisorRunRepository,
-        analyzerJobRepository = DaoAnalyzerJobRepository(),
-        analyzerRunRepository = analyzerRunRepository,
-        evaluatorJobRepository = DaoEvaluatorJobRepository(),
-        ortRunRepository = DaoOrtRunRepository(),
-        repositoryRepository = DaoRepositoryRepository(),
-        evaluatorRunRepository = evaluatorRunRepository
-    )
+    lateinit var advisorRunRepository: DaoAdvisorRunRepository
+    lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
+    lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
+    lateinit var dao: EvaluatorWorkerDao
     lateinit var fixtures: Fixtures
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            advisorRunRepository = DaoAdvisorRunRepository(db)
+            analyzerRunRepository = DaoAnalyzerRunRepository(db)
+            evaluatorRunRepository = DaoEvaluatorRunRepository(db)
+            dao = EvaluatorWorkerDao(
+                advisorJobRepository = DaoAdvisorJobRepository(db),
+                advisorRunRepository = advisorRunRepository,
+                analyzerJobRepository = DaoAnalyzerJobRepository(db),
+                analyzerRunRepository = analyzerRunRepository,
+                evaluatorJobRepository = DaoEvaluatorJobRepository(db),
+                ortRunRepository = DaoOrtRunRepository(db),
+                repositoryRepository = DaoRepositoryRepository(db),
+                evaluatorRunRepository = evaluatorRunRepository
+            )
+            fixtures = Fixtures(db)
         }
     )
 

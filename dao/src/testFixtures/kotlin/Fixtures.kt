@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.dao.test
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
@@ -43,16 +45,16 @@ import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
  * instances.
  */
-class Fixtures {
-    private val organizationRepository = DaoOrganizationRepository()
-    private val productRepository = DaoProductRepository()
-    private val repositoryRepository = DaoRepositoryRepository()
-    private val ortRunRepository = DaoOrtRunRepository()
-    private val analyzerJobRepository = DaoAnalyzerJobRepository()
-    private val advisorJobRepository = DaoAdvisorJobRepository()
-    private val scannerJobRepository = DaoScannerJobRepository()
-    private val evaluatorJobRepository = DaoEvaluatorJobRepository()
-    private val reporterJobRepository = DaoReporterJobRepository()
+class Fixtures(private val db: Database) {
+    private val organizationRepository = DaoOrganizationRepository(db)
+    private val productRepository = DaoProductRepository(db)
+    private val repositoryRepository = DaoRepositoryRepository(db)
+    private val ortRunRepository = DaoOrtRunRepository(db)
+    private val analyzerJobRepository = DaoAnalyzerJobRepository(db)
+    private val advisorJobRepository = DaoAdvisorJobRepository(db)
+    private val scannerJobRepository = DaoScannerJobRepository(db)
+    private val evaluatorJobRepository = DaoEvaluatorJobRepository(db)
+    private val reporterJobRepository = DaoReporterJobRepository(db)
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
@@ -130,7 +132,7 @@ class Fixtures {
         configuration: ReporterJobConfiguration = jobConfigurations.reporter!!
     ) = reporterJobRepository.create(ortRunId, configuration)
 
-    fun createIdentifier() = blockingQuery {
+    fun createIdentifier() = db.blockingQuery {
         IdentifierDao.new {
             type = "identifier_type"
             namespace = "identifier_namespace"

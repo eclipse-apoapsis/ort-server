@@ -53,10 +53,20 @@ private const val ORGANIZATION_DESC = "Description"
  * repositories for organizations and repositories as example.
  */
 class ListQueryTest : StringSpec() {
-    private val organizationRepository = DaoOrganizationRepository()
+    private lateinit var organizationRepository: DaoOrganizationRepository
+    private lateinit var productRepository: DaoProductRepository
+    private lateinit var repositoryRepository: DaoRepositoryRepository
+    private lateinit var ortRunRepository: DaoOrtRunRepository
 
     init {
-        extension(DatabaseTestExtension())
+        extension(
+            DatabaseTestExtension { db ->
+                organizationRepository = DaoOrganizationRepository(db)
+                productRepository = DaoProductRepository(db)
+                repositoryRepository = DaoRepositoryRepository(db)
+                ortRunRepository = DaoOrtRunRepository(db)
+            }
+        )
 
         beforeTest {
             insertTestOrganizations()
@@ -88,8 +98,6 @@ class ListQueryTest : StringSpec() {
 
         "Entities can be ordered by multiple fields" {
             val repositoryUrl = "https://repo.example.org/test"
-            val productRepository = DaoProductRepository()
-            val repositoryRepository = DaoRepositoryRepository()
 
             val organization = organizationRepository.create("Another Organization", "for testing")
             val product = productRepository.create("TestProduct", null, organization.id)
@@ -129,16 +137,12 @@ class ListQueryTest : StringSpec() {
         }
 
         "Logic property names are used to define the sort order" {
-            val productRepository = DaoProductRepository()
-            val repositoryRepository = DaoRepositoryRepository()
-            val runRepository = DaoOrtRunRepository()
-
             val organization = organizationRepository.create("Run Organization", null)
             val product = productRepository.create("Run Product", null, organization.id)
             val repo =
                 repositoryRepository.create(RepositoryType.GIT, "https://repo.example.org/run.git", product.id)
             val runs = (1..3).map {
-                runRepository.create(repo.id, "test", JobConfigurations())
+                ortRunRepository.create(repo.id, "test", JobConfigurations())
             }
 
             val parameters = ListQueryParameters(
@@ -148,7 +152,7 @@ class ListQueryTest : StringSpec() {
             )
 
             val runsFromQuery = transaction {
-                runRepository.listForRepository(repo.id, parameters)
+                ortRunRepository.listForRepository(repo.id, parameters)
             }
 
             runsFromQuery shouldContainExactly runs

@@ -35,14 +35,14 @@ import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoProductRepositoryTest : StringSpec({
-    val productRepository = DaoProductRepository()
-
+    lateinit var productRepository: DaoProductRepository
     lateinit var fixtures: Fixtures
     var orgId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            productRepository = DaoProductRepository(db)
+            fixtures = Fixtures(db)
             orgId = fixtures.organization.id
         }
     )

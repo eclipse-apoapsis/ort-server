@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -63,7 +64,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 /**
  * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].
  */
-class DaoScannerRunRepository : ScannerRunRepository {
+class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
     override fun create(
         scannerJobId: Long,
         startTime: Instant,
@@ -71,7 +72,7 @@ class DaoScannerRunRepository : ScannerRunRepository {
         environment: Environment,
         config: ScannerConfiguration,
         results: Map<Identifier, List<ScanResult>>
-    ): ScannerRun = blockingQuery {
+    ): ScannerRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val scannerRunDao = ScannerRunDao.new {
@@ -86,9 +87,9 @@ class DaoScannerRunRepository : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    override fun get(id: Long): ScannerRun? = entityQuery { ScannerRunDao[id].mapToModel() }
+    override fun get(id: Long): ScannerRun? = db.entityQuery { ScannerRunDao[id].mapToModel() }
 
-    override fun getByJobId(scannerJobId: Long): ScannerRun? = blockingQuery {
+    override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
         ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.mapToModel()
     }
 }

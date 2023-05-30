@@ -27,6 +27,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
@@ -34,12 +36,20 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.RepositoryType
 
 class ProductServiceTest : WordSpec({
-    val productRepository = DaoProductRepository()
-    val repositoryRepository = DaoRepositoryRepository()
+    lateinit var db: Database
+    lateinit var productRepository: DaoProductRepository
+    lateinit var repositoryRepository: DaoRepositoryRepository
 
     lateinit var fixtures: Fixtures
 
-    extension(DatabaseTestExtension { fixtures = Fixtures() })
+    extension(
+        DatabaseTestExtension {
+            db = it
+            productRepository = DaoProductRepository(db)
+            repositoryRepository = DaoRepositoryRepository(db)
+            fixtures = Fixtures(db)
+        }
+    )
 
     "createRepository" should {
         "create Keycloak permissions" {
@@ -47,7 +57,7 @@ class ProductServiceTest : WordSpec({
                 coEvery { createRepositoryPermissions(any()) } just runs
             }
 
-            val service = ProductService(productRepository, repositoryRepository, authorizationService)
+            val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
             val repository =
                 service.createRepository(RepositoryType.GIT, "https://example.com/repo.git", fixtures.product.id)
 
@@ -63,7 +73,7 @@ class ProductServiceTest : WordSpec({
                 coEvery { deleteProductPermissions(any()) } just runs
             }
 
-            val service = ProductService(productRepository, repositoryRepository, authorizationService)
+            val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
             service.deleteProduct(fixtures.product.id)
 
             coVerify(exactly = 1) {

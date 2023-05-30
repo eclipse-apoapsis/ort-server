@@ -205,6 +205,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         analyzerJobRepository,
                         mockk(),
                         mockk(),
@@ -271,6 +272,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         analyzerJobRepository,
                         advisorJobRepository,
                         scannerJobRepository,
@@ -344,6 +346,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         analyzerJobRepository,
                         mockk(),
                         mockk(),
@@ -404,6 +407,7 @@ class OrchestratorTest : WordSpec() {
                 mockkTransaction {
                     Orchestrator(
                         mockk(),
+                        mockk(),
                         advisorJobRepository,
                         scannerJobRepository,
                         evaluatorJobRepository,
@@ -459,6 +463,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         analyzerJobRepository,
                         advisorJobRepository,
                         scannerJobRepository,
@@ -510,6 +515,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         analyzerJobRepository = mockk(),
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
@@ -548,6 +554,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         mockk(),
                         advisorJobRepository,
                         mockk(),
@@ -600,6 +607,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         mockk(),
                         mockk(),
+                        mockk(),
                         evaluatorJobRepository,
                         reporterJobRepository,
                         mockk(),
@@ -648,6 +656,7 @@ class OrchestratorTest : WordSpec() {
 
                 mockkTransaction {
                     Orchestrator(
+                        mockk(),
                         mockk(),
                         mockk(),
                         mockk(),

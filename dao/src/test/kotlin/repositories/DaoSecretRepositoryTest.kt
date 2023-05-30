@@ -36,8 +36,7 @@ import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoSecretRepositoryTest : StringSpec() {
-    private val secretRepository = DaoSecretRepository()
-
+    private lateinit var secretRepository: DaoSecretRepository
     private lateinit var fixtures: Fixtures
     private var organizationId = -1L
     private var productId = -1L
@@ -49,8 +48,9 @@ class DaoSecretRepositoryTest : StringSpec() {
 
     init {
         extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
+            DatabaseTestExtension { db ->
+                secretRepository = DaoSecretRepository(db)
+                fixtures = Fixtures(db)
                 organizationId = fixtures.organization.id
                 productId = fixtures.product.id
                 repositoryId = fixtures.repository.id

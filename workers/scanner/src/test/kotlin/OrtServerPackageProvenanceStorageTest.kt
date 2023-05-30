@@ -38,11 +38,11 @@ import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 
 class OrtServerPackageProvenanceStorageTest : WordSpec() {
-    private val packageProvenanceStorage = OrtServerPackageProvenanceStorage()
+    private lateinit var packageProvenanceStorage: OrtServerPackageProvenanceStorage
 
     init {
         extension(
-            DatabaseTestExtension()
+            DatabaseTestExtension { db -> packageProvenanceStorage = OrtServerPackageProvenanceStorage(db) }
         )
 
         "putProvenance" should {

@@ -41,14 +41,14 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
 class DaoScannerRunRepositoryTest : StringSpec({
-    val scannerRunRepository = DaoScannerRunRepository()
-
+    lateinit var scannerRunRepository: DaoScannerRunRepository
     lateinit var fixtures: Fixtures
     var scannerJobId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            scannerRunRepository = DaoScannerRunRepository(db)
+            fixtures = Fixtures(db)
             scannerJobId = fixtures.scannerJob.id
         }
     )

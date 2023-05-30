@@ -27,18 +27,28 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 
 class RepositoryServiceTest : WordSpec({
-    val ortRunRepository = DaoOrtRunRepository()
-    val repositoryRepository = DaoRepositoryRepository()
+    lateinit var db: Database
+    lateinit var ortRunRepository: DaoOrtRunRepository
+    lateinit var repositoryRepository: DaoRepositoryRepository
 
     lateinit var fixtures: Fixtures
 
-    extension(DatabaseTestExtension { fixtures = Fixtures() })
+    extension(
+        DatabaseTestExtension {
+            db = it
+            ortRunRepository = DaoOrtRunRepository(db)
+            repositoryRepository = DaoRepositoryRepository(db)
+            fixtures = Fixtures(db)
+        }
+    )
 
     "deleteRepository" should {
         "delete Keycloak permissions" {
@@ -46,7 +56,7 @@ class RepositoryServiceTest : WordSpec({
                 coEvery { deleteRepositoryPermissions(any()) } just runs
             }
 
-            val service = RepositoryService(ortRunRepository, repositoryRepository, authorizationService)
+            val service = RepositoryService(db, ortRunRepository, repositoryRepository, authorizationService)
             service.deleteRepository(fixtures.repository.id)
 
             coVerify(exactly = 1) {

@@ -29,6 +29,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.createJsonClient
@@ -44,11 +46,13 @@ class ErrorsIntegrationTest : StringSpec() {
     private val keycloak = install(KeycloakTestExtension())
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
 
+    private lateinit var db: Database
+
     init {
-        extension(DatabaseTestExtension())
+        extension(DatabaseTestExtension { db -> this.db = db })
 
         "An unauthorized call yields the correct status code" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations")
@@ -58,7 +62,7 @@ class ErrorsIntegrationTest : StringSpec() {
         }
 
         "Sorting by an unsupported field should be handled" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?sort=color") {
@@ -75,7 +79,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid limit parameter should be handled" {
             val limitValue = "a-couple-of"
 
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=$limitValue") {
@@ -94,7 +98,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid offset parameter should be handled" {
             val offsetValue = "a-quarter"
 
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue") {

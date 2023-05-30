@@ -75,23 +75,23 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single { KeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get()) }
 
-    single<AdvisorJobRepository> { DaoAdvisorJobRepository() }
-    single<ScannerJobRepository> { DaoScannerJobRepository() }
-    single<AnalyzerJobRepository> { DaoAnalyzerJobRepository() }
-    single<OrganizationRepository> { DaoOrganizationRepository() }
-    single<OrtRunRepository> { DaoOrtRunRepository() }
-    single<ProductRepository> { DaoProductRepository() }
-    single<RepositoryRepository> { DaoRepositoryRepository() }
-    single<SecretRepository> { DaoSecretRepository() }
+    single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+    single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+    single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+    single<OrganizationRepository> { DaoOrganizationRepository(get()) }
+    single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+    single<ProductRepository> { DaoProductRepository(get()) }
+    single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+    single<SecretRepository> { DaoSecretRepository(get()) }
 
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
 
     single<AuthorizationService> { DefaultAuthorizationService(get()) }
-    single { OrchestratorService(get(), get()) }
-    single { OrganizationService(get(), get(), get()) }
-    single { ProductService(get(), get(), get()) }
-    single { RepositoryService(get(), get(), get()) }
-    single { SecretService(get(), get()) }
+    single { OrchestratorService(get(), get(), get()) }
+    single { OrganizationService(get(), get(), get(), get()) }
+    single { ProductService(get(), get(), get(), get()) }
+    single { RepositoryService(get(), get(), get(), get()) }
+    single { SecretService(get(), get(), get()) }
     singleOf(::ReportStorageService)
 }

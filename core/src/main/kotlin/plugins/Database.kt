@@ -26,7 +26,9 @@ import io.ktor.server.config.ApplicationConfig
 
 import javax.sql.DataSource
 
+import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.inject
+import org.koin.ktor.plugin.KoinApplicationStarted
 
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
@@ -37,9 +39,14 @@ import org.ossreviewtoolkit.server.dao.migrate
  * Connect and migrate the database. This is the only place where migrations for the production database are done. While
  * other services can connect to the database, they must not handle migrations.
  */
-fun Application.configureDatabase(dataSource: DataSource = createDataSource()) {
-    dataSource.connect()
+fun Application.configureDatabase() {
+    val dataSource = createDataSource()
+    val db = dataSource.connect()
     dataSource.migrate()
+
+    environment.monitor.subscribe(KoinApplicationStarted) {
+        GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
+    }
 }
 
 private fun Application.createDataSource(): DataSource {

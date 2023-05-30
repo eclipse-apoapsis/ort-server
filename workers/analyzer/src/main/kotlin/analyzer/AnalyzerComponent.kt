@@ -74,8 +74,8 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
     override fun customModules(): List<Module> = listOf(analyzerModule(), databaseModule())
 
     private fun analyzerModule(): Module = module {
-        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
-        singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
 
         singleOf(::AnalyzerWorkerDao)
         singleOf(::AnalyzerDownloader)

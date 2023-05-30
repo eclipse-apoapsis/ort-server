@@ -85,15 +85,15 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
     override fun customModules(): List<Module> = listOf(reporterModule(), databaseModule())
 
     private fun reporterModule(): Module = module {
-        singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
-        singleOf<AdvisorRunRepository>(::DaoAdvisorRunRepository)
-        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
-        singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
-        singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
-        singleOf<EvaluatorRunRepository>(::DaoEvaluatorRunRepository)
-        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
-        singleOf<ReporterJobRepository>(::DaoReporterJobRepository)
-        singleOf<RepositoryRepository>(::DaoRepositoryRepository)
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 

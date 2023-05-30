@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.workers.scanner
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -58,8 +59,8 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
  *
  * Throws a [ScanStorageException] if an error occurs while reading from the storage.
  */
-class OrtServerScanResultStorage : ProvenanceBasedScanStorage {
-    override fun read(provenance: KnownProvenance): List<ScanResult> = blockingQuery {
+class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScanStorage {
+    override fun read(provenance: KnownProvenance): List<ScanResult> = db.blockingQuery {
             when (provenance) {
                 is ArtifactProvenance -> {
                     ScanResultDao.find(
@@ -99,7 +100,7 @@ class OrtServerScanResultStorage : ProvenanceBasedScanStorage {
         if (provenance is RepositoryProvenance && provenance.vcsInfo.path.isNotEmpty()) {
             throw ScanStorageException("Repository provenances with a non-empty VCS path are not supported.")
         }
-        blockingQuery {
+        db.blockingQuery {
             ScanResultDao.new {
                 when (provenance) {
                     is ArtifactProvenance -> {

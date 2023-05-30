@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.services
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -37,6 +39,7 @@ private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
  * A service providing functions for working with [repositories][Repository].
  */
 class RepositoryService(
+    private val db: Database,
     private val ortRunRepository: OrtRunRepository,
     private val repositoryRepository: RepositoryRepository,
     private val authorizationService: AuthorizationService
@@ -44,7 +47,7 @@ class RepositoryService(
     /**
      * Delete a repository by [repositoryId].
      */
-    suspend fun deleteRepository(repositoryId: Long): Unit = dbQueryCatching {
+    suspend fun deleteRepository(repositoryId: Long): Unit = db.dbQueryCatching {
         repositoryRepository.delete(repositoryId)
     }.onSuccess {
         runCatching {
@@ -54,21 +57,21 @@ class RepositoryService(
         }
     }.getOrThrow()
 
-    suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = dbQuery {
+    suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.dbQuery {
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)
     }
 
     /**
      * Get the runs executed on the given [repository][repositoryId] according to the given [parameters].
      */
-    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = dbQuery {
+    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = db.dbQuery {
         ortRunRepository.listForRepository(repositoryId, parameters)
     }
 
     /**
      * Get a repository by [repositoryId]. Returns null if the repository is not found.
      */
-    suspend fun getRepository(repositoryId: Long): Repository? = dbQuery {
+    suspend fun getRepository(repositoryId: Long): Repository? = db.dbQuery {
         repositoryRepository.get(repositoryId)
     }
 
@@ -79,7 +82,7 @@ class RepositoryService(
         repositoryId: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent
-    ): Repository = dbQuery {
+    ): Repository = db.dbQuery {
         repositoryRepository.update(repositoryId, type, url)
     }
 }

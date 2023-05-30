@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -34,12 +36,13 @@ private val logger = LoggerFactory.getLogger(AdvisorWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AdvisorWorker(
+    private val db: Database,
     private val runner: AdvisorRunner,
     private val dao: AdvisorWorkerDao
 ) {
     fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
-        val advisorJob = blockingQuery { getValidAdvisorJob(advisorJobId) }
-        val analyzerRun = blockingQuery { dao.getAnalyzerRunForAdvisorJob(advisorJob) }
+        val advisorJob = db.blockingQuery { getValidAdvisorJob(advisorJobId) }
+        val analyzerRun = db.blockingQuery { dao.getAnalyzerRunForAdvisorJob(advisorJob) }
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
@@ -48,7 +51,7 @@ internal class AdvisorWorker(
             config = advisorJob.configuration
         )
 
-        blockingQuery {
+        db.blockingQuery {
             getValidAdvisorJob(advisorJobId)
             dao.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
         }

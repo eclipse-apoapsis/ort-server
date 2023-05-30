@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.and
@@ -43,11 +44,11 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
+class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProvenanceStorage {
     override fun readProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact
-    ): PackageProvenanceResolutionResult? = blockingQuery {
+    ): PackageProvenanceResolutionResult? = db.blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
         val sourceArtifactDao = RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())
 
@@ -57,7 +58,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         ).singleOrNull()?.mapToOrt()
     }
 
-    override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = blockingQuery {
+    override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = db.blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
         val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel())
 
@@ -67,7 +68,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         ).singleOrNull()?.mapToOrt()
     }
 
-    override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = blockingQuery {
+    override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = db.blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
 
         PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierDao?.id?.value)
@@ -79,7 +80,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         sourceArtifact: RemoteArtifact,
         result: PackageProvenanceResolutionResult
     ) {
-        blockingQuery {
+        db.blockingQuery {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -115,7 +116,7 @@ class OrtServerPackageProvenanceStorage : PackageProvenanceStorage {
         vcs: VcsInfo,
         result: PackageProvenanceResolutionResult
     ) {
-        blockingQuery {
+        db.blockingQuery {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace

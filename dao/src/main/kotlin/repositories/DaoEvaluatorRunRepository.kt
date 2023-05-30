@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -36,13 +37,13 @@ import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 /**
  * An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable].
  */
-class DaoEvaluatorRunRepository : EvaluatorRunRepository {
+class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunRepository {
     override fun create(
         evaluatorJobId: Long,
         startTime: Instant,
         endTime: Instant,
         violations: List<OrtRuleViolation>
-    ): EvaluatorRun = blockingQuery {
+    ): EvaluatorRun = db.blockingQuery {
         val ruleViolations = violations.map(RuleViolationDao::getOrPut)
 
         EvaluatorRunDao.new {
@@ -53,9 +54,9 @@ class DaoEvaluatorRunRepository : EvaluatorRunRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long): EvaluatorRun? = entityQuery { EvaluatorRunDao[id].mapToModel() }
+    override fun get(id: Long): EvaluatorRun? = db.entityQuery { EvaluatorRunDao[id].mapToModel() }
 
-    override fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = entityQuery {
+    override fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = db.entityQuery {
         EvaluatorRunDao.find { EvaluatorRunsTable.evaluatorJobId eq evaluatorJobId }.firstOrNull()?.mapToModel()
     }
 }

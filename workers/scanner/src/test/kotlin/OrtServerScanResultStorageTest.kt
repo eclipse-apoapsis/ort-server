@@ -47,11 +47,11 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 private const val TIME_STAMP_SECONDS = 1678119934L
 
 class OrtServerScanResultStorageTest : WordSpec() {
-    private val scanResultStorage = OrtServerScanResultStorage()
+    private lateinit var scanResultStorage: OrtServerScanResultStorage
 
     init {
         extension(
-            DatabaseTestExtension()
+            DatabaseTestExtension { db -> scanResultStorage = OrtServerScanResultStorage(db) }
         )
 
         "write" should {

@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -51,7 +52,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 /**
  * An implementation of [AdvisorRunRepository] that stores the advisor runs in [AdvisorRunsTable].
  */
-class DaoAdvisorRunRepository : AdvisorRunRepository {
+class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
     override fun create(
         advisorJobId: Long,
         startTime: Instant,
@@ -59,7 +60,7 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         environment: Environment,
         config: AdvisorConfiguration,
         advisorRecords: Map<Identifier, List<AdvisorResult>>
-    ): AdvisorRun = blockingQuery {
+    ): AdvisorRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val advisorRunDao = AdvisorRunDao.new {
@@ -99,9 +100,9 @@ class DaoAdvisorRunRepository : AdvisorRunRepository {
         advisorRunDao.mapToModel()
     }
 
-    override fun get(id: Long): AdvisorRun? = entityQuery { AdvisorRunDao[id].mapToModel() }
+    override fun get(id: Long): AdvisorRun? = db.entityQuery { AdvisorRunDao[id].mapToModel() }
 
-    override fun getByJobId(advisorJobId: Long): AdvisorRun? = entityQuery {
+    override fun getByJobId(advisorJobId: Long): AdvisorRun? = db.entityQuery {
         AdvisorRunDao.find { AdvisorRunsTable.advisorJobId eq advisorJobId }.firstOrNull()?.mapToModel()
     }
 }

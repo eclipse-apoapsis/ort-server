@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -77,11 +78,11 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
     override fun customModules(): List<Module> = listOf(advisorModule(), databaseModule())
 
     private fun advisorModule(): Module = module {
-        singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
-        singleOf<AdvisorRunRepository>(::DaoAdvisorRunRepository)
-        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
-        singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
-        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
 
         singleOf(::AdvisorWorkerDao)
         singleOf(::AdvisorConfigurator)

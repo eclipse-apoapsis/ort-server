@@ -30,6 +30,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
@@ -40,17 +42,19 @@ import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
 
 class RunsRouteIntegrationTest : StringSpec() {
+    private lateinit var db: Database
     private lateinit var fixtures: Fixtures
 
     init {
         extension(
-            DatabaseTestExtension {
-                fixtures = Fixtures()
+            DatabaseTestExtension { db ->
+                this.db = db
+                fixtures = Fixtures(db)
             }
         )
 
         "GET /runs/{runId}/report/{fileName} should download a report" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(db, noDbConfig) {
                 val run = fixtures.createOrtRun()
                 val reportFile = "disclosure-document-pdf"
                 val reportData = "Data of the report to download".toByteArray()
@@ -76,7 +80,7 @@ class RunsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /runs/{runId}/report/{fileName} should handle a missing report" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(db, noDbConfig) {
                 val reportFile = "nonExistingReport.pdf"
                 val run = fixtures.createOrtRun()
                 val client = createJsonClient()

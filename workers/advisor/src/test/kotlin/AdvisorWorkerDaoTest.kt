@@ -45,19 +45,21 @@ import org.ossreviewtoolkit.server.workers.advisor.AdvisorWorkerDao
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class AdvisorWorkerDaoTest : WordSpec({
-    val analyzerRunRepository = DaoAnalyzerRunRepository()
-    val dao = AdvisorWorkerDao(
-        DaoAdvisorJobRepository(),
-        DaoAdvisorRunRepository(),
-        DaoAnalyzerJobRepository(),
-        analyzerRunRepository,
-        DaoOrtRunRepository()
-    )
+    lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
+    lateinit var dao: AdvisorWorkerDao
     lateinit var fixtures: Fixtures
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            analyzerRunRepository = DaoAnalyzerRunRepository(db)
+            dao = AdvisorWorkerDao(
+                DaoAdvisorJobRepository(db),
+                DaoAdvisorRunRepository(db),
+                DaoAnalyzerJobRepository(db),
+                analyzerRunRepository,
+                DaoOrtRunRepository(db)
+            )
+            fixtures = Fixtures(db)
         }
     )
 

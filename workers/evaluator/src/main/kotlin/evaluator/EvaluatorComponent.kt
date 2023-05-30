@@ -82,14 +82,14 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
     override fun customModules(): List<Module> = listOf(evaluatorModule(), databaseModule())
 
     private fun evaluatorModule(): Module = module {
-        singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
-        singleOf<AdvisorRunRepository>(::DaoAdvisorRunRepository)
-        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
-        singleOf<AnalyzerRunRepository>(::DaoAnalyzerRunRepository)
-        singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
-        singleOf<EvaluatorRunRepository>(::DaoEvaluatorRunRepository)
-        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
-        singleOf<RepositoryRepository>(::DaoRepositoryRepository)
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
         singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)

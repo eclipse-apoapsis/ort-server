@@ -95,7 +95,7 @@ class ExtensionsTest : WordSpec({
  * Execute a test for extracting the parameters from the given [query] by applying the specified [check] function.
  */
 private fun testParameterExtraction(query: String?, check: (ListQueryParameters) -> Unit) {
-    ortServerTestApplication(noDbConfig) {
+    ortServerTestApplication(config = noDbConfig) {
         routing {
             get("/test") {
                 val parameters = call.listQueryParameters()

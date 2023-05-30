@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.services
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
@@ -32,6 +34,7 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
  * A service providing functions for working with [secrets][Secret].
  */
 class SecretService(
+    private val db: Database,
     private val secretRepository: SecretRepository,
     private val secretStorage: SecretStorage
 ) {
@@ -47,7 +50,7 @@ class SecretService(
         organizationId: Long?,
         productId: Long?,
         repositoryId: Long?
-    ): Secret = dbQuery {
+    ): Secret = db.dbQuery {
         requireUnambiguousSecret(organizationId, productId, repositoryId)
 
         val path = secretStorage.createPath(organizationId, productId, repositoryId, name)
@@ -62,7 +65,7 @@ class SecretService(
     /**
      * Delete a secret by [organizationId] and [name].
      */
-    suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String) = dbQuery {
+    suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String) = db.dbQuery {
         val secret = secretRepository.getByOrganizationIdAndName(organizationId, name)
         secretRepository.deleteForOrganizationAndName(organizationId, name)
         secret?.deleteValue()
@@ -71,7 +74,7 @@ class SecretService(
     /**
      * Delete a secret by [productId] and [name].
      */
-    suspend fun deleteSecretByProductAndName(productId: Long, name: String) = dbQuery {
+    suspend fun deleteSecretByProductAndName(productId: Long, name: String) = db.dbQuery {
         val secret = secretRepository.getByProductIdAndName(productId, name)
         secretRepository.deleteForProductAndName(productId, name)
         secret?.deleteValue()
@@ -80,7 +83,7 @@ class SecretService(
     /**
      * Delete a secret by [repositoryId] and [name].
      */
-    suspend fun deleteSecretByRepositoryAndName(repositoryId: Long, name: String) = dbQuery {
+    suspend fun deleteSecretByRepositoryAndName(repositoryId: Long, name: String) = db.dbQuery {
         val secret = secretRepository.getByRepositoryIdAndName(repositoryId, name)
         secretRepository.deleteForRepositoryAndName(repositoryId, name)
         secret?.deleteValue()
@@ -89,42 +92,42 @@ class SecretService(
     /**
      * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
      */
-    suspend fun getSecretByOrganizationIdAndName(organizationId: Long, name: String): Secret? = dbQuery {
+    suspend fun getSecretByOrganizationIdAndName(organizationId: Long, name: String): Secret? = db.dbQuery {
         secretRepository.getByOrganizationIdAndName(organizationId, name)
     }
 
     /**
      * Get a secret by [productId] and [name]. Returns null if the secret is not found.
      */
-    suspend fun getSecretByProductIdAndName(productId: Long, name: String): Secret? = dbQuery {
+    suspend fun getSecretByProductIdAndName(productId: Long, name: String): Secret? = db.dbQuery {
         secretRepository.getByProductIdAndName(productId, name)
     }
 
     /**
      * Get a secret by [repositoryId] and [name]. Returns null if the secret is not found.
      */
-    suspend fun getSecretByRepositoryIdAndName(repositoryId: Long, name: String): Secret? = dbQuery {
+    suspend fun getSecretByRepositoryIdAndName(repositoryId: Long, name: String): Secret? = db.dbQuery {
         secretRepository.getByRepositoryIdAndName(repositoryId, name)
     }
 
     /**
      * List all secrets for a specific [organization][organizationId] and according to the given [parameters].
      */
-    suspend fun listForOrganization(organizationId: Long, parameters: ListQueryParameters): List<Secret> = dbQuery {
+    suspend fun listForOrganization(organizationId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
         secretRepository.listForOrganization(organizationId, parameters)
     }
 
     /**
      * List all secrets for a specific [product][productId] and according to the given [parameters].
      */
-    suspend fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = dbQuery {
+    suspend fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
         secretRepository.listForProduct(productId, parameters)
     }
 
     /**
      * List all secrets for a specific [repository][repositoryId] and according to the given [parameters].
      */
-    suspend fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = dbQuery {
+    suspend fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
         secretRepository.listForRepository(repositoryId, parameters)
     }
 
@@ -136,7 +139,7 @@ class SecretService(
         name: String,
         value: OptionalValue<String>,
         description: OptionalValue<String?>
-    ): Secret = dbQuery {
+    ): Secret = db.dbQuery {
         val secret = secretRepository.updateForOrganizationAndName(organizationId, name, description)
 
         value.ifPresent {
@@ -154,7 +157,7 @@ class SecretService(
         name: String,
         value: OptionalValue<String>,
         description: OptionalValue<String?>
-    ): Secret = dbQuery {
+    ): Secret = db.dbQuery {
         val secret = secretRepository.updateForProductAndName(productId, name, description)
 
         value.ifPresent {
@@ -172,7 +175,7 @@ class SecretService(
         name: String,
         value: OptionalValue<String>,
         description: OptionalValue<String?>
-    ): Secret = dbQuery {
+    ): Secret = db.dbQuery {
         val secret = secretRepository.updateForRepositoryAndName(repositoryId, name, description)
 
         value.ifPresent {

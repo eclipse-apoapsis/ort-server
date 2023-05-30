@@ -46,14 +46,14 @@ import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 
 class DaoAnalyzerRunRepositoryTest : StringSpec({
-    val analyzerRunRepository = DaoAnalyzerRunRepository()
-
+    lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
     lateinit var fixtures: Fixtures
     var analyzerJobId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            analyzerRunRepository = DaoAnalyzerRunRepository(db)
+            fixtures = Fixtures(db)
             analyzerJobId = fixtures.analyzerJob.id
         }
     )

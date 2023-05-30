@@ -22,8 +22,11 @@ package org.ossreviewtoolkit.server.dao.test
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+
+import org.jetbrains.exposed.sql.Database
 
 import org.koin.dsl.module
 import org.koin.test.KoinTest
@@ -42,6 +45,7 @@ private data class MockConnection(val success: Boolean)
  */
 private fun databaseModuleWithMockConnection() = module {
     single { MockConnection(success = true) }
+    single<Database> { mockk() }
 }
 
 /**

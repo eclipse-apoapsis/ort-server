@@ -102,7 +102,7 @@ class ReporterWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = ReporterWorker(runner, dao)
+        val worker = ReporterWorker(mockk(), runner, dao)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
@@ -117,7 +117,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } throws testException
         }
 
-        val worker = ReporterWorker(runner, dao)
+        val worker = ReporterWorker(mockk(), runner, dao)
 
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
@@ -133,7 +133,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns invalidJob
         }
 
-        val worker = ReporterWorker(runner, dao)
+        val worker = ReporterWorker(mockk(), runner, dao)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)

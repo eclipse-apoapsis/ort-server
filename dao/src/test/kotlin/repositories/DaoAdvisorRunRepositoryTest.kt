@@ -44,14 +44,14 @@ import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 
 class DaoAdvisorRunRepositoryTest : WordSpec({
-    val advisorRunRepository = DaoAdvisorRunRepository()
-
+    lateinit var advisorRunRepository: DaoAdvisorRunRepository
     lateinit var fixtures: Fixtures
     var advisorJobId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            advisorRunRepository = DaoAdvisorRunRepository(db)
+            fixtures = Fixtures(db)
             advisorJobId = fixtures.advisorJob.id
         }
     )

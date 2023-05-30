@@ -33,6 +33,8 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
@@ -65,6 +67,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
+    private lateinit var db: Database
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var ortRunRepository: OrtRunRepository
     private lateinit var productRepository: ProductRepository
@@ -75,11 +78,12 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
     init {
         extension(
-            DatabaseTestExtension {
-                organizationRepository = DaoOrganizationRepository()
-                ortRunRepository = DaoOrtRunRepository()
-                productRepository = DaoProductRepository()
-                repositoryRepository = DaoRepositoryRepository()
+            DatabaseTestExtension { db ->
+                this.db = db
+                organizationRepository = DaoOrganizationRepository(db)
+                ortRunRepository = DaoOrtRunRepository(db)
+                productRepository = DaoProductRepository(db)
+                repositoryRepository = DaoRepositoryRepository(db)
 
                 orgId = organizationRepository.create(name = "name", description = "description").id
                 productId =
@@ -88,7 +92,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         )
 
         "GET /repositories/{repositoryId} should return a single repository" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val type = RepositoryType.GIT
@@ -108,7 +112,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /repositories/{repositoryId} should update a repository" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -139,7 +143,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /repositories/{repositoryId} should delete a repository" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -158,7 +162,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /repositories/{repositoryId} should delete Keycloak roles" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -178,7 +182,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/runs should return the ORT runs on a repository" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
@@ -202,7 +206,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/runs should support query parameters" {
-            ortServerTestApplication(noDbConfig, keycloakConfig) {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",

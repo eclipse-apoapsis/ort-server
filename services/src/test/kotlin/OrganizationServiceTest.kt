@@ -27,18 +27,28 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 
 class OrganizationServiceTest : WordSpec({
-    val organizationRepository = DaoOrganizationRepository()
-    val productRepository = DaoProductRepository()
+    lateinit var db: Database
+    lateinit var organizationRepository: DaoOrganizationRepository
+    lateinit var productRepository: DaoProductRepository
 
     lateinit var fixtures: Fixtures
 
-    extension(DatabaseTestExtension { fixtures = Fixtures() })
+    extension(
+        DatabaseTestExtension {
+            db = it
+            organizationRepository = DaoOrganizationRepository(db)
+            productRepository = DaoProductRepository(db)
+            fixtures = Fixtures(db)
+        }
+    )
 
     "createOrganization" should {
         "create Keycloak permissions" {
@@ -46,7 +56,7 @@ class OrganizationServiceTest : WordSpec({
                 coEvery { createOrganizationPermissions(any()) } just runs
             }
 
-            val service = OrganizationService(organizationRepository, productRepository, authorizationService)
+            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
             val organization = service.createOrganization("name", "description")
 
             coVerify(exactly = 1) {
@@ -61,7 +71,7 @@ class OrganizationServiceTest : WordSpec({
                 coEvery { createProductPermissions(any()) } just runs
             }
 
-            val service = OrganizationService(organizationRepository, productRepository, authorizationService)
+            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
             val product = service.createProduct("name", "description", fixtures.organization.id)
 
             coVerify(exactly = 1) {
@@ -76,7 +86,7 @@ class OrganizationServiceTest : WordSpec({
                 coEvery { deleteOrganizationPermissions(any()) } just runs
             }
 
-            val service = OrganizationService(organizationRepository, productRepository, authorizationService)
+            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
             service.deleteOrganization(fixtures.organization.id)
 
             coVerify(exactly = 1) {

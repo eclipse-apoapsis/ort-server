@@ -98,7 +98,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = EvaluatorWorker(EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -115,7 +115,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -131,7 +131,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)

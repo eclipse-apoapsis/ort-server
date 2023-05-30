@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.services
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Product
@@ -37,6 +39,7 @@ private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
  * A service providing functions for working with [products][Product].
  */
 class ProductService(
+    private val db: Database,
     private val productRepository: ProductRepository,
     private val repositoryRepository: RepositoryRepository,
     private val authorizationService: AuthorizationService
@@ -44,7 +47,7 @@ class ProductService(
     /**
      * Create a repository inside a [product][productId].
      */
-    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = dbQueryCatching {
+    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = db.dbQueryCatching {
         repositoryRepository.create(type, url, productId)
     }.onSuccess { repository ->
         runCatching {
@@ -57,7 +60,7 @@ class ProductService(
     /**
      * Delete a product by [productId].
      */
-    suspend fun deleteProduct(productId: Long): Unit = dbQueryCatching {
+    suspend fun deleteProduct(productId: Long): Unit = db.dbQueryCatching {
         productRepository.delete(productId)
     }.onSuccess {
         runCatching {
@@ -70,7 +73,7 @@ class ProductService(
     /**
      * Get a product by [productId]. Returns null if the product is not found.
      */
-    suspend fun getProduct(productId: Long): Product? = dbQuery {
+    suspend fun getProduct(productId: Long): Product? = db.dbQuery {
         productRepository.get(productId)
     }
 
@@ -78,7 +81,7 @@ class ProductService(
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     suspend fun listRepositoriesForProduct(productId: Long, parameters: ListQueryParameters): List<Repository> =
-        dbQuery {
+        db.dbQuery {
             repositoryRepository.listForProduct(productId, parameters)
         }
 
@@ -89,7 +92,7 @@ class ProductService(
         productId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Product = dbQuery {
+    ): Product = db.dbQuery {
         productRepository.update(productId, name, description)
     }
 }

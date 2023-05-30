@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -39,11 +40,11 @@ import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
+class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvenanceStorage {
     override fun putNestedProvenance(
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
-    ) = blockingQuery {
+    ) = db.blockingQuery {
         val resolvedVcs = root.getResolvedVcs()
 
         removeOldResults(resolvedVcs)
@@ -88,19 +89,20 @@ class OrtServerNestedProvenanceStorage : NestedProvenanceStorage {
         }
     }
 
-    override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? = blockingQuery {
-        val resolvedVcs = root.getResolvedVcs()
+    override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? =
+        db.blockingQuery {
+            val resolvedVcs = root.getResolvedVcs()
 
-        NestedProvenancesTable.innerJoin(VcsInfoTable)
-            .slice(NestedProvenancesTable.columns)
-            .select {
-                VcsInfoTable.type eq resolvedVcs.type and
-                        (VcsInfoTable.url eq resolvedVcs.url) and
-                        (VcsInfoTable.revision eq resolvedVcs.revision)
-            }.firstOrNull()?.let {
-                NestedProvenanceDao.wrapRow(it).mapToOrt()
-            }
-    }
+            NestedProvenancesTable.innerJoin(VcsInfoTable)
+                .slice(NestedProvenancesTable.columns)
+                .select {
+                    VcsInfoTable.type eq resolvedVcs.type and
+                            (VcsInfoTable.url eq resolvedVcs.url) and
+                            (VcsInfoTable.revision eq resolvedVcs.revision)
+                }.firstOrNull()?.let {
+                    NestedProvenanceDao.wrapRow(it).mapToOrt()
+                }
+        }
 }
 
 private fun RepositoryProvenance.getResolvedVcs() = vcsInfo.copy(revision = resolvedRevision).mapToModel()

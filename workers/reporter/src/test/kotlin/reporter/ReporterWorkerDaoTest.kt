@@ -41,25 +41,29 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class ReporterWorkerDaoTest : WordSpec({
-    val analyzerRunRepository = DaoAnalyzerRunRepository()
-    val advisorRunRepository = DaoAdvisorRunRepository()
-    val evaluatorRunRepository = DaoEvaluatorRunRepository()
-    val dao = ReporterWorkerDao(
-        advisorJobRepository = DaoAdvisorJobRepository(),
-        advisorRunRepository = advisorRunRepository,
-        analyzerJobRepository = DaoAnalyzerJobRepository(),
-        analyzerRunRepository = analyzerRunRepository,
-        evaluatorJobRepository = DaoEvaluatorJobRepository(),
-        evaluatorRunRepository = evaluatorRunRepository,
-        ortRunRepository = DaoOrtRunRepository(),
-        reporterJobRepository = DaoReporterJobRepository(),
-        repositoryRepository = DaoRepositoryRepository()
-    )
+    lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
+    lateinit var advisorRunRepository: DaoAdvisorRunRepository
+    lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
+    lateinit var dao: ReporterWorkerDao
     lateinit var fixtures: Fixtures
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            analyzerRunRepository = DaoAnalyzerRunRepository(db)
+            advisorRunRepository = DaoAdvisorRunRepository(db)
+            evaluatorRunRepository = DaoEvaluatorRunRepository(db)
+            dao = ReporterWorkerDao(
+                advisorJobRepository = DaoAdvisorJobRepository(db),
+                advisorRunRepository = advisorRunRepository,
+                analyzerJobRepository = DaoAnalyzerJobRepository(db),
+                analyzerRunRepository = analyzerRunRepository,
+                evaluatorJobRepository = DaoEvaluatorJobRepository(db),
+                evaluatorRunRepository = evaluatorRunRepository,
+                ortRunRepository = DaoOrtRunRepository(db),
+                reporterJobRepository = DaoReporterJobRepository(db),
+                repositoryRepository = DaoRepositoryRepository(db)
+            )
+            fixtures = Fixtures(db)
         }
     )
 

@@ -95,13 +95,13 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
     }
 
     private fun orchestratorModule(): Module = module {
-        singleOf<AdvisorJobRepository>(::DaoAdvisorJobRepository)
-        singleOf<AnalyzerJobRepository>(::DaoAnalyzerJobRepository)
-        singleOf<EvaluatorJobRepository>(::DaoEvaluatorJobRepository)
-        singleOf<ReporterJobRepository>(::DaoReporterJobRepository)
-        singleOf<RepositoryRepository>(::DaoRepositoryRepository)
-        singleOf<OrtRunRepository>(::DaoOrtRunRepository)
-        singleOf<ScannerJobRepository>(::DaoScannerJobRepository)
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
 
         singleOf(::Orchestrator)
     }

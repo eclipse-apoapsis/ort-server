@@ -21,7 +21,6 @@ package org.ossreviewtoolkit.server.workers.scanner
 
 import org.koin.core.component.inject
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.dao.databaseModule
@@ -54,6 +53,6 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
     override fun customModules(): List<Module> = listOf(scannerModule(), databaseModule())
 
     private fun scannerModule(): Module = module {
-        singleOf<ScannerJobRepository>(::DaoScannerJobRepository)
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     }
 }

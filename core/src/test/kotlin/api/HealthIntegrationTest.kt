@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 class HealthIntegrationTest : WordSpec({
     "/liveness" should {
         "respond with 200 if the server is running" {
-            ortServerTestApplication(noDbConfig) {
+            ortServerTestApplication(config = noDbConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/liveness")

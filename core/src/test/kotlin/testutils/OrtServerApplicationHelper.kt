@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.testutils
 
+import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
@@ -28,12 +29,17 @@ import io.ktor.util.KtorDsl
 
 import java.lang.IllegalArgumentException
 
+import org.jetbrains.exposed.sql.Database
+
+import org.koin.core.context.GlobalContext
+
 /**
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
  * merged with [additionalConfigs]. The [additionalConfigs] take precedence over the [config].
  */
 @KtorDsl
 fun ortServerTestApplication(
+    db: Database? = null,
     config: ApplicationConfig = defaultConfig,
     additionalConfigs: Map<String, Any> = mapOf(),
     block: suspend ApplicationTestBuilder.() -> Unit
@@ -54,6 +60,14 @@ fun ortServerTestApplication(
     val mergedConfig = config.mergeWith(additionalConfig)
 
     environment { this.config = mergedConfig }
+
+    if (db != null) {
+        application {
+            environment.monitor.subscribe(ApplicationStarted) {
+                GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
+            }
+        }
+    }
 
     block()
 }

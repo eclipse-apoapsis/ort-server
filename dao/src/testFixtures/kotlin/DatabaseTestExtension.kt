@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 import org.ossreviewtoolkit.server.dao.connect
@@ -56,7 +57,7 @@ class DatabaseTestExtension(
      * order of test extensions. (_beforeTest()_ of the test class is actually called before the _beforeTest()_
      * function of the extension; therefore, no database access is possible there.)
      */
-    private val fixture: () -> Unit = {}
+    private val fixture: (Database) -> Unit = {}
 ) : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
@@ -84,10 +85,10 @@ class DatabaseTestExtension(
         // previous connection. See: https://github.com/JetBrains/Exposed/issues/454
         TransactionManager.defaultDatabase?.let { TransactionManager.closeAndUnregister(it) }
 
-        dataSource.connect()
+        val db = dataSource.connect()
         dataSource.migrate()
 
-        fixture()
+        fixture(db)
     }
 
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {

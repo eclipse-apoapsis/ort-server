@@ -32,6 +32,8 @@ import io.mockk.verify
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
+
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.inject
@@ -74,6 +76,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
         "The DI configuration is correct" {
             runEndpointTest {
+                declareMock<Database>()
                 val orchestrator: Orchestrator by inject()
                 orchestrator.toString()
             }

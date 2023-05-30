@@ -37,8 +37,8 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.transactionManager
 
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -131,10 +131,10 @@ fun databaseModule(): Module = module {
  *
  * Returns the actual result type. Throws an exception in case of a failure.
  */
-suspend fun <T> dbQuery(
-    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
-    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
-    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+suspend fun <T> Database.dbQuery(
+    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
+    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
+    readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): T =
     dbQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
@@ -145,11 +145,10 @@ suspend fun <T> dbQuery(
  *
  * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
-suspend fun <T> dbQueryCatching(
-    // As we currently use only one database, we can use the default transaction manager to get the default values.
-    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
-    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
-    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+suspend fun <T> Database.dbQueryCatching(
+    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
+    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
+    readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): Result<T> =
     runCatching {
@@ -164,11 +163,10 @@ suspend fun <T> dbQueryCatching(
  *
  * Returns the actual result type. Throws an exception in case of a failure.
  */
-fun <T> blockingQuery(
-    // As we currently use only one database, we can use the default transaction manager to get the default values.
-    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
-    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
-    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+fun <T> Database.blockingQuery(
+    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
+    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
+    readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): T =
     blockingQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
@@ -179,11 +177,10 @@ fun <T> blockingQuery(
  *
  * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
-fun <T> blockingQueryCatching(
-    // As we currently use only one database, we can use the default transaction manager to get the default values.
-    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
-    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
-    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+fun <T> Database.blockingQueryCatching(
+    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
+    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
+    readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): Result<T> =
     runCatching { transaction(transactionIsolation, repetitionAttempts, readOnly) { block() } }.mapExceptions()
@@ -193,11 +190,10 @@ fun <T> blockingQueryCatching(
  * [repetitionAttempts], and [readOnly]. Return the encapsulated value or null if an [EntityNotFoundException] is
  * thrown. Otherwise, throw the exception.
  */
-fun <T> entityQuery(
-    // As we currently use only one database, we can use the default transaction manager to get the default values.
-    transactionIsolation: Int = TransactionManager.manager.defaultIsolationLevel,
-    repetitionAttempts: Int = TransactionManager.manager.defaultRepetitionAttempts,
-    readOnly: Boolean = TransactionManager.manager.defaultReadOnly,
+fun <T> Database.entityQuery(
+    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
+    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
+    readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): T? = blockingQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrElse {
     when (it) {

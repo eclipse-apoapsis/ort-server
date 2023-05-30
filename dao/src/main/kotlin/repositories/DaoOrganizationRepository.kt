@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
@@ -30,20 +32,20 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 /**
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
  */
-class DaoOrganizationRepository : OrganizationRepository {
-    override fun create(name: String, description: String?) = blockingQuery {
+class DaoOrganizationRepository(private val db: Database) : OrganizationRepository {
+    override fun create(name: String, description: String?) = db.blockingQuery {
         OrganizationDao.new {
             this.name = name
             this.description = description
         }
     }.mapToModel()
 
-    override fun get(id: Long) = entityQuery { OrganizationDao[id].mapToModel() }
+    override fun get(id: Long) = db.entityQuery { OrganizationDao[id].mapToModel() }
 
     override fun list(parameters: ListQueryParameters) =
-        blockingQuery { OrganizationDao.list(parameters).map { it.mapToModel() } }
+        db.blockingQuery { OrganizationDao.list(parameters).map { it.mapToModel() } }
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = blockingQuery {
+    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = db.blockingQuery {
         val org = OrganizationDao[id]
 
         name.ifPresent { org.name = it }
@@ -52,5 +54,5 @@ class DaoOrganizationRepository : OrganizationRepository {
         OrganizationDao[id].mapToModel()
     }
 
-    override fun delete(id: Long) = blockingQuery { OrganizationDao[id].delete() }
+    override fun delete(id: Long) = db.blockingQuery { OrganizationDao[id].delete() }
 }

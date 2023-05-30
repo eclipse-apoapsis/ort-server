@@ -22,11 +22,14 @@ package org.ossreviewtoolkit.server.dao.test
 import io.mockk.every
 import io.mockk.invoke
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
 
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
 private const val TRANSACTION_MANAGER_CLASS = "org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt"
@@ -38,6 +41,13 @@ private const val TRANSACTION_MANAGER_CLASS = "org.jetbrains.exposed.sql.transac
 fun mockkTransaction() {
     val slot = slot<Transaction.() -> Any>()
 
+    mockkObject(TransactionManager.Companion)
+    every { TransactionManager.managerFor(any()) } returns mockk {
+        every { defaultIsolationLevel } returns -1
+        every { defaultReadOnly } returns false
+        every { defaultRepetitionAttempts } returns -1
+    }
+
     mockkStatic(TRANSACTION_MANAGER_CLASS)
     every { transaction(any(), capture(slot)) } answers { slot.invoke(mockk()) }
     every { transaction(any(), any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
@@ -47,6 +57,7 @@ fun mockkTransaction() {
  * Clear the static mock created by [mockkTransaction].
  */
 fun unmockkTransaction() {
+    unmockkObject(TransactionManager.Companion)
     unmockkStatic(TRANSACTION_MANAGER_CLASS)
 }
 

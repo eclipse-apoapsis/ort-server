@@ -70,7 +70,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { downloadRepository(any(), any()) } returns projectDir
         }
 
-        val worker = AnalyzerWorker(downloader, AnalyzerRunner(), dao)
+        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(JOB_ID, TRACE_ID)
@@ -89,7 +89,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } throws testException
         }
 
-        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(), dao)
+        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
 
         mockkTransaction {
             when (val result = worker.run(JOB_ID, TRACE_ID)) {
@@ -105,7 +105,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns invalidJob
         }
 
-        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(), dao)
+        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
 
         mockkTransaction {
             val result = worker.run(JOB_ID, TRACE_ID)

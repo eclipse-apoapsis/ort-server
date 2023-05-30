@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.services
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.dbQueryCatching
 import org.ossreviewtoolkit.server.model.Organization
@@ -35,6 +37,7 @@ private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
  * A service providing functions for working with [organizations][Organization].
  */
 class OrganizationService(
+    private val db: Database,
     private val organizationRepository: OrganizationRepository,
     private val productRepository: ProductRepository,
     private val authorizationService: AuthorizationService
@@ -42,7 +45,7 @@ class OrganizationService(
     /**
      * Create an organization.
      */
-    suspend fun createOrganization(name: String, description: String?): Organization = dbQueryCatching {
+    suspend fun createOrganization(name: String, description: String?): Organization = db.dbQueryCatching {
         organizationRepository.create(name, description)
     }.onSuccess { organization ->
         runCatching {
@@ -55,7 +58,7 @@ class OrganizationService(
     /**
      * Create a product inside an [organization][organizationId].
      */
-    suspend fun createProduct(name: String, description: String?, organizationId: Long) = dbQueryCatching {
+    suspend fun createProduct(name: String, description: String?, organizationId: Long) = db.dbQueryCatching {
         productRepository.create(name, description, organizationId)
     }.onSuccess { product ->
         runCatching {
@@ -68,7 +71,7 @@ class OrganizationService(
     /**
      * Delete an organization by [organizationId].
      */
-    suspend fun deleteOrganization(organizationId: Long): Unit = dbQueryCatching {
+    suspend fun deleteOrganization(organizationId: Long): Unit = db.dbQueryCatching {
         organizationRepository.delete(organizationId)
     }.onSuccess {
         runCatching {
@@ -81,21 +84,21 @@ class OrganizationService(
     /**
      * Get an organization by [organizationId]. Returns null if the organization is not found.
      */
-    suspend fun getOrganization(organizationId: Long): Organization? = dbQuery {
+    suspend fun getOrganization(organizationId: Long): Organization? = db.dbQuery {
         organizationRepository.get(organizationId)
     }
 
     /**
      * List all organizations according to the given [parameters].
      */
-    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = dbQuery {
+    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = db.dbQuery {
         organizationRepository.list(parameters)
     }
 
     /**
      * List all products for an [organization][organizationId].
      */
-    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = dbQuery {
+    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.dbQuery {
         productRepository.listForOrganization(organizationId, parameters)
     }
 
@@ -106,7 +109,7 @@ class OrganizationService(
         organizationId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Organization = dbQuery {
+    ): Organization = db.dbQuery {
         organizationRepository.update(organizationId, name, description)
     }
 }

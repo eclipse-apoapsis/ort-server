@@ -23,6 +23,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -64,7 +65,7 @@ import org.ossreviewtoolkit.server.model.runs.Project
 /**
  * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].
  */
-class DaoAnalyzerRunRepository : AnalyzerRunRepository {
+class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository {
     override fun create(
         analyzerJobId: Long,
         startTime: Instant,
@@ -75,7 +76,7 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         packages: Set<Package>,
         issues: Map<Identifier, List<OrtIssue>>,
         dependencyGraphs: Map<String, DependencyGraph>
-    ): AnalyzerRun = blockingQuery {
+    ): AnalyzerRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
         val analyzerRun = AnalyzerRunDao.new {
@@ -99,9 +100,9 @@ class DaoAnalyzerRunRepository : AnalyzerRunRepository {
         analyzerRun.mapToModel()
     }
 
-    override fun get(id: Long): AnalyzerRun? = entityQuery { AnalyzerRunDao[id].mapToModel() }
+    override fun get(id: Long): AnalyzerRun? = db.entityQuery { AnalyzerRunDao[id].mapToModel() }
 
-    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = blockingQuery {
+    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = db.blockingQuery {
         AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()
     }
 }

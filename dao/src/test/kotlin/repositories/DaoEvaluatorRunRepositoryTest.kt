@@ -31,14 +31,14 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 
 class DaoEvaluatorRunRepositoryTest : StringSpec({
-    val evaluatorRunRepository = DaoEvaluatorRunRepository()
-
+    lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
     lateinit var fixtures: Fixtures
     var evaluatorJobId = -1L
 
     extension(
-        DatabaseTestExtension {
-            fixtures = Fixtures()
+        DatabaseTestExtension { db ->
+            evaluatorRunRepository = DaoEvaluatorRunRepository(db)
+            fixtures = Fixtures(db)
             evaluatorJobId = fixtures.evaluatorJob.id
         }
     )

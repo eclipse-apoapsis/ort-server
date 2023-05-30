@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -33,12 +35,13 @@ private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AnalyzerWorker(
+    private val db: Database,
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner,
     private val dao: AnalyzerWorkerDao
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val job = blockingQuery { getValidAnalyzerJob(jobId) }
+        val job = db.blockingQuery { getValidAnalyzerJob(jobId) }
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
 
@@ -51,7 +54,7 @@ internal class AnalyzerWorker(
                     "'${analyzerRun.result.issues.values.size}' issues."
         )
 
-        blockingQuery {
+        db.blockingQuery {
             getValidAnalyzerJob(jobId)
             dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
         }
