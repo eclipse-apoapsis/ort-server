@@ -38,6 +38,11 @@ interface ProductRepository {
     fun get(id: Long): Product?
 
     /**
+     * List all products according to the given [parameters].
+     */
+    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Product>
+
+    /**
      * List all products for an [organization][organizationId] according to the given [parameters].
      */
     fun listForOrganization(

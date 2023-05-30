@@ -42,6 +42,9 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override fun get(id: Long) = db.entityQuery { ProductDao[id].mapToModel() }
 
+    override fun list(parameters: ListQueryParameters) =
+        db.blockingQuery { ProductDao.list(parameters).map { it.mapToModel() } }
+
     override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.blockingQuery {
         ProductDao.find { ProductsTable.organizationId eq organizationId }
             .apply(ProductsTable, parameters)

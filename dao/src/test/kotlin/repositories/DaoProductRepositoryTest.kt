@@ -21,8 +21,11 @@ package org.ossreviewtoolkit.server.dao.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
@@ -68,6 +71,29 @@ class DaoProductRepositoryTest : StringSpec({
         shouldThrow<UniqueConstraintException> {
             productRepository.create(name, description, orgId)
         }
+    }
+
+    "list should retrieve all entities from the database" {
+        val org2 = fixtures.createOrganization(name = "org2")
+
+        val prod1 = fixtures.createProduct("prod1")
+        val prod2 = fixtures.createProduct("prod2", organizationId = org2.id)
+
+        productRepository.list() should containExactlyInAnyOrder(prod1, prod2)
+    }
+
+    "list should apply parameters" {
+        val org2 = fixtures.createOrganization(name = "org2")
+
+        fixtures.createProduct("prod1")
+        val prod2 = fixtures.createProduct("prod2", organizationId = org2.id)
+
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("name", OrderDirection.DESCENDING)),
+            limit = 1
+        )
+
+        productRepository.list(parameters) should containExactly(prod2)
     }
 
     "listForOrganization should return all products for an organization" {
