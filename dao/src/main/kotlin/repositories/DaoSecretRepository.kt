@@ -22,9 +22,11 @@ package org.ossreviewtoolkit.server.dao.repositories
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.ConditionBuilder
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.findSingle
 import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
 import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
@@ -105,8 +107,7 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
         name: String,
         description: OptionalValue<String?>
     ): Secret = db.blockingQuery {
-        val secret = findSecretByParentEntityId(organizationId, null, null, name)
-            ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
+        val secret = SecretDao.findSingle(byNameCondition(organizationId, null, null, name))
 
         description.ifPresent { secret.description = it }
 
@@ -118,8 +119,7 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
         name: String,
         description: OptionalValue<String?>
     ): Secret = db.blockingQuery {
-        val secret = findSecretByParentEntityId(null, productId, null, name)
-            ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
+        val secret = SecretDao.findSingle(byNameCondition(null, productId, null, name))
 
         description.ifPresent { secret.description = it }
 
@@ -131,8 +131,7 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
         name: String,
         description: OptionalValue<String?>
     ): Secret = db.blockingQuery {
-        val secret = findSecretByParentEntityId(null, null, repositoryId, name)
-            ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
+        val secret = SecretDao.findSingle(byNameCondition(null, null, repositoryId, name))
 
         description.ifPresent { secret.description = it }
 
@@ -140,39 +139,48 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
     }
 
     override fun deleteForOrganizationAndName(organizationId: Long, name: String) = db.blockingQuery {
-        val secret =
-            findSecretByParentEntityId(organizationId, null, null, name)
-                ?: throw IllegalArgumentException("No secrets with name $name found for organization $organizationId")
+        val secret = SecretDao.findSingle(byNameCondition(organizationId, null, null, name))
 
         secret.delete()
     }
 
     override fun deleteForProductAndName(productId: Long, name: String) = db.blockingQuery {
-        val secret =
-            findSecretByParentEntityId(null, productId, null, name)
-                ?: throw IllegalArgumentException("No secrets with name $name found for product $productId")
+        val secret = SecretDao.findSingle(byNameCondition(null, productId, null, name))
 
         secret.delete()
     }
 
     override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = db.blockingQuery {
-        val secret =
-            findSecretByParentEntityId(null, null, repositoryId, name)
-                ?: throw IllegalArgumentException("No secrets with name $name found for repository $repositoryId")
+        val secret = SecretDao.findSingle(byNameCondition(null, null, repositoryId, name))
 
         secret.delete()
     }
-
-    private fun findSecretByParentEntityId(
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?,
-        name: String
-    ) =
-        SecretDao.find {
-            SecretsTable.organizationId eq organizationId and
-                    (SecretsTable.productId eq productId) and
-                    (SecretsTable.repositoryId eq repositoryId) and
-                    (SecretsTable.name eq name)
-        }.firstOrNull()
 }
+
+/**
+ * Generate a WHERE condition to find a [Secret] entity with a specific [name] that is associated with one of the
+ * given [organizationId], [productId], or [repositoryId].
+ */
+private fun byNameCondition(
+    organizationId: Long?,
+    productId: Long?,
+    repositoryId: Long?,
+    name: String
+): ConditionBuilder = {
+    SecretsTable.organizationId eq organizationId and
+            (SecretsTable.productId eq productId) and
+            (SecretsTable.repositoryId eq repositoryId) and
+            (SecretsTable.name eq name)
+}
+
+/**
+ * Find a [Secret] entity with a specific [name] that is associated with one of the given [organizationId],
+ * [productId], or [repositoryId].
+ */
+private fun findSecretByParentEntityId(
+    organizationId: Long?,
+    productId: Long?,
+    repositoryId: Long?,
+    name: String
+): SecretDao? =
+    SecretDao.find(byNameCondition(organizationId, productId, repositoryId, name)).firstOrNull()
