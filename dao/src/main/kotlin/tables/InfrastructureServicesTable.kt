@@ -21,11 +21,11 @@ package org.ossreviewtoolkit.server.dao.tables
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
 import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.Secret
 
 /**
  * A table to store infrastructure services, such as source code or artifact repositories.
@@ -43,7 +43,34 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
 }
 
 class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable)
+    companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable) {
+        /**
+         * Try to find an entity with properties matching the ones of the given [service].
+         */
+        fun findByInfrastructureService(service: InfrastructureService): InfrastructureServicesDao? =
+            find {
+                InfrastructureServicesTable.name eq service.name and
+                        (InfrastructureServicesTable.url eq service.url) and
+                        (InfrastructureServicesTable.description eq service.description) and
+                        (InfrastructureServicesTable.usernameSecretId eq service.usernameSecret.id) and
+                        (InfrastructureServicesTable.passwordSecretId eq service.passwordSecret.id) and
+                        (InfrastructureServicesTable.organizationId eq service.organization?.id) and
+                        (InfrastructureServicesTable.productId eq service.product?.id)
+            }.singleOrNull()
+
+        /**
+         * Return an entity with properties matching the ones of the given [service]. If no such entity exists yet, a
+         * new one is created now.
+         */
+        fun getOrPut(service: InfrastructureService): InfrastructureServicesDao =
+            findByInfrastructureService(service) ?: new {
+                name = service.name
+                url = service.url
+                description = service.description
+                usernameSecret = SecretDao[service.usernameSecret.id]
+                passwordSecret = SecretDao[service.passwordSecret.id]
+            }
+    }
 
     var name by InfrastructureServicesTable.name
     var url by InfrastructureServicesTable.url
