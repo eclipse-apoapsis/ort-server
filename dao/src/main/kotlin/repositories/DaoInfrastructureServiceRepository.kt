@@ -19,16 +19,14 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 
+import org.ossreviewtoolkit.server.dao.ConditionBuilder
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.findSingle
 import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesDao
 import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesRunsTable
 import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesTable
@@ -51,7 +49,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         private fun selectByOrganizationAndName(
             organizationId: Long,
             name: String
-        ): SqlExpressionBuilder.() -> Op<Boolean> = {
+        ): ConditionBuilder = {
             InfrastructureServicesTable.organizationId eq organizationId and
                     (InfrastructureServicesTable.name eq name)
         }
@@ -63,20 +61,10 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         private fun selectByProductAndName(
             productId: Long,
             name: String
-        ): SqlExpressionBuilder.() -> Op<Boolean> = {
+        ): ConditionBuilder = {
             InfrastructureServicesTable.productId eq productId and
                     (InfrastructureServicesTable.name eq name)
         }
-
-        /**
-         * Find a single [InfrastructureServicesDao] entity matched by the given [op] or throw an exception if no
-         * match is found.
-         */
-        private fun InfrastructureServicesDao.Companion.findSingle(
-            op: SqlExpressionBuilder.() -> Op<Boolean>
-        ): InfrastructureServicesDao =
-            find(op).singleOrNull()
-                ?: throw EntityNotFoundException(EntityID(0L, InfrastructureServicesTable), InfrastructureServicesDao)
     }
 
     override fun create(
@@ -168,7 +156,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
      */
     private fun listBlocking(
         parameters: ListQueryParameters,
-        op: SqlExpressionBuilder.() -> Op<Boolean>
+        op: ConditionBuilder
     ): List<InfrastructureService> = db.blockingQuery {
         list(parameters, op)
     }
@@ -178,7 +166,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
      */
     private fun list(
         parameters: ListQueryParameters,
-        op: SqlExpressionBuilder.() -> Op<Boolean>
+        op: ConditionBuilder
     ) = InfrastructureServicesDao.find(op)
         .apply(InfrastructureServicesTable, parameters)
         .map(InfrastructureServicesDao::mapToModel)
@@ -188,7 +176,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
      * found.
      */
     private fun update(
-        op: SqlExpressionBuilder.() -> Op<Boolean>,
+        op: ConditionBuilder,
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
@@ -207,7 +195,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     /**
      * Delete an entity selected by [op] or throw an exception if this entity cannot be found.
      */
-    private fun delete(op: SqlExpressionBuilder.() -> Op<Boolean>) = db.blockingQuery {
+    private fun delete(op: ConditionBuilder) = db.blockingQuery {
         InfrastructureServicesDao.findSingle(op).delete()
     }
 }

@@ -34,9 +34,14 @@ import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.transactionManager
 
@@ -219,3 +224,18 @@ internal fun <T> Result<T>.mapExceptions(): Result<T> =
             throw it
         }.getOrThrow()
     }
+
+/**
+ * Alias definition for a function that generates the conditions of a WHERE clause that can be used to select entities
+ * in queries.
+ */
+typealias ConditionBuilder = SqlExpressionBuilder.() -> Op<Boolean>
+
+/**
+ * Find a single entity of this entity class based on the passed in [condition]. Throw an [EntityNotFoundException] if
+ * no entity is matched by the selection criteria. This extension function is useful to implement certain get
+ * operations in repositories operating on multiple properties that uniquely identify an entity. Note: It should be
+ * ensured via constraints in the database that the query will not return multiple entities.
+ */
+fun <T : LongEntity> LongEntityClass<T>.findSingle(condition: ConditionBuilder): T =
+    find(condition).singleOrNull() ?: throw EntityNotFoundException(EntityID(0L, table), this)
