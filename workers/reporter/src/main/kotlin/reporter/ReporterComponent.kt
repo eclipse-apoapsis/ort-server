@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
@@ -45,6 +46,7 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.storage.Storage
 import org.ossreviewtoolkit.server.transport.EndpointComponent
@@ -93,6 +95,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }

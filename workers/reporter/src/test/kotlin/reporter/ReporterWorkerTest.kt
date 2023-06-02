@@ -27,6 +27,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
@@ -37,9 +38,11 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -102,13 +105,19 @@ class ReporterWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao)
+        val reporterRunRepository = mockk<ReporterRunRepository> {
+            every { create(any(), any(), any(), any()) } returns mockk<ReporterRun>()
+        }
+
+        val worker = ReporterWorker(mockk(), runner, dao, reporterRunRepository)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Success
         }
+
+        verify { reporterRunRepository.create(any(), any(), any(), any()) }
     }
 
     "A failure result should be returned in case of an error" {
@@ -117,7 +126,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } throws testException
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao)
+        val worker = ReporterWorker(mockk(), runner, dao, mockk())
 
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
@@ -133,7 +142,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns invalidJob
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao)
+        val worker = ReporterWorker(mockk(), runner, dao, mockk())
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)

@@ -19,13 +19,17 @@
 
 package org.ossreviewtoolkit.server.workers.reporter
 
+import kotlinx.datetime.Clock
+
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.ReporterJob
+import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.model.runs.reporter.Report
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
@@ -39,7 +43,8 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class ReporterWorker(
     private val db: Database,
     private val runner: ReporterRunner,
-    private val dao: ReporterWorkerDao
+    private val dao: ReporterWorkerDao,
+    private val reporterRunRepository: ReporterRunRepository
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (reporterJob, ortResult) = db.blockingQuery {
@@ -69,7 +74,18 @@ internal class ReporterWorker(
             Pair(reporterJob, ortResult)
         }
 
-        runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration)
+        val startTime = Clock.System.now()
+
+        val runResults = runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration)
+
+        val endTime = Clock.System.now()
+
+        val reports = runResults.values
+            .flatMap { it.toList() }
+            .map { file -> Report(file.name) }
+            .toList()
+
+        reporterRunRepository.create(reporterJob.id, startTime, endTime, reports)
 
         RunResult.Success
     }.getOrElse {
