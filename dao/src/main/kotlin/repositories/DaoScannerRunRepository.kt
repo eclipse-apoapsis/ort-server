@@ -48,14 +48,12 @@ import org.ossreviewtoolkit.server.dao.tables.runs.scanner.Sw360StorageConfigura
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
@@ -70,8 +68,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
-        config: ScannerConfiguration,
-        results: Map<Identifier, List<ScanResult>>
+        config: ScannerConfiguration
     ): ScannerRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 

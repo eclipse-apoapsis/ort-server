@@ -133,8 +133,7 @@ class DaoScannerRunRepositoryTest : StringSpec({
             startTime = Clock.System.now(),
             endTime = Clock.System.now(),
             environment = environment,
-            config = scannerConfiguration,
-            results = emptyMap()
+            config = scannerConfiguration
         )
 
         val dbEntry = scannerRunRepository.get(createdScannerRun.id)

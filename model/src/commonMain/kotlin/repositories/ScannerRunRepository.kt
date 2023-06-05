@@ -22,8 +22,6 @@ package org.ossreviewtoolkit.server.model.repositories
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
@@ -39,8 +37,7 @@ interface ScannerRunRepository {
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
-        config: ScannerConfiguration,
-        results: Map<Identifier, List<ScanResult>>
+        config: ScannerConfiguration
     ): ScannerRun
 
     /**
