@@ -181,7 +181,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
     }
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
-        ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.mapToModel()
+        ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.let { get(it.id.value) }
     }
 }
 
