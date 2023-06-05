@@ -41,7 +41,7 @@ class DaoReporterRunRepositoryTest : StringSpec({
     val time = Clock.System.now().toDatabasePrecision()
 
     beforeEach {
-        reporterRunRepository = DaoReporterRunRepository(dbExtension.db)
+        reporterRunRepository = dbExtension.fixtures.reporterRunRepository
         reporterJob = dbExtension.fixtures.reporterJob
     }
 

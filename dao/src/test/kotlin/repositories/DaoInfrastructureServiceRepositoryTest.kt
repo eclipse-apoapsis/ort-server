@@ -54,8 +54,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
     init {
         beforeEach {
-            infrastructureServicesRepository = DaoInfrastructureServiceRepository(dbExtension.db)
-            secretRepository = DaoSecretRepository(dbExtension.db)
+            infrastructureServicesRepository = dbExtension.fixtures.infrastructureServiceRepository
+            secretRepository = dbExtension.fixtures.secretRepository
             fixtures = dbExtension.fixtures
 
             usernameSecret = secretRepository.create("p1", "user", null, fixtures.organization.id, null, null)

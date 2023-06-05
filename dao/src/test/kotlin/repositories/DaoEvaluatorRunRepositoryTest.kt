@@ -37,7 +37,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
     var evaluatorJobId = -1L
 
     beforeEach {
-        evaluatorRunRepository = DaoEvaluatorRunRepository(dbExtension.db)
+        evaluatorRunRepository = dbExtension.fixtures.evaluatorRunRepository
 
         evaluatorJobId = dbExtension.fixtures.evaluatorJob.id
     }

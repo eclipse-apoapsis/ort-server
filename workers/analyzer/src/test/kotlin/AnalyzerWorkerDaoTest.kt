@@ -30,7 +30,6 @@ import java.io.File
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
@@ -43,7 +42,7 @@ class AnalyzerWorkerDaoTest : WordSpec({
     lateinit var fixtures: Fixtures
 
     beforeEach {
-        dao = AnalyzerWorkerDao(dbExtension.fixtures.analyzerJobRepository, DaoAnalyzerRunRepository(dbExtension.db))
+        dao = AnalyzerWorkerDao(dbExtension.fixtures.analyzerJobRepository, dbExtension.fixtures.analyzerRunRepository)
         fixtures = dbExtension.fixtures
     }
 

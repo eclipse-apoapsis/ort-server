@@ -56,8 +56,6 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
@@ -83,8 +81,8 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         beforeEach {
             organizationRepository = dbExtension.fixtures.organizationRepository
             productRepository = dbExtension.fixtures.productRepository
-            infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
-            secretRepository = DaoSecretRepository(dbExtension.db)
+            infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
+            secretRepository = dbExtension.fixtures.secretRepository
         }
 
         "GET /organizations should return all existing organizations" {

@@ -25,9 +25,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -42,25 +39,19 @@ private const val TIME_STAMP_SECONDS = 1678119934L
 class EvaluatorWorkerDaoTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
-    lateinit var advisorRunRepository: DaoAdvisorRunRepository
-    lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
-    lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
     lateinit var dao: EvaluatorWorkerDao
     lateinit var fixtures: Fixtures
 
     beforeEach {
-        advisorRunRepository = DaoAdvisorRunRepository(dbExtension.db)
-        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
-        evaluatorRunRepository = DaoEvaluatorRunRepository(dbExtension.db)
         dao = EvaluatorWorkerDao(
             advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
-            advisorRunRepository = advisorRunRepository,
+            advisorRunRepository = dbExtension.fixtures.advisorRunRepository,
             analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
-            analyzerRunRepository = analyzerRunRepository,
+            analyzerRunRepository = dbExtension.fixtures.analyzerRunRepository,
             evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
             ortRunRepository = dbExtension.fixtures.ortRunRepository,
             repositoryRepository = dbExtension.fixtures.repositoryRepository,
-            evaluatorRunRepository = evaluatorRunRepository
+            evaluatorRunRepository = dbExtension.fixtures.evaluatorRunRepository
         )
         fixtures = dbExtension.fixtures
     }
@@ -103,7 +94,7 @@ class EvaluatorWorkerDaoTest : WordSpec({
 
     "getAnalyzerRunForEvaluatorJob" should {
         "return an analyzer run" {
-            val createdAnalyzerRun = analyzerRunRepository.create(
+            val createdAnalyzerRun = dbExtension.fixtures.analyzerRunRepository.create(
                 analyzerJobId = fixtures.analyzerJob.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
@@ -135,7 +126,7 @@ class EvaluatorWorkerDaoTest : WordSpec({
 
     "getAdvisorRunForEvaluatorJob" should {
         "return an advisor run" {
-            val createdAdvisorRun = advisorRunRepository.create(
+            val createdAdvisorRun = dbExtension.fixtures.advisorRunRepository.create(
                 advisorJobId = fixtures.advisorJob.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
@@ -184,7 +175,7 @@ class EvaluatorWorkerDaoTest : WordSpec({
 
             dao.storeEvaluatorRun(evaluatorRun)
 
-            evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
+            dbExtension.fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
         }
     }
 })

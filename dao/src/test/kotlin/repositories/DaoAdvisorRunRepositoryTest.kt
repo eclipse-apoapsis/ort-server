@@ -52,7 +52,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
     var advisorJobId = -1L
 
     beforeEach {
-        advisorRunRepository = DaoAdvisorRunRepository(dbExtension.db)
+        advisorRunRepository = dbExtension.fixtures.advisorRunRepository
         fixtures = Fixtures(dbExtension.db)
 
         advisorJobId = fixtures.advisorJob.id

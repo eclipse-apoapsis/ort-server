@@ -68,8 +68,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
     var scannerJobId = -1L
 
     beforeEach {
-        scannerRunRepository = DaoScannerRunRepository(dbExtension.db)
-        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+        scannerRunRepository = dbExtension.fixtures.scannerRunRepository
+        analyzerRunRepository = dbExtension.fixtures.analyzerRunRepository
         fixtures = dbExtension.fixtures
 
         scannerJobId = dbExtension.fixtures.scannerJob.id

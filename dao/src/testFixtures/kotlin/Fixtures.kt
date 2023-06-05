@@ -23,14 +23,21 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
@@ -47,14 +54,21 @@ import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
  */
 class Fixtures(private val db: Database) {
     val advisorJobRepository = DaoAdvisorJobRepository(db)
+    val advisorRunRepository = DaoAdvisorRunRepository(db)
     val analyzerJobRepository = DaoAnalyzerJobRepository(db)
+    val analyzerRunRepository = DaoAnalyzerRunRepository(db)
     val evaluatorJobRepository = DaoEvaluatorJobRepository(db)
+    val evaluatorRunRepository = DaoEvaluatorRunRepository(db)
+    val infrastructureServiceRepository = DaoInfrastructureServiceRepository(db)
     val organizationRepository = DaoOrganizationRepository(db)
     val ortRunRepository = DaoOrtRunRepository(db)
     val productRepository = DaoProductRepository(db)
     val reporterJobRepository = DaoReporterJobRepository(db)
+    val reporterRunRepository = DaoReporterRunRepository(db)
     val repositoryRepository = DaoRepositoryRepository(db)
     val scannerJobRepository = DaoScannerJobRepository(db)
+    val scannerRunRepository = DaoScannerRunRepository(db)
+    val secretRepository = DaoSecretRepository(db)
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }

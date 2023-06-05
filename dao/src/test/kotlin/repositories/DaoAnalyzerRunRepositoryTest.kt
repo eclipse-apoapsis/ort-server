@@ -50,7 +50,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
     var analyzerJobId = -1L
 
     beforeEach {
-        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+        analyzerRunRepository = dbExtension.fixtures.analyzerRunRepository
 
         analyzerJobId = dbExtension.fixtures.analyzerJob.id
     }

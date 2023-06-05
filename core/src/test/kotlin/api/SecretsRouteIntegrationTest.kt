@@ -44,7 +44,6 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -68,7 +67,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
 
     init {
         beforeEach {
-            secretRepository = DaoSecretRepository(dbExtension.db)
+            secretRepository = dbExtension.fixtures.secretRepository
 
             organizationId = dbExtension.fixtures.organization.id
             productId = dbExtension.fixtures.product.id

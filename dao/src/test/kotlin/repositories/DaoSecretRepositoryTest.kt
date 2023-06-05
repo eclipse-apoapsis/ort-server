@@ -51,7 +51,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
     init {
         beforeEach {
-            secretRepository = DaoSecretRepository(dbExtension.db)
+            secretRepository = dbExtension.fixtures.secretRepository
             fixtures = dbExtension.fixtures
 
             organizationId = fixtures.organization.id
