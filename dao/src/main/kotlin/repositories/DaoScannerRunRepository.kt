@@ -22,11 +22,25 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.selectAll
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
+import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
+import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
+import org.ossreviewtoolkit.server.dao.tables.ScannerJobsTable
+import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
+import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.DetectedLicenseMappingDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileArchiverConfigurationDao
@@ -46,14 +60,23 @@ import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.StorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.Sw360StorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.KnownProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
@@ -84,11 +107,129 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    override fun get(id: Long): ScannerRun? = db.entityQuery { ScannerRunDao[id].mapToModel() }
+    /**
+     * Due to the fact that there are no junction tables storing the scan results for a [ScannerRun], it has to be
+     * queried from the database with JOIN clauses. First, all packages from an [AnalyzerRunsTable] have to be collected
+     * that belong to the same ORT run like the requested [ScannerRun]. With the help of the packages, package
+     * provenances can be queried and a [NestedProvenanceScanResult] can be created.
+     */
+    override fun get(id: Long): ScannerRun? = db.entityQuery {
+        val results = mutableMapOf<Identifier, MutableList<NestedProvenanceScanResult>>()
+
+        val scannerRunPackages = PackagesTable
+            .innerJoin(PackagesAnalyzerRunsTable)
+            .innerJoin(AnalyzerRunsTable)
+            .innerJoin(AnalyzerJobsTable)
+            .innerJoin(OrtRunsTable)
+            .innerJoin(ScannerJobsTable)
+            .join(
+                otherTable = ScannerRunsTable,
+                joinType = JoinType.INNER,
+                onColumn = ScannerJobsTable.id,
+                otherColumn = ScannerRunsTable.scannerJobId,
+                additionalConstraint = { ScannerRunsTable.id eq id }
+            )
+
+        // Create a join relation between the collected packages and the package provenances table with the same
+        // Identifier and RemoteArtifact, which represents an artifact provenance.
+        scannerRunPackages.join(
+            otherTable = PackageProvenancesTable,
+            joinType = JoinType.INNER,
+            additionalConstraint = {
+                PackagesTable.identifierId eq PackageProvenancesTable.identifierId and
+                        (PackagesTable.sourceArtifactId eq PackageProvenancesTable.artifactId)
+            }
+        ).slice(PackagesTable.identifierId, PackageProvenancesTable.id)
+            .selectAll()
+            .groupBy { it[PackagesTable.identifierId] }
+            .forEach { (identifierId, resultRow) ->
+                val identifier = IdentifierDao[identifierId].mapToModel()
+                val scanResults = resultRow
+                    .map { PackageProvenanceDao[it[PackageProvenancesTable.id]] }
+                    .map { it.artifact!!.createNestedProvenanceScanResult() }
+
+                results.getOrPut(identifier) { mutableListOf() }.addAll(scanResults)
+            }
+
+        // Create a join relation between the collected packages, package provenances table and nested provenances table
+        // with the same Identifier and VcsInfo, which represents a repository provenance. If there are sub repositories
+        // for the found repository provenance, they will be taken into account when collection the scan results.
+        scannerRunPackages.join(
+            otherTable = PackageProvenancesTable,
+            joinType = JoinType.INNER,
+            additionalConstraint = {
+                PackagesTable.identifierId eq PackageProvenancesTable.identifierId and
+                        (PackagesTable.vcsProcessedId eq PackageProvenancesTable.vcsId)
+            }
+        ).join(
+            otherTable = NestedProvenancesTable,
+            joinType = JoinType.INNER,
+            additionalConstraint = { NestedProvenancesTable.rootVcsId eq PackageProvenancesTable.vcsId }
+        ).slice(PackagesTable.identifierId, PackageProvenancesTable.id, NestedProvenancesTable.id)
+            .selectAll()
+            .groupBy { it[PackagesTable.identifierId] }
+            .forEach { (identifierId, resultRow) ->
+                val identifier = IdentifierDao[identifierId].mapToModel()
+                val nestedProvenanceScanResult = resultRow
+                    .map { NestedProvenanceDao[it[NestedProvenancesTable.id]] }
+                    .map { it.createNestedProvenanceScanResult() }
+
+                results.getOrPut(identifier) { mutableListOf() }.addAll(nestedProvenanceScanResult)
+            }
+
+        ScannerRunDao[id].mapToModel().copy(scanResults = results)
+    }
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
         ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.mapToModel()
     }
+}
+
+private fun RemoteArtifactDao.createNestedProvenanceScanResult(): NestedProvenanceScanResult {
+    val artifactProvenance = ArtifactProvenance(mapToModel())
+    val scanResults = ScanResultDao
+        .findByRemoteArtifact(artifactProvenance.sourceArtifact)
+        .map { scanResultDao -> scanResultDao.mapToModel().copy(provenance = artifactProvenance) }
+
+    return NestedProvenanceScanResult(
+        nestedProvenance = NestedProvenance(
+            root = artifactProvenance,
+            subRepositories = emptyMap()
+        ),
+        scanResults = mapOf(artifactProvenance to scanResults)
+    )
+}
+
+private fun NestedProvenanceDao.createNestedProvenanceScanResult(): NestedProvenanceScanResult {
+    val rootRepositoryProvenance = RepositoryProvenance(
+        vcsInfo = rootVcs.mapToModel(),
+        resolvedRevision = rootResolvedRevision
+    )
+    val rootScanResults = ScanResultDao
+        .findByVcsInfo(rootRepositoryProvenance.vcsInfo)
+        .map { it.mapToModel().copy(provenance = rootRepositoryProvenance) }
+
+    val subRepositories = subRepositories.associate {
+        it.path to RepositoryProvenance(
+            vcsInfo = it.vcs.mapToModel(),
+            resolvedRevision = it.resolvedRevision
+        )
+    }
+
+    val scanResults = subRepositories.values
+        .associateWithTo(mutableMapOf<KnownProvenance, List<ScanResult>>(rootRepositoryProvenance to rootScanResults)) {
+            ScanResultDao
+                .findByVcsInfo(it.vcsInfo)
+                .map { scanResultDao -> scanResultDao.mapToModel().copy(provenance = it) }
+        }.toMap()
+
+    return NestedProvenanceScanResult(
+        nestedProvenance = NestedProvenance(
+            root = rootRepositoryProvenance,
+            subRepositories = subRepositories
+        ),
+        scanResults = scanResults
+    )
 }
 
 private fun createScannerConfiguration(
