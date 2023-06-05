@@ -25,8 +25,11 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.utils.jsonb
+import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
+import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
@@ -48,7 +51,20 @@ object ScanResultsTable : LongIdTable("scan_results") {
 }
 
 class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ScanResultDao>(ScanResultsTable)
+    companion object : LongEntityClass<ScanResultDao>(ScanResultsTable) {
+        fun findByRemoteArtifact(artifact: RemoteArtifact) =
+            find {
+                ScanResultsTable.artifactUrl eq artifact.url and
+                        (ScanResultsTable.artifactHash eq artifact.hashValue)
+            }
+
+        fun findByVcsInfo(vcs: VcsInfo) =
+            find {
+                ScanResultsTable.vcsType eq vcs.type.name and
+                        (ScanResultsTable.vcsUrl eq vcs.url) and
+                        (ScanResultsTable.vcsRevision eq vcs.revision)
+            }
+    }
 
     var artifactUrl by ScanResultsTable.artifactUrl
     var artifactHash by ScanResultsTable.artifactHash
