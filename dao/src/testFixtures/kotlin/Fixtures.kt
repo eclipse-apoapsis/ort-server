@@ -46,15 +46,15 @@ import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
  * instances.
  */
 class Fixtures(private val db: Database) {
-    val organizationRepository = DaoOrganizationRepository(db)
-    val productRepository = DaoProductRepository(db)
-    val repositoryRepository = DaoRepositoryRepository(db)
-    val ortRunRepository = DaoOrtRunRepository(db)
-    val analyzerJobRepository = DaoAnalyzerJobRepository(db)
     val advisorJobRepository = DaoAdvisorJobRepository(db)
-    val scannerJobRepository = DaoScannerJobRepository(db)
+    val analyzerJobRepository = DaoAnalyzerJobRepository(db)
     val evaluatorJobRepository = DaoEvaluatorJobRepository(db)
+    val organizationRepository = DaoOrganizationRepository(db)
+    val ortRunRepository = DaoOrtRunRepository(db)
+    val productRepository = DaoProductRepository(db)
     val reporterJobRepository = DaoReporterJobRepository(db)
+    val repositoryRepository = DaoRepositoryRepository(db)
+    val scannerJobRepository = DaoScannerJobRepository(db)
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }
