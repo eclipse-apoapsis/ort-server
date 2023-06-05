@@ -24,15 +24,9 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -41,31 +35,31 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class ReporterWorkerDaoTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
     lateinit var advisorRunRepository: DaoAdvisorRunRepository
     lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
     lateinit var dao: ReporterWorkerDao
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension { db ->
-            analyzerRunRepository = DaoAnalyzerRunRepository(db)
-            advisorRunRepository = DaoAdvisorRunRepository(db)
-            evaluatorRunRepository = DaoEvaluatorRunRepository(db)
-            dao = ReporterWorkerDao(
-                advisorJobRepository = DaoAdvisorJobRepository(db),
-                advisorRunRepository = advisorRunRepository,
-                analyzerJobRepository = DaoAnalyzerJobRepository(db),
-                analyzerRunRepository = analyzerRunRepository,
-                evaluatorJobRepository = DaoEvaluatorJobRepository(db),
-                evaluatorRunRepository = evaluatorRunRepository,
-                ortRunRepository = DaoOrtRunRepository(db),
-                reporterJobRepository = DaoReporterJobRepository(db),
-                repositoryRepository = DaoRepositoryRepository(db)
-            )
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+        advisorRunRepository = DaoAdvisorRunRepository(dbExtension.db)
+        evaluatorRunRepository = DaoEvaluatorRunRepository(dbExtension.db)
+        dao = ReporterWorkerDao(
+            advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
+            advisorRunRepository = advisorRunRepository,
+            analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
+            analyzerRunRepository = analyzerRunRepository,
+            evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
+            evaluatorRunRepository = evaluatorRunRepository,
+            ortRunRepository = dbExtension.fixtures.ortRunRepository,
+            reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
+            repositoryRepository = dbExtension.fixtures.repositoryRepository
+        )
+        fixtures = dbExtension.fixtures
+    }
 
     "getReporterJob" should {
         "return job if job does exist" {

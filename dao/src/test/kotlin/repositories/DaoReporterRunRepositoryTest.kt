@@ -26,27 +26,24 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.runs.reporter.Report
 import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 
 class DaoReporterRunRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var reporterRunRepository: DaoReporterRunRepository
-    lateinit var fixtures: Fixtures
     lateinit var reporterJob: ReporterJob
 
     val reports = listOf(Report("file1.pdf"), Report("file2.pdf"))
     val time = Clock.System.now().toDatabasePrecision()
 
-    extension(
-        DatabaseTestExtension { db ->
-            reporterRunRepository = DaoReporterRunRepository(db)
-            fixtures = Fixtures(db)
-            reporterJob = fixtures.reporterJob
-        }
-    )
+    beforeEach {
+        reporterRunRepository = DaoReporterRunRepository(dbExtension.db)
+        reporterJob = dbExtension.fixtures.reporterJob
+    }
 
     "create should create an entry in the database" {
         val reporterRun = reporterRunRepository.create(reporterJob.id, time, time, reports)

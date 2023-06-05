@@ -44,6 +44,8 @@ import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoInfrastructureServiceRepositoryTest : WordSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
+
     private lateinit var infrastructureServicesRepository: DaoInfrastructureServiceRepository
     private lateinit var secretRepository: DaoSecretRepository
     private lateinit var fixtures: Fixtures
@@ -51,16 +53,14 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
     private lateinit var passwordSecret: Secret
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                infrastructureServicesRepository = DaoInfrastructureServiceRepository(db)
-                secretRepository = DaoSecretRepository(db)
-                fixtures = Fixtures(db)
+        beforeEach {
+            infrastructureServicesRepository = DaoInfrastructureServiceRepository(dbExtension.db)
+            secretRepository = DaoSecretRepository(dbExtension.db)
+            fixtures = dbExtension.fixtures
 
-                usernameSecret = secretRepository.create("p1", "user", null, fixtures.organization.id, null, null)
-                passwordSecret = secretRepository.create("p2", "pass", null, fixtures.organization.id, null, null)
-            }
-        )
+            usernameSecret = secretRepository.create("p1", "user", null, fixtures.organization.id, null, null)
+            passwordSecret = secretRepository.create("p2", "pass", null, fixtures.organization.id, null, null)
+        }
 
         "create" should {
             "create an infrastructure service for an organization" {

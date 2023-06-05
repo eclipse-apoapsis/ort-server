@@ -33,8 +33,6 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.jetbrains.exposed.sql.Database
-
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
@@ -47,52 +45,39 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class RepositoriesRouteIntegrationTest : StringSpec() {
+    private val dbExtension: DatabaseTestExtension = extension(DatabaseTestExtension())
     private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
-    private lateinit var db: Database
-    private lateinit var organizationRepository: OrganizationRepository
     private lateinit var ortRunRepository: OrtRunRepository
-    private lateinit var productRepository: ProductRepository
     private lateinit var repositoryRepository: RepositoryRepository
 
     private var orgId = -1L
     private var productId = -1L
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                this.db = db
-                organizationRepository = DaoOrganizationRepository(db)
-                ortRunRepository = DaoOrtRunRepository(db)
-                productRepository = DaoProductRepository(db)
-                repositoryRepository = DaoRepositoryRepository(db)
+        beforeEach {
+            ortRunRepository = dbExtension.fixtures.ortRunRepository
+            repositoryRepository = dbExtension.fixtures.repositoryRepository
 
-                orgId = organizationRepository.create(name = "name", description = "description").id
-                productId =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId).id
-            }
-        )
+            orgId = dbExtension.fixtures.organizationRepository.create(name = "name", description = "description").id
+            productId = dbExtension.fixtures.productRepository
+                .create(name = "name", description = "description", organizationId = orgId).id
+        }
 
         "GET /repositories/{repositoryId} should return a single repository" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val type = RepositoryType.GIT
@@ -112,7 +97,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /repositories/{repositoryId} should update a repository" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -143,7 +128,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /repositories/{repositoryId} should delete a repository" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -162,7 +147,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /repositories/{repositoryId} should delete Keycloak roles" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val createdRepository = repositoryRepository.create(
@@ -182,7 +167,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/runs should return the ORT runs on a repository" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
@@ -206,7 +191,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
         }
 
         "GET /repositories/{repositoryId}/runs should support query parameters" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdRepository = repositoryRepository.create(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",

@@ -27,7 +27,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
@@ -36,21 +35,21 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoEvaluatorJobRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var evaluatorJobRepository: DaoEvaluatorJobRepository
-    lateinit var fixtures: Fixtures
     lateinit var jobConfigurations: JobConfigurations
     lateinit var evaluatorJobConfiguration: EvaluatorJobConfiguration
+
     var ortRunId = -1L
 
-    extension(
-        DatabaseTestExtension { db ->
-            evaluatorJobRepository = DaoEvaluatorJobRepository(db)
-            fixtures = Fixtures(db)
-            ortRunId = fixtures.ortRun.id
-            jobConfigurations = fixtures.jobConfigurations
-            evaluatorJobConfiguration = jobConfigurations.evaluator!!
-        }
-    )
+    beforeEach {
+        evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository
+        jobConfigurations = dbExtension.fixtures.jobConfigurations
+        evaluatorJobConfiguration = jobConfigurations.evaluator!!
+
+        ortRunId = dbExtension.fixtures.ortRun.id
+    }
 
     "create should create an entry in the database" {
         val createdEvaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)

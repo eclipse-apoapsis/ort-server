@@ -40,8 +40,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.jetbrains.exposed.sql.Database
-
 import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
@@ -59,8 +57,6 @@ import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
@@ -73,29 +69,26 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class OrganizationsRouteIntegrationTest : StringSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
     private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
-    private lateinit var db: Database
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
     private lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
     private lateinit var secretRepository: SecretRepository
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                this.db = db
-                organizationRepository = DaoOrganizationRepository(db)
-                productRepository = DaoProductRepository(db)
-                infrastructureServiceRepository = DaoInfrastructureServiceRepository(db)
-                secretRepository = DaoSecretRepository(db)
-            }
-        )
+        beforeEach {
+            organizationRepository = dbExtension.fixtures.organizationRepository
+            productRepository = dbExtension.fixtures.productRepository
+            infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
+            secretRepository = DaoSecretRepository(dbExtension.db)
+        }
 
         "GET /organizations should return all existing organizations" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val org1 = organizationRepository.create(name = "name1", description = "description1")
                 val org2 = organizationRepository.create(name = "name2", description = "description2")
 
@@ -113,7 +106,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations should support query parameters" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 organizationRepository.create(name = "name1", description = "description1")
                 val org2 = organizationRepository.create(name = "name2", description = "description2")
 
@@ -131,7 +124,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{organizationId} should return a single organization" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -151,7 +144,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{organizationId} should respond with NotFound if no organization exists" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations/999999") {
@@ -165,7 +158,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations should create an organization in the database" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val org = CreateOrganization(name = "name", description = "description")
@@ -187,7 +180,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations should create Keycloak roles" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val org = CreateOrganization(name = "name", description = "description")
@@ -204,7 +197,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations with an already existing organization should respond with CONFLICT" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -226,7 +219,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /organizations/{organizationId} should update an organization" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
@@ -258,7 +251,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /organizations/{organizationId} should be able to delete a value and ignore absent values" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -294,7 +287,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /organizations/{organizationId} should delete an organization" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
@@ -312,7 +305,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /organizations/{organizationId} should delete Keycloak roles" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdOrg = organizationRepository.create(name = "name", description = "description")
 
                 val client = createJsonClient()
@@ -328,7 +321,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations/{orgId}/products should create a product" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -349,7 +342,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations/{orgId}/products should create Keycloak roles" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -367,7 +360,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{orgId}/products should return all products of an organization" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -396,7 +389,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{orgId}/products should support query parameters" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -423,7 +416,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{orgId}/infrastructure-services should list existing infrastructure services" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -465,7 +458,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /organizations/{orgId}/infrastructure-services should support query parameters" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -507,7 +500,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations/{orgId}/infrastructure-services should create an infrastructure service" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -548,7 +541,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "POST /organizations/{orgId}/infrastructure-services should handle an invalid secret reference" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -574,7 +567,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "PATCH /organizations/{orgId}/infrastructure-services/{name} should update an infrastructure service" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id
@@ -623,7 +616,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
         }
 
         "DELETE /organizations/{orgId}/infrastructure-services/{name} should delete an infrastructure service" {
-            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
                 val orgId = organizationRepository.create(name = "name", description = "description").id

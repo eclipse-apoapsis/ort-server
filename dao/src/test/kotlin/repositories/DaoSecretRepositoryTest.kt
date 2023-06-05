@@ -36,8 +36,11 @@ import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoSecretRepositoryTest : StringSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
+
     private lateinit var secretRepository: DaoSecretRepository
     private lateinit var fixtures: Fixtures
+
     private var organizationId = -1L
     private var productId = -1L
     private var repositoryId = -1L
@@ -47,15 +50,14 @@ class DaoSecretRepositoryTest : StringSpec() {
     private val description = "ssh rsa certificate"
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                secretRepository = DaoSecretRepository(db)
-                fixtures = Fixtures(db)
-                organizationId = fixtures.organization.id
-                productId = fixtures.product.id
-                repositoryId = fixtures.repository.id
-            }
-        )
+        beforeEach {
+            secretRepository = DaoSecretRepository(dbExtension.db)
+            fixtures = dbExtension.fixtures
+
+            organizationId = fixtures.organization.id
+            productId = fixtures.product.id
+            repositoryId = fixtures.repository.id
+        }
 
         "create should create an entry in the database" {
             val name = "secret1"

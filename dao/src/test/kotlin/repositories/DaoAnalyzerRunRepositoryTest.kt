@@ -27,7 +27,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -44,17 +43,17 @@ import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 
 class DaoAnalyzerRunRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
-    lateinit var fixtures: Fixtures
+
     var analyzerJobId = -1L
 
-    extension(
-        DatabaseTestExtension { db ->
-            analyzerRunRepository = DaoAnalyzerRunRepository(db)
-            fixtures = Fixtures(db)
-            analyzerJobId = fixtures.analyzerJob.id
-        }
-    )
+    beforeEach {
+        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+
+        analyzerJobId = dbExtension.fixtures.analyzerJob.id
+    }
 
     "create should create an entry in the database" {
         val createdAnalyzerRun = analyzerRunRepository.create(analyzerJobId, analyzerRun)

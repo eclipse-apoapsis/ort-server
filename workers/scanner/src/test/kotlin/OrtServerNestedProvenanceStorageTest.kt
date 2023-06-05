@@ -31,10 +31,14 @@ import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 
 class OrtServerNestedProvenanceStorageTest : WordSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
+
     private lateinit var storage: OrtServerNestedProvenanceStorage
 
     init {
-        extension(DatabaseTestExtension { db -> storage = OrtServerNestedProvenanceStorage(db) })
+        beforeEach {
+            storage = OrtServerNestedProvenanceStorage(dbExtension.db)
+        }
 
         "putNestedProvenance" should {
             "store a nested provenance in the database" {

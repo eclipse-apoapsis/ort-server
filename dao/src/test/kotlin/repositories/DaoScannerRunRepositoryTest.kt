@@ -59,19 +59,21 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
 class DaoScannerRunRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var scannerRunRepository: DaoScannerRunRepository
     lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
     lateinit var fixtures: Fixtures
+
     var scannerJobId = -1L
 
-    extension(
-        DatabaseTestExtension { db ->
-            scannerRunRepository = DaoScannerRunRepository(db)
-            analyzerRunRepository = DaoAnalyzerRunRepository(db)
-            fixtures = Fixtures(db)
-            scannerJobId = fixtures.scannerJob.id
-        }
-    )
+    beforeEach {
+        scannerRunRepository = DaoScannerRunRepository(dbExtension.db)
+        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+        fixtures = dbExtension.fixtures
+
+        scannerJobId = dbExtension.fixtures.scannerJob.id
+    }
 
     "create should create an entry in the database" {
         val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)

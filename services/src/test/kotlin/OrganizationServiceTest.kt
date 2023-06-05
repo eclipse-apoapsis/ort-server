@@ -35,20 +35,19 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 
 class OrganizationServiceTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var db: Database
     lateinit var organizationRepository: DaoOrganizationRepository
     lateinit var productRepository: DaoProductRepository
-
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension {
-            db = it
-            organizationRepository = DaoOrganizationRepository(db)
-            productRepository = DaoProductRepository(db)
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        db = dbExtension.db
+        organizationRepository = dbExtension.fixtures.organizationRepository
+        productRepository = dbExtension.fixtures.productRepository
+        fixtures = dbExtension.fixtures
+    }
 
     "createOrganization" should {
         "create Keycloak permissions" {

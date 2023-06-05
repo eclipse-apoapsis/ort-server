@@ -29,11 +29,8 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
@@ -45,23 +42,23 @@ import org.ossreviewtoolkit.server.workers.advisor.AdvisorWorkerDao
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class AdvisorWorkerDaoTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var analyzerRunRepository: DaoAnalyzerRunRepository
     lateinit var dao: AdvisorWorkerDao
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension { db ->
-            analyzerRunRepository = DaoAnalyzerRunRepository(db)
-            dao = AdvisorWorkerDao(
-                DaoAdvisorJobRepository(db),
-                DaoAdvisorRunRepository(db),
-                DaoAnalyzerJobRepository(db),
-                analyzerRunRepository,
-                DaoOrtRunRepository(db)
-            )
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        analyzerRunRepository = DaoAnalyzerRunRepository(dbExtension.db)
+        dao = AdvisorWorkerDao(
+            dbExtension.fixtures.advisorJobRepository,
+            DaoAdvisorRunRepository(dbExtension.db),
+            dbExtension.fixtures.analyzerJobRepository,
+            analyzerRunRepository,
+            dbExtension.fixtures.ortRunRepository
+        )
+        fixtures = dbExtension.fixtures
+    }
 
     "getAnalyzerRunByJobId" should {
         "return an analyzer run" {

@@ -25,7 +25,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -36,8 +35,10 @@ import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrtRunRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var ortRunRepository: DaoOrtRunRepository
-    lateinit var fixtures: Fixtures
+
     var repositoryId = -1L
 
     val jobConfigurations = JobConfigurations(
@@ -46,13 +47,10 @@ class DaoOrtRunRepositoryTest : StringSpec({
         )
     )
 
-    extension(
-        DatabaseTestExtension { db ->
-            ortRunRepository = DaoOrtRunRepository(db)
-            fixtures = Fixtures(db)
-            repositoryId = fixtures.repository.id
-        }
-    )
+    beforeEach {
+        ortRunRepository = dbExtension.fixtures.ortRunRepository
+        repositoryId = dbExtension.fixtures.repository.id
+    }
 
     "create should create an entry in the database" {
         val revision = "revision"
@@ -74,7 +72,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "create should create sequential indexes for different repositories" {
-        val otherRepository = fixtures.createRepository(url = "https://example.com/repo2.git")
+        val otherRepository = dbExtension.fixtures.createRepository(url = "https://example.com/repo2.git")
 
         ortRunRepository.create(repositoryId, "revision", jobConfigurations).index shouldBe 1
         ortRunRepository.create(otherRepository.id, "revision", jobConfigurations).index shouldBe 1

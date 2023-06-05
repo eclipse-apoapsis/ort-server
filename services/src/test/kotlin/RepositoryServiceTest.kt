@@ -35,20 +35,19 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 
 class RepositoryServiceTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var db: Database
     lateinit var ortRunRepository: DaoOrtRunRepository
     lateinit var repositoryRepository: DaoRepositoryRepository
-
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension {
-            db = it
-            ortRunRepository = DaoOrtRunRepository(db)
-            repositoryRepository = DaoRepositoryRepository(db)
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        db = dbExtension.db
+        ortRunRepository = dbExtension.fixtures.ortRunRepository
+        repositoryRepository = dbExtension.fixtures.repositoryRepository
+        fixtures = dbExtension.fixtures
+    }
 
     "deleteRepository" should {
         "delete Keycloak permissions" {

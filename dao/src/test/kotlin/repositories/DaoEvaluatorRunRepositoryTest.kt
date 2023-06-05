@@ -27,28 +27,27 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 
 class DaoEvaluatorRunRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository
-    lateinit var fixtures: Fixtures
+
     var evaluatorJobId = -1L
 
-    extension(
-        DatabaseTestExtension { db ->
-            evaluatorRunRepository = DaoEvaluatorRunRepository(db)
-            fixtures = Fixtures(db)
-            evaluatorJobId = fixtures.evaluatorJob.id
-        }
-    )
+    beforeEach {
+        evaluatorRunRepository = DaoEvaluatorRunRepository(dbExtension.db)
+
+        evaluatorJobId = dbExtension.fixtures.evaluatorJob.id
+    }
 
     "create should create an entry in the database" {
         val createdEvaluatorRun = evaluatorRunRepository.create(
             evaluatorJobId = evaluatorJobId,
             startTime = Clock.System.now(),
             endTime = Clock.System.now(),
-            violations = listOf(fixtures.ruleViolation)
+            violations = listOf(dbExtension.fixtures.ruleViolation)
         )
 
         val dbEntry = evaluatorRunRepository.get(createdEvaluatorRun.id)
@@ -59,7 +58,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = createdEvaluatorRun.startTime,
             endTime = createdEvaluatorRun.endTime,
-            violations = listOf(fixtures.ruleViolation)
+            violations = listOf(dbExtension.fixtures.ruleViolation)
         )
     }
 
@@ -72,7 +71,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = Clock.System.now(),
             endTime = Clock.System.now(),
-            violations = listOf(fixtures.ruleViolation)
+            violations = listOf(dbExtension.fixtures.ruleViolation)
         )
 
         evaluatorRunRepository.getByJobId(evaluatorJobId) shouldBe EvaluatorRun(
@@ -80,7 +79,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = createdEvaluatorRun.startTime,
             endTime = createdEvaluatorRun.endTime,
-            violations = listOf(fixtures.ruleViolation)
+            violations = listOf(dbExtension.fixtures.ruleViolation)
         )
     }
 

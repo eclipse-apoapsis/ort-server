@@ -47,12 +47,14 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 private const val TIME_STAMP_SECONDS = 1678119934L
 
 class OrtServerScanResultStorageTest : WordSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
+
     private lateinit var scanResultStorage: OrtServerScanResultStorage
 
     init {
-        extension(
-            DatabaseTestExtension { db -> scanResultStorage = OrtServerScanResultStorage(db) }
-        )
+        beforeEach {
+            scanResultStorage = OrtServerScanResultStorage(dbExtension.db)
+        }
 
         "write" should {
             "create a repository provenance scan result in the storage" {

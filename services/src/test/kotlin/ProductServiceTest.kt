@@ -36,20 +36,19 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.RepositoryType
 
 class ProductServiceTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var db: Database
     lateinit var productRepository: DaoProductRepository
     lateinit var repositoryRepository: DaoRepositoryRepository
-
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension {
-            db = it
-            productRepository = DaoProductRepository(db)
-            repositoryRepository = DaoRepositoryRepository(db)
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        db = dbExtension.db
+        productRepository = dbExtension.fixtures.productRepository
+        repositoryRepository = dbExtension.fixtures.repositoryRepository
+        fixtures = dbExtension.fixtures
+    }
 
     "createRepository" should {
         "create Keycloak permissions" {

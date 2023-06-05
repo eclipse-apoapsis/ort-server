@@ -46,23 +46,23 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 /**
  * A test extension for integration tests that need database access. The extension sets up a test container with a
- * Postgres database and creates a data source for this database. Schema migration is run. After each test a cleanup
- * is performed, so that every test sees a fresh database.
+ * Postgres database and creates a data source for this database. Schema migration is run before each test. After each
+ * test a cleanup is performed, so that every test sees a fresh database.
+ *
+ * The execution order of lifecycle callbacks in Kotest depends on the way the extension is installed and the test class
+ * implements the callbacks. To ensure that the database migrations have already been performed, do not override the
+ * callback functions like `suspend fun beforeEach` but use the DSL functions like `beforeEach {}` instead. For details
+ * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
-class DatabaseTestExtension(
-    /**
-     * A code block that gets executed before each test after the connection to the database has been established.
-     * Use this mechanism instead of the before test lifecycle hook to work-around problems with the initialization
-     * order of test extensions. (_beforeTest()_ of the test class is actually called before the _beforeTest()_
-     * function of the extension; therefore, no database access is possible there.)
-     */
-    private val fixture: (Database) -> Unit = {}
-) : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
+class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
     }
 
     private lateinit var dataSource: DataSource
+
+    lateinit var db: Database
+    lateinit var fixtures: Fixtures
 
     override suspend fun beforeSpec(spec: Spec) {
         dataSource = spec.install(JdbcTestContainerExtension(postgres)) {
@@ -79,10 +79,9 @@ class DatabaseTestExtension(
     }
 
     override suspend fun beforeEach(testCase: TestCase) {
-        val db = dataSource.connect()
+        db = dataSource.connect()
         dataSource.migrate()
-
-        fixture(db)
+        fixtures = Fixtures(db)
     }
 
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {

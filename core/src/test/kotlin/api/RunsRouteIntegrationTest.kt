@@ -30,32 +30,21 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
-import org.jetbrains.exposed.sql.Database
-
 import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
 
 class RunsRouteIntegrationTest : StringSpec() {
-    private lateinit var db: Database
-    private lateinit var fixtures: Fixtures
+    private val dbExtension = extension(DatabaseTestExtension())
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                this.db = db
-                fixtures = Fixtures(db)
-            }
-        )
-
         "GET /runs/{runId}/report/{fileName} should download a report" {
-            ortServerTestApplication(db, noDbConfig) {
-                val run = fixtures.createOrtRun()
+            ortServerTestApplication(dbExtension.db, noDbConfig) {
+                val run = dbExtension.fixtures.createOrtRun()
                 val reportFile = "disclosure-document-pdf"
                 val reportData = "Data of the report to download".toByteArray()
                 val key = Key("${run.id}|$reportFile")
@@ -80,9 +69,9 @@ class RunsRouteIntegrationTest : StringSpec() {
         }
 
         "GET /runs/{runId}/report/{fileName} should handle a missing report" {
-            ortServerTestApplication(db, noDbConfig) {
+            ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val reportFile = "nonExistingReport.pdf"
-                val run = fixtures.createOrtRun()
+                val run = dbExtension.fixtures.createOrtRun()
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/runs/${run.id}/reporter/$reportFile") {

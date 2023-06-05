@@ -30,7 +30,6 @@ import java.io.File
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
@@ -38,15 +37,15 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 class AnalyzerWorkerDaoTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var dao: AnalyzerWorkerDao
     lateinit var fixtures: Fixtures
 
-    extension(
-        DatabaseTestExtension { db ->
-            dao = AnalyzerWorkerDao(DaoAnalyzerJobRepository(db), DaoAnalyzerRunRepository(db))
-            fixtures = Fixtures(db)
-        }
-    )
+    beforeEach {
+        dao = AnalyzerWorkerDao(dbExtension.fixtures.analyzerJobRepository, DaoAnalyzerRunRepository(dbExtension.db))
+        fixtures = dbExtension.fixtures
+    }
 
     "getAnalyzerJob" should {
         "return job if job does exist" {

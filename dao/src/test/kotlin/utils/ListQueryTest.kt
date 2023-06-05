@@ -53,22 +53,20 @@ private const val ORGANIZATION_DESC = "Description"
  * repositories for organizations and repositories as example.
  */
 class ListQueryTest : StringSpec() {
+    private val dbExtension = extension(DatabaseTestExtension())
+
     private lateinit var organizationRepository: DaoOrganizationRepository
     private lateinit var productRepository: DaoProductRepository
     private lateinit var repositoryRepository: DaoRepositoryRepository
     private lateinit var ortRunRepository: DaoOrtRunRepository
 
     init {
-        extension(
-            DatabaseTestExtension { db ->
-                organizationRepository = DaoOrganizationRepository(db)
-                productRepository = DaoProductRepository(db)
-                repositoryRepository = DaoRepositoryRepository(db)
-                ortRunRepository = DaoOrtRunRepository(db)
-            }
-        )
-
         beforeEach {
+            organizationRepository = dbExtension.fixtures.organizationRepository
+            productRepository = dbExtension.fixtures.productRepository
+            repositoryRepository = dbExtension.fixtures.repositoryRepository
+            ortRunRepository = dbExtension.fixtures.ortRunRepository
+
             insertTestOrganizations()
         }
 

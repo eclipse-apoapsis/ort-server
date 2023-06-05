@@ -33,9 +33,13 @@ import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 class DaoOrganizationRepositoryTest : StringSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
     lateinit var organizationRepository: DaoOrganizationRepository
 
-    extension(DatabaseTestExtension { db -> organizationRepository = DaoOrganizationRepository(db) })
+    beforeEach {
+        organizationRepository = dbExtension.fixtures.organizationRepository
+    }
 
     "create should create an entry in the database" {
         val name = "name"
