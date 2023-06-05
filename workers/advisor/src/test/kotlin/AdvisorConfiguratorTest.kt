@@ -45,12 +45,12 @@ import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration
 
 class AdvisorConfiguratorTest : StringSpec() {
     init {
-        beforeTest {
+        beforeEach {
             mockkConstructor(Advisor::class)
             mockkObject(Advisor)
         }
 
-        afterTest {
+        afterEach {
             unmockkObject(Advisor)
             unmockkConstructor(Advisor::class)
         }

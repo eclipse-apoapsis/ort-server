@@ -68,7 +68,7 @@ class ListQueryTest : StringSpec() {
             }
         )
 
-        beforeTest {
+        beforeEach {
             insertTestOrganizations()
         }
 

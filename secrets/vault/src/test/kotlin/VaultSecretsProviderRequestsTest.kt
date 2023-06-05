@@ -51,7 +51,7 @@ class VaultSecretsProviderRequestsTest : StringSpec() {
         server.stop()
     }
 
-    override suspend fun beforeTest(testCase: TestCase) {
+    override suspend fun beforeEach(testCase: TestCase) {
         server.prepare()
     }
 

@@ -38,7 +38,7 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 
 class DatabaseTest : WordSpec({
-    afterTest {
+    afterEach {
         unmockkAll()
     }
 

@@ -41,7 +41,7 @@ class FileBasedSecretStorageTest : WordSpec() {
     private val storage = getStorage(storageFile)
 
     init {
-        beforeTest {
+        beforeEach {
             initStorage(storageFile)
         }
 
