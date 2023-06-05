@@ -28,7 +28,7 @@ import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
@@ -54,103 +54,84 @@ class DaoScannerRunRepositoryTest : StringSpec({
     )
 
     "create should create an entry in the database" {
-        val variables = mapOf(
-            "SHELL" to "/bin/bash",
-            "TERM" to "xterm-256color"
-        )
-
-        val toolVersions = mapOf(
-            "Conan" to "1.53.0",
-            "NPM" to "8.15.1"
-        )
-
-        val environment = Environment(
-            ortVersion = "1.0",
-            javaVersion = "11.0.16",
-            os = "Linux",
-            processors = 8,
-            maxMemory = 8321499136,
-            variables = variables,
-            toolVersions = toolVersions
-        )
-
-        val scannerConfiguration = ScannerConfiguration(
-            skipConcluded = false,
-            archive = FileArchiveConfiguration(
-                enabled = true,
-                fileStorage = FileStorageConfiguration(
-                    localFileStorage = LocalFileStorageConfiguration(
-                        directory = "/path/to/storage",
-                        compression = true
-                    )
-                )
-            ),
-            createMissingArchives = true,
-            detectedLicenseMappings = mapOf(
-                "license-1" to "spdx-license-1",
-                "license-2" to "spdx-license-2"
-            ),
-            options = mapOf(
-                "scanner-1" to mapOf("option-key-1" to "option-value-1"),
-                "scanner-2" to mapOf("option-key-1" to "option-value1", "option-key-2" to "option-value-2")
-            ),
-            storages = mapOf(
-                "local" to FileBasedStorageConfiguration(
-                    backend = FileStorageConfiguration(
-                        localFileStorage = LocalFileStorageConfiguration(
-                            directory = "/path/to/storage",
-                            compression = true
-                        )
-                    ),
-                    type = "PROVENANCE_BASED"
-                ),
-                "clearlyDefined" to ClearlyDefinedStorageConfiguration(
-                    serverUrl = "https://api.clearlydefined.io"
-                )
-            ),
-            storageReaders = listOf("reader-1", "reader-2"),
-            storageWriters = listOf("writer-1", "writer-2"),
-            ignorePatterns = listOf("pattern-1", "pattern-2"),
-            provenanceStorage = ProvenanceStorageConfiguration(
-                postgresStorageConfiguration = PostgresStorageConfiguration(
-                    connection = PostgresConnection(
-                        url = "jdbc:postgresql://postgresql-server:5432/database",
-                        schema = "public",
-                        username = "username",
-                        sslMode = "required",
-                        sslCert = "/defaultdir/postgresql.crt",
-                        sslKey = "/defaultdir/postgresql.pk8",
-                        sslRootCert = "/defaultdir/root.crt",
-                        parallelTransactions = 5
-                    ),
-                    type = "PROVENANCE_BASED"
-                )
-            )
-        )
-
-        val createdScannerRun = scannerRunRepository.create(
-            scannerJobId = scannerJobId,
-            startTime = Clock.System.now(),
-            endTime = Clock.System.now(),
-            environment = environment,
-            config = scannerConfiguration
-        )
+        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)
 
         val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe ScannerRun(
-            id = createdScannerRun.id,
-            scannerJobId = scannerJobId,
-            startTime = createdScannerRun.startTime,
-            endTime = createdScannerRun.endTime,
-            environment = environment,
-            config = scannerConfiguration,
-            scanResults = emptyMap()
-        )
+        dbEntry shouldBe scannerRun.copy(id = createdScannerRun.id, scannerJobId = scannerJobId)
     }
 
     "get should return null" {
         scannerRunRepository.get(1L).shouldBeNull()
     }
 })
+
+internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun) = create(
+    scannerJobId = scannerJobId,
+    startTime = scannerRun.startTime,
+    endTime = scannerRun.endTime,
+    environment = scannerRun.environment,
+    config = scannerRun.config
+)
+
+internal val fileStorageConfiguration = FileStorageConfiguration(
+    localFileStorage = LocalFileStorageConfiguration(
+        directory = "/path/to/storage",
+        compression = true
+    )
+)
+
+internal val scannerConfiguration = ScannerConfiguration(
+    skipConcluded = false,
+    archive = FileArchiveConfiguration(
+        enabled = true,
+        fileStorage = fileStorageConfiguration
+    ),
+    createMissingArchives = true,
+    detectedLicenseMappings = mapOf(
+        "license-1" to "spdx-license-1",
+        "license-2" to "spdx-license-2"
+    ),
+    options = mapOf(
+        "scanner-1" to mapOf("option-key-1" to "option-value-1"),
+        "scanner-2" to mapOf("option-key-1" to "option-value1", "option-key-2" to "option-value-2")
+    ),
+    storages = mapOf(
+        "local" to FileBasedStorageConfiguration(
+            backend = fileStorageConfiguration,
+            type = "PROVENANCE_BASED"
+        ),
+        "clearlyDefined" to ClearlyDefinedStorageConfiguration(
+            serverUrl = "https://api.clearlydefined.io"
+        )
+    ),
+    storageReaders = listOf("reader-1", "reader-2"),
+    storageWriters = listOf("writer-1", "writer-2"),
+    ignorePatterns = listOf("pattern-1", "pattern-2"),
+    provenanceStorage = ProvenanceStorageConfiguration(
+        postgresStorageConfiguration = PostgresStorageConfiguration(
+            connection = PostgresConnection(
+                url = "jdbc:postgresql://postgresql-server:5432/database",
+                schema = "public",
+                username = "username",
+                sslMode = "required",
+                sslCert = "/defaultdir/postgresql.crt",
+                sslKey = "/defaultdir/postgresql.pk8",
+                sslRootCert = "/defaultdir/root.crt",
+                parallelTransactions = 5
+            ),
+            type = "PROVENANCE_BASED"
+        )
+    )
+)
+
+internal val scannerRun = ScannerRun(
+    id = -1L,
+    scannerJobId = -1L,
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    environment = environment,
+    config = scannerConfiguration,
+    scanResults = emptyMap()
+)
