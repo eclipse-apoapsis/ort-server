@@ -36,9 +36,7 @@ import org.ossreviewtoolkit.server.model.runs.DependencyGraph
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphEdge
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphNode
 import org.ossreviewtoolkit.server.model.runs.DependencyGraphRoot
-import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Project
@@ -59,191 +57,168 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
     )
 
     "create should create an entry in the database" {
-        val variables = mapOf(
-            "SHELL" to "/bin/bash",
-            "TERM" to "xterm-256color"
-        )
-
-        val toolVersions = mapOf(
-            "Conan" to "1.53.0",
-            "NPM" to "8.15.1"
-        )
-
-        val environment = Environment(
-            ortVersion = "1.0",
-            javaVersion = "11.0.16",
-            os = "Linux",
-            processors = 8,
-            maxMemory = 8321499136,
-            variables = variables,
-            toolVersions = toolVersions
-        )
-
-        val analyzerConfiguration = AnalyzerConfiguration(
-            allowDynamicVersions = true,
-            enabledPackageManagers = listOf("Gradle", "NPM", "Yarn"),
-            disabledPackageManagers = listOf("Maven", "Pub"),
-            packageManagers = mapOf(
-                "Gradle" to PackageManagerConfiguration(
-                    mustRunAfter = listOf("NPM")
-                ),
-                "NPM" to PackageManagerConfiguration(
-                    options = mapOf("legacyPeerDeps" to "true")
-                ),
-                "Yarn" to PackageManagerConfiguration(
-                    options = emptyMap()
-                )
-            )
-        )
-
-        val project = Project(
-            identifier = Identifier(
-                type = "type",
-                namespace = "namespace",
-                name = "project",
-                version = "version"
-            ),
-            cpe = "cpe",
-            definitionFilePath = "definitionFilePath",
-            authors = setOf("author1", "author2"),
-            declaredLicenses = setOf("license1", "license2"),
-            vcs = VcsInfo(
-                type = RepositoryType.GIT,
-                url = "https://example.com/project.git",
-                revision = "",
-                path = ""
-            ),
-            vcsProcessed = VcsInfo(
-                type = RepositoryType.GIT,
-                url = "https://example.com/project.git",
-                revision = "main",
-                path = ""
-            ),
-            homepageUrl = "https://example.com",
-            scopeNames = setOf("compile")
-        )
-
-        val pkg = Package(
-            identifier = Identifier(
-                type = "type",
-                namespace = "namespace",
-                name = "package",
-                version = "version"
-            ),
-            purl = "purl",
-            cpe = "cpe",
-            authors = setOf("author1", "author2"),
-            declaredLicenses = setOf("license1", "license2"),
-            description = "description",
-            homepageUrl = "https://example.com",
-            binaryArtifact = RemoteArtifact(
-                url = "https://example.com/binary.zip",
-                hashValue = "",
-                hashAlgorithm = ""
-            ),
-            sourceArtifact = RemoteArtifact(
-                url = "https://example.com/source.zip",
-                hashValue = "",
-                hashAlgorithm = ""
-            ),
-            vcs = VcsInfo(
-                type = RepositoryType.GIT,
-                url = "https://example.com/package.git",
-                revision = "",
-                path = ""
-            ),
-            vcsProcessed = VcsInfo(
-                type = RepositoryType.GIT,
-                url = "https://example.com/package.git",
-                revision = "main",
-                path = ""
-            )
-        )
-
-        val dependencyGraphs = mapOf(
-            "Maven" to DependencyGraph(
-                packages = listOf(
-                    Identifier(
-                        type = "type",
-                        namespace = "namespace",
-                        name = "package",
-                        version = "version"
-                    ),
-                    Identifier(
-                        type = "type",
-                        namespace = "namespace",
-                        name = "project",
-                        version = "version"
-                    )
-                ),
-                nodes = listOf(
-                    DependencyGraphNode(
-                        pkg = 0,
-                        fragment = 0,
-                        linkage = "DYNAMIC",
-                        emptyList()
-                    ),
-                    DependencyGraphNode(
-                        pkg = 1,
-                        fragment = 0,
-                        linkage = "DYNAMIC",
-                        emptyList()
-                    )
-                ),
-                edges = listOf(
-                    DependencyGraphEdge(
-                        from = 1,
-                        to = 0
-                    )
-                ),
-                scopes = mapOf(
-                    "compile" to listOf(
-                        DependencyGraphRoot(
-                            root = 1,
-                            fragment = 0
-                        )
-                    )
-                )
-            )
-        )
-
-        val issue = OrtIssue(
-            timestamp = Clock.System.now(),
-            source = "source",
-            message = "message",
-            severity = "severity"
-        )
-
-        val createdAnalyzerRun = analyzerRunRepository.create(
-            analyzerJobId = analyzerJobId,
-            startTime = Clock.System.now(),
-            endTime = Clock.System.now(),
-            environment = environment,
-            config = analyzerConfiguration,
-            projects = setOf(project),
-            packages = setOf(pkg),
-            issues = mapOf(pkg.identifier to listOf(issue)),
-            dependencyGraphs = dependencyGraphs
-        )
+        val createdAnalyzerRun = analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
         val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe AnalyzerRun(
-            id = createdAnalyzerRun.id,
-            analyzerJobId = analyzerJobId,
-            startTime = createdAnalyzerRun.startTime,
-            endTime = createdAnalyzerRun.endTime,
-            environment = environment,
-            config = analyzerConfiguration,
-            projects = setOf(project),
-            packages = setOf(pkg),
-            issues = mapOf(pkg.identifier to listOf(issue.copy(timestamp = issue.timestamp.toDatabasePrecision()))),
-            dependencyGraphs = dependencyGraphs
-        )
+        dbEntry shouldBe analyzerRun.copy(id = createdAnalyzerRun.id, analyzerJobId = analyzerJobId)
     }
 
     "get should return null" {
         analyzerRunRepository.get(1L).shouldBeNull()
     }
 })
+
+internal fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+    analyzerJobId = analyzerJobId,
+    startTime = analyzerRun.startTime,
+    endTime = analyzerRun.endTime,
+    environment = analyzerRun.environment,
+    config = analyzerRun.config,
+    projects = analyzerRun.projects,
+    packages = analyzerRun.packages,
+    issues = analyzerRun.issues,
+    dependencyGraphs = analyzerRun.dependencyGraphs
+)
+
+internal val analyzerConfiguration = AnalyzerConfiguration(
+    allowDynamicVersions = true,
+    enabledPackageManagers = listOf("Gradle", "NPM", "Yarn"),
+    disabledPackageManagers = listOf("Maven", "Pub"),
+    packageManagers = mapOf(
+        "Gradle" to PackageManagerConfiguration(
+            mustRunAfter = listOf("NPM")
+        ),
+        "NPM" to PackageManagerConfiguration(
+            options = mapOf("legacyPeerDeps" to "true")
+        ),
+        "Yarn" to PackageManagerConfiguration(
+            options = emptyMap()
+        )
+    )
+)
+
+val project = Project(
+    identifier = Identifier(
+        type = "type",
+        namespace = "namespace",
+        name = "project",
+        version = "version"
+    ),
+    cpe = "cpe",
+    definitionFilePath = "definitionFilePath",
+    authors = setOf("author1", "author2"),
+    declaredLicenses = setOf("license1", "license2"),
+    vcs = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/project.git",
+        revision = "",
+        path = ""
+    ),
+    vcsProcessed = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/project.git",
+        revision = "main",
+        path = ""
+    ),
+    homepageUrl = "https://example.com",
+    scopeNames = setOf("compile")
+)
+
+internal val pkg = Package(
+    identifier = Identifier(
+        type = "type",
+        namespace = "namespace",
+        name = "package",
+        version = "version"
+    ),
+    purl = "purl",
+    cpe = "cpe",
+    authors = setOf("author1", "author2"),
+    declaredLicenses = setOf("license1", "license2"),
+    description = "description",
+    homepageUrl = "https://example.com",
+    binaryArtifact = RemoteArtifact(
+        url = "https://example.com/binary.zip",
+        hashValue = "",
+        hashAlgorithm = ""
+    ),
+    sourceArtifact = RemoteArtifact(
+        url = "https://example.com/source.zip",
+        hashValue = "",
+        hashAlgorithm = ""
+    ),
+    vcs = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/package.git",
+        revision = "",
+        path = ""
+    ),
+    vcsProcessed = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/package.git",
+        revision = "main",
+        path = ""
+    )
+)
+
+internal val dependencyGraphs = mapOf(
+    "Maven" to DependencyGraph(
+        packages = listOf(
+            Identifier(
+                type = "type",
+                namespace = "namespace",
+                name = "package",
+                version = "version"
+            ),
+            Identifier(
+                type = "type",
+                namespace = "namespace",
+                name = "project",
+                version = "version"
+            )
+        ),
+        nodes = listOf(
+            DependencyGraphNode(
+                pkg = 0,
+                fragment = 0,
+                linkage = "DYNAMIC",
+                emptyList()
+            ),
+            DependencyGraphNode(
+                pkg = 1,
+                fragment = 0,
+                linkage = "DYNAMIC",
+                emptyList()
+            )
+        ),
+        edges = listOf(
+            DependencyGraphEdge(
+                from = 1,
+                to = 0
+            )
+        ),
+        scopes = mapOf(
+            "compile" to listOf(
+                DependencyGraphRoot(
+                    root = 1,
+                    fragment = 0
+                )
+            )
+        )
+    )
+)
+
+internal val analyzerRun = AnalyzerRun(
+    id = -1L,
+    analyzerJobId = -1L,
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    environment = environment,
+    config = analyzerConfiguration,
+    projects = setOf(project),
+    packages = setOf(pkg),
+    issues = mapOf(pkg.identifier to listOf(issue)),
+    dependencyGraphs = dependencyGraphs
+)
