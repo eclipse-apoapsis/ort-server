@@ -19,17 +19,7 @@
 
 package org.ossreviewtoolkit.server.model.runs.scanner
 
-import kotlinx.datetime.Instant
-
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-
-data class ScannerRun(
-    val id: Long,
-    val scannerJobId: Long,
-    val startTime: Instant,
-    val endTime: Instant,
-    val environment: Environment,
-    val config: ScannerConfiguration,
-    val scanResults: Map<Identifier, List<NestedProvenanceScanResult>>
+data class NestedProvenance(
+    val root: KnownProvenance,
+    val subRepositories: Map<String, RepositoryProvenance>
 )
