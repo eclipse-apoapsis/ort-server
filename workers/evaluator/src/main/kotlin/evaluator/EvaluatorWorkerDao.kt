@@ -28,9 +28,12 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
 class EvaluatorWorkerDao(
     private val advisorJobRepository: AdvisorJobRepository,
@@ -40,7 +43,9 @@ class EvaluatorWorkerDao(
     private val evaluatorJobRepository: EvaluatorJobRepository,
     private val evaluatorRunRepository: EvaluatorRunRepository,
     private val ortRunRepository: OrtRunRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val scannerJobRepository: ScannerJobRepository,
+    private val scannerRunRepository: ScannerRunRepository
 ) {
     fun getEvaluatorJob(jobId: Long) = evaluatorJobRepository.get(jobId)
 
@@ -58,6 +63,12 @@ class EvaluatorWorkerDao(
         val ortRun = ortRunRepository.get(evaluatorJob.ortRunId) ?: return null
         val advisorJob = advisorJobRepository.getForOrtRun(ortRun.id) ?: return null
         return advisorRunRepository.getByJobId(advisorJob.id)
+    }
+
+    fun getScannerRunForEvaluatorJob(evaluatorJob: EvaluatorJob): ScannerRun? {
+        val ortRun = ortRunRepository.get(evaluatorJob.ortRunId) ?: return null
+        val scannerJob = scannerJobRepository.getForOrtRun(ortRun.id) ?: return null
+        return scannerRunRepository.getByJobId(scannerJob.id)
     }
 
     fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {

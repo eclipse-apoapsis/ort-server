@@ -56,12 +56,13 @@ internal class EvaluatorWorker(
 
         val analyzerRun = db.blockingQuery { dao.getAnalyzerRunForEvaluatorJob(evaluatorJob) }
         val advisorRun = db.blockingQuery { dao.getAdvisorRunForEvaluatorJob(evaluatorJob) }
+        val scannerRun = db.blockingQuery { dao.getScannerRunForEvaluatorJob(evaluatorJob) }
 
-        // TODO: As soon as ScannerRun is implemented, it should be considered also in the mapping of an OrtResult.
         val ortResult = ortRun.mapToOrt(
             repository = repository.mapToOrt(findResolvedRevision(ortRun, analyzerRun)),
             analyzerRun = analyzerRun?.mapToOrt(),
-            advisorRun = advisorRun?.mapToOrt()
+            advisorRun = advisorRun?.mapToOrt(),
+            scannerRun = scannerRun?.mapToOrt()
         )
 
         val evaluatorRun = runner.run(ortResult, evaluatorJob.configuration)

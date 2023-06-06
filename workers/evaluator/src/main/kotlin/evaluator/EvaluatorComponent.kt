@@ -33,6 +33,8 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
@@ -44,6 +46,8 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
@@ -90,6 +94,8 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+        single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
         singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)

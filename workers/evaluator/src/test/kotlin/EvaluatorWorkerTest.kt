@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -76,6 +77,7 @@ class EvaluatorWorkerTest : StringSpec({
     "A project should be evaluated successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
+        val scannerRun = mockk<ScannerRun>()
         val repository = mockk<Repository>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
@@ -87,11 +89,13 @@ class EvaluatorWorkerTest : StringSpec({
         every { repository.mapToOrt(any(), any()) } returns mockk()
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
+        every { scannerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val dao = mockk<EvaluatorWorkerDao> {
             every { getAnalyzerRunForEvaluatorJob(any()) } returns analyzerRun
             every { getAdvisorRunForEvaluatorJob(any()) } returns advisorRun
+            every { getScannerRunForEvaluatorJob(any()) } returns scannerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
             every { storeEvaluatorRun(any()) } returns mockk()
             every { getOrtRun(any()) } returns ortRun
