@@ -23,12 +23,15 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.Organization
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Secret
+import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.model.util.asPresent
@@ -344,6 +347,150 @@ val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
         }
         pathParameter<String>("secretName") {
             description = "The secret's name."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
+        }
+    }
+}
+
+val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
+    operationId = "GetInfrastructureServicesByOrganizationId"
+    summary = "List all infrastructure services (e.g. repositories) for a specific organization."
+    tags = listOf("Infrastructure services")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The ID of an organization."
+        }
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<List<Secret>> {
+                example(
+                    "List all infrastructure services for a specific organization",
+                    listOf(
+                        InfrastructureService(
+                            "Artifactory",
+                            "https://artifactory.example.org/releases",
+                            "Artifactory repository",
+                            "artifactoryUsername",
+                            "artifactoryPassword"
+                        ),
+                        InfrastructureService(
+                            "GitHub",
+                            "https://github.com",
+                            "GitHub server",
+                            "gitHubUsername",
+                            "gitHubPassword"
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
+val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
+    operationId = "PostInfrastructureServiceForOrganization"
+    summary = "Create an infrastructure service for a specific organization."
+    tags = listOf("Infrastructure services")
+
+    request {
+        jsonBody<CreateInfrastructureService> {
+            example(
+                "Create infrastructure service",
+                CreateInfrastructureService(
+                    "Artifactory",
+                    "https://artifactory.example.org/releases",
+                    "Artifactory repository",
+                    "artifactoryUsername",
+                    "artifactoryPassword"
+                )
+            )
+        }
+    }
+
+    response {
+        HttpStatusCode.Created to {
+            description = "Success"
+            jsonBody<InfrastructureService> {
+                example(
+                    "Create infrastructure service",
+                    InfrastructureService(
+                        "Artifactory",
+                        "https://artifactory.example.org/releases",
+                        "Artifactory repository",
+                        "artifactoryUsername",
+                        "artifactoryPassword"
+                    )
+                )
+            }
+        }
+    }
+}
+
+val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+    operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
+    summary = "Update an infrastructure service identified by its name for a specific organization."
+    tags = listOf("Infrastructure services")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+        pathParameter<String>("serviceName") {
+            description = "The name of the infrastructure service."
+        }
+        jsonBody<UpdateSecret> {
+            example(
+                "Update infrastructure service",
+                UpdateInfrastructureService(
+                    url = "https://github.com".asPresent(),
+                    description = "Updated description".asPresent(),
+                    passwordSecretRef = "newGitHubPassword".asPresent()
+                )
+            )
+            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Secret> {
+                example(
+                    "Update infrastructure service",
+                    InfrastructureService(
+                        "GitHub",
+                        "https://github.com",
+                        "Updated description",
+                        "gitHubUsername",
+                        "newGitHubPassword"
+                    )
+                )
+            }
+        }
+    }
+}
+
+val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
+    summary = "Delete an infrastructure service identified by its name for a specific organization."
+    tags = listOf("Infrastructure services")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+        pathParameter<String>("serviceName") {
+            description = "The name of the infrastructure service."
         }
     }
 

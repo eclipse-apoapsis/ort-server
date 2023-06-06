@@ -29,9 +29,6 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
@@ -44,15 +41,19 @@ import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.deleteOrganizationById
 import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByOrganizationIdAndName
+import org.ossreviewtoolkit.server.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationById
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationProducts
 import org.ossreviewtoolkit.server.core.apiDocs.getOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.getSecretByOrganizationIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByOrganizationId
+import org.ossreviewtoolkit.server.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.patchOrganizationById
 import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByOrganizationIdAndName
+import org.ossreviewtoolkit.server.core.apiDocs.postInfrastructureServiceForOrganization
 import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.postProduct
 import org.ossreviewtoolkit.server.core.apiDocs.postSecretForOrganization
@@ -193,7 +194,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("infrastructure-services") {
-            get {
+            get(getInfrastructureServicesByOrganizationId) {
                 val organizationId = call.requireParameter("organizationId").toLong()
 
                 call.respond(
@@ -203,7 +204,7 @@ fun Route.organizations() = route("organizations") {
                 )
             }
 
-            post {
+            post(postInfrastructureServiceForOrganization) {
                 val organizationId = call.requireParameter("organizationId").toLong()
                 val createService = call.receive<CreateInfrastructureService>()
 
@@ -220,7 +221,7 @@ fun Route.organizations() = route("organizations") {
             }
 
             route("{serviceName}") {
-                patch {
+                patch(patchInfrastructureServiceForOrganizationIdAndName) {
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val serviceName = call.requireParameter("serviceName")
                     val updateService = call.receive<UpdateInfrastructureService>()
@@ -237,7 +238,7 @@ fun Route.organizations() = route("organizations") {
                     call.respond(HttpStatusCode.OK, updatedService.mapToApi())
                 }
 
-                delete {
+                delete(deleteInfrastructureServiceForOrganizationIdAndName) {
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val serviceName = call.requireParameter("serviceName")
 
