@@ -21,8 +21,11 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -38,10 +41,13 @@ import io.ktor.http.HttpStatusCode
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
+import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.Organization
 import org.ossreviewtoolkit.server.api.v1.Product
+import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
@@ -51,13 +57,17 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
+import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 
@@ -69,6 +79,8 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
     private lateinit var db: Database
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var productRepository: ProductRepository
+    private lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
+    private lateinit var secretRepository: SecretRepository
 
     init {
         extension(
@@ -76,6 +88,8 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 this.db = db
                 organizationRepository = DaoOrganizationRepository(db)
                 productRepository = DaoProductRepository(db)
+                infrastructureServiceRepository = DaoInfrastructureServiceRepository(db)
+                secretRepository = DaoSecretRepository(db)
             }
         )
 
@@ -404,6 +418,212 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                         Product(createdProduct2.id, name2, description)
                     )
                 }
+            }
+        }
+
+        "GET /organizations/{orgId}/infrastructure-services should list existing infrastructure services" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
+                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+
+                val services = (1..8).map { index ->
+                    infrastructureServiceRepository.create(
+                        "infrastructureService$index",
+                        "https://repo.example.org/test$index",
+                        "description$index",
+                        userSecret,
+                        passSecret,
+                        orgId,
+                        null
+                    )
+                }
+
+                val apiServices = services.map { service ->
+                    ApiInfrastructureService(
+                        service.name,
+                        service.url,
+                        service.description,
+                        service.usernameSecret.name,
+                        service.passwordSecret.name
+                    )
+                }
+
+                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
+                }
+            }
+        }
+
+        "GET /organizations/{orgId}/infrastructure-services should support query parameters" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
+                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+
+                (1..8).shuffled().forEach { index ->
+                    infrastructureServiceRepository.create(
+                        "infrastructureService$index",
+                        "https://repo.example.org/test$index",
+                        "description$index",
+                        userSecret,
+                        passSecret,
+                        orgId,
+                        null
+                    )
+                }
+
+                val apiServices = (1..4).map { index ->
+                    ApiInfrastructureService(
+                        "infrastructureService$index",
+                        "https://repo.example.org/test$index",
+                        "description$index",
+                        userSecret.name,
+                        passSecret.name
+                    )
+                }
+
+                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
+                }
+            }
+        }
+
+        "POST /organizations/{orgId}/infrastructure-services should create an infrastructure service" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
+                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+
+                val createInfrastructureService = CreateInfrastructureService(
+                    "testRepository",
+                    "https://repo.example.org/test",
+                    "test description",
+                    userSecret.name,
+                    passSecret.name
+                )
+                val response = client.post("/api/v1/organizations/$orgId/infrastructure-services") {
+                    headers { basicTestAuth() }
+                    setBody(createInfrastructureService)
+                }
+
+                val expectedService = ApiInfrastructureService(
+                    createInfrastructureService.name,
+                    createInfrastructureService.url,
+                    createInfrastructureService.description,
+                    userSecret.name,
+                    passSecret.name
+                )
+
+                with(response) {
+                    status shouldBe HttpStatusCode.Created
+                    body<ApiInfrastructureService>() shouldBe expectedService
+                }
+
+                val dbService =
+                    infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
+                dbService.shouldNotBeNull()
+                dbService.mapToApi() shouldBe expectedService
+            }
+        }
+
+        "PATCH /organizations/{orgId}/infrastructure-services/{name} should update an infrastructure service" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
+                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+
+                val service = infrastructureServiceRepository.create(
+                    "updateService",
+                    "http://repo1.example.org/test",
+                    "test description",
+                    userSecret,
+                    passSecret,
+                    orgId,
+                    null
+                    )
+
+                val newUrl = "https://repo2.example.org/test2"
+                val updateService = UpdateInfrastructureService(
+                    description = null.asPresent(),
+                    url = newUrl.asPresent()
+                )
+                val response = client.patch("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
+                    headers { basicTestAuth() }
+                    setBody(updateService)
+                }
+
+                val updatedService = ApiInfrastructureService(
+                    service.name,
+                    newUrl,
+                    null,
+                    userSecret.name,
+                    passSecret.name
+                )
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<ApiInfrastructureService>() shouldBe updatedService
+                }
+
+                val dbService =
+                    infrastructureServiceRepository.getByOrganizationAndName(orgId, service.name)
+                dbService.shouldNotBeNull()
+                dbService.mapToApi() shouldBe updatedService
+            }
+        }
+
+        "DELETE /organizations/{orgId}/infrastructure-services/{name} should delete an infrastructure service" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
+                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+
+                val service = infrastructureServiceRepository.create(
+                    "deleteService",
+                    "http://repo1.example.org/obsolete",
+                    "good bye, cruel world",
+                    userSecret,
+                    passSecret,
+                    orgId,
+                    null
+                )
+
+                val response = client.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.NoContent
+                }
+
+                val services = infrastructureServiceRepository.listForOrganization(orgId)
+                services should beEmpty()
             }
         }
     }

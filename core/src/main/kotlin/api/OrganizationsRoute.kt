@@ -29,13 +29,18 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
@@ -53,12 +58,14 @@ import org.ossreviewtoolkit.server.core.apiDocs.postProduct
 import org.ossreviewtoolkit.server.core.apiDocs.postSecretForOrganization
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.services.InfrastructureServiceService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.SecretService
 
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
     val secretService by inject<SecretService>()
+    val infrastructureServiceService by inject<InfrastructureServiceService>()
 
     get(getOrganizations) {
         val organizations = organizationService.listOrganizations(call.listQueryParameters())
@@ -182,6 +189,62 @@ fun Route.organizations() = route("organizations") {
                         null
                     ).mapToApi()
                 )
+            }
+        }
+
+        route("infrastructure-services") {
+            get {
+                val organizationId = call.requireParameter("organizationId").toLong()
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    infrastructureServiceService.listForOrganization(organizationId, call.listQueryParameters())
+                        .map { it.mapToApi() }
+                )
+            }
+
+            post {
+                val organizationId = call.requireParameter("organizationId").toLong()
+                val createService = call.receive<CreateInfrastructureService>()
+
+                val newService = infrastructureServiceService.createForOrganization(
+                    organizationId,
+                    createService.name,
+                    createService.url,
+                    createService.description,
+                    createService.usernameSecretRef,
+                    createService.passwordSecretRef
+                )
+
+                call.respond(HttpStatusCode.Created, newService.mapToApi())
+            }
+
+            route("{serviceName}") {
+                patch {
+                    val organizationId = call.requireParameter("organizationId").toLong()
+                    val serviceName = call.requireParameter("serviceName")
+                    val updateService = call.receive<UpdateInfrastructureService>()
+
+                    val updatedService = infrastructureServiceService.updateForOrganization(
+                        organizationId,
+                        serviceName,
+                        updateService.url,
+                        updateService.description,
+                        updateService.usernameSecretRef,
+                        updateService.passwordSecretRef
+                    )
+
+                    call.respond(HttpStatusCode.OK, updatedService.mapToApi())
+                }
+
+                delete {
+                    val organizationId = call.requireParameter("organizationId").toLong()
+                    val serviceName = call.requireParameter("serviceName")
+
+                    infrastructureServiceService.deleteForOrganization(organizationId, serviceName)
+
+                    call.respond(HttpStatusCode.NoContent)
+                }
             }
         }
     }

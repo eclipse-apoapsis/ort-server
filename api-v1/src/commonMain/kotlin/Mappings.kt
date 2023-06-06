@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJob as ApiEvaluatorJob
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
@@ -46,6 +47,7 @@ import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.Organization
@@ -173,3 +175,6 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(skipExcluded
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(skipExcluded)
 
 fun Secret.mapToApi() = ApiSecret(name, description)
+
+fun InfrastructureService.mapToApi() =
+    ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name)

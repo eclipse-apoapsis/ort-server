@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
@@ -43,6 +44,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
@@ -52,6 +54,7 @@ import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.secrets.SecretStorage
 import org.ossreviewtoolkit.server.services.AuthorizationService
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
+import org.ossreviewtoolkit.server.services.InfrastructureServiceService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.ReportStorageService
@@ -83,6 +86,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single<ProductRepository> { DaoProductRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<SecretRepository> { DaoSecretRepository(get()) }
+    single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
 
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
@@ -94,4 +98,5 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { RepositoryService(get(), get(), get(), get()) }
     single { SecretService(get(), get(), get()) }
     singleOf(::ReportStorageService)
+    singleOf(::InfrastructureServiceService)
 }
