@@ -29,6 +29,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -543,6 +544,32 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                     infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
                 dbService.shouldNotBeNull()
                 dbService.mapToApi() shouldBe expectedService
+            }
+        }
+
+        "POST /organizations/{orgId}/infrastructure-services should handle an invalid secret reference" {
+            ortServerTestApplication(db, noDbConfig, keycloakConfig) {
+                val client = createJsonClient()
+
+                val orgId = organizationRepository.create(name = "name", description = "description").id
+
+                val createInfrastructureService = CreateInfrastructureService(
+                    "testRepository",
+                    "https://repo.example.org/test",
+                    "test description",
+                    "nonExistingSecret1",
+                    "nonExistingSecret2"
+                )
+                val response = client.post("/api/v1/organizations/$orgId/infrastructure-services") {
+                    headers { basicTestAuth() }
+                    setBody(createInfrastructureService)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.BadRequest
+                    val error = body<ErrorResponse>()
+                    error.cause shouldContain "nonExistingSecret"
+                }
             }
         }
 

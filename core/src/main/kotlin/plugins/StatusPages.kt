@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.server.core.api.AuthorizationException
 import org.ossreviewtoolkit.server.core.api.ErrorResponse
 import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
+import org.ossreviewtoolkit.server.services.InvalidSecretReferenceException
 import org.ossreviewtoolkit.server.services.ReportNotFoundException
 
 import org.slf4j.LoggerFactory
@@ -48,6 +49,12 @@ fun Application.configureStatusPages() {
         }
         exception<EntityNotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound)
+        }
+        exception<InvalidSecretReferenceException> { call, e ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse(message = "Secret reference could not be resolved.", e.message)
+            )
         }
         exception<ReportNotFoundException> { call, e ->
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Report could not be resolved.", e.message))
