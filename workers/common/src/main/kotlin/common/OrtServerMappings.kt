@@ -21,6 +21,7 @@
 
 package org.ossreviewtoolkit.server.workers.common
 
+import java.io.File
 import java.net.URI
 
 import kotlinx.datetime.toJavaInstant
@@ -33,6 +34,8 @@ import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary as OrtAdvisorSummary
 import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
+import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
 import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
@@ -42,6 +45,7 @@ import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
@@ -49,22 +53,42 @@ import org.ossreviewtoolkit.model.PackageLinkage as OrtPackageLinkage
 import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
+import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
 import org.ossreviewtoolkit.model.RootDependencyIndex as OrtRootDependencyIndex
 import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
+import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
+import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
+import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
+import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
+import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsType as OrtVcsType
 import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.ClearlyDefinedStorageConfiguration as OrtClearlyDefinedStorageConfiguration
+import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiveConfiguration
+import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
+import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGithubDefectsConfiguration
+import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
+import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
 import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
+import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
+import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
+import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
+import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
+import org.ossreviewtoolkit.model.config.StorageType as OrtStorageTypd
+import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
+import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
+import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -93,8 +117,34 @@ import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.CopyrightFinding
+import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.HttpFileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.KnownProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.LicenseFinding
+import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.PostgresConnection
+import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.Provenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
+import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 
 fun OrtRun.mapToOrt(
@@ -157,6 +207,167 @@ fun AdvisorRun.mapToOrt() =
                 it.key.mapToOrt() to it.value.map(AdvisorResult::mapToOrt)
             }
         )
+    )
+
+fun ScannerRun.mapToOrt() =
+    OrtScannerRun(
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
+        environment = environment.mapToOrt(),
+        config = config.mapToOrt(),
+        scanResults = scanResults.entries.associateTo(sortedMapOf()) { (id, results) ->
+            id.mapToOrt() to results.flatMap { it.mapToOrt().merge() }
+        }
+    )
+
+fun NestedProvenanceScanResult.mapToOrt() =
+    OrtNestedProvenanceScanResult(
+        nestedProvenance = nestedProvenance.mapToOrt(),
+        scanResults = scanResults.entries.associate { (provenance, results) ->
+            provenance.mapToOrt() to results.map(ScanResult::mapToOrt)
+        }
+    )
+
+fun ScanResult.mapToOrt() =
+    OrtScanResult(
+        provenance = provenance.mapToOrt(),
+        scanner = scanner.mapToOrt(),
+        summary = summary.mapToOrt(),
+        additionalData = additionalData
+    )
+
+fun ScannerDetail.mapToOrt() = OrtScannerDetails(name, version, configuration)
+
+fun ScanSummary.mapToOrt() =
+    OrtScanSummary(
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
+        packageVerificationCode = packageVerificationCode,
+        licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
+        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
+        issues = issues.map(OrtServerIssue::mapToOrt)
+    )
+
+fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement, location.mapToOrt())
+
+fun LicenseFinding.mapToOrt() = OrtLicenseFinding(
+    license = SpdxExpression.Companion.parse(spdxLicense),
+    location = location.mapToOrt(),
+    score = score
+)
+
+fun TextLocation.mapToOrt() = OrtTextLocation(path, startLine, endLine)
+
+fun Provenance.mapToOrt() =
+    when (this) {
+        is ArtifactProvenance -> this.mapToOrt()
+        is RepositoryProvenance -> this.mapToOrt()
+        UnknownProvenance -> OrtUnknownProvenance
+    }
+
+fun NestedProvenance.mapToOrt() =
+    OrtNestedProvenance(
+        root = root.mapToOrt(),
+        subRepositories = subRepositories.mapValues { it.value.mapToOrt() }
+    )
+
+fun KnownProvenance.mapToOrt() =
+    when (this) {
+        is ArtifactProvenance -> this.mapToOrt()
+        is RepositoryProvenance -> this.mapToOrt()
+    }
+
+fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact.mapToOrt())
+
+fun RepositoryProvenance.mapToOrt() = OrtRepositoryProvenance(vcsInfo.mapToOrt(), resolvedRevision)
+
+fun ScannerConfiguration.mapToOrt() =
+    OrtScannerConfiguration(
+        skipConcluded = skipConcluded,
+        archive = archive?.mapToOrt(),
+        createMissingArchives = createMissingArchives,
+        detectedLicenseMapping = detectedLicenseMappings,
+        options = options,
+        storages = storages?.mapNotNull { (name, storage) ->
+            storage?.let {
+                name to when (it) {
+                    is PostgresStorageConfiguration -> it.mapToOrt()
+                    is ClearlyDefinedStorageConfiguration -> it.mapToOrt()
+                    is FileBasedStorageConfiguration -> it.mapToOrt()
+                    is Sw360StorageConfiguration -> it.mapToOrt()
+                }
+            }
+        }?.toMap(),
+        storageReaders = storageReaders,
+        storageWriters = storageWriters,
+        ignorePatterns = ignorePatterns,
+        provenanceStorage = provenanceStorage?.mapToOrt()
+    )
+
+fun ClearlyDefinedStorageConfiguration.mapToOrt() = OrtClearlyDefinedStorageConfiguration(serverUrl)
+
+fun FileBasedStorageConfiguration.mapToOrt() =
+    OrtFileBasedStorageConfiguration(
+        backend = backend.mapToOrt(),
+        type = OrtStorageTypd.valueOf(type)
+    )
+
+fun Sw360StorageConfiguration.mapToOrt() =
+    OrtSw360StorageConfiguration(
+        restUrl = restUrl,
+        authUrl = authUrl,
+        username = username,
+        clientId = clientId
+    )
+
+fun ProvenanceStorageConfiguration.mapToOrt() =
+    OrtProvenanceStorageConfiguration(
+        fileStorage = fileStorage?.mapToOrt(),
+        postgresStorage = postgresStorageConfiguration?.mapToOrt()
+    )
+
+fun FileArchiveConfiguration.mapToOrt() =
+    OrtFileArchiveConfiguration(
+        enabled = enabled,
+        fileStorage = fileStorage?.mapToOrt(),
+        postgresStorage = postgresStorage?.mapToOrt()
+    )
+
+fun FileStorageConfiguration.mapToOrt() =
+    OrtFileStorageConfiguration(
+        httpFileStorage = httpFileStorage?.mapToOrt(),
+        localFileStorage = localFileStorage?.mapToOrt()
+    )
+
+fun HttpFileStorageConfiguration.mapToOrt() =
+    OrtHttpFileStorageConfiguration(
+        url = url,
+        query = query,
+        headers = headers
+    )
+
+fun LocalFileStorageConfiguration.mapToOrt() =
+    OrtLocalFileStorageConfiguration(
+        directory = File(directory),
+        compression = compression
+    )
+
+fun PostgresStorageConfiguration.mapToOrt() =
+    OrtPostgresStorageConfiguration(
+        connection = connection.mapToOrt(),
+        type = OrtStorageTypd.valueOf(type)
+    )
+
+fun PostgresConnection.mapToOrt() =
+    OrtPostgresConnection(
+        url = url,
+        schema = schema,
+        username = username,
+        sslmode = sslMode,
+        sslcert = sslCert,
+        sslkey = sslKey,
+        sslrootcert = sslRootCert,
+        parallelTransactions = parallelTransactions
     )
 
 fun AdvisorResult.mapToOrt() =

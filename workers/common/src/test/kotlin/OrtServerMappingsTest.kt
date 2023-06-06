@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.workers.common
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
+import java.io.File
 import java.net.URI
 
 import kotlinx.datetime.Instant
@@ -46,7 +47,12 @@ import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
+import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
 import org.ossreviewtoolkit.model.RootDependencyIndex as OrtRootDependencyIndex
+import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
+import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
+import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
+import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsType.Companion as OrtVcsType
@@ -54,11 +60,18 @@ import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiverConfiguration
+import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
+import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGithubDefectsConfiguration
+import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
 import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
+import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
+import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
+import org.ossreviewtoolkit.model.config.StorageType
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
@@ -90,6 +103,19 @@ import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 
@@ -307,6 +333,71 @@ class OrtServerMappingsTest : WordSpec({
                 advisorRecords = mapOf(pkgIdentifier to listOf(advisorResult))
             )
 
+            val fileStorageConfiguration = FileStorageConfiguration(
+                localFileStorage = LocalFileStorageConfiguration(
+                    directory = "/path/to/storage",
+                    compression = true
+                )
+            )
+
+            val scannerConfiguration = ScannerConfiguration(
+                skipConcluded = true,
+                archive = FileArchiveConfiguration(
+                    enabled = true,
+                    fileStorage = fileStorageConfiguration
+                ),
+                createMissingArchives = true,
+                detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
+                options = mapOf("scanner-1" to mapOf("option-key-1" to "option-value-1")),
+                storages = mapOf(
+                    "local" to FileBasedStorageConfiguration(fileStorageConfiguration, "PROVENANCE_BASED")
+                ),
+                storageReaders = listOf("reader-1", "reader-2"),
+                storageWriters = listOf("writer-1", "writer-2"),
+                ignorePatterns = listOf("pattern-1", "pattern-2"),
+                provenanceStorage = ProvenanceStorageConfiguration(
+                    fileStorage = fileStorageConfiguration
+                )
+            )
+
+            val repositoryProvenance = RepositoryProvenance(pkg.vcsProcessed, pkg.vcsProcessed.revision)
+
+            val scanResult = ScanResult(
+                provenance = repositoryProvenance,
+                scanner = ScannerDetail(
+                    name = "name",
+                    version = "version",
+                    configuration = "configuration"
+                ),
+                summary = ScanSummary(
+                    startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                    endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                    packageVerificationCode = "package-verification-code",
+                    licenseFindings = emptySet(),
+                    copyrightFindings = emptySet(),
+                    issues = listOf(issue)
+                ),
+                additionalData = mapOf("data-1" to "value-1")
+            )
+
+            val nestedProvenanceScanResult = NestedProvenanceScanResult(
+                nestedProvenance = NestedProvenance(
+                    root = repositoryProvenance,
+                    subRepositories = emptyMap()
+                ),
+                scanResults = mapOf(repositoryProvenance to listOf(scanResult))
+            )
+
+            val scannerRun = ScannerRun(
+                id = 1L,
+                scannerJobId = 1L,
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                environment = environment,
+                config = scannerConfiguration,
+                scanResults = mapOf(pkg.identifier to listOf(nestedProvenanceScanResult))
+            )
+
             // Initialization of ORT objects.
             val ortRepository = OrtRepository(
                 vcs = OrtVcsInfo(
@@ -514,11 +605,69 @@ class OrtServerMappingsTest : WordSpec({
                 results = ortAdvisorRecord
             )
 
+            val ortFileStorageConfiguration = OrtFileStorageConfiguration(
+                localFileStorage = OrtLocalFileStorageConfiguration(
+                    directory = File("/path/to/storage"),
+                    compression = true
+                )
+            )
+
+            val ortScannerConfiguration = OrtScannerConfiguration(
+                skipConcluded = true,
+                archive = OrtFileArchiverConfiguration(
+                    enabled = true,
+                    fileStorage = ortFileStorageConfiguration
+                ),
+                createMissingArchives = true,
+                detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
+                options = mapOf("scanner-1" to mapOf("option-key-1" to "option-value-1")),
+                storages = mapOf(
+                    "local" to OrtFileBasedStorageConfiguration(
+                        backend = ortFileStorageConfiguration,
+                        type = StorageType.PROVENANCE_BASED
+                    )
+                ),
+                storageReaders = listOf("reader-1", "reader-2"),
+                storageWriters = listOf("writer-1", "writer-2"),
+                ignorePatterns = listOf("pattern-1", "pattern-2"),
+                provenanceStorage = OrtProvenanceStorageConfiguration(
+                    fileStorage = ortFileStorageConfiguration
+                )
+            )
+
+            val ortRepositoryProvenance = OrtRepositoryProvenance(ortPkg.vcsProcessed, ortPkg.vcsProcessed.revision)
+
+            val ortScanResult = OrtScanResult(
+                provenance = ortRepositoryProvenance,
+                scanner = OrtScannerDetails(
+                    name = "name",
+                    version = "version",
+                    configuration = "configuration"
+                ),
+                summary = OrtScanSummary(
+                    startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                    endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                    packageVerificationCode = "",
+                    licenseFindings = sortedSetOf(),
+                    copyrightFindings = sortedSetOf(),
+                    issues = listOf(ortIssue)
+                ),
+                additionalData = mapOf("data-1" to "value-1")
+            )
+
+            val ortScannerRun = OrtScannerRun(
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                environment = ortEnvironment,
+                config = ortScannerConfiguration,
+                scanResults = sortedMapOf(ortPkgIdentifier to listOf(ortScanResult))
+            )
+
             val ortResult = OrtResult(
                 repository = ortRepository,
                 analyzer = ortAnalyzerRun,
                 advisor = ortAdvisorRun,
-                scanner = null,
+                scanner = ortScannerRun,
                 evaluator = null,
                 labels = emptyMap()
             )
@@ -526,7 +675,8 @@ class OrtServerMappingsTest : WordSpec({
             val mappedOrtResult = ortRun.mapToOrt(
                 repository = repository.mapToOrt(ortRun.revision),
                 analyzerRun = analyzerRun.mapToOrt(),
-                advisorRun = advisorRun.mapToOrt()
+                advisorRun = advisorRun.mapToOrt(),
+                scannerRun = scannerRun.mapToOrt()
             )
 
             mappedOrtResult shouldBe ortResult
