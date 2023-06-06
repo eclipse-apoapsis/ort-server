@@ -29,10 +29,14 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
+@Suppress("LongParameterList")
 class ReporterWorkerDao(
     private val advisorJobRepository: AdvisorJobRepository,
     private val advisorRunRepository: AdvisorRunRepository,
@@ -42,7 +46,9 @@ class ReporterWorkerDao(
     private val evaluatorRunRepository: EvaluatorRunRepository,
     private val ortRunRepository: OrtRunRepository,
     private val reporterJobRepository: ReporterJobRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val scannerJobRepository: ScannerJobRepository,
+    private val scannerRunRepository: ScannerRunRepository
 ) {
     fun getReporterJob(jobId: Long) = reporterJobRepository.get(jobId)
 
@@ -66,5 +72,11 @@ class ReporterWorkerDao(
         val ortRun = ortRunRepository.get(reporterJob.ortRunId) ?: return null
         val evaluatorJob = evaluatorJobRepository.getForOrtRun(ortRun.id) ?: return null
         return evaluatorRunRepository.getByJobId(evaluatorJob.id)
+    }
+
+    fun getScannerRunForReporterJob(reporterJob: ReporterJob): ScannerRun? {
+        val ortRun = ortRunRepository.get(reporterJob.ortRunId) ?: return null
+        val scannerJob = scannerJobRepository.getForOrtRun(ortRun.id) ?: return null
+        return scannerRunRepository.getByJobId(scannerJob.id)
     }
 }

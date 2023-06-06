@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 class ReporterWorkerDaoTest : WordSpec({
@@ -47,7 +48,9 @@ class ReporterWorkerDaoTest : WordSpec({
             evaluatorRunRepository = dbExtension.fixtures.evaluatorRunRepository,
             ortRunRepository = dbExtension.fixtures.ortRunRepository,
             reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
-            repositoryRepository = dbExtension.fixtures.repositoryRepository
+            repositoryRepository = dbExtension.fixtures.repositoryRepository,
+            scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
+            scannerRunRepository = dbExtension.fixtures.scannerRunRepository
         )
         fixtures = dbExtension.fixtures
     }
@@ -165,6 +168,45 @@ class ReporterWorkerDaoTest : WordSpec({
 
         "return null if run does not exist" {
             dao.getEvaluatorRunForReporterJob(fixtures.reporterJob.copy(ortRunId = -1L)) shouldBe null
+        }
+    }
+
+    "getScannerRunForReporterJob" should {
+        "return a scanner run" {
+            val createdScannerRun = dbExtension.fixtures.scannerRunRepository.create(
+                scannerJobId = fixtures.scannerJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = ScannerConfiguration(
+                    skipConcluded = true,
+                    archive = null,
+                    createMissingArchives = true,
+                    detectedLicenseMappings = emptyMap(),
+                    storages = emptyMap(),
+                    options = emptyMap(),
+                    storageReaders = null,
+                    storageWriters = null,
+                    ignorePatterns = emptyList(),
+                    provenanceStorage = null
+                )
+            )
+
+            val requestedScannerRun = dao.getScannerRunForReporterJob(fixtures.reporterJob)
+
+            requestedScannerRun shouldBe createdScannerRun
+        }
+
+        "return null if run does not exist" {
+            dao.getScannerRunForReporterJob(fixtures.reporterJob.copy(ortRunId = -1L)) shouldBe null
         }
     }
 })

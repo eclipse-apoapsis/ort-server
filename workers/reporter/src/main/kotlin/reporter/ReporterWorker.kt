@@ -62,13 +62,14 @@ internal class ReporterWorker(
             val analyzerRun = dao.getAnalyzerRunForReporterJob(reporterJob)
             val advisorRun = dao.getAdvisorRunForReporterJob(reporterJob)
             val evaluatorRun = dao.getEvaluatorRunForReporterJob(reporterJob)
+            val scannerRun = dao.getScannerRunForReporterJob(reporterJob)
 
-            // TODO: As soon as ScannerRun is implemented, it should be considered also in the mapping of an OrtResult.
             val ortResult = ortRun.mapToOrt(
                 repository = repository.mapToOrt(findResolvedRevision(ortRun, analyzerRun)),
                 analyzerRun = analyzerRun?.mapToOrt(),
                 advisorRun = advisorRun?.mapToOrt(),
-                evaluatorRun = evaluatorRun?.mapToOrt()
+                evaluatorRun = evaluatorRun?.mapToOrt(),
+                scannerRun = scannerRun?.mapToOrt()
             )
 
             Pair(reporterJob, ortResult)

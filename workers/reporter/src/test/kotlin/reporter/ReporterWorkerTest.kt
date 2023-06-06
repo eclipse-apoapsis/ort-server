@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -82,6 +83,7 @@ class ReporterWorkerTest : StringSpec({
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
         val evaluatorRun = mockk<EvaluatorRun>()
+        val scannerRun = mockk<ScannerRun>()
         val repository = mockk<Repository>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
@@ -94,12 +96,14 @@ class ReporterWorkerTest : StringSpec({
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
+        every { scannerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val dao = mockk<ReporterWorkerDao> {
             every { getAnalyzerRunForReporterJob(any()) } returns analyzerRun
             every { getAdvisorRunForReporterJob(any()) } returns advisorRun
             every { getEvaluatorRunForReporterJob(any()) } returns evaluatorRun
+            every { getScannerRunForReporterJob(any()) } returns scannerRun
             every { getReporterJob(any()) } returns reporterJob
             every { getOrtRun(any()) } returns ortRun
             every { getRepository(any()) } returns repository
