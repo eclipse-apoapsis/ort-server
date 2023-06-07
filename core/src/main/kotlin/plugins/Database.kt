@@ -22,13 +22,13 @@ package org.ossreviewtoolkit.server.core.plugins
 import com.typesafe.config.ConfigFactory
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.config.ApplicationConfig
 
 import javax.sql.DataSource
 
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.inject
-import org.koin.ktor.plugin.KoinApplicationStarted
 
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
@@ -44,7 +44,7 @@ fun Application.configureDatabase() {
     val db = dataSource.connect()
     dataSource.migrate()
 
-    environment.monitor.subscribe(KoinApplicationStarted) {
+    environment.monitor.subscribe(ApplicationStarted) {
         GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
     }
 }
