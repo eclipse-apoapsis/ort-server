@@ -159,8 +159,7 @@ fun OrtRun.mapToOrt(
     advisor = advisorRun,
     scanner = scannerRun,
     evaluator = evaluatorRun,
-    // TODO: The equivalent representation of the labels in an OrtResult are missing in the OrtRun.
-    labels = emptyMap()
+    labels = labels
 )
 
 fun Repository.mapToOrt(revision: String, path: String = "") =

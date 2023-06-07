@@ -672,7 +672,7 @@ class OrtServerMappingsTest : WordSpec({
                 advisor = ortAdvisorRun,
                 scanner = ortScannerRun,
                 evaluator = null,
-                labels = emptyMap()
+                labels = mapOf("label key" to "label value")
             )
 
             val mappedOrtResult = ortRun.mapToOrt(
