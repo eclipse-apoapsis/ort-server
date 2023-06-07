@@ -22,13 +22,17 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.emptySized
+import org.jetbrains.exposed.sql.deleteWhere
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.tables.LabelDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
+import org.ossreviewtoolkit.server.dao.tables.OrtRunsLabelsTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
 import org.ossreviewtoolkit.server.dao.utils.apply
@@ -45,20 +49,24 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
 
 class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
-    override fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun =
-        db.blockingQuery {
-            val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
+    override fun create(
+        repositoryId: Long,
+        revision: String,
+        jobConfigurations: JobConfigurations,
+        labels: Map<String, String>
+    ): OrtRun = db.blockingQuery {
+        val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
 
-            OrtRunDao.new {
-                this.index = nextIndex
-                this.repository = RepositoryDao[repositoryId]
-                this.revision = revision
-                this.createdAt = Clock.System.now().toDatabasePrecision()
-                this.jobConfigurations = jobConfigurations
-                this.status = OrtRunStatus.CREATED
-                this.labels = emptySized()
-            }.mapToModel()
-        }
+        OrtRunDao.new {
+            this.index = nextIndex
+            this.repository = RepositoryDao[repositoryId]
+            this.revision = revision
+            this.createdAt = Clock.System.now().toDatabasePrecision()
+            this.jobConfigurations = jobConfigurations
+            this.status = OrtRunStatus.CREATED
+            this.labels = SizedCollection(labels.map { LabelDao.getOrPut(it.key, it.value) })
+        }.mapToModel()
+    }
 
     override fun get(id: Long): OrtRun? = db.entityQuery { OrtRunDao[id].mapToModel() }
 
@@ -85,5 +93,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao[id].mapToModel()
     }
 
-    override fun delete(id: Long) = db.blockingQuery { OrtRunDao[id].delete() }
+    override fun delete(id: Long) = db.blockingQuery {
+        OrtRunsLabelsTable.deleteWhere { ortRunId eq id }
+        OrtRunDao[id].delete()
+    }
 }

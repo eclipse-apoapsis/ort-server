@@ -32,7 +32,12 @@ interface OrtRunRepository {
     /**
      * Create an ORT run.
      */
-    fun create(repositoryId: Long, revision: String, jobConfigurations: JobConfigurations): OrtRun
+    fun create(
+        repositoryId: Long,
+        revision: String,
+        jobConfigurations: JobConfigurations,
+        labels: Map<String, String>
+    ): OrtRun
 
     /**
      * Get an ORT run by [id]. Returns null if the ORT run is not found.

@@ -53,8 +53,13 @@ class OrchestratorService(
     /**
      * Create an ORT run in the database and notify the Orchestrator to handle this run.
      */
-    suspend fun createOrtRun(repositoryId: Long, revision: String, jobConfig: JobConfigurations): OrtRun {
-        val ortRun = db.dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig) }
+    suspend fun createOrtRun(
+        repositoryId: Long,
+        revision: String,
+        jobConfig: JobConfigurations,
+        labels: Map<String, String>
+    ): OrtRun {
+        val ortRun = db.dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig, labels) }
 
         // TODO: Set the correct token.
         orchestratorSender.send(

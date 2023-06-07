@@ -61,6 +61,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
     private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+    private val labelsMap = mapOf("label1" to "label1", "label2" to "label2")
 
     private lateinit var productService: ProductService
     private lateinit var ortRunRepository: OrtRunRepository
@@ -197,8 +198,8 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                     productId = productId
                 )
 
-                val run1 = ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations())
-                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations())
+                val run1 = ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations(), labelsMap)
+                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations(), labelsMap)
 
                 val client = createJsonClient()
 
@@ -221,8 +222,8 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                     productId = productId
                 )
 
-                ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations())
-                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations())
+                ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations(), labelsMap)
+                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations(), labelsMap)
 
                 val client = createJsonClient()
 

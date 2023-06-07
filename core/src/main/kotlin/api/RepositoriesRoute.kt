@@ -103,8 +103,12 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
             call.respond(
                 HttpStatusCode.Created,
-                orchestratorService.createOrtRun(repositoryId, createOrtRun.revision, createOrtRun.jobs.mapToModel())
-                    .mapToApi()
+                orchestratorService.createOrtRun(
+                    repositoryId,
+                    createOrtRun.revision,
+                    createOrtRun.jobs.mapToModel(),
+                    createOrtRun.labels
+                ).mapToApi()
             )
         }
 
