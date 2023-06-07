@@ -39,6 +39,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.clients.keycloak.internal.Client
+import org.ossreviewtoolkit.server.clients.keycloak.internal.GroupRequest
+import org.ossreviewtoolkit.server.clients.keycloak.internal.RoleRequest
+import org.ossreviewtoolkit.server.clients.keycloak.internal.TokenInfo
+import org.ossreviewtoolkit.server.clients.keycloak.internal.UserRequest
+import org.ossreviewtoolkit.server.clients.keycloak.internal.findByName
+import org.ossreviewtoolkit.server.clients.keycloak.internal.generateAccessToken
+import org.ossreviewtoolkit.server.clients.keycloak.internal.refreshToken
+
 import org.slf4j.LoggerFactory
 
 /**

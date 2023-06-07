@@ -17,9 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.ossreviewtoolkit.server.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
+
+import org.ossreviewtoolkit.server.clients.keycloak.UserName
 
 @Serializable
 internal data class UserRequest(

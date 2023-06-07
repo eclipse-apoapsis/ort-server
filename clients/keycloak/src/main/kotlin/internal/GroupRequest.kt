@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.ossreviewtoolkit.server.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.clients.keycloak.GroupName
+
 @Serializable
-data class RoleRequest(
-    val name: RoleName,
-    val description: String?
+internal data class GroupRequest(
+    val name: GroupName,
 )
