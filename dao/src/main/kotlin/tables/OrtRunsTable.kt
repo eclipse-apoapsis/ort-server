@@ -72,6 +72,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         revision = revision,
         createdAt = createdAt,
         jobs = jobConfigurations,
-        status = status
+        status = status,
+        labels = labels.associate { it.mapToModel() }
     )
 }

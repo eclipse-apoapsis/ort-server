@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.emptySized
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
@@ -55,6 +56,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
                 this.createdAt = Clock.System.now().toDatabasePrecision()
                 this.jobConfigurations = jobConfigurations
                 this.status = OrtRunStatus.CREATED
+                this.labels = emptySized()
             }.mapToModel()
         }
 

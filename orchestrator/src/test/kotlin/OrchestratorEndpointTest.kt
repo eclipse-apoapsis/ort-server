@@ -91,7 +91,8 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     revision = "main",
                     createdAt = Instant.fromEpochSeconds(0),
                     jobs = JobConfigurations(),
-                    status = OrtRunStatus.CREATED
+                    status = OrtRunStatus.CREATED,
+                    labels = mapOf("label key" to "label value")
                 )
             )
             val message = Message(msgHeader, createOrtRun)

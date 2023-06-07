@@ -150,7 +150,8 @@ class OrtServerMappingsTest : WordSpec({
                 revision = "abc123",
                 createdAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 jobs = JobConfigurations(),
-                status = OrtRunStatus.CREATED
+                status = OrtRunStatus.CREATED,
+                mapOf("label key" to "label value")
             )
 
             val analyzerJob = AnalyzerJob(

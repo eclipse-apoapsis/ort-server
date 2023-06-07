@@ -168,7 +168,8 @@ class OrchestratorTest : WordSpec() {
             evaluatorJob.configuration,
             reporterJob.configuration
         ),
-        status = OrtRunStatus.CREATED
+        status = OrtRunStatus.CREATED,
+        labels = mapOf("label key" to "label value")
     )
 
     private val ortRunAnalyzerAndReporter = OrtRun(
@@ -184,7 +185,8 @@ class OrchestratorTest : WordSpec() {
             null,
             reporterJob.configuration
         ),
-        status = OrtRunStatus.CREATED
+        status = OrtRunStatus.CREATED,
+        labels = mapOf("label key" to "label value")
     )
 
     init {
