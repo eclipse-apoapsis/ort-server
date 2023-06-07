@@ -26,7 +26,6 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.delete
-import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -35,12 +34,9 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 import org.slf4j.LoggerFactory
@@ -393,183 +389,8 @@ class KeycloakClient(
 }
 
 /**
- * A data class representing information about the tokens received from the API client.
- */
-@Serializable
-private data class TokenInfo(
-    @SerialName("access_token") val accessToken: String,
-    @SerialName("refresh_token") val refreshToken: String
-)
-
-/**
- * A data class representing an OAuth client in a Keycloak realm.
- */
-@Serializable
-private data class Client(
-    /** The (Keycloak-internal) unique client ID. */
-    val id: String,
-
-    /** The client ID (as part of the client's credentials). */
-    val clientId: String
-)
-
-@JvmInline
-@Serializable
-value class RoleId(val value: String)
-
-@JvmInline
-@Serializable
-value class RoleName(val value: String)
-
-/**
- * A data class representing a role managed by Keycloak.
- */
-@Serializable
-data class Role(
-    /** The internal ID of the role. */
-    val id: RoleId,
-
-    /** The role name. */
-    val name: RoleName,
-
-    /** The description of the role. */
-    val description: String? = null
-)
-
-@Serializable
-data class RoleRequest(
-    val name: RoleName,
-    val description: String?
-)
-
-@Serializable
-data class RoleIdHolder(
-    val id: RoleId
-)
-
-@JvmInline
-@Serializable
-value class GroupId(val value: String)
-
-@JvmInline
-@Serializable
-value class GroupName(val value: String)
-
-/**
- * A data class representing a group managed by Keycloak.
- */
-@Serializable
-data class Group(
-    /** The internal ID of the group. */
-    val id: GroupId,
-
-    /** The group name. */
-    val name: GroupName,
-
-    /** A set of groups, which represents the subgroup hierarchy. */
-    val subGroups: Set<Group>
-)
-
-/**
- * Recursively search for a group with the provided [name].
- */
-private fun Collection<Group>.findByName(name: GroupName): Group? {
-    forEach {
-        if (it.name == name) return it
-        val group = it.subGroups.findByName(name)
-        if (group != null) return group
-    }
-
-    return null
-}
-
-@Serializable
-private data class GroupRequest(
-    val name: GroupName,
-)
-
-@JvmInline
-@Serializable
-value class UserId(val value: String)
-
-@JvmInline
-@Serializable
-value class UserName(val value: String)
-
-/**
- * A data class representing a user managed by Keycloak.
- */
-@Serializable
-data class User(
-    /** The internal ID of the user. */
-    val id: UserId,
-
-    /** The username of the user. */
-    val username: UserName,
-
-    /** The first name of the user. */
-    val firstName: String? = null,
-
-    /** The last name of the user. */
-    val lastName: String? = null,
-
-    /** The mail address of the user. */
-    val email: String? = null,
-
-    /** Specifies, whether the user can log in or not. */
-    val enabled: Boolean = true
-)
-
-@Serializable
-private data class UserRequest(
-    val username: UserName?,
-    val firstName: String?,
-    val lastName: String?,
-    val email: String?,
-    val enabled: Boolean = true
-)
-
-class KeycloakClientException : RuntimeException {
-    constructor(msg: String, cause: Throwable) : super(msg, cause)
-    constructor(msg: String) : super(msg)
-}
-
-internal suspend fun HttpClient.generateAccessToken(
-    tokenUrl: String,
-    clientId: String,
-    username: String,
-    password: String
-) = submitForm(
-    url = tokenUrl,
-    formParameters = Parameters.build {
-        append("client_id", clientId)
-        append("grant_type", "password")
-        append("username", username)
-        append("password", password)
-    }
-)
-
-internal suspend fun HttpClient.refreshToken(tokenUrl: String, clientId: String, refreshToken: String) =
-    submitForm(
-        url = tokenUrl,
-        formParameters = Parameters.build {
-            append("client_id", clientId)
-            append("grant_type", "refresh_token")
-            append("refresh_token", refreshToken)
-        }
-    )
-
-/**
  * Return the correct value for an update request body based on the [oldValue] and [newValue]. If the [newValue] is
  * given and not empty it will be returned, otherwise the [oldValue] will be returned even it is null.
  */
 private fun getUpdatedValue(oldValue: String?, newValue: String?): String? =
     newValue?.takeIf { newValue.isNotEmpty() } ?: oldValue
-
-data class KeycloakClientConfiguration(
-    val apiUrl: String,
-    val clientId: String,
-    val accessTokenUrl: String,
-    val apiUser: String,
-    val apiSecret: String
-)
