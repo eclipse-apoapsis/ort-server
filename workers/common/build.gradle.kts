@@ -46,9 +46,14 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":model"))
+    implementation(project(":secrets:secrets-spi"))
+    implementation(libs.kotlinxCoroutines)
 
     api(libs.ortModel)
     api(libs.ortScanner)
+    api(libs.typesafeConfig)
+
+    testImplementation(testFixtures(project(":secrets:secrets-spi")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
