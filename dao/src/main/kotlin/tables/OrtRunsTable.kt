@@ -57,6 +57,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var jobConfigurations by OrtRunsTable.jobConfigurations
     var status by OrtRunsTable.status
+    var labels by LabelDao via OrtRunsLabelsTable
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
