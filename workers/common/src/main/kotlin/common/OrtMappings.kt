@@ -262,7 +262,6 @@ fun VcsType.mapToModel() = when (this) {
     VcsType.GIT_REPO -> RepositoryType.GIT_REPO
     VcsType.MERCURIAL -> RepositoryType.MERCURIAL
     VcsType.SUBVERSION -> RepositoryType.SUBVERSION
-    VcsType.CVS -> RepositoryType.CVS
     VcsType.UNKNOWN -> RepositoryType.UNKNOWN
     else -> throw IllegalArgumentException("Unknown VcsType: $this")
 }

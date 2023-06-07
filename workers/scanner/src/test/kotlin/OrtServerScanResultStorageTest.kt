@@ -167,19 +167,20 @@ private fun createScanResult(scannerName: String, issue: Issue, provenance: Know
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
             "fyi3g4i72g482",
-            sortedSetOf(
+            setOf(
                 LicenseFinding(
                     "LicenseRef-23",
                     TextLocation("//example/path", 1, 50),
                     Float.MIN_VALUE
                 )
             ),
-            sortedSetOf(
+            setOf(
                 CopyrightFinding(
                     "Copyright Finding Statement",
                     TextLocation("//example/path", 1, 50)
                 )
             ),
+            emptySet(),
             listOf(issue)
         ),
         mapOf("additional" to "data", "additional" to "data")

@@ -157,8 +157,9 @@ private fun ScanSummaryDao.mapToOrt() = ScanSummary(
     this.startTime.toJavaInstant(),
     this.endTime.toJavaInstant(),
     this.packageVerificationCode,
-    this.licenseFindings.map { it.mapToOrt() }.toSortedSet(),
-    this.copyrightFindings.map { it.mapToOrt() }.toSortedSet(),
+    this.licenseFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
+    this.copyrightFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
+    emptySet(), // TODO: Add snippet findings once implemented.
     this.issues.map {
         Issue(
             it.timestamp.toJavaInstant(),
