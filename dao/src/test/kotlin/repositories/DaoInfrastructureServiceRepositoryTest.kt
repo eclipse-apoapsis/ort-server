@@ -29,6 +29,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
+import java.net.URISyntaxException
+
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
@@ -408,6 +410,55 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 shouldThrow<EntityNotFoundException> {
                     infrastructureServicesRepository.deleteForProductAndName(fixtures.product.id, "nonExisting")
+                }
+            }
+        }
+
+        "listForRepositoryUrl" should {
+            "find all services matching the repository host" {
+                val repositoryUrl = "https://repo.example.org/test/repo/"
+                val otherProduct = fixtures.createProduct("anotherProduct")
+
+                val match1 = createInfrastructureService("matching1", organization = fixtures.organization)
+                val match2 = createInfrastructureService("matching2", product = fixtures.product)
+                val match3 = createInfrastructureService(
+                    "matching3",
+                    url = "http://repo.example.org:443",
+                    organization = fixtures.organization
+                )
+                val match4 = createInfrastructureService(
+                    "matching4",
+                    url = "https://repo.example.org/test/repo/test.git",
+                    product = fixtures.product
+                )
+
+                val noMatch1 = createInfrastructureService(
+                    "non-matching1",
+                    url = "https://repo2.example.org/test/repo",
+                    organization = fixtures.organization
+                )
+                val noMatch2 = createInfrastructureService("non-matching2", url = repositoryUrl, product = otherProduct)
+
+                listOf(match1, match2, match3, match4, noMatch1, noMatch2).forEach {
+                    infrastructureServicesRepository.create(it)
+                }
+
+                val services = infrastructureServicesRepository.listForRepositoryUrl(
+                    repositoryUrl,
+                    fixtures.organization.id,
+                    fixtures.product.id
+                )
+
+                services shouldContainExactlyInAnyOrder listOf(match1, match2, match3, match4)
+            }
+
+            "throw when passed an invalid repository URL" {
+                shouldThrow<URISyntaxException> {
+                    infrastructureServicesRepository.listForRepositoryUrl(
+                        "?!invalid URL!?",
+                        fixtures.organization.id,
+                        fixtures.product.id
+                    )
                 }
             }
         }

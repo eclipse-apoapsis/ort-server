@@ -127,4 +127,12 @@ interface InfrastructureServiceRepository {
         runId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): List<InfrastructureService>
+
+    /**
+     * Return a list with the [InfrastructureService]s that are associated with the given
+     * [organization][organizationId] or [product][productId] and whose URL matches the given [repositoryUrl]. The
+     * match is done via the host name of the URLs, so things like paths, protocols, or ports are ignored.
+     * Note: If [repositoryUrl] is not a valid URL, an exception is thrown.
+     */
+    fun listForRepositoryUrl(repositoryUrl: String, organizationId: Long, productId: Long): List<InfrastructureService>
 }

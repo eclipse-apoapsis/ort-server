@@ -19,9 +19,12 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import java.net.URI
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 
 import org.ossreviewtoolkit.server.dao.ConditionBuilder
@@ -149,6 +152,21 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
 
             list(parameters) { InfrastructureServicesTable.id inSubQuery subQuery }
         }
+
+    override fun listForRepositoryUrl(
+        repositoryUrl: String,
+        organizationId: Long,
+        productId: Long
+    ): List<InfrastructureService> = db.blockingQuery {
+        val repositoryHost = URI(repositoryUrl).host
+        val hostPattern = "%$repositoryHost%"
+        list(ListQueryParameters.DEFAULT) {
+            InfrastructureServicesTable.url like hostPattern and (
+                    (InfrastructureServicesTable.productId eq productId) or
+                            (InfrastructureServicesTable.organizationId eq organizationId)
+                    )
+        }
+    }
 
     /**
      * Helper function to list all services that match a specific [expression][op] according to the given [parameters]
