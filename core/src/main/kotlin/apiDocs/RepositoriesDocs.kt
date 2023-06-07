@@ -143,7 +143,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 revision = "main",
                                 createdAt = Clock.System.now(),
                                 jobs = jobConfigurations,
-                                status = OrtRunStatus.FINISHED
+                                status = OrtRunStatus.FINISHED,
+                                labels = mapOf("label key" to "label value")
                             ),
                             OrtRun(
                                 id = 3,
@@ -152,7 +153,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 revision = "main",
                                 createdAt = Clock.System.now(),
                                 jobs = jobConfigurations,
-                                status = OrtRunStatus.ACTIVE
+                                status = OrtRunStatus.ACTIVE,
+                                labels = mapOf("label key" to "label value")
                             )
                         )
                     )
@@ -175,7 +177,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
         jsonBody<CreateOrtRun> {
             example(
                 "Create ORT run",
-                CreateOrtRun("main", jobConfigurations)
+                CreateOrtRun("main", jobConfigurations, mapOf("label key" to "label value"))
             )
         }
     }
@@ -194,7 +196,8 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                             revision = "main",
                             createdAt = Clock.System.now(),
                             jobs = jobConfigurations,
-                            status = OrtRunStatus.CREATED
+                            status = OrtRunStatus.CREATED,
+                            labels = mapOf("label key" to "label value")
                         )
                     )
                 )
@@ -232,7 +235,8 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                             revision = "main",
                             createdAt = Clock.System.now(),
                             jobs = jobConfigurations,
-                            status = OrtRunStatus.ACTIVE
+                            status = OrtRunStatus.ACTIVE,
+                            labels = mapOf("label key" to "label value")
                         )
                     )
                 )

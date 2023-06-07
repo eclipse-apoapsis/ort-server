@@ -58,7 +58,12 @@ data class OrtRun(
     /**
      * The status of this run.
      */
-    val status: OrtRunStatus
+    val status: OrtRunStatus,
+
+    /**
+     * The labels of this run.
+     */
+    val labels: Map<String, String>
 )
 
 /**
@@ -74,7 +79,12 @@ data class CreateOrtRun(
     /**
      * The job configurations for this run.
      */
-    val jobs: JobConfigurations
+    val jobs: JobConfigurations,
+
+    /**
+     * The labels for this run.
+     */
+    val labels: Map<String, String>
 )
 
 @Serializable
