@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 
 import org.slf4j.LoggerFactory
 
@@ -71,7 +72,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(analyzerModule(), databaseModule())
+    override fun customModules(): List<Module> = listOf(analyzerModule(), databaseModule(), workerContextModule())
 
     private fun analyzerModule(): Module = module {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }

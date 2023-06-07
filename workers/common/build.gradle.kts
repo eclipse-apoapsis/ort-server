@@ -45,10 +45,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
     implementation(libs.kotlinxCoroutines)
 
+    api(libs.koinCore)
     api(libs.ortModel)
     api(libs.ortScanner)
     api(libs.typesafeConfig)

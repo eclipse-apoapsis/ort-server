@@ -23,13 +23,16 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.mockkClass
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
@@ -47,6 +50,7 @@ import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTe
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 
 private const val JOB_ID = 1L
 private const val TOKEN = "token"
@@ -68,6 +72,14 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "The database module should be added" {
             runEndpointTest {
                 verifyDatabaseModuleIncluded()
+            }
+        }
+
+        "The worker context module should be added" {
+            runEndpointTest {
+                val contextFactory by inject<WorkerContextFactory>()
+
+                contextFactory.createContext(42L) shouldNot beNull()
             }
         }
 
