@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
@@ -37,6 +38,12 @@ interface RepositoryRepository {
      * Get a repository by [id]. Returns null if the product is not found.
      */
     fun get(id: Long): Repository?
+
+    /**
+     * Return a [Hierarchy] object for the repository with the given [id] with the entities it belongs to. Fail with
+     * an exception if the [id] cannot be resolved.
+     */
+    fun getHierarchy(id: Long): Hierarchy
 
     /**
      * List all repositories according to the given [parameters].

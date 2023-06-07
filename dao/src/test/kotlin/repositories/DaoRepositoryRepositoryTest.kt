@@ -28,9 +28,12 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+
 import org.ossreviewtoolkit.server.dao.UniqueConstraintException
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
@@ -196,5 +199,19 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val repository = repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
 
         repositoryRepository.get(repository.id) shouldBe repository
+    }
+
+    "getHierarchy should return the structure of the repository" {
+        val repository = repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
+
+        val expectedHierarchy = Hierarchy(repository, fixtures.product, fixtures.organization)
+
+        repositoryRepository.getHierarchy(repository.id) shouldBe expectedHierarchy
+    }
+
+    "getHierarchy should throw an exception for a non-existing repository" {
+        shouldThrow<EntityNotFoundException> {
+            repositoryRepository.getHierarchy(1L)
+        }
     }
 })

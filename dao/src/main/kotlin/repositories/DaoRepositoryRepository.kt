@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.dao.tables.ProductDao
 import org.ossreviewtoolkit.server.dao.tables.RepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
 import org.ossreviewtoolkit.server.dao.utils.apply
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
@@ -42,6 +43,13 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     }
 
     override fun get(id: Long) = db.entityQuery { RepositoryDao[id].mapToModel() }
+    override fun getHierarchy(id: Long): Hierarchy = db.blockingQuery {
+        val repository = RepositoryDao[id]
+        val product = repository.product
+        val organization = product.organization
+
+        Hierarchy(repository.mapToModel(), product.mapToModel(), organization.mapToModel())
+    }
 
     override fun list(parameters: ListQueryParameters) =
         db.blockingQuery { RepositoryDao.list(parameters).map { it.mapToModel() } }
