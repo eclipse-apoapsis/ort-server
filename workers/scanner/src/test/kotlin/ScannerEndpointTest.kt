@@ -23,18 +23,24 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
+import io.mockk.every
 import io.mockk.mockkClass
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
+import org.koin.test.mock.declareMock
 
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
 import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -43,6 +49,7 @@ import org.ossreviewtoolkit.server.transport.ScannerEndpoint
 import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
+import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val SCANNER_JOB_ID = 1L
 private const val TOKEN = "token"
@@ -69,11 +76,50 @@ class ScannerEndpointTest : KoinTest, StringSpec() {
 
         "A message to scan a project should be processed" {
             runEndpointTest {
+                declareMock<ScannerWorker> {
+                    every { run(SCANNER_JOB_ID, TRACE_ID) } returns RunResult.Success
+                }
+
                 sendScannerRequest()
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
                 resultMessage.payload shouldBe ScannerWorkerResult(SCANNER_JOB_ID)
+            }
+        }
+
+        "An error message should be sent back in case of a processing error" {
+            runEndpointTest {
+                declareMock<ScannerWorker> {
+                    every { run(SCANNER_JOB_ID, TRACE_ID) } returns
+                            RunResult.Failed(IllegalStateException("Test Exception"))
+                }
+
+                sendScannerRequest()
+
+                val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+                resultMessage.header shouldBe messageHeader
+                resultMessage.payload shouldBe ScannerWorkerError(SCANNER_JOB_ID)
+            }
+        }
+
+        "No response should be sent if the request is ignored" {
+            runEndpointTest {
+                declareMock<ScannerWorker> {
+                    every { run(SCANNER_JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                }
+
+                sendScannerRequest()
+
+                MessageSenderFactoryForTesting.expectNoMessage(OrchestratorEndpoint)
+            }
+        }
+
+        "Dependency injection is correctly set up" {
+            runEndpointTest {
+                val worker by inject<ScannerWorker>()
+
+                worker shouldNot beNull()
             }
         }
     }
