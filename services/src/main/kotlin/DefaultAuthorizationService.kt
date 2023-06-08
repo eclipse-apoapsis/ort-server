@@ -28,8 +28,11 @@ import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
+import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -62,6 +65,23 @@ class DefaultAuthorizationService(
         }
     }
 
+    override suspend fun createOrganizationRoles(organizationId: Long) {
+        OrganizationRole.values().forEach { role ->
+            val roleName = RoleName(role.roleName(organizationId))
+            keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
+            role.permissions.forEach { permission ->
+                val compositeRole = keycloakClient.getRole(RoleName(permission.roleName(organizationId)))
+                keycloakClient.addCompositeRole(roleName, compositeRole.id)
+            }
+        }
+    }
+
+    override suspend fun deleteOrganizationRoles(organizationId: Long) {
+        OrganizationRole.getRolesForOrganization(organizationId).forEach { roleName ->
+            keycloakClient.deleteRole(RoleName(roleName))
+        }
+    }
+
     override suspend fun createProductPermissions(productId: Long) {
         ProductPermission.getRolesForProduct(productId).forEach { roleName ->
             keycloakClient.createRole(name = RoleName(roleName), description = ROLE_DESCRIPTION)
@@ -74,6 +94,32 @@ class DefaultAuthorizationService(
         }
     }
 
+    override suspend fun createProductRoles(productId: Long) {
+        val product = checkNotNull(productRepository.get(productId))
+        val organization = checkNotNull(organizationRepository.get(product.organizationId))
+
+        ProductRole.values().forEach { role ->
+            val roleName = RoleName(role.roleName(productId))
+            keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
+            role.permissions.forEach { permission ->
+                val compositeRole = keycloakClient.getRole(RoleName(permission.roleName(productId)))
+                keycloakClient.addCompositeRole(roleName, compositeRole.id)
+            }
+
+            OrganizationRole.values().find { it.includedProductRole == role }?.let { orgRole ->
+                val parentRole = keycloakClient.getRole(RoleName(orgRole.roleName(organization.id)))
+                val childRole = keycloakClient.getRole(roleName)
+                keycloakClient.addCompositeRole(parentRole.name, childRole.id)
+            }
+        }
+    }
+
+    override suspend fun deleteProductRoles(productId: Long) {
+        ProductRole.getRolesForProduct(productId).forEach { roleName ->
+            keycloakClient.deleteRole(RoleName(roleName))
+        }
+    }
+
     override suspend fun createRepositoryPermissions(repositoryId: Long) {
         RepositoryPermission.getRolesForRepository(repositoryId).forEach { roleName ->
             keycloakClient.createRole(name = RoleName(roleName), description = ROLE_DESCRIPTION)
@@ -82,6 +128,32 @@ class DefaultAuthorizationService(
 
     override suspend fun deleteRepositoryPermissions(repositoryId: Long) {
         RepositoryPermission.getRolesForRepository(repositoryId).forEach { roleName ->
+            keycloakClient.deleteRole(RoleName(roleName))
+        }
+    }
+
+    override suspend fun createRepositoryRoles(repositoryId: Long) {
+        val repository = checkNotNull(repositoryRepository.get(repositoryId))
+        val product = checkNotNull(productRepository.get(repository.productId))
+
+        RepositoryRole.values().forEach { role ->
+            val roleName = RoleName(role.roleName(repositoryId))
+            keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
+            role.permissions.forEach { permission ->
+                val compositeRole = keycloakClient.getRole(RoleName(permission.roleName(repositoryId)))
+                keycloakClient.addCompositeRole(roleName, compositeRole.id)
+            }
+
+            ProductRole.values().find { it.includedRepositoryRole == role }?.let { productRole ->
+                val parentRole = keycloakClient.getRole(RoleName(productRole.roleName(product.id)))
+                val childRole = keycloakClient.getRole(roleName)
+                keycloakClient.addCompositeRole(parentRole.name, childRole.id)
+            }
+        }
+    }
+
+    override suspend fun deleteRepositoryRoles(repositoryId: Long) {
+        RepositoryRole.getRolesForRepository(repositoryId).forEach { roleName ->
             keycloakClient.deleteRole(RoleName(roleName))
         }
     }

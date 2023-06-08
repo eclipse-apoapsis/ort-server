@@ -20,12 +20,16 @@
 package org.ossreviewtoolkit.server.services
 
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
+import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 
 /**
  * A service to manage roles and permissions in Keycloak.
  */
+@Suppress("TooManyFunctions")
 interface AuthorizationService {
     /**
      * Create the [permissions][OrganizationPermission.getRolesForOrganization] for the provided [organizationId].
@@ -37,6 +41,12 @@ interface AuthorizationService {
      */
     suspend fun deleteOrganizationPermissions(organizationId: Long)
 
+    /** Create the [roles][OrganizationRole.getRolesForOrganization] for the provided [organizationId]. */
+    suspend fun createOrganizationRoles(organizationId: Long)
+
+    /** Delete the [roles][OrganizationRole.getRolesForOrganization] for the provided [organizationId]. */
+    suspend fun deleteOrganizationRoles(organizationId: Long)
+
     /**
      * Create the [permissions][ProductPermission.getRolesForProduct] for the provided [productId].
      */
@@ -47,6 +57,12 @@ interface AuthorizationService {
      */
     suspend fun deleteProductPermissions(productId: Long)
 
+    /** Create the [roles][ProductRole.getRolesForProduct] for the provided [productId]. */
+    suspend fun createProductRoles(productId: Long)
+
+    /** Delete the [roles][ProductRole.getRolesForProduct] for the provided [productId]. */
+    suspend fun deleteProductRoles(productId: Long)
+
     /**
      * Create the [permissions][RepositoryPermission.getRolesForRepository] for the provided [repositoryId].
      */
@@ -56,6 +72,12 @@ interface AuthorizationService {
      * Delete the [permissions][RepositoryPermission.getRolesForRepository] for the provided [repositoryId].
      */
     suspend fun deleteRepositoryPermissions(repositoryId: Long)
+
+    /** Create the [roles][RepositoryRole.getRolesForRepository] for the provided [repositoryId]. */
+    suspend fun createRepositoryRoles(repositoryId: Long)
+
+    /** Delete the [roles][RepositoryRole.getRolesForRepository] for the provided [repositoryId]. */
+    suspend fun deleteRepositoryRoles(repositoryId: Long)
 
     /**
      * Synchronize the permissions in Keycloak with the database entities to ensure that the correct Keycloak roles
