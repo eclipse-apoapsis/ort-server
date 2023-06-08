@@ -120,8 +120,12 @@ val clientTestRealm = RealmRepresentation().apply {
     )
 
     groups = listOf(
-        groupOrgA.toGroupRepresentation(),
-        groupOrgB.toGroupRepresentation(),
+        groupOrgA.toGroupRepresentation(
+            clientRoles = mapOf(TEST_CLIENT to listOf(adminRole.name))
+        ),
+        groupOrgB.toGroupRepresentation(
+            clientRoles = mapOf(TEST_CLIENT to listOf(visitorRole.name))
+        ),
         groupOrgC.toGroupRepresentation()
     )
 }

@@ -35,12 +35,19 @@ import org.ossreviewtoolkit.server.clients.keycloak.Role
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
 import org.ossreviewtoolkit.server.clients.keycloak.User
 
-/** Create a [GroupRepresentation] from this [Group]. */
-fun Group.toGroupRepresentation(): GroupRepresentation =
+/**
+ * Create a [GroupRepresentation] from this [Group]. [Client roles][clientRoles] can be provided as a map from client
+ * ids to lists of [role names][RoleName].
+ */
+fun Group.toGroupRepresentation(clientRoles: Map<String, List<RoleName>>? = null): GroupRepresentation =
     GroupRepresentation().also { group ->
         group.id = id.value
         group.name = name.value
         group.subGroups = subGroups.map { it.toGroupRepresentation() }
+
+        if (!clientRoles.isNullOrEmpty()) {
+            group.clientRoles = clientRoles.mapValues { (_, roles) -> roles.map { it.value } }
+        }
     }
 
 /**

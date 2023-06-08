@@ -226,6 +226,40 @@ class KeycloakClient(
         }.getOrElse { throw KeycloakClientException("Failed to delete group '${id.value}'.", it) }
 
     /**
+     * Get all client [roles][Role] for the [group][Group] with the given [id].
+     */
+    suspend fun getGroupClientRoles(id: GroupId): Set<Role> =
+        runCatching {
+            httpClient.get("$apiUrl/groups/${id.value}/role-mappings/clients/${getClientId()}/composite")
+        }.getOrElse {
+            throw KeycloakClientException("Failed to load client roles for group '${id.value}'.", it)
+        }.body()
+
+    /**
+     * Add a [role][roleId] to the [group][Group] with the given [id].
+     */
+    suspend fun addGroupClientRole(id: GroupId, role: Role): HttpResponse =
+        runCatching {
+            httpClient.post("$apiUrl/groups/${id.value}/role-mappings/clients/${getClientId()}") {
+                setBody(listOf(role))
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Failed to add role '${role.name.value}' to group '${id.value}'.", it)
+        }.body()
+
+    /**
+     * Remove a [role][roleId] from the [group][Group] with the given [id].
+     */
+    suspend fun removeGroupClientRole(id: GroupId, role: Role): HttpResponse =
+        runCatching {
+            httpClient.delete("$apiUrl/groups/${id.value}/role-mappings/clients/${getClientId()}") {
+                setBody(listOf(role))
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Failed to remove role '${role.name.value}' from group '${id.value}'.", it)
+        }.body()
+
+    /**
      * Return a set of all [roles][Role] that are currently defined for the configured [client][clientId].
      */
     suspend fun getRoles(): Set<Role> =

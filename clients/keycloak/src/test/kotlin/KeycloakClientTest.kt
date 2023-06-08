@@ -163,6 +163,76 @@ class KeycloakClientTest : WordSpec() {
             }
         }
 
+        "getGroupClientRoles" should {
+            "return the correct client roles" {
+                client.getGroupClientRoles(groupOrgA.id) shouldContainExactlyInAnyOrder
+                        listOf(adminRole)
+                client.getGroupClientRoles(groupOrgB.id) shouldContainExactlyInAnyOrder
+                        listOf(visitorRole, compositeRole)
+            }
+
+            "throw an exception if the group does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.getGroupClientRoles(GroupId("1"))
+                }
+            }
+        }
+
+        "addGroupClientRole" should {
+            "successfully add a client role to a group" {
+                val groupName = GroupName("group")
+                client.createGroup(groupName)
+                val group = client.getGroup(groupName)
+
+                val response = client.addGroupClientRole(group.id, adminRole)
+
+                response.status shouldBe HttpStatusCode.NoContent
+                client.getGroupClientRoles(group.id) shouldContainExactlyInAnyOrder listOf(adminRole)
+
+                client.deleteGroup(group.id)
+            }
+
+            "throw an exception if the group does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.addGroupClientRole(GroupId("1"), adminRole)
+                }
+            }
+
+            "throw an exception if the role does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.addGroupClientRole(groupOrgA.id, Role(id = RoleId("1"), name = RoleName("1")))
+                }
+            }
+        }
+
+        "removeGroupClientRole" should {
+            "successfully remove a client role from a group" {
+                val groupName = GroupName("group")
+                client.createGroup(groupName)
+                val group = client.getGroup(groupName)
+
+                client.addGroupClientRole(group.id, adminRole).status shouldBe HttpStatusCode.NoContent
+                val response = client.removeGroupClientRole(group.id, adminRole)
+
+                response.status shouldBe HttpStatusCode.NoContent
+                client.getGroupClientRoles(group.id) should beEmpty()
+
+                client.deleteGroup(group.id)
+            }
+
+            "throw an exception if the group does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.removeGroupClientRole(GroupId("1"), adminRole)
+                }
+            }
+
+            "throw an exception if the role does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.removeGroupClientRole(groupOrgA.id, Role(id = RoleId("1"), name = RoleName("1")))
+                }
+            }
+        }
+
         "getRoles" should {
             "return the correct client roles" {
                 val roles = client.getRoles()
