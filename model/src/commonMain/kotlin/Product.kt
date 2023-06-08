@@ -29,6 +29,11 @@ data class Product(
     val id: Long,
 
     /**
+     * The unique identifier of the [Organization] this product belongs to.
+     */
+    val organizationId: Long,
+
+    /**
      * The name of the product. Must be unique within an [Organization].
      */
     val name: String,

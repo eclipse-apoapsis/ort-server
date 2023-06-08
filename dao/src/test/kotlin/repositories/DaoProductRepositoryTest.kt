@@ -61,7 +61,7 @@ class DaoProductRepositoryTest : StringSpec({
         val dbEntry = productRepository.get(createdProduct.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe Product(createdProduct.id, name, description)
+        dbEntry shouldBe Product(createdProduct.id, orgId, name, description)
     }
 
     "create with the same product name and organization should throw" {
@@ -112,8 +112,8 @@ class DaoProductRepositoryTest : StringSpec({
         productRepository.create(name1, description1, otherOrgId)
 
         productRepository.listForOrganization(orgId) shouldBe listOf(
-            Product(createdProduct1.id, name1, description1),
-            Product(createdProduct2.id, name2, description2)
+            Product(createdProduct1.id, orgId, name1, description1),
+            Product(createdProduct2.id, orgId, name2, description2)
         )
     }
 
@@ -136,7 +136,7 @@ class DaoProductRepositoryTest : StringSpec({
         productRepository.create(name1, description1, otherOrgId)
 
         productRepository.listForOrganization(orgId, parameters) shouldBe listOf(
-            Product(createdProduct2.id, name2, description2)
+            Product(createdProduct2.id, orgId, name2, description2)
         )
     }
 
@@ -150,12 +150,14 @@ class DaoProductRepositoryTest : StringSpec({
 
         updateResult shouldBe Product(
             createdProduct.id,
+            orgId,
             updateName.value,
             updateDescription.value,
         )
 
         productRepository.get(createdProduct.id) shouldBe Product(
             createdProduct.id,
+            orgId,
             updateName.value,
             updateDescription.value,
         )

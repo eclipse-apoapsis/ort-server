@@ -44,5 +44,6 @@ class ProductDao(id: EntityID<Long>) : LongEntity(id) {
     var name by ProductsTable.name
     var description by ProductsTable.description
 
-    fun mapToModel() = Product(id = id.value, name = name, description = description)
+    fun mapToModel() =
+        Product(id = id.value, organizationId = organization.id.value, name = name, description = description)
 }
