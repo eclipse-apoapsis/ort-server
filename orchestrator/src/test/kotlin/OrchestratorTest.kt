@@ -87,6 +87,8 @@ class OrchestratorTest : WordSpec() {
 
     private val repository = Repository(
         id = 42,
+        organizationId = 1L,
+        productId = 1L,
         type = RepositoryType.GIT,
         url = "https://example.com/git/repository.git"
     )

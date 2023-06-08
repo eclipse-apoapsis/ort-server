@@ -159,7 +159,13 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "synchronizePermissions" should {
         val org = Organization(id = 1L, name = "org")
         val prod = Product(id = 1L, organizationId = org.id, name = "prod")
-        val repo = Repository(id = 1L, type = RepositoryType.GIT, url = "https://example.org/repo.git")
+        val repo = Repository(
+            id = 1L,
+            organizationId = org.id,
+            productId = prod.id,
+            type = RepositoryType.GIT,
+            url = "https://example.org/repo.git"
+        )
 
         val organizationRepository = mockk<OrganizationRepository> {
             every { list(any()) } returns listOf(org)

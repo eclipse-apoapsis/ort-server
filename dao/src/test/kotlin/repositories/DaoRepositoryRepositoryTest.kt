@@ -45,12 +45,14 @@ class DaoRepositoryRepositoryTest : StringSpec({
     lateinit var repositoryRepository: DaoRepositoryRepository
     lateinit var fixtures: Fixtures
 
+    var orgId = -1L
     var productId = -1L
 
     beforeEach {
         repositoryRepository = dbExtension.fixtures.repositoryRepository
         fixtures = dbExtension.fixtures
 
+        orgId = fixtures.organization.id
         productId = fixtures.product.id
     }
 
@@ -63,7 +65,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val dbEntry = repositoryRepository.get(createdRepository.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe Repository(createdRepository.id, type, url)
+        dbEntry shouldBe Repository(createdRepository.id, orgId, productId, type, url)
     }
 
     "create should throw an exception if a repository with the same url exists" {
@@ -110,8 +112,8 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val createdRepository2 = repositoryRepository.create(type, url2, productId)
 
         repositoryRepository.listForProduct(productId) shouldBe listOf(
-            Repository(createdRepository1.id, type, url1),
-            Repository(createdRepository2.id, type, url2)
+            Repository(createdRepository1.id, orgId, productId, type, url1),
+            Repository(createdRepository2.id, orgId, productId, type, url2)
         )
     }
 
@@ -130,7 +132,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val createdRepository2 = repositoryRepository.create(type, url2, productId)
 
         repositoryRepository.listForProduct(productId, parameters) shouldBe listOf(
-            Repository(createdRepository2.id, type, url2)
+            Repository(createdRepository2.id, orgId, productId, type, url2)
         )
     }
 
@@ -145,12 +147,16 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         updateRepositoryResult shouldBe Repository(
             id = createdRepository.id,
+            organizationId = orgId,
+            productId = productId,
             type = updateType.value,
             url = updateUrl.value
         )
 
         repositoryRepository.get(createdRepository.id) shouldBe Repository(
             id = createdRepository.id,
+            organizationId = orgId,
+            productId = productId,
             type = updateType.value,
             url = updateUrl.value,
         )

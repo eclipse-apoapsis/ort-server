@@ -32,6 +32,16 @@ data class Repository(
     val id: Long,
 
     /**
+     * The unique identifier of the [Organization] this repository belongs to.
+     */
+    val organizationId: Long,
+
+    /**
+     * The unique identifier of the [Product] this repository belongs to.
+     */
+    val productId: Long,
+
+    /**
      * The type of the repository.
      */
     val type: RepositoryType,

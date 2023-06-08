@@ -127,6 +127,8 @@ class OrtServerMappingsTest : WordSpec({
             // Initialization of ORT server objects.
             val repository = Repository(
                 id = 1L,
+                organizationId = 1L,
+                productId = 1L,
                 type = RepositoryType.GIT,
                 url = "https://github.com/org/repo.git"
             )
