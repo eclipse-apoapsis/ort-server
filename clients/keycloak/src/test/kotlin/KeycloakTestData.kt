@@ -111,8 +111,12 @@ val clientTestRealm = RealmRepresentation().apply {
     }
 
     users = testRealm.users + listOf(
-        adminUser.toUserRepresentation(),
-        visitorUser.toUserRepresentation()
+        adminUser.toUserRepresentation(
+            clientRoles = mapOf(TEST_CLIENT to listOf(adminRole.name))
+        ),
+        visitorUser.toUserRepresentation(
+            clientRoles = mapOf(TEST_CLIENT to listOf(visitorRole.name))
+        )
     )
 
     groups = listOf(

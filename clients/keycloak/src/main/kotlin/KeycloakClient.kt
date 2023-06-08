@@ -395,6 +395,16 @@ class KeycloakClient(
         runCatching {
             httpClient.delete("$apiUrl/users/${id.value}")
         }.getOrElse { throw KeycloakClientException("Failed to delete user '${id.value}'.", it) }
+
+    /**
+     * Get all client [roles][Role] for the [user][User] with the given [id].
+     */
+    suspend fun getUserClientRoles(id: UserId): Set<Role> =
+        runCatching {
+            httpClient.get("$apiUrl/users/${id.value}/role-mappings/clients/${getClientId()}/composite")
+        }.getOrElse {
+            throw KeycloakClientException("Failed to load client roles for user '${id.value}'.", it)
+        }.body()
 }
 
 /**

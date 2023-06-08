@@ -435,6 +435,21 @@ class KeycloakClientTest : WordSpec() {
                 }
             }
         }
+
+        "getUserClientRoles" should {
+            "return the correct client roles" {
+                client.getUserClientRoles(adminUser.id) shouldContainExactlyInAnyOrder
+                        listOf(adminRole)
+                client.getUserClientRoles(visitorUser.id) shouldContainExactlyInAnyOrder
+                        listOf(visitorRole, compositeRole)
+            }
+
+            "throw an exception if the user does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.getUser(UserName("1"))
+                }
+            }
+        }
     }
 }
 
