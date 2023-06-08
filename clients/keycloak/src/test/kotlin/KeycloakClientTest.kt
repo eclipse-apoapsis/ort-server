@@ -446,7 +446,7 @@ class KeycloakClientTest : WordSpec() {
 
             "throw an exception if the user does not exist" {
                 shouldThrow<KeycloakClientException> {
-                    client.getUser(UserName("1"))
+                    client.getUserClientRoles(UserId("1"))
                 }
             }
         }
