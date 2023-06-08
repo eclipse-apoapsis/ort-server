@@ -22,6 +22,10 @@ package org.ossreviewtoolkit.server.model.authorization
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 
+/**
+ * This enum contains the available permissions for [products][Product]. These permissions are used by the API to
+ * control access to the [Product] endpoints.
+ */
 enum class ProductPermission {
     /** Permission to read the [Product] details. */
     READ,

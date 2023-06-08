@@ -22,6 +22,10 @@ package org.ossreviewtoolkit.server.model.authorization
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.Product
 
+/**
+ * This enum contains the available permissions for [organizations][Organization]. These permissions are used by the API
+ * to control access to the [Organization] endpoints.
+ */
 enum class OrganizationPermission {
 
     /** Permission to read the [Organization] details. */
