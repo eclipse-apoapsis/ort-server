@@ -50,9 +50,11 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
+import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
+import org.ossreviewtoolkit.server.services.OrganizationService
+import org.ossreviewtoolkit.server.services.ProductService
 
 class RepositoriesRouteIntegrationTest : StringSpec() {
     private val dbExtension: DatabaseTestExtension = extension(DatabaseTestExtension())
@@ -60,20 +62,41 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
+    private lateinit var productService: ProductService
     private lateinit var ortRunRepository: OrtRunRepository
-    private lateinit var repositoryRepository: RepositoryRepository
 
     private var orgId = -1L
     private var productId = -1L
 
     init {
         beforeEach {
-            ortRunRepository = dbExtension.fixtures.ortRunRepository
-            repositoryRepository = dbExtension.fixtures.repositoryRepository
+            val authorizationService = DefaultAuthorizationService(
+                keycloakClient,
+                dbExtension.db,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.productRepository,
+                dbExtension.fixtures.repositoryRepository
+            )
 
-            orgId = dbExtension.fixtures.organizationRepository.create(name = "name", description = "description").id
-            productId = dbExtension.fixtures.productRepository
-                .create(name = "name", description = "description", organizationId = orgId).id
+            val organizationService = OrganizationService(
+                dbExtension.db,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.productRepository,
+                authorizationService
+            )
+
+            productService = ProductService(
+                dbExtension.db,
+                dbExtension.fixtures.productRepository,
+                dbExtension.fixtures.repositoryRepository,
+                authorizationService
+            )
+
+            ortRunRepository = dbExtension.fixtures.ortRunRepository
+
+            orgId = organizationService.createOrganization(name = "name", description = "description").id
+            productId =
+                organizationService.createProduct(name = "name", description = "description", organizationId = orgId).id
         }
 
         "GET /repositories/{repositoryId} should return a single repository" {
@@ -83,7 +106,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 val type = RepositoryType.GIT
                 val url = "https://example.com/repo.git"
 
-                val createdRepository = repositoryRepository.create(type = type, url = url, productId = productId)
+                val createdRepository = productService.createRepository(type = type, url = url, productId = productId)
 
                 val response = client.get("/api/v1/repositories/${createdRepository.id}") {
                     headers { basicTestAuth() }
@@ -100,7 +123,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdRepository = repositoryRepository.create(
+                val createdRepository = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
                     productId = productId
@@ -131,7 +154,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdRepository = repositoryRepository.create(
+                val createdRepository = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
                     productId = productId
@@ -142,7 +165,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 }
 
                 response.status shouldBe HttpStatusCode.NoContent
-                repositoryRepository.listForProduct(productId) shouldBe emptyList()
+                productService.listRepositoriesForProduct(productId) shouldBe emptyList()
             }
         }
 
@@ -150,7 +173,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdRepository = repositoryRepository.create(
+                val createdRepository = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
                     productId = productId
@@ -168,7 +191,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
         "GET /repositories/{repositoryId}/runs should return the ORT runs on a repository" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val createdRepository = repositoryRepository.create(
+                val createdRepository = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
                     productId = productId
@@ -192,7 +215,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
 
         "GET /repositories/{repositoryId}/runs should support query parameters" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val createdRepository = repositoryRepository.create(
+                val createdRepository = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git",
                     productId = productId

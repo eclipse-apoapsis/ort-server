@@ -53,11 +53,11 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
+import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
+import org.ossreviewtoolkit.server.services.OrganizationService
+import org.ossreviewtoolkit.server.services.ProductService
 
 class ProductsRouteIntegrationTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -65,19 +65,36 @@ class ProductsRouteIntegrationTest : StringSpec() {
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
-    private lateinit var organizationRepository: OrganizationRepository
-    private lateinit var productRepository: ProductRepository
-    private lateinit var repositoryRepository: RepositoryRepository
+    private lateinit var organizationService: OrganizationService
+    private lateinit var productService: ProductService
 
     private var orgId = -1L
 
     init {
         beforeEach {
-            organizationRepository = dbExtension.fixtures.organizationRepository
-            productRepository = dbExtension.fixtures.productRepository
-            repositoryRepository = dbExtension.fixtures.repositoryRepository
+            val authorizationService = DefaultAuthorizationService(
+                keycloakClient,
+                dbExtension.db,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.productRepository,
+                dbExtension.fixtures.repositoryRepository
+            )
 
-            orgId = organizationRepository.create(name = "name", description = "description").id
+            organizationService = OrganizationService(
+                dbExtension.db,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.productRepository,
+                authorizationService
+            )
+
+            productService = ProductService(
+                dbExtension.db,
+                dbExtension.fixtures.productRepository,
+                dbExtension.fixtures.repositoryRepository,
+                authorizationService
+            )
+
+            orgId = organizationService.createOrganization(name = "name", description = "description").id
         }
 
         "GET /products/{productId} should return a single product" {
@@ -88,7 +105,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 val description = "description"
 
                 val createdProduct =
-                    productRepository.create(name = name, description = description, organizationId = orgId)
+                    organizationService.createProduct(name = name, description = description, organizationId = orgId)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}") {
                     headers { basicTestAuth() }
@@ -105,8 +122,11 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val updatedProduct = UpdateProduct(
                     "updatedProduct".asPresent(),
@@ -132,8 +152,11 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val response = client.delete("/api/v1/products/${createdProduct.id}") {
                     headers { basicTestAuth() }
@@ -143,7 +166,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
                     status shouldBe HttpStatusCode.NoContent
                 }
 
-                productRepository.listForOrganization(orgId) shouldBe emptyList()
+                organizationService.listProductsForOrganization(orgId) shouldBe emptyList()
             }
         }
 
@@ -151,8 +174,11 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 client.delete("/api/v1/products/${createdProduct.id}") {
                     headers { basicTestAuth() }
@@ -168,17 +194,20 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
 
                 val createdRepository1 =
-                    repositoryRepository.create(type = type, url = url1, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url1, productId = createdProduct.id)
                 val createdRepository2 =
-                    repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}/repositories") {
                     headers { basicTestAuth() }
@@ -198,16 +227,19 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
 
-                repositoryRepository.create(type = type, url = url1, productId = createdProduct.id)
+                productService.createRepository(type = type, url = url1, productId = createdProduct.id)
                 val createdRepository2 =
-                    repositoryRepository.create(type = type, url = url2, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
 
                 val response = client.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1") {
                     headers { basicTestAuth() }
@@ -226,8 +258,11 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 val response = client.post("/api/v1/products/${createdProduct.id}/repositories") {
@@ -246,8 +281,11 @@ class ProductsRouteIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
-                val createdProduct =
-                    productRepository.create(name = "name", description = "description", organizationId = orgId)
+                val createdProduct = organizationService.createProduct(
+                    name = "name",
+                    description = "description",
+                    organizationId = orgId
+                )
 
                 val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 val createdRepository = client.post("/api/v1/products/${createdProduct.id}/repositories") {
