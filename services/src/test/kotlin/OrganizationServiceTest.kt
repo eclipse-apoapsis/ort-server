@@ -50,9 +50,10 @@ class OrganizationServiceTest : WordSpec({
     }
 
     "createOrganization" should {
-        "create Keycloak permissions" {
+        "create Keycloak roles" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { createOrganizationPermissions(any()) } just runs
+                coEvery { createOrganizationRoles(any()) } just runs
             }
 
             val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
@@ -60,14 +61,16 @@ class OrganizationServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.createOrganizationPermissions(organization.id)
+                authorizationService.createOrganizationRoles(organization.id)
             }
         }
     }
 
     "createProduct" should {
-        "create Keycloak permissions" {
+        "create Keycloak roles" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { createProductPermissions(any()) } just runs
+                coEvery { createProductRoles(any()) } just runs
             }
 
             val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
@@ -75,14 +78,16 @@ class OrganizationServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.createProductPermissions(product.id)
+                authorizationService.createProductRoles(product.id)
             }
         }
     }
 
     "deleteOrganization" should {
-        "delete Keycloak permissions" {
+        "delete Keycloak roles" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { deleteOrganizationPermissions(any()) } just runs
+                coEvery { deleteOrganizationRoles(any()) } just runs
             }
 
             val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
@@ -90,6 +95,7 @@ class OrganizationServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.deleteOrganizationPermissions(fixtures.organization.id)
+                authorizationService.deleteOrganizationRoles(fixtures.organization.id)
             }
         }
     }

@@ -50,8 +50,9 @@ class OrganizationService(
     }.onSuccess { organization ->
         runCatching {
             authorizationService.createOrganizationPermissions(organization.id)
+            authorizationService.createOrganizationRoles(organization.id)
         }.onFailure {
-            logger.error("Could not create permissions for organization '${organization.id}'.", it)
+            logger.error("Error while creating Keycloak roles for organization '${organization.id}'.", it)
         }
     }.getOrThrow()
 
@@ -63,8 +64,9 @@ class OrganizationService(
     }.onSuccess { product ->
         runCatching {
             authorizationService.createProductPermissions(product.id)
+            authorizationService.createProductRoles(product.id)
         }.onFailure {
-            logger.error("Could not create permissions for product '${product.id}'.", it)
+            logger.error("Error while creating Keycloak roles for product '${product.id}'.", it)
         }
     }.getOrThrow()
 
@@ -76,8 +78,9 @@ class OrganizationService(
     }.onSuccess {
         runCatching {
             authorizationService.deleteOrganizationPermissions(organizationId)
+            authorizationService.deleteOrganizationRoles(organizationId)
         }.onFailure {
-            logger.error("Could not delete permissions for organization '$organizationId'.", it)
+            logger.error("Error while deleting Keycloak roles for organization '$organizationId'.", it)
         }
     }.getOrThrow()
 

@@ -52,7 +52,9 @@ import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
@@ -170,7 +172,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /products/{id} should delete Keycloak roles" {
+        "DELETE /products/{id} should delete Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -185,7 +187,12 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 }
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    ProductPermission.getRolesForProduct(createdProduct.id)
+                    ProductPermission.getRolesForProduct(createdProduct.id) +
+                        ProductRole.getRolesForProduct(createdProduct.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
+                    ProductRole.getGroupsForProduct(createdProduct.id)
                 )
             }
         }
@@ -277,7 +284,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /products/{id}/repositories should create Keycloak roles" {
+        "POST /products/{id}/repositories should create Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -294,7 +301,12 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 }.body<Repository>()
 
                 keycloakClient.getRoles().map { it.name.value } should containAll(
-                    RepositoryPermission.getRolesForRepository(createdRepository.id)
+                    RepositoryPermission.getRolesForRepository(createdRepository.id) +
+                            RepositoryRole.getRolesForRepository(createdRepository.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } should containAll(
+                    RepositoryRole.getGroupsForRepository(createdRepository.id)
                 )
             }
         }

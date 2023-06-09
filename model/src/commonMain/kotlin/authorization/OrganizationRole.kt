@@ -61,6 +61,10 @@ enum class OrganizationRole(
     );
 
     companion object {
+        /** Get all group names for the provided [organizationId]. */
+        fun getGroupsForOrganization(organizationId: Long) =
+            enumValues<OrganizationRole>().map { it.groupName(organizationId) }
+
         /** Get all role names for the provided [organizationId]. */
         fun getRolesForOrganization(organizationId: Long) =
             enumValues<OrganizationRole>().map { it.roleName(organizationId) }

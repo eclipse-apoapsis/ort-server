@@ -54,6 +54,7 @@ class ProductServiceTest : WordSpec({
         "create Keycloak permissions" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { createRepositoryPermissions(any()) } just runs
+                coEvery { createRepositoryRoles(any()) } just runs
             }
 
             val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
@@ -62,6 +63,7 @@ class ProductServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.createRepositoryPermissions(repository.id)
+                authorizationService.createRepositoryRoles(repository.id)
             }
         }
     }
@@ -70,6 +72,7 @@ class ProductServiceTest : WordSpec({
         "delete Keycloak permissions" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { deleteProductPermissions(any()) } just runs
+                coEvery { deleteProductRoles(any()) } just runs
             }
 
             val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
@@ -77,6 +80,7 @@ class ProductServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.deleteProductPermissions(fixtures.product.id)
+                authorizationService.deleteProductRoles(fixtures.product.id)
             }
         }
     }

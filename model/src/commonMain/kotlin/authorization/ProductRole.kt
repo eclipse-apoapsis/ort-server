@@ -61,6 +61,10 @@ enum class ProductRole(
     );
 
     companion object {
+        /** Get all group names for the provided [productId]. */
+        fun getGroupsForProduct(productId: Long) =
+            enumValues<ProductRole>().map { it.groupName(productId) }
+
         /** Get all role names for the provided [productId]. */
         fun getRolesForProduct(productId: Long) =
             enumValues<ProductRole>().map { it.roleName(productId) }

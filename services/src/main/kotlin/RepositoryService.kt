@@ -52,8 +52,9 @@ class RepositoryService(
     }.onSuccess {
         runCatching {
             authorizationService.deleteRepositoryPermissions(repositoryId)
+            authorizationService.deleteRepositoryRoles(repositoryId)
         }.onFailure {
-            logger.error("Could not delete permissions for repository '$repositoryId'.", it)
+            logger.error("Error while deleting Keycloak roles for repository '$repositoryId'.", it)
         }
     }.getOrThrow()
 

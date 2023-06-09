@@ -54,6 +54,10 @@ enum class RepositoryRole(
     );
 
     companion object {
+        /** Get all group names for the provided [repositoryId]. */
+        fun getGroupsForRepository(repositoryId: Long) =
+            enumValues<RepositoryRole>().map { it.groupName(repositoryId) }
+
         /** Get all role names for the provided [repositoryId]. */
         fun getRolesForRepository(repositoryId: Long) =
             enumValues<RepositoryRole>().map { it.roleName(repositoryId) }

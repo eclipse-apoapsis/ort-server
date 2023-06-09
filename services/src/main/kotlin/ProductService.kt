@@ -52,8 +52,9 @@ class ProductService(
     }.onSuccess { repository ->
         runCatching {
             authorizationService.createRepositoryPermissions(repository.id)
+            authorizationService.createRepositoryRoles(repository.id)
         }.onFailure {
-            logger.error("Could not create permissions for repository '${repository.id}'.", it)
+            logger.error("Error while creating Keycloak roles for repository '${repository.id}'.", it)
         }
     }.getOrThrow()
 
@@ -65,8 +66,9 @@ class ProductService(
     }.onSuccess {
         runCatching {
             authorizationService.deleteProductPermissions(productId)
+            authorizationService.deleteProductRoles(productId)
         }.onFailure {
-            logger.error("Could not delete permissions for product '$productId'.", it)
+            logger.error("Error while deleting Keycloak roles for product '$productId'.", it)
         }
     }.getOrThrow()
 

@@ -58,7 +58,9 @@ import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
+import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -199,7 +201,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /organizations should create Keycloak roles" {
+        "POST /organizations should create Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -211,7 +213,12 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 }.body<Organization>()
 
                 keycloakClient.getRoles().map { it.name.value } should containAll(
-                    OrganizationPermission.getRolesForOrganization(createdOrg.id)
+                    OrganizationPermission.getRolesForOrganization(createdOrg.id) +
+                            OrganizationRole.getRolesForOrganization(createdOrg.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } should containAll(
+                    OrganizationRole.getGroupsForOrganization(createdOrg.id)
                 )
             }
         }
@@ -324,7 +331,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /organizations/{organizationId} should delete Keycloak roles" {
+        "DELETE /organizations/{organizationId} should delete Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val createdOrg = organizationService.createOrganization(name = "name", description = "description")
 
@@ -335,7 +342,12 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 }
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    OrganizationPermission.getRolesForOrganization(createdOrg.id)
+                    OrganizationPermission.getRolesForOrganization(createdOrg.id) +
+                            OrganizationRole.getRolesForOrganization(createdOrg.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
+                    OrganizationRole.getGroupsForOrganization(createdOrg.id)
                 )
             }
         }
@@ -374,7 +386,12 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                 }.body<Product>()
 
                 keycloakClient.getRoles().map { it.name.value } should containAll(
-                    ProductPermission.getRolesForProduct(createdProduct.id)
+                    ProductPermission.getRolesForProduct(createdProduct.id) +
+                            ProductRole.getRolesForProduct(createdProduct.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } should containAll(
+                    ProductRole.getGroupsForProduct(createdProduct.id)
                 )
             }
         }
@@ -603,7 +620,7 @@ class OrganizationsRouteIntegrationTest : StringSpec() {
                     passSecret,
                     orgId,
                     null
-                    )
+                )
 
                 val newUrl = "https://repo2.example.org/test2"
                 val updateService = UpdateInfrastructureService(

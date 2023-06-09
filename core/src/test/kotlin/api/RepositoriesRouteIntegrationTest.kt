@@ -49,6 +49,7 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
@@ -170,7 +171,7 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /repositories/{repositoryId} should delete Keycloak roles" {
+        "DELETE /repositories/{repositoryId} should delete Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -185,7 +186,12 @@ class RepositoriesRouteIntegrationTest : StringSpec() {
                 }
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    RepositoryPermission.getRolesForRepository(createdRepository.id)
+                    RepositoryPermission.getRolesForRepository(createdRepository.id) +
+                            RepositoryRole.getRolesForRepository(createdRepository.id)
+                )
+
+                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
+                    RepositoryRole.getGroupsForRepository(createdRepository.id)
                 )
             }
         }

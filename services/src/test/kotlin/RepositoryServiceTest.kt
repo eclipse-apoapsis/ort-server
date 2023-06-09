@@ -53,6 +53,7 @@ class RepositoryServiceTest : WordSpec({
         "delete Keycloak permissions" {
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { deleteRepositoryPermissions(any()) } just runs
+                coEvery { deleteRepositoryRoles(any()) } just runs
             }
 
             val service = RepositoryService(db, ortRunRepository, repositoryRepository, authorizationService)
@@ -60,6 +61,7 @@ class RepositoryServiceTest : WordSpec({
 
             coVerify(exactly = 1) {
                 authorizationService.deleteRepositoryPermissions(fixtures.repository.id)
+                authorizationService.deleteRepositoryRoles(fixtures.repository.id)
             }
         }
     }
