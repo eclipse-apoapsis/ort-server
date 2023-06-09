@@ -113,21 +113,30 @@ class SecretService(
     /**
      * List all secrets for a specific [organization][organizationId] and according to the given [parameters].
      */
-    suspend fun listForOrganization(organizationId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
+    suspend fun listForOrganization(
+        organizationId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Secret> = db.dbQuery {
         secretRepository.listForOrganization(organizationId, parameters)
     }
 
     /**
      * List all secrets for a specific [product][productId] and according to the given [parameters].
      */
-    suspend fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
+    suspend fun listForProduct(
+        productId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Secret> = db.dbQuery {
         secretRepository.listForProduct(productId, parameters)
     }
 
     /**
      * List all secrets for a specific [repository][repositoryId] and according to the given [parameters].
      */
-    suspend fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> = db.dbQuery {
+    suspend fun listForRepository(
+        repositoryId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Secret> = db.dbQuery {
         secretRepository.listForRepository(repositoryId, parameters)
     }
 

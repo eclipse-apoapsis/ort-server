@@ -116,7 +116,7 @@ class InfrastructureServiceService(
      */
     suspend fun listForOrganization(
         organizationId: Long,
-        parameters: ListQueryParameters
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): List<InfrastructureService> = db.dbQuery {
         infrastructureServiceRepository.listForOrganization(organizationId, parameters)
     }

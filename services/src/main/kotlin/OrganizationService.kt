@@ -91,14 +91,19 @@ class OrganizationService(
     /**
      * List all organizations according to the given [parameters].
      */
-    suspend fun listOrganizations(parameters: ListQueryParameters): List<Organization> = db.dbQuery {
+    suspend fun listOrganizations(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Organization> = db.dbQuery {
         organizationRepository.list(parameters)
     }
 
     /**
      * List all products for an [organization][organizationId].
      */
-    suspend fun listProductsForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.dbQuery {
+    suspend fun listProductsForOrganization(
+        organizationId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ) = db.dbQuery {
         productRepository.listForOrganization(organizationId, parameters)
     }
 

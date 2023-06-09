@@ -80,10 +80,12 @@ class ProductService(
     /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
-    suspend fun listRepositoriesForProduct(productId: Long, parameters: ListQueryParameters): List<Repository> =
-        db.dbQuery {
-            repositoryRepository.listForProduct(productId, parameters)
-        }
+    suspend fun listRepositoriesForProduct(
+        productId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<Repository> = db.dbQuery {
+        repositoryRepository.listForProduct(productId, parameters)
+    }
 
     /**
      * Update a product by [productId] with the [present][OptionalValue.Present] values.

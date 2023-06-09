@@ -64,7 +64,10 @@ class RepositoryService(
     /**
      * Get the runs executed on the given [repository][repositoryId] according to the given [parameters].
      */
-    suspend fun getOrtRuns(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> = db.dbQuery {
+    suspend fun getOrtRuns(
+        repositoryId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): List<OrtRun> = db.dbQuery {
         ortRunRepository.listForRepository(repositoryId, parameters)
     }
 
