@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.server.clients.keycloak.GroupName
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
 import org.ossreviewtoolkit.server.dao.dbQuery
@@ -73,12 +74,17 @@ class DefaultAuthorizationService(
                 val compositeRole = keycloakClient.getRole(RoleName(permission.roleName(organizationId)))
                 keycloakClient.addCompositeRole(roleName, compositeRole.id)
             }
+
+            val groupName = GroupName(role.groupName(organizationId))
+            keycloakClient.createGroup(groupName)
+            keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
     }
 
     override suspend fun deleteOrganizationRoles(organizationId: Long) {
-        OrganizationRole.getRolesForOrganization(organizationId).forEach { roleName ->
-            keycloakClient.deleteRole(RoleName(roleName))
+        OrganizationRole.values().forEach { role ->
+            keycloakClient.deleteRole(RoleName(role.roleName(organizationId)))
+            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(organizationId))).id)
         }
     }
 
@@ -111,12 +117,17 @@ class DefaultAuthorizationService(
                 val childRole = keycloakClient.getRole(roleName)
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
             }
+
+            val groupName = GroupName(role.groupName(productId))
+            keycloakClient.createGroup(groupName)
+            keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
     }
 
     override suspend fun deleteProductRoles(productId: Long) {
-        ProductRole.getRolesForProduct(productId).forEach { roleName ->
-            keycloakClient.deleteRole(RoleName(roleName))
+        ProductRole.values().forEach { role ->
+            keycloakClient.deleteRole(RoleName(role.roleName(productId)))
+            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(productId))).id)
         }
     }
 
@@ -149,12 +160,17 @@ class DefaultAuthorizationService(
                 val childRole = keycloakClient.getRole(roleName)
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
             }
+
+            val groupName = GroupName(role.groupName(repositoryId))
+            keycloakClient.createGroup(groupName)
+            keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
     }
 
     override suspend fun deleteRepositoryRoles(repositoryId: Long) {
-        RepositoryRole.getRolesForRepository(repositoryId).forEach { roleName ->
-            keycloakClient.deleteRole(RoleName(roleName))
+        RepositoryRole.values().forEach { role ->
+            keycloakClient.deleteRole(RoleName(role.roleName(repositoryId)))
+            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(repositoryId))).id)
         }
     }
 

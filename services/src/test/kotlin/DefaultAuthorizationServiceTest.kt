@@ -27,6 +27,9 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 
+import org.ossreviewtoolkit.server.clients.keycloak.Group
+import org.ossreviewtoolkit.server.clients.keycloak.GroupId
+import org.ossreviewtoolkit.server.clients.keycloak.GroupName
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.Role
 import org.ossreviewtoolkit.server.clients.keycloak.RoleId
@@ -94,6 +97,11 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
             }
             coEvery { addCompositeRole(any(), any()) } returns mockk()
+            coEvery { createGroup(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
+            }
+            coEvery { addGroupClientRole(any(), any()) } returns mockk()
         }
 
         val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
@@ -119,21 +127,47 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 }
             }
         }
+
+        "create a group for each role" {
+            coVerify(exactly = 1) {
+                OrganizationRole.values().forEach { role ->
+                    val groupName = role.groupName(organizationId)
+                    val roleName = role.roleName(organizationId)
+                    keycloakClient.createGroup(GroupName(groupName))
+                    keycloakClient.addGroupClientRole(
+                        GroupId(groupName),
+                        Role(RoleId(roleName), RoleName(roleName))
+                    )
+                }
+            }
+        }
     }
 
     "deleteOrganizationRoles" should {
-        "delete the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
+        val keycloakClient = mockk<KeycloakClient> {
+            coEvery { deleteRole(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
             }
+            coEvery { deleteGroup(any()) } returns mockk()
+        }
 
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
-            service.deleteOrganizationRoles(organizationId)
+        service.deleteOrganizationRoles(organizationId)
 
+        "delete the correct Keycloak roles" {
             coVerify(exactly = 1) {
                 OrganizationRole.getRolesForOrganization(organizationId).forEach {
                     keycloakClient.deleteRole(RoleName(it))
+                }
+            }
+        }
+
+        "delete the Keycloak group" {
+            coVerify(exactly = 1) {
+                OrganizationRole.values().forEach { role ->
+                    keycloakClient.deleteGroup(GroupId(role.groupName(organizationId)))
                 }
             }
         }
@@ -182,6 +216,11 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
             }
             coEvery { addCompositeRole(any(), any()) } returns mockk()
+            coEvery { createGroup(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
+            }
+            coEvery { addGroupClientRole(any(), any()) } returns mockk()
         }
 
         val organizationRepository = mockk<OrganizationRepository> {
@@ -230,21 +269,47 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 }
             }
         }
+
+        "create a group for each role" {
+            coVerify(exactly = 1) {
+                ProductRole.values().forEach { role ->
+                    val groupName = role.groupName(productId)
+                    val roleName = role.roleName(productId)
+                    keycloakClient.createGroup(GroupName(groupName))
+                    keycloakClient.addGroupClientRole(
+                        GroupId(groupName),
+                        Role(RoleId(roleName), RoleName(roleName))
+                    )
+                }
+            }
+        }
     }
 
     "deleteProductRoles" should {
-        "delete the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
+        val keycloakClient = mockk<KeycloakClient> {
+            coEvery { deleteRole(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
             }
+            coEvery { deleteGroup(any()) } returns mockk()
+        }
 
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
-            service.deleteProductRoles(productId)
+        service.deleteProductRoles(productId)
 
+        "delete the correct Keycloak roles" {
             coVerify(exactly = 1) {
                 ProductRole.getRolesForProduct(productId).forEach {
                     keycloakClient.deleteRole(RoleName(it))
+                }
+            }
+        }
+
+        "delete the Keycloak group" {
+            coVerify(exactly = 1) {
+                ProductRole.values().forEach { role ->
+                    keycloakClient.deleteGroup(GroupId(role.groupName(productId)))
                 }
             }
         }
@@ -293,6 +358,11 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
             }
             coEvery { addCompositeRole(any(), any()) } returns mockk()
+            coEvery { createGroup(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
+            }
+            coEvery { addGroupClientRole(any(), any()) } returns mockk()
         }
 
         val productRepository = mockk<ProductRepository> {
@@ -348,21 +418,47 @@ class DefaultAuthorizationServiceTest : WordSpec({
                 }
             }
         }
+
+        "create a group for each role" {
+            coVerify(exactly = 1) {
+                RepositoryRole.values().forEach { role ->
+                    val groupName = role.groupName(repositoryId)
+                    val roleName = role.roleName(repositoryId)
+                    keycloakClient.createGroup(GroupName(groupName))
+                    keycloakClient.addGroupClientRole(
+                        GroupId(groupName),
+                        Role(RoleId(roleName), RoleName(roleName))
+                    )
+                }
+            }
+        }
     }
 
     "deleteRepositoryRoles" should {
-        "delete the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
+        val keycloakClient = mockk<KeycloakClient> {
+            coEvery { deleteRole(any()) } returns mockk()
+            coEvery { getGroup(any<GroupName>()) } answers {
+                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
             }
+            coEvery { deleteGroup(any()) } returns mockk()
+        }
 
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
-            service.deleteRepositoryRoles(repositoryId)
+        service.deleteRepositoryRoles(repositoryId)
 
+        "delete the correct Keycloak roles" {
             coVerify(exactly = 1) {
                 RepositoryRole.getRolesForRepository(repositoryId).forEach {
                     keycloakClient.deleteRole(RoleName(it))
+                }
+            }
+        }
+
+        "delete the Keycloak group" {
+            coVerify(exactly = 1) {
+                RepositoryRole.values().forEach { role ->
+                    keycloakClient.deleteGroup(GroupId(role.groupName(repositoryId)))
                 }
             }
         }
