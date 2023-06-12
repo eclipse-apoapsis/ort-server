@@ -51,6 +51,7 @@ import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTest
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 
 private const val JOB_ID = 1L
 private const val TOKEN = "token"
@@ -80,6 +81,14 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 val contextFactory by inject<WorkerContextFactory>()
 
                 contextFactory.createContext(42L) shouldNot beNull()
+            }
+        }
+
+        "The build environment module should be added" {
+            runEndpointTest {
+                val environmentService by inject<EnvironmentService>()
+
+                environmentService shouldNot beNull()
             }
         }
 
