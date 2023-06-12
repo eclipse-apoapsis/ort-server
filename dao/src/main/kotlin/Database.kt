@@ -158,7 +158,7 @@ suspend fun <T> Database.dbQueryCatching(
 ): Result<T> =
     runCatching {
         withContext(Dispatchers.IO) {
-            transaction(transactionIsolation, repetitionAttempts, readOnly) { block() }
+            transaction(transactionIsolation, repetitionAttempts, readOnly, this@runCatching) { block() }
         }
     }.mapExceptions()
 
@@ -188,7 +188,7 @@ fun <T> Database.blockingQueryCatching(
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): Result<T> =
-    runCatching { transaction(transactionIsolation, repetitionAttempts, readOnly) { block() } }.mapExceptions()
+    runCatching { transaction(transactionIsolation, repetitionAttempts, readOnly, this) { block() } }.mapExceptions()
 
 /**
  * Execute the [block] in a [blockingQueryCatching], configured with the provided [transactionIsolation],
