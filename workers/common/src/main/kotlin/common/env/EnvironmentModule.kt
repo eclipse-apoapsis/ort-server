@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
  */
 fun buildEnvironmentModule(): Module = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
+    single { NetRcGenerator() }
 
     singleOf(::EnvironmentService)
 }

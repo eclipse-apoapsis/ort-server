@@ -20,15 +20,18 @@
 package org.ossreviewtoolkit.server.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 class EnvironmentServiceTest : WordSpec({
     "findInfrastructureServiceForRepository" should {
@@ -37,7 +40,7 @@ class EnvironmentServiceTest : WordSpec({
                 every { listForRepositoryUrl(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID) } returns emptyList()
             }
 
-            val environmentService = EnvironmentService(repository)
+            val environmentService = EnvironmentService(repository, mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
 
@@ -57,7 +60,7 @@ class EnvironmentServiceTest : WordSpec({
                 )
             }
 
-            val environmentService = EnvironmentService(repository)
+            val environmentService = EnvironmentService(repository, mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
 
@@ -77,11 +80,34 @@ class EnvironmentServiceTest : WordSpec({
                 )
             }
 
-            val environmentService = EnvironmentService(repository)
+            val environmentService = EnvironmentService(repository, mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
 
             result shouldBe matchingService
+        }
+    }
+
+    "generateNetRcFile" should {
+        "produce the correct file using the NetRcGenerator" {
+            val context = mockk<WorkerContext>()
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
+            )
+
+            val targetFile = tempfile()
+            val netRcLines = listOf("credentials1", "credentials2", "more credentials")
+            val generator = mockk<NetRcGenerator> {
+                every { targetFile() } returns targetFile
+                coEvery { generate(context, services) } returns netRcLines
+            }
+
+            val environmentService = EnvironmentService(mockk(), generator)
+            val resultFile = environmentService.generateNetRcFile(context, services)
+
+            resultFile shouldBe targetFile
+            resultFile.readLines() shouldBe netRcLines
         }
     }
 })
