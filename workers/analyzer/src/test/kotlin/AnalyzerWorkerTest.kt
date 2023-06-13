@@ -23,6 +23,9 @@ import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -38,8 +41,12 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -64,7 +71,7 @@ private val analyzerJob = AnalyzerJob(
 private fun AnalyzerWorker.testRun(): RunResult = runBlocking { run(JOB_ID, TRACE_ID) }
 
 class AnalyzerWorkerTest : StringSpec({
-    "A project should be analyzed successfully" {
+    "A private repository should be analyzed successfully" {
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any()) } just runs
@@ -76,7 +83,18 @@ class AnalyzerWorkerTest : StringSpec({
             every { downloadRepository(any(), any()) } returns projectDir
         }
 
-        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao)
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val infrastructureService = mockk<InfrastructureService>()
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServiceForRepository(context) } returns infrastructureService
+            coEvery { generateNetRcFile(context, listOf(infrastructureService)) } returns File("someFile")
+        }
+
+        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
 
         mockkTransaction {
             val result = worker.testRun()
@@ -85,6 +103,49 @@ class AnalyzerWorkerTest : StringSpec({
 
             verify(exactly = 1) {
                 dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+            }
+
+            coVerifyOrder {
+                envService.generateNetRcFile(context, listOf(infrastructureService))
+                downloader.downloadRepository(analyzerJob.repositoryUrl, analyzerJob.repositoryRevision)
+            }
+        }
+    }
+
+    "A repository without credentials should be analyzed successfully" {
+        val dao = mockk<AnalyzerWorkerDao> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
+            // the repository is not cloned.
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServiceForRepository(context) } returns null
+        }
+
+        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+
+            verify(exactly = 1) {
+                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+            }
+
+            coVerify(exactly = 0) {
+                envService.generateNetRcFile(any(), any())
             }
         }
     }
@@ -95,7 +156,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } throws testException
         }
 
-        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
+        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao, mockk(), mockk())
 
         mockkTransaction {
             when (val result = worker.testRun()) {
@@ -111,7 +172,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns invalidJob
         }
 
-        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
+        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao, mockk(), mockk())
 
         mockkTransaction {
             val result = worker.testRun()

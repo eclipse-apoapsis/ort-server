@@ -26,6 +26,8 @@ import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 import org.slf4j.LoggerFactory
@@ -38,12 +40,21 @@ internal class AnalyzerWorker(
     private val db: Database,
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner,
-    private val dao: AnalyzerWorkerDao
+    private val dao: AnalyzerWorkerDao,
+    private val contextFactory: WorkerContextFactory,
+    private val environmentService: EnvironmentService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val job = db.dbQuery { getValidAnalyzerJob(jobId) }
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+
+        val context = contextFactory.createContext(job.ortRunId)
+        environmentService.findInfrastructureServiceForRepository(context)?.let { infrastructureService ->
+            logger.info("Using credentials for download from infrastructure service '{}'.", infrastructureService)
+
+            environmentService.generateNetRcFile(context, listOf(infrastructureService))
+        }
 
         val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
         val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer

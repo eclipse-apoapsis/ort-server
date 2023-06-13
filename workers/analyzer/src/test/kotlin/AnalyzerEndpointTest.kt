@@ -92,6 +92,14 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The worker is correctly configured" {
+            runEndpointTest {
+                val worker by inject<AnalyzerWorker>()
+
+                worker shouldNot beNull()
+            }
+        }
+
         "A message to analyze a project should be processed" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
