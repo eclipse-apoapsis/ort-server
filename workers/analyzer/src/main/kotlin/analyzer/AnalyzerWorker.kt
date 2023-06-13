@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.workers.analyzer
 
 import org.jetbrains.exposed.sql.Database
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
@@ -40,8 +40,8 @@ internal class AnalyzerWorker(
     private val runner: AnalyzerRunner,
     private val dao: AnalyzerWorkerDao
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val job = db.blockingQuery { getValidAnalyzerJob(jobId) }
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
+        val job = db.dbQuery { getValidAnalyzerJob(jobId) }
 
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
 
@@ -54,7 +54,7 @@ internal class AnalyzerWorker(
                     "'${analyzerRun.result.issues.values.size}' issues."
         )
 
-        db.blockingQuery {
+        db.dbQuery {
             getValidAnalyzerJob(jobId)
             dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
         }

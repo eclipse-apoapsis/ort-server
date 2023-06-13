@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -57,6 +58,11 @@ private val analyzerJob = AnalyzerJob(
     repositoryRevision = "main"
 )
 
+/**
+ * Helper function to invoke this worker with test parameters.
+ */
+private fun AnalyzerWorker.testRun(): RunResult = runBlocking { run(JOB_ID, TRACE_ID) }
+
 class AnalyzerWorkerTest : StringSpec({
     "A project should be analyzed successfully" {
         val dao = mockk<AnalyzerWorkerDao> {
@@ -73,7 +79,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao)
 
         mockkTransaction {
-            val result = worker.run(JOB_ID, TRACE_ID)
+            val result = worker.testRun()
 
             result shouldBe RunResult.Success
 
@@ -92,7 +98,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
 
         mockkTransaction {
-            when (val result = worker.run(JOB_ID, TRACE_ID)) {
+            when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> fail("Unexpected result: $result")
             }
@@ -108,7 +114,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao)
 
         mockkTransaction {
-            val result = worker.run(JOB_ID, TRACE_ID)
+            val result = worker.testRun()
 
             result shouldBe RunResult.Ignored
         }

@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import kotlinx.coroutines.runBlocking
+
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -56,7 +58,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         val publisher by inject<MessagePublisher>()
 
         val jobId = message.payload.analyzerJobId
-        val response = when (val result = analyzerWorker.run(jobId, message.header.traceId)) {
+        val response = when (val result = runBlocking { analyzerWorker.run(jobId, message.header.traceId) }) {
             is RunResult.Success -> {
                 logger.info("Analyzer job '$jobId' succeeded.")
                 Message(message.header, AnalyzerWorkerResult(jobId))
