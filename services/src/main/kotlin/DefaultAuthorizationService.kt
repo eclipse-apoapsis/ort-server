@@ -191,7 +191,7 @@ class DefaultAuthorizationService(
             db.dbQuery { organizationRepository.list() }.forEach { organization ->
                 val requiredRoles = OrganizationPermission.getRolesForOrganization(organization.id)
                 val rolePrefix = OrganizationPermission.rolePrefix(organization.id)
-                synchronizeRoles(roles, requiredRoles, rolePrefix)
+                synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for organizations.", it)
@@ -205,7 +205,7 @@ class DefaultAuthorizationService(
             db.dbQuery { productRepository.list() }.forEach { product ->
                 val requiredRoles = ProductPermission.getRolesForProduct(product.id)
                 val rolePrefix = ProductPermission.rolePrefix(product.id)
-                synchronizeRoles(roles, requiredRoles, rolePrefix)
+                synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for products.", it)
@@ -219,14 +219,14 @@ class DefaultAuthorizationService(
             db.dbQuery { repositoryRepository.list() }.forEach { repository ->
                 val requiredRoles = RepositoryPermission.getRolesForRepository(repository.id)
                 val rolePrefix = RepositoryPermission.rolePrefix(repository.id)
-                synchronizeRoles(roles, requiredRoles, rolePrefix)
+                synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for repositories.", it)
         }.getOrThrow()
     }
 
-    private suspend fun synchronizeRoles(roles: Set<String>, requiredRoles: List<String>, rolePrefix: String) {
+    private suspend fun synchronizeKeycloakRoles(roles: Set<String>, requiredRoles: List<String>, rolePrefix: String) {
         val missingRoles = requiredRoles.filter { it !in roles }
         logger.info("Creating missing roles: ${missingRoles.joinToString()}")
         missingRoles.forEach { role ->
