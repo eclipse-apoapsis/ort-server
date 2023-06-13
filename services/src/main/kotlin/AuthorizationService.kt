@@ -87,4 +87,13 @@ interface AuthorizationService {
      *   entities are not correct anymore.
      */
     suspend fun synchronizePermissions()
+
+    /**
+     * Synchronize the roles and groups in Keycloak with the database entities to ensure that the correct Keycloak roles
+     * and groups exist. This is required for the followinng scenarios:
+     * * The roles or groups in Keycloak were manually changed.
+     * * The role definitions have changed and therefore the Keycloak roles and groups created when creating the
+     *   database entities are not correct anymore.
+     */
+    suspend fun synchronizeRoles()
 }
