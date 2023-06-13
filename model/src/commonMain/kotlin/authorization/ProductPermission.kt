@@ -55,9 +55,9 @@ enum class ProductPermission {
         /**
          * A unique prefix for the roles for the provided [productId].
          */
-        fun rolePrefix(productId: Long) = "permission_product_$productId"
+        fun rolePrefix(productId: Long) = "permission_product_${productId}_"
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */
-    fun roleName(productId: Long): String = "${rolePrefix(productId)}_${name.lowercase()}"
+    fun roleName(productId: Long): String = "${rolePrefix(productId)}${name.lowercase()}"
 }

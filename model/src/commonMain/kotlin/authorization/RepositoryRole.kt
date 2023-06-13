@@ -63,12 +63,12 @@ enum class RepositoryRole(
             enumValues<RepositoryRole>().map { it.roleName(repositoryId) }
 
         /** A unique prefix for the roles for the provided [repositoryId]. */
-        fun rolePrefix(repositoryId: Long) = "role_repository_$repositoryId"
+        fun rolePrefix(repositoryId: Long) = "role_repository_${repositoryId}_"
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */
     fun groupName(repositoryId: Long): String = "REPOSITORY_${repositoryId}_${name.uppercase()}S"
 
     /** A unique name for this role to be used to represent the role as a role in Keycloak. */
-    fun roleName(repositoryId: Long): String = "${rolePrefix(repositoryId)}_${name.lowercase()}"
+    fun roleName(repositoryId: Long): String = "${rolePrefix(repositoryId)}${name.lowercase()}"
 }

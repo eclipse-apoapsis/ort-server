@@ -70,12 +70,12 @@ enum class OrganizationRole(
             enumValues<OrganizationRole>().map { it.roleName(organizationId) }
 
         /** A unique prefix for the roles for the provided [organizationId]. */
-        fun rolePrefix(organizationId: Long) = "role_organization_$organizationId"
+        fun rolePrefix(organizationId: Long) = "role_organization_${organizationId}_"
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */
     fun groupName(organizationId: Long): String = "ORGANIZATION_${organizationId}_${name.uppercase()}S"
 
     /** A unique name for this role to be used to represent the role as a role in Keycloak. */
-    fun roleName(organizationId: Long): String = "${rolePrefix(organizationId)}_${name.lowercase()}"
+    fun roleName(organizationId: Long): String = "${rolePrefix(organizationId)}${name.lowercase()}"
 }

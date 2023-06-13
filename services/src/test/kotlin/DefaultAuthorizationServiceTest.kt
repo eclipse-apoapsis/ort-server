@@ -375,7 +375,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "remove unneeded organization roles" {
-            val unneededRole = "${OrganizationPermission.rolePrefix(organizationId)}_unneeded"
+            val unneededRole = "${OrganizationPermission.rolePrefix(organizationId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
@@ -385,7 +385,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "remove unneeded product roles" {
-            val unneededRole = "${ProductPermission.rolePrefix(productId)}_unneeded"
+            val unneededRole = "${ProductPermission.rolePrefix(productId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
@@ -395,7 +395,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "remove unneeded repository roles" {
-            val unneededRole = "${RepositoryPermission.rolePrefix(repositoryId)}_unneeded"
+            val unneededRole = "${RepositoryPermission.rolePrefix(repositoryId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 

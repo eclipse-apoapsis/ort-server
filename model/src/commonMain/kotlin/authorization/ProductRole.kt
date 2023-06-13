@@ -70,12 +70,12 @@ enum class ProductRole(
             enumValues<ProductRole>().map { it.roleName(productId) }
 
         /** A unique prefix for the roles for the provided [productId]. */
-        fun rolePrefix(productId: Long) = "role_product_$productId"
+        fun rolePrefix(productId: Long) = "role_product_${productId}_"
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */
     fun groupName(productId: Long): String = "PRODUCT_${productId}_${name.uppercase()}S"
 
     /** A unique name for this role to be used to represent the role as a role in Keycloak. */
-    fun roleName(productId: Long): String = "${rolePrefix(productId)}_${name.lowercase()}"
+    fun roleName(productId: Long): String = "${rolePrefix(productId)}${name.lowercase()}"
 }
