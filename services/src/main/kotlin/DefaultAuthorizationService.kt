@@ -185,7 +185,7 @@ class DefaultAuthorizationService(
     }
 
     private suspend fun synchronizeOrganizationPermissions(roles: Set<String>) {
-        logger.info("Synchronizing Keycloak roles for organizations.")
+        logger.info("Synchronizing Keycloak roles for organization permissions.")
 
         runCatching {
             db.dbQuery { organizationRepository.list() }.forEach { organization ->
@@ -194,12 +194,12 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
-            logger.error("Error while synchronizing Keycloak roles for organizations.", it)
+            logger.error("Error while synchronizing Keycloak roles for organization permissions.", it)
         }.getOrThrow()
     }
 
     private suspend fun synchronizeProductPermissions(roles: Set<String>) {
-        logger.info("Synchronizing Keycloak roles for products.")
+        logger.info("Synchronizing Keycloak roles for product permissions.")
 
         runCatching {
             db.dbQuery { productRepository.list() }.forEach { product ->
@@ -208,12 +208,12 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
-            logger.error("Error while synchronizing Keycloak roles for products.", it)
+            logger.error("Error while synchronizing Keycloak roles for product permissions.", it)
         }.getOrThrow()
     }
 
     private suspend fun synchronizeRepositoryPermissions(roles: Set<String>) {
-        logger.info("Synchronizing Keycloak roles for repositories.")
+        logger.info("Synchronizing Keycloak roles for repository permissions.")
 
         runCatching {
             db.dbQuery { repositoryRepository.list() }.forEach { repository ->
@@ -222,7 +222,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
         }.onFailure {
-            logger.error("Error while synchronizing Keycloak roles for repositories.", it)
+            logger.error("Error while synchronizing Keycloak roles for repository permissions.", it)
         }.getOrThrow()
     }
 
