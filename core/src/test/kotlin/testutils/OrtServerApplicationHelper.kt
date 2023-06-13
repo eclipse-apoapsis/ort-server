@@ -32,6 +32,7 @@ import java.lang.IllegalArgumentException
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.GlobalContext
+import org.koin.core.context.stopKoin
 
 /**
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
@@ -44,6 +45,10 @@ fun ortServerTestApplication(
     additionalConfigs: Map<String, Any> = mapOf(),
     block: suspend ApplicationTestBuilder.() -> Unit
 ) = testApplication {
+    // If a test fails, Koin keeps running which causes subsequent tests to fail with "A Koin Application has already
+    // been started". Prevent this by making sure that any running Koin is stopped when starting a new test application.
+    stopKoin()
+
     val additionalConfig = MapApplicationConfig()
     additionalConfigs.forEach { (path, value) ->
         @Suppress("UNCHECKED_CAST")
