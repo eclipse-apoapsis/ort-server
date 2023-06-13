@@ -338,6 +338,18 @@ class KeycloakClient(
             throw KeycloakClientException("Failed to find composites for role '${name.value}'.", it)
         }.body()
 
+    suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse =
+        runCatching {
+            httpClient.delete("$apiUrl/clients/${getClientId()}/roles/${name.value}/composites") {
+                setBody(listOf(RoleIdHolder(compositeRoleId)))
+            }
+        }.getOrElse {
+            throw KeycloakClientException(
+                "Failed to remove composite role with id '${compositeRoleId.value}' from role '${name.value}'.",
+                it
+            )
+        }.body()
+
     /**
      * Return a set of all [users][User], which currently exist in the Keycloak realm.
      */

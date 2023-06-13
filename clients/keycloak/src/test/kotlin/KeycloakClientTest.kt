@@ -27,6 +27,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -377,6 +378,33 @@ class KeycloakClientTest : WordSpec() {
             "return the correct composite roles" {
                 client.getCompositeRoles(adminRole.name) should beEmpty()
                 client.getCompositeRoles(visitorRole.name) shouldContainExactly listOf(compositeRole)
+            }
+        }
+
+        "removeCompositeRole" should {
+            "successfully remove a composite role" {
+                client.createRole(RoleName("root"))
+                client.createRole(RoleName("composite"))
+                val compositeRole = client.getRole(RoleName("composite"))
+                client.addCompositeRole(RoleName("root"), compositeRole.id)
+
+                client.removeCompositeRole(RoleName("root"), compositeRole.id)
+                val composites = client.getCompositeRoles(RoleName("root"))
+
+                composites shouldNotContain listOf(compositeRole)
+
+                client.deleteRole(RoleName("root"))
+                client.deleteRole(RoleName("composite"))
+            }
+
+            "fail if the composite role does not exist" {
+                client.createRole(RoleName("root"))
+
+                shouldThrow<KeycloakClientException> {
+                    client.removeCompositeRole(RoleName("root"), RoleId("invalid id"))
+                }
+
+                client.deleteRole(RoleName("root"))
             }
         }
 
