@@ -29,7 +29,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
@@ -42,7 +47,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(repository, mockk())
             val result =
-                environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
+                environmentService.findInfrastructureServiceForRepository(mockContext())
 
             result should beNull()
         }
@@ -62,7 +67,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(repository, mockk())
             val result =
-                environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
+                environmentService.findInfrastructureServiceForRepository(mockContext())
 
             result shouldBe matchingService
         }
@@ -82,7 +87,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(repository, mockk())
             val result =
-                environmentService.findInfrastructureServiceForRepository(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID)
+                environmentService.findInfrastructureServiceForRepository(mockContext())
 
             result shouldBe matchingService
         }
@@ -119,6 +124,13 @@ private const val PRODUCT_ID = 20230607115528L
 /** A counter for generating unique service names. */
 private var counter = 0
 
+/** A [Hierarchy] object for the test repository. */
+private val repositoryHierarchy = Hierarchy(
+    Repository(20230613071811L, ORGANIZATION_ID, PRODUCT_ID, RepositoryType.GIT, REPOSITORY_URL),
+    Product(PRODUCT_ID, ORGANIZATION_ID, "testProduct"),
+    Organization(ORGANIZATION_ID, "test organization")
+)
+
 /**
  * Create an [InfrastructureService] with the given [url] and other standard properties.
  */
@@ -131,3 +143,11 @@ private fun createInfrastructureService(url: String = REPOSITORY_URL): Infrastru
         organization = null,
         product = null
     )
+
+/**
+ * Create a mock [WorkerContext] object that is prepared to return the [Hierarchy] of the test repository.
+ */
+private fun mockContext(): WorkerContext =
+    mockk {
+        every { hierarchy } returns repositoryHierarchy
+    }

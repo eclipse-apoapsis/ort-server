@@ -43,19 +43,16 @@ class EnvironmentService(
     private val netRcGenerator: NetRcGenerator
 ) {
     /**
-     * Try to find an [InfrastructureService] defined for the given [organization][organizationId] and
-     * [product][productId] that matches the given [repositoryUrl]. This function is used to find the credentials for
-     * downloading the repository. The match is done based on the URL prefix. In case there are multiple matches, the
-     * longest match wins.
+     * Try to find the [InfrastructureService] that matches the current repository stored in the given [context]. This
+     * function is used to find the credentials for downloading the repository. The match is done based on the URL
+     * prefix. In case there are multiple matches, the longest match wins.
      */
-    fun findInfrastructureServiceForRepository(
-        repositoryUrl: String,
-        organizationId: Long,
-        productId: Long
-    ): InfrastructureService? =
-        infrastructureServiceRepository.listForRepositoryUrl(repositoryUrl, organizationId, productId)
-            .filter { repositoryUrl.startsWith(it.url) }
-            .maxByOrNull { it.url.length }
+    fun findInfrastructureServiceForRepository(context: WorkerContext): InfrastructureService? =
+        with(context.hierarchy) {
+            infrastructureServiceRepository.listForRepositoryUrl(repository.url, organization.id, product.id)
+                .filter { repository.url.startsWith(it.url) }
+                .maxByOrNull { it.url.length }
+        }
 
     /**
      * Generate the _.netrc_ file based on the given [services]. Use the given [context] to access required
