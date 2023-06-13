@@ -99,14 +99,19 @@ fun User.toUserRepresentation(
     }
 
 /**
- * Create a [KeycloakClientConfiguration] for the [testRealm] and this [KeycloakContainer].
+ * Create a [KeycloakClientConfiguration] for the [testRealm] and this [KeycloakContainer]. Support customization of
+ * credentials via the given [secret], [user], and [clientId].
  */
-fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(secret: String = TEST_REALM_ADMIN_PASSWORD) =
+fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
+    secret: String = TEST_REALM_ADMIN_PASSWORD,
+    user: String? = TEST_REALM_ADMIN_USERNAME,
+    clientId: String = TEST_CLIENT
+) =
     KeycloakClientConfiguration(
         apiUrl = "${authServerUrl}admin/realms/$TEST_REALM",
-        clientId = TEST_CLIENT,
+        clientId = clientId,
         accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
-        apiUser = TEST_REALM_ADMIN_USERNAME,
+        apiUser = user,
         apiSecret = secret
     )
 
@@ -120,7 +125,7 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
             "keycloak.apiUrl" to config.apiUrl,
             "keycloak.clientId" to config.clientId,
             "keycloak.accessTokenUrl" to config.accessTokenUrl,
-            "keycloak.apiUser" to config.apiUser,
+            "keycloak.apiUser" to config.apiUser.orEmpty(),
             "keycloak.apiSecret" to config.apiSecret
         )
     }

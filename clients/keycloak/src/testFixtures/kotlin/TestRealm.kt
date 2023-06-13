@@ -50,9 +50,22 @@ val testRealmAdmin = User(
 )
 
 /**
- * A test [realm configuration][RealmRepresentation] that creates a [realm][TEST_REALM] with a [client][TEST_CLIENT] and
- * an [admin user][testRealmAdmin]]. The [KeycloakClient] can be configured to authenticate to this realm using
- * [TEST_REALM_ADMIN_USERNAME] and [TEST_REALM_ADMIN_PASSWORD].
+ * Name of a test client that is confidential. Interaction with this client needs to be done using the grant type
+ * "client credentials".
+ */
+const val TEST_CONFIDENTIAL_CLIENT = "test-confidential-client"
+
+/** A secret used by the confidential test client. */
+const val TEST_CLIENT_SECRET = "abcdefghijklmnopqrstuvwxyz"
+
+/**
+ * A test [realm configuration][RealmRepresentation] that creates a [realm][TEST_REALM] with two clients that can be
+ * used to access it:
+ * - [TEST_CLIENT] is a client supporting the direct access grant flow for an [admin user][testRealmAdmin]].
+ *   The [KeycloakClient] can be configured to authenticate to this client using [TEST_REALM_ADMIN_USERNAME] and
+ *   [TEST_REALM_ADMIN_PASSWORD].
+ * - [TEST_CONFIDENTIAL_CLIENT] is a confidential client that supports the client credentials flow with
+ *   [TEST_CLIENT_SECRET] as secret. Note: In order to use it, it must be assigned corresponding client roles.
  */
 val testRealm = RealmRepresentation().apply {
     realm = TEST_REALM
@@ -64,6 +77,13 @@ val testRealm = RealmRepresentation().apply {
             isEnabled = true
             isPublicClient = true
             isDirectAccessGrantsEnabled = true
+        },
+        ClientRepresentation().apply {
+            id = TEST_CONFIDENTIAL_CLIENT
+            isEnabled = true
+            isPublicClient = false
+            isServiceAccountsEnabled = true
+            secret = TEST_CLIENT_SECRET
         }
     )
 

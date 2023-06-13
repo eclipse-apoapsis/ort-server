@@ -19,10 +19,18 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak
 
+/**
+ * A data class representing the configuration of the Keycloak client.
+ *
+ * The major part of the properties defined here determine the way to obtain access tokens. There are two options:
+ * - If an [apiUser] is specified, the grant type "password" is used assuming a public client.
+ * - If [apiUser] is *null* or empty, tokens are obtained via the grant type "client credentials". Then the [apiSecret]
+ *   is interpreted as the secret of a confidential client.
+ */
 data class KeycloakClientConfiguration(
     val apiUrl: String,
     val clientId: String,
     val accessTokenUrl: String,
-    val apiUser: String,
+    val apiUser: String?,
     val apiSecret: String
 )

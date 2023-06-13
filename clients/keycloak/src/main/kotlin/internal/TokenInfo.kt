@@ -28,5 +28,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class TokenInfo(
     @SerialName("access_token") val accessToken: String,
-    @SerialName("refresh_token") val refreshToken: String
-)
+    @SerialName("refresh_token") val refreshTokenRaw: String? = null
+) {
+    /**
+     * Return a refresh token that is not *null*. For some grant types, Keycloak does not support refresh tokens.
+     */
+    val refreshToken: String
+        get() = refreshTokenRaw.orEmpty()
+}

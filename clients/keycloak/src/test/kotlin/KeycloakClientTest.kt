@@ -30,20 +30,28 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
 import io.ktor.http.HttpStatusCode
 
 import kotlinx.serialization.json.Json
 
+import org.keycloak.admin.client.Keycloak
+
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT_SECRET
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CONFIDENTIAL_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
 
 class KeycloakClientTest : WordSpec() {
     // For performance reasons the test realm is created only once per spec. Therefore, all tests that modify data must
     // not modify the predefined test data and clean up after themselves to ensure that tests are isolated.
-    private val keycloak = install(KeycloakTestExtension(clientTestRealm))
+    private val keycloak = install(KeycloakTestExtension(clientTestRealm)) {
+        setUpConfidentialClientRoles()
+    }
 
     init {
         val client = keycloak.createTestClient()
@@ -59,6 +67,20 @@ class KeycloakClientTest : WordSpec() {
                 }
 
                 exception.message shouldStartWith "Failed to load roles"
+            }
+
+            "support the client credentials grant type" {
+                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
+                    secret = TEST_CLIENT_SECRET,
+                    user = null,
+                    clientId = TEST_CONFIDENTIAL_CLIENT
+                )
+                val confidentialClient = KeycloakClient.create(config, createJson())
+
+                // Test an arbitrary API call
+                val groups = confidentialClient.getGroups()
+
+                groups shouldNot beEmpty()
             }
         }
 
@@ -562,4 +584,21 @@ private fun KeycloakContainer.createTestClient(): KeycloakClient =
  */
 private fun createJson(): Json = Json {
     ignoreUnknownKeys = true
+}
+
+/**
+ * Configure the role assignments for the confidential test client. The client is granted all roles supported by the
+ * realm-management client; so it can be used in the same way as the client backed by the admin user.
+ */
+private fun Keycloak.setUpConfidentialClientRoles() {
+    val realm = realm(TEST_REALM)
+    val realmManagementClient = realm.clients().findByClientId("realm-management").single()
+
+    val serviceAccount = realm.users().search("service-account-$TEST_CONFIDENTIAL_CLIENT", true).single()
+    val serviceAccountResource = realm.users().get(serviceAccount.id)
+
+    val clientRoles = serviceAccountResource.roles().clientLevel(realmManagementClient.id)
+    val availableRoles = clientRoles.listAvailable()
+
+    clientRoles.add(availableRoles)
 }

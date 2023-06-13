@@ -42,15 +42,14 @@ internal fun Collection<Group>.findByName(name: GroupName): Group? {
 internal suspend fun HttpClient.generateAccessToken(
     tokenUrl: String,
     clientId: String,
-    username: String,
+    username: String?,
     password: String
 ) = submitForm(
     url = tokenUrl,
-    formParameters = Parameters.build {
-        append("client_id", clientId)
-        append("grant_type", "password")
-        append("username", username)
-        append("password", password)
+    formParameters = if (username.isNullOrEmpty()) {
+        createClientCredentialsParameters(clientId, password)
+    } else {
+        createPasswordParameters(clientId, username, password)
     }
 )
 
@@ -63,3 +62,18 @@ internal suspend fun HttpClient.refreshToken(tokenUrl: String, clientId: String,
             append("refresh_token", refreshToken)
         }
     )
+
+private fun createPasswordParameters(clientId: String, username: String, password: String): Parameters =
+    Parameters.build {
+        append("grant_type", "password")
+        append("client_id", clientId)
+        append("username", username)
+        append("password", password)
+    }
+
+private fun createClientCredentialsParameters(clientId: String, clientSecret: String): Parameters =
+    Parameters.build {
+        append("grant_type", "client_credentials")
+        append("client_id", clientId)
+        append("client_secret", clientSecret)
+    }
