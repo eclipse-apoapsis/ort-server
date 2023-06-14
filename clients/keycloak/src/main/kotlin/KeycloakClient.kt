@@ -71,7 +71,7 @@ class KeycloakClient(
         fun create(config: KeycloakClientConfiguration, json: Json): KeycloakClient {
             val httpClient = createHttpClient(config, json)
 
-            return KeycloakClient(httpClient, config.apiUrl, config.clientId)
+            return KeycloakClient(httpClient, config.apiUrl, config.subjectClientId)
         }
 
         private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =

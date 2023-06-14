@@ -23,6 +23,7 @@ import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RolesRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.toGroupRepresentation
 import org.ossreviewtoolkit.server.clients.keycloak.test.toRoleRepresentation
@@ -101,11 +102,13 @@ val clientTestRealm = RealmRepresentation().apply {
     roles = RolesRepresentation().apply {
         client = mapOf(
             TEST_CLIENT to listOf(
-                visitorRole.toRoleRepresentation(
-                    compositeClientRoles = mapOf(TEST_CLIENT to listOf(compositeRole.name))
-                ),
-                compositeRole.toRoleRepresentation(),
                 adminRole.toRoleRepresentation()
+            ),
+            TEST_SUBJECT_CLIENT to listOf(
+                visitorRole.toRoleRepresentation(
+                    compositeClientRoles = mapOf(TEST_SUBJECT_CLIENT to listOf(compositeRole.name))
+                ),
+                compositeRole.toRoleRepresentation()
             )
         )
     }
@@ -115,7 +118,7 @@ val clientTestRealm = RealmRepresentation().apply {
             clientRoles = mapOf(TEST_CLIENT to listOf(adminRole.name))
         ),
         visitorUser.toUserRepresentation(
-            clientRoles = mapOf(TEST_CLIENT to listOf(visitorRole.name))
+            clientRoles = mapOf(TEST_SUBJECT_CLIENT to listOf(visitorRole.name))
         )
     )
 
@@ -124,7 +127,7 @@ val clientTestRealm = RealmRepresentation().apply {
             clientRoles = mapOf(TEST_CLIENT to listOf(adminRole.name))
         ),
         groupOrgB.toGroupRepresentation(
-            clientRoles = mapOf(TEST_CLIENT to listOf(visitorRole.name))
+            clientRoles = mapOf(TEST_SUBJECT_CLIENT to listOf(visitorRole.name))
         ),
         groupOrgC.toGroupRepresentation()
     )

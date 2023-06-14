@@ -32,5 +32,11 @@ data class KeycloakClientConfiguration(
     val clientId: String,
     val accessTokenUrl: String,
     val apiUser: String?,
-    val apiSecret: String
+    val apiSecret: String,
+
+    /**
+     * The (external) ID of the client to be manipulated by the Keycloak client. The roles of this client will be
+     * updated.
+     */
+    val subjectClientId: String
 )

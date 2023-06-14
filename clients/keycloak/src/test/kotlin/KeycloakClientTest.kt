@@ -188,8 +188,7 @@ class KeycloakClientTest : WordSpec() {
 
         "getGroupClientRoles" should {
             "return the correct client roles" {
-                client.getGroupClientRoles(groupOrgA.id) shouldContainExactlyInAnyOrder
-                        listOf(adminRole)
+                client.getGroupClientRoles(groupOrgA.id) should beEmpty()
                 client.getGroupClientRoles(groupOrgB.id) shouldContainExactlyInAnyOrder
                         listOf(visitorRole, compositeRole)
             }
@@ -207,10 +206,10 @@ class KeycloakClientTest : WordSpec() {
                 client.createGroup(groupName)
                 val group = client.getGroup(groupName)
 
-                val response = client.addGroupClientRole(group.id, adminRole)
+                val response = client.addGroupClientRole(group.id, visitorRole)
 
                 response.status shouldBe HttpStatusCode.NoContent
-                client.getGroupClientRoles(group.id) shouldContainExactlyInAnyOrder listOf(adminRole)
+                client.getGroupClientRoles(group.id) shouldContainExactlyInAnyOrder listOf(visitorRole, compositeRole)
 
                 client.deleteGroup(group.id)
             }
@@ -234,8 +233,8 @@ class KeycloakClientTest : WordSpec() {
                 client.createGroup(groupName)
                 val group = client.getGroup(groupName)
 
-                client.addGroupClientRole(group.id, adminRole).status shouldBe HttpStatusCode.NoContent
-                val response = client.removeGroupClientRole(group.id, adminRole)
+                client.addGroupClientRole(group.id, visitorRole).status shouldBe HttpStatusCode.NoContent
+                val response = client.removeGroupClientRole(group.id, visitorRole)
 
                 response.status shouldBe HttpStatusCode.NoContent
                 client.getGroupClientRoles(group.id) should beEmpty()
@@ -260,15 +259,15 @@ class KeycloakClientTest : WordSpec() {
             "return the correct client roles" {
                 val roles = client.getRoles()
 
-                roles shouldContainExactlyInAnyOrder listOf(adminRole, visitorRole, compositeRole)
+                roles shouldContainExactlyInAnyOrder listOf(visitorRole, compositeRole)
             }
         }
 
         "getRole by name" should {
             "return the correct client role" {
-                val role = client.getRole(adminRole.name)
+                val role = client.getRole(visitorRole.name)
 
-                role shouldBe adminRole
+                role shouldBe visitorRole
             }
 
             "throw an exception if the role does not exist" {
@@ -294,7 +293,7 @@ class KeycloakClientTest : WordSpec() {
 
             "throw an exception if a role with the name already exists" {
                 shouldThrow<KeycloakClientException> {
-                    client.createRole(RoleName("ADMIN"))
+                    client.createRole(RoleName("VISITOR"))
                 }
             }
         }
@@ -398,7 +397,7 @@ class KeycloakClientTest : WordSpec() {
 
         "getCompositeRoles" should {
             "return the correct composite roles" {
-                client.getCompositeRoles(adminRole.name) should beEmpty()
+                client.getCompositeRoles(compositeRole.name) should beEmpty()
                 client.getCompositeRoles(visitorRole.name) shouldContainExactly listOf(compositeRole)
             }
         }
@@ -558,8 +557,7 @@ class KeycloakClientTest : WordSpec() {
 
         "getUserClientRoles" should {
             "return the correct client roles" {
-                client.getUserClientRoles(adminUser.id) shouldContainExactlyInAnyOrder
-                        listOf(adminRole)
+                client.getUserClientRoles(adminUser.id) should beEmpty()
                 client.getUserClientRoles(visitorUser.id) shouldContainExactlyInAnyOrder
                         listOf(visitorRole, compositeRole)
             }

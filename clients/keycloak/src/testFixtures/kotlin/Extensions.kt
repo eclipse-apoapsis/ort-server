@@ -112,7 +112,8 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
         clientId = clientId,
         accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
         apiUser = user,
-        apiSecret = secret
+        apiSecret = secret,
+        subjectClientId = TEST_SUBJECT_CLIENT
     )
 
 /**
@@ -126,7 +127,8 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
             "keycloak.clientId" to config.clientId,
             "keycloak.accessTokenUrl" to config.accessTokenUrl,
             "keycloak.apiUser" to config.apiUser.orEmpty(),
-            "keycloak.apiSecret" to config.apiSecret
+            "keycloak.apiSecret" to config.apiSecret,
+            "keycloak.subjectClientId" to config.subjectClientId
         )
     }
 

@@ -56,7 +56,8 @@ fun ApplicationConfig.createKeycloakClientConfiguration() =
             clientId = property("clientId").getString(),
             accessTokenUrl = property("accessTokenUrl").getString(),
             apiUser = property("apiUser").getString(),
-            apiSecret = property("apiSecret").getString()
+            apiSecret = property("apiSecret").getString(),
+            subjectClientId = property("subjectClientId").getString()
         )
     }
 
