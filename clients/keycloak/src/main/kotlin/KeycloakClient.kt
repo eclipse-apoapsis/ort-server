@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.clients.keycloak
 
-import io.ktor.client.statement.HttpResponse
-
 /**
  * A client implementing interactions with Keycloak, based on the documentation from
  * https://www.keycloak.org/docs-api/19.0/rest-api/index.html.
@@ -45,17 +43,17 @@ interface KeycloakClient {
     /**
      * Add a new [group][Group] to the Keycloak realm with the given [name].
      */
-    suspend fun createGroup(name: GroupName): HttpResponse
+    suspend fun createGroup(name: GroupName)
 
     /**
      * Update the [group][Group] with the given [id], with the new [name] in the Keycloak realm.
      */
-    suspend fun updateGroup(id: GroupId, name: GroupName): HttpResponse
+    suspend fun updateGroup(id: GroupId, name: GroupName)
 
     /**
      * Delete the [group][Group] within the Keycloak realm with the given [id].
      */
-    suspend fun deleteGroup(id: GroupId): HttpResponse
+    suspend fun deleteGroup(id: GroupId)
 
     /**
      * Get all client [roles][Role] for the [group][Group] with the given [id].
@@ -65,12 +63,12 @@ interface KeycloakClient {
     /**
      * Add a [role] to the [group][Group] with the given [id].
      */
-    suspend fun addGroupClientRole(id: GroupId, role: Role): HttpResponse
+    suspend fun addGroupClientRole(id: GroupId, role: Role)
 
     /**
      * Remove a [role] from the [group][Group] with the given [id].
      */
-    suspend fun removeGroupClientRole(id: GroupId, role: Role): HttpResponse
+    suspend fun removeGroupClientRole(id: GroupId, role: Role)
 
     /**
      * Return a set of all [roles][Role] that are currently defined for the configured client.
@@ -85,23 +83,23 @@ interface KeycloakClient {
     /**
      * Add a new [role][Role] to the configured client with the given [name] and [description].
      */
-    suspend fun createRole(name: RoleName, description: String? = null): HttpResponse
+    suspend fun createRole(name: RoleName, description: String? = null)
 
     /**
      * Update the [role][Role] within the configured client with the new [updatedName] and
      * [updatedDescription].
      */
-    suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?): HttpResponse
+    suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?)
 
     /**
      * Delete the [role][Role] within the configured client with the given [name].
      */
-    suspend fun deleteRole(name: RoleName): HttpResponse
+    suspend fun deleteRole(name: RoleName)
 
     /**
      * Add the role identified by [compositeRoleId] to the composites of the role identified by [name].
      */
-    suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse
+    suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId)
 
     /**
      * Get all composite roles of the [role][Role] with the given [name].
@@ -111,7 +109,7 @@ interface KeycloakClient {
     /**
      * Remove the role identified by [compositeRoleId] from the composites of the role identified by [name].
      */
-    suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse
+    suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId)
 
     /**
      * Return a set of all [users][User], which currently exist in the Keycloak realm.
@@ -136,7 +134,7 @@ interface KeycloakClient {
         firstName: String? = null,
         lastName: String? = null,
         email: String? = null
-    ): HttpResponse
+    )
 
     /**
      * Update the [user][User] with the given [id] within the Keycloak realm with the new [username], [firstName],
@@ -148,12 +146,12 @@ interface KeycloakClient {
         firstName: String? = null,
         lastName: String? = null,
         email: String? = null
-    ): HttpResponse
+    )
 
     /**
      * Delete the [user][User] with the given [id] from the Keycloak realm.
      */
-    suspend fun deleteUser(id: UserId): HttpResponse
+    suspend fun deleteUser(id: UserId)
 
     /**
      * Get all client [roles][Role] for the [user][User] with the given [id].

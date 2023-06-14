@@ -31,7 +31,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 
@@ -176,24 +175,27 @@ class DefaultKeycloakClient(
         }.body<List<Group>>().findByName(name).takeIf { it != null }
             ?: throw KeycloakClientException("Could not find group with name '${name.value}'.")
 
-    override suspend fun createGroup(name: GroupName): HttpResponse =
+    override suspend fun createGroup(name: GroupName) {
         runCatching {
             httpClient.post("$apiUrl/groups") {
                 setBody(GroupRequest(name))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create group '${name.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to create group '${name.value}'.", it) }
+    }
 
-    override suspend fun updateGroup(id: GroupId, name: GroupName): HttpResponse =
+    override suspend fun updateGroup(id: GroupId, name: GroupName) {
         runCatching {
             httpClient.put("$apiUrl/groups/${id.value}") {
                 setBody(GroupRequest(name))
             }
         }.getOrElse { throw KeycloakClientException("Failed to update group '${id.value}'.", it) }
+    }
 
-    override suspend fun deleteGroup(id: GroupId): HttpResponse =
+    override suspend fun deleteGroup(id: GroupId) {
         runCatching {
             httpClient.delete("$apiUrl/groups/${id.value}")
         }.getOrElse { throw KeycloakClientException("Failed to delete group '${id.value}'.", it) }
+    }
 
     override suspend fun getGroupClientRoles(id: GroupId): Set<Role> =
         runCatching {
@@ -202,23 +204,25 @@ class DefaultKeycloakClient(
             throw KeycloakClientException("Failed to load client roles for group '${id.value}'.", it)
         }.body()
 
-    override suspend fun addGroupClientRole(id: GroupId, role: Role): HttpResponse =
+    override suspend fun addGroupClientRole(id: GroupId, role: Role) {
         runCatching {
             httpClient.post("$apiUrl/groups/${id.value}/role-mappings/clients/${getClientId()}") {
                 setBody(listOf(role))
             }
-        }.getOrElse {
+        }.onFailure {
             throw KeycloakClientException("Failed to add role '${role.name.value}' to group '${id.value}'.", it)
-        }.body()
+        }
+    }
 
-    override suspend fun removeGroupClientRole(id: GroupId, role: Role): HttpResponse =
+    override suspend fun removeGroupClientRole(id: GroupId, role: Role) {
         runCatching {
             httpClient.delete("$apiUrl/groups/${id.value}/role-mappings/clients/${getClientId()}") {
                 setBody(listOf(role))
             }
-        }.getOrElse {
+        }.onFailure {
             throw KeycloakClientException("Failed to remove role '${role.name.value}' from group '${id.value}'.", it)
-        }.body()
+        }
+    }
 
     override suspend fun getRoles(): Set<Role> =
         runCatching {
@@ -234,41 +238,44 @@ class DefaultKeycloakClient(
             throw KeycloakClientException("Could not find role '${name.value}'.", it)
         }.body()
 
-    override suspend fun createRole(name: RoleName, description: String?): HttpResponse =
+    override suspend fun createRole(name: RoleName, description: String?) {
         runCatching {
             httpClient.post("$apiUrl/clients/${getClientId()}/roles") {
                 setBody(RoleRequest(name, description))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create role '${name.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to create role '${name.value}'.", it) }
+    }
 
-    override suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?): HttpResponse {
+    override suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?) {
         val oldRole = getRole(name)
 
         val roleDescription = getUpdatedValue(oldRole.description, updatedDescription)
 
-        return runCatching {
+        runCatching {
             httpClient.put("$apiUrl/clients/${getClientId()}/roles/${name.value}") {
                 setBody(RoleRequest(updatedName, roleDescription))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to update role '${name.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to update role '${name.value}'.", it) }
     }
 
-    override suspend fun deleteRole(name: RoleName): HttpResponse =
+    override suspend fun deleteRole(name: RoleName) {
         runCatching {
             httpClient.delete("$apiUrl/clients/${getClientId()}/roles/${name.value}")
-        }.getOrElse { throw KeycloakClientException("Failed to delete role '${name.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to delete role '${name.value}'.", it) }
+    }
 
-    override suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse =
+    override suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId) {
         runCatching {
             httpClient.post("$apiUrl/clients/${getClientId()}/roles/${name.value}/composites") {
                 setBody(listOf(RoleIdHolder(compositeRoleId)))
             }
-        }.getOrElse {
+        }.onFailure {
             throw KeycloakClientException(
                 "Failed to add composite role with id '${compositeRoleId.value}' to role '${name.value}'.",
                 it
             )
         }
+    }
 
     override suspend fun getCompositeRoles(name: RoleName): List<Role> =
         runCatching {
@@ -277,17 +284,18 @@ class DefaultKeycloakClient(
             throw KeycloakClientException("Failed to find composites for role '${name.value}'.", it)
         }.body()
 
-    override suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId): HttpResponse =
+    override suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId) {
         runCatching {
             httpClient.delete("$apiUrl/clients/${getClientId()}/roles/${name.value}/composites") {
                 setBody(listOf(RoleIdHolder(compositeRoleId)))
             }
-        }.getOrElse {
+        }.onFailure {
             throw KeycloakClientException(
                 "Failed to remove composite role with id '${compositeRoleId.value}' from role '${name.value}'.",
                 it
             )
-        }.body()
+        }
+    }
 
     override suspend fun getUsers(): Set<User> =
         runCatching {
@@ -329,12 +337,13 @@ class DefaultKeycloakClient(
         firstName: String?,
         lastName: String?,
         email: String?
-    ): HttpResponse =
+    ) {
         runCatching {
             httpClient.post("$apiUrl/users") {
                 setBody(UserRequest(username, firstName, lastName, email))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to create user '${username.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to create user '${username.value}'.", it) }
+    }
 
     override suspend fun updateUser(
         id: UserId,
@@ -342,7 +351,7 @@ class DefaultKeycloakClient(
         firstName: String?,
         lastName: String?,
         email: String?
-    ): HttpResponse {
+    ) {
         val oldUser = getUser(id)
 
         val correctUsername = getUpdatedValue(oldUser.username.value, username?.value)?.let { UserName(it) }
@@ -350,17 +359,18 @@ class DefaultKeycloakClient(
         val correctLastName = getUpdatedValue(oldUser.lastName, lastName)
         val correctEmail = getUpdatedValue(oldUser.email, email)
 
-        return runCatching {
+        runCatching {
             httpClient.put("$apiUrl/users/${id.value}") {
                 setBody(UserRequest(correctUsername, correctFirstName, correctLastName, correctEmail))
             }
-        }.getOrElse { throw KeycloakClientException("Failed to update user '${id.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to update user '${id.value}'.", it) }
     }
 
-    override suspend fun deleteUser(id: UserId): HttpResponse =
+    override suspend fun deleteUser(id: UserId) {
         runCatching {
             httpClient.delete("$apiUrl/users/${id.value}")
-        }.getOrElse { throw KeycloakClientException("Failed to delete user '${id.value}'.", it) }
+        }.onFailure { throw KeycloakClientException("Failed to delete user '${id.value}'.", it) }
+    }
 
     override suspend fun getUserClientRoles(id: UserId): Set<Role> =
         runCatching {

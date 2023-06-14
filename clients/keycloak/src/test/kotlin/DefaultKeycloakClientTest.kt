@@ -33,8 +33,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
-import io.ktor.http.HttpStatusCode
-
 import kotlinx.serialization.json.Json
 
 import org.keycloak.admin.client.Keycloak
@@ -121,10 +119,9 @@ class DefaultKeycloakClientTest : WordSpec() {
 
         "createGroup" should {
             "successfully add a new realm group" {
-                val response = client.createGroup(GroupName("TEST_GROUP"))
+                client.createGroup(GroupName("TEST_GROUP"))
                 val group = client.getGroup(GroupName("TEST_GROUP"))
 
-                response.status shouldBe HttpStatusCode.Created
                 group.name shouldBe GroupName("TEST_GROUP")
 
                 client.deleteGroup(group.id)
@@ -143,10 +140,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val group = client.getGroup(GroupName("TEST_GROUP"))
                 val updatedGroup = group.copy(name = GroupName("UPDATED_TEST_GROUP"))
 
-                val response = client.updateGroup(group.id, updatedGroup.name)
+                client.updateGroup(group.id, updatedGroup.name)
                 val updatedKeycloakGroup = client.getGroup(GroupName("UPDATED_TEST_GROUP"))
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakGroup shouldBe updatedGroup
 
                 client.deleteGroup(updatedGroup.id)
@@ -170,9 +166,7 @@ class DefaultKeycloakClientTest : WordSpec() {
                 client.createGroup(GroupName("TEST_GROUP"))
                 val group = client.getGroup(GroupName("TEST_GROUP"))
 
-                val response = client.deleteGroup(group.id)
-
-                response.status shouldBe HttpStatusCode.NoContent
+                client.deleteGroup(group.id)
 
                 shouldThrow<KeycloakClientException> {
                     client.getGroup(GroupName("TEST_GROUP"))
@@ -206,9 +200,8 @@ class DefaultKeycloakClientTest : WordSpec() {
                 client.createGroup(groupName)
                 val group = client.getGroup(groupName)
 
-                val response = client.addGroupClientRole(group.id, visitorRole)
+                client.addGroupClientRole(group.id, visitorRole)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 client.getGroupClientRoles(group.id) shouldContainExactlyInAnyOrder listOf(visitorRole, compositeRole)
 
                 client.deleteGroup(group.id)
@@ -233,10 +226,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 client.createGroup(groupName)
                 val group = client.getGroup(groupName)
 
-                client.addGroupClientRole(group.id, visitorRole).status shouldBe HttpStatusCode.NoContent
-                val response = client.removeGroupClientRole(group.id, visitorRole)
+                client.addGroupClientRole(group.id, visitorRole)
+                client.removeGroupClientRole(group.id, visitorRole)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 client.getGroupClientRoles(group.id) should beEmpty()
 
                 client.deleteGroup(group.id)
@@ -279,10 +271,9 @@ class DefaultKeycloakClientTest : WordSpec() {
 
         "createRole" should {
             "successfully add a new client role" {
-                val response = client.createRole(RoleName("TEST_ROLE"), "DESCRIPTION")
+                client.createRole(RoleName("TEST_ROLE"), "DESCRIPTION")
                 val role = client.getRole(RoleName("TEST_ROLE"))
 
-                response.status shouldBe HttpStatusCode.Created
                 with(role) {
                     name shouldBe RoleName("TEST_ROLE")
                     description shouldBe "DESCRIPTION"
@@ -304,10 +295,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val role = client.getRole(RoleName("TEST_ROLE"))
 
                 val updatedRole = role.copy(name = RoleName("UPDATED_ROLE"))
-                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
+                client.updateRole(role.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
 
                 client.deleteRole(updatedRole.name)
@@ -318,10 +308,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val role = client.getRole(RoleName("TEST_ROLE"))
 
                 val updatedRole = role.copy(description = "UPDATED_DESCRIPTION")
-                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
+                client.updateRole(role.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
 
                 client.deleteRole(role.name)
@@ -332,10 +321,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val role = client.getRole(RoleName("TEST_ROLE"))
 
                 val updatedRole = role.copy(name = RoleName("UPDATED_ROLE"), description = "UPDATED_DESCRIPTION")
-                val response = client.updateRole(role.name, updatedRole.name, updatedRole.description)
+                client.updateRole(role.name, updatedRole.name, updatedRole.description)
                 val updatedKeycloakRole = client.getRole(updatedRole.name)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakRole shouldBe updatedRole
 
                 client.deleteRole(updatedRole.name)
@@ -353,9 +341,7 @@ class DefaultKeycloakClientTest : WordSpec() {
                 client.createRole(RoleName("TEST_ROLE"), "DESCRIPTION")
                 val role = client.getRole(RoleName("TEST_ROLE"))
 
-                val response = client.deleteRole(role.name)
-
-                response.status shouldBe HttpStatusCode.NoContent
+                client.deleteRole(role.name)
 
                 shouldThrow<KeycloakClientException> {
                     client.getRole(role.name)
@@ -465,10 +451,8 @@ class DefaultKeycloakClientTest : WordSpec() {
 
         "createUser" should {
             "successfully add a new realm user" {
-                val response = client.createUser(UserName("test_user"))
+                client.createUser(UserName("test_user"))
                 val user = client.getUser(UserName("test_user"))
-
-                response.status shouldBe HttpStatusCode.Created
 
                 user.username shouldBe UserName("test_user")
 
@@ -488,10 +472,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val user = client.getUser(UserName("test_user"))
 
                 val updatedUser = user.copy(firstName = "updatedFirstName")
-                val response = client.updateUser(id = user.id, firstName = updatedUser.firstName)
+                client.updateUser(id = user.id, firstName = updatedUser.firstName)
                 val updatedKeycloakUser = client.getUser(user.id)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
 
                 client.deleteUser(user.id)
@@ -511,7 +494,7 @@ class DefaultKeycloakClientTest : WordSpec() {
                     lastName = "updatedLastName",
                     email = "updated_email@example.com"
                 )
-                val response = client.updateUser(
+                client.updateUser(
                     user.id,
                     updatedUser.username,
                     updatedUser.firstName,
@@ -521,7 +504,6 @@ class DefaultKeycloakClientTest : WordSpec() {
 
                 val updatedKeycloakUser = client.getUser(user.id)
 
-                response.status shouldBe HttpStatusCode.NoContent
                 updatedKeycloakUser shouldBe updatedUser
 
                 client.deleteUser(user.id)
@@ -539,9 +521,7 @@ class DefaultKeycloakClientTest : WordSpec() {
                 client.createUser(UserName("test_user"))
                 val user = client.getUser(UserName("test_user"))
 
-                val response = client.deleteUser(user.id)
-
-                response.status shouldBe HttpStatusCode.NoContent
+                client.deleteUser(user.id)
 
                 shouldThrow<KeycloakClientException> {
                     client.getUser(user.id)

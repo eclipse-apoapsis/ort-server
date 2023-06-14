@@ -32,11 +32,10 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(libs.ktorClientCore)
-
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientCore)
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
