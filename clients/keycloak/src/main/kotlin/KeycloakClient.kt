@@ -196,18 +196,6 @@ class KeycloakClient(
         }.getOrElse { throw KeycloakClientException("Failed to create group '${name.value}'.", it) }
 
     /**
-     * Add a new [subgroup][Group] with the given [name] to the [group][Group] with the given [id].
-     */
-    suspend fun createSubGroup(id: GroupId, name: GroupName): Group =
-        runCatching {
-            httpClient.post("$apiUrl/groups/${id.value}/children") {
-                setBody(GroupRequest(name))
-            }
-        }.getOrElse {
-            throw KeycloakClientException("Failed to add subgroup '${name.value}' to the group '${id.value}'.", it)
-        }.body()
-
-    /**
      * Update the [group][Group] with the given [id], with the new [name] in the Keycloak realm.
      */
     suspend fun updateGroup(id: GroupId, name: GroupName): HttpResponse =
