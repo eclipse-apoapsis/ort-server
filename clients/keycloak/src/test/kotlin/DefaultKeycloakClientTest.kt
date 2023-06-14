@@ -46,7 +46,7 @@ import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
 
-class KeycloakClientTest : WordSpec() {
+class DefaultKeycloakClientTest : WordSpec() {
     // For performance reasons the test realm is created only once per spec. Therefore, all tests that modify data must
     // not modify the predefined test data and clean up after themselves to ensure that tests are isolated.
     private val keycloak = install(KeycloakTestExtension(clientTestRealm)) {
@@ -60,7 +60,7 @@ class KeycloakClientTest : WordSpec() {
             "not throw any instantiation exception" {
                 val incorrectConfig = keycloak.createKeycloakClientConfigurationForTestRealm("falseSecret")
 
-                val invalidClient = KeycloakClient.create(incorrectConfig, createJson())
+                val invalidClient = DefaultKeycloakClient.create(incorrectConfig, createJson())
 
                 val exception = shouldThrow<KeycloakClientException> {
                     invalidClient.getRoles()
@@ -75,7 +75,7 @@ class KeycloakClientTest : WordSpec() {
                     user = null,
                     clientId = TEST_CONFIDENTIAL_CLIENT
                 )
-                val confidentialClient = KeycloakClient.create(config, createJson())
+                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
 
                 // Test an arbitrary API call
                 val groups = confidentialClient.getGroups()
@@ -575,7 +575,7 @@ class KeycloakClientTest : WordSpec() {
  * Create a test client instance that is configured to access the Keycloak instance managed by this container.
  */
 private fun KeycloakContainer.createTestClient(): KeycloakClient =
-    KeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), createJson())
+    DefaultKeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), createJson())
 
 /**
  * Create the [Json] instance required by the test client.

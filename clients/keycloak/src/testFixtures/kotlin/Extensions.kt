@@ -28,6 +28,7 @@ import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
+import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.Group
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
@@ -136,4 +137,4 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
  * Create a [KeycloakClient] for the [testRealm] and this [KeycloakContainer].
  */
 fun KeycloakContainer.createKeycloakClientForTestRealm() =
-    KeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), Json { ignoreUnknownKeys = true })
+    DefaultKeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), Json { ignoreUnknownKeys = true })

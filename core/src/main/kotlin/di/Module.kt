@@ -29,6 +29,7 @@ import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
 import org.ossreviewtoolkit.server.core.services.OrchestratorService
@@ -78,7 +79,9 @@ fun ortServerModule(config: ApplicationConfig) = module {
         }
     }
 
-    single { KeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get()) }
+    single<KeycloakClient> {
+        DefaultKeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get())
+    }
 
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
     single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
