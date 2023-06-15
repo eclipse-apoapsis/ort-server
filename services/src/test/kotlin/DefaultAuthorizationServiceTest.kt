@@ -21,19 +21,20 @@ package org.ossreviewtoolkit.server.services
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.contain
+import io.kotest.matchers.collections.containAll
+import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.clients.keycloak.Group
-import org.ossreviewtoolkit.server.clients.keycloak.GroupId
-import org.ossreviewtoolkit.server.clients.keycloak.GroupName
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.Role
-import org.ossreviewtoolkit.server.clients.keycloak.RoleId
 import org.ossreviewtoolkit.server.clients.keycloak.RoleName
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestClient
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.Product
@@ -56,322 +57,227 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "createOrganizationPermissions" should {
         "create the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
             service.createOrganizationPermissions(organizationId)
 
-            coVerify(exactly = 1) {
-                OrganizationPermission.getRolesForOrganization(organizationId).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containExactlyInAnyOrder(OrganizationPermission.getRolesForOrganization(organizationId))
         }
     }
 
     "deleteOrganizationPermissions" should {
         "delete the correct Keycloak permissions" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            service.createOrganizationPermissions(organizationId)
 
             service.deleteOrganizationPermissions(organizationId)
 
-            coVerify(exactly = 1) {
-                OrganizationPermission.getRolesForOrganization(organizationId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles() should beEmpty()
         }
     }
 
     "createOrganizationRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { createRole(any(), any()) } returns mockk()
-            coEvery { getRole(any()) } answers {
-                Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
-            }
-            coEvery { addCompositeRole(any(), any()) } returns mockk()
-            coEvery { createGroup(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { addGroupClientRole(any(), any()) } returns mockk()
-        }
+        val keycloakClient = KeycloakTestClient()
 
         val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        service.createOrganizationPermissions(organizationId)
 
         service.createOrganizationRoles(organizationId)
 
         "create the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                OrganizationRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(organizationId))
-                    keycloakClient.createRole(roleName, ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(OrganizationRole.getRolesForOrganization(organizationId))
         }
 
         "add the correct permission roles as composites" {
-            coVerify(exactly = 1) {
-                OrganizationRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(organizationId))
-                    role.permissions.forEach {
-                        keycloakClient.addCompositeRole(roleName, RoleId(it.roleName(organizationId)))
-                    }
-                }
+            OrganizationRole.values().forEach { role ->
+                val actualRoles =
+                    keycloakClient.getCompositeRoles(RoleName(role.roleName(organizationId))).map { it.name.value }
+                val expectedRoles = role.permissions.map { it.roleName(organizationId) }
+
+                actualRoles should containExactlyInAnyOrder(expectedRoles)
             }
         }
 
         "create a group for each role" {
-            coVerify(exactly = 1) {
-                OrganizationRole.values().forEach { role ->
-                    val groupName = role.groupName(organizationId)
-                    val roleName = role.roleName(organizationId)
-                    keycloakClient.createGroup(GroupName(groupName))
-                    keycloakClient.addGroupClientRole(
-                        GroupId(groupName),
-                        Role(RoleId(roleName), RoleName(roleName))
-                    )
-                }
-            }
+            keycloakClient.getGroups().map { it.name.value } should
+                    containAll(OrganizationRole.getGroupsForOrganization(organizationId))
         }
     }
 
     "deleteOrganizationRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { deleteRole(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { deleteGroup(any()) } returns mockk()
-        }
+        val keycloakClient = KeycloakTestClient()
 
         val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
 
         service.deleteOrganizationRoles(organizationId)
 
         "delete the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                OrganizationRole.getRolesForOrganization(organizationId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot
+                    containAnyOf(OrganizationRole.getRolesForOrganization(organizationId))
         }
 
-        "delete the Keycloak group" {
-            coVerify(exactly = 1) {
-                OrganizationRole.values().forEach { role ->
-                    keycloakClient.deleteGroup(GroupId(role.groupName(organizationId)))
-                }
-            }
+        "delete the Keycloak groups" {
+            keycloakClient.getGroups().map { it.name.value } shouldNot
+                    containAnyOf(OrganizationRole.getGroupsForOrganization(organizationId))
         }
     }
 
     "createProductPermissions" should {
         "create the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
             service.createProductPermissions(productId)
 
-            coVerify(exactly = 1) {
-                ProductPermission.getRolesForProduct(productId).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containExactlyInAnyOrder(ProductPermission.getRolesForProduct(productId))
         }
     }
 
     "deleteProductPermissions" should {
         "delete the correct Keycloak permissions" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            service.createProductPermissions(productId)
 
             service.deleteProductPermissions(productId)
 
-            coVerify(exactly = 1) {
-                ProductPermission.getRolesForProduct(productId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles() should beEmpty()
         }
     }
 
     "createProductRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { createRole(any(), any()) } returns mockk()
-            coEvery { getRole(any()) } answers {
-                Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
-            }
-            coEvery { addCompositeRole(any(), any()) } returns mockk()
-            coEvery { createGroup(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { addGroupClientRole(any(), any()) } returns mockk()
-        }
+        val keycloakClient = KeycloakTestClient()
 
         val organizationRepository = mockk<OrganizationRepository> {
-            every { this@mockk.get(any()) } returns Organization(id = organizationId, name = "organization")
+            every { this@mockk.get(organizationId) } returns Organization(id = organizationId, name = "organization")
         }
 
         val productRepository = mockk<ProductRepository> {
-            every { this@mockk.get(any()) } returns
+            every { this@mockk.get(productId) } returns
                     Product(id = productId, organizationId = organizationId, name = "product")
         }
 
         val service =
             DefaultAuthorizationService(keycloakClient, mockk(), organizationRepository, productRepository, mockk())
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
 
         service.createProductRoles(productId)
 
         "create the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                ProductRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(productId))
-                    keycloakClient.createRole(roleName, ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(ProductRole.getRolesForProduct(productId))
         }
 
         "add the correct permission roles as composites" {
-            coVerify(exactly = 1) {
-                ProductRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(productId))
-                    role.permissions.forEach {
-                        keycloakClient.addCompositeRole(roleName, RoleId(it.roleName(productId)))
-                    }
-                }
+            ProductRole.values().forEach { role ->
+                val actualRoles =
+                    keycloakClient.getCompositeRoles(RoleName(role.roleName(productId))).map { it.name.value }
+                val expectedRoles = role.permissions.map { it.roleName(productId) }
+
+                actualRoles should containExactlyInAnyOrder(expectedRoles)
             }
         }
 
         "add the roles as composites to the parent roles" {
-            coVerify(exactly = 1) {
-                ProductRole.values().forEach { role ->
-                    OrganizationRole.values().find { it.includedProductRole == role }?.let { orgRole ->
-                        keycloakClient.addCompositeRole(
-                            RoleName(orgRole.roleName(organizationId)),
-                            RoleId(role.roleName(productId))
-                        )
-                    }
+            ProductRole.values().forEach { role ->
+                OrganizationRole.values().find { it.includedProductRole == role }?.let { orgRole ->
+                    keycloakClient.getCompositeRoles(RoleName(orgRole.roleName(organizationId)))
+                        .map { it.name.value } should contain(role.roleName(productId))
                 }
             }
         }
 
         "create a group for each role" {
-            coVerify(exactly = 1) {
-                ProductRole.values().forEach { role ->
-                    val groupName = role.groupName(productId)
-                    val roleName = role.roleName(productId)
-                    keycloakClient.createGroup(GroupName(groupName))
-                    keycloakClient.addGroupClientRole(
-                        GroupId(groupName),
-                        Role(RoleId(roleName), RoleName(roleName))
-                    )
-                }
-            }
+            keycloakClient.getGroups().map { it.name.value } should
+                    containAll(ProductRole.getGroupsForProduct(productId))
         }
     }
 
     "deleteProductRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { deleteRole(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { deleteGroup(any()) } returns mockk()
+        val keycloakClient = KeycloakTestClient()
+
+        val organizationRepository = mockk<OrganizationRepository> {
+            every { this@mockk.get(organizationId) } returns Organization(id = organizationId, name = "organization")
         }
 
-        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val productRepository = mockk<ProductRepository> {
+            every { this@mockk.get(productId) } returns
+                    Product(id = productId, organizationId = organizationId, name = "product")
+        }
+
+        val service =
+            DefaultAuthorizationService(keycloakClient, mockk(), organizationRepository, productRepository, mockk())
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
+        service.createProductRoles(productId)
 
         service.deleteProductRoles(productId)
 
         "delete the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                ProductRole.getRolesForProduct(productId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot
+                    containAnyOf(ProductRole.getRolesForProduct(productId))
         }
 
-        "delete the Keycloak group" {
-            coVerify(exactly = 1) {
-                ProductRole.values().forEach { role ->
-                    keycloakClient.deleteGroup(GroupId(role.groupName(productId)))
-                }
-            }
+        "delete the Keycloak groups" {
+            keycloakClient.getGroups().map { it.name.value } shouldNot
+                    containAnyOf(ProductRole.getGroupsForProduct(productId))
         }
     }
 
     "createRepositoryPermissions" should {
         "create the correct Keycloak roles" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
 
             service.createRepositoryPermissions(repositoryId)
 
-            coVerify(exactly = 1) {
-                RepositoryPermission.getRolesForRepository(repositoryId).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containExactlyInAnyOrder(RepositoryPermission.getRolesForRepository(repositoryId))
         }
     }
 
     "deleteRepositoryPermissions" should {
         "delete the correct Keycloak permissions" {
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { deleteRole(any()) } returns mockk()
-            }
+            val keycloakClient = KeycloakTestClient()
 
             val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            service.createRepositoryPermissions(repositoryId)
 
             service.deleteRepositoryPermissions(repositoryId)
 
-            coVerify(exactly = 1) {
-                RepositoryPermission.getRolesForRepository(repositoryId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles() should beEmpty()
         }
     }
 
     "createRepositoryRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { createRole(any(), any()) } returns mockk()
-            coEvery { getRole(any()) } answers {
-                Role(id = RoleId(firstArg<String>()), name = RoleName(firstArg<String>()))
-            }
-            coEvery { addCompositeRole(any(), any()) } returns mockk()
-            coEvery { createGroup(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { addGroupClientRole(any(), any()) } returns mockk()
+        val keycloakClient = KeycloakTestClient()
+
+        val organizationRepository = mockk<OrganizationRepository> {
+            every { this@mockk.get(organizationId) } returns Organization(id = organizationId, name = "organization")
         }
 
         val productRepository = mockk<ProductRepository> {
-            every { this@mockk.get(any()) } returns
+            every { this@mockk.get(productId) } returns
                     Product(id = productId, organizationId = organizationId, name = "product")
         }
 
         val repositoryRepository = mockk<RepositoryRepository> {
-            every { this@mockk.get(any()) } returns
+            every { this@mockk.get(repositoryId) } returns
                     Repository(
                         id = repositoryId,
                         organizationId = organizationId,
@@ -381,94 +287,106 @@ class DefaultAuthorizationServiceTest : WordSpec({
                     )
         }
 
-        val service =
-            DefaultAuthorizationService(keycloakClient, mockk(), mockk(), productRepository, repositoryRepository)
+        val service = DefaultAuthorizationService(
+            keycloakClient,
+            mockk(),
+            organizationRepository,
+            productRepository,
+            repositoryRepository
+        )
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
+        service.createProductRoles(productId)
+        service.createRepositoryPermissions(repositoryId)
 
         service.createRepositoryRoles(repositoryId)
 
         "create the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                RepositoryRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(repositoryId))
-                    keycloakClient.createRole(roleName, ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(RepositoryRole.getRolesForRepository(repositoryId))
         }
 
         "add the correct permission roles as composites" {
-            coVerify(exactly = 1) {
-                RepositoryRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(repositoryId))
-                    role.permissions.forEach {
-                        keycloakClient.addCompositeRole(roleName, RoleId(it.roleName(repositoryId)))
-                    }
-                }
+            RepositoryRole.values().forEach { role ->
+                val actualRoles =
+                    keycloakClient.getCompositeRoles(RoleName(role.roleName(repositoryId))).map { it.name.value }
+                val expectedRoles = role.permissions.map { it.roleName(repositoryId) }
+
+                actualRoles should containExactlyInAnyOrder(expectedRoles)
             }
         }
 
         "add the roles as composites to the parent roles" {
-            coVerify(exactly = 1) {
-                RepositoryRole.values().forEach { role ->
-                    ProductRole.values().find { it.includedRepositoryRole == role }?.let { productRole ->
-                        keycloakClient.addCompositeRole(
-                            RoleName(productRole.roleName(productId)),
-                            RoleId(role.roleName(repositoryId))
-                        )
-                    }
+            RepositoryRole.values().forEach { role ->
+                ProductRole.values().find { it.includedRepositoryRole == role }?.let { orgRole ->
+                    keycloakClient.getCompositeRoles(RoleName(orgRole.roleName(productId)))
+                        .map { it.name.value } should contain(role.roleName(repositoryId))
                 }
             }
         }
 
         "create a group for each role" {
-            coVerify(exactly = 1) {
-                RepositoryRole.values().forEach { role ->
-                    val groupName = role.groupName(repositoryId)
-                    val roleName = role.roleName(repositoryId)
-                    keycloakClient.createGroup(GroupName(groupName))
-                    keycloakClient.addGroupClientRole(
-                        GroupId(groupName),
-                        Role(RoleId(roleName), RoleName(roleName))
-                    )
-                }
-            }
+            keycloakClient.getGroups().map { it.name.value } should
+                    containAll(RepositoryRole.getGroupsForRepository(repositoryId))
         }
     }
 
     "deleteRepositoryRoles" should {
-        val keycloakClient = mockk<KeycloakClient> {
-            coEvery { deleteRole(any()) } returns mockk()
-            coEvery { getGroup(any<GroupName>()) } answers {
-                Group(id = GroupId(firstArg<String>()), name = GroupName(firstArg<String>()), emptySet())
-            }
-            coEvery { deleteGroup(any()) } returns mockk()
+        val keycloakClient = KeycloakTestClient()
+
+        val organizationRepository = mockk<OrganizationRepository> {
+            every { this@mockk.get(organizationId) } returns Organization(id = organizationId, name = "organization")
         }
 
-        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val productRepository = mockk<ProductRepository> {
+            every { this@mockk.get(productId) } returns
+                    Product(id = productId, organizationId = organizationId, name = "product")
+        }
+
+        val repositoryRepository = mockk<RepositoryRepository> {
+            every { this@mockk.get(repositoryId) } returns
+                    Repository(
+                        id = repositoryId,
+                        organizationId = organizationId,
+                        productId = productId,
+                        type = RepositoryType.GIT,
+                        url = "https://example.com/repo.git"
+                    )
+        }
+
+        val service = DefaultAuthorizationService(
+            keycloakClient,
+            mockk(),
+            organizationRepository,
+            productRepository,
+            repositoryRepository
+        )
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
+        service.createProductRoles(productId)
+        service.createRepositoryPermissions(repositoryId)
+        service.createRepositoryRoles(repositoryId)
 
         service.deleteRepositoryRoles(repositoryId)
 
         "delete the correct Keycloak roles" {
-            coVerify(exactly = 1) {
-                RepositoryRole.getRolesForRepository(repositoryId).forEach {
-                    keycloakClient.deleteRole(RoleName(it))
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot
+                    containAnyOf(RepositoryRole.getRolesForRepository(repositoryId))
         }
 
-        "delete the Keycloak group" {
-            coVerify(exactly = 1) {
-                RepositoryRole.values().forEach { role ->
-                    keycloakClient.deleteGroup(GroupId(role.groupName(repositoryId)))
-                }
-            }
+        "delete the Keycloak groups" {
+            keycloakClient.getGroups().map { it.name.value } shouldNot
+                    containAnyOf(RepositoryRole.getGroupsForRepository(repositoryId))
         }
     }
 
     "synchronizePermissions" should {
         val org = Organization(id = 1L, name = "org")
-        val prod = Product(id = 1L, organizationId = org.id, name = "prod")
+        val prod = Product(id = 2L, organizationId = org.id, name = "prod")
         val repo = Repository(
-            id = 1L,
+            id = 3L,
             organizationId = org.id,
             productId = prod.id,
             type = RepositoryType.GIT,
@@ -498,125 +416,65 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
         "create missing organization roles" {
             val existingRole = OrganizationPermission.READ.roleName(org.id)
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(existingRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(existingRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 0) {
-                keycloakClient.createRole(RoleName(existingRole), any())
-            }
-
-            coVerify(exactly = 1) {
-                (OrganizationPermission.getRolesForOrganization(org.id) - existingRole).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(OrganizationPermission.getRolesForOrganization(organizationId))
         }
 
         "create missing product roles" {
             val existingRole = ProductPermission.READ.roleName(prod.id)
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(existingRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(existingRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 0) {
-                keycloakClient.createRole(RoleName(existingRole), any())
-            }
-
-            coVerify(exactly = 1) {
-                (ProductPermission.getRolesForProduct(prod.id) - existingRole).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(ProductPermission.getRolesForProduct(productId))
         }
 
         "create missing repository roles" {
             val existingRole = RepositoryPermission.READ.roleName(repo.id)
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(existingRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(existingRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 0) {
-                keycloakClient.createRole(RoleName(existingRole), any())
-            }
-
-            coVerify(exactly = 1) {
-                (RepositoryPermission.getRolesForRepository(repo.id) - existingRole).forEach {
-                    keycloakClient.createRole(RoleName(it), ROLE_DESCRIPTION)
-                }
-            }
+            keycloakClient.getRoles().map { it.name.value } should
+                    containAll(RepositoryPermission.getRolesForRepository(repositoryId))
         }
 
         "remove unneeded organization roles" {
             val unneededRole = "${OrganizationPermission.rolePrefix(org.id)}_unneeded"
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { deleteRole(any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(unneededRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 1) {
-                keycloakClient.deleteRole(RoleName(unneededRole))
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
 
         "remove unneeded product roles" {
             val unneededRole = "${ProductPermission.rolePrefix(prod.id)}_unneeded"
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { deleteRole(any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(unneededRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 1) {
-                keycloakClient.deleteRole(RoleName(unneededRole))
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
 
         "remove unneeded repository roles" {
             val unneededRole = "${RepositoryPermission.rolePrefix(repo.id)}_unneeded"
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { createRole(any(), any()) } returns mockk()
-                coEvery { deleteRole(any()) } returns mockk()
-                coEvery { getRoles() } returns setOf(Role(id = RoleId("id"), RoleName(unneededRole)))
-            }
-
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
 
-            coVerify(exactly = 1) {
-                keycloakClient.deleteRole(RoleName(unneededRole))
-            }
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
     }
 })

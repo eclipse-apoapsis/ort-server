@@ -43,5 +43,6 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
+    testImplementation(testFixtures(project(":clients:keycloak")))
     testImplementation(testFixtures(project(":dao")))
 }
