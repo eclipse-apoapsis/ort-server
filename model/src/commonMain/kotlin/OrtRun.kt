@@ -62,7 +62,17 @@ data class OrtRun(
     /**
      * The labels of this run.
      */
-    val labels: Map<String, String>
+    val labels: Map<String, String>,
+
+    /**
+     * Original VCS-related information containing the analyzer root.
+     */
+    val vcsId: Long?,
+
+    /**
+     * Processed VCS-related information containing the analyzer root.
+     */
+    val vcsProcessedId: Long?
 )
 
 enum class OrtRunStatus {

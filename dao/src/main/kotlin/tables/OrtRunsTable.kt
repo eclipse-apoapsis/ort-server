@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
 import org.ossreviewtoolkit.server.dao.utils.SortableTable
 import org.ossreviewtoolkit.server.dao.utils.jsonb
@@ -44,6 +45,8 @@ object OrtRunsTable : SortableTable("ort_runs") {
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
     val jobConfigurations = jsonb("job_configurations", JobConfigurations::class)
+    val vcsId = reference("vcs_id", VcsInfoTable).nullable()
+    val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
 }
 
@@ -58,12 +61,15 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var jobConfigurations by OrtRunsTable.jobConfigurations
     var status by OrtRunsTable.status
     var labels by LabelDao via OrtRunsLabelsTable
+    var vcsId by OrtRunsTable.vcsId
+    var vcsProcessedId by OrtRunsTable.vcsProcessedId
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
     val evaluatorJob by EvaluatorJobDao optionalBackReferencedOn EvaluatorJobsTable.ortRunId
     val scannerJob by ScannerJobDao optionalBackReferencedOn ScannerJobsTable.ortRunId
     val reporterJob by ReporterJobDao optionalBackReferencedOn ReporterJobsTable.ortRunId
+    val nestedRepositories by NestedRepositoryDao referrersOn NestedRepositoriesTable.ortRunId
 
     fun mapToModel() = OrtRun(
         id = id.value,
@@ -73,6 +79,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         createdAt = createdAt,
         jobs = jobConfigurations,
         status = status,
-        labels = labels.associate { it.mapToModel() }
+        labels = labels.associate { it.mapToModel() },
+        vcsId = vcsId?.value,
+        vcsProcessedId = vcsProcessedId?.value
     )
 }
