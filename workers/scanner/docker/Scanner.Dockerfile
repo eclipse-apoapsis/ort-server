@@ -40,6 +40,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libgcrypt20 \
     libpopt0 \
     libzstd1 \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME=ort
@@ -63,6 +64,9 @@ ARG SCANCODE_VERSION=31.2.1
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
     pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
+
+# Make sure the user executing the container has access rights in the home directory.
+RUN sudo chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
 
 USER $USERNAME
 WORKDIR $HOMEDIR
