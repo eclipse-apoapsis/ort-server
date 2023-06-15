@@ -1,0 +1,213 @@
+/*
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.clients.keycloak.test
+
+import org.ossreviewtoolkit.server.clients.keycloak.Group
+import org.ossreviewtoolkit.server.clients.keycloak.GroupId
+import org.ossreviewtoolkit.server.clients.keycloak.GroupName
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientException
+import org.ossreviewtoolkit.server.clients.keycloak.Role
+import org.ossreviewtoolkit.server.clients.keycloak.RoleId
+import org.ossreviewtoolkit.server.clients.keycloak.RoleName
+import org.ossreviewtoolkit.server.clients.keycloak.User
+import org.ossreviewtoolkit.server.clients.keycloak.UserId
+import org.ossreviewtoolkit.server.clients.keycloak.UserName
+
+/**
+ * An implementation of [KeycloakClient] that can be used for testing, for example when using the Keycloak testcontainer
+ * is too expensive and mocking the client becomes too complex.
+ */
+@Suppress("TooManyFunctions")
+class KeycloakTestClient(
+    private val groups: MutableSet<Group> = mutableSetOf(),
+    private val groupClientRoles: MutableMap<GroupId, Set<RoleId>> = mutableMapOf(),
+    private val roles: MutableSet<Role> = mutableSetOf(),
+    private val roleComposites: MutableMap<RoleId, Set<RoleId>> = mutableMapOf(),
+    private val users: MutableSet<User> = mutableSetOf(),
+    private val userClientRoles: MutableMap<UserId, Set<RoleId>> = mutableMapOf()
+) : KeycloakClient {
+    private var groupCounter = 0
+    private var roleCounter = 0
+    private var userCounter = 0
+
+    override suspend fun getGroups() = groups
+
+    override suspend fun getGroup(id: GroupId) =
+        getGroupsRecursive().find { it.id == id } ?: throw KeycloakClientException("")
+
+    override suspend fun getGroup(name: GroupName) =
+        getGroupsRecursive().find { it.name == name } ?: throw KeycloakClientException("")
+
+    override suspend fun createGroup(name: GroupName) {
+        if (groups.any { it.name == name }) throw KeycloakClientException("")
+        val id = getNextGroupId()
+        groups += Group(id, name, emptySet())
+        groupClientRoles[id] = emptySet()
+    }
+
+    override suspend fun updateGroup(id: GroupId, name: GroupName) {
+        if (groups.any { it.name == name }) throw KeycloakClientException("")
+        val group = getGroup(id)
+        groups -= group
+        groups += group.copy(name = name)
+    }
+
+    override suspend fun deleteGroup(id: GroupId) {
+        val group = getGroup(id)
+        groups -= group
+        groupClientRoles -= id
+    }
+
+    override suspend fun getGroupClientRoles(id: GroupId) =
+        groupClientRoles[id]?.flatMapTo(mutableSetOf()) { getCompositeRolesRecursive(it) + getRole(it) }
+            ?: throw KeycloakClientException("")
+
+    override suspend fun addGroupClientRole(id: GroupId, role: Role) {
+        val roles = groupClientRoles[id] ?: throw KeycloakClientException("")
+        groupClientRoles[id] = roles + getRole(role.id).id
+    }
+
+    override suspend fun removeGroupClientRole(id: GroupId, role: Role) {
+        val roles = groupClientRoles[id] ?: throw KeycloakClientException("")
+        groupClientRoles[id] = roles - getRole(role.id).id
+    }
+
+    override suspend fun getRoles(): Set<Role> = roles
+
+    override suspend fun getRole(name: RoleName) = roles.find { it.name == name } ?: throw KeycloakClientException("")
+
+    override suspend fun createRole(name: RoleName, description: String?) {
+        if (roles.any { it.name == name }) throw KeycloakClientException("")
+        val id = getNextRoleId()
+        roles += Role(id, name, description)
+        roleComposites[id] = emptySet()
+    }
+
+    override suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?) {
+        if (name != updatedName && roles.any { it.name == updatedName }) throw KeycloakClientException("")
+        val role = getRole(name)
+        roles -= role
+        roles += role.copy(name = updatedName, description = updatedDescription)
+    }
+
+    override suspend fun deleteRole(name: RoleName) {
+        val role = getRole(name)
+        roles -= role
+        roleComposites -= role.id
+    }
+
+    override suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId) {
+        val role = getRole(name)
+        val compositeRole = getRole(compositeRoleId)
+        val compositeRoles = roleComposites[role.id] ?: throw KeycloakClientException("")
+        roleComposites[role.id] = compositeRoles + compositeRole.id
+    }
+
+    override suspend fun getCompositeRoles(name: RoleName): List<Role> {
+        val role = getRole(name)
+        return getCompositeRolesRecursive(role.id).toList()
+    }
+
+    override suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId) {
+        val role = getRole(name)
+        val compositeRole = getRole(compositeRoleId)
+        val compositeRoles = roleComposites[role.id] ?: throw KeycloakClientException("")
+        roleComposites[role.id] = compositeRoles - compositeRole.id
+    }
+
+    override suspend fun getUsers() = users
+
+    override suspend fun getUser(id: UserId) = users.find { it.id == id } ?: throw KeycloakClientException("")
+
+    override suspend fun getUser(username: UserName) =
+        users.find { it.username == username } ?: throw KeycloakClientException("")
+
+    override suspend fun createUser(username: UserName, firstName: String?, lastName: String?, email: String?) {
+        if (users.any { it.username == username }) throw KeycloakClientException("")
+        val id = getNextUserId()
+        users += User(id, username, firstName, lastName, email)
+        userClientRoles[id] = emptySet()
+    }
+
+    override suspend fun updateUser(
+        id: UserId,
+        username: UserName?,
+        firstName: String?,
+        lastName: String?,
+        email: String?
+    ) {
+        val user = getUser(id)
+        if (user.username != username && users.any { it.username == username }) throw KeycloakClientException("")
+        if (email != null && user.email != email && users.any { it.email == email }) throw KeycloakClientException("")
+
+        users -= user
+        users += user.copy(
+            username = username ?: user.username,
+            firstName = firstName ?: user.firstName,
+            lastName = lastName ?: user.lastName,
+            email = email ?: user.email
+        )
+    }
+
+    override suspend fun deleteUser(id: UserId) {
+        val user = getUser(id)
+        users -= user
+        userClientRoles -= id
+    }
+
+    override suspend fun getUserClientRoles(id: UserId) =
+        userClientRoles[id]?.flatMapTo(mutableSetOf()) { getCompositeRolesRecursive(it) + getRole(it) }
+            ?: throw KeycloakClientException("")
+
+    private fun getNextGroupId() = GroupId("group-id-${groupCounter++}")
+
+    private fun getNextRoleId() = RoleId("role-id-${roleCounter++}")
+
+    private fun getNextUserId() = UserId("user-id-${userCounter++}")
+
+    private fun getRole(id: RoleId) = roles.find { it.id == id } ?: throw KeycloakClientException("")
+
+    private fun getCompositeRolesRecursive(id: RoleId, visited: Set<RoleId> = emptySet()): Set<Role> {
+        if (id in visited) return emptySet()
+        val compositeRoles = roleComposites[id] ?: throw KeycloakClientException("")
+        return buildSet {
+            addAll(compositeRoles.map { getRole(it) })
+            compositeRoles.forEach {
+                addAll(getCompositeRolesRecursive(it, visited + it))
+            }
+        }
+    }
+
+    private fun getGroupsRecursive(): Set<Group> =
+        buildSet {
+            groups.forEach {
+                addAll(it.getGroupsRecursive())
+            }
+        }
+
+    private fun Group.getGroupsRecursive(): Set<Group> =
+        buildSet {
+            add(this@getGroupsRecursive)
+            subGroups.forEach {
+                addAll(it.getGroupsRecursive())
+            }
+        }
+}
