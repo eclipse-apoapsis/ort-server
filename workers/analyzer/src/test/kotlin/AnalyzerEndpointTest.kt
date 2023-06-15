@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import com.typesafe.config.Config
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
@@ -97,6 +99,14 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 val worker by inject<AnalyzerWorker>()
 
                 worker shouldNot beNull()
+            }
+        }
+
+        "Configuration for secret storage is available" {
+            runEndpointTest {
+                val config by inject<Config>()
+
+                config.hasPath("secretsProvider.name") shouldBe true
             }
         }
 

@@ -75,6 +75,9 @@ dependencies {
     implementation(platform(libs.ortPackageManagers))
     implementation(libs.ortDownloader)
 
+    runtimeOnly(project(":secrets:file"))
+    runtimeOnly(project(":secrets:vault"))
+
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(libs.kotestAssertionsCore)
