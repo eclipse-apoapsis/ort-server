@@ -88,11 +88,19 @@ class DefaultAuthorizationServiceTest : WordSpec({
         every { list(any()) } returns listOf(repository)
     }
 
+    fun createService(keycloakClient: KeycloakClient) =
+        DefaultAuthorizationService(
+            keycloakClient,
+            mockk(),
+            organizationRepository,
+            productRepository,
+            repositoryRepository
+        )
+
     "createOrganizationPermissions" should {
         "create the correct Keycloak roles" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
 
             service.createOrganizationPermissions(organizationId)
 
@@ -104,8 +112,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "deleteOrganizationPermissions" should {
         "delete the correct Keycloak permissions" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
             service.createOrganizationPermissions(organizationId)
 
             service.deleteOrganizationPermissions(organizationId)
@@ -116,8 +123,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "createOrganizationRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
 
         service.createOrganizationRoles(organizationId)
@@ -145,8 +151,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "deleteOrganizationRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
         service.createOrganizationRoles(organizationId)
 
@@ -166,8 +171,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "createProductPermissions" should {
         "create the correct Keycloak roles" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
 
             service.createProductPermissions(productId)
 
@@ -179,8 +183,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "deleteProductPermissions" should {
         "delete the correct Keycloak permissions" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
             service.createProductPermissions(productId)
 
             service.deleteProductPermissions(productId)
@@ -191,9 +194,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "createProductRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service =
-            DefaultAuthorizationService(keycloakClient, mockk(), organizationRepository, productRepository, mockk())
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
         service.createOrganizationRoles(organizationId)
         service.createProductPermissions(productId)
@@ -232,9 +233,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "deleteProductRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service =
-            DefaultAuthorizationService(keycloakClient, mockk(), organizationRepository, productRepository, mockk())
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
         service.createOrganizationRoles(organizationId)
         service.createProductPermissions(productId)
@@ -256,8 +255,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "createRepositoryPermissions" should {
         "create the correct Keycloak roles" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
 
             service.createRepositoryPermissions(repositoryId)
 
@@ -269,8 +267,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     "deleteRepositoryPermissions" should {
         "delete the correct Keycloak permissions" {
             val keycloakClient = KeycloakTestClient()
-
-            val service = DefaultAuthorizationService(keycloakClient, mockk(), mockk(), mockk(), mockk())
+            val service = createService(keycloakClient)
             service.createRepositoryPermissions(repositoryId)
 
             service.deleteRepositoryPermissions(repositoryId)
@@ -281,14 +278,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "createRepositoryRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service = DefaultAuthorizationService(
-            keycloakClient,
-            mockk(),
-            organizationRepository,
-            productRepository,
-            repositoryRepository
-        )
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
         service.createOrganizationRoles(organizationId)
         service.createProductPermissions(productId)
@@ -329,14 +319,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
     "deleteRepositoryRoles" should {
         val keycloakClient = KeycloakTestClient()
-
-        val service = DefaultAuthorizationService(
-            keycloakClient,
-            mockk(),
-            organizationRepository,
-            productRepository,
-            repositoryRepository
-        )
+        val service = createService(keycloakClient)
         service.createOrganizationPermissions(organizationId)
         service.createOrganizationRoles(organizationId)
         service.createProductPermissions(productId)
@@ -358,15 +341,6 @@ class DefaultAuthorizationServiceTest : WordSpec({
     }
 
     "synchronizePermissions" should {
-        fun createService(keycloakClient: KeycloakClient) =
-            DefaultAuthorizationService(
-                keycloakClient,
-                mockk(),
-                organizationRepository,
-                productRepository,
-                repositoryRepository
-            )
-
         "create missing organization roles" {
             val existingRole = OrganizationPermission.READ.roleName(organizationId)
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(existingRole)) }
