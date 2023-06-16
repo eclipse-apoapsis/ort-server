@@ -44,6 +44,8 @@ complexity:
 formatting:
   ChainWrapping:
     active: false
+  CommentWrapping:
+    active: false
   FinalNewline:
     active: false
   ImportOrdering:

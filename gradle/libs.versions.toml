@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 [versions]
-detektPlugin = "1.22.0"
+detektPlugin = "1.23.0"
 jibPlugin = "3.3.1"
 kotlinPlugin = "1.8.10"
 kotlinxCoroutines = "1.6.4"
