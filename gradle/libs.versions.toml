@@ -19,7 +19,7 @@
 detektPlugin = "1.23.0"
 jibPlugin = "3.3.2"
 kotlinPlugin = "1.8.22"
-kotlinxCoroutines = "1.6.4"
+kotlinxCoroutines = "1.7.1"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.5.0"
 rabbitMq = "5.18.0"
