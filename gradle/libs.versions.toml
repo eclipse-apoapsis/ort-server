@@ -16,7 +16,6 @@
 # License-Filename: LICENSE
 
 [versions]
-buildConfigPlugin = "3.1.0"
 detektPlugin = "1.22.0"
 jibPlugin = "3.3.1"
 kotlinPlugin = "1.8.10"
@@ -53,7 +52,6 @@ vaultTestcontainerVersion = "1.17.6"
 wiremock = "2.35.0"
 
 [plugins]
-buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektPlugin" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
