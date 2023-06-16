@@ -21,11 +21,14 @@ package org.ossreviewtoolkit.server.core.plugins
 
 import com.typesafe.config.ConfigFactory
 
+import io.ktor.events.EventDefinition
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.config.ApplicationConfig
 
 import javax.sql.DataSource
+
+import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.inject
@@ -34,6 +37,8 @@ import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.migrate
+
+val DatabaseReady: EventDefinition<Database> = EventDefinition()
 
 /**
  * Connect and migrate the database. This is the only place where migrations for the production database are done. While
@@ -46,6 +51,7 @@ fun Application.configureDatabase() {
 
     environment.monitor.subscribe(ApplicationStarted) {
         GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
+        environment.monitor.raise(DatabaseReady, db)
     }
 }
 

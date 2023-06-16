@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
 
 import kotlinx.coroutines.runBlocking
 
@@ -37,7 +36,7 @@ private val logger = LoggerFactory.getLogger(Application::class.java)
  * [lifecycle events][https://ktor.io/docs/events.html#handle-events-application].
  */
 fun Application.configureLifecycle() {
-    environment.monitor.subscribe(ApplicationStarted) {
+    environment.monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
         runCatching {
             runBlocking {
