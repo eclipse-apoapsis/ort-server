@@ -40,12 +40,16 @@ fun Application.configureLifecycle() {
     environment.monitor.subscribe(ApplicationStarted) {
         val authorizationService by inject<AuthorizationService>()
         runCatching {
-            logger.info("Synchronizing Keycloak permissions.")
-            runBlocking { authorizationService.synchronizePermissions() }
+            runBlocking {
+                logger.info("Synchronizing Keycloak permissions.")
+                authorizationService.synchronizePermissions()
+                logger.info("Synchronizing Keycloak roles.")
+                authorizationService.synchronizeRoles()
+            }
         }.onSuccess {
-            logger.info("Synchronized Keycloak permissions.")
+            logger.info("Synchronized Keycloak permissions and roles.")
         }.onFailure {
-            logger.error("Error while synchronizing Keycloak permissions.", it)
+            logger.error("Error while synchronizing Keycloak permissions and roles.", it)
         }
     }
 }
