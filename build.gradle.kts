@@ -51,7 +51,6 @@ allprojects {
             }
             filter {
                 includeGroup("com.github.oss-review-toolkit.ort")
-                includeModule("io.github.smiley4", "ktor-swagger-ui")
             }
             forRepository {
                 maven("https://dl.bintray.com/ricky12awesome/github")

@@ -77,13 +77,12 @@ fun Application.configureOpenApi() {
             description = "Local ORT server"
         }
 
-        schemas {
-            jsonSchemaBuilder { type ->
+        encoding {
+            schemaEncoder { type ->
                 json.encodeToSchema(serializer(type), generateDefinitions = false)
             }
-        }
 
-        schemasInComponentSection = true
-        examplesInComponentSection = false
+            schemaDefinitionsField = "definitions"
+        }
     }
 }
