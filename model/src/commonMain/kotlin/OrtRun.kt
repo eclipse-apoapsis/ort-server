@@ -72,7 +72,13 @@ data class OrtRun(
     /**
      * Processed VCS-related information containing the analyzer root.
      */
-    val vcsProcessedId: Long?
+    val vcsProcessedId: Long?,
+
+    /**
+     * A map of nested repositories, for example Git submodules or Git-Repo modules. The key is the path to the
+     * nested repository relative to the root of the main repository and the value is the id of its VCS information.
+     */
+    val nestedRepositoryIds: Map<String, Long>?
 )
 
 enum class OrtRunStatus {

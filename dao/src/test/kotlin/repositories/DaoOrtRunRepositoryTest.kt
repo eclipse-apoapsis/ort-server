@@ -72,7 +72,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             status = OrtRunStatus.CREATED,
             labelsMap,
             null,
-            null
+            null,
+            emptyMap()
         )
     }
 

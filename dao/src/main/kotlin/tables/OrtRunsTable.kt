@@ -81,6 +81,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         status = status,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,
-        vcsProcessedId = vcsProcessedId?.value
+        vcsProcessedId = vcsProcessedId?.value,
+        nestedRepositoryIds = nestedRepositories.associate { it.path to it.vcsId.value }
     )
 }
