@@ -25,7 +25,7 @@ import io.kotest.assertions.fail
 import io.kotest.common.runBlocking
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.TestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -205,7 +205,7 @@ class VaultTestContainer {
  */
 fun Spec.installVaultTestContainer(): VaultTestContainer {
     val container = VaultTestContainer()
-    install(TestContainerExtension(container.vault))
+    install(ContainerExtension(container.vault))
 
     return container
 }

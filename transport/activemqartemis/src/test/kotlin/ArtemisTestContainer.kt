@@ -23,12 +23,13 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.TestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 
 import org.ossreviewtoolkit.server.config.ConfigManager
 
 import org.slf4j.LoggerFactory
 
+import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
 private const val ARTEMIS_CONTAINER = "quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0"
@@ -40,12 +41,16 @@ private const val ARTEMIS_PORT = 61616
  */
 fun Spec.startArtemisContainer(transportType: String): ConfigManager {
     val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
-    val artemisContainer = install(TestContainerExtension(ARTEMIS_CONTAINER)) {
-        startupAttempts = 1
-        withExposedPorts(ARTEMIS_PORT)
-        withEnv(containerEnv)
-        withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
-    }
+    val artemisContainer = install(
+        ContainerExtension(
+            GenericContainer(ARTEMIS_CONTAINER).apply {
+                startupAttempts = 1
+                withExposedPorts(ARTEMIS_PORT)
+                withEnv(containerEnv)
+                withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
+            }
+        )
+    )
 
     val keyPrefix = "orchestrator.$transportType"
     val configMap = mapOf(

@@ -29,7 +29,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.TestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -62,7 +62,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
     private val password = "guest"
 
     private val rabbitMq = install(
-        TestContainerExtension(
+        ContainerExtension(
             RabbitMQContainer("rabbitmq")
         )
     )

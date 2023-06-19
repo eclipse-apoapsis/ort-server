@@ -27,7 +27,7 @@ import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
-import io.kotest.extensions.testcontainers.TestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -55,7 +55,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
     private val password = "guest"
 
     private val rabbitMq = install(
-        TestContainerExtension(
+        ContainerExtension(
             RabbitMQContainer("rabbitmq")
         )
     )
