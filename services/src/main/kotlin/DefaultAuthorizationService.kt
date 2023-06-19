@@ -494,13 +494,17 @@ class DefaultAuthorizationService(
      */
     private suspend fun synchronizeKeycloakRoles(roles: Set<String>, requiredRoles: List<String>, rolePrefix: String) {
         val missingRoles = requiredRoles.filter { it !in roles }
-        logger.info("Creating missing roles: ${missingRoles.joinToString()}")
+        if (missingRoles.isNotEmpty()) {
+            logger.info("Creating missing roles: ${missingRoles.joinToString()}")
+        }
         missingRoles.forEach { role ->
             keycloakClient.createRole(RoleName(role), ROLE_DESCRIPTION)
         }
 
         val unneededRoles = roles.filter { it.startsWith(rolePrefix) }.filter { it !in requiredRoles }
-        logger.info("Removing unneeded roles: ${unneededRoles.joinToString()}")
+        if (unneededRoles.isNotEmpty()) {
+            logger.info("Removing unneeded roles: ${unneededRoles.joinToString()}")
+        }
         unneededRoles.forEach { role ->
             keycloakClient.deleteRole(RoleName(role))
         }
@@ -518,16 +522,20 @@ class DefaultAuthorizationService(
         rolePrefix: String
     ) {
         val missingCompositeRoles = requiredCompositeRoles.filter { it !in actualCompositeRoles }
-        logger.info("Adding missing composite roles to ${roleName.value}: ${missingCompositeRoles.joinToString()}")
+        if (missingCompositeRoles.isNotEmpty()) {
+            logger.info("Adding missing composite roles to ${roleName.value}: ${missingCompositeRoles.joinToString()}")
+        }
         missingCompositeRoles.forEach { role ->
             keycloakClient.addCompositeRole(roleName, keycloakClient.getRole(RoleName(role)).id)
         }
 
         val unneededCompositeRoles =
             actualCompositeRoles.filter { it.startsWith(rolePrefix) }.filter { it !in requiredCompositeRoles }
-        logger.info(
-            "Removing unneeded composite roles from ${roleName.value}: ${unneededCompositeRoles.joinToString()}"
-        )
+        if (unneededCompositeRoles.isNotEmpty()) {
+            logger.info(
+                "Removing unneeded composite roles from ${roleName.value}: ${unneededCompositeRoles.joinToString()}"
+            )
+        }
         unneededCompositeRoles.forEach { role ->
             keycloakClient.removeCompositeRole(roleName, keycloakClient.getRole(RoleName(role)).id)
         }
@@ -543,13 +551,17 @@ class DefaultAuthorizationService(
         groupPrefix: String
     ) {
         val missingGroups = requiredGroups.filter { it !in groups }
-        logger.info("Creating missing groups: ${missingGroups.joinToString()}")
+        if (missingGroups.isNotEmpty()) {
+            logger.info("Creating missing groups: ${missingGroups.joinToString()}")
+        }
         missingGroups.forEach { group ->
             keycloakClient.createGroup(GroupName(group))
         }
 
         val unneededGroups = groups.filter { it.startsWith(groupPrefix) }.filter { it !in requiredGroups }
-        logger.info("Removing unneeded groups: ${unneededGroups.joinToString()}")
+        if (unneededGroups.isNotEmpty()) {
+            logger.info("Removing unneeded groups: ${unneededGroups.joinToString()}")
+        }
         unneededGroups.forEach { group ->
             keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(group)).id)
         }
