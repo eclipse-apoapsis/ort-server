@@ -64,7 +64,6 @@ qpidJmsClient = "2.3.0"
 slf4j = "2.0.7"
 testContainers = "1.17.6"
 typesafeConfig = "1.4.2"
-vaultTestcontainerVersion = "1.17.6"
 wiremock = "2.35.0"
 
 [plugins]
@@ -151,6 +150,6 @@ testContainers = { module = "org.testcontainers:testcontainers", version.ref = "
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
 testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref = "testContainers" }
-testContainersVault = { module = "org.testcontainers:vault", version.ref = "vaultTestcontainerVersion" }
+testContainersVault = { module = "org.testcontainers:vault", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
 wiremockStandalone = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
