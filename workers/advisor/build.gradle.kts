@@ -66,7 +66,7 @@ dependencies {
 }
 
 jib {
-    from.image = "eclipse-temurin:17"
+    from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
     to.image = "ort-server-advisor-worker:latest"
 
     container {
