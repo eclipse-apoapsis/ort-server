@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.common.env
 
-import java.io.File
-
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
@@ -58,10 +56,8 @@ class EnvironmentService(
      * Generate the _.netrc_ file based on the given [services]. Use the given [context] to access required
      * information.
      */
-    suspend fun generateNetRcFile(context: WorkerContext, services: Collection<InfrastructureService>): File {
-        return netRcGenerator.targetFile().apply {
-            val content = netRcGenerator.generate(context, services).joinToString(separator = System.lineSeparator())
-            writeText(content)
-        }
+    suspend fun generateNetRcFile(context: WorkerContext, services: Collection<InfrastructureService>) {
+        val definitions = services.map { EnvironmentServiceDefinition(it) }
+        netRcGenerator.generate(ConfigFileBuilder(context), definitions)
     }
 }

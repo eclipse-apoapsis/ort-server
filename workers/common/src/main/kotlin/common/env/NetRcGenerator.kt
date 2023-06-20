@@ -19,11 +19,9 @@
 
 package org.ossreviewtoolkit.server.workers.common.env
 
-import java.io.File
 import java.net.URI
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 import org.slf4j.LoggerFactory
 
@@ -41,10 +39,8 @@ import org.slf4j.LoggerFactory
  * which services are passed is relevant. (Typically, infrastructure services are defined in configuration files
  * located in the repositories to be analyzed. Hence, it is possible for users to change the order in which the
  * services are listed as necessary.)
- *
- * TODO: Define a common interface for all kinds of generators.
  */
-class NetRcGenerator {
+class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> {
     companion object {
         /** The name of the file to be generated. */
         private const val TARGET_NAME = ".netrc"
@@ -62,34 +58,25 @@ class NetRcGenerator {
             }.getOrNull()
     }
 
-    /**
-     * Return a [File] where to store the data produced by this generator.
-     */
-    fun targetFile(): File = File(System.getProperty("user.home"), TARGET_NAME)
+    override val environmentDefinitionType: Class<EnvironmentServiceDefinition>
+        get() = EnvironmentServiceDefinition::class.java
 
-    /**
-     * Generate the lines of the target file based on the given [context] and list of [infrastructureServices].
-     */
-    suspend fun generate(
-        context: WorkerContext,
-        infrastructureServices: Collection<InfrastructureService>
-    ): Iterable<String> {
-        val serviceHosts = infrastructureServices.map { it to it.host() }
+    override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<EnvironmentServiceDefinition>) {
+        val serviceHosts = definitions.map { it.service to it.service.host() }
             .filter { it.second != null }
             .toMap()
         val deDuplicatedServices = serviceHosts.keys.groupBy { serviceHosts.getValue(it) }
             .values
             .map { it.first() }
 
-        val allSecrets = deDuplicatedServices.flatMap { listOf(it.usernameSecret, it.passwordSecret) }
-        val secretValues = context.resolveSecrets(*allSecrets.toTypedArray())
+        builder.buildInUserHome(TARGET_NAME) {
+            deDuplicatedServices.forEach { service ->
+                val host = URI(service.url).host
+                val username = builder.secretRef(service.usernameSecret)
+                val password = builder.secretRef(service.passwordSecret)
 
-        return deDuplicatedServices.map { service ->
-            val host = URI(service.url).host
-            val username = secretValues.getValue(service.usernameSecret)
-            val password = secretValues.getValue(service.passwordSecret)
-
-            "machine $host login $username password $password"
+                println("machine $host login $username password $password")
+            }
         }
     }
 }

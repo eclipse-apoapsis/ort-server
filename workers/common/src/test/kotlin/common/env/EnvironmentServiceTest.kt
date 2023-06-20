@@ -20,23 +20,28 @@
 package org.ossreviewtoolkit.server.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.engine.spec.tempfile
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.slot
 
 import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
+import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 
 class EnvironmentServiceTest : WordSpec({
     "findInfrastructureServiceForRepository" should {
@@ -101,28 +106,27 @@ class EnvironmentServiceTest : WordSpec({
                 createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
             )
 
-            val targetFile = tempfile()
-            val netRcLines = listOf("credentials1", "credentials2", "more credentials")
             val generator = mockk<NetRcGenerator> {
-                every { targetFile() } returns targetFile
-                coEvery { generate(context, services) } returns netRcLines
+                coEvery { generate(any(), any()) } just runs
             }
 
             val environmentService = EnvironmentService(mockk(), generator)
-            val resultFile = environmentService.generateNetRcFile(context, services)
+            environmentService.generateNetRcFile(context, services)
 
-            resultFile shouldBe targetFile
-            resultFile.readLines() shouldBe netRcLines
+            val slotBuilder = slot<ConfigFileBuilder>()
+            val definitions = mutableListOf<Collection<EnvironmentServiceDefinition>>()
+            coVerify {
+                generator.generate(capture(slotBuilder), capture(definitions))
+            }
+
+            slotBuilder.captured.context shouldBe context
+            definitions.flatten().map { it.service } shouldContainExactlyInAnyOrder services
         }
     }
 })
 
-private const val REPOSITORY_URL = "https://repo.example.org/test-orga/test-repo.git"
 private const val ORGANIZATION_ID = 20230607115501L
 private const val PRODUCT_ID = 20230607115528L
-
-/** A counter for generating unique service names. */
-private var counter = 0
 
 /** A [Hierarchy] object for the test repository. */
 private val repositoryHierarchy = Hierarchy(
@@ -130,19 +134,6 @@ private val repositoryHierarchy = Hierarchy(
     Product(PRODUCT_ID, ORGANIZATION_ID, "testProduct"),
     Organization(ORGANIZATION_ID, "test organization")
 )
-
-/**
- * Create an [InfrastructureService] with the given [url] and other standard properties.
- */
-private fun createInfrastructureService(url: String = REPOSITORY_URL): InfrastructureService =
-    InfrastructureService(
-        name = "service${counter++}",
-        url = url,
-        usernameSecret = mockk(),
-        passwordSecret = mockk(),
-        organization = null,
-        product = null
-    )
 
 /**
  * Create a mock [WorkerContext] object that is prepared to return the [Hierarchy] of the test repository.
