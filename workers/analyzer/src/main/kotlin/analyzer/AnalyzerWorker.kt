@@ -47,7 +47,7 @@ internal class AnalyzerWorker(
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val job = db.dbQuery { getValidAnalyzerJob(jobId) }
 
-        logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
+        logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
         val context = contextFactory.createContext(job.ortRunId)
         val repositoryService = environmentService.findInfrastructureServiceForRepository(context)
@@ -66,7 +66,11 @@ internal class AnalyzerWorker(
 
         environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
 
-        val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
+        val ortResult = runner.run(sourcesDir, job.configuration)
+
+        dao.storeRepositoryInformation(ortResult, job)
+
+        val analyzerRun = ortResult.analyzer
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
         logger.info(

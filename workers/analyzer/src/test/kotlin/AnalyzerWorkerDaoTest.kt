@@ -30,10 +30,16 @@ import java.io.File
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
+import org.ossreviewtoolkit.model.AnalyzerRun
+import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.workers.common.mapToModel
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class AnalyzerWorkerDaoTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -42,7 +48,11 @@ class AnalyzerWorkerDaoTest : WordSpec({
     lateinit var fixtures: Fixtures
 
     beforeEach {
-        dao = AnalyzerWorkerDao(dbExtension.fixtures.analyzerJobRepository, dbExtension.fixtures.analyzerRunRepository)
+        dao = AnalyzerWorkerDao(
+            dbExtension.fixtures.analyzerJobRepository,
+            dbExtension.fixtures.analyzerRunRepository,
+            dbExtension.db
+        )
         fixtures = dbExtension.fixtures
     }
 
@@ -84,4 +94,45 @@ class AnalyzerWorkerDaoTest : WordSpec({
             }
         }
     }
+
+    "storeRepositoryInformation" should {
+        "store repository information correctly" {
+            val projectDir = File("src/test/resources/mavenProject").absoluteFile
+            val analyzerJob = fixtures.analyzerJob
+
+            val run = AnalyzerRunner().run(
+                projectDir,
+                analyzerJob.configuration
+            ).analyzer!!.mapToModel(analyzerJob.id)
+
+            dao.storeRepositoryInformation(getOrtResult(run.mapToOrt()), analyzerJob)
+
+            val storedOrtRun = fixtures.ortRunRepository.get(analyzerJob.ortRunId)
+
+            storedOrtRun?.vcsId shouldBe 1
+            storedOrtRun?.vcsProcessedId shouldBe 1
+            storedOrtRun?.nestedRepositoryIds shouldBe mapOf("nested-1" to 2, "nested-2" to 3)
+
+            storedOrtRun.shouldNotBeNull()
+            with(storedOrtRun) {
+                vcsId shouldBe 1
+                vcsProcessedId shouldBe 1
+                nestedRepositoryIds shouldBe mapOf("nested-1" to 2, "nested-2" to 3)
+            }
+        }
+    }
 })
+
+private fun getOrtResult(analyzerRun: AnalyzerRun) = OrtResult(
+    repository = Repository(
+        vcs = getVcsInfo("https://example.com/repo.git"),
+        vcsProcessed = getVcsInfo("https://example.com/repo.git"),
+        nestedRepositories = mapOf(
+            "nested-1" to getVcsInfo("https://example.com/nested-repo-1.git"),
+            "nested-2" to getVcsInfo("https://example.com/nested-repo-2.git")
+        )
+    ),
+    analyzer = analyzerRun
+)
+
+private fun getVcsInfo(url: String) = VcsInfo(VcsType.GIT, url, "revision", "path")

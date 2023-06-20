@@ -19,13 +19,24 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.insert
+
+import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
+import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
+import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 class AnalyzerWorkerDao(
     private val analyzerJobRepository: AnalyzerJobRepository,
-    private val analyzerRunRepository: AnalyzerRunRepository
+    private val analyzerRunRepository: AnalyzerRunRepository,
+    private val db: Database
 ) {
     fun getAnalyzerJob(analyzerJobId: Long) = analyzerJobRepository.get(analyzerJobId)
 
@@ -41,5 +52,27 @@ class AnalyzerWorkerDao(
             issues = analyzerRun.issues,
             dependencyGraphs = analyzerRun.dependencyGraphs
         )
+    }
+
+    fun storeRepositoryInformation(ortResult: OrtResult, job: AnalyzerJob) {
+        db.blockingQuery {
+            val vcsInfoDao = VcsInfoDao.getOrPut(ortResult.repository.vcs.mapToModel())
+
+            val processedVcsInfoDao = VcsInfoDao.getOrPut(ortResult.repository.vcsProcessed.mapToModel())
+
+            ortResult.repository.nestedRepositories.map { nestedRepository ->
+                val nestedVcsInfoDao = VcsInfoDao.getOrPut(nestedRepository.value.mapToModel())
+
+                NestedRepositoriesTable.insert {
+                    it[ortRunId] = job.ortRunId
+                    it[vcsId] = nestedVcsInfoDao.id
+                    it[path] = nestedRepository.key
+                }
+            }
+
+            val ortRunDao = OrtRunDao[job.ortRunId]
+            ortRunDao.vcsId = vcsInfoDao.id
+            ortRunDao.vcsProcessedId = processedVcsInfoDao.id
+        }
     }
 }

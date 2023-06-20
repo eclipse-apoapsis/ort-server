@@ -75,6 +75,7 @@ class AnalyzerWorkerTest : StringSpec({
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -104,6 +105,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             verify(exactly = 1) {
                 dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+                dao.storeRepositoryInformation(any(), any())
             }
 
             coVerifyOrder {
@@ -118,6 +120,7 @@ class AnalyzerWorkerTest : StringSpec({
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
