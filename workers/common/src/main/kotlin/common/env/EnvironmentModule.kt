@@ -20,7 +20,6 @@
 package org.ossreviewtoolkit.server.workers.common.env
 
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
@@ -34,5 +33,10 @@ fun buildEnvironmentModule(): Module = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
     single { NetRcGenerator() }
 
-    singleOf(::EnvironmentService)
+    single {
+        EnvironmentService(
+            get(),
+            listOf(NetRcGenerator())
+        )
+    }
 }

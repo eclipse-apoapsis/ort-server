@@ -91,7 +91,7 @@ class AnalyzerWorkerTest : StringSpec({
         val infrastructureService = mockk<InfrastructureService>()
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns infrastructureService
-            coEvery { generateNetRcFile(context, listOf(infrastructureService)) } returns File("someFile")
+            coEvery { generateNetRcFile(context, listOf(infrastructureService)) } just runs
         }
 
         val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)

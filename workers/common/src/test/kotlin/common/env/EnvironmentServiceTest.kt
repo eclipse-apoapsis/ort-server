@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -98,6 +99,24 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
+    "generateConfigFiles" should {
+        "invoke all generators to produce the supported configuration files" {
+            val definitions = listOf<EnvironmentServiceDefinition>(mockk(), mockk(), mockk())
+            val context = mockContext()
+            val generator1 = mockGenerator()
+            val generator2 = mockGenerator()
+
+            val environmentService = EnvironmentService(mockk(), listOf(generator1, generator2))
+
+            environmentService.generateConfigFiles(context, definitions)
+
+            val args1 = generator1.verify(context, definitions)
+            val args2 = generator2.verify(context, definitions)
+
+            args1.first shouldNotBe args2.first
+        }
+    }
+
     "generateNetRcFile" should {
         "produce the correct file using the NetRcGenerator" {
             val context = mockk<WorkerContext>()
@@ -106,21 +125,13 @@ class EnvironmentServiceTest : WordSpec({
                 createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
             )
 
-            val generator = mockk<NetRcGenerator> {
-                coEvery { generate(any(), any()) } just runs
-            }
+            val generator = mockGenerator()
 
-            val environmentService = EnvironmentService(mockk(), generator)
+            val environmentService = EnvironmentService(mockk(), listOf(generator))
             environmentService.generateNetRcFile(context, services)
 
-            val slotBuilder = slot<ConfigFileBuilder>()
-            val definitions = mutableListOf<Collection<EnvironmentServiceDefinition>>()
-            coVerify {
-                generator.generate(capture(slotBuilder), capture(definitions))
-            }
-
-            slotBuilder.captured.context shouldBe context
-            definitions.flatten().map { it.service } shouldContainExactlyInAnyOrder services
+            val args = generator.verify(context)
+            args.second.map { it.service } shouldContainExactlyInAnyOrder services
         }
     }
 })
@@ -142,3 +153,37 @@ private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
     }
+
+/**
+ * Create a mock [EnvironmentConfigGenerator] that is prepared for an invocation of its
+ * [EnvironmentConfigGenerator.generateApplicable] method.
+ */
+private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefinition> =
+    mockk {
+        coEvery { generateApplicable(any(), any()) } just runs
+    }
+
+/**
+ * Verify that this [EnvironmentConfigGenerator] has been invoked correctly with the given [context]. Optionally,
+ * check the definitions passed to the generator. Return the arguments passed to the
+ * [EnvironmentConfigGenerator.generateApplicable] function as a [Pair] for further checks.
+ */
+private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.verify(
+    context: WorkerContext,
+    expectedDefinitions: Collection<EnvironmentServiceDefinition>? = null
+): Pair<ConfigFileBuilder, Collection<EnvironmentServiceDefinition>> {
+    val slotBuilder = slot<ConfigFileBuilder>()
+    val slotDefinitions = slot<Collection<EnvironmentServiceDefinition>>()
+
+    coVerify {
+        generateApplicable(capture(slotBuilder), capture(slotDefinitions))
+    }
+
+    slotBuilder.captured.context shouldBe context
+
+    if (expectedDefinitions != null) {
+        slotDefinitions.captured shouldBe expectedDefinitions
+    }
+
+    return slotBuilder.captured to slotDefinitions.captured
+}

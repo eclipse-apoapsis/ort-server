@@ -19,6 +19,11 @@
 
 package org.ossreviewtoolkit.server.workers.common.env
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
+
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
@@ -37,8 +42,8 @@ class EnvironmentService(
     /** The repository for accessing infrastructure services. */
     private val infrastructureServiceRepository: InfrastructureServiceRepository,
 
-    /** The generator for _.netrc_ files. */
-    private val netRcGenerator: NetRcGenerator
+    /** A collection with the supported generators for configuration files. */
+    private val generators: Collection<EnvironmentConfigGenerator<*>>
 ) {
     /**
      * Try to find the [InfrastructureService] that matches the current repository stored in the given [context]. This
@@ -53,11 +58,24 @@ class EnvironmentService(
         }
 
     /**
+     * Generate all configuration files supported by the managed [EnvironmentConfigGenerator]s based on the passed in
+     * [definitions]. Use the given [context] to access required information.
+     */
+    suspend fun generateConfigFiles(context: WorkerContext, definitions: Collection<EnvironmentServiceDefinition>) =
+        withContext(Dispatchers.IO) {
+            generators.map { generator ->
+                val builder = ConfigFileBuilder(context)
+                async { generator.generateApplicable(builder, definitions) }
+            }.awaitAll()
+        }
+
+    /**
      * Generate the _.netrc_ file based on the given [services]. Use the given [context] to access required
-     * information.
+     * information. This is a special variant of the [generateConfigFiles] function that focuses only on the
+     * _.netrc_ file.
      */
     suspend fun generateNetRcFile(context: WorkerContext, services: Collection<InfrastructureService>) {
         val definitions = services.map { EnvironmentServiceDefinition(it) }
-        netRcGenerator.generate(ConfigFileBuilder(context), definitions)
+        generateConfigFiles(context, definitions)
     }
 }
