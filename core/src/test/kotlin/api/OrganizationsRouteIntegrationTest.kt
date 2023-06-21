@@ -32,14 +32,17 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
+
+import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
@@ -53,18 +56,30 @@ import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.SUPERUSER
+import org.ossreviewtoolkit.server.core.SUPERUSER_PASSWORD
+import org.ossreviewtoolkit.server.core.TEST_USER
+import org.ossreviewtoolkit.server.core.TEST_USER_PASSWORD
+import org.ossreviewtoolkit.server.core.addUserRole
 import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.setUpClientScope
+import org.ossreviewtoolkit.server.core.setUpUser
+import org.ossreviewtoolkit.server.core.setUpUserRoles
+import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
+import org.ossreviewtoolkit.server.model.authorization.Superuser
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
@@ -82,20 +97,59 @@ private const val ERROR_PATH = "error-path"
 @Suppress("LargeClass")
 class OrganizationsRouteIntegrationTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
-    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
+
+    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
+        setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
+        setUpUserRoles(SUPERUSER.username.value, listOf(Superuser.ROLE_NAME))
+        setUpUser(TEST_USER, TEST_USER_PASSWORD)
+        setUpClientScope(TEST_SUBJECT_CLIENT)
+    }
+
     val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+    val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
+
+    val superuserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+        user = SUPERUSER.username.value,
+        secret = SUPERUSER_PASSWORD
+    )
+
+    val testUserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+        user = TEST_USER.username.value,
+        secret = TEST_USER_PASSWORD
+    )
+
+    val json = Json { ignoreUnknownKeys = true }
 
     val secretsConfig = mapOf(
         "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
         "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH
     )
 
+    val additionalConfig = keycloakConfig + jwtConfig + secretsConfig
+
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
 
     lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
     lateinit var secretRepository: SecretRepository
+
+    fun requestShouldRequireRole(
+        role: String,
+        successStatus: HttpStatusCode = HttpStatusCode.OK,
+        request: suspend HttpClient.() -> HttpResponse
+    ) {
+        ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            val client = createJsonClient().configureAuthentication(testUserClientConfig, json)
+
+            val responseWithoutRole = client.request()
+            keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, role)
+            val responseWithRole = client.request()
+
+            responseWithoutRole.status shouldBe HttpStatusCode.Forbidden
+            responseWithRole.status shouldBe successStatus
+        }
+    }
 
     beforeEach {
         val authorizationService = DefaultAuthorizationService(
@@ -126,15 +180,13 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
     "GET /organizations" should {
         "return all existing organizations" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val org1 = organizationService.createOrganization(name = "name1", description = "description1")
                 val org2 = organizationService.createOrganization(name = "name2", description = "description2")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -144,15 +196,13 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 organizationService.createOrganization(name = "name1", description = "description1")
                 val org2 = organizationService.createOrganization(name = "name2", description = "description2")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations?sort=-name&limit=1") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -160,21 +210,25 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require the superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME) {
+                get("/api/v1/organizations")
+            }
+        }
     }
 
     "GET /organizations/{organizationId}" should {
         "return a single organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val name = "name"
                 val description = "description"
 
                 val createdOrganization = organizationService.createOrganization(name = name, description = description)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/${createdOrganization.id}") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/${createdOrganization.id}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -184,29 +238,33 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "respond with NotFound if no organization exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/999999") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/999999")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
+
+        "require OrganizationPermission.READ" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
+                get("/api/v1/organizations/${createdOrg.id}")
+            }
+        }
     }
 
     "POST /organizations" should {
         "create an organization in the database" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val org = CreateOrganization(name = "name", description = "description")
 
                 val response = client.post("/api/v1/organizations") {
-                    headers { basicTestAuth() }
                     setBody(org)
                 }
 
@@ -222,13 +280,12 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "create Keycloak roles and groups" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val org = CreateOrganization(name = "name", description = "description")
 
                 val createdOrg = client.post("/api/v1/organizations") {
-                    headers { basicTestAuth() }
                     setBody(org)
                 }.body<Organization>()
 
@@ -244,7 +301,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "respond with CONFLICT if the organization already exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val name = "name"
                 val description = "description"
 
@@ -252,10 +309,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 val org = CreateOrganization(name = name, description = description)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response = client.post("/api/v1/organizations") {
-                    headers { basicTestAuth() }
                     setBody(org)
                 }
 
@@ -264,21 +320,27 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require the superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
+                val org = CreateOrganization(name = "name", description = "description")
+                post("/api/v1/organizations") { setBody(org) }
+            }
+        }
     }
 
     "PATCH /organizations/{organizationId}" should {
         "update an organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val createdOrg = organizationService.createOrganization(name = "name", description = "description")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val updatedOrganization = UpdateOrganization(
                     "updated".asPresent(),
                     "updated description of testOrg".asPresent()
                 )
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers { basicTestAuth() }
                     setBody(updatedOrganization)
                 }
 
@@ -300,13 +362,13 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "be able to delete a value and ignore absent values" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val name = "name"
                 val description = "description"
 
                 val createdOrg = organizationService.createOrganization(name = name, description = description)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val organizationUpdateRequest = UpdateOrganization(
                     name = OptionalValue.Absent,
@@ -314,7 +376,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )
 
                 val response = client.patch("/api/v1/organizations/${createdOrg.id}") {
-                    headers { basicTestAuth() }
                     setBody(organizationUpdateRequest)
                 }
 
@@ -334,18 +395,24 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )
             }
         }
+
+        "require OrganizationPermission.WRITE" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
+                val updateOrg = UpdateOrganization("updated".asPresent(), "updated".asPresent())
+                patch("/api/v1/organizations/${createdOrg.id}") { setBody(updateOrg) }
+            }
+        }
     }
 
     "DELETE /organizations/{organizationId}" should {
         "delete an organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val createdOrg = organizationService.createOrganization(name = "name", description = "description")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.delete("/api/v1/organizations/${createdOrg.id}") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.delete("/api/v1/organizations/${createdOrg.id}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -356,14 +423,12 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "delete Keycloak roles and groups" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val createdOrg = organizationService.createOrganization(name = "name", description = "description")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                client.delete("/api/v1/organizations/${createdOrg.id}") {
-                    headers { basicTestAuth() }
-                }
+                client.delete("/api/v1/organizations/${createdOrg.id}")
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
                     OrganizationPermission.getRolesForOrganization(createdOrg.id) +
@@ -375,18 +440,24 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )
             }
         }
+
+        "require OrganizationPermission.DELETE" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.DELETE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
+                delete("/api/v1/organizations/${createdOrg.id}")
+            }
+        }
     }
 
     "POST /organizations/{orgId}/products" should {
         "create a product" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
                 val product = CreateProduct("product", "description")
                 val response = client.post("/api/v1/organizations/$orgId/products") {
-                    headers { basicTestAuth() }
                     setBody(product)
                 }
 
@@ -400,14 +471,13 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "create Keycloak roles and groups" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
                 val product = CreateProduct(name = "product", description = "description")
                 val createdProduct = client.post("/api/v1/organizations/$orgId/products") {
-                    headers { basicTestAuth() }
                     setBody(product)
                 }.body<Product>()
 
@@ -421,12 +491,23 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )
             }
         }
+
+        "require OrganizationPermission.CREATE_PRODUCT" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(
+                OrganizationPermission.CREATE_PRODUCT.roleName(createdOrg.id),
+                HttpStatusCode.Created
+            ) {
+                val createProduct = CreateProduct(name = "product", description = "description")
+                post("/api/v1/organizations/${createdOrg.id}/products") { setBody(createProduct) }
+            }
+        }
     }
 
     "GET /organizations/{orgId}/products" should {
         "return all products of an organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -439,9 +520,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 val createdProduct2 =
                     organizationService.createProduct(name = name2, description = description, organizationId = orgId)
 
-                val response = client.get("/api/v1/organizations/$orgId/products") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$orgId/products")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -454,8 +533,8 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -467,9 +546,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 val createdProduct2 =
                     organizationService.createProduct(name = name2, description = description, organizationId = orgId)
 
-                val response = client.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -479,11 +556,18 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require OrganizationPermission.READ_PRODUCTS" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.READ_PRODUCTS.roleName(createdOrg.id)) {
+                get("/api/v1/organizations/${createdOrg.id}/products")
+            }
+        }
     }
 
     "GET /organizations/{organizationId}/secrets" should {
         "return all secrets for this organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -504,11 +588,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     null
                 )
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/$organizationId/secrets") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$organizationId/secrets")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -518,7 +600,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -539,11 +621,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     null
                 )
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -551,11 +631,18 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require OrganizationPermission.READ" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
+                get("/api/v1/organizations/${createdOrg.id}/secrets")
+            }
+        }
     }
 
     "GET /organizations/{organizationId}/secrets/{secretId}" should {
         "return a single secret" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -565,11 +652,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, description, organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$organizationId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -579,30 +664,42 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "respond with NotFound if no secret exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations/$organizationId/secrets/999999") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$organizationId/secrets/999999")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
+
+        "require OrganizationPermission.READ" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+
+            val path = "https://secret-storage.com/ssh_host_rsa_key_5"
+            val name = "New secret 5"
+            val description = "description"
+
+            secretRepository.create(path, name, description, createdOrg.id, null, null)
+
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
+                get("/api/v1/organizations/${createdOrg.id}/secrets/$name")
+            }
+        }
     }
 
     "POST /organizations/{organizationId}/secrets" should {
         "create a secret in the database" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val name = "New secret 6"
 
@@ -613,7 +710,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )
 
                 val response = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers { basicTestAuth() }
                     setBody(secret)
                 }
 
@@ -635,7 +731,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "respond with CONFLICT if the secret already exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -645,10 +741,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 val secret1 = CreateSecret(name, SECRET, description)
                 val secret2 = secret1.copy(value = "someOtherValue")
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response1 = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers { basicTestAuth() }
                     setBody(secret1)
                 }
 
@@ -657,7 +752,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
 
                 val response2 = client.post("/api/v1/organizations/$organizationId/secrets") {
-                    headers { basicTestAuth() }
                     setBody(secret2)
                 }
 
@@ -669,11 +763,22 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
             }
         }
+
+        "require OrganizationPermission.WRITE_SECRETS" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(
+                OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
+                HttpStatusCode.Created
+            ) {
+                val createSecret = CreateSecret("name", SECRET, "description")
+                post("/api/v1/organizations/${createdOrg.id}/secrets") { setBody(createSecret) }
+            }
+        }
     }
 
     "PATCH /organizations/{organizationId}/secrets/{secretName}" should {
         "update a secret's metadata" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -683,11 +788,10 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, "description", organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -707,7 +811,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "update a secret's value" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -717,11 +821,10 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, desc, organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -736,7 +839,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "handle failures of the SecretStorage" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -745,11 +848,10 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent(), "newDesc".asPresent())
                 val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
                     setBody(updateSecret)
                 }
 
@@ -763,11 +865,28 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+
+        "require OrganizationPermission.WRITE_SECRETS" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+
+            val name = "name"
+            val desc = "description"
+
+            secretRepository.create(ERROR_PATH, name, desc, createdOrg.id, null, null)
+
+            requestShouldRequireRole(
+                OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
+                HttpStatusCode.Created
+            ) {
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent(), "new description".asPresent())
+                post("/api/v1/organizations/${createdOrg.id}/secrets") { setBody(updateSecret) }
+            }
+        }
     }
 
     "DELETE /organizations/{organizationId}/secrets/{secretName}" should {
         "delete a secret" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -775,11 +894,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 val name = "New secret 8"
                 secretRepository.create(path.path, name, "description", organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -793,7 +910,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "handle a failure from the SecretStorage" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val organizationId =
                     organizationService.createOrganization(name = "name", description = "description").id
 
@@ -801,11 +918,9 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 val desc = "description"
                 secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
 
-                val client = createJsonClient()
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.InternalServerError
@@ -817,12 +932,27 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+
+        "require OrganizationPermission.WRITE_SECRETS" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+
+            val path = SecretsProviderFactoryForTesting.TOKEN_PATH
+            val name = "New secret 8"
+            secretRepository.create(path.path, name, "description", createdOrg.id, null, null)
+
+            requestShouldRequireRole(
+                OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
+                HttpStatusCode.NoContent
+            ) {
+                delete("/api/v1/organizations/${createdOrg.id}/secrets/$name")
+            }
+        }
     }
 
     "GET /organizations/{orgId}/infrastructure-services" should {
         "list existing infrastructure services" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -851,9 +981,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     )
                 }
 
-                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -863,8 +991,8 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -893,9 +1021,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     )
                 }
 
-                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -903,12 +1029,19 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require OrganizationPermission.READ" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
+                get("/api/v1/organizations/${createdOrg.id}/infrastructure-services")
+            }
+        }
     }
 
     "POST /organizations/{orgId}/infrastructure-services" should {
         "create an infrastructure service" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -923,7 +1056,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     passSecret.name
                 )
                 val response = client.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    headers { basicTestAuth() }
                     setBody(createInfrastructureService)
                 }
 
@@ -948,8 +1080,8 @@ class OrganizationsRouteIntegrationTest : WordSpec({
         }
 
         "handle an invalid secret reference" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -961,7 +1093,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     "nonExistingSecret2"
                 )
                 val response = client.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    headers { basicTestAuth() }
                     setBody(createInfrastructureService)
                 }
 
@@ -972,12 +1103,35 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require OrganizationPermission.WRITE" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
+            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+
+            requestShouldRequireRole(
+                OrganizationPermission.WRITE.roleName(createdOrg.id),
+                HttpStatusCode.Created
+            ) {
+                val createInfrastructureService = CreateInfrastructureService(
+                    "testRepository",
+                    "https://repo.example.org/test",
+                    "test description",
+                    userSecret.name,
+                    passSecret.name
+                )
+
+                post("/api/v1/organizations/${createdOrg.id}/infrastructure-services") {
+                    setBody(createInfrastructureService)
+                }
+            }
+        }
     }
 
     "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {
         "update an infrastructure service" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -1000,7 +1154,6 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     url = newUrl.asPresent()
                 )
                 val response = client.patch("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
-                    headers { basicTestAuth() }
                     setBody(updateService)
                 }
 
@@ -1023,12 +1176,38 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                 dbService.mapToApi() shouldBe updatedService
             }
         }
+
+        "require OrganizationPermission.WRITE" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
+            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+            val service = infrastructureServiceRepository.create(
+                "testRepository",
+                "https://repo.example.org/test",
+                "test description",
+                userSecret,
+                passSecret,
+                organizationId = createdOrg.id,
+                productId = null
+            )
+
+            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
+                val updateService = UpdateInfrastructureService(
+                    description = null.asPresent(),
+                    url = "https://repo2.example.org/test2".asPresent()
+                )
+
+                patch("/api/v1/organizations/${createdOrg.id}/infrastructure-services/${service.name}") {
+                    setBody(updateService)
+                }
+            }
+        }
     }
 
     "DELETE /organizations/{orgId}/infrastructure-services/{name}" should {
         "delete an infrastructure service" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val orgId = organizationService.createOrganization(name = "name", description = "description").id
 
@@ -1045,9 +1224,7 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                     null
                 )
 
-                val response = client.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -1055,6 +1232,25 @@ class OrganizationsRouteIntegrationTest : WordSpec({
 
                 val services = infrastructureServiceRepository.listForOrganization(orgId)
                 services should beEmpty()
+            }
+        }
+
+        "require OrganizationPermission.WRITE" {
+            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
+            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+            val service = infrastructureServiceRepository.create(
+                "testRepository",
+                "https://repo.example.org/test",
+                "test description",
+                userSecret,
+                passSecret,
+                organizationId = createdOrg.id,
+                productId = null
+            )
+
+            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
+                delete("/api/v1/organizations/${createdOrg.id}/infrastructure-services/${service.name}")
             }
         }
     }

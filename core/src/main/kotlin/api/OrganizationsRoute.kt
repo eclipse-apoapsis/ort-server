@@ -57,24 +57,32 @@ import org.ossreviewtoolkit.server.core.apiDocs.postInfrastructureServiceForOrga
 import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
 import org.ossreviewtoolkit.server.core.apiDocs.postProduct
 import org.ossreviewtoolkit.server.core.apiDocs.postSecretForOrganization
+import org.ossreviewtoolkit.server.core.authorization.requirePermission
+import org.ossreviewtoolkit.server.core.authorization.requireSuperuser
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.services.InfrastructureServiceService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.SecretService
 
+@Suppress("LongMethod")
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
     val secretService by inject<SecretService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
 
     get(getOrganizations) {
+        requireSuperuser()
+
         val organizations = organizationService.listOrganizations(call.listQueryParameters())
 
         call.respond(HttpStatusCode.OK, organizations.map { it.mapToApi() })
     }
 
     post(postOrganizations) {
+        requireSuperuser()
+
         val createOrganization = call.receive<CreateOrganization>()
 
         val createdOrganization =
@@ -85,6 +93,8 @@ fun Route.organizations() = route("organizations") {
 
     route("{organizationId}") {
         get(getOrganizationById) {
+            requirePermission(OrganizationPermission.READ)
+
             val id = call.requireParameter("organizationId").toLong()
 
             val organization = organizationService.getOrganization(id)
@@ -94,6 +104,8 @@ fun Route.organizations() = route("organizations") {
         }
 
         patch(patchOrganizationById) {
+            requirePermission(OrganizationPermission.WRITE)
+
             val organizationId = call.requireParameter("organizationId").toLong()
             val org = call.receive<UpdateOrganization>()
 
@@ -103,6 +115,8 @@ fun Route.organizations() = route("organizations") {
         }
 
         delete(deleteOrganizationById) {
+            requirePermission(OrganizationPermission.DELETE)
+
             val id = call.requireParameter("organizationId").toLong()
 
             organizationService.deleteOrganization(id)
@@ -111,6 +125,8 @@ fun Route.organizations() = route("organizations") {
         }
 
         get("products", getOrganizationProducts) {
+            requirePermission(OrganizationPermission.READ_PRODUCTS)
+
             val orgId = call.requireParameter("organizationId").toLong()
 
             call.respond(
@@ -121,6 +137,8 @@ fun Route.organizations() = route("organizations") {
         }
 
         post("products", postProduct) {
+            requirePermission(OrganizationPermission.CREATE_PRODUCT)
+
             val createProduct = call.receive<CreateProduct>()
             val orgId = call.requireParameter("organizationId").toLong()
 
@@ -131,6 +149,8 @@ fun Route.organizations() = route("organizations") {
 
         route("secrets") {
             get(getSecretsByOrganizationId) {
+                requirePermission(OrganizationPermission.READ)
+
                 val id = call.requireParameter("organizationId").toLong()
 
                 call.respond(
@@ -141,6 +161,8 @@ fun Route.organizations() = route("organizations") {
 
             route("{secretName}") {
                 get(getSecretByOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.READ)
+
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val secretName = call.requireParameter("secretName")
 
@@ -150,6 +172,8 @@ fun Route.organizations() = route("organizations") {
                 }
 
                 patch(patchSecretByOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.WRITE_SECRETS)
+
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val secretName = call.requireParameter("secretName")
                     val updateSecret = call.receive<UpdateSecret>()
@@ -166,6 +190,8 @@ fun Route.organizations() = route("organizations") {
                 }
 
                 delete(deleteSecretByOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.WRITE_SECRETS)
+
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val secretName = call.requireParameter("secretName")
 
@@ -176,6 +202,8 @@ fun Route.organizations() = route("organizations") {
             }
 
             post(postSecretForOrganization) {
+                requirePermission(OrganizationPermission.WRITE_SECRETS)
+
                 val organizationId = call.requireParameter("organizationId").toLong()
                 val createSecret = call.receive<CreateSecret>()
 
@@ -195,6 +223,8 @@ fun Route.organizations() = route("organizations") {
 
         route("infrastructure-services") {
             get(getInfrastructureServicesByOrganizationId) {
+                requirePermission(OrganizationPermission.READ)
+
                 val organizationId = call.requireParameter("organizationId").toLong()
 
                 call.respond(
@@ -205,6 +235,8 @@ fun Route.organizations() = route("organizations") {
             }
 
             post(postInfrastructureServiceForOrganization) {
+                requirePermission(OrganizationPermission.WRITE)
+
                 val organizationId = call.requireParameter("organizationId").toLong()
                 val createService = call.receive<CreateInfrastructureService>()
 
@@ -222,6 +254,8 @@ fun Route.organizations() = route("organizations") {
 
             route("{serviceName}") {
                 patch(patchInfrastructureServiceForOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.WRITE)
+
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val serviceName = call.requireParameter("serviceName")
                     val updateService = call.receive<UpdateInfrastructureService>()
@@ -239,6 +273,8 @@ fun Route.organizations() = route("organizations") {
                 }
 
                 delete(deleteInfrastructureServiceForOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.WRITE)
+
                     val organizationId = call.requireParameter("organizationId").toLong()
                     val serviceName = call.requireParameter("serviceName")
 

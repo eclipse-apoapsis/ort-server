@@ -121,15 +121,28 @@ fun Keycloak.setUpUserRoles(username: String, roles: List<String>) {
     realm(TEST_REALM).apply {
         val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
 
-        val roleRepresentations = roles.map {
+        val roleRepresentations = roles.map { role ->
             clients().get(client.id).roles().run {
-                create(RoleRepresentation().apply { name = it })
-                get(it).toRepresentation()
+                create(RoleRepresentation().apply { name = role })
+                get(role).toRepresentation()
             }
         }
 
         val user = users().search(username).single()
         users().get(user.id).roles().clientLevel(client.id).add(roleRepresentations)
+    }
+}
+
+/**
+ * Add the provided [role] in the [TEST_SUBJECT_CLIENT] to the provided [username].
+ */
+fun Keycloak.addUserRole(username: String, role: String) {
+    realm(TEST_REALM).apply {
+        val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
+        val user = users().search(username).single()
+
+        val roleRepresentation = clients().get(client.id).roles().get(role).toRepresentation()
+        users().get(user.id).roles().clientLevel(client.id).add(listOf(roleRepresentation))
     }
 }
 

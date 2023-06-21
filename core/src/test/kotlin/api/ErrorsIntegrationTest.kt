@@ -26,28 +26,53 @@ import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
+import kotlinx.serialization.json.Json
+
+import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.SUPERUSER
+import org.ossreviewtoolkit.server.core.SUPERUSER_PASSWORD
 import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
+import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.setUpClientScope
+import org.ossreviewtoolkit.server.core.setUpUser
+import org.ossreviewtoolkit.server.core.setUpUserRoles
+import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.authorization.Superuser
 
 /**
  * Integration test class testing some error conditions during API requests and how they are handled.
  */
 class ErrorsIntegrationTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
-    private val keycloak = install(KeycloakTestExtension())
+
+    private val keycloak = install(KeycloakTestExtension()) {
+        setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
+        setUpUserRoles(SUPERUSER.username.value, listOf(Superuser.ROLE_NAME))
+        setUpClientScope(TEST_SUBJECT_CLIENT)
+    }
+
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+    private val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
+    private val additionalConfig = keycloakConfig + jwtConfig
+
+    private val superuserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+        user = SUPERUSER.username.value,
+        secret = SUPERUSER_PASSWORD
+    )
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         "An unauthorized call yields the correct status code" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/organizations")
@@ -57,12 +82,10 @@ class ErrorsIntegrationTest : StringSpec() {
         }
 
         "Sorting by an unsupported field should be handled" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations?sort=color") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations?sort=color")
 
                 with(response) {
                     status shouldBe HttpStatusCode.BadRequest
@@ -74,12 +97,10 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid limit parameter should be handled" {
             val limitValue = "a-couple-of"
 
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations?limit=$limitValue") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations?limit=$limitValue")
 
                 with(response) {
                     status shouldBe HttpStatusCode.BadRequest
@@ -93,12 +114,10 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid offset parameter should be handled" {
             val offsetValue = "a-quarter"
 
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
-                val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue") {
-                    headers { basicTestAuth() }
-                }
+                val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue")
 
                 with(response) {
                     status shouldBe HttpStatusCode.BadRequest

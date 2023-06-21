@@ -22,6 +22,24 @@ package org.ossreviewtoolkit.server.core
 import org.ossreviewtoolkit.server.clients.keycloak.User
 import org.ossreviewtoolkit.server.clients.keycloak.UserId
 import org.ossreviewtoolkit.server.clients.keycloak.UserName
+import org.ossreviewtoolkit.server.model.authorization.Superuser
+
+/**
+ * A Keycloak [User] to be used when testing authorization in integration tests. The user is supposed to have the
+ * [superuser role][Superuser.ROLE_NAME].
+ */
+val SUPERUSER = User(
+    id = UserId("superuser-id"),
+    username = UserName("superuser"),
+    firstName = "Super",
+    lastName = "User",
+    email = "superuser@example.org"
+)
+
+/**
+ * The password of [SUPERUSER].
+ */
+const val SUPERUSER_PASSWORD = "superuser-password"
 
 /**
  * A Keycloak [User] to be used when testing authorization in integration tests. The user is supposed to be
