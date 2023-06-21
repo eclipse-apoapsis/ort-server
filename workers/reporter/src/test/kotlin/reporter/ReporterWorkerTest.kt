@@ -23,11 +23,10 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
@@ -44,6 +43,7 @@ import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -67,16 +67,8 @@ private val reporterJob = ReporterJob(
 class ReporterWorkerTest : StringSpec({
     val runner = ReporterRunner(mockk(relaxed = true))
 
-    beforeSpec {
-        mockkStatic(::findResolvedRevision)
-
-        every {
-            findResolvedRevision(any(), any())
-        } returns "some_revision"
-    }
-
-    afterSpec {
-        unmockkAll()
+    val ortRunService = mockk<OrtRunService> {
+        every { getOrtRepositoryInformation(any()) } returns mockk()
     }
 
     "Reports for a project should be created successfully" {
@@ -92,7 +84,6 @@ class ReporterWorkerTest : StringSpec({
         }
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
-        every { repository.mapToOrt(any(), any()) } returns mockk()
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
@@ -113,7 +104,7 @@ class ReporterWorkerTest : StringSpec({
             every { create(any(), any(), any(), any()) } returns mockk<ReporterRun>()
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao, reporterRunRepository)
+        val worker = ReporterWorker(mockk(), runner, dao, reporterRunRepository, ortRunService)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
@@ -121,7 +112,10 @@ class ReporterWorkerTest : StringSpec({
             result shouldBe RunResult.Success
         }
 
-        verify { reporterRunRepository.create(any(), any(), any(), any()) }
+        coVerify {
+            reporterRunRepository.create(any(), any(), any(), any())
+            ortRunService.getOrtRepositoryInformation(ortRun)
+        }
     }
 
     "A failure result should be returned in case of an error" {
@@ -130,7 +124,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } throws testException
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao, mockk())
+        val worker = ReporterWorker(mockk(), runner, dao, mockk(), ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
@@ -146,7 +140,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns invalidJob
         }
 
-        val worker = ReporterWorker(mockk(), runner, dao, mockk())
+        val worker = ReporterWorker(mockk(), runner, dao, mockk(), ortRunService)
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)

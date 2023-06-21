@@ -59,6 +59,7 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.ReporterEndpoint
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 
 import org.slf4j.LoggerFactory
@@ -103,6 +104,8 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+        single { OrtRunService(get()) }
 
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 
