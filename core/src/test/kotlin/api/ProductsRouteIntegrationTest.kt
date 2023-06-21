@@ -20,7 +20,7 @@
 package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.core.extensions.install
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.should
@@ -61,45 +61,45 @@ import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 
-class ProductsRouteIntegrationTest : StringSpec() {
-    private val dbExtension = extension(DatabaseTestExtension())
-    private val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
-    private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
-    private val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+class ProductsRouteIntegrationTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
+    val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
 
-    private lateinit var organizationService: OrganizationService
-    private lateinit var productService: ProductService
+    lateinit var organizationService: OrganizationService
+    lateinit var productService: ProductService
 
-    private var orgId = -1L
+    var orgId = -1L
 
-    init {
-        beforeEach {
-            val authorizationService = DefaultAuthorizationService(
-                keycloakClient,
-                dbExtension.db,
-                dbExtension.fixtures.organizationRepository,
-                dbExtension.fixtures.productRepository,
-                dbExtension.fixtures.repositoryRepository
-            )
+    beforeEach {
+        val authorizationService = DefaultAuthorizationService(
+            keycloakClient,
+            dbExtension.db,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.productRepository,
+            dbExtension.fixtures.repositoryRepository
+        )
 
-            organizationService = OrganizationService(
-                dbExtension.db,
-                dbExtension.fixtures.organizationRepository,
-                dbExtension.fixtures.productRepository,
-                authorizationService
-            )
+        organizationService = OrganizationService(
+            dbExtension.db,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.productRepository,
+            authorizationService
+        )
 
-            productService = ProductService(
-                dbExtension.db,
-                dbExtension.fixtures.productRepository,
-                dbExtension.fixtures.repositoryRepository,
-                authorizationService
-            )
+        productService = ProductService(
+            dbExtension.db,
+            dbExtension.fixtures.productRepository,
+            dbExtension.fixtures.repositoryRepository,
+            authorizationService
+        )
 
-            orgId = organizationService.createOrganization(name = "name", description = "description").id
-        }
+        orgId = organizationService.createOrganization(name = "name", description = "description").id
+    }
 
-        "GET /products/{productId} should return a single product" {
+    "GET /products/{productId}" should {
+        "return a single product" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -119,8 +119,10 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "PATCH /products/{id} should update a product" {
+    "PATCH /products/{id}" should {
+        "update a product" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -149,8 +151,10 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "DELETE /products/{id} should delete a product" {
+    "DELETE /products/{id}" should {
+        "delete a product" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -172,7 +176,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /products/{id} should delete Keycloak roles and groups" {
+        "delete Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -188,7 +192,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
                     ProductPermission.getRolesForProduct(createdProduct.id) +
-                        ProductRole.getRolesForProduct(createdProduct.id)
+                            ProductRole.getRolesForProduct(createdProduct.id)
                 )
 
                 keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
@@ -196,8 +200,10 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 )
             }
         }
+    }
 
-        "GET /products/{id}/repositories should return all repositories of an organization" {
+    "GET /products/{id}/repositories" should {
+        "return all repositories of an organization" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -230,7 +236,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{id}/repositories should support query parameters" {
+        "support query parameters" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -260,8 +266,10 @@ class ProductsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "POST /products/{id}/repositories should create a repository" {
+    "POST /products/{id}/repositories" should {
+        "create a repository" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -284,7 +292,7 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /products/{id}/repositories should create Keycloak roles and groups" {
+        "create Keycloak roles and groups" {
             ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
                 val client = createJsonClient()
 
@@ -311,4 +319,4 @@ class ProductsRouteIntegrationTest : StringSpec() {
             }
         }
     }
-}
+})

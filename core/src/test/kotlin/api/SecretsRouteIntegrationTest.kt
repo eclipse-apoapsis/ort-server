@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -56,25 +56,25 @@ private const val SECRET = "unguessable-secret-value"
 private const val ERROR_PATH = "thisWillThrow"
 
 @Suppress("LargeClass")
-class SecretsRouteIntegrationTest : StringSpec() {
-    private val dbExtension = extension(DatabaseTestExtension())
+class SecretsRouteIntegrationTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
 
-    private lateinit var secretRepository: SecretRepository
+    lateinit var secretRepository: SecretRepository
 
-    private var organizationId = -1L
-    private var productId = -1L
-    private var repositoryId = -1L
+    var organizationId = -1L
+    var productId = -1L
+    var repositoryId = -1L
 
-    init {
-        beforeEach {
-            secretRepository = dbExtension.fixtures.secretRepository
+    beforeEach {
+        secretRepository = dbExtension.fixtures.secretRepository
 
-            organizationId = dbExtension.fixtures.organization.id
-            productId = dbExtension.fixtures.product.id
-            repositoryId = dbExtension.fixtures.repository.id
-        }
+        organizationId = dbExtension.fixtures.organization.id
+        productId = dbExtension.fixtures.product.id
+        repositoryId = dbExtension.fixtures.repository.id
+    }
 
-        "GET /organizations/{organizationId}/secrets should return all secrets for this organization" {
+    "GET /organizations/{organizationId}/secrets" should {
+        "return all secrets for this organization" {
             ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -106,7 +106,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /organizations/{organizationId}/secrets should support query parameters" {
+        "support query parameters" {
             secretsTestApplication(dbExtension.db) {
                 dbExtension.fixtures.organizationRepository.create(name = "name1", description = "description1")
                 secretRepository.create(
@@ -138,8 +138,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "GET /organizations/{organizationId}/secrets/{secretId} should return a single secret" {
+    "GET /organizations/{organizationId}/secrets/{secretId}" should {
+        "return a single secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -160,7 +162,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /organizations/{organizationId}/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "respond with NotFound if no secret exists" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -173,8 +175,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "POST /organizations/{organizationId}/secrets should create a secret in the database" {
+    "POST /organizations/{organizationId}/secrets" should {
+        "create a secret in the database" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -208,7 +212,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /organizations/{organizationId}/secrets with existing organization should respond with CONFLICT" {
+        "respond with CONFLICT if the secret already exists" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 7"
                 val description = "description"
@@ -240,8 +244,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
             }
         }
+    }
 
-        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret's metadata" {
+    "PATCH /organizations/{organizationId}/secrets/{secretName}" should {
+        "update a secret's metadata" {
             secretsTestApplication(dbExtension.db) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -272,7 +278,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /organizations/{organizationId}/secrets/{secretName} should update a secret's value" {
+        "update a secret's value" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val desc = "description"
@@ -298,7 +304,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /organizations/{organizationId}/secrets/{secretName} should handle failures of the SecretStorage" {
+        "handle failures of the SecretStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val desc = "description"
@@ -323,8 +329,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+    }
 
-        "DELETE /organizations/{organizationId}/secrets/{secretName} should delete a secret" {
+    "DELETE /organizations/{organizationId}/secrets/{secretName}" should {
+        "delete a secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = SecretsProviderFactoryForTesting.TOKEN_PATH
                 val name = "New secret 8"
@@ -347,7 +355,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /organizations/{organizationId}/secrets/{secretName} should handle a failure from the SecretStorage" {
+        "handle a failure from the SecretStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 8"
                 val desc = "description"
@@ -369,8 +377,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+    }
 
-        "GET /products/{productId}/secrets should return all secrets for this product" {
+    "GET /products/{productId}/secrets" should {
+        "return all secrets for this product" {
             ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -402,7 +412,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId}/secrets should support query parameters" {
+        "support query parameters" {
             secretsTestApplication(dbExtension.db) {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -433,8 +443,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "GET /products/{productId}/secrets/{secretId} should return a single secret" {
+    "GET /products/{productId}/secrets/{secretId}" should {
+        "return a single secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -455,7 +467,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /products/{productId}/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "respond with NotFound if no secret exists" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -468,8 +480,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "POST /products/{productId}/secrets should create a secret in the database" {
+    "POST /products/{productId}/secrets" should {
+        "create a secret in the database" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -503,7 +517,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /products/{productId}/secrets with already existing product should respond with CONFLICT" {
+        "respond with CONFLICT if the secret already exists" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 7"
                 val description = "description"
@@ -531,8 +545,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "PATCH /products/{productId}/secrets/{secretName} should update a secret's metadata" {
+    "PATCH /products/{productId}/secrets/{secretName}" should {
+        "update a secret's metadata" {
             secretsTestApplication(dbExtension.db) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -563,7 +579,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /products/{productId}/secrets/{secretName} should update a secret's value" {
+        "update a secret's value" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val path = "path"
@@ -589,7 +605,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /products/{productId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretsStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val desc = "description"
@@ -614,8 +630,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+    }
 
-        "DELETE /products/{productId}/secrets/{secretName} should delete a secret" {
+    "DELETE /products/{productId}/secrets/{secretName}" should {
+        "delete a secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = SecretsProviderFactoryForTesting.PASSWORD_PATH
                 val name = "New secret 8"
@@ -638,7 +656,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /products/{productId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretsStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 8"
                 val desc = "description"
@@ -660,8 +678,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+    }
 
-        "GET /repositories/{repositoryId}/secrets should return all secrets for this repository" {
+    "GET /repositories/{repositoryId}/secrets" should {
+        "return all secrets for this repository" {
             ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -693,7 +713,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId}/secrets should support query parameters" {
+        "support query parameters" {
             secretsTestApplication(dbExtension.db) {
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -724,8 +744,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "GET /repositories/{repositoryId}/secrets/{secretId} should return a single secret" {
+    "GET /repositories/{repositoryId}/secrets/{secretId}" should {
+        "return a single secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -746,7 +768,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /repositories/{repositoryId}/secrets/{secretId} should respond with NotFound if no secret exists" {
+        "respond with NotFound if no secret exists" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -759,8 +781,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "POST /repositories/{repositoryId}/secrets should create a secret in the database" {
+    "POST /repositories/{repositoryId}/secrets" should {
+        "create a secret in the database" {
             secretsTestApplication(dbExtension.db) {
                 val client = createJsonClient()
 
@@ -794,7 +818,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "POST /repositories/{repositoryId}/secrets with already existing product should respond with CONFLICT" {
+        "respond with CONFLICT if the secret already exists" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 7"
                 val description = "description"
@@ -822,8 +846,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 }
             }
         }
+    }
 
-        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret's metadata" {
+    "PATCH /repositories/{repositoryId}/secrets/{secretName}" should {
+        "update a secret's metadata" {
             secretsTestApplication(dbExtension.db) {
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -854,7 +880,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /repositories/{repositoryId}/secrets/{secretName} should handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretsStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val desc = "description"
@@ -880,7 +906,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "PATCH /repositories/{repositoryId}/secrets/{secretName} should update a secret's value" {
+        "update a secret's value" {
             secretsTestApplication(dbExtension.db) {
                 val name = "name"
                 val path = "path"
@@ -905,8 +931,10 @@ class SecretsRouteIntegrationTest : StringSpec() {
                 provider.readSecret(Path(path))?.value shouldBe SECRET
             }
         }
+    }
 
-        "DELETE /repositories/{repositoryId}/secrets/{secretName} should delete a secret" {
+    "DELETE /repositories/{repositoryId}/secrets/{secretName}" should {
+        "delete a secret" {
             secretsTestApplication(dbExtension.db) {
                 val path = SecretsProviderFactoryForTesting.SERVICE_PATH
                 val name = "New secret 8"
@@ -929,7 +957,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "DELETE /repositories/{repositoryId}/secrets/{secretName} should handle failures from the SecretStorage" {
+        "handle failures from the SecretStorage" {
             secretsTestApplication(dbExtension.db) {
                 val name = "New secret 8"
                 val desc = "description"
@@ -952,7 +980,7 @@ class SecretsRouteIntegrationTest : StringSpec() {
             }
         }
     }
-}
+})
 
 /**
  * Helper function to create a test application running [block] which is configured to use the test secrets provider

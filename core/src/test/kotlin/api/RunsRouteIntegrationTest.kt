@@ -21,7 +21,7 @@ package org.ossreviewtoolkit.server.core.api
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -38,11 +38,11 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
 
-class RunsRouteIntegrationTest : StringSpec() {
-    private val dbExtension = extension(DatabaseTestExtension())
+class RunsRouteIntegrationTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
 
-    init {
-        "GET /runs/{runId}/report/{fileName} should download a report" {
+    "GET /runs/{runId}/report/{fileName}" should {
+        "download a report" {
             ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val run = dbExtension.fixtures.createOrtRun()
                 val reportFile = "disclosure-document-pdf"
@@ -68,7 +68,7 @@ class RunsRouteIntegrationTest : StringSpec() {
             }
         }
 
-        "GET /runs/{runId}/report/{fileName} should handle a missing report" {
+        "handle a missing report" {
             ortServerTestApplication(dbExtension.db, noDbConfig) {
                 val reportFile = "nonExistingReport.pdf"
                 val run = dbExtension.fixtures.createOrtRun()
@@ -88,4 +88,4 @@ class RunsRouteIntegrationTest : StringSpec() {
             }
         }
     }
-}
+})
