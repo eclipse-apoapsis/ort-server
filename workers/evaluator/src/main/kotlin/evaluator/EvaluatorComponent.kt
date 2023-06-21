@@ -54,6 +54,7 @@ import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 
 import org.slf4j.LoggerFactory
@@ -96,6 +97,8 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+        single { OrtRunService(get()) }
 
         singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)

@@ -23,11 +23,10 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
@@ -41,6 +40,7 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -62,16 +62,8 @@ private val evaluatorJob = EvaluatorJob(
 )
 
 class EvaluatorWorkerTest : StringSpec({
-    beforeSpec {
-        mockkStatic(::findResolvedRevision)
-
-        every {
-            findResolvedRevision(any(), any())
-        } returns "some_revision"
-    }
-
-    afterSpec {
-        unmockkAll()
+    val ortRunService = mockk<OrtRunService> {
+        every { getOrtRepositoryInformation(any()) } returns mockk()
     }
 
     "A project should be evaluated successfully" {
@@ -86,7 +78,6 @@ class EvaluatorWorkerTest : StringSpec({
         }
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
-        every { repository.mapToOrt(any(), any()) } returns mockk()
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { scannerRun.mapToOrt() } returns mockk()
@@ -102,14 +93,17 @@ class EvaluatorWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) { dao.storeEvaluatorRun(any()) }
+            coVerify(exactly = 1) {
+                dao.storeEvaluatorRun(any())
+                ortRunService.getOrtRepositoryInformation(ortRun)
+            }
         }
     }
 
@@ -119,7 +113,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -135,7 +129,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
