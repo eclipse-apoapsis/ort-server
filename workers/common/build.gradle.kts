@@ -58,6 +58,7 @@ dependencies {
     api(libs.typesafeConfig)
 
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
+    testImplementation(testFixtures(project(":dao")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
