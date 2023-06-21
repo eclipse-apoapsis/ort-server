@@ -17,16 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.ossreviewtoolkit.server.workers.common.env.config
+
+import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
- * A data class to represent the whole environment configuration for a [Repository].
+ * A data class to represent the whole environment configuration for a repository.
  *
  * Before a repository can be analyzed by ORT Server, it has to be ensured that the environment has been set up
  * according to the requirements of the repository. This includes things like environment variables, credentials, or
- * package manager-specific configuration files.
+ * package manager-specific configuration files. The requirements are declared in a configuration file located in the
+ * repository. This class holds all the information contained in this configuration file.
  */
-data class EnvironmentConfiguration(
+data class EnvironmentConfig(
     /** A list with [InfrastructureService]s required by the repository. */
-    val infrastructureServices: List<InfrastructureService>
+    val infrastructureServices: List<InfrastructureService>,
+
+    /** A list with environment definitions needed for this repository. */
+    val environmentDefinitions: List<EnvironmentServiceDefinition> = emptyList()
 )
