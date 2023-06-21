@@ -25,7 +25,8 @@ import com.auth0.jwt.interfaces.Payload
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.Principal
+import io.ktor.server.auth.jwt.JWTPayloadHolder
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 
@@ -34,11 +35,19 @@ import java.util.concurrent.TimeUnit
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
+import org.ossreviewtoolkit.server.clients.keycloak.UserId
+
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(Application::class.java)
+
 /**
  * Configure the authentication for this server application.
  */
 fun Application.configureAuthentication() {
     val config: ApplicationConfig by inject()
+    val keycloakClient by inject<KeycloakClient>()
 
     val issuer = config.property("jwt.issuer").getString()
     val jwksUri = URL(config.property("jwt.jwksUri").getString())
@@ -57,7 +66,14 @@ fun Application.configureAuthentication() {
 
             validate { credential ->
                 credential.payload.takeIf(this@configureAuthentication::validateJwtPayload)?.let { payload ->
-                    JWTPrincipal(payload)
+                    val roles = runCatching {
+                        keycloakClient.getUserClientRoles(UserId(payload.subject))
+                            .mapTo(mutableSetOf()) { it.name.value }
+                    }.onFailure {
+                        logger.error("Failed to load Keycloak roles for '${payload.subject}'.", it)
+                    }.getOrThrow()
+
+                    OrtPrincipal(payload, roles)
                 }
             }
         }
@@ -81,3 +97,5 @@ object SecurityConfigurations {
      */
     const val token = "token"
 }
+
+class OrtPrincipal(payload: Payload, val roles: Set<String>) : Principal, JWTPayloadHolder(payload)

@@ -22,29 +22,38 @@ package org.ossreviewtoolkit.server.core.auth
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.util.pipeline.PipelineContext
 
 import kotlinx.serialization.json.Json
 
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.ClientScopeRepresentation
 import org.keycloak.representations.idm.ProtocolMapperRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_USERNAME
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.plugins.OrtPrincipal
 import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
@@ -62,13 +71,17 @@ class AuthenticationIntegrationTest : StringSpec({
 
     val json = Json { ignoreUnknownKeys = true }
 
-    fun authTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
+    fun authTestApplication(
+        onCall: PipelineContext<Unit, ApplicationCall>.() -> Unit = {},
+        block: suspend ApplicationTestBuilder.() -> Unit
+    ) =
         ortServerTestApplication(config = authNoDbConfig, additionalConfigs = keycloakConfig + jwtConfig) {
             routing {
                 route("api/v1") {
                     authenticate(SecurityConfigurations.token) {
                         route("test") {
                             get {
+                                onCall()
                                 call.respond("OK")
                             }
                         }
@@ -122,6 +135,29 @@ class AuthenticationIntegrationTest : StringSpec({
             response shouldHaveStatus HttpStatusCode.Unauthorized
         }
     }
+
+    "A principal with the correct client roles should be created" {
+        keycloak.keycloakAdminClient.setupClientScope(TEST_SUBJECT_CLIENT)
+        keycloak.keycloakAdminClient.setupUserRoles(TEST_REALM_ADMIN_USERNAME, listOf("role-1", "role-2"))
+
+        authTestApplication(onCall = {
+            val principal = call.principal<OrtPrincipal>(SecurityConfigurations.token)
+
+            principal.shouldNotBeNull()
+            principal.roles should containExactlyInAnyOrder("role-1", "role-2")
+        }) {
+            environment {
+                // Turn off development mode to fix loading the principal. For some reason, in development mode the
+                // OrtPrincipal class is loaded from different class loaders which causes the isInstance check inside of
+                // call.principal() to fail.
+                developmentMode = false
+            }
+
+            val authenticatedClient = client.configureAuthentication(keycloakClientConfig, json)
+
+            authenticatedClient.get("/api/v1/test")
+        }
+    }
 })
 
 /**
@@ -158,5 +194,24 @@ private fun Keycloak.setupClientScope(audience: String) {
         val testClient = clients().get(clients().findByClientId(TEST_CLIENT).first().id)
         val clientScope = clientScopes().findAll().single { it.name == subjectClientScope }
         testClient.addDefaultClientScope(clientScope.id)
+    }
+}
+
+/**
+ * Create the provided [roles] in the [TEST_SUBJECT_CLIENT] and assign them to the provided [username].
+ */
+private fun Keycloak.setupUserRoles(username: String, roles: List<String>) {
+    realm(TEST_REALM).apply {
+        val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
+
+        val roleRepresentations = roles.map {
+            clients().get(client.id).roles().run {
+                create(RoleRepresentation().apply { name = it })
+                get(it).toRepresentation()
+            }
+        }
+
+        val user = users().search(username).single()
+        users().get(user.id).roles().clientLevel(client.id).add(roleRepresentations)
     }
 }
