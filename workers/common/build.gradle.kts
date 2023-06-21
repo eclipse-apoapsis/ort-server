@@ -21,6 +21,7 @@ plugins {
     application
 
     alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.ossreviewtoolkit.server.workers"
@@ -48,6 +49,7 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
+    implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
 
     api(libs.koinCore)
