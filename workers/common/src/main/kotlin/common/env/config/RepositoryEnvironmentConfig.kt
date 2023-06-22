@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.common.env.config
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,7 +28,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal class RepositoryEnvironmentConfig(
     /** The list of infrastructure services declared for this repository. */
-    @SerialName("infrastructure_services")
     val infrastructureServices: List<RepositoryInfrastructureService>,
 
     /** A flag that determines how semantic errors in the configuration file should be treated. */

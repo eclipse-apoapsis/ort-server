@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.common.env.config
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -43,10 +42,8 @@ internal data class RepositoryInfrastructureService(
      * The reference to the secret that contains the username of the credentials for this infrastructure service.
      * The reference contains the name of the secret and optionally the structure it belongs to.
      */
-    @SerialName("username_secret")
     val usernameSecret: String,
 
     /** The reference to the secret that contains the password of the credentials for this infrastructure service. */
-    @SerialName("password_secret")
     val passwordSecret: String,
 )

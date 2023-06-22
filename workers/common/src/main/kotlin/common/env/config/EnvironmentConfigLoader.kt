@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory
  *
  * ```
  * strict: false
- * infrastructure_services:
+ * infrastructureServices:
  * - name: "JFrog"
  *   url: "https://artifactory.example.org/repositories"
  *   description: "Main repository for releases."
