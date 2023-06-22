@@ -40,6 +40,8 @@ fun Application.configureLifecycle() {
         val authorizationService by inject<AuthorizationService>()
         runCatching {
             runBlocking {
+                logger.info("Ensuring superuser role and group.")
+                authorizationService.ensureSuperuser()
                 logger.info("Synchronizing Keycloak permissions.")
                 authorizationService.synchronizePermissions()
                 logger.info("Synchronizing Keycloak roles.")

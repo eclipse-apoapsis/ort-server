@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
+import org.ossreviewtoolkit.server.model.authorization.Superuser
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -538,6 +539,33 @@ class DefaultAuthorizationService(
         }
         unneededCompositeRoles.forEach { role ->
             keycloakClient.removeCompositeRole(roleName, keycloakClient.getRole(RoleName(role)).id)
+        }
+    }
+
+    override suspend fun ensureSuperuser() {
+        val roleName = RoleName(Superuser.ROLE_NAME)
+        val groupName = GroupName(Superuser.GROUP_NAME)
+
+        runCatching {
+            keycloakClient.getRole(roleName)
+        }.onFailure {
+            logger.info("Creating '${roleName.value}' role.")
+            keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
+        }
+
+        runCatching {
+            keycloakClient.getGroup(groupName)
+        }.onFailure {
+            logger.info("Creating '${groupName.value}' group.")
+            keycloakClient.createGroup(groupName)
+        }
+
+        val group = keycloakClient.getGroup(groupName)
+        val roles = keycloakClient.getGroupClientRoles(group.id).map { it.name }
+        if (roleName !in roles) {
+            logger.info("Adding role '${roleName.value}' to group '${groupName.value}'.")
+            val role = keycloakClient.getRole(roleName)
+            keycloakClient.addGroupClientRole(group.id, role)
         }
     }
 

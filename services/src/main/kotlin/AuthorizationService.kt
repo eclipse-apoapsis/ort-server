@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
+import org.ossreviewtoolkit.server.model.authorization.Superuser
 
 /**
  * A service to manage roles and permissions in Keycloak.
@@ -78,6 +79,11 @@ interface AuthorizationService {
 
     /** Delete the [roles][RepositoryRole.getRolesForRepository] for the provided [repositoryId]. */
     suspend fun deleteRepositoryRoles(repositoryId: Long)
+
+    /**
+     * Ensure that the [Superuser.ROLE_NAME] and [Superuser.GROUP_NAME] exist and that the group grants the role.
+     */
+    suspend fun ensureSuperuser()
 
     /**
      * Synchronize the permissions in Keycloak with the database entities to ensure that the correct Keycloak roles

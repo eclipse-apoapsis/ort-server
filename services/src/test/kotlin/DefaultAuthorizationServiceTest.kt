@@ -25,7 +25,9 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.contain
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 
@@ -47,6 +49,7 @@ import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
+import org.ossreviewtoolkit.server.model.authorization.Superuser
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -338,6 +341,37 @@ class DefaultAuthorizationServiceTest : WordSpec({
         "delete the Keycloak groups" {
             keycloakClient.getGroups().map { it.name.value } shouldNot
                     containAnyOf(RepositoryRole.getGroupsForRepository(repositoryId))
+        }
+    }
+
+    "ensureSuperuser" should {
+        "create the missing superuser role" {
+            val keycloakClient = KeycloakTestClient()
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.ensureSuperuser() } }
+
+            keycloakClient.getRole(RoleName(Superuser.ROLE_NAME)) shouldNot beNull()
+        }
+
+        "create the missing superuser group" {
+            val keycloakClient = KeycloakTestClient()
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.ensureSuperuser() } }
+
+            keycloakClient.getGroup(GroupName(Superuser.GROUP_NAME)) shouldNot beNull()
+        }
+
+        "assign the superuser role to the superuser group" {
+            val keycloakClient = KeycloakTestClient()
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.ensureSuperuser() } }
+
+            val group = keycloakClient.getGroup(GroupName(Superuser.GROUP_NAME))
+            keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
+                    containExactly(Superuser.ROLE_NAME)
         }
     }
 
