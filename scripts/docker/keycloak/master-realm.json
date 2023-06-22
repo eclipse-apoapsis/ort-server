@@ -110,6 +110,14 @@
         "clientRole" : true,
         "containerId" : "6c48dfc4-9788-462c-ae28-4f3ce383f6a2",
         "attributes" : { }
+      }, {
+        "id" : "fe1e8021-77fc-463b-a069-da14ec5494db",
+        "name" : "superuser",
+        "description" : "This role is auto-generated, do not edit or remove.",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "6c48dfc4-9788-462c-ae28-4f3ce383f6a2",
+        "attributes" : { }
       } ],
       "broker" : [ {
         "id" : "4cb48d75-ccb3-4c81-aa90-9f3d4c9f0c41",
@@ -352,7 +360,17 @@
       } ]
     }
   },
-  "groups" : [ ],
+  "groups" : [ {
+    "id" : "96f99c64-f68f-4b62-8f00-d9ad85e06b06",
+    "name" : "SUPERUSER",
+    "path" : "/SUPERUSER",
+    "attributes" : { },
+    "realmRoles" : [ ],
+    "clientRoles" : {
+      "ort-server" : [ "superuser" ]
+    },
+    "subGroups" : [ ]
+  } ],
   "defaultRole" : {
     "id" : "14f10c6b-ccbf-456e-b268-cc868fbbfaa4",
     "name" : "default-roles-master",
@@ -433,7 +451,7 @@
       "ort-server" : [ "FULL_ACCESS" ]
     },
     "notBefore" : 0,
-    "groups" : [ ]
+    "groups" : [ "/SUPERUSER" ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
