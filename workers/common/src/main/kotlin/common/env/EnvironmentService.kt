@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.common.env
 
+import java.io.File
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -27,6 +29,8 @@ import kotlinx.coroutines.withContext
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
@@ -44,7 +48,10 @@ class EnvironmentService(
     private val infrastructureServiceRepository: InfrastructureServiceRepository,
 
     /** A collection with the supported generators for configuration files. */
-    private val generators: Collection<EnvironmentConfigGenerator<*>>
+    private val generators: Collection<EnvironmentConfigGenerator<*>>,
+
+    /** The helper object for loading the environment configuration file. */
+    private val configLoader: EnvironmentConfigLoader
 ) {
     /**
      * Try to find the [InfrastructureService] that matches the current repository stored in the given [context]. This
@@ -59,10 +66,35 @@ class EnvironmentService(
         }
 
     /**
+     * Set up the analysis environment for the current repository defined by the given [context] that has been
+     * checked out to the given [repositoryFolder]. The credentials of this repository - if any - are defined by the
+     * given [repositoryService].
+     */
+    suspend fun setUpEnvironment(
+        context: WorkerContext,
+        repositoryFolder: File,
+        repositoryService: InfrastructureService?
+    ): EnvironmentConfig {
+        val config = configLoader.parse(repositoryFolder, context.hierarchy)
+
+        val allServices = mutableSetOf<InfrastructureService>()
+        allServices += config.infrastructureServices
+        repositoryService?.let { allServices += it }
+        assignServicesToOrtRun(context, allServices)
+
+        generateConfigFiles(context, config.environmentDefinitions)
+
+        return config
+    }
+
+    /**
      * Generate all configuration files supported by the managed [EnvironmentConfigGenerator]s based on the passed in
      * [definitions]. Use the given [context] to access required information.
      */
-    suspend fun generateConfigFiles(context: WorkerContext, definitions: Collection<EnvironmentServiceDefinition>) =
+    private suspend fun generateConfigFiles(
+        context: WorkerContext,
+        definitions: Collection<EnvironmentServiceDefinition>
+    ) =
         withContext(Dispatchers.IO) {
             generators.map { generator ->
                 val builder = ConfigFileBuilder(context)
@@ -78,5 +110,15 @@ class EnvironmentService(
     suspend fun generateNetRcFile(context: WorkerContext, services: Collection<InfrastructureService>) {
         val definitions = services.map { EnvironmentServiceDefinition(it) }
         generateConfigFiles(context, definitions)
+    }
+
+    /**
+     * Update the database to record that the given [services] have been referenced from the current ORT run as
+     * obtained from the given [context].
+     */
+    private fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
+        services.forEach { service ->
+            infrastructureServiceRepository.getOrCreateForRun(service, context.ortRun.id)
+        }
     }
 }

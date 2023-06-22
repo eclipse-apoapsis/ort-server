@@ -20,10 +20,14 @@
 package org.ossreviewtoolkit.server.workers.common.env
 
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
+import org.ossreviewtoolkit.server.model.repositories.SecretRepository
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
 
 /**
  * Return a [Module] with bean definitions that provide an [EnvironmentService] instance and its dependencies. This
@@ -31,12 +35,15 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
  */
 fun buildEnvironmentModule(): Module = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
-    single { NetRcGenerator() }
+    single<SecretRepository> { DaoSecretRepository(get()) }
+
+    singleOf(::EnvironmentConfigLoader)
 
     single {
         EnvironmentService(
             get(),
-            listOf(NetRcGenerator())
+            listOf(NetRcGenerator()),
+            get()
         )
     }
 }

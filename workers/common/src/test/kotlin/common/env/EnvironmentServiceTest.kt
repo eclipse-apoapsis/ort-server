@@ -34,8 +34,12 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 
+import java.io.File
+
 import org.ossreviewtoolkit.server.model.Hierarchy
+import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -43,6 +47,8 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentServiceTest : WordSpec({
@@ -52,7 +58,7 @@ class EnvironmentServiceTest : WordSpec({
                 every { listForRepositoryUrl(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID) } returns emptyList()
             }
 
-            val environmentService = EnvironmentService(repository, mockk())
+            val environmentService = EnvironmentService(repository, mockk(), mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(mockContext())
 
@@ -72,7 +78,7 @@ class EnvironmentServiceTest : WordSpec({
                 )
             }
 
-            val environmentService = EnvironmentService(repository, mockk())
+            val environmentService = EnvironmentService(repository, mockk(), mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(mockContext())
 
@@ -92,7 +98,7 @@ class EnvironmentServiceTest : WordSpec({
                 )
             }
 
-            val environmentService = EnvironmentService(repository, mockk())
+            val environmentService = EnvironmentService(repository, mockk(), mockk())
             val result =
                 environmentService.findInfrastructureServiceForRepository(mockContext())
 
@@ -100,21 +106,78 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
-    "generateConfigFiles" should {
+    "setUpEnvironment" should {
         "invoke all generators to produce the supported configuration files" {
             val definitions = listOf<EnvironmentServiceDefinition>(mockk(), mockk(), mockk())
             val context = mockContext()
             val generator1 = mockGenerator()
             val generator2 = mockGenerator()
 
-            val environmentService = EnvironmentService(mockk(), listOf(generator1, generator2))
+            val config = EnvironmentConfig(emptyList(), definitions)
+            val configLoader = mockConfigLoader(config)
 
-            environmentService.generateConfigFiles(context, definitions)
+            val environmentService = EnvironmentService(mockk(), listOf(generator1, generator2), configLoader)
+
+            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null)
+
+            configResult shouldBe config
 
             val args1 = generator1.verify(context, definitions)
             val args2 = generator2.verify(context, definitions)
 
             args1.first shouldNotBe args2.first
+        }
+
+        "associate all infrastructure services from the config file with the current ORT run" {
+            val services = listOf<InfrastructureService>(mockk(), mockk())
+            val context = mockContext()
+
+            val config = EnvironmentConfig(services, emptyList())
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null)
+
+            configResult shouldBe config
+
+            assignedServices shouldContainExactlyInAnyOrder services
+        }
+
+        "assign the infrastructure service for the repository to the current ORT run" {
+            val repositoryService = mockk<InfrastructureService>()
+            val otherService = mockk<InfrastructureService>()
+
+            val context = mockContext()
+            val config = EnvironmentConfig(listOf(otherService), emptyList())
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, repositoryFolder, repositoryService)
+
+            assignedServices shouldContainExactlyInAnyOrder listOf(repositoryService, otherService)
+        }
+
+        "remove duplicates before assigning services to the current ORT run" {
+            val repositoryService = mockk<InfrastructureService>()
+            val services = listOf(repositoryService, mockk(), mockk())
+
+            val context = mockContext()
+            val config = EnvironmentConfig(services, emptyList())
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, repositoryFolder, repositoryService)
+
+            assignedServices shouldContainExactlyInAnyOrder services
         }
     }
 
@@ -128,7 +191,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val generator = mockGenerator()
 
-            val environmentService = EnvironmentService(mockk(), listOf(generator))
+            val environmentService = EnvironmentService(mockk(), listOf(generator), mockk())
             environmentService.generateNetRcFile(context, services)
 
             val args = generator.verify(context)
@@ -139,6 +202,7 @@ class EnvironmentServiceTest : WordSpec({
 
 private const val ORGANIZATION_ID = 20230607115501L
 private const val PRODUCT_ID = 20230607115528L
+private const val RUN_ID = 20230622095805L
 
 /** A [Hierarchy] object for the test repository. */
 private val repositoryHierarchy = Hierarchy(
@@ -147,12 +211,21 @@ private val repositoryHierarchy = Hierarchy(
     Organization(ORGANIZATION_ID, "test organization")
 )
 
+/** A mock representing the current ORT run. */
+private val currentOrtRun = mockk<OrtRun> {
+    every { id } returns RUN_ID
+}
+
+/** A file representing the checkout folder of the current repository. */
+private val repositoryFolder = File("repositoryCheckoutLocation")
+
 /**
  * Create a mock [WorkerContext] object that is prepared to return the [Hierarchy] of the test repository.
  */
 private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
+        every { ortRun } returns currentOrtRun
     }
 
 /**
@@ -162,6 +235,14 @@ private fun mockContext(): WorkerContext =
 private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefinition> =
     mockk {
         coEvery { generateApplicable(any(), any()) } just runs
+    }
+
+/**
+ * Create a mock [EnvironmentConfigLoader] that is prepared to return the given [config].
+ */
+private fun mockConfigLoader(config: EnvironmentConfig): EnvironmentConfigLoader =
+    mockk<EnvironmentConfigLoader> {
+        every { parse(repositoryFolder, repositoryHierarchy) } returns config
     }
 
 /**
@@ -187,4 +268,21 @@ private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.ver
     }
 
     return slotBuilder.captured to slotDefinitions.captured
+}
+
+/**
+ * Prepare this mock for an [InfrastructureServiceRepository] to expect calls that assign infrastructure services to
+ * the current ORT run. Return a list that contains the assigned services after running the test.
+ */
+private fun InfrastructureServiceRepository.expectServiceAssignments(): List<InfrastructureService> {
+    val assignedServices = mutableListOf<InfrastructureService>()
+
+    val slotService = slot<InfrastructureService>()
+    every { getOrCreateForRun(capture(slotService), RUN_ID) } answers {
+        firstArg<InfrastructureService>().also {
+            assignedServices += it
+        }
+    }
+
+    return assignedServices
 }
