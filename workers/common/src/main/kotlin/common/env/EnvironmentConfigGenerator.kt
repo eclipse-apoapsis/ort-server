@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.common.env
 
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+
 /**
  * A common interface for generators for package manager-specific configuration files.
  *

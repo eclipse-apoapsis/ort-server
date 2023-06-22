@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentServiceTest : WordSpec({
     "findInfrastructureServiceForRepository" should {

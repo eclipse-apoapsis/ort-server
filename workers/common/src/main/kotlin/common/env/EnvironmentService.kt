@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
  * A service class providing functionality for setting up the build environment when running a worker.

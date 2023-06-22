@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.workers.common.env
 import java.net.URI
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 import org.slf4j.LoggerFactory
 

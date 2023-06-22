@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.ossreviewtoolkit.server.workers.common.env.definition
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
 

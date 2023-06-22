@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createSecret
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.testSecretRef
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 class NetRcGeneratorTest : StringSpec({
         "The correct path in the user's home directory should be generated" {

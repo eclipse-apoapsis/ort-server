@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentConfigGeneratorTest : StringSpec({
     "Filtering for applicable definitions works" {
