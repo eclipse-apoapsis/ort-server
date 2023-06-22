@@ -104,13 +104,6 @@
       "admin-cli" : [ ],
       "account-console" : [ ],
       "ort-server" : [ {
-        "id" : "d78f8e73-49a7-4f25-aa85-f70e3f0bf0a5",
-        "name" : "FULL_ACCESS",
-        "composite" : false,
-        "clientRole" : true,
-        "containerId" : "6c48dfc4-9788-462c-ae28-4f3ce383f6a2",
-        "attributes" : { }
-      }, {
         "id" : "fe1e8021-77fc-463b-a069-da14ec5494db",
         "name" : "superuser",
         "description" : "This role is auto-generated, do not edit or remove.",
@@ -447,9 +440,6 @@
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-master" ],
-    "clientRoles" : {
-      "ort-server" : [ "FULL_ACCESS" ]
-    },
     "notBefore" : 0,
     "groups" : [ "/SUPERUSER" ]
   } ],
