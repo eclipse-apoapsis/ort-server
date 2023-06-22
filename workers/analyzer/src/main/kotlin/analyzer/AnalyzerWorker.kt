@@ -50,13 +50,22 @@ internal class AnalyzerWorker(
         logger.debug("Analyzer job with id '${job.id}' started at ${job.startedAt}.")
 
         val context = contextFactory.createContext(job.ortRunId)
-        environmentService.findInfrastructureServiceForRepository(context)?.let { infrastructureService ->
-            logger.info("Using credentials for download from infrastructure service '{}'.", infrastructureService)
+        val repositoryService = environmentService.findInfrastructureServiceForRepository(context)
+
+        repositoryService?.let { infrastructureService ->
+            logger.info(
+                "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
+                        "repository.",
+                infrastructureService
+            )
 
             environmentService.generateNetRcFile(context, listOf(infrastructureService))
         }
 
         val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
+
+        environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
+
         val analyzerRun = runner.run(sourcesDir, job.configuration).analyzer
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 

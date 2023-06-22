@@ -92,6 +92,7 @@ class AnalyzerWorkerTest : StringSpec({
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns infrastructureService
             coEvery { generateNetRcFile(context, listOf(infrastructureService)) } just runs
+            coEvery { setUpEnvironment(context, projectDir, infrastructureService) } returns mockk()
         }
 
         val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
@@ -108,6 +109,7 @@ class AnalyzerWorkerTest : StringSpec({
             coVerifyOrder {
                 envService.generateNetRcFile(context, listOf(infrastructureService))
                 downloader.downloadRepository(analyzerJob.repositoryUrl, analyzerJob.repositoryRevision)
+                envService.setUpEnvironment(context, projectDir, infrastructureService)
             }
         }
     }
@@ -131,6 +133,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
+            coEvery { setUpEnvironment(context, projectDir, null) } returns mockk()
         }
 
         val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
@@ -146,6 +149,10 @@ class AnalyzerWorkerTest : StringSpec({
 
             coVerify(exactly = 0) {
                 envService.generateNetRcFile(any(), any())
+            }
+
+            coVerify {
+                envService.setUpEnvironment(context, projectDir, null)
             }
         }
     }
