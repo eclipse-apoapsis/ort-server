@@ -26,6 +26,8 @@ import kotlinx.datetime.toKotlinInstant
 import org.ossreviewtoolkit.model.AdvisorResult as OrtAdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
+import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
 import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
@@ -33,12 +35,21 @@ import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtOrtIssue
+import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
+import org.ossreviewtoolkit.model.Provenance as OrtProvenance
+import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
+import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
 import org.ossreviewtoolkit.model.RootDependencyIndex
 import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
+import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
+import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
+import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
+import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
+import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
@@ -88,18 +99,29 @@ import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.CopyrightFinding
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.HttpFileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.KnownProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.LicenseFinding
 import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresConnection
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
+import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 
 fun OrtAdvisorConfiguration.mapToModel() =
@@ -158,6 +180,8 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
         issues = result.issues.mapKeys { it.key.mapToModel() }.mapValues { it.value.map { it.mapToModel() } },
         dependencyGraphs = result.dependencyGraphs.mapValues { it.value.mapToModel() }
     )
+
+fun OrtCopyrightFinding.mapToModel() = CopyrightFinding(statement = statement, location = location.mapToModel())
 
 fun OrtDefect.mapToModel() =
     Defect(
@@ -224,6 +248,13 @@ fun OrtEnvironment.mapToModel() =
 
 fun OrtIdentifier.mapToModel() = Identifier(type, namespace, name, version)
 
+fun OrtLicenseFinding.mapToModel() =
+    LicenseFinding(
+        spdxLicense = license.toString(),
+        location = location.mapToModel(),
+        score = score
+    )
+
 fun OrtNexusIqConfiguration.mapToModel() = NexusIqConfiguration(serverUrl = serverUrl, browseUrl = browseUrl)
 
 fun OrtOrtIssue.mapToModel() =
@@ -272,12 +303,41 @@ fun OrtProject.mapToModel() =
         scopeNames = scopeNames.orEmpty()
     )
 
+fun OrtProvenance.mapToModel() =
+    when (this) {
+        is OrtArtifactProvenance -> ArtifactProvenance(sourceArtifact = sourceArtifact.mapToModel())
+        is OrtRepositoryProvenance -> RepositoryProvenance(
+            vcsInfo = vcsInfo.mapToModel(),
+            resolvedRevision = resolvedRevision
+        )
+
+        is OrtUnknownProvenance -> UnknownProvenance
+    }
+
+fun OrtProvenanceResolutionResult.mapToModel() =
+    ProvenanceResolutionResult(
+        id = id.mapToModel(),
+        packageProvenance = packageProvenance?.mapToModel() as? KnownProvenance,
+        subRepositories = subRepositories.mapValues { it.value.mapToModel() },
+        packageProvenanceResolutionIssue = packageProvenanceResolutionIssue?.mapToModel(),
+        nestedProvenanceResolutionIssue = nestedProvenanceResolutionIssue?.mapToModel()
+    )
+
 fun OrtRemoteArtifact.mapToModel() =
     RemoteArtifact(
         url = url,
         hashValue = hash.value,
         hashAlgorithm = hash.algorithm.toString()
     )
+
+fun OrtScannerDetails.mapToModel() =
+    ScannerDetail(
+        name = name,
+        version = version,
+        configuration = configuration
+    )
+
+fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLine, endLine = endLine)
 
 fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
 
@@ -324,7 +384,8 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
         endTime = endTime.toKotlinInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
-        scanResults = emptyMap()
+        provenances = provenances.mapTo(mutableSetOf(), OrtProvenanceResolutionResult::mapToModel),
+        scanResults = scanResults.mapTo(mutableSetOf(), OrtScanResult::mapToModel)
     )
 
 fun OrtScannerConfiguration.mapToModel() =
@@ -346,6 +407,24 @@ fun OrtScannerConfiguration.mapToModel() =
         storageWriters = storageWriters,
         ignorePatterns = ignorePatterns,
         provenanceStorage = provenanceStorage?.mapToModel()
+    )
+
+fun OrtScanResult.mapToModel() =
+    ScanResult(
+        provenance = provenance.mapToModel(),
+        scanner = scanner.mapToModel(),
+        summary = summary.mapToModel(),
+        additionalData = additionalData
+    )
+
+fun OrtScanSummary.mapToModel() =
+    ScanSummary(
+        startTime = startTime.toKotlinInstant(),
+        endTime = endTime.toKotlinInstant(),
+        packageVerificationCode = packageVerificationCode,
+        licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
+        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
+        issues = issues.map(OrtOrtIssue::mapToModel)
     )
 
 fun OrtProvenanceStorageConfiguration.mapToModel() =

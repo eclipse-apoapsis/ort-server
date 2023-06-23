@@ -22,7 +22,6 @@ package org.ossreviewtoolkit.server.model.runs.scanner
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
 
 data class ScannerRun(
     val id: Long,
@@ -31,5 +30,6 @@ data class ScannerRun(
     val endTime: Instant,
     val environment: Environment,
     val config: ScannerConfiguration,
-    val scanResults: Map<Identifier, List<NestedProvenanceScanResult>>
+    val provenances: Set<ProvenanceResolutionResult>,
+    val scanResults: Set<ScanResult>
 )

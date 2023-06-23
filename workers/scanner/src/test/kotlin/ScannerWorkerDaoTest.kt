@@ -149,7 +149,8 @@ class ScannerWorkerDaoTest : WordSpec({
                     ignorePatterns = listOf("pattern-1"),
                     provenanceStorage = null
                 ),
-                scanResults = emptyMap()
+                provenances = emptySet(),
+                scanResults = emptySet()
             )
 
             dao.storeScannerRun(scannerRun)

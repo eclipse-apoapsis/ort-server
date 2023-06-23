@@ -54,7 +54,8 @@ class ScannerRunnerTest : WordSpec({
             val result = runner.run(OrtResult.EMPTY, ScannerJobConfiguration())
 
             val scannerRun = result.scanner.shouldNotBeNull()
-            scannerRun.scanResults shouldBe emptyMap()
+            scannerRun.provenances shouldBe emptySet()
+            scannerRun.scanResults shouldBe emptySet()
         }
     }
 })

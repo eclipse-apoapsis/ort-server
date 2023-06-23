@@ -33,6 +33,10 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.Provenance
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 
 object PackageProvenancesTable : LongIdTable("package_provenances") {
     val identifierId = reference("identifier_id", IdentifiersTable)
@@ -51,7 +55,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
          * Return a matching package provenance for the provided [package][pkg] or null if no provenance is found.
          */
         fun findByPackage(pkg: PackageDao): PackageProvenanceDao? =
-            // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
+        // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
             //       provenances are found for a package.
             PackageProvenanceDao.find {
                 (PackageProvenancesTable.identifierId eq pkg.identifier.id) and (
@@ -69,4 +73,10 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     var isFixedRevision by PackageProvenancesTable.isFixedRevision
     var clonedRevision by PackageProvenancesTable.clonedRevision
     var errorMessage by PackageProvenancesTable.errorMessage
+
+    fun mapToModel(): Provenance = when {
+        artifact != null -> ArtifactProvenance(artifact!!.mapToModel())
+        vcs != null -> RepositoryProvenance(vcs!!.mapToModel(), resolvedRevision!!)
+        else -> UnknownProvenance
+    }
 }

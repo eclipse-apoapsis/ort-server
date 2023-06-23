@@ -51,6 +51,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageLinkage as OrtPackageLinkage
 import org.ossreviewtoolkit.model.Project as OrtProject
+import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
 import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
@@ -132,6 +133,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresConnection
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.Provenance
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
@@ -214,9 +216,17 @@ fun ScannerRun.mapToOrt() =
         endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
-        scanResults = scanResults.entries.associateTo(sortedMapOf()) { (id, results) ->
-            id.mapToOrt() to results.flatMap { it.mapToOrt().merge() }
-        }
+        provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
+        scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt)
+    )
+
+fun ProvenanceResolutionResult.mapToOrt() =
+    OrtProvenanceResolutionResult(
+        id = id.mapToOrt(),
+        packageProvenance = packageProvenance?.mapToOrt(),
+        subRepositories = subRepositories.mapValues { it.value.mapToOrt() },
+        packageProvenanceResolutionIssue = packageProvenanceResolutionIssue?.mapToOrt(),
+        nestedProvenanceResolutionIssue = nestedProvenanceResolutionIssue?.mapToOrt()
     )
 
 fun NestedProvenanceScanResult.mapToOrt() =

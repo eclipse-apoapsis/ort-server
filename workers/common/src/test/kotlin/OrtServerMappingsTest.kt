@@ -45,6 +45,7 @@ import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.Project as OrtProject
+import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
 import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
@@ -107,8 +108,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
@@ -368,6 +368,11 @@ class OrtServerMappingsTest : WordSpec({
 
             val repositoryProvenance = RepositoryProvenance(pkg.vcsProcessed, pkg.vcsProcessed.revision)
 
+            val provenanceResolutionResult = ProvenanceResolutionResult(
+                id = pkgIdentifier,
+                packageProvenance = repositoryProvenance
+            )
+
             val scanResult = ScanResult(
                 provenance = repositoryProvenance,
                 scanner = ScannerDetail(
@@ -378,20 +383,12 @@ class OrtServerMappingsTest : WordSpec({
                 summary = ScanSummary(
                     startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                     endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                    packageVerificationCode = "package-verification-code",
+                    packageVerificationCode = "",
                     licenseFindings = emptySet(),
                     copyrightFindings = emptySet(),
                     issues = listOf(issue)
                 ),
                 additionalData = mapOf("data-1" to "value-1")
-            )
-
-            val nestedProvenanceScanResult = NestedProvenanceScanResult(
-                nestedProvenance = NestedProvenance(
-                    root = repositoryProvenance,
-                    subRepositories = emptyMap()
-                ),
-                scanResults = mapOf(repositoryProvenance to listOf(scanResult))
             )
 
             val scannerRun = ScannerRun(
@@ -401,7 +398,8 @@ class OrtServerMappingsTest : WordSpec({
                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 environment = environment,
                 config = scannerConfiguration,
-                scanResults = mapOf(pkg.identifier to listOf(nestedProvenanceScanResult))
+                provenances = setOf(provenanceResolutionResult),
+                scanResults = setOf(scanResult)
             )
 
             // Initialization of ORT objects.
@@ -643,6 +641,11 @@ class OrtServerMappingsTest : WordSpec({
 
             val ortRepositoryProvenance = OrtRepositoryProvenance(ortPkg.vcsProcessed, ortPkg.vcsProcessed.revision)
 
+            val ortProvenanceResolutionResult = OrtProvenanceResolutionResult(
+                id = ortPkgIdentifier,
+                packageProvenance = ortRepositoryProvenance
+            )
+
             val ortScanResult = OrtScanResult(
                 provenance = ortRepositoryProvenance,
                 scanner = OrtScannerDetails(
@@ -666,7 +669,8 @@ class OrtServerMappingsTest : WordSpec({
                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                 environment = ortEnvironment,
                 config = ortScannerConfiguration,
-                scanResults = sortedMapOf(ortPkgIdentifier to listOf(ortScanResult))
+                provenances = setOf(ortProvenanceResolutionResult),
+                scanResults = setOf(ortScanResult)
             )
 
             val ortResult = OrtResult(

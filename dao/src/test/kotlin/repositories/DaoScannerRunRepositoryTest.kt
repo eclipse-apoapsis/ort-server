@@ -20,8 +20,10 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
@@ -48,10 +50,9 @@ import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresConnection
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
@@ -134,45 +135,26 @@ class DaoScannerRunRepositoryTest : StringSpec({
         analyzerRunRepository.create(newAnalyzerJobId, analyzerRun.copy(packages = setOf(pkg4)))
         scannerRunRepository.create(newScannerJobId, scannerRun)
 
-        val dbQuery = scannerRunRepository.get(scannerJobId)
+        val scannerRun = scannerRunRepository.get(scannerJobId)
 
-        dbQuery.shouldNotBeNull()
-        dbQuery.scanResults shouldBe mapOf(
-            pkg1.identifier to listOf(
-                NestedProvenanceScanResult(
-                    nestedProvenance = NestedProvenance(
-                        root = ArtifactProvenance(pkg1.sourceArtifact),
-                        subRepositories = emptyMap()
-                    ),
-                    scanResults = mapOf(
-                        ArtifactProvenance(pkg1.sourceArtifact) to listOf(
-                            scanResultPkg1.copy(provenance = ArtifactProvenance(pkg1.sourceArtifact))
-                        )
-                    )
-                )
+        scannerRun.shouldNotBeNull()
+
+        scannerRun.provenances should containExactlyInAnyOrder(
+            ProvenanceResolutionResult(
+                id = pkg1.identifier,
+                packageProvenance = ArtifactProvenance(sourceArtifact = pkg1.sourceArtifact)
             ),
-            pkg2.identifier to listOf(
-                NestedProvenanceScanResult(
-                    nestedProvenance = NestedProvenance(
-                        root = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision),
-                        subRepositories = mapOf(
-                            "sub-repo" to RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision)
-                        )
-                    ),
-                    scanResults = mapOf(
-                        RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision) to listOf(
-                            scanResultPkg2.copy(
-                                provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)
-                            )
-                        ),
-                        RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision) to listOf(
-                            scanResultPkg3.copy(
-                                provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision)
-                            )
-                        )
-                    )
-                )
+            ProvenanceResolutionResult(
+                id = pkg2.identifier,
+                packageProvenance = RepositoryProvenance(vcsInfo = pkg2.vcsProcessed, resolvedRevision = "main"),
+                subRepositories = mapOf("sub-repo" to pkg3.vcsProcessed)
             )
+        )
+
+        scannerRun.scanResults should containExactlyInAnyOrder(
+            scanResultPkg1.copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
+            scanResultPkg2.copy(provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)),
+            scanResultPkg3.copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
         )
     }
 })
@@ -296,5 +278,6 @@ internal val scannerRun = ScannerRun(
     endTime = Clock.System.now().toDatabasePrecision(),
     environment = environment,
     config = scannerConfiguration,
-    scanResults = emptyMap()
+    provenances = emptySet(),
+    scanResults = emptySet()
 )
