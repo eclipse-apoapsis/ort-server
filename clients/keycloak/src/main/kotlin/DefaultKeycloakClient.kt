@@ -76,9 +76,13 @@ class DefaultKeycloakClient(
         private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =
             createDefaultHttpClient(json).configureAuthentication(config, json)
 
-        fun HttpClient.configureAuthentication(config: KeycloakClientConfiguration, json: Json): HttpClient =
+        fun HttpClient.configureAuthentication(
+            config: KeycloakClientConfiguration,
+            json: Json,
+            expectSuccess: Boolean = true
+        ): HttpClient =
             config {
-                expectSuccess = true
+                this.expectSuccess = expectSuccess
 
                 defaultRequest {
                     header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -90,7 +94,7 @@ class DefaultKeycloakClient(
                     val apiUser = config.apiUser
                     val apiSecret = config.apiSecret
 
-                    val tokenClient = createDefaultHttpClient(json) { expectSuccess = true }
+                    val tokenClient = createDefaultHttpClient(json) { this.expectSuccess = true }
 
                     bearer {
                         loadTokens {
