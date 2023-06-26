@@ -23,7 +23,10 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
@@ -43,7 +46,20 @@ object PackageProvenancesTable : LongIdTable("package_provenances") {
 }
 
 class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageProvenanceDao>(PackageProvenancesTable)
+    companion object : LongEntityClass<PackageProvenanceDao>(PackageProvenancesTable) {
+        /**
+         * Return a matching package provenance for the provided [package][pkg] or null if no provenance is found.
+         */
+        fun findByPackage(pkg: PackageDao): PackageProvenanceDao? =
+            // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
+            //       provenances are found for a package.
+            PackageProvenanceDao.find {
+                (PackageProvenancesTable.identifierId eq pkg.identifier.id) and (
+                        (PackageProvenancesTable.artifactId eq pkg.sourceArtifact.id) or
+                                (PackageProvenancesTable.vcsId eq pkg.vcsProcessed.id)
+                        )
+            }.firstOrNull()
+    }
 
     var identifier by IdentifierDao referencedOn PackageProvenancesTable.identifierId
     var artifact by RemoteArtifactDao optionalReferencedOn PackageProvenancesTable.artifactId
