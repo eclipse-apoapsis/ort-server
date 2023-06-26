@@ -22,13 +22,25 @@ package org.ossreviewtoolkit.server.workers.common.env.config
 import kotlinx.serialization.Serializable
 
 /**
+ * Type definition to describe the generic section of the environment configuration that lists the environment
+ * definitions. The section contains different types of definitions with different properties and is therefore
+ * represented as a map of lists. The keys of the map declare the type of the definitions, such as *maven* or *npm*.
+ * The list then contains the corresponding definitions with their specific properties. This structure is evaluated by
+ * a factory that creates concrete class instances out of it.
+ */
+typealias RepositoryEnvironmentDefinitions = Map<String, List<Map<String, String>>>
+
+/**
  * A data class defining the structure of the environment configuration file. The file is loaded by deserializing it
  * into an instance of this class.
  */
 @Serializable
-internal class RepositoryEnvironmentConfig(
+internal data class RepositoryEnvironmentConfig(
     /** The list of infrastructure services declared for this repository. */
     val infrastructureServices: List<RepositoryInfrastructureService>,
+
+    /** A map with environment definitions of different types. */
+    val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
 
     /** A flag that determines how semantic errors in the configuration file should be treated. */
     val strict: Boolean = true

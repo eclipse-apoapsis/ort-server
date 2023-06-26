@@ -24,7 +24,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
@@ -38,10 +40,14 @@ import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.Secret
+import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigException
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 
 class EnvironmentConfigLoaderTest : StringSpec() {
     init {
@@ -123,6 +129,67 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
+
+        "Environment definitions are processed" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+            helper.createSecret("testPassword2", repository = repository)
+
+            val service = createTestService(1, userSecret, pass1Secret)
+
+            val config = loadConfig(".ort.env.definitions.yml", helper)
+
+            config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
+        }
+
+        "Invalid definitions cause exceptions" {
+            val helper = TestHelper()
+            helper.createSecret("testUser", repository = repository)
+            helper.createSecret("testPassword1", repository = repository)
+            helper.createSecret("testPassword2", repository = repository)
+
+            val exception = shouldThrow<EnvironmentConfigException> {
+                loadConfig(".ort.env.definitions-errors.yml", helper)
+            }
+
+            exception.message shouldContain "'Non-existing service'"
+            exception.message shouldContain "Missing service reference"
+            exception.message shouldContain "Unsupported definition type 'unknown'"
+            exception.message shouldContain "Missing required properties"
+        }
+
+        "Invalid definitions are ignored in non-strict mode" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+            helper.createSecret("testPassword2", repository = repository)
+
+            val service = createTestService(1, userSecret, pass1Secret)
+
+            val config = loadConfig(".ort.env.definitions-errors-non-strict.yml", helper)
+
+            config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
+        }
+
+        "Services can be resolved in the hierarchy" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val passSecret = helper.createSecret("testPassword1", repository = repository)
+
+            val prodService = createTestService(2, userSecret, passSecret)
+            val orgService = createTestService(3, userSecret, passSecret)
+            val shadowedOrgService = createTestService(2, userSecret, passSecret)
+                .copy(url = "https://another-repo.example.org/test.git")
+            helper.withProductService(prodService)
+                .withOrganizationService(orgService)
+                .withOrganizationService(shadowedOrgService)
+
+            val config = loadConfig(".ort.env.definitions-hierarchy-services.yml", helper)
+
+            config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
+            config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
+        }
     }
 
     /**
@@ -147,18 +214,28 @@ class EnvironmentConfigLoaderTest : StringSpec() {
  */
 private class TestHelper(
     /** Mock for the repository for secrets. */
-    val secretRepository: SecretRepository = mockk()
+    val secretRepository: SecretRepository = mockk(),
+
+    /** Mock for the repository for infrastructure services. */
+    val serviceRepository: InfrastructureServiceRepository = mockk()
 ) {
     /** Stores the secrets referenced by tests. */
     private val secrets = mutableListOf<Secret>()
+
+    /** Stores infrastructure services assigned to the current product. */
+    private val productServices = mutableListOf<InfrastructureService>()
+
+    /** Stores infrastructure services assigned to the current organization. */
+    private val organizationServices = mutableListOf<InfrastructureService>()
 
     /**
      * Create a new [EnvironmentConfigLoader] instance with the dependencies managed by this object.
      */
     fun loader(): EnvironmentConfigLoader {
         initSecretRepository()
+        initServiceRepository()
 
-        return EnvironmentConfigLoader(secretRepository)
+        return EnvironmentConfigLoader(secretRepository, serviceRepository, EnvironmentDefinitionFactory())
     }
 
     /**
@@ -182,6 +259,24 @@ private class TestHelper(
         ).also { secrets.add(it) }
 
     /**
+     * Add the given [service] to the list of product services. It will be returned by the mock service repository
+     * when it is queried for product services.
+     */
+    fun withProductService(service: InfrastructureService): TestHelper {
+        productServices += service
+        return this
+    }
+
+    /**
+     * Add the given [service] to the list of organization services. It will be returned by the mock service repository
+     * when it is queried for organization services.
+     */
+    fun withOrganizationService(service: InfrastructureService): TestHelper {
+        organizationServices += service
+        return this
+    }
+
+    /**
      * Prepare the mock for the [SecretRepository] to answer queries based on the secrets that have been defined.
      */
     private fun initSecretRepository() {
@@ -194,6 +289,15 @@ private class TestHelper(
         every {
             secretRepository.listForOrganization(organization.id)
         } returns secrets.filter { it.organization != null }
+    }
+
+    /**
+     * Prepare the mock for the [InfrastructureServiceRepository] to answer queries for the product and organization
+     * services based on the data that has been defined.
+     */
+    private fun initServiceRepository() {
+        every { serviceRepository.listForProduct(hierarchy.product.id) } returns productServices
+        every { serviceRepository.listForOrganization(hierarchy.organization.id) } returns organizationServices
     }
 }
 
@@ -223,3 +327,16 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         organization = null,
         product = null
     )
+
+/**
+ * Check whether this [EnvironmentConfig] contains an environment definition of a specific type that references the
+ * given [service] and passes the given [check].
+ */
+private inline fun <reified T : EnvironmentServiceDefinition> EnvironmentConfig.shouldContainDefinition(
+    service: InfrastructureService,
+    check: (T) -> Boolean
+) {
+    environmentDefinitions.find { definition ->
+        definition is T && definition.service == service && check(definition)
+    } shouldNot beNull()
+}

@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
+import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
 
 /**
  * Return a [Module] with bean definitions that provide an [EnvironmentService] instance and its dependencies. This
@@ -37,6 +38,7 @@ fun buildEnvironmentModule(): Module = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
     single<SecretRepository> { DaoSecretRepository(get()) }
 
+    singleOf(::EnvironmentDefinitionFactory)
     singleOf(::EnvironmentConfigLoader)
 
     single {

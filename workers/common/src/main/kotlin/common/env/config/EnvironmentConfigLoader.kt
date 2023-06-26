@@ -26,7 +26,9 @@ import java.io.File
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.Secret
+import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 import org.slf4j.LoggerFactory
 
@@ -59,11 +61,24 @@ import org.slf4j.LoggerFactory
  *   description: "Main repository for releases."
  *   usernameSecret: "frogUsername"
  *   passwordSecret: "frogPassword"
+ * environmentDefinitions:
+ *   maven:
+ *   - service: "JFrog"
+ *     id: "releasesRepo"
  * ```
  */
 class EnvironmentConfigLoader(
     /** The repository for secrets. This is used to resolve secret references. */
-    private val secretRepository: SecretRepository
+    private val secretRepository: SecretRepository,
+
+    /**
+     * The repository for infrastructure services. This is needed to resolve references to services that are not
+     * defined in the configuration itself, but for the current product or organization.
+     */
+    private val serviceRepository: InfrastructureServiceRepository,
+
+    /** The factory for creating environment definitions. */
+    private val definitionFactory: EnvironmentDefinitionFactory
 ) {
     companion object {
         /** The path to the environment configuration file relative to the root folder of the repository. */
@@ -84,7 +99,9 @@ class EnvironmentConfigLoader(
             configFile.inputStream().use { stream ->
                 val config = Yaml.default.decodeFromStream(RepositoryEnvironmentConfig.serializer(), stream)
                 val services = parseServices(config, hierarchy)
-                EnvironmentConfig(services)
+                val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
+
+                EnvironmentConfig(services, definitions)
             }
         } ?: EnvironmentConfig(emptyList())
 
@@ -151,9 +168,110 @@ class EnvironmentConfigLoader(
 
         return resolvedSecrets
     }
+
+    /**
+     * Parse the environment service definitions declared in the given [config] and convert them to corresponding data
+     * objects. Resolve service references based on the given [configServices] (the services that have already been
+     * parsed from the configuration file) or from the product or organization defined by the given [hierarchy].
+     */
+    private fun parseEnvironmentDefinitions(
+        config: RepositoryEnvironmentConfig,
+        hierarchy: Hierarchy,
+        configServices: List<InfrastructureService>
+    ): List<EnvironmentServiceDefinition> {
+        val serviceResolver = ServiceResolver(hierarchy, serviceRepository, configServices)
+
+        val (success, failure) = config.environmentDefinitions.entries.flatMap { entry ->
+            entry.value.map { definition ->
+                serviceResolver.resolveService(definition).mapCatching { service ->
+                    definitionFactory.createDefinition(entry.key, service, definition).getOrThrow()
+                }
+            }
+        }.partition { it.isSuccess }
+
+        handleInvalidDefinitions(config, failure)
+
+        return success.mapNotNull { it.getOrNull() }
+    }
+
+    /**
+     * Check whether there are invalid environment service definitions in the given [config] based on the given
+     * [failure] list. If so, generate a meaningful message and either throw an exception (in strict mode) or log a
+     * warning.
+     */
+    private fun handleInvalidDefinitions(
+        config: RepositoryEnvironmentConfig,
+        failure: List<Result<EnvironmentServiceDefinition>>
+    ) {
+        if (failure.isNotEmpty()) {
+            val message = buildString {
+                append("Found invalid environment service definitions:")
+                append(System.lineSeparator())
+
+                failure.mapNotNull { result ->
+                    result.exceptionOrNull()?.message
+                }.forEach {
+                    append(it)
+                    append(System.lineSeparator())
+                }
+            }
+
+            if (config.strict) {
+                throw EnvironmentConfigException(message)
+            } else {
+                logger.warn(message)
+            }
+        }
+    }
 }
 
 /**
  * An exception class for reporting problems with the environment configuration.
  */
 class EnvironmentConfigException(message: String) : Exception(message)
+
+/**
+ * A helper class for resolving services on different layers of the hierarchy.
+ */
+private class ServiceResolver(
+    /** The [Hierarchy] of the current repository. */
+    val hierarchy: Hierarchy,
+
+    /** The repository for infrastructure services. */
+    serviceRepository: InfrastructureServiceRepository,
+
+    /** The list of services defined in the repository configuration file. */
+    configServices: List<InfrastructureService>
+) {
+    /** A map for fast access to repository services. */
+    private val repositoryServices by lazy { configServices.associateByName() }
+
+    /** A map with the services defined for the current product. */
+    private val productServices by lazy { serviceRepository.listForProduct(hierarchy.product.id).associateByName() }
+
+    /** A map with the services defined for the current organization. */
+    private val organizationServices by lazy {
+        serviceRepository.listForOrganization(hierarchy.organization.id).associateByName()
+    }
+
+    /**
+     * Try to resolve the [InfrastructureService] referenced by the environment service definition with the given
+     * [properties].
+     */
+    fun resolveService(properties: Map<String, String>): Result<InfrastructureService> = runCatching {
+        val serviceName = properties[EnvironmentDefinitionFactory.SERVICE_PROPERTY]
+            ?: throw EnvironmentConfigException("Missing service reference: $properties")
+
+        repositoryServices[serviceName]
+            ?: productServices[serviceName]
+            ?: organizationServices[serviceName]
+            ?: throw EnvironmentConfigException("Unknown service: '$serviceName'.")
+    }
+}
+
+/**
+ * Return a [Map] with the [InfrastructureService]s contained in this [Collection] using the service names as keys.
+ * This is useful when resolving the services referenced by environment definitions.
+ */
+private fun Collection<InfrastructureService>.associateByName(): Map<String, InfrastructureService> =
+    associateBy(InfrastructureService::name)
