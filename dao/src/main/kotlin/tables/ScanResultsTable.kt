@@ -28,8 +28,11 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.utils.jsonb
+import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
+import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
@@ -77,18 +80,40 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
     var scannerConfiguration by ScanResultsTable.scannerConfiguration
     var additionalScanResultData by ScanResultsTable.additionalScanResultData
 
-    fun mapToModel() = ScanResult(
-        // TODO: Create a relation between the ScanResultsTable and PackageProvenancesTable to retrieve the
-        //       respective provenance for the scan result.
-        provenance = UnknownProvenance,
-        scanner = ScannerDetail(
-            name = scannerName,
-            version = scannerVersion,
-            configuration = scannerConfiguration
-        ),
-        summary = scanSummary.mapToModel(),
-        additionalData = additionalScanResultData?.data.orEmpty()
-    )
+    fun mapToModel(): ScanResult {
+        val provenance = when {
+            artifactUrl != null -> ArtifactProvenance(
+                sourceArtifact = RemoteArtifact(
+                    url = artifactUrl!!,
+                    hashValue = artifactHash.orEmpty(),
+                    hashAlgorithm = "" // TODO: Store the hash algorithm or determine it from the hash value.
+                )
+            )
+
+            vcsUrl != null -> RepositoryProvenance(
+                vcsInfo = VcsInfo(
+                    type = RepositoryType.valueOf(vcsType!!),
+                    url = vcsUrl!!,
+                    revision = vcsRevision!!,
+                    path = ""
+                ),
+                resolvedRevision = vcsRevision!!
+            )
+
+            else -> UnknownProvenance
+        }
+
+        return ScanResult(
+            provenance = provenance,
+            scanner = ScannerDetail(
+                name = scannerName,
+                version = scannerVersion,
+                configuration = scannerConfiguration
+            ),
+            summary = scanSummary.mapToModel(),
+            additionalData = additionalScanResultData?.data.orEmpty()
+        )
+    }
 }
 
 @Serializable
