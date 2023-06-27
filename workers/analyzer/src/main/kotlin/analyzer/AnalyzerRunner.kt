@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.workers.analyzer
 import java.io.File
 
 import org.ossreviewtoolkit.analyzer.Analyzer
-import org.ossreviewtoolkit.analyzer.PackageManager
+import org.ossreviewtoolkit.analyzer.determineEnabledPackageManagers
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
@@ -39,7 +39,8 @@ class AnalyzerRunner {
         val analyzer = Analyzer(analyzerConfig)
 
         // TODO: Add support for RepositoryConfiguration.
-        val info = analyzer.findManagedFiles(inputDir, PackageManager.ALL.values, RepositoryConfiguration())
+        val enabledPackageManagers = analyzerConfig.determineEnabledPackageManagers()
+        val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, RepositoryConfiguration())
         if (info.managedFiles.isEmpty()) {
             logger.warn("No definition files found.")
         } else {
