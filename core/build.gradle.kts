@@ -46,7 +46,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
     implementation(project(":services"))
-    implementation(project(":storage:spi"))
+    implementation(project(":storage:storage-spi"))
     implementation(project(":transport:transport-spi"))
 
     implementation(libs.jsonSchemaSerialization)

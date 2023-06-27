@@ -45,4 +45,5 @@ include(":workers:reporter")
 include(":workers:scanner")
 
 project(":secrets:spi").name = "secrets-spi"
+project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"

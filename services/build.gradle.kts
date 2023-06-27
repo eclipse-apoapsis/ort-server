@@ -33,7 +33,7 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
-    implementation(project(":storage:spi"))
+    implementation(project(":storage:storage-spi"))
 
     implementation(libs.koinKtor)
 

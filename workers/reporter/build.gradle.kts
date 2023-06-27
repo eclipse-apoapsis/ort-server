@@ -46,7 +46,7 @@ repositories {
 dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
-    implementation(project(":storage:spi"))
+    implementation(project(":storage:storage-spi"))
     implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
@@ -62,7 +62,7 @@ dependencies {
     runtimeOnly(platform(libs.ortReporters))
 
     testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":storage:spi")))
+    testImplementation(testFixtures(project(":storage:storage-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
 
     testImplementation(libs.koinTest)

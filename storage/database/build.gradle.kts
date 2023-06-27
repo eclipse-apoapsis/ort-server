@@ -31,7 +31,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(project(":dao"))
-    implementation(project(":storage:spi"))
+    implementation(project(":storage:storage-spi"))
 
     implementation(libs.exposedDao)
     implementation(libs.exposedKotlinDatetime)
