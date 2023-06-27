@@ -77,7 +77,7 @@ class EnvironmentService(
     ): EnvironmentConfig {
         val config = configLoader.parse(repositoryFolder, context.hierarchy)
 
-        val allServices = mutableSetOf<InfrastructureService>()
+        val allServices = config.environmentDefinitions.mapTo(mutableSetOf()) { it.service }
         allServices += config.infrastructureServices
         repositoryService?.let { allServices += it }
         assignServicesToOrtRun(context, allServices)

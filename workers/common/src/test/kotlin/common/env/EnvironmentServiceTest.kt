@@ -108,7 +108,11 @@ class EnvironmentServiceTest : WordSpec({
 
     "setUpEnvironment" should {
         "invoke all generators to produce the supported configuration files" {
-            val definitions = listOf<EnvironmentServiceDefinition>(mockk(), mockk(), mockk())
+            val definitions = listOf(
+                EnvironmentServiceDefinition(mockk()),
+                EnvironmentServiceDefinition(mockk()),
+                EnvironmentServiceDefinition(mockk())
+            )
             val context = mockContext()
             val generator1 = mockGenerator()
             val generator2 = mockGenerator()
@@ -116,7 +120,10 @@ class EnvironmentServiceTest : WordSpec({
             val config = EnvironmentConfig(emptyList(), definitions)
             val configLoader = mockConfigLoader(config)
 
-            val environmentService = EnvironmentService(mockk(), listOf(generator1, generator2), configLoader)
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, listOf(generator1, generator2), configLoader)
 
             val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null)
 
@@ -163,12 +170,30 @@ class EnvironmentServiceTest : WordSpec({
             assignedServices shouldContainExactlyInAnyOrder listOf(repositoryService, otherService)
         }
 
-        "remove duplicates before assigning services to the current ORT run" {
-            val repositoryService = mockk<InfrastructureService>()
-            val services = listOf(repositoryService, mockk(), mockk())
+        "assign the infrastructure services referenced from environment definitions to the current ORT run" {
+            val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
+            val definitions = services.map(::EnvironmentServiceDefinition)
 
             val context = mockContext()
-            val config = EnvironmentConfig(services, emptyList())
+            val config = EnvironmentConfig(emptyList(), definitions)
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, repositoryFolder, null)
+
+            assignedServices shouldContainExactlyInAnyOrder services
+        }
+
+        "remove duplicates before assigning services to the current ORT run" {
+            val repositoryService = mockk<InfrastructureService>()
+            val referencedService = mockk<InfrastructureService>()
+            val services = listOf(repositoryService, mockk(), referencedService)
+
+            val context = mockContext()
+            val config = EnvironmentConfig(services, listOf(EnvironmentServiceDefinition(referencedService)))
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
