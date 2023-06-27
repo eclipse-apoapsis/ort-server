@@ -113,6 +113,15 @@ class EnvironmentService(
     }
 
     /**
+     * Generate the _.netrc_ file for the current ORT run as defined by the given [context]. Load the infrastructure
+     * services associated with the current run from the database and process their credentials. This function can be
+     * used by workers running after the Analyzer, which has initialized the required information.
+     */
+    suspend fun generateNetRcFileForCurrentRun(context: WorkerContext) {
+        generateNetRcFile(context, infrastructureServiceRepository.listForRun(context.ortRun.id))
+    }
+
+    /**
      * Update the database to record that the given [services] have been referenced from the current ORT run as
      * obtained from the given [context].
      */

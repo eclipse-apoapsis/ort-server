@@ -223,6 +223,28 @@ class EnvironmentServiceTest : WordSpec({
             args.second.map { it.service } shouldContainExactlyInAnyOrder services
         }
     }
+
+    "generateNetRcFileForCurrentRun" should {
+        "produce the correct file with services stored in the database" {
+            val context = mockContext()
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
+            )
+
+            val serviceRepository = mockk<InfrastructureServiceRepository> {
+                every { listForRun(RUN_ID) } returns services
+            }
+
+            val generator = mockGenerator()
+
+            val environmentService = EnvironmentService(serviceRepository, listOf(generator), mockk())
+            environmentService.generateNetRcFileForCurrentRun(context)
+
+            val args = generator.verify(context)
+            args.second.map { it.service } shouldContainExactlyInAnyOrder services
+        }
+    }
 })
 
 private const val ORGANIZATION_ID = 20230607115501L
