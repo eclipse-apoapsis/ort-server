@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import kotlinx.coroutines.runBlocking
+
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -28,6 +30,8 @@ import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -40,7 +44,9 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 class ScannerWorker(
     private val db: Database,
     private val runner: ScannerRunner,
-    private val dao: ScannerWorkerDao
+    private val dao: ScannerWorkerDao,
+    private val contextFactory: WorkerContextFactory,
+    private val environmentService: EnvironmentService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.blockingQuery {
@@ -62,6 +68,10 @@ class ScannerWorker(
             )
 
             Pair(scannerJob, ortResult)
+        }
+
+        runBlocking {
+            environmentService.generateNetRcFileForCurrentRun(contextFactory.createContext(scannerJob.ortRunId))
         }
 
         val scannerRun = runner.run(ortResult, scannerJob.configuration).scanner

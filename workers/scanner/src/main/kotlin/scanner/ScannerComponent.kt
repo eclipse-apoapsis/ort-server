@@ -47,6 +47,8 @@ import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.ScannerEndpoint
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
+import org.ossreviewtoolkit.server.workers.common.env.buildEnvironmentModule
 
 import org.slf4j.LoggerFactory
 
@@ -75,7 +77,8 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(scannerModule(), databaseModule())
+    override fun customModules(): List<Module> =
+        listOf(scannerModule(), databaseModule(), workerContextModule(), buildEnvironmentModule())
 
     private fun scannerModule(): Module = module {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
