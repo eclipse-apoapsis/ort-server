@@ -47,18 +47,19 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":storage:spi"))
-    implementation(project(":transport:activemqartemis"))
-    implementation(project(":transport:kubernetes"))
-    implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
-    implementation(libs.logback)
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 
-    runtimeOnly(platform(libs.ortReporters))
     runtimeOnly(project(":storage:database"))
+    runtimeOnly(project(":transport:activemqartemis"))
+    runtimeOnly(project(":transport:kubernetes"))
+    runtimeOnly(project(":transport:rabbitmq"))
+
+    runtimeOnly(libs.logback)
+    runtimeOnly(platform(libs.ortReporters))
 
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":storage:spi")))

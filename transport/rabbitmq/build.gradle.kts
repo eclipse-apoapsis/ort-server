@@ -32,8 +32,9 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":transport:transport-spi"))
 
-    implementation(libs.logback)
     implementation(libs.rabbitMqAmqpClient)
+
+    runtimeOnly(libs.logback)
 
     testImplementation(project(":model"))
 

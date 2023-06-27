@@ -40,13 +40,14 @@ dependencies {
 
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
-    implementation(libs.exposedJdbc)
     implementation(libs.flywayCore)
     implementation(libs.hikari)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.postgres)
-    implementation(libs.logback)
     implementation(libs.typesafeConfig)
+
+    runtimeOnly(libs.exposedJdbc)
+    runtimeOnly(libs.logback)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

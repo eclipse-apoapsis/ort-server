@@ -34,8 +34,9 @@ dependencies {
 
     implementation(libs.activeMQArtemis)
     implementation(libs.kotlinxSerializationJson)
-    implementation(libs.logback)
     implementation(libs.qpidJmsClient)
+
+    runtimeOnly(libs.logback)
 
     testImplementation(project(":model"))
 

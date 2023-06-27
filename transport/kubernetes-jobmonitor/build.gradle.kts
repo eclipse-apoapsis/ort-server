@@ -46,8 +46,9 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
     implementation(libs.kubernetesClientExtended)
-    implementation(libs.logback)
     implementation(libs.typesafeConfig)
+
+    runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(libs.koinTest)

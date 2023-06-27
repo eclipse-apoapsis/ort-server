@@ -32,10 +32,11 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
-    implementation(project(":transport:activemqartemis"))
-    implementation(project(":transport:kubernetes"))
-    implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:transport-spi"))
+
+    runtimeOnly(project(":transport:activemqartemis"))
+    runtimeOnly(project(":transport:kubernetes"))
+    runtimeOnly(project(":transport:rabbitmq"))
 
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))

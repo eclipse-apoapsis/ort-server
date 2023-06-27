@@ -58,9 +58,6 @@ dependencies {
     implementation(project(":api-v1"))
     implementation(project(":dao"))
     implementation(project(":model"))
-    implementation(project(":transport:activemqartemis"))
-    implementation(project(":transport:kubernetes"))
-    implementation(project(":transport:rabbitmq"))
     implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
@@ -68,7 +65,6 @@ dependencies {
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientCore)
     implementation(libs.ktorClientOkHttp)
-    implementation(libs.logback)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
     implementation(platform(libs.ortPackageCurationProviders))
@@ -77,6 +73,11 @@ dependencies {
 
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
+    runtimeOnly(project(":transport:activemqartemis"))
+    runtimeOnly(project(":transport:kubernetes"))
+    runtimeOnly(project(":transport:rabbitmq"))
+
+    runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))

@@ -35,8 +35,9 @@ dependencies {
     implementation(project(":secrets:secrets-spi"))
     implementation(project(":storage:spi"))
 
-    implementation(libs.logback)
     implementation(libs.koinKtor)
+
+    runtimeOnly(libs.logback)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
