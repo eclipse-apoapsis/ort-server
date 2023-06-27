@@ -21,16 +21,28 @@ package org.ossreviewtoolkit.server.workers.analyzer
 
 import com.typesafe.config.Config
 
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
+import io.kotest.engine.spec.tempdir
+import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkClass
+
+import java.io.File
+import java.util.Properties
+
+import kotlinx.datetime.Instant
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
@@ -41,9 +53,20 @@ import org.koin.test.mock.declareMock
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
 import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
+import org.ossreviewtoolkit.server.model.Hierarchy
+import org.ossreviewtoolkit.server.model.JobConfigurations
+import org.ossreviewtoolkit.server.model.Organization
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
+import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -52,6 +75,7 @@ import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTe
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 
@@ -64,6 +88,9 @@ private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
 private val analyzerRequest = AnalyzerRequest(
     analyzerJobId = JOB_ID
 )
+
+private const val USERNAME = "scott"
+private const val PASSWORD = "tiger"
 
 class AnalyzerEndpointTest : KoinTest, StringSpec() {
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {
@@ -86,11 +113,23 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
-        "The build environment module should be added" {
-            runEndpointTest {
-                val environmentService by inject<EnvironmentService>()
+        "The build environment should contain a .netrc file" {
+            runEnvironmentTest { homeFolder ->
+                val netrcFile = homeFolder.resolve(".netrc")
+                val content = netrcFile.readText()
 
-                environmentService shouldNot beNull()
+                content shouldContain "machine repo.example.org"
+                content shouldContain "login $USERNAME"
+            }
+        }
+
+        "The build environment should contain a settings.xml file" {
+            runEnvironmentTest { homeFolder ->
+                val settingsFile = homeFolder.resolve("settings.xml")
+                val content = settingsFile.readText()
+
+                content shouldContain "<id>mainRepo</id>"
+                content shouldContain "<password>$PASSWORD</password>"
             }
         }
 
@@ -179,6 +218,74 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
                 block()
             }
+        }
+    }
+
+    /**
+     * Run [block] as a test with the Analyzer build environment fully set up. Obtain the [EnvironmentService] from
+     * the dependency injection framework and invoke it to set up the build environment with proper mocks. This
+     * should create the configuration files declared for the environment. The specified [test][block] can then
+     * check whether these files have been created correctly.
+     */
+    private fun runEnvironmentTest(block: (File) -> Unit) {
+        runEndpointTest {
+            val organization = Organization(20230627065854L, "Test organization")
+            val product = Product(20230627065917L, organization.id, "Test product")
+            val repository = Repository(
+                20230627065942L,
+                organization.id,
+                product.id,
+                RepositoryType.GIT,
+                "https://repo.example.org/test.git"
+            )
+            val testHierarchy = Hierarchy(repository, product, organization)
+
+            val usernameSecret = Secret(20230627040646L, "p1", "repositoryUsername", null, null, null, repository)
+            val passwordSecret = Secret(20230627070543L, "p2", "repositoryPassword", null, null, null, repository)
+            declareMock<SecretRepository> {
+                every { listForRepository(repository.id) } returns listOf(usernameSecret, passwordSecret)
+            }
+
+            declareMock<InfrastructureServiceRepository> {
+                every { getOrCreateForRun(any(), any()) } answers { firstArg() }
+            }
+
+            val context = mockk<WorkerContext> {
+                coEvery { resolveSecrets(*anyVararg()) } returns mapOf(
+                    usernameSecret to USERNAME,
+                    passwordSecret to PASSWORD
+                )
+                every { hierarchy } returns testHierarchy
+                every { ortRun } returns OrtRun(
+                    20230627071600L,
+                    27,
+                    repository.id,
+                    "main",
+                    Instant.parse("2023-06-27T05:17:02Z"),
+                    JobConfigurations(),
+                    OrtRunStatus.CREATED,
+                    emptyMap(),
+                    null,
+                    null,
+                    null
+                )
+            }
+
+            val repositoryFolder = File("src/test/resources/mavenProject")
+            val homeFolder = tempdir()
+            val properties = Properties().apply {
+                setProperty("user.home", homeFolder.absolutePath)
+            }
+
+            val environmentService by inject<EnvironmentService>()
+
+            runBlocking {
+                withSystemProperties(properties, mode = OverrideMode.SetOrOverride) {
+                    environmentService.setUpEnvironment(context, repositoryFolder, null)
+                }
+            }
+
+            block(homeFolder)
         }
     }
 }

@@ -44,7 +44,10 @@ fun buildEnvironmentModule(): Module = module {
     single {
         EnvironmentService(
             get(),
-            listOf(NetRcGenerator()),
+            listOf(
+                MavenSettingsGenerator(),
+                NetRcGenerator()
+            ),
             get()
         )
     }
