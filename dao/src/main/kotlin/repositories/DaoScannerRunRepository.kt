@@ -279,7 +279,7 @@ fun createStorages(
                 }
             }
 
-            else -> { null }
+            else -> null
         }
     }
 
