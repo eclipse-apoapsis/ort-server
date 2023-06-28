@@ -133,6 +133,16 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The build environment should contain an .npmrc file" {
+            runEnvironmentTest { homeFolder ->
+                val npmRcFile = homeFolder.resolve(".npmrc")
+                val content = npmRcFile.readText()
+
+                content shouldContain "@external:registry="
+                content shouldContain ":email=test@example.org"
+            }
+        }
+
         "The worker is correctly configured" {
             runEndpointTest {
                 val worker by inject<AnalyzerWorker>()
