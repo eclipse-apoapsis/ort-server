@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(project(":secrets:file"))
+    runtimeOnly(project(":secrets:vault"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))
     runtimeOnly(project(":transport:rabbitmq"))
