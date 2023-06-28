@@ -50,7 +50,7 @@ class ConfigFileBuilder(val context: WorkerContext) {
          * newline character.
          */
         fun PrintWriter.printLines(multiLineText: String) {
-            print(multiLineText.replace("\n", System.lineSeparator()))
+            println(multiLineText.replace("\n", System.lineSeparator()))
         }
 
         /**
