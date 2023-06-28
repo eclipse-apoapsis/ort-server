@@ -32,6 +32,7 @@ import java.io.StringWriter
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.Secret
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.
@@ -87,6 +88,9 @@ class MockConfigFileBuilder {
     /** The writer to store the generated text. */
     private val writer = StringWriter()
 
+    /** The mock for the [WorkerContext] used by the mock [ConfigFileBuilder]. */
+    val contextMock = mockk<WorkerContext>()
+
     /** The path of the generated configuration file. */
     var targetFile: File? = null
 
@@ -129,6 +133,8 @@ class MockConfigFileBuilder {
             every { secretRef(any()) } answers {
                 testSecretRef(firstArg())
             }
+
+            every { context } returns contextMock
         }
 
     /**
