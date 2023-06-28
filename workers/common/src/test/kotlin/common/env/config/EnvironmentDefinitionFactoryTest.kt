@@ -20,8 +20,10 @@
 package org.ossreviewtoolkit.server.workers.common.env.config
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -31,6 +33,8 @@ import io.mockk.mockk
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
+import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
 
 class EnvironmentDefinitionFactoryTest : WordSpec() {
     /** A mock for an infrastructure service to be used by tests. */
@@ -82,6 +86,80 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val properties = mapOf("id" to "someId", EnvironmentDefinitionFactory.SERVICE_PROPERTY to "service")
 
                 createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
+            }
+        }
+
+        "An NPM definition" should {
+            "be created with the provided values" {
+                val scope = "testScope"
+                val email = "test@example.org"
+                val authMode = NpmAuthMode.USERNAME_PASSWORD_AUTH
+
+                val properties = mapOf(
+                    "scope" to scope,
+                    "email" to email,
+                    "authMode" to authMode.name,
+                    "alwaysAuth" to "false"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NpmDefinition>()
+                definition.scope shouldBe scope
+                definition.email shouldBe email
+                definition.authMode shouldBe authMode
+                definition.alwaysAuth shouldBe false
+            }
+
+            "be created with default values" {
+                val properties = emptyMap<String, String>()
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NpmDefinition>()
+                definition.scope should beNull()
+                definition.email should beNull()
+                definition.authMode shouldBe NpmAuthMode.PASSWORD
+                definition.alwaysAuth shouldBe true
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "anotherProperty"
+                val unsupportedProperty2 = "oneMoreUnsupportedProperty"
+                val properties = mapOf("id" to "foo", unsupportedProperty1 to "bar", unsupportedProperty2 to "baz")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+                exception.message shouldContain "'$unsupportedProperty2'"
+            }
+
+            "accept enum constants independent on case" {
+                val properties = mapOf("authMode" to "password_Auth")
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NpmDefinition>()
+                definition.authMode shouldBe NpmAuthMode.PASSWORD_AUTH
+            }
+
+            "fail for an unsupported enum constant" {
+                val properties = mapOf("authMode" to "an unknown auth mode")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                exception.message shouldContain properties.getValue("authMode")
+                exception.message shouldContain NpmAuthMode.PASSWORD_AUTH.name
+            }
+
+            "fail for an invalid boolean value" {
+                val properties = mapOf("alwaysAuth" to "maybe")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                exception.message shouldContain properties.getValue("alwaysAuth")
+                exception.message shouldContain "TRUE"
+                exception.message shouldContain "FALSE"
             }
         }
     }
