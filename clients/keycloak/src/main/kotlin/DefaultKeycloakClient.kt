@@ -74,7 +74,10 @@ class DefaultKeycloakClient(
         }
 
         private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =
-            createDefaultHttpClient(json) {
+            createDefaultHttpClient(json).configureAuthentication(config, json)
+
+        fun HttpClient.configureAuthentication(config: KeycloakClientConfiguration, json: Json): HttpClient =
+            config {
                 expectSuccess = true
 
                 defaultRequest {
