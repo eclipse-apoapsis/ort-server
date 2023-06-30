@@ -41,14 +41,13 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
-import org.ossreviewtoolkit.server.clients.keycloak.User
-import org.ossreviewtoolkit.server.clients.keycloak.UserId
-import org.ossreviewtoolkit.server.clients.keycloak.UserName
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.TEST_USER
+import org.ossreviewtoolkit.server.core.TEST_USER_PASSWORD
 import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
 import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
@@ -57,16 +56,6 @@ import org.ossreviewtoolkit.server.core.setUpUser
 import org.ossreviewtoolkit.server.core.setUpUserRoles
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-
-private val TEST_USER = User(
-    id = UserId("test-user-id"),
-    username = UserName("test-user"),
-    firstName = "Test",
-    lastName = "User",
-    email = "test-user@example.org"
-)
-
-private const val TEST_USER_PASSWORD = "password"
 
 class AuthenticationIntegrationTest : StringSpec({
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
