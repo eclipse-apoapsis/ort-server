@@ -24,6 +24,8 @@ import com.auth0.jwt.interfaces.Payload
 import io.ktor.server.auth.Principal
 import io.ktor.server.auth.jwt.JWTPayloadHolder
 
+import org.ossreviewtoolkit.server.model.authorization.Superuser
+
 /**
  * A [Principal] holding information about the authenticated ORT Server user.
  */
@@ -38,3 +40,13 @@ class OrtPrincipal(
      */
     val roles: Set<String>
 ) : Principal, JWTPayloadHolder(payload)
+
+/**
+ * Return true if this [OrtPrincipal] is not `null` and has the provided [role].
+ */
+fun OrtPrincipal?.hasRole(role: String) = this != null && role in roles
+
+/**
+ * Return true if this [OrtPrincipal] is not `null` and has the [superuser role][Superuser.ROLE_NAME].
+ */
+fun OrtPrincipal?.isSuperuser() = hasRole(Superuser.ROLE_NAME)
