@@ -46,20 +46,36 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 
 import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
+import org.ossreviewtoolkit.server.clients.keycloak.User
+import org.ossreviewtoolkit.server.clients.keycloak.UserId
+import org.ossreviewtoolkit.server.clients.keycloak.UserName
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_USERNAME
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
 import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
 import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
+private val TEST_USER = User(
+    id = UserId("test-user-id"),
+    username = UserName("test-user"),
+    firstName = "Test",
+    lastName = "User",
+    email = "test-user@example.org"
+)
+
+private const val TEST_USER_PASSWORD = "password"
+
 class AuthenticationIntegrationTest : StringSpec({
-    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
+    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
+        setupUser(TEST_USER, TEST_USER_PASSWORD)
+    }
+
     val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     val keycloakClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm()
     val jwtConfig = mapOf(
@@ -67,6 +83,11 @@ class AuthenticationIntegrationTest : StringSpec({
         "jwt.issuer" to "${keycloak.authServerUrl}realms/$TEST_REALM",
         "jwt.realm" to TEST_REALM,
         "jwt.audience" to keycloakClientConfig.subjectClientId
+    )
+
+    val testUserClientConfig = keycloakClientConfig.copy(
+        apiUser = TEST_USER.username.value,
+        apiSecret = TEST_USER_PASSWORD
     )
 
     val json = Json { ignoreUnknownKeys = true }
@@ -96,7 +117,7 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setupClientScope(TEST_SUBJECT_CLIENT)
 
         authTestApplication {
-            val authenticatedClient = client.configureAuthentication(keycloakClientConfig, json)
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             val response = authenticatedClient.get("/api/v1/test")
 
@@ -116,7 +137,7 @@ class AuthenticationIntegrationTest : StringSpec({
 
     "A token without an audience claim should be rejected" {
         authTestApplication {
-            val authenticatedClient = client.configureAuthentication(keycloakClientConfig, json, expectSuccess = false)
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             val response = authenticatedClient.get("/api/v1/test")
 
@@ -128,7 +149,7 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setupClientScope(TEST_CLIENT)
 
         authTestApplication {
-            val authenticatedClient = client.configureAuthentication(keycloakClientConfig, json, expectSuccess = false)
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             val response = authenticatedClient.get("/api/v1/test")
 
@@ -138,7 +159,7 @@ class AuthenticationIntegrationTest : StringSpec({
 
     "A principal with the correct client roles should be created" {
         keycloak.keycloakAdminClient.setupClientScope(TEST_SUBJECT_CLIENT)
-        keycloak.keycloakAdminClient.setupUserRoles(TEST_REALM_ADMIN_USERNAME, listOf("role-1", "role-2"))
+        keycloak.keycloakAdminClient.setupUserRoles(TEST_USER.username.value, listOf("role-1", "role-2"))
 
         authTestApplication(onCall = {
             val principal = call.principal<OrtPrincipal>(SecurityConfigurations.token)
@@ -153,7 +174,7 @@ class AuthenticationIntegrationTest : StringSpec({
                 developmentMode = false
             }
 
-            val authenticatedClient = client.configureAuthentication(keycloakClientConfig, json)
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             authenticatedClient.get("/api/v1/test")
         }
@@ -173,6 +194,15 @@ private fun audienceMapper(audience: String) = ProtocolMapperRepresentation().ap
         "access.token.claim" to "true",
         "userinfo.token.claim" to "false"
     )
+}
+
+/**
+ * Create a [user] with the provided [password].
+ */
+private fun Keycloak.setupUser(user: User, password: String) {
+    realm(TEST_REALM).apply {
+        users().create(user.toUserRepresentation(password = password))
+    }
 }
 
 /**
