@@ -57,6 +57,7 @@ import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientCon
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
 import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
+import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
 import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
@@ -78,12 +79,7 @@ class AuthenticationIntegrationTest : StringSpec({
 
     val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     val keycloakClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm()
-    val jwtConfig = mapOf(
-        "jwt.jwksUri" to "${keycloak.authServerUrl}realms/$TEST_REALM/protocol/openid-connect/certs",
-        "jwt.issuer" to "${keycloak.authServerUrl}realms/$TEST_REALM",
-        "jwt.realm" to TEST_REALM,
-        "jwt.audience" to keycloakClientConfig.subjectClientId
-    )
+    val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
 
     val testUserClientConfig = keycloakClientConfig.copy(
         apiUser = TEST_USER.username.value,

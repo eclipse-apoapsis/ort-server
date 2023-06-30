@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.core
 
+import dasniko.testcontainers.keycloak.KeycloakContainer
+
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
@@ -32,6 +34,11 @@ import io.ktor.util.KtorDsl
 import io.ktor.util.appendIfNameAbsent
 
 import kotlinx.serialization.json.Json
+
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
 /**
  * Create a client with [JSON ContentNegotiation][json] installed and default content type set to `application/json`.
@@ -52,3 +59,15 @@ fun ApplicationTestBuilder.createJsonClient(
 
     block()
 }
+
+/**
+ * Create a map containing JWT configuration properties for the [testRealm] and this [KeycloakContainer]. The map can be
+ * used to configure the [ortServerTestApplication].
+ */
+fun KeycloakContainer.createJwtConfigMapForTestRealm() =
+    mapOf(
+        "jwt.jwksUri" to "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/certs",
+        "jwt.issuer" to "${authServerUrl}realms/$TEST_REALM",
+        "jwt.realm" to TEST_REALM,
+        "jwt.audience" to TEST_SUBJECT_CLIENT
+    )
