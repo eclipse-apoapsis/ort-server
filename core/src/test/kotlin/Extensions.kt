@@ -35,9 +35,17 @@ import io.ktor.util.appendIfNameAbsent
 
 import kotlinx.serialization.json.Json
 
+import org.keycloak.admin.client.Keycloak
+import org.keycloak.representations.idm.ClientScopeRepresentation
+import org.keycloak.representations.idm.ProtocolMapperRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
+
+import org.ossreviewtoolkit.server.clients.keycloak.User
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
 /**
@@ -58,6 +66,71 @@ fun ApplicationTestBuilder.createJsonClient(
     }
 
     block()
+}
+
+/**
+ * Create a [user] with the provided [password].
+ */
+fun Keycloak.setUpUser(user: User, password: String) {
+    realm(TEST_REALM).apply {
+        users().create(user.toUserRepresentation(password = password))
+    }
+}
+
+/**
+ * Create an audience mapper that adds the provided [audience] to the access token.
+ */
+private fun audienceMapper(audience: String) = ProtocolMapperRepresentation().apply {
+    name = "audience-mapper"
+    protocol = "openid-connect"
+    protocolMapper = "oidc-audience-mapper"
+    config = mapOf(
+        "included.client.audience" to audience,
+        "id.token.claim" to "false",
+        "access.token.claim" to "true",
+        "userinfo.token.claim" to "false"
+    )
+}
+
+/**
+ * Create a client scope that maps the provided [audience] to the audience in the JWT token and add the created scope to
+ * the default scopes of the [TEST_CLIENT].
+ */
+fun Keycloak.setUpClientScope(audience: String) {
+    val subjectClientScope = "$TEST_SUBJECT_CLIENT-scope"
+
+    realm(TEST_REALM).apply {
+        clientScopes().create(
+            ClientScopeRepresentation().apply {
+                name = subjectClientScope
+                protocol = "openid-connect"
+                protocolMappers = listOf(audienceMapper(audience))
+            }
+        )
+
+        val testClient = clients().get(clients().findByClientId(TEST_CLIENT).first().id)
+        val clientScope = clientScopes().findAll().single { it.name == subjectClientScope }
+        testClient.addDefaultClientScope(clientScope.id)
+    }
+}
+
+/**
+ * Create the provided [roles] in the [TEST_SUBJECT_CLIENT] and assign them to the provided [username].
+ */
+fun Keycloak.setUpUserRoles(username: String, roles: List<String>) {
+    realm(TEST_REALM).apply {
+        val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
+
+        val roleRepresentations = roles.map {
+            clients().get(client.id).roles().run {
+                create(RoleRepresentation().apply { name = it })
+                get(it).toRepresentation()
+            }
+        }
+
+        val user = users().search(username).single()
+        users().get(user.id).roles().clientLevel(client.id).add(roleRepresentations)
+    }
 }
 
 /**
