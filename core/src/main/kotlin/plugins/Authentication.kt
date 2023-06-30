@@ -25,8 +25,6 @@ import com.auth0.jwt.interfaces.Payload
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.Principal
-import io.ktor.server.auth.jwt.JWTPayloadHolder
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 
@@ -37,6 +35,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.UserId
+import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
 
 import org.slf4j.LoggerFactory
 
@@ -97,5 +96,3 @@ object SecurityConfigurations {
      */
     const val token = "token"
 }
-
-class OrtPrincipal(payload: Payload, val roles: Set<String>) : Principal, JWTPayloadHolder(payload)

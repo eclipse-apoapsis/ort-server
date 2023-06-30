@@ -53,7 +53,7 @@ import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM_ADMIN_USERNA
 import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.plugins.OrtPrincipal
+import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
 import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
