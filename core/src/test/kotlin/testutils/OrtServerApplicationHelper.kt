@@ -64,7 +64,14 @@ fun ortServerTestApplication(
 
     val mergedConfig = config.mergeWith(additionalConfig)
 
-    environment { this.config = mergedConfig }
+    environment {
+        this.config = mergedConfig
+
+        // Turn off development mode for tests because auto-reloading causes several issues, mainly with code checking
+        // if an object is an instance of a certain class, because the same class might have been loaded by different
+        // class loaders.
+        developmentMode = false
+    }
 
     if (db != null) {
         application {

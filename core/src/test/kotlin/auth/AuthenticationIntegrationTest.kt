@@ -148,13 +148,6 @@ class AuthenticationIntegrationTest : StringSpec({
             principal.shouldNotBeNull()
             principal.roles should containExactlyInAnyOrder("role-1", "role-2")
         }) {
-            environment {
-                // Turn off development mode to fix loading the principal. For some reason, in development mode the
-                // OrtPrincipal class is loaded from different class loaders which causes the isInstance check inside of
-                // call.principal() to fail.
-                developmentMode = false
-            }
-
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             authenticatedClient.get("/api/v1/test")
