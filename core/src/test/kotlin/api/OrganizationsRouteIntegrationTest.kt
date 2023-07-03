@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -43,11 +44,14 @@ import io.ktor.http.HttpStatusCode
 import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
+import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.Organization
 import org.ossreviewtoolkit.server.api.v1.Product
+import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
+import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
 import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
@@ -65,15 +69,27 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
+import org.ossreviewtoolkit.server.secrets.Path
+import org.ossreviewtoolkit.server.secrets.SecretStorage
+import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 
+private const val SECRET = "secret-value"
+private const val ERROR_PATH = "error-path"
+
+@Suppress("LargeClass")
 class OrganizationsRouteIntegrationTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
     val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+
+    val secretsConfig = mapOf(
+        "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
+        "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH
+    )
 
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
@@ -461,6 +477,344 @@ class OrganizationsRouteIntegrationTest : WordSpec({
                         Product(createdProduct2.id, name2, description)
                     )
                 }
+            }
+        }
+    }
+
+    "GET /organizations/{organizationId}/secrets" should {
+        "return all secrets for this organization" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val secret1 = secretRepository.create(
+                    "https://secret-storage.com/ssh_host_rsa_key_1",
+                    "New secret 1",
+                    "The new org secret",
+                    organizationId,
+                    null,
+                    null
+                )
+                val secret2 = secretRepository.create(
+                    "https://secret-storage.com/ssh_host_rsa_key_2",
+                    "New secret 2",
+                    "The new org secret",
+                    organizationId,
+                    null,
+                    null
+                )
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/organizations/$organizationId/secrets") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi(), secret2.mapToApi())
+                }
+            }
+        }
+
+        "support query parameters" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                secretRepository.create(
+                    "https://secret-storage.com/ssh_host_rsa_key_3",
+                    "New secret 3",
+                    "The new org secret",
+                    organizationId,
+                    null,
+                    null
+                )
+                val secret1 = secretRepository.create(
+                    "https://secret-storage.com/ssh_host_rsa_key_4",
+                    "New secret 4",
+                    "The new org secret",
+                    organizationId,
+                    null,
+                    null
+                )
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi())
+                }
+            }
+        }
+    }
+
+    "GET /organizations/{organizationId}/secrets/{secretId}" should {
+        "return a single secret" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val path = "https://secret-storage.com/ssh_host_rsa_key_5"
+                val name = "New secret 5"
+                val description = "description"
+
+                secretRepository.create(path, name, description, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, description)
+                }
+            }
+        }
+
+        "respond with NotFound if no secret exists" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val client = createJsonClient()
+
+                val response = client.get("/api/v1/organizations/$organizationId/secrets/999999") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+            }
+        }
+    }
+
+    "POST /organizations/{organizationId}/secrets" should {
+        "create a secret in the database" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val client = createJsonClient()
+
+                val name = "New secret 6"
+
+                val secret = CreateSecret(
+                    name,
+                    SECRET,
+                    "The new org secret"
+                )
+
+                val response = client.post("/api/v1/organizations/$organizationId/secrets") {
+                    headers { basicTestAuth() }
+                    setBody(secret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.Created
+                    body<Secret>() shouldBe Secret(
+                        secret.name,
+                        secret.description
+                    )
+                }
+
+                secretRepository.getByOrganizationIdAndName(organizationId, name)?.mapToApi().shouldBe(
+                    Secret(secret.name, secret.description)
+                )
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
+            }
+        }
+
+        "respond with CONFLICT if the secret already exists" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val name = "New secret 7"
+                val description = "description"
+
+                val secret1 = CreateSecret(name, SECRET, description)
+                val secret2 = secret1.copy(value = "someOtherValue")
+
+                val client = createJsonClient()
+
+                val response1 = client.post("/api/v1/organizations/$organizationId/secrets") {
+                    headers { basicTestAuth() }
+                    setBody(secret1)
+                }
+
+                with(response1) {
+                    status shouldBe HttpStatusCode.Created
+                }
+
+                val response2 = client.post("/api/v1/organizations/$organizationId/secrets") {
+                    headers { basicTestAuth() }
+                    setBody(secret2)
+                }
+
+                with(response2) {
+                    status shouldBe HttpStatusCode.Conflict
+                }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe SECRET
+            }
+        }
+    }
+
+    "PATCH /organizations/{organizationId}/secrets/{secretName}" should {
+        "update a secret's metadata" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val updatedDescription = "updated description"
+                val name = "name"
+                val path = "path"
+
+                secretRepository.create(path, name, "description", organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
+                val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, updatedDescription)
+                }
+
+                secretRepository.getByOrganizationIdAndName(
+                    organizationId,
+                    (updateSecret.name as OptionalValue.Present).value
+                )?.mapToApi() shouldBe Secret(name, updatedDescription)
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path)) should beNull()
+            }
+        }
+
+        "update a secret's value" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val name = "name"
+                val desc = "description"
+                val path = "path"
+
+                secretRepository.create(path, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
+                val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe Secret(name, desc)
+                }
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(path))?.value shouldBe SECRET
+            }
+        }
+
+        "handle failures of the SecretStorage" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val name = "name"
+                val desc = "description"
+
+                secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent(), "newDesc".asPresent())
+                val response = client.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByOrganizationIdAndName(
+                    organizationId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
+            }
+        }
+    }
+
+    "DELETE /organizations/{organizationId}/secrets/{secretName}" should {
+        "delete a secret" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val path = SecretsProviderFactoryForTesting.TOKEN_PATH
+                val name = "New secret 8"
+                secretRepository.create(path.path, name, "description", organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.NoContent
+                }
+
+                secretRepository.listForOrganization(organizationId) shouldBe emptyList()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(path) should beNull()
+            }
+        }
+
+        "handle a failure from the SecretStorage" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
+                val organizationId =
+                    organizationService.createOrganization(name = "name", description = "description").id
+
+                val name = "New secret 8"
+                val desc = "description"
+                secretRepository.create(ERROR_PATH, name, desc, organizationId, null, null)
+
+                val client = createJsonClient()
+
+                val response = client.delete("/api/v1/organizations/$organizationId/secrets/$name") {
+                    headers { basicTestAuth() }
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+
+                secretRepository.getByOrganizationIdAndName(
+                    organizationId,
+                    name
+                )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
     }
