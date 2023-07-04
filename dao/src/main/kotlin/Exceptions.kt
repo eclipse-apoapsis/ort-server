@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package org.ossreviewtoolkit.server.dao
+
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Enum for PostgreSQL exception states, see https://www.postgresql.org/docs/10/errcodes-appendix.html.
@@ -26,9 +31,15 @@ enum class PostgresErrorCodes(val value: String) {
     UNIQUE_CONSTRAINT_VIOLATION("23505")
 }
 
-class UniqueConstraintException(msg: String, cause: Throwable) : RuntimeException(msg, cause)
+class UniqueConstraintException(msg: String, cause: Throwable) :
+    RuntimeException(msg, cause), CopyableThrowable<UniqueConstraintException> {
+    override fun createCopy() = UniqueConstraintException(message!!, cause!!)
+}
 
 /**
  * An exception class indicating that invalid query parameters have been passed to a query function.
  */
-class QueryParametersException(msg: String, cause: Throwable? = null) : RuntimeException(msg, cause)
+class QueryParametersException(msg: String, cause: Throwable? = null) :
+    RuntimeException(msg, cause), CopyableThrowable<QueryParametersException> {
+    override fun createCopy() = QueryParametersException(message!!, cause)
+}
