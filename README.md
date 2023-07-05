@@ -45,7 +45,7 @@ docker compose --profile rabbitmq up
 **Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
 without TLS.**
 
-## Accessing the services
+### Accessing the services
 
 | Service        | URL                              | Credentials       |
 |----------------|----------------------------------|-------------------|
@@ -54,7 +54,7 @@ without TLS.**
 | PostgreSQL     | http://localhost:5433            | postgres:postgres |
 | RabbitMQ       | http://localhost:15672           | admin:admin       |
 
-## Debugging
+### Debugging
 
 To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
 
@@ -67,7 +67,7 @@ automatically started.
 
 Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
 
-# Troubleshooting
+## Troubleshooting
 
 When starting the ORT Server service you can run into the following error:
 `Exception in thread "main" org.flywaydb.core.api.exception.FlywayValidateException: Validate failed: Migrations have failed validation`
@@ -78,7 +78,7 @@ You can solve this problem by cleaning the database. Please note that it will em
 docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 ```
 
-# License
+## License
 
 See the [NOTICE](./NOTICE) file in the root of this project for the copyright details.
 
