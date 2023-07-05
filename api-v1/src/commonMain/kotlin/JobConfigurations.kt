@@ -38,7 +38,13 @@ data class JobConfigurations(
  */
 @Serializable
 data class AnalyzerJobConfiguration(
-    val allowDynamicVersions: Boolean = false
+    val allowDynamicVersions: Boolean = false,
+
+    /**
+     * An optional [EnvironmentConfig] to be used for this run. If this configuration is defined, it replaces the
+     * configuration defined in the repository (if any).
+     */
+    val environmentConfig: EnvironmentConfig? = null
 )
 
 /**

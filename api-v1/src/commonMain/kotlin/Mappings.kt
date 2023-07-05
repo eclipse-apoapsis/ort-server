@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.api.v1.AdvisorJob as ApiAdvisorJob
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig as ApiEnvironmentConfig
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJob as ApiEvaluatorJob
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
@@ -45,9 +46,11 @@ import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.Organization
@@ -89,9 +92,14 @@ fun AnalyzerJob.mapToApi() =
         repositoryRevision
     )
 
-fun AnalyzerJobConfiguration.mapToApi() = ApiAnalyzerJobConfiguration(allowDynamicVersions)
+fun AnalyzerJobConfiguration.mapToApi() =
+    ApiAnalyzerJobConfiguration(allowDynamicVersions, environmentConfig?.mapToApi())
 
-fun ApiAnalyzerJobConfiguration.mapToModel() = AnalyzerJobConfiguration(allowDynamicVersions)
+fun ApiAnalyzerJobConfiguration.mapToModel() =
+    AnalyzerJobConfiguration(
+        allowDynamicVersions,
+        environmentConfig = environmentConfig?.mapToModel()
+    )
 
 fun EvaluatorJob.mapToApi() =
     ApiEvaluatorJob(
@@ -178,3 +186,23 @@ fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun InfrastructureService.mapToApi() =
     ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name)
+
+fun ApiInfrastructureService.mapToModel() =
+    InfrastructureServiceDeclaration(name, url, description, usernameSecretRef, passwordSecretRef)
+
+fun InfrastructureServiceDeclaration.mapToApi() =
+    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret)
+
+fun EnvironmentConfig.mapToApi() =
+    ApiEnvironmentConfig(
+        infrastructureServices = infrastructureServices.map { it.mapToApi() },
+        environmentDefinitions = environmentDefinitions,
+        strict = strict
+    )
+
+fun ApiEnvironmentConfig.mapToModel() =
+    EnvironmentConfig(
+        infrastructureServices = infrastructureServices.map { it.mapToModel() },
+        environmentDefinitions = environmentDefinitions,
+        strict = strict
+    )
