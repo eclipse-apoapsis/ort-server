@@ -49,8 +49,10 @@ import org.ossreviewtoolkit.server.core.apiDocs.patchProductById
 import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByProductIdAndName
 import org.ossreviewtoolkit.server.core.apiDocs.postRepository
 import org.ossreviewtoolkit.server.core.apiDocs.postSecretForProduct
+import org.ossreviewtoolkit.server.core.authorization.requirePermission
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.SecretService
 
@@ -59,6 +61,8 @@ fun Route.products() = route("products/{productId}") {
     val secretService by inject<SecretService>()
 
     get(getProductById) {
+        requirePermission(ProductPermission.READ)
+
         val id = call.requireParameter("productId").toLong()
 
         val product = productService.getProduct(id)
@@ -71,6 +75,8 @@ fun Route.products() = route("products/{productId}") {
     }
 
     patch(patchProductById) {
+        requirePermission(ProductPermission.WRITE)
+
         val id = call.requireParameter("productId").toLong()
         val updateProduct = call.receive<UpdateProduct>()
 
@@ -81,6 +87,8 @@ fun Route.products() = route("products/{productId}") {
     }
 
     delete(deleteProductById) {
+        requirePermission(ProductPermission.DELETE)
+
         val id = call.requireParameter("productId").toLong()
 
         productService.deleteProduct(id)
@@ -90,6 +98,8 @@ fun Route.products() = route("products/{productId}") {
 
     route("repositories") {
         get(getRepositoriesByProductId) {
+            requirePermission(ProductPermission.READ_REPOSITORIES)
+
             val id = call.requireParameter("productId").toLong()
 
             call.respond(
@@ -99,6 +109,8 @@ fun Route.products() = route("products/{productId}") {
         }
 
         post(postRepository) {
+            requirePermission(ProductPermission.CREATE_REPOSITORY)
+
             val id = call.requireParameter("productId").toLong()
             val createRepository = call.receive<CreateRepository>()
 
@@ -112,6 +124,8 @@ fun Route.products() = route("products/{productId}") {
 
     route("secrets") {
         get(getSecretsByProductId) {
+            requirePermission(ProductPermission.READ)
+
             val productId = call.requireParameter("productId").toLong()
 
             call.respond(
@@ -122,6 +136,8 @@ fun Route.products() = route("products/{productId}") {
 
         route("{secretName}") {
             get(getSecretByProductIdAndName) {
+                requirePermission(ProductPermission.READ)
+
                 val productId = call.requireParameter("productId").toLong()
                 val secretName = call.requireParameter("secretName")
 
@@ -131,6 +147,8 @@ fun Route.products() = route("products/{productId}") {
             }
 
             patch(patchSecretByProductIdAndName) {
+                requirePermission(ProductPermission.WRITE_SECRETS)
+
                 val productId = call.requireParameter("productId").toLong()
                 val secretName = call.requireParameter("secretName")
                 val updateSecret = call.receive<UpdateSecret>()
@@ -147,6 +165,8 @@ fun Route.products() = route("products/{productId}") {
             }
 
             delete(deleteSecretByProductIdAndName) {
+                requirePermission(ProductPermission.WRITE_SECRETS)
+
                 val productId = call.requireParameter("productId").toLong()
                 val secretName = call.requireParameter("secretName")
 
@@ -157,6 +177,8 @@ fun Route.products() = route("products/{productId}") {
         }
 
         post(postSecretForProduct) {
+            requirePermission(ProductPermission.WRITE_SECRETS)
+
             val productId = call.requireParameter("productId").toLong()
             val createSecret = call.receive<CreateSecret>()
 

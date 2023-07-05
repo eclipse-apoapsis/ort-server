@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.core.api
 
-import io.kotest.core.extensions.install
-import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.nulls.beNull
@@ -31,7 +29,6 @@ import io.kotest.matchers.shouldNot
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -46,14 +43,6 @@ import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
@@ -63,26 +52,12 @@ import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.SecretStorage
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 
-private const val SECRET = "secret-value"
-private const val ERROR_PATH = "error-path"
-
-class ProductsRouteIntegrationTest : WordSpec({
-    val dbExtension = extension(DatabaseTestExtension())
-    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true))
-    val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
-    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
-
-    val secretsConfig = mapOf(
-        "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
-        "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH
-    )
-
+class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
     lateinit var secretRepository: SecretRepository
@@ -118,46 +93,47 @@ class ProductsRouteIntegrationTest : WordSpec({
         orgId = organizationService.createOrganization(name = "name", description = "description").id
     }
 
+    val productName = "name"
+    val productDescription = "description"
+
+    suspend fun createProduct(
+        name: String = productName,
+        description: String = productDescription,
+        organizationId: Long = orgId
+    ) = organizationService.createProduct(name, description, organizationId)
+
     "GET /products/{productId}" should {
         "return a single product" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
-                val name = "name"
-                val description = "description"
-
-                val createdProduct =
-                    organizationService.createProduct(name = name, description = description, organizationId = orgId)
-
-                val response = client.get("/api/v1/products/${createdProduct.id}") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/${createdProduct.id}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Product>() shouldBe Product(createdProduct.id, name, description)
+                    body<Product>() shouldBe Product(createdProduct.id, productName, productDescription)
                 }
+            }
+        }
+
+        "require ProductPermission.READ" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}")
             }
         }
     }
 
     "PATCH /products/{id}" should {
         "update a product" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
-
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
                 val updatedProduct = UpdateProduct(
                     "updatedProduct".asPresent(),
                     "updateDescription".asPresent()
                 )
-                val response = client.patch("/api/v1/products/${createdProduct.id}") {
-                    headers { basicTestAuth() }
+                val response = superuserClient.patch("/api/v1/products/${createdProduct.id}") {
                     setBody(updatedProduct)
                 }
 
@@ -171,22 +147,22 @@ class ProductsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require ProductPermission.WRITE" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.WRITE.roleName(createdProduct.id)) {
+                val updatedProduct = UpdateProduct("updatedName".asPresent(), "updatedDescription".asPresent())
+                patch("/api/v1/products/${createdProduct.id}") { setBody(updatedProduct) }
+            }
+        }
     }
 
     "DELETE /products/{id}" should {
         "delete a product" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
-
-                val response = client.delete("/api/v1/products/${createdProduct.id}") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.delete("/api/v1/products/${createdProduct.id}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -197,18 +173,10 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "delete Keycloak roles and groups" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
-
-                client.delete("/api/v1/products/${createdProduct.id}") {
-                    headers { basicTestAuth() }
-                }
+                superuserClient.delete("/api/v1/products/${createdProduct.id}")
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
                     ProductPermission.getRolesForProduct(createdProduct.id) +
@@ -220,18 +188,19 @@ class ProductsRouteIntegrationTest : WordSpec({
                 )
             }
         }
+
+        "require ProductPermission.DELETE" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.DELETE.roleName(createdProduct.id), HttpStatusCode.NoContent) {
+                delete("/api/v1/products/${createdProduct.id}")
+            }
+        }
     }
 
     "GET /products/{id}/repositories" should {
         "return all repositories of an organization" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
-
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
@@ -242,9 +211,7 @@ class ProductsRouteIntegrationTest : WordSpec({
                 val createdRepository2 =
                     productService.createRepository(type = type, url = url2, productId = createdProduct.id)
 
-                val response = client.get("/api/v1/products/${createdProduct.id}/repositories") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -257,14 +224,8 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
-
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
@@ -274,9 +235,8 @@ class ProductsRouteIntegrationTest : WordSpec({
                 val createdRepository2 =
                     productService.createRepository(type = type, url = url2, productId = createdProduct.id)
 
-                val response = client.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1") {
-                    headers { basicTestAuth() }
-                }
+                val response =
+                    superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -286,22 +246,22 @@ class ProductsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require ProductPermission.READ_REPOSITORIES" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.READ_REPOSITORIES.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}/repositories")
+            }
+        }
     }
 
     "POST /products/{id}/repositories" should {
         "create a repository" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
-
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
                 val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
-                val response = client.post("/api/v1/products/${createdProduct.id}/repositories") {
-                    headers { basicTestAuth() }
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
 
@@ -313,18 +273,11 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "create Keycloak roles and groups" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
-                val client = createJsonClient()
-
-                val createdProduct = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                )
+            integrationTestApplication {
+                val createdProduct = createProduct()
 
                 val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
-                val createdRepository = client.post("/api/v1/products/${createdProduct.id}/repositories") {
-                    headers { basicTestAuth() }
+                val createdRepository = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }.body<Repository>()
 
@@ -338,16 +291,23 @@ class ProductsRouteIntegrationTest : WordSpec({
                 )
             }
         }
+
+        "require ProductPermission.CREATE_REPOSITORY" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(
+                ProductPermission.CREATE_REPOSITORY.roleName(createdProduct.id),
+                HttpStatusCode.Created
+            ) {
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                post("/api/v1/products/${createdProduct.id}/repositories") { setBody(repository) }
+            }
+        }
     }
 
     "GET /products/{productId}/secrets" should {
         "return all secrets for this product" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -366,11 +326,7 @@ class ProductsRouteIntegrationTest : WordSpec({
                     null
                 )
 
-                val client = createJsonClient()
-
-                val response = client.get("/api/v1/products/$productId/secrets") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -380,12 +336,8 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "support query parameters" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -404,11 +356,7 @@ class ProductsRouteIntegrationTest : WordSpec({
                     null
                 )
 
-                val client = createJsonClient()
-
-                val response = client.get("/api/v1/products/$productId/secrets?sort=-name&limit=1") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -416,16 +364,19 @@ class ProductsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require ProductPermission.READ" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}/secrets")
+            }
+        }
     }
 
     "GET /products/{productId}/secrets/{secretId}" should {
         "return a single secret" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -433,11 +384,7 @@ class ProductsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, description, null, productId, null)
 
-                val client = createJsonClient()
-
-                val response = client.get("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/$productId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -447,47 +394,46 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "respond with NotFound if no secret exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
-                val client = createJsonClient()
-
-                val response = client.get("/api/v1/products/$productId/secrets/999999") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.get("/api/v1/products/$productId/secrets/999999")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
+
+        "require ProductPermission.READ" {
+            val createdProduct = createProduct()
+
+            val path = "https://secret-storage.com/ssh_host_rsa_key_5"
+            val name = "New secret 5"
+            val description = "description"
+
+            secretRepository.create(path, name, description, null, createdProduct.id, null)
+
+            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}/secrets/$name")
+            }
+        }
     }
 
     "POST /products/{productId}/secrets" should {
         "create a secret in the database" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
-
-                val client = createJsonClient()
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val name = "New secret 6"
 
                 val secret = CreateSecret(
                     name,
-                    SECRET,
+                    secretValue,
                     "The new prod secret"
                 )
 
-                val response = client.post("/api/v1/products/$productId/secrets") {
-                    headers { basicTestAuth() }
+                val response = superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
                 }
 
@@ -504,27 +450,20 @@ class ProductsRouteIntegrationTest : WordSpec({
                 )
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("product_${productId}_$name"))?.value shouldBe SECRET
+                provider.readSecret(Path("product_${productId}_$name"))?.value shouldBe secretValue
             }
         }
 
         "respond with CONFLICT if the secret already exists" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val name = "New secret 7"
                 val description = "description"
 
-                val secret = CreateSecret(name, SECRET, description)
+                val secret = CreateSecret(name, secretValue, description)
 
-                val client = createJsonClient()
-
-                val response1 = client.post("/api/v1/products/$productId/secrets") {
-                    headers { basicTestAuth() }
+                val response1 = superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
                 }
 
@@ -532,8 +471,7 @@ class ProductsRouteIntegrationTest : WordSpec({
                     status shouldBe HttpStatusCode.Created
                 }
 
-                val response2 = client.post("/api/v1/products/$productId/secrets") {
-                    headers { basicTestAuth() }
+                val response2 = superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
                 }
 
@@ -542,16 +480,23 @@ class ProductsRouteIntegrationTest : WordSpec({
                 }
             }
         }
+
+        "require ProductPermission.WRITE_SECRETS" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(
+                ProductPermission.WRITE_SECRETS.roleName(createdProduct.id),
+                HttpStatusCode.Created
+            ) {
+                val createSecret = CreateSecret("name", secretValue, "description")
+                post("/api/v1/products/${createdProduct.id}/secrets") { setBody(createSecret) }
+            }
+        }
     }
 
     "PATCH /products/{productId}/secrets/{secretName}" should {
         "update a secret's metadata" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -559,11 +504,8 @@ class ProductsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, "description", null, productId, null)
 
-                val client = createJsonClient()
-
                 val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
-                val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
                     setBody(updateSecret)
                 }
 
@@ -583,12 +525,8 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "update a secret's value" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val name = "name"
                 val path = "path"
@@ -596,11 +534,8 @@ class ProductsRouteIntegrationTest : WordSpec({
 
                 secretRepository.create(path, name, desc, null, productId, null)
 
-                val client = createJsonClient()
-
-                val updateSecret = UpdateSecret(name.asPresent(), SECRET.asPresent())
-                val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
+                val updateSecret = UpdateSecret(name.asPresent(), secretValue.asPresent())
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
                     setBody(updateSecret)
                 }
 
@@ -610,28 +545,21 @@ class ProductsRouteIntegrationTest : WordSpec({
                 }
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path))?.value shouldBe SECRET
+                provider.readSecret(Path(path))?.value shouldBe secretValue
             }
         }
 
         "handle a failure from the SecretsStorage" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val name = "name"
                 val desc = "description"
 
-                secretRepository.create(ERROR_PATH, name, desc, null, productId, null)
-
-                val client = createJsonClient()
+                secretRepository.create(secretErrorPath, name, desc, null, productId, null)
 
                 val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
-                val response = client.patch("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
                     setBody(updateSecret)
                 }
 
@@ -645,26 +573,34 @@ class ProductsRouteIntegrationTest : WordSpec({
                 )?.mapToApi() shouldBe Secret(name, desc)
             }
         }
+
+        "require ProductPermission.WRITE_SECRETS" {
+            val createdProduct = createProduct()
+
+            val name = "name"
+            val desc = "description"
+            val path = "path"
+
+            secretRepository.create(path, name, desc, null, createdProduct.id, null)
+
+            requestShouldRequireRole(ProductPermission.WRITE_SECRETS.roleName(createdProduct.id)) {
+                val updateSecret =
+                    UpdateSecret(name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                patch("/api/v1/products/${createdProduct.id}/secrets/$name") { setBody(updateSecret) }
+            }
+        }
     }
 
     "DELETE /products/{productId}/secrets/{secretName}" should {
         "delete a secret" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val path = SecretsProviderFactoryForTesting.PASSWORD_PATH
                 val name = "New secret 8"
                 secretRepository.create(path.path, name, "description", null, productId, null)
 
-                val client = createJsonClient()
-
-                val response = client.delete("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.delete("/api/v1/products/$productId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -678,22 +614,14 @@ class ProductsRouteIntegrationTest : WordSpec({
         }
 
         "handle a failure from the SecretsStorage" {
-            ortServerTestApplication(dbExtension.db, noDbConfig, secretsConfig) {
-                val productId = organizationService.createProduct(
-                    name = "name",
-                    description = "description",
-                    organizationId = orgId
-                ).id
+            integrationTestApplication {
+                val productId = createProduct().id
 
                 val name = "New secret 8"
                 val desc = "description"
-                secretRepository.create(ERROR_PATH, name, desc, null, productId, null)
+                secretRepository.create(secretErrorPath, name, desc, null, productId, null)
 
-                val client = createJsonClient()
-
-                val response = client.delete("/api/v1/products/$productId/secrets/$name") {
-                    headers { basicTestAuth() }
-                }
+                val response = superuserClient.delete("/api/v1/products/$productId/secrets/$name")
 
                 with(response) {
                     status shouldBe HttpStatusCode.InternalServerError
@@ -703,6 +631,21 @@ class ProductsRouteIntegrationTest : WordSpec({
                     productId,
                     name
                 )?.mapToApi() shouldBe Secret(name, desc)
+            }
+        }
+
+        "require ProductPermission.WRITE_SECRETS" {
+            val createdProduct = createProduct()
+
+            val path = SecretsProviderFactoryForTesting.TOKEN_PATH
+            val name = "New secret 8"
+            secretRepository.create(path.path, name, "description", null, createdProduct.id, null)
+
+            requestShouldRequireRole(
+                ProductPermission.WRITE_SECRETS.roleName(createdProduct.id),
+                HttpStatusCode.NoContent
+            ) {
+                delete("/api/v1/products/${createdProduct.id}/secrets/$name")
             }
         }
     }
