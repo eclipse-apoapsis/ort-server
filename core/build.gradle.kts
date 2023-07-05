@@ -76,6 +76,7 @@ dependencies {
     testImplementation(testFixtures(project(":clients:keycloak")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
+    testImplementation(testFixtures(project(":transport:transport-spi")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

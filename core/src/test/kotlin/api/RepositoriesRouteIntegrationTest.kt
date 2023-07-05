@@ -22,7 +22,9 @@ package org.ossreviewtoolkit.server.core.api
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -36,7 +38,12 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
+import org.ossreviewtoolkit.server.api.v1.InfrastructureService
+import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
@@ -52,6 +59,7 @@ import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
@@ -66,6 +74,8 @@ import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
+import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 
 private const val SECRET = "secret-value"
 private const val ERROR_PATH = "error-path"
@@ -635,6 +645,70 @@ class RepositoriesRouteIntegrationTest : WordSpec({
                     repositoryId,
                     name
                 )?.mapToApi() shouldBe Secret(name, desc)
+            }
+        }
+    }
+
+    "POST /repositories/{repositoryId}/runs" should {
+        "create a new ORT run" {
+            ortServerTestApplication(dbExtension.db, noDbConfig, keycloakConfig) {
+                val createdRepository = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId
+                )
+
+                val client = createJsonClient()
+
+                val service = InfrastructureService(
+                    name = "privateRepository",
+                    url = "https://repo.example.org/test",
+                    description = "a private repository used by this repository",
+                    usernameSecretRef = "repositoryUsername",
+                    passwordSecretRef = "repositoryPassword"
+                )
+                val environmentDefinitions = mapOf(
+                    "maven" to listOf(mapOf("id" to "repositoryServer"))
+                )
+                val envConfig = EnvironmentConfig(
+                    infrastructureServices = listOf(service),
+                    environmentDefinitions = environmentDefinitions,
+                    strict = false
+                )
+                val analyzerJob = AnalyzerJobConfiguration(
+                    allowDynamicVersions = true,
+                    environmentConfig = envConfig
+                )
+                val createRun = CreateOrtRun("main", ApiJobConfigurations(analyzerJob), labelsMap)
+
+                val serviceDeclaration = InfrastructureServiceDeclaration(
+                    name = service.name,
+                    url = service.url,
+                    description = service.description,
+                    usernameSecret = service.usernameSecretRef,
+                    passwordSecret = service.passwordSecretRef
+                )
+
+                val response = client.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    headers { basicTestAuth() }
+                    setBody(createRun)
+                }
+
+                response.status shouldBe HttpStatusCode.Created
+                val run = response.body<OrtRun>()
+                run.jobs.analyzer.environmentConfig shouldBe envConfig
+
+                MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+
+                val runs = ortRunRepository.listForRepository(createdRepository.id)
+
+                with(runs.single().jobs.analyzer) {
+                    allowDynamicVersions shouldBe true
+                    val jobConfig = environmentConfig.shouldNotBeNull()
+                    jobConfig.strict shouldBe false
+                    jobConfig.environmentDefinitions shouldBe environmentDefinitions
+                    jobConfig.infrastructureServices shouldContainExactly listOf(serviceDeclaration)
+                }
             }
         }
     }
