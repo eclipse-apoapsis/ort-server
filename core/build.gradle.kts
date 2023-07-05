@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+val dockerImagePrefix: String by project
+
 plugins {
     application
 
@@ -86,7 +88,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "ort-server-core:latest"
+    to.image = "${dockerImagePrefix}ort-server-core:latest"
 
     container {
         mainClass = "io.ktor.server.netty.EngineMain"

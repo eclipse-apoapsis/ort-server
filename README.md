@@ -78,6 +78,20 @@ You can solve this problem by cleaning the database. Please note that it will em
 docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 ```
 
+## Publish Docker Images
+
+To publish the Docker images to a registry, first build the worker base images as described in
+[Local Setup](#local-setup). Then you can use the `jib` task to publish the images by setting the correct prefix for the
+registry.
+
+```shell
+# Publish all Docker images.
+./gradlew -PdockerImagePrefix=my.registry/ jib
+
+# Publish one specific image.
+./gradlew -PdockerImagePrefix=my.registry/ :core:jib
+```
+
 ## License
 
 See the [NOTICE](./NOTICE) file in the root of this project for the copyright details.

@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+val dockerImagePrefix: String by project
+
 plugins {
     application
 
@@ -69,7 +71,7 @@ dependencies {
 
 jib {
     from.image = "docker://ort-server-evaluator-worker-base-image:latest"
-    to.image = "ort-server-evaluator-worker:latest"
+    to.image = "${dockerImagePrefix}ort-server-evaluator-worker:latest"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.workers.evaluator.EntrypointKt"

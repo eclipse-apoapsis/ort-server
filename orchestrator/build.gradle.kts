@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+val dockerImagePrefix: String by project
+
 plugins {
     alias(libs.plugins.jib)
     alias(libs.plugins.kotlinJvm)
@@ -49,7 +51,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "ort-server-orchestrator:latest"
+    to.image = "${dockerImagePrefix}ort-server-orchestrator:latest"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.orchestrator.EntrypointKt"

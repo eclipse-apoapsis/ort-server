@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+val dockerImagePrefix: String by project
+
 plugins {
     application
 
@@ -60,7 +62,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "ort-server-kubernetes-jobmonitor:latest"
+    to.image = "${dockerImagePrefix}ort-server-kubernetes-jobmonitor:latest"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.EntrypointKt"

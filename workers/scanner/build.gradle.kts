@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+val dockerImagePrefix: String by project
+
 plugins {
     application
 
@@ -80,7 +82,7 @@ repositories {
 
 jib {
     from.image = "docker://ort-server-scanner-worker-base-image:latest"
-    to.image = "ort-server-scanner-worker:latest"
+    to.image = "${dockerImagePrefix}ort-server-scanner-worker:latest"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.workers.scanner.EntrypointKt"
