@@ -23,8 +23,10 @@ import com.charleskorn.kaml.Yaml
 
 import java.io.File
 
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
@@ -98,12 +100,38 @@ class EnvironmentConfigLoader(
 
             configFile.inputStream().use { stream ->
                 val config = Yaml.default.decodeFromStream(RepositoryEnvironmentConfig.serializer(), stream)
-                val services = parseServices(config, hierarchy)
-                val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
-
-                ResolvedEnvironmentConfig(services, definitions)
+                resolveRepositoryEnvironmentConfig(config, hierarchy)
             }
         } ?: ResolvedEnvironmentConfig(emptyList())
+
+    /**
+     * Resolve the given [config] for the repository defined by the given [hierarchy]. This function is used when the
+     * environment configuration for the repository is not read from the source code, but passed when triggering the
+     * run.
+     */
+    fun resolve(config: EnvironmentConfig, hierarchy: Hierarchy): ResolvedEnvironmentConfig {
+        val repositoryConfig = RepositoryEnvironmentConfig(
+            infrastructureServices = config.infrastructureServices.map { it.toRepositoryService() },
+            environmentDefinitions = config.environmentDefinitions,
+            strict = config.strict
+        )
+
+        return resolveRepositoryEnvironmentConfig(repositoryConfig, hierarchy)
+    }
+
+    /**
+     * Resolve the declarations in the given [config] using the provided [hierarchy]. Handle references that cannot be
+     * resolved according to the `strict` flag in the configuration.
+     */
+    private fun resolveRepositoryEnvironmentConfig(
+        config: RepositoryEnvironmentConfig,
+        hierarchy: Hierarchy
+    ): ResolvedEnvironmentConfig {
+        val services = parseServices(config, hierarchy)
+        val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
+
+        return ResolvedEnvironmentConfig(services, definitions)
+    }
 
     /**
      * Parse the infrastructure services defined in the given [config] and return a list with data objects for them.
@@ -275,3 +303,9 @@ private class ServiceResolver(
  */
 private fun Collection<InfrastructureService>.associateByName(): Map<String, InfrastructureService> =
     associateBy(InfrastructureService::name)
+
+/**
+ * Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService].
+ */
+private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
+    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret)

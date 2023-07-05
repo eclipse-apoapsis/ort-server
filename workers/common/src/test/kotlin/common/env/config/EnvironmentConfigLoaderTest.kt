@@ -33,8 +33,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.Repository
@@ -190,6 +192,93 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
             config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
         }
+
+        "A configuration can be resolved" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+            val declarations = listOf(
+                InfrastructureServiceDeclaration(
+                    serviceName(1),
+                    serviceUrl(1),
+                    serviceDescription(1),
+                    userSecret.name,
+                    pass1Secret.name
+                ),
+                InfrastructureServiceDeclaration(
+                    serviceName(2),
+                    serviceUrl(2),
+                    serviceDescription(2),
+                    userSecret.name,
+                    pass2Secret.name
+                )
+            )
+            val envDefinitions = mapOf(
+                "maven" to listOf(mapOf("service" to serviceName(1), "id" to "repo1"))
+            )
+            val envConfig = EnvironmentConfig(declarations, envDefinitions, strict = false)
+
+            val expectedServices = listOf(
+                createTestService(1, userSecret, pass1Secret),
+                createTestService(2, userSecret, pass2Secret)
+            )
+
+            val config = helper.loader().resolve(envConfig, hierarchy)
+
+            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+            config.shouldContainDefinition<MavenDefinition>(expectedServices[0]) { it.id == "repo1" }
+        }
+
+        "Resolving of a configuration works correctly if `strict` is false" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+            val declarations = listOf(
+                InfrastructureServiceDeclaration(
+                    serviceName(1),
+                    serviceUrl(1),
+                    serviceDescription(1),
+                    userSecret.name,
+                    "anUnknownSecret"
+                ),
+                InfrastructureServiceDeclaration(
+                    serviceName(2),
+                    serviceUrl(2),
+                    serviceDescription(2),
+                    userSecret.name,
+                    pass2Secret.name
+                )
+            )
+            val envConfig = EnvironmentConfig(declarations, strict = false)
+
+            val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
+
+            val config = helper.loader().resolve(envConfig, hierarchy)
+
+            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+        }
+
+        "Resolving a configuration works correctly if `strict` is true" {
+            val helper = TestHelper()
+
+            val declarations = listOf(
+                InfrastructureServiceDeclaration(
+                    serviceName(1),
+                    serviceUrl(1),
+                    serviceDescription(1),
+                    "unknownUser",
+                    "unknownPassword"
+                )
+            )
+            val envConfig = EnvironmentConfig(declarations, strict = true)
+
+            shouldThrow<EnvironmentConfigException> {
+                helper.loader().resolve(envConfig, hierarchy)
+            }
+        }
     }
 
     /**
@@ -319,14 +408,29 @@ private val hierarchy = Hierarchy(repository, product, organization)
  */
 private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret): InfrastructureService =
     InfrastructureService(
-        name = "Test service$index",
-        url = "https://repo.example.org/test/service$index",
-        description = "Test service $index",
+        name = serviceName(index),
+        url = serviceUrl(index),
+        description = serviceDescription(index),
         usernameSecret = userSecret,
         passwordSecret = passSecret,
         organization = null,
         product = null
     )
+
+/**
+ * Generate the name of a test service with the given [index].
+ */
+private fun serviceName(index: Int): String = "Test service$index"
+
+/**
+ * Generate the URL of a test service with the given [index].
+ */
+private fun serviceUrl(index: Int): String = "https://repo.example.org/test/service$index"
+
+/**
+ * Generate the description of a test service with the given [index].
+ */
+private fun serviceDescription(index: Int) = "Test service $index"
 
 /**
  * Check whether this [ResolvedEnvironmentConfig] contains an environment definition of a specific type that references
