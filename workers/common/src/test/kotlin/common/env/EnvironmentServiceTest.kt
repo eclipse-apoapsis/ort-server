@@ -36,6 +36,7 @@ import io.mockk.slot
 
 import java.io.File
 
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.Organization
@@ -106,7 +107,7 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
-    "setUpEnvironment" should {
+    "setUpEnvironment from a file" should {
         "invoke all generators to produce the supported configuration files" {
             val definitions = listOf(
                 EnvironmentServiceDefinition(mockk()),
@@ -206,6 +207,55 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
+    "setUpEnvironment from a config" should {
+        "invoke all generators to produce the supported configuration files" {
+            val definitions = listOf(
+                EnvironmentServiceDefinition(mockk()),
+                EnvironmentServiceDefinition(mockk()),
+                EnvironmentServiceDefinition(mockk())
+            )
+            val context = mockContext()
+            val generator1 = mockGenerator()
+            val generator2 = mockGenerator()
+
+            val envConfig = mockk<EnvironmentConfig>()
+            val resolvedConfig = ResolvedEnvironmentConfig(emptyList(), definitions)
+            val configLoader = mockConfigLoader(envConfig, resolvedConfig)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, listOf(generator1, generator2), configLoader)
+
+            val configResult = environmentService.setUpEnvironment(context, envConfig, null)
+
+            configResult shouldBe resolvedConfig
+
+            val args1 = generator1.verify(context, definitions)
+            val args2 = generator2.verify(context, definitions)
+
+            args1.first shouldNotBe args2.first
+        }
+
+        "assign the infrastructure service for the repository to the current ORT run" {
+            val repositoryService = mockk<InfrastructureService>()
+            val otherService = mockk<InfrastructureService>()
+
+            val context = mockContext()
+            val envConfig = mockk<EnvironmentConfig>()
+            val resolvedConfig = ResolvedEnvironmentConfig(listOf(otherService), emptyList())
+            val configLoader = mockConfigLoader(envConfig, resolvedConfig)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, envConfig, repositoryService)
+
+            assignedServices shouldContainExactlyInAnyOrder listOf(repositoryService, otherService)
+        }
+    }
+
     "generateNetRcFile" should {
         "produce the correct file using the NetRcGenerator" {
             val context = mockk<WorkerContext>()
@@ -290,6 +340,18 @@ private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefini
 private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConfigLoader =
     mockk<EnvironmentConfigLoader> {
         every { parse(repositoryFolder, repositoryHierarchy) } returns config
+    }
+
+/**
+ * Create a mock [EnvironmentConfigLoader] that is prepared to resolve the given [envConfig] and to return the
+ * provided [resultConfig].
+ */
+private fun mockConfigLoader(
+    envConfig: EnvironmentConfig,
+    resultConfig: ResolvedEnvironmentConfig
+): EnvironmentConfigLoader =
+    mockk {
+        every { resolve(envConfig, repositoryHierarchy) } returns resultConfig
     }
 
 /**

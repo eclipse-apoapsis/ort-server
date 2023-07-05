@@ -26,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
@@ -77,6 +78,33 @@ class EnvironmentService(
     ): ResolvedEnvironmentConfig {
         val config = configLoader.parse(repositoryFolder, context.hierarchy)
 
+        return setUpEnvironmentForConfig(context, config, repositoryService)
+    }
+
+    /**
+     * Set up the analysis environment for the current repository defined by the given [context] using the provided
+     * [config]. The credentials of this repository - if any - are defined by the given [repositoryService]. This
+     * function can be used if the environment configuration was passed when the run was triggered.
+     */
+    suspend fun setUpEnvironment(
+        context: WorkerContext,
+        config: EnvironmentConfig,
+        repositoryService: InfrastructureService?
+    ): ResolvedEnvironmentConfig {
+        val resolvedConfig = configLoader.resolve(config, context.hierarchy)
+
+        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
+    }
+
+    /**
+     * Set up the analysis environment based on the given resolved [config]. Use the given [context]. If the repository
+     * has credentials, as defined by the given optional [repositoryService], take them into account as well.
+     */
+    private suspend fun setUpEnvironmentForConfig(
+        context: WorkerContext,
+        config: ResolvedEnvironmentConfig,
+        repositoryService: InfrastructureService?
+    ): ResolvedEnvironmentConfig {
         val allServices = config.environmentDefinitions.mapTo(mutableSetOf()) { it.service }
         allServices += config.infrastructureServices
         repositoryService?.let { allServices += it }
