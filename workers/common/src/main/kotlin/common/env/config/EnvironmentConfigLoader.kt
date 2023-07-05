@@ -89,10 +89,10 @@ class EnvironmentConfigLoader(
 
     /**
      * Read the environment configuration file from the repository defined by the given [Hierarchy] checked out at
-     * the given [repositoryFolder] and return an [EnvironmentConfig] with its content. Syntactic errors in the file
-     * cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
+     * the given [repositoryFolder] and return an [ResolvedEnvironmentConfig] with its content. Syntactic errors in the
+     * file cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
      */
-    fun parse(repositoryFolder: File, hierarchy: Hierarchy): EnvironmentConfig =
+    fun parse(repositoryFolder: File, hierarchy: Hierarchy): ResolvedEnvironmentConfig =
         repositoryFolder.resolve(CONFIG_FILE_PATH).takeIf { it.isFile }?.let { configFile ->
             logger.info("Parsing environment configuration file '{}'.", configFile)
 
@@ -101,9 +101,9 @@ class EnvironmentConfigLoader(
                 val services = parseServices(config, hierarchy)
                 val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
 
-                EnvironmentConfig(services, definitions)
+                ResolvedEnvironmentConfig(services, definitions)
             }
-        } ?: EnvironmentConfig(emptyList())
+        } ?: ResolvedEnvironmentConfig(emptyList())
 
     /**
      * Parse the infrastructure services defined in the given [config] and return a list with data objects for them.

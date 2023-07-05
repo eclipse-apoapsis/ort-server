@@ -29,8 +29,8 @@ import kotlinx.coroutines.withContext
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
+import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
@@ -74,7 +74,7 @@ class EnvironmentService(
         context: WorkerContext,
         repositoryFolder: File,
         repositoryService: InfrastructureService?
-    ): EnvironmentConfig {
+    ): ResolvedEnvironmentConfig {
         val config = configLoader.parse(repositoryFolder, context.hierarchy)
 
         val allServices = config.environmentDefinitions.mapTo(mutableSetOf()) { it.service }

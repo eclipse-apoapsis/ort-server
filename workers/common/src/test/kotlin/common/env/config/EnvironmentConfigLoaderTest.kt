@@ -42,10 +42,10 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigException
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
+import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 
@@ -195,7 +195,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
     /**
      * Read the test configuration with the given [name] from the resources using the given [helper].
      */
-    private fun loadConfig(name: String, helper: TestHelper): EnvironmentConfig {
+    private fun loadConfig(name: String, helper: TestHelper): ResolvedEnvironmentConfig {
         val tempDir = tempdir()
 
         javaClass.getResourceAsStream("/$name")?.use { stream ->
@@ -329,10 +329,10 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
     )
 
 /**
- * Check whether this [EnvironmentConfig] contains an environment definition of a specific type that references the
- * given [service] and passes the given [check].
+ * Check whether this [ResolvedEnvironmentConfig] contains an environment definition of a specific type that references
+ * the given [service] and passes the given [check].
  */
-private inline fun <reified T : EnvironmentServiceDefinition> EnvironmentConfig.shouldContainDefinition(
+private inline fun <reified T : EnvironmentServiceDefinition> ResolvedEnvironmentConfig.shouldContainDefinition(
     service: InfrastructureService,
     check: (T) -> Boolean
 ) {

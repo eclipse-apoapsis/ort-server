@@ -47,8 +47,8 @@ import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepos
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
+import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentServiceTest : WordSpec({
@@ -117,7 +117,7 @@ class EnvironmentServiceTest : WordSpec({
             val generator1 = mockGenerator()
             val generator2 = mockGenerator()
 
-            val config = EnvironmentConfig(emptyList(), definitions)
+            val config = ResolvedEnvironmentConfig(emptyList(), definitions)
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
@@ -139,7 +139,7 @@ class EnvironmentServiceTest : WordSpec({
             val services = listOf<InfrastructureService>(mockk(), mockk())
             val context = mockContext()
 
-            val config = EnvironmentConfig(services, emptyList())
+            val config = ResolvedEnvironmentConfig(services, emptyList())
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
@@ -158,7 +158,7 @@ class EnvironmentServiceTest : WordSpec({
             val otherService = mockk<InfrastructureService>()
 
             val context = mockContext()
-            val config = EnvironmentConfig(listOf(otherService), emptyList())
+            val config = ResolvedEnvironmentConfig(listOf(otherService), emptyList())
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
@@ -175,7 +175,7 @@ class EnvironmentServiceTest : WordSpec({
             val definitions = services.map(::EnvironmentServiceDefinition)
 
             val context = mockContext()
-            val config = EnvironmentConfig(emptyList(), definitions)
+            val config = ResolvedEnvironmentConfig(emptyList(), definitions)
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
@@ -193,7 +193,7 @@ class EnvironmentServiceTest : WordSpec({
             val services = listOf(repositoryService, mockk(), referencedService)
 
             val context = mockContext()
-            val config = EnvironmentConfig(services, listOf(EnvironmentServiceDefinition(referencedService)))
+            val config = ResolvedEnvironmentConfig(services, listOf(EnvironmentServiceDefinition(referencedService)))
             val configLoader = mockConfigLoader(config)
 
             val serviceRepository = mockk<InfrastructureServiceRepository>()
@@ -287,7 +287,7 @@ private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefini
 /**
  * Create a mock [EnvironmentConfigLoader] that is prepared to return the given [config].
  */
-private fun mockConfigLoader(config: EnvironmentConfig): EnvironmentConfigLoader =
+private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConfigLoader =
     mockk<EnvironmentConfigLoader> {
         every { parse(repositoryFolder, repositoryHierarchy) } returns config
     }
