@@ -41,6 +41,7 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.RunResult
@@ -156,6 +157,48 @@ class AnalyzerWorkerTest : StringSpec({
 
             coVerify {
                 envService.setUpEnvironment(context, projectDir, null)
+            }
+        }
+    }
+
+    "An environment configuration in the job configuration should be supported" {
+        val envConfig = mockk<EnvironmentConfig>()
+        val jobConfig = AnalyzerJobConfiguration(environmentConfig = envConfig)
+        val job = analyzerJob.copy(configuration = jobConfig)
+
+        val dao = mockk<AnalyzerWorkerDao> {
+            every { getAnalyzerJob(any()) } returns job
+            every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServiceForRepository(context) } returns null
+            coEvery { setUpEnvironment(context, envConfig, null) } returns mockk()
+        }
+
+        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+
+            verify(exactly = 1) {
+                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+            }
+
+            coVerify {
+                envService.setUpEnvironment(context, envConfig, null)
             }
         }
     }

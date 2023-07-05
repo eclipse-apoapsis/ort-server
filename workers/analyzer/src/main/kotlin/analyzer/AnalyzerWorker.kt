@@ -64,7 +64,13 @@ internal class AnalyzerWorker(
 
         val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
 
-        environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
+        val envConfigFromJob = job.configuration.environmentConfig
+        if (envConfigFromJob != null) {
+            logger.info("Setting up environment from configuration provided in the Analyzer job.")
+            environmentService.setUpEnvironment(context, envConfigFromJob, repositoryService)
+        } else {
+            environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
+        }
 
         val ortResult = runner.run(sourcesDir, job.configuration)
 
