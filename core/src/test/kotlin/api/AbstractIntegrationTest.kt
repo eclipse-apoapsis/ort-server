@@ -1,0 +1,135 @@
+/*
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.core.api
+
+import io.kotest.core.extensions.install
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
+
+import io.ktor.client.HttpClient
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.ApplicationTestBuilder
+
+import kotlinx.serialization.json.Json
+
+import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
+import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
+import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
+import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.SUPERUSER
+import org.ossreviewtoolkit.server.core.SUPERUSER_PASSWORD
+import org.ossreviewtoolkit.server.core.TEST_USER
+import org.ossreviewtoolkit.server.core.TEST_USER_PASSWORD
+import org.ossreviewtoolkit.server.core.addUserRole
+import org.ossreviewtoolkit.server.core.createJsonClient
+import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
+import org.ossreviewtoolkit.server.core.setUpClientScope
+import org.ossreviewtoolkit.server.core.setUpUser
+import org.ossreviewtoolkit.server.core.setUpUserRoles
+import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
+import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
+import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.ossreviewtoolkit.server.secrets.SecretStorage
+import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
+
+abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
+    val dbExtension = extension(DatabaseTestExtension())
+
+    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
+        setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
+        setUpUserRoles(SUPERUSER.username.value, listOf(Superuser.ROLE_NAME))
+        setUpUser(TEST_USER, TEST_USER_PASSWORD)
+        setUpClientScope(TEST_SUBJECT_CLIENT)
+    }
+
+    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
+
+    private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
+    private val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
+
+    val secretValue = "secret-value"
+    val secretErrorPath = "error-path"
+
+    private val secretsConfig = mapOf(
+        "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
+        "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to secretErrorPath
+    )
+
+    val additionalConfig = keycloakConfig + jwtConfig + secretsConfig
+
+    private val superuserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+        user = SUPERUSER.username.value,
+        secret = SUPERUSER_PASSWORD
+    )
+
+    private val testUserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+        user = TEST_USER.username.value,
+        secret = TEST_USER_PASSWORD
+    )
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    /**
+     * A convenience property to create an [HttpClient] which authenticates as [SUPERUSER]. Note that each call to the
+     * property creates a new client, so if the client is used multiple times in a test consider storing it in a
+     * variable.
+     */
+    val ApplicationTestBuilder.superuserClient: HttpClient
+        get() = createJsonClient().configureAuthentication(superuserClientConfig, json)
+
+    /**
+     * A convenience property to create an [HttpClient] which authenticates as [TEST_USER]. Note that each call to the
+     * property creates a new client, so if the client is used multiple times in a test consider storing it in a
+     * variable.
+     */
+    val ApplicationTestBuilder.testUserClient: HttpClient
+        get() = createJsonClient().configureAuthentication(testUserClientConfig, json)
+
+    val ApplicationTestBuilder.unauthenticatedClient: HttpClient
+        get() = createJsonClient()
+
+    init {
+        body()
+    }
+
+    fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
+        ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig, block)
+
+    fun requestShouldRequireRole(
+        role: String,
+        successStatus: HttpStatusCode = HttpStatusCode.OK,
+        request: suspend HttpClient.() -> HttpResponse
+    ) {
+        integrationTestApplication {
+            val client = testUserClient
+
+            val responseWithoutRole = client.request()
+            keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, role)
+            val responseWithRole = client.request()
+
+            responseWithoutRole.status shouldBe HttpStatusCode.Forbidden
+            responseWithRole.status shouldBe successStatus
+        }
+    }
+}
