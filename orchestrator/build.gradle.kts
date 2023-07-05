@@ -18,6 +18,7 @@
  */
 
 val dockerImagePrefix: String by project
+val dockerImageTag: String by project
 
 plugins {
     alias(libs.plugins.jib)
@@ -51,7 +52,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "${dockerImagePrefix}ort-server-orchestrator:latest"
+    to.image = "${dockerImagePrefix}ort-server-orchestrator:$dockerImageTag"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.orchestrator.EntrypointKt"

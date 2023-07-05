@@ -18,6 +18,7 @@
  */
 
 val dockerImagePrefix: String by project
+val dockerImageTag: String by project
 
 plugins {
     application
@@ -92,7 +93,7 @@ dependencies {
 
 jib {
     from.image = "docker://ort-server-analyzer-worker-base-image:latest"
-    to.image = "${dockerImagePrefix}ort-server-analyzer-worker:latest"
+    to.image = "${dockerImagePrefix}ort-server-analyzer-worker:$dockerImageTag"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt"

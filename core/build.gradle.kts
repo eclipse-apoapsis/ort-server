@@ -18,6 +18,7 @@
  */
 
 val dockerImagePrefix: String by project
+val dockerImageTag: String by project
 
 plugins {
     application
@@ -88,7 +89,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "${dockerImagePrefix}ort-server-core:latest"
+    to.image = "${dockerImagePrefix}ort-server-core:$dockerImageTag"
 
     container {
         mainClass = "io.ktor.server.netty.EngineMain"

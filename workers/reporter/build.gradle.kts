@@ -18,6 +18,7 @@
  */
 
 val dockerImagePrefix: String by project
+val dockerImageTag: String by project
 
 plugins {
     application
@@ -75,7 +76,7 @@ dependencies {
 
 jib {
     from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "${dockerImagePrefix}ort-server-reporter-worker:latest"
+    to.image = "${dockerImagePrefix}ort-server-reporter-worker:$dockerImageTag"
 
     container {
         mainClass = "org.ossreviewtoolkit.server.workers.reporter.EntrypointKt"

@@ -82,7 +82,7 @@ docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 
 To publish the Docker images to a registry, first build the worker base images as described in
 [Local Setup](#local-setup). Then you can use the `jib` task to publish the images by setting the correct prefix for the
-registry.
+registry. You can also configure the tag which defaults to `latest`.
 
 ```shell
 # Publish all Docker images.
@@ -90,6 +90,9 @@ registry.
 
 # Publish one specific image.
 ./gradlew -PdockerImagePrefix=my.registry/ :core:jib
+
+# Publish using a custom tag.
+./gradlew -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
 ```
 
 ## License
