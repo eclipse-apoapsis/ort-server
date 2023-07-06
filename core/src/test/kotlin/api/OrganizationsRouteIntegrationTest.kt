@@ -746,16 +746,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
             val name = "name"
             val desc = "description"
+            val path = "path"
 
-            secretRepository.create(secretErrorPath, name, desc, createdOrg.id, null, null)
+            secretRepository.create(path, name, desc, createdOrg.id, null, null)
 
-            requestShouldRequireRole(
-                OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
-                HttpStatusCode.Created
-            ) {
+            requestShouldRequireRole(OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id)) {
                 val updateSecret =
                     UpdateSecret(name.asPresent(), secretValue.asPresent(), "new description".asPresent())
-                post("/api/v1/organizations/${createdOrg.id}/secrets") { setBody(updateSecret) }
+                patch("/api/v1/organizations/${createdOrg.id}/secrets/$name") { setBody(updateSecret) }
             }
         }
     }
