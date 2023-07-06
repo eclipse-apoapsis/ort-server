@@ -31,7 +31,9 @@ import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
@@ -45,7 +47,28 @@ import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 private val jobConfigurations = JobConfigurations(
-    analyzer = AnalyzerJobConfiguration(),
+    analyzer = AnalyzerJobConfiguration(
+        allowDynamicVersions = true,
+        environmentConfig = EnvironmentConfig(
+            infrastructureServices = listOf(
+                InfrastructureService(
+                    "Artifactory",
+                    "https://artifactory.example.org/repo",
+                    "Our Artifactory server",
+                    "artifactoryUsername",
+                    "artifactoryPassword"
+                )
+            ),
+            environmentDefinitions = mapOf(
+                "maven" to listOf(
+                    mapOf(
+                        "service" to "Artifactory",
+                        "id" to "repo"
+                    )
+                )
+            )
+        )
+    ),
     advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
     scanner = ScannerJobConfiguration(),
     evaluator = EvaluatorJobConfiguration(),
