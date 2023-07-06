@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.core.di
 import com.typesafe.config.ConfigFactory
 
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.tryGetString
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -97,7 +98,10 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
 
-    single<AuthorizationService> { DefaultAuthorizationService(get(), get(), get(), get(), get()) }
+    single<AuthorizationService> {
+        val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
+        DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+    }
     single { OrchestratorService(get(), get(), get()) }
     single { OrganizationService(get(), get(), get(), get()) }
     single { ProductService(get(), get(), get(), get()) }

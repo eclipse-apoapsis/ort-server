@@ -54,7 +54,13 @@ class DefaultAuthorizationService(
     private val db: Database,
     private val organizationRepository: OrganizationRepository,
     private val productRepository: ProductRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+
+    /**
+     * A prefix for Keycloak group names, to be used when multiple instances of ORT Server share the same Keycloak
+     * realm.
+     */
+    private val keycloakGroupPrefix: String
 ) : AuthorizationService {
     override suspend fun createOrganizationPermissions(organizationId: Long) {
         OrganizationPermission.getRolesForOrganization(organizationId).forEach { roleName ->
@@ -77,7 +83,7 @@ class DefaultAuthorizationService(
                 keycloakClient.addCompositeRole(roleName, compositeRole.id)
             }
 
-            val groupName = GroupName(role.groupName(organizationId))
+            val groupName = GroupName(keycloakGroupPrefix + role.groupName(organizationId))
             keycloakClient.createGroup(groupName)
             keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
@@ -86,7 +92,9 @@ class DefaultAuthorizationService(
     override suspend fun deleteOrganizationRoles(organizationId: Long) {
         OrganizationRole.values().forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(organizationId)))
-            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(organizationId))).id)
+            keycloakClient.deleteGroup(
+                keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(organizationId))).id
+            )
         }
     }
 
@@ -120,7 +128,7 @@ class DefaultAuthorizationService(
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
             }
 
-            val groupName = GroupName(role.groupName(productId))
+            val groupName = GroupName(keycloakGroupPrefix + role.groupName(productId))
             keycloakClient.createGroup(groupName)
             keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
@@ -129,7 +137,9 @@ class DefaultAuthorizationService(
     override suspend fun deleteProductRoles(productId: Long) {
         ProductRole.values().forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(productId)))
-            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(productId))).id)
+            keycloakClient.deleteGroup(
+                keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(productId))).id
+            )
         }
     }
 
@@ -163,7 +173,7 @@ class DefaultAuthorizationService(
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
             }
 
-            val groupName = GroupName(role.groupName(repositoryId))
+            val groupName = GroupName(keycloakGroupPrefix + role.groupName(repositoryId))
             keycloakClient.createGroup(groupName)
             keycloakClient.addGroupClientRole(keycloakClient.getGroup(groupName).id, keycloakClient.getRole(roleName))
         }
@@ -172,7 +182,9 @@ class DefaultAuthorizationService(
     override suspend fun deleteRepositoryRoles(repositoryId: Long) {
         RepositoryRole.values().forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(repositoryId)))
-            keycloakClient.deleteGroup(keycloakClient.getGroup(GroupName(role.groupName(repositoryId))).id)
+            keycloakClient.deleteGroup(
+                keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(repositoryId))).id
+            )
         }
     }
 
@@ -249,7 +261,8 @@ class DefaultAuthorizationService(
     override suspend fun synchronizeRoles() {
         withContext(Dispatchers.IO) {
             val roles = keycloakClient.getRoles().mapTo(mutableSetOf()) { it.name.value }
-            val groups = keycloakClient.getGroups().mapTo(mutableSetOf()) { it.name.value }
+            val groups = keycloakClient.getGroups().map { it.name.value }
+                .filterTo(mutableSetOf()) { it.startsWith(keycloakGroupPrefix) }
 
             synchronizeOrganizationRoles(roles)
             synchronizeOrganizationGroups(groups)
@@ -412,14 +425,15 @@ class DefaultAuthorizationService(
         runCatching {
             db.dbQuery { organizationRepository.list() }.forEach { organization ->
                 // Make sure that all groups exist.
-                val requiredGroups = OrganizationRole.getGroupsForOrganization(organization.id)
-                val groupPrefix = OrganizationRole.groupPrefix(organization.id)
+                val requiredGroups =
+                    OrganizationRole.getGroupsForOrganization(organization.id).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + OrganizationRole.groupPrefix(organization.id)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 OrganizationRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        role.groupName(organization.id),
+                        keycloakGroupPrefix + role.groupName(organization.id),
                         role.roleName(organization.id),
                         OrganizationRole.groupPrefix(organization.id)
                     )
@@ -441,14 +455,14 @@ class DefaultAuthorizationService(
         runCatching {
             db.dbQuery { productRepository.list() }.forEach { product ->
                 // Make sure that all groups exist.
-                val requiredGroups = ProductRole.getGroupsForProduct(product.id)
-                val groupPrefix = ProductRole.groupPrefix(product.id)
+                val requiredGroups = ProductRole.getGroupsForProduct(product.id).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + ProductRole.groupPrefix(product.id)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 ProductRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        role.groupName(product.id),
+                        keycloakGroupPrefix + role.groupName(product.id),
                         role.roleName(product.id),
                         ProductRole.groupPrefix(product.id)
                     )
@@ -471,14 +485,15 @@ class DefaultAuthorizationService(
         runCatching {
             db.dbQuery { repositoryRepository.list() }.forEach { repository ->
                 // Make sure that all groups exist.
-                val requiredGroups = RepositoryRole.getGroupsForRepository(repository.id)
-                val groupPrefix = RepositoryRole.groupPrefix(repository.id)
+                val requiredGroups =
+                    RepositoryRole.getGroupsForRepository(repository.id).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + RepositoryRole.groupPrefix(repository.id)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 RepositoryRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        role.groupName(repository.id),
+                        keycloakGroupPrefix + role.groupName(repository.id),
                         role.roleName(repository.id),
                         RepositoryRole.groupPrefix(repository.id)
                     )
@@ -544,7 +559,7 @@ class DefaultAuthorizationService(
 
     override suspend fun ensureSuperuser() {
         val roleName = RoleName(Superuser.ROLE_NAME)
-        val groupName = GroupName(Superuser.GROUP_NAME)
+        val groupName = GroupName(keycloakGroupPrefix + Superuser.GROUP_NAME)
 
         runCatching {
             keycloakClient.getRole(roleName)

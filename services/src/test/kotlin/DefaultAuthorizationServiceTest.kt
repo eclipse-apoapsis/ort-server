@@ -55,6 +55,8 @@ import org.ossreviewtoolkit.server.model.repositories.ProductRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 
 class DefaultAuthorizationServiceTest : WordSpec({
+    val keycloakGroupPrefix = "PREFIX_"
+
     val organizationId = 1L
     val productId = 2L
     val repositoryId = 3L
@@ -98,7 +100,8 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockk(),
             organizationRepository,
             productRepository,
-            repositoryRepository
+            repositoryRepository,
+            keycloakGroupPrefix
         )
 
     "createOrganizationPermissions" should {
@@ -148,8 +151,9 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "create a group for each role" {
-            keycloakClient.getGroups().map { it.name.value } should
-                    containAll(OrganizationRole.getGroupsForOrganization(organizationId))
+            keycloakClient.getGroups().map { it.name.value } should containAll(
+                OrganizationRole.getGroupsForOrganization(organizationId).map { keycloakGroupPrefix + it }
+            )
         }
     }
 
@@ -231,7 +235,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
         "create a group for each role" {
             keycloakClient.getGroups().map { it.name.value } should
-                    containAll(ProductRole.getGroupsForProduct(productId))
+                    containAll(ProductRole.getGroupsForProduct(productId).map { keycloakGroupPrefix + it })
         }
     }
 
@@ -317,7 +321,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
         "create a group for each role" {
             keycloakClient.getGroups().map { it.name.value } should
-                    containAll(RepositoryRole.getGroupsForRepository(repositoryId))
+                    containAll(RepositoryRole.getGroupsForRepository(repositoryId).map { keycloakGroupPrefix + it })
         }
     }
 
@@ -360,7 +364,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.ensureSuperuser() } }
 
-            keycloakClient.getGroup(GroupName(Superuser.GROUP_NAME)) shouldNot beNull()
+            keycloakClient.getGroup(GroupName(keycloakGroupPrefix + Superuser.GROUP_NAME)) shouldNot beNull()
         }
 
         "assign the superuser role to the superuser group" {
@@ -369,7 +373,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.ensureSuperuser() } }
 
-            val group = keycloakClient.getGroup(GroupName(Superuser.GROUP_NAME))
+            val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + Superuser.GROUP_NAME))
             keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                     containExactly(Superuser.ROLE_NAME)
         }
@@ -659,8 +663,9 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
-            keycloakClient.getGroups().map { it.name.value } should
-                    containAll(OrganizationRole.getGroupsForOrganization(organizationId))
+            keycloakClient.getGroups().map { it.name.value } should containAll(
+                OrganizationRole.getGroupsForOrganization(organizationId).map { keycloakGroupPrefix + it }
+            )
         }
 
         "create missing product groups" {
@@ -673,7 +678,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getGroups().map { it.name.value } should
-                    containAll(ProductRole.getGroupsForProduct(productId))
+                    containAll(ProductRole.getGroupsForProduct(productId).map { keycloakGroupPrefix + it })
         }
 
         "create missing repository groups" {
@@ -687,11 +692,11 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getGroups().map { it.name.value } should
-                    containAll(RepositoryRole.getGroupsForRepository(repositoryId))
+                    containAll(RepositoryRole.getGroupsForRepository(repositoryId).map { keycloakGroupPrefix + it })
         }
 
         "remove unneeded organization groups" {
-            val unneededGroup = "${OrganizationRole.groupPrefix(organizationId)}unneeded"
+            val unneededGroup = "$keycloakGroupPrefix${OrganizationRole.groupPrefix(organizationId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createGroup(GroupName(unneededGroup)) }
             val service = createService(keycloakClient)
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
@@ -702,7 +707,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "remove unneeded product groups" {
-            val unneededGroup = "${ProductRole.groupPrefix(productId)}unneeded"
+            val unneededGroup = "$keycloakGroupPrefix${ProductRole.groupPrefix(productId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createGroup(GroupName(unneededGroup)) }
             val service = createService(keycloakClient)
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
@@ -714,7 +719,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "remove unneeded repository groups" {
-            val unneededGroup = "${RepositoryRole.groupPrefix(repositoryId)}unneeded"
+            val unneededGroup = "$keycloakGroupPrefix${RepositoryRole.groupPrefix(repositoryId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createGroup(GroupName(unneededGroup)) }
             val service = createService(keycloakClient)
             mockkTransaction { runBlocking { service.synchronizePermissions() } }
@@ -734,7 +739,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             OrganizationRole.values().forEach { role ->
-                val group = keycloakClient.getGroup(GroupName(role.groupName(organizationId)))
+                val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(organizationId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(organizationId))
             }
@@ -749,7 +754,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             ProductRole.values().forEach { role ->
-                val group = keycloakClient.getGroup(GroupName(role.groupName(productId)))
+                val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(productId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(productId))
             }
@@ -765,7 +770,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             RepositoryRole.values().forEach { role ->
-                val group = keycloakClient.getGroup(GroupName(role.groupName(repositoryId)))
+                val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(repositoryId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(repositoryId))
             }

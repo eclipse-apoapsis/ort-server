@@ -157,7 +157,8 @@ class OrganizationsRouteIntegrationTest : WordSpec({
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository
+            dbExtension.fixtures.repositoryRepository,
+            keycloakGroupPrefix = ""
         )
 
         organizationService = OrganizationService(
