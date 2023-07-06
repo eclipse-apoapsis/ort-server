@@ -31,5 +31,5 @@ object Superuser {
     /**
      * The name of the superuser Keycloak group which grants the [ROLE_NAME].
      */
-    const val GROUP_NAME = "SUPERUSER"
+    const val GROUP_NAME = "SUPERUSERS"
 }
