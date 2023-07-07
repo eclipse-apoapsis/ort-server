@@ -28,6 +28,7 @@ import org.ossreviewtoolkit.server.core.api.AuthorizationException
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.Superuser
 
 /**
@@ -46,6 +47,15 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: Organizati
 fun PipelineContext<*, ApplicationCall>.requirePermission(permission: ProductPermission) {
     val productId = call.requireParameter("productId").toLong()
     requirePermission(permission.roleName(productId))
+}
+
+/**
+ * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]
+ * otherwise.
+ */
+fun PipelineContext<*, ApplicationCall>.requirePermission(permission: RepositoryPermission) {
+    val repositoryId = call.requireParameter("repositoryId").toLong()
+    requirePermission(permission.roleName(repositoryId))
 }
 
 /**
