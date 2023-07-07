@@ -19,9 +19,9 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
@@ -75,9 +75,7 @@ class ErrorsIntegrationTest : StringSpec() {
             ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val client = createJsonClient()
 
-                val response = client.get("/api/v1/organizations")
-
-                response.status shouldBe HttpStatusCode.Unauthorized
+                client.get("/api/v1/organizations") shouldHaveStatus HttpStatusCode.Unauthorized
             }
         }
 
@@ -87,10 +85,8 @@ class ErrorsIntegrationTest : StringSpec() {
 
                 val response = client.get("/api/v1/organizations?sort=color")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.BadRequest
-                    body<ErrorResponse>().cause shouldContain "color"
-                }
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().cause shouldContain "color"
             }
         }
 
@@ -102,12 +98,10 @@ class ErrorsIntegrationTest : StringSpec() {
 
                 val response = client.get("/api/v1/organizations?limit=$limitValue")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.BadRequest
-                    val cause = body<ErrorResponse>().cause
-                    cause shouldContain "'$limitValue'"
-                    cause shouldContain "'limit'"
-                }
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                val cause = response.body<ErrorResponse>().cause
+                cause shouldContain "'$limitValue'"
+                cause shouldContain "'limit'"
             }
         }
 
@@ -119,12 +113,10 @@ class ErrorsIntegrationTest : StringSpec() {
 
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.BadRequest
-                    val cause = body<ErrorResponse>().cause
-                    cause shouldContain "'$offsetValue'"
-                    cause shouldContain "'offset'"
-                }
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                val cause = response.body<ErrorResponse>().cause
+                cause shouldContain "'$offsetValue'"
+                cause shouldContain "'offset'"
             }
         }
     }

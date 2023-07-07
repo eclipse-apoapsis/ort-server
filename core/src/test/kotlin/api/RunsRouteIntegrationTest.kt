@@ -21,6 +21,9 @@ package org.ossreviewtoolkit.server.core.api
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.ktor.client.haveHeader
+import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -97,11 +100,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$reportFile")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    headers["Content-Type"] shouldBe "application/pdf"
-                    body<ByteArray>() shouldBe reportData
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response should haveHeader("Content-Type", "application/pdf")
+                response.body<ByteArray>() shouldBe reportData
             }
         }
 
@@ -112,11 +113,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$missingReportFile")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.NotFound
-                    val responseBody = body<ErrorResponse>()
-                    responseBody.cause shouldContain missingReportFile
-                }
+                response shouldHaveStatus HttpStatusCode.NotFound
+                response.body<ErrorResponse>().cause shouldContain missingReportFile
             }
         }
 

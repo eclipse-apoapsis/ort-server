@@ -21,11 +21,19 @@ package org.ossreviewtoolkit.server.core
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
+import io.kotest.common.runBlocking
+import io.kotest.matchers.Matcher
+import io.kotest.matchers.MatcherResult
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
+
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
@@ -157,3 +165,21 @@ fun KeycloakContainer.createJwtConfigMapForTestRealm() =
         "jwt.realm" to TEST_REALM,
         "jwt.audience" to TEST_SUBJECT_CLIENT
     )
+
+/** Verify that this [HttpResponse] has the provided [body]. */
+inline infix fun <reified T> HttpResponse.shouldHaveBody(body: T) = this should haveBody(body)
+
+/** Verify that this [HttpResponse] does not have the provided [body]. */
+inline infix fun <reified T> HttpResponse.shouldNotHaveBody(body: T) = this shouldNot haveBody(body)
+
+/** Verify that a [HttpResponse] has the [expected body][expected]. */
+inline fun <reified T> haveBody(expected: T) = object : Matcher<HttpResponse> {
+    override fun test(value: HttpResponse): MatcherResult {
+        val body = runBlocking { value.body<T>() }
+        return MatcherResult(
+            body == expected,
+            { "Response should have body $expected but had body $body." },
+            { "Response should not have body $expected." },
+        )
+    }
+}

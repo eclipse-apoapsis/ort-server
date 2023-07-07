@@ -100,9 +100,7 @@ class AuthenticationIntegrationTest : StringSpec({
         authTestApplication {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
-            val response = authenticatedClient.get("/api/v1/test")
-
-            response shouldHaveStatus HttpStatusCode.OK
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
         }
     }
 
@@ -110,9 +108,7 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setUpClientScope(TEST_SUBJECT_CLIENT)
 
         authTestApplication {
-            val response = client.get("/api/v1/test")
-
-            response shouldHaveStatus HttpStatusCode.Unauthorized
+            client.get("/api/v1/test") shouldHaveStatus HttpStatusCode.Unauthorized
         }
     }
 
@@ -120,9 +116,7 @@ class AuthenticationIntegrationTest : StringSpec({
         authTestApplication {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
-            val response = authenticatedClient.get("/api/v1/test")
-
-            response shouldHaveStatus HttpStatusCode.Unauthorized
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.Unauthorized
         }
     }
 
@@ -132,9 +126,7 @@ class AuthenticationIntegrationTest : StringSpec({
         authTestApplication {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
-            val response = authenticatedClient.get("/api/v1/test")
-
-            response shouldHaveStatus HttpStatusCode.Unauthorized
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.Unauthorized
         }
     }
 

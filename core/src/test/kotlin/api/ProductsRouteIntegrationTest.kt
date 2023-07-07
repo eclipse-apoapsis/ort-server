@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.nulls.beNull
@@ -43,6 +44,7 @@ import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.shouldHaveBody
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
 import org.ossreviewtoolkit.server.model.authorization.ProductRole
@@ -120,10 +122,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Product>() shouldBe Product(createdProduct.id, productName, productDescription)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Product(createdProduct.id, productName, productDescription)
             }
         }
 
@@ -148,14 +148,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updatedProduct)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Product>() shouldBe Product(
-                        createdProduct.id,
-                        (updatedProduct.name as OptionalValue.Present).value,
-                        (updatedProduct.description as OptionalValue.Present).value
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Product(
+                    createdProduct.id,
+                    (updatedProduct.name as OptionalValue.Present).value,
+                    (updatedProduct.description as OptionalValue.Present).value
+                )
             }
         }
 
@@ -173,11 +171,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val response = superuserClient.delete("/api/v1/products/${createdProduct.id}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
+                superuserClient.delete("/api/v1/products/${createdProduct.id}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
                 organizationService.listProductsForOrganization(orgId) shouldBe emptyList()
             }
@@ -224,13 +219,11 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Repository>>() shouldBe listOf(
-                        Repository(createdRepository1.id, type.mapToApi(), url1),
-                        Repository(createdRepository2.id, type.mapToApi(), url2)
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(
+                    Repository(createdRepository1.id, type.mapToApi(), url1),
+                    Repository(createdRepository2.id, type.mapToApi(), url2)
+                )
             }
         }
 
@@ -249,12 +242,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response =
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Repository>>() shouldBe listOf(
-                        Repository(createdRepository2.id, type.mapToApi(), url2)
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(Repository(createdRepository2.id, type.mapToApi(), url2))
             }
         }
 
@@ -276,10 +265,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(repository)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Repository>() shouldBe Repository(1, repository.type, repository.url)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Repository(1, repository.type, repository.url)
             }
         }
 
@@ -325,10 +312,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi(), secret2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret1.mapToApi(), secret2.mapToApi())
             }
         }
 
@@ -341,10 +326,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret.mapToApi())
             }
         }
 
@@ -364,10 +347,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/$productId/secrets/${secret.name}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
             }
         }
 
@@ -375,11 +356,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val productId = createProduct().id
 
-                val response = superuserClient.get("/api/v1/products/$productId/secrets/999999")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NotFound
-                }
+                superuserClient.get("/api/v1/products/$productId/secrets/999999") shouldHaveStatus
+                        HttpStatusCode.NotFound
             }
         }
 
@@ -403,10 +381,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(secret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(secret.name, secret.description)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Secret(secret.name, secret.description)
 
                 secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
@@ -421,21 +397,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
                 val secret = CreateSecret(secretName, secretValue, secretDescription)
 
-                val response1 = superuserClient.post("/api/v1/products/$productId/secrets") {
+                superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
-                }
+                } shouldHaveStatus HttpStatusCode.Created
 
-                with(response1) {
-                    status shouldBe HttpStatusCode.Created
-                }
-
-                val response2 = superuserClient.post("/api/v1/products/$productId/secrets") {
+                superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
-                }
-
-                with(response2) {
-                    status shouldBe HttpStatusCode.Conflict
-                }
+                } shouldHaveStatus HttpStatusCode.Conflict
             }
         }
 
@@ -464,10 +432,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Secret(secret.name, updatedDescription)
 
                 secretRepository.getByProductIdAndName(
                     orgId,
@@ -486,10 +452,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe secretValue
@@ -502,13 +466,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(productId, path = secretErrorPath)
 
                 val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
+                superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                } shouldHaveStatus HttpStatusCode.InternalServerError
 
                 secretRepository.getByProductIdAndName(orgId, secret.name) shouldBe secret
             }
@@ -532,11 +492,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
                 val secret = createSecret(productId)
 
-                val response = superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
+                superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
                 secretRepository.listForProduct(productId) shouldBe emptyList()
 
@@ -550,11 +507,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
                 val secret = createSecret(productId, path = secretErrorPath)
 
-                val response = superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.InternalServerError
 
                 secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
             }

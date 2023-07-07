@@ -21,12 +21,11 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.shouldBe
 
-import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 import org.ossreviewtoolkit.server.core.createJsonClient
+import org.ossreviewtoolkit.server.core.shouldHaveBody
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
@@ -39,7 +38,7 @@ class HealthIntegrationTest : WordSpec({
                 val response = client.get("/api/v1/liveness")
 
                 response shouldHaveStatus 200
-                response.body<Liveness>() shouldBe Liveness(message = "ORT Server running")
+                response shouldHaveBody Liveness(message = "ORT Server running")
             }
         }
     }

@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
@@ -50,6 +51,7 @@ import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.shouldHaveBody
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
 import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
@@ -126,10 +128,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Organization>>() shouldBe listOf(org1.mapToApi(), org2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(org1.mapToApi(), org2.mapToApi())
             }
         }
 
@@ -140,10 +140,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations?sort=-name&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Organization>>() shouldBe listOf(org2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(org2.mapToApi())
             }
         }
 
@@ -161,21 +159,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/${createdOrganization.id}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe
-                            Organization(createdOrganization.id, organizationName, organizationDescription)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Organization(createdOrganization.id, organizationName, organizationDescription)
             }
         }
 
         "respond with NotFound if no organization exists" {
             integrationTestApplication {
-                val response = superuserClient.get("/api/v1/organizations/999999")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NotFound
-                }
+                superuserClient.get("/api/v1/organizations/999999") shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
@@ -196,10 +187,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(org)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Organization>() shouldBe Organization(1, org.name, org.description)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Organization(1, org.name, org.description)
 
                 organizationService.getOrganization(1)?.mapToApi().shouldBe(
                     Organization(1, org.name, org.description)
@@ -232,13 +221,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val org = CreateOrganization(name = organizationName, description = organizationDescription)
 
-                val response = superuserClient.post("/api/v1/organizations") {
+                superuserClient.post("/api/v1/organizations") {
                     setBody(org)
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.Conflict
-                }
+                } shouldHaveStatus HttpStatusCode.Conflict
             }
         }
 
@@ -263,14 +248,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updatedOrganization)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe Organization(
-                        createdOrg.id,
-                        (updatedOrganization.name as OptionalValue.Present).value,
-                        (updatedOrganization.description as OptionalValue.Present).value
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Organization(
+                    createdOrg.id,
+                    (updatedOrganization.name as OptionalValue.Present).value,
+                    (updatedOrganization.description as OptionalValue.Present).value
+                )
 
                 organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
                     createdOrg.id,
@@ -293,14 +276,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(organizationUpdateRequest)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe Organization(
-                        id = createdOrg.id,
-                        name = organizationName,
-                        description = null
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Organization(
+                    id = createdOrg.id,
+                    name = organizationName,
+                    description = null
+                )
 
                 organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
                     id = createdOrg.id,
@@ -324,11 +305,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdOrg = createOrganization()
 
-                val response = superuserClient.delete("/api/v1/organizations/${createdOrg.id}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
+                superuserClient.delete("/api/v1/organizations/${createdOrg.id}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
                 organizationService.listOrganizations() shouldBe emptyList()
             }
@@ -369,10 +347,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(product)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Product>() shouldBe Product(1, product.name, product.description)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Product(1, product.name, product.description)
 
                 productService.getProduct(1)?.mapToApi() shouldBe Product(1, product.name, product.description)
             }
@@ -426,13 +402,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Product>>() shouldBe listOf(
-                        Product(createdProduct1.id, name1, description),
-                        Product(createdProduct2.id, name2, description)
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(
+                    Product(createdProduct1.id, name1, description),
+                    Product(createdProduct2.id, name2, description)
+                )
             }
         }
 
@@ -450,12 +424,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Product>>() shouldBe listOf(
-                        Product(createdProduct2.id, name2, description)
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(Product(createdProduct2.id, name2, description))
             }
         }
 
@@ -477,10 +447,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi(), secret2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret1.mapToApi(), secret2.mapToApi())
             }
         }
 
@@ -493,10 +461,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret.mapToApi())
             }
         }
 
@@ -516,10 +482,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets/${secret.name}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
             }
         }
 
@@ -527,11 +491,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
-                val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets/999999")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NotFound
-                }
+                superuserClient.get("/api/v1/organizations/$organizationId/secrets/999999") shouldHaveStatus
+                        HttpStatusCode.NotFound
             }
         }
 
@@ -555,10 +516,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(secret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(secret.name, secret.description)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Secret(secret.name, secret.description)
 
                 secretRepository.getByOrganizationIdAndName(organizationId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
@@ -573,21 +532,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val organizationId = createOrganization().id
                 val secret = CreateSecret(secretName, secretValue, secretDescription)
 
-                val response1 = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
+                superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
                     setBody(secret)
-                }
+                } shouldHaveStatus HttpStatusCode.Created
 
-                with(response1) {
-                    status shouldBe HttpStatusCode.Created
-                }
-
-                val response2 = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
+                superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
                     setBody(secret)
-                }
-
-                with(response2) {
-                    status shouldBe HttpStatusCode.Conflict
-                }
+                } shouldHaveStatus HttpStatusCode.Conflict
             }
         }
 
@@ -616,10 +567,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Secret(secret.name, updatedDescription)
 
                 secretRepository.getByOrganizationIdAndName(
                     organizationId,
@@ -638,10 +587,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe secretValue
@@ -654,13 +601,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(organizationId, path = secretErrorPath)
 
                 val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
+                superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                } shouldHaveStatus HttpStatusCode.InternalServerError
 
                 secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
             }
@@ -684,11 +627,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val organizationId = createOrganization().id
                 val secret = createSecret(organizationId)
 
-                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
+                superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
                 secretRepository.listForOrganization(organizationId) shouldBe emptyList()
 
@@ -702,11 +642,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val organizationId = createOrganization().id
                 val secret = createSecret(organizationId, path = secretErrorPath)
 
-                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.InternalServerError
 
                 secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
             }
@@ -757,10 +694,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
             }
         }
 
@@ -796,10 +731,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response =
                     superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
             }
         }
 
@@ -838,10 +771,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     passSecret.name
                 )
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<ApiInfrastructureService>() shouldBe expectedService
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody expectedService
 
                 val dbService =
                     infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
@@ -865,11 +796,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createInfrastructureService)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.BadRequest
-                    val error = body<ErrorResponse>()
-                    error.cause shouldContain "nonExistingSecret"
-                }
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().cause shouldContain "nonExistingSecret"
             }
         }
 
@@ -933,10 +861,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     passSecret.name
                 )
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<ApiInfrastructureService>() shouldBe updatedService
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody updatedService
 
                 val dbService =
                     infrastructureServiceRepository.getByOrganizationAndName(orgId, service.name)
@@ -994,12 +920,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response =
                     superuserClient.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
-
-                val services = infrastructureServiceRepository.listForOrganization(orgId)
-                services should beEmpty()
+                response shouldHaveStatus HttpStatusCode.NoContent
+                infrastructureServiceRepository.listForOrganization(orgId) should beEmpty()
             }
         }
 

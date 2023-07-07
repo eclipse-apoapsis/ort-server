@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.utils
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -109,8 +110,6 @@ private fun testParameterExtraction(query: String?, check: (ListQueryParameters)
         val client = createJsonClient()
 
         val uri = "/test${query.orEmpty()}"
-        val response = client.get(uri)
-
-        response.status shouldBe HttpStatusCode.OK
+        client.get(uri) shouldHaveStatus HttpStatusCode.OK
     }
 }

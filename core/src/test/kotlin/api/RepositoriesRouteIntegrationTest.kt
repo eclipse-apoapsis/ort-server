@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
@@ -48,6 +49,7 @@ import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
+import org.ossreviewtoolkit.server.core.shouldHaveBody
 import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -133,11 +135,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Repository>() shouldBe
-                            Repository(createdRepository.id, repositoryType.mapToApi(), repositoryUrl)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Repository(createdRepository.id, repositoryType.mapToApi(), repositoryUrl)
             }
         }
 
@@ -163,14 +162,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateRepository)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Repository>() shouldBe Repository(
-                        createdRepository.id,
-                        (updateRepository.type as OptionalValue.Present).value,
-                        (updateRepository.url as OptionalValue.Present).value
-                    )
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Repository(
+                    createdRepository.id,
+                    (updateRepository.type as OptionalValue.Present).value,
+                    (updateRepository.url as OptionalValue.Present).value
+                )
             }
         }
 
@@ -191,9 +188,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val response = superuserClient.delete("/api/v1/repositories/${createdRepository.id}")
+                superuserClient.delete("/api/v1/repositories/${createdRepository.id}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
-                response.status shouldBe HttpStatusCode.NoContent
                 productService.listRepositoriesForProduct(productId) shouldBe emptyList()
             }
         }
@@ -236,10 +233,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<OrtRun>>() shouldBe listOf(run1.mapToApi(), run2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(run1.mapToApi(), run2.mapToApi())
             }
         }
 
@@ -253,10 +248,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val query = "?sort=-revision,-createdAt&limit=1"
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs$query")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<OrtRun>>() shouldBe listOf(run2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(run2.mapToApi())
             }
         }
 
@@ -306,9 +299,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.Created
-                val run = response.body<OrtRun>()
-                run.jobs.analyzer.environmentConfig shouldBe envConfig
+                response shouldHaveStatus HttpStatusCode.Created
+                response.body<OrtRun>().jobs.analyzer.environmentConfig shouldBe envConfig
 
                 MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
 
@@ -346,10 +338,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi(), secret2.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret1.mapToApi(), secret2.mapToApi())
             }
         }
 
@@ -362,10 +352,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets?sort=-name&limit=1")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(secret.mapToApi())
             }
         }
 
@@ -385,10 +373,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
             }
         }
 
@@ -396,11 +382,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets/999999")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NotFound
-                }
+                superuserClient.get("/api/v1/repositories/$repositoryId/secrets/999999") shouldHaveStatus
+                        HttpStatusCode.NotFound
             }
         }
 
@@ -424,14 +407,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(secret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(secret.name, secret.description)
-                }
+                response shouldHaveStatus HttpStatusCode.Created
+                response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi().shouldBe(
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
-                )
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("repository_${repositoryId}_${secret.name}"))?.value shouldBe secretValue
@@ -443,21 +423,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId = createRepository().id
                 val secret = CreateSecret(secretName, secretValue, secretDescription)
 
-                val response1 = superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
+                superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
                     setBody(secret)
-                }
+                } shouldHaveStatus HttpStatusCode.Created
 
-                with(response1) {
-                    status shouldBe HttpStatusCode.Created
-                }
-
-                val response2 = superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
+                superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
                     setBody(secret)
-                }
-
-                with(response2) {
-                    status shouldBe HttpStatusCode.Conflict
-                }
+                } shouldHaveStatus HttpStatusCode.Conflict
             }
         }
 
@@ -486,10 +458,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Secret(secret.name, updatedDescription)
 
                 secretRepository.getByRepositoryIdAndName(
                     repositoryId,
@@ -508,10 +478,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 }
 
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe secret.mapToApi()
-                }
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody secret.mapToApi()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe secretValue
@@ -524,13 +492,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(repositoryId, path = secretErrorPath)
 
                 val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
+                superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
                     setBody(updateSecret)
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                } shouldHaveStatus HttpStatusCode.InternalServerError
 
                 secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
             }
@@ -554,11 +518,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId = createRepository().id
                 val secret = createSecret(repositoryId)
 
-                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.NoContent
-                }
+                superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.NoContent
 
                 secretRepository.listForRepository(repositoryId) shouldBe emptyList()
 
@@ -572,11 +533,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId = createRepository().id
                 val secret = createSecret(repositoryId, path = secretErrorPath)
 
-                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
-
-                with(response) {
-                    status shouldBe HttpStatusCode.InternalServerError
-                }
+                superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
+                        HttpStatusCode.InternalServerError
 
                 secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
             }

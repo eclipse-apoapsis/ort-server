@@ -19,9 +19,9 @@
 
 package org.ossreviewtoolkit.server.core.api
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.shouldBe
 
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.HttpResponse
@@ -124,12 +124,9 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
         integrationTestApplication {
             val client = testUserClient
 
-            val responseWithoutRole = client.request()
+            client.request() shouldHaveStatus HttpStatusCode.Forbidden
             keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, role)
-            val responseWithRole = client.request()
-
-            responseWithoutRole.status shouldBe HttpStatusCode.Forbidden
-            responseWithRole.status shouldBe successStatus
+            client.request() shouldHaveStatus successStatus
         }
     }
 }
