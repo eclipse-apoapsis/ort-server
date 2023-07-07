@@ -251,14 +251,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Organization(
                     createdOrg.id,
-                    (updatedOrganization.name as OptionalValue.Present).value,
-                    (updatedOrganization.description as OptionalValue.Present).value
+                    updatedOrganization.name.valueOrThrow,
+                    updatedOrganization.description.valueOrThrow
                 )
 
                 organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
                     createdOrg.id,
-                    (updatedOrganization.name as OptionalValue.Present).value,
-                    (updatedOrganization.description as OptionalValue.Present).value
+                    updatedOrganization.name.valueOrThrow,
+                    updatedOrganization.description.valueOrThrow
                 )
             }
         }
@@ -570,10 +570,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByOrganizationIdAndName(
-                    organizationId,
-                    (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
+                secretRepository.getByOrganizationIdAndName(organizationId, updateSecret.name.valueOrThrow)
+                    ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 

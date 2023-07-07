@@ -51,7 +51,6 @@ import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.secrets.Path
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
@@ -151,8 +150,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Product(
                     createdProduct.id,
-                    (updatedProduct.name as OptionalValue.Present).value,
-                    (updatedProduct.description as OptionalValue.Present).value
+                    updatedProduct.name.valueOrThrow,
+                    updatedProduct.description.valueOrThrow
                 )
             }
         }
@@ -435,10 +434,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByProductIdAndName(
-                    orgId,
-                    (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
+                secretRepository.getByProductIdAndName(orgId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
+                        Secret(secret.name, updatedDescription)
             }
         }
 

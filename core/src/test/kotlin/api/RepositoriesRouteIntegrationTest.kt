@@ -57,7 +57,6 @@ import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.secrets.Path
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
@@ -165,8 +164,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Repository(
                     createdRepository.id,
-                    (updateRepository.type as OptionalValue.Present).value,
-                    (updateRepository.url as OptionalValue.Present).value
+                    updateRepository.type.valueOrThrow,
+                    updateRepository.url.valueOrThrow
                 )
             }
         }
@@ -461,10 +460,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByRepositoryIdAndName(
-                    repositoryId,
-                    (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
+                secretRepository.getByRepositoryIdAndName(repositoryId, updateSecret.name.valueOrThrow)
+                    ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 

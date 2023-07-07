@@ -45,6 +45,15 @@ sealed interface OptionalValue<out T> {
     object Absent : OptionalValue<Nothing>
 
     /**
+     * Return the [value][Present.value] if this [OptionalValue] is [Present], otherwise throw an
+     * [IllegalArgumentException].
+     */
+    val valueOrThrow: T get() {
+        require(this is Present)
+        return value
+    }
+
+    /**
      * Execute [function] if this value is [Present].
      */
     fun ifPresent(function: (T) -> Unit) {
