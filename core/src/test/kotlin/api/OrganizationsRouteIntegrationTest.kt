@@ -101,11 +101,17 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         secretRepository = dbExtension.fixtures.secretRepository
     }
 
+    val organizationName = "name"
+    val organizationDescription = "description"
+
+    suspend fun createOrganization(name: String = organizationName, description: String = organizationDescription) =
+        organizationService.createOrganization(name, description)
+
     "GET /organizations" should {
         "return all existing organizations" {
             integrationTestApplication {
-                val org1 = organizationService.createOrganization(name = "name1", description = "description1")
-                val org2 = organizationService.createOrganization(name = "name2", description = "description2")
+                val org1 = createOrganization(name = "name1", description = "description1")
+                val org2 = createOrganization(name = "name2", description = "description2")
 
                 val response = superuserClient.get("/api/v1/organizations")
 
@@ -118,8 +124,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "support query parameters" {
             integrationTestApplication {
-                organizationService.createOrganization(name = "name1", description = "description1")
-                val org2 = organizationService.createOrganization(name = "name2", description = "description2")
+                createOrganization(name = "name1", description = "description1")
+                val org2 = createOrganization(name = "name2", description = "description2")
 
                 val response = superuserClient.get("/api/v1/organizations?sort=-name&limit=1")
 
@@ -140,16 +146,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /organizations/{organizationId}" should {
         "return a single organization" {
             integrationTestApplication {
-                val name = "name"
-                val description = "description"
-
-                val createdOrganization = organizationService.createOrganization(name = name, description = description)
+                val createdOrganization = createOrganization()
 
                 val response = superuserClient.get("/api/v1/organizations/${createdOrganization.id}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Organization>() shouldBe Organization(createdOrganization.id, name, description)
+                    body<Organization>() shouldBe
+                            Organization(createdOrganization.id, organizationName, organizationDescription)
                 }
             }
         }
@@ -165,7 +169,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
                 get("/api/v1/organizations/${createdOrg.id}")
             }
@@ -213,12 +217,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with CONFLICT if the organization already exists" {
             integrationTestApplication {
-                val name = "name"
-                val description = "description"
+                createOrganization()
 
-                organizationService.createOrganization(name = name, description = description)
-
-                val org = CreateOrganization(name = name, description = description)
+                val org = CreateOrganization(name = organizationName, description = organizationDescription)
 
                 val response = superuserClient.post("/api/v1/organizations") {
                     setBody(org)
@@ -241,7 +242,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "PATCH /organizations/{organizationId}" should {
         "update an organization" {
             integrationTestApplication {
-                val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+                val createdOrg = createOrganization()
 
                 val updatedOrganization = UpdateOrganization(
                     "updated".asPresent(),
@@ -270,10 +271,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "be able to delete a value and ignore absent values" {
             integrationTestApplication {
-                val name = "name"
-                val description = "description"
-
-                val createdOrg = organizationService.createOrganization(name = name, description = description)
+                val createdOrg = createOrganization()
 
                 val organizationUpdateRequest = UpdateOrganization(
                     name = OptionalValue.Absent,
@@ -288,21 +286,21 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     status shouldBe HttpStatusCode.OK
                     body<Organization>() shouldBe Organization(
                         id = createdOrg.id,
-                        name = name,
+                        name = organizationName,
                         description = null
                     )
                 }
 
                 organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
                     id = createdOrg.id,
-                    name = name,
+                    name = organizationName,
                     description = null
                 )
             }
         }
 
         "require OrganizationPermission.WRITE" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
                 val updateOrg = UpdateOrganization("updated".asPresent(), "updated".asPresent())
                 patch("/api/v1/organizations/${createdOrg.id}") { setBody(updateOrg) }
@@ -313,7 +311,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "DELETE /organizations/{organizationId}" should {
         "delete an organization" {
             integrationTestApplication {
-                val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+                val createdOrg = createOrganization()
 
                 val response = superuserClient.delete("/api/v1/organizations/${createdOrg.id}")
 
@@ -327,7 +325,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "delete Keycloak roles and groups" {
             integrationTestApplication {
-                val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+                val createdOrg = createOrganization()
 
                 superuserClient.delete("/api/v1/organizations/${createdOrg.id}")
 
@@ -343,7 +341,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.DELETE" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.DELETE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
                 delete("/api/v1/organizations/${createdOrg.id}")
             }
@@ -353,7 +351,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "POST /organizations/{orgId}/products" should {
         "create a product" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val product = CreateProduct("product", "description")
                 val response = superuserClient.post("/api/v1/organizations/$orgId/products") {
@@ -371,7 +369,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "create Keycloak roles and groups" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val product = CreateProduct(name = "product", description = "description")
                 val createdProduct = superuserClient.post("/api/v1/organizations/$orgId/products") {
@@ -390,7 +388,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.CREATE_PRODUCT" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(
                 OrganizationPermission.CREATE_PRODUCT.roleName(createdOrg.id),
                 HttpStatusCode.Created
@@ -404,7 +402,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /organizations/{orgId}/products" should {
         "return all products of an organization" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val name1 = "name1"
                 val name2 = "name2"
@@ -429,7 +427,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "support query parameters" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val name1 = "name1"
                 val name2 = "name2"
@@ -451,7 +449,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ_PRODUCTS" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ_PRODUCTS.roleName(createdOrg.id)) {
                 get("/api/v1/organizations/${createdOrg.id}/products")
             }
@@ -461,8 +459,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /organizations/{organizationId}/secrets" should {
         "return all secrets for this organization" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val secret1 = secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_1",
@@ -492,8 +489,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "support query parameters" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 secretRepository.create(
                     "https://secret-storage.com/ssh_host_rsa_key_3",
@@ -522,7 +518,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
                 get("/api/v1/organizations/${createdOrg.id}/secrets")
             }
@@ -532,8 +528,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /organizations/{organizationId}/secrets/{secretId}" should {
         "return a single secret" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val path = "https://secret-storage.com/ssh_host_rsa_key_5"
                 val name = "New secret 5"
@@ -552,8 +547,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with NotFound if no secret exists" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets/999999")
 
@@ -564,7 +558,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
 
             val path = "https://secret-storage.com/ssh_host_rsa_key_5"
             val name = "New secret 5"
@@ -581,8 +575,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "POST /organizations/{organizationId}/secrets" should {
         "create a secret in the database" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val name = "New secret 6"
 
@@ -615,8 +608,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with CONFLICT if the secret already exists" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val name = "New secret 7"
                 val description = "description"
@@ -646,7 +638,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE_SECRETS" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(
                 OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
                 HttpStatusCode.Created
@@ -660,8 +652,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "PATCH /organizations/{organizationId}/secrets/{secretName}" should {
         "update a secret's metadata" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val updatedDescription = "updated description"
                 val name = "name"
@@ -691,8 +682,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "update a secret's value" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val name = "name"
                 val desc = "description"
@@ -717,8 +707,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "handle failures of the SecretStorage" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val name = "name"
                 val desc = "description"
@@ -742,7 +731,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE_SECRETS" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
 
             val name = "name"
             val desc = "description"
@@ -761,8 +750,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "DELETE /organizations/{organizationId}/secrets/{secretName}" should {
         "delete a secret" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val path = SecretsProviderFactoryForTesting.TOKEN_PATH
                 val name = "New secret 8"
@@ -783,8 +771,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "handle a failure from the SecretStorage" {
             integrationTestApplication {
-                val organizationId =
-                    organizationService.createOrganization(name = "name", description = "description").id
+                val organizationId = createOrganization().id
 
                 val name = "New secret 8"
                 val desc = "description"
@@ -804,7 +791,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE_SECRETS" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
 
             val path = SecretsProviderFactoryForTesting.TOKEN_PATH
             val name = "New secret 8"
@@ -822,7 +809,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /organizations/{orgId}/infrastructure-services" should {
         "list existing infrastructure services" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
                 val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
@@ -860,7 +847,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "support query parameters" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
                 val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
@@ -898,7 +885,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
                 get("/api/v1/organizations/${createdOrg.id}/infrastructure-services")
             }
@@ -908,7 +895,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "POST /organizations/{orgId}/infrastructure-services" should {
         "create an infrastructure service" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
                 val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
@@ -946,7 +933,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "handle an invalid secret reference" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val createInfrastructureService = CreateInfrastructureService(
                     "testRepository",
@@ -968,7 +955,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
             val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
 
@@ -994,7 +981,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {
         "update an infrastructure service" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
                 val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
@@ -1040,7 +1027,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
             val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
             val service = infrastructureServiceRepository.create(
@@ -1069,7 +1056,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "DELETE /organizations/{orgId}/infrastructure-services/{name}" should {
         "delete an infrastructure service" {
             integrationTestApplication {
-                val orgId = organizationService.createOrganization(name = "name", description = "description").id
+                val orgId = createOrganization().id
 
                 val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
                 val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
@@ -1097,7 +1084,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.WRITE" {
-            val createdOrg = organizationService.createOrganization(name = "name", description = "description")
+            val createdOrg = createOrganization()
             val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
             val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
             val service = infrastructureServiceRepository.create(
