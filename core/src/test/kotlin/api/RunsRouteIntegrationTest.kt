@@ -21,44 +21,81 @@ package org.ossreviewtoolkit.server.core.api
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.testutils.basicTestAuth
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
+import org.ossreviewtoolkit.server.services.OrganizationService
+import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
 
-class RunsRouteIntegrationTest : WordSpec({
-    val dbExtension = extension(DatabaseTestExtension())
+class RunsRouteIntegrationTest : AbstractIntegrationTest({
+    var repositoryId = -1L
+
+    beforeEach {
+        val authorizationService = DefaultAuthorizationService(
+            keycloakClient,
+            dbExtension.db,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.productRepository,
+            dbExtension.fixtures.repositoryRepository,
+            keycloakGroupPrefix = ""
+        )
+
+        val organizationService = OrganizationService(
+            dbExtension.db,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.productRepository,
+            authorizationService
+        )
+
+        val productService = ProductService(
+            dbExtension.db,
+            dbExtension.fixtures.productRepository,
+            dbExtension.fixtures.repositoryRepository,
+            authorizationService
+        )
+
+        val orgId = organizationService.createOrganization(name = "name", description = "description").id
+        val productId =
+            organizationService.createProduct(name = "name", description = "description", organizationId = orgId).id
+        repositoryId = productService.createRepository(
+            type = RepositoryType.GIT,
+            url = "https://example.org/repo.git",
+            productId = productId
+        ).id
+    }
+
+    val reportFile = "disclosure-document-pdf"
+    val reportData = "Data of the report to download".toByteArray()
+
+    /**
+     * Create an [OrtRun], store a report for the created run, and return the created run.
+     */
+    fun createReport(): OrtRun {
+        val run = dbExtension.fixtures.createOrtRun(repositoryId)
+        val key = Key("${run.id}|$reportFile")
+
+        val storage = Storage.create("reportStorage", ConfigFactory.load("application-test.conf"))
+        storage.write(key, reportData, "application/pdf")
+
+        return run
+    }
 
     "GET /runs/{runId}/report/{fileName}" should {
         "download a report" {
-            ortServerTestApplication(dbExtension.db, noDbConfig) {
-                val run = dbExtension.fixtures.createOrtRun()
-                val reportFile = "disclosure-document-pdf"
-                val reportData = "Data of the report to download".toByteArray()
-                val key = Key("${run.id}|$reportFile")
+            integrationTestApplication {
+                val run = createReport()
 
-                val storage = Storage.create("reportStorage", ConfigFactory.load("application-test.conf"))
-                storage.write(key, reportData, "application/pdf")
-
-                val client = createJsonClient()
-
-                val response = client.get("/api/v1/runs/${run.id}/reporter/$reportFile") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$reportFile")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
@@ -69,22 +106,25 @@ class RunsRouteIntegrationTest : WordSpec({
         }
 
         "handle a missing report" {
-            ortServerTestApplication(dbExtension.db, noDbConfig) {
-                val reportFile = "nonExistingReport.pdf"
-                val run = dbExtension.fixtures.createOrtRun()
-                val client = createJsonClient()
+            integrationTestApplication {
+                val missingReportFile = "nonExistingReport.pdf"
+                val run = dbExtension.fixtures.createOrtRun(repositoryId)
 
-                val response = client.get("/api/v1/runs/${run.id}/reporter/$reportFile") {
-                    headers {
-                        basicTestAuth()
-                    }
-                }
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$missingReportFile")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NotFound
                     val responseBody = body<ErrorResponse>()
-                    responseBody.cause shouldContain reportFile
+                    responseBody.cause shouldContain missingReportFile
                 }
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = createReport()
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}/reporter/$reportFile")
             }
         }
     }

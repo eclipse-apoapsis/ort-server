@@ -29,7 +29,10 @@ import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.core.apiDocs.getReportByRunIdAndFileName
+import org.ossreviewtoolkit.server.core.authorization.requirePermission
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.services.ReportStorageService
 
 /**
@@ -38,10 +41,14 @@ import org.ossreviewtoolkit.server.services.ReportStorageService
 fun Route.runs() = route("runs/{runId}") {
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
+        val ortRunRepository by inject<OrtRunRepository>()
 
         get(getReportByRunIdAndFileName) {
             val runId = call.requireParameter("runId").toLong()
             val fileName = call.requireParameter("fileName")
+
+            val repositoryId = checkNotNull(ortRunRepository.get(runId)).repositoryId
+            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId))
 
             val downloadData = reportStorageService.fetchReport(runId, fileName)
 
