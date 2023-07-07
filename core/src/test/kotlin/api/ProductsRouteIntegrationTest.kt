@@ -102,6 +102,17 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         organizationId: Long = orgId
     ) = organizationService.createProduct(name, description, organizationId)
 
+    val secretPath = "path"
+    val secretName = "name"
+    val secretDescription = "description"
+
+    fun createSecret(
+        productId: Long,
+        path: String = secretPath,
+        name: String = secretName,
+        description: String = secretDescription,
+    ) = secretRepository.create(path, name, description, null, productId, null)
+
     "GET /products/{productId}" should {
         "return a single product" {
             integrationTestApplication {
@@ -309,22 +320,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val productId = createProduct().id
 
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_1",
-                    "New secret 1",
-                    "The new prod secret",
-                    null,
-                    productId,
-                    null
-                )
-                val secret2 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_2",
-                    "New secret 2",
-                    "The new prod secret",
-                    null,
-                    productId,
-                    null
-                )
+                val secret1 = createSecret(productId, "path1", "name1", "description1")
+                val secret2 = createSecret(productId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
@@ -339,28 +336,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val productId = createProduct().id
 
-                secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_3",
-                    "New secret 3",
-                    "The new prod secret",
-                    null,
-                    productId,
-                    null
-                )
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_4",
-                    "New secret 4",
-                    "The new prod secret",
-                    null,
-                    productId,
-                    null
-                )
+                createSecret(productId, "path1", "name1", "description1")
+                val secret = createSecret(productId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi())
+                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
                 }
             }
         }
@@ -377,18 +360,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "return a single secret" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId)
 
-                val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-                val name = "New secret 5"
-                val description = "description"
-
-                secretRepository.create(path, name, description, null, productId, null)
-
-                val response = superuserClient.get("/api/v1/products/$productId/secrets/$name")
+                val response = superuserClient.get("/api/v1/products/$productId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, description)
+                    body<Secret>() shouldBe secret.mapToApi()
                 }
             }
         }
@@ -407,15 +385,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.READ" {
             val createdProduct = createProduct()
-
-            val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-            val name = "New secret 5"
-            val description = "description"
-
-            secretRepository.create(path, name, description, null, createdProduct.id, null)
+            val secret = createSecret(createdProduct.id)
 
             requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
-                get("/api/v1/products/${createdProduct.id}/secrets/$name")
+                get("/api/v1/products/${createdProduct.id}/secrets/${secret.name}")
             }
         }
     }
@@ -424,14 +397,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "create a secret in the database" {
             integrationTestApplication {
                 val productId = createProduct().id
-
-                val name = "New secret 6"
-
-                val secret = CreateSecret(
-                    name,
-                    secretValue,
-                    "The new prod secret"
-                )
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response = superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
@@ -439,29 +405,21 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(response) {
                     status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(
-                        secret.name,
-                        secret.description
-                    )
+                    body<Secret>() shouldBe Secret(secret.name, secret.description)
                 }
 
-                secretRepository.getByProductIdAndName(productId, name)?.mapToApi().shouldBe(
+                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
-                )
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("product_${productId}_$name"))?.value shouldBe secretValue
+                provider.readSecret(Path("product_${productId}_${secret.name}"))?.value shouldBe secretValue
             }
         }
 
         "respond with CONFLICT if the secret already exists" {
             integrationTestApplication {
                 val productId = createProduct().id
-
-                val name = "New secret 7"
-                val description = "description"
-
-                val secret = CreateSecret(name, secretValue, description)
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response1 = superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
@@ -487,7 +445,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 ProductPermission.WRITE_SECRETS.roleName(createdProduct.id),
                 HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", secretValue, "description")
+                val createSecret = CreateSecret(secretName, secretValue, secretDescription)
                 post("/api/v1/products/${createdProduct.id}/secrets") { setBody(createSecret) }
             }
         }
@@ -497,69 +455,54 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "update a secret's metadata" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId)
 
                 val updatedDescription = "updated description"
-                val name = "name"
-                val path = "path"
+                val updateSecret = UpdateSecret(secret.name.asPresent(), description = updatedDescription.asPresent())
 
-                secretRepository.create(path, name, "description", null, productId, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
-                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, updatedDescription)
+                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
                 }
 
                 secretRepository.getByProductIdAndName(
                     orgId,
                     (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(name, updatedDescription)
-
-                val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path)) should beNull()
+                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId)
 
-                val name = "name"
-                val path = "path"
-                val desc = "some description"
-
-                secretRepository.create(path, name, desc, null, productId, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), secretValue.asPresent())
-                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, desc)
+                    body<Secret>() shouldBe secret.mapToApi()
                 }
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path))?.value shouldBe secretValue
+                provider.readSecret(Path(secret.path))?.value shouldBe secretValue
             }
         }
 
-        "handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId, path = secretErrorPath)
 
-                val name = "name"
-                val desc = "description"
-
-                secretRepository.create(secretErrorPath, name, desc, null, productId, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/products/$productId/secrets/$name") {
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
@@ -567,26 +510,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByProductIdAndName(
-                    orgId,
-                    name
-                )?.mapToApi() shouldBe Secret(name, desc)
+                secretRepository.getByProductIdAndName(orgId, secret.name) shouldBe secret
             }
         }
 
         "require ProductPermission.WRITE_SECRETS" {
             val createdProduct = createProduct()
-
-            val name = "name"
-            val desc = "description"
-            val path = "path"
-
-            secretRepository.create(path, name, desc, null, createdProduct.id, null)
+            val secret = createSecret(createdProduct.id)
 
             requestShouldRequireRole(ProductPermission.WRITE_SECRETS.roleName(createdProduct.id)) {
                 val updateSecret =
-                    UpdateSecret(name.asPresent(), secretValue.asPresent(), "new description".asPresent())
-                patch("/api/v1/products/${createdProduct.id}/secrets/$name") { setBody(updateSecret) }
+                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                patch("/api/v1/products/${createdProduct.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }
     }
@@ -595,12 +530,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "delete a secret" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId)
 
-                val path = SecretsProviderFactoryForTesting.PASSWORD_PATH
-                val name = "New secret 8"
-                secretRepository.create(path.path, name, "description", null, productId, null)
-
-                val response = superuserClient.delete("/api/v1/products/$productId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -609,43 +541,34 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 secretRepository.listForProduct(productId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(path) should beNull()
+                provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val secret = createSecret(productId, path = secretErrorPath)
 
-                val name = "New secret 8"
-                val desc = "description"
-                secretRepository.create(secretErrorPath, name, desc, null, productId, null)
-
-                val response = superuserClient.delete("/api/v1/products/$productId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByProductIdAndName(
-                    productId,
-                    name
-                )?.mapToApi() shouldBe Secret(name, desc)
+                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
             }
         }
 
         "require ProductPermission.WRITE_SECRETS" {
             val createdProduct = createProduct()
-
-            val path = SecretsProviderFactoryForTesting.TOKEN_PATH
-            val name = "New secret 8"
-            secretRepository.create(path.path, name, "description", null, createdProduct.id, null)
+            val secret = createSecret(createdProduct.id)
 
             requestShouldRequireRole(
                 ProductPermission.WRITE_SECRETS.roleName(createdProduct.id),
                 HttpStatusCode.NoContent
             ) {
-                delete("/api/v1/products/${createdProduct.id}/secrets/$name")
+                delete("/api/v1/products/${createdProduct.id}/secrets/${secret.name}")
             }
         }
     }

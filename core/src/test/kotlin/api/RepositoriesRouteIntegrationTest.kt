@@ -115,6 +115,17 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         prodId: Long = productId
     ) = productService.createRepository(type, url, prodId)
 
+    val secretPath = "path"
+    val secretName = "name"
+    val secretDescription = "description"
+
+    fun createSecret(
+        repositoryId: Long,
+        path: String = secretPath,
+        name: String = secretName,
+        description: String = secretDescription,
+    ) = secretRepository.create(path, name, description, null, null, repositoryId)
+
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
             integrationTestApplication {
@@ -330,22 +341,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_1",
-                    "New secret 1",
-                    "The new repo secret",
-                    null,
-                    null,
-                    repositoryId
-                )
-                val secret2 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_2",
-                    "New secret 2",
-                    "The new repo secret",
-                    null,
-                    null,
-                    repositoryId
-                )
+                val secret1 = createSecret(repositoryId, "path1", "name1", "description1")
+                val secret2 = createSecret(repositoryId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets")
 
@@ -360,28 +357,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_3",
-                    "New secret 3",
-                    "The new repo secret",
-                    null,
-                    null,
-                    repositoryId
-                )
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_4",
-                    "New secret 4",
-                    "The new repo secret",
-                    null,
-                    null,
-                    repositoryId
-                )
+                createSecret(repositoryId, "path1", "name1", "description1")
+                val secret = createSecret(repositoryId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi())
+                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
                 }
             }
         }
@@ -398,18 +381,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "return a single secret" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId)
 
-                val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-                val name = "New secret 5"
-                val description = "description"
-
-                secretRepository.create(path, name, description, null, null, repositoryId)
-
-                val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets/$name")
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, description)
+                    body<Secret>() shouldBe secret.mapToApi()
                 }
             }
         }
@@ -428,15 +406,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.READ" {
             val createdRepository = createRepository()
-
-            val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-            val name = "New secret 5"
-            val description = "description"
-
-            secretRepository.create(path, name, description, null, null, createdRepository.id)
+            val secret = createSecret(createdRepository.id)
 
             requestShouldRequireRole(RepositoryPermission.READ.roleName(createdRepository.id)) {
-                get("/api/v1/repositories/${createdRepository.id}/secrets/$name")
+                get("/api/v1/repositories/${createdRepository.id}/secrets/${secret.name}")
             }
         }
     }
@@ -445,14 +418,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "create a secret in the database" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
-
-                val name = "New secret 6"
-
-                val secret = CreateSecret(
-                    name,
-                    secretValue,
-                    "The new repo secret"
-                )
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response = superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
                     setBody(secret)
@@ -460,29 +426,22 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(response) {
                     status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(
-                        secret.name,
-                        secret.description
-                    )
+                    body<Secret>() shouldBe Secret(secret.name, secret.description)
                 }
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, name)?.mapToApi().shouldBe(
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi().shouldBe(
                     Secret(secret.name, secret.description)
                 )
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("repository_${repositoryId}_$name"))?.value shouldBe secretValue
+                provider.readSecret(Path("repository_${repositoryId}_${secret.name}"))?.value shouldBe secretValue
             }
         }
 
         "respond with CONFLICT if the secret already exists" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
-
-                val name = "New secret 7"
-                val description = "description"
-
-                val secret = CreateSecret(name, secretValue, description)
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response1 = superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
                     setBody(secret)
@@ -508,7 +467,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 RepositoryPermission.WRITE_SECRETS.roleName(createdRepository.id),
                 HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", secretValue, "description")
+                val createSecret = CreateSecret(secretName, secretValue, secretDescription)
                 post("/api/v1/repositories/${createdRepository.id}/secrets") { setBody(createSecret) }
             }
         }
@@ -518,44 +477,54 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "update a secret's metadata" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId)
 
                 val updatedDescription = "updated description"
-                val name = "name"
-                val path = "path"
+                val updateSecret = UpdateSecret(secret.name.asPresent(), description = updatedDescription.asPresent())
 
-                secretRepository.create(path, name, "description", null, null, repositoryId)
-
-                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
-                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
+                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, updatedDescription)
+                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
                 }
 
                 secretRepository.getByRepositoryIdAndName(
                     repositoryId,
                     (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(name, updatedDescription)
+                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
+            }
+        }
+
+        "update a secret's value" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId)
+
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
+                    setBody(updateSecret)
+                }
+
+                with(response) {
+                    status shouldBe HttpStatusCode.OK
+                    body<Secret>() shouldBe secret.mapToApi()
+                }
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path)) should beNull()
+                provider.readSecret(Path(secret.path))?.value shouldBe secretValue
             }
         }
 
         "handle a failure from the SecretsStorage" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId, path = secretErrorPath)
 
-                val name = "name"
-                val desc = "description"
-
-                secretRepository.create(secretErrorPath, name, desc, null, null, repositoryId)
-
-                val updateSecret = UpdateSecret(name.asPresent(), "newVal".asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
@@ -563,51 +532,18 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByRepositoryIdAndName(
-                    repositoryId,
-                    (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(name, desc)
-            }
-        }
-
-        "update a secret's value" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val name = "name"
-                val path = "path"
-                val desc = "some description"
-
-                secretRepository.create(path, name, desc, null, null, repositoryId)
-
-                val updateSecret = UpdateSecret(name.asPresent(), secretValue.asPresent())
-                val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/$name") {
-                    setBody(updateSecret)
-                }
-
-                with(response) {
-                    status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, desc)
-                }
-
-                val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path))?.value shouldBe secretValue
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
             }
         }
 
         "require RepositoryPermission.WRITE_SECRETS" {
             val createdRepository = createRepository()
-
-            val name = "name"
-            val desc = "description"
-            val path = "path"
-
-            secretRepository.create(path, name, desc, null, null, createdRepository.id)
+            val secret = createSecret(createdRepository.id)
 
             requestShouldRequireRole(RepositoryPermission.WRITE_SECRETS.roleName(createdRepository.id)) {
                 val updateSecret =
-                    UpdateSecret(name.asPresent(), secretValue.asPresent(), "new description".asPresent())
-                patch("/api/v1/repositories/${createdRepository.id}/secrets/$name") { setBody(updateSecret) }
+                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                patch("/api/v1/repositories/${createdRepository.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }
     }
@@ -616,12 +552,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "delete a secret" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId)
 
-                val path = SecretsProviderFactoryForTesting.SERVICE_PATH
-                val name = "New secret 8"
-                secretRepository.create(path.path, name, "description", null, null, repositoryId)
-
-                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -630,43 +563,34 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 secretRepository.listForRepository(repositoryId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(path) should beNull()
+                provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "handle failures from the SecretStorage" {
+        "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
+                val secret = createSecret(repositoryId, path = secretErrorPath)
 
-                val name = "New secret 8"
-                val desc = "description"
-                secretRepository.create(secretErrorPath, name, desc, null, null, repositoryId)
-
-                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByRepositoryIdAndName(
-                    repositoryId,
-                    name
-                )?.mapToApi() shouldBe Secret(name, desc)
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
             }
         }
 
         "require RepositoryPermission.WRITE_SECRETS" {
             val createdRepository = createRepository()
-
-            val path = SecretsProviderFactoryForTesting.TOKEN_PATH
-            val name = "New secret 8"
-            secretRepository.create(path.path, name, "description", null, null, createdRepository.id)
+            val secret = createSecret(createdRepository.id)
 
             requestShouldRequireRole(
                 RepositoryPermission.WRITE_SECRETS.roleName(createdRepository.id),
                 HttpStatusCode.NoContent
             ) {
-                delete("/api/v1/repositories/${createdRepository.id}/secrets/$name")
+                delete("/api/v1/repositories/${createdRepository.id}/secrets/${secret.name}")
             }
         }
     }

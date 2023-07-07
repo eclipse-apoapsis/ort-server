@@ -107,6 +107,17 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     suspend fun createOrganization(name: String = organizationName, description: String = organizationDescription) =
         organizationService.createOrganization(name, description)
 
+    val secretPath = "path"
+    val secretName = "name"
+    val secretDescription = "description"
+
+    fun createSecret(
+        organizationId: Long,
+        path: String = secretPath,
+        name: String = secretName,
+        description: String = secretDescription,
+    ) = secretRepository.create(path, name, description, organizationId, null, null)
+
     "GET /organizations" should {
         "return all existing organizations" {
             integrationTestApplication {
@@ -461,22 +472,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_1",
-                    "New secret 1",
-                    "The new org secret",
-                    organizationId,
-                    null,
-                    null
-                )
-                val secret2 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_2",
-                    "New secret 2",
-                    "The new org secret",
-                    organizationId,
-                    null,
-                    null
-                )
+                val secret1 = createSecret(organizationId, "path1", "name1", "description1")
+                val secret2 = createSecret(organizationId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
 
@@ -491,28 +488,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
-                secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_3",
-                    "New secret 3",
-                    "The new org secret",
-                    organizationId,
-                    null,
-                    null
-                )
-                val secret1 = secretRepository.create(
-                    "https://secret-storage.com/ssh_host_rsa_key_4",
-                    "New secret 4",
-                    "The new org secret",
-                    organizationId,
-                    null,
-                    null
-                )
+                createSecret(organizationId, "path1", "name1", "description1")
+                val secret = createSecret(organizationId, "path2", "name2", "description2")
 
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<List<Secret>>() shouldBe listOf(secret1.mapToApi())
+                    body<List<Secret>>() shouldBe listOf(secret.mapToApi())
                 }
             }
         }
@@ -525,22 +508,17 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "GET /organizations/{organizationId}/secrets/{secretId}" should {
+    "GET /organizations/{organizationId}/secrets/{secretName}" should {
         "return a single secret" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId)
 
-                val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-                val name = "New secret 5"
-                val description = "description"
-
-                secretRepository.create(path, name, description, organizationId, null, null)
-
-                val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets/$name")
+                val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, description)
+                    body<Secret>() shouldBe secret.mapToApi()
                 }
             }
         }
@@ -559,15 +537,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.READ" {
             val createdOrg = createOrganization()
-
-            val path = "https://secret-storage.com/ssh_host_rsa_key_5"
-            val name = "New secret 5"
-            val description = "description"
-
-            secretRepository.create(path, name, description, createdOrg.id, null, null)
+            val secret = createSecret(createdOrg.id)
 
             requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
-                get("/api/v1/organizations/${createdOrg.id}/secrets/$name")
+                get("/api/v1/organizations/${createdOrg.id}/secrets/${secret.name}")
             }
         }
     }
@@ -576,14 +549,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         "create a secret in the database" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
-
-                val name = "New secret 6"
-
-                val secret = CreateSecret(
-                    name,
-                    secretValue,
-                    "The new org secret"
-                )
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
                     setBody(secret)
@@ -591,33 +557,24 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(response) {
                     status shouldBe HttpStatusCode.Created
-                    body<Secret>() shouldBe Secret(
-                        secret.name,
-                        secret.description
-                    )
+                    body<Secret>() shouldBe Secret(secret.name, secret.description)
                 }
 
-                secretRepository.getByOrganizationIdAndName(organizationId, name)?.mapToApi().shouldBe(
+                secretRepository.getByOrganizationIdAndName(organizationId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
-                )
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe secretValue
+                provider.readSecret(Path("organization_${organizationId}_${secret.name}"))?.value shouldBe secretValue
             }
         }
 
         "respond with CONFLICT if the secret already exists" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
-
-                val name = "New secret 7"
-                val description = "description"
-
-                val secret1 = CreateSecret(name, secretValue, description)
-                val secret2 = secret1.copy(value = "someOtherValue")
+                val secret = CreateSecret(secretName, secretValue, secretDescription)
 
                 val response1 = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
-                    setBody(secret1)
+                    setBody(secret)
                 }
 
                 with(response1) {
@@ -625,15 +582,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 val response2 = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
-                    setBody(secret2)
+                    setBody(secret)
                 }
 
                 with(response2) {
                     status shouldBe HttpStatusCode.Conflict
                 }
-
-                val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("organization_${organizationId}_$name"))?.value shouldBe secretValue
             }
         }
 
@@ -643,7 +597,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
                 HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", secretValue, "description")
+                val createSecret = CreateSecret(secretName, secretValue, secretDescription)
                 post("/api/v1/organizations/${createdOrg.id}/secrets") { setBody(createSecret) }
             }
         }
@@ -653,69 +607,54 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         "update a secret's metadata" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId)
 
                 val updatedDescription = "updated description"
-                val name = "name"
-                val path = "path"
+                val updateSecret = UpdateSecret(secret.name.asPresent(), description = updatedDescription.asPresent())
 
-                secretRepository.create(path, name, "description", organizationId, null, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), description = updatedDescription.asPresent())
-                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, updatedDescription)
+                    body<Secret>() shouldBe Secret(secret.name, updatedDescription)
                 }
 
                 secretRepository.getByOrganizationIdAndName(
                     organizationId,
                     (updateSecret.name as OptionalValue.Present).value
-                )?.mapToApi() shouldBe Secret(name, updatedDescription)
-
-                val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path)) should beNull()
+                )?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId)
 
-                val name = "name"
-                val desc = "description"
-                val path = "path"
-
-                secretRepository.create(path, name, desc, organizationId, null, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), secretValue.asPresent())
-                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 with(response) {
                     status shouldBe HttpStatusCode.OK
-                    body<Secret>() shouldBe Secret(name, desc)
+                    body<Secret>() shouldBe secret.mapToApi()
                 }
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path(path))?.value shouldBe secretValue
+                provider.readSecret(Path(secret.path))?.value shouldBe secretValue
             }
         }
 
-        "handle failures of the SecretStorage" {
+        "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId, path = secretErrorPath)
 
-                val name = "name"
-                val desc = "description"
-
-                secretRepository.create(secretErrorPath, name, desc, organizationId, null, null)
-
-                val updateSecret = UpdateSecret(name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
-                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/$name") {
+                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
@@ -723,26 +662,18 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByOrganizationIdAndName(
-                    organizationId,
-                    name
-                )?.mapToApi() shouldBe Secret(name, desc)
+                secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
             }
         }
 
         "require OrganizationPermission.WRITE_SECRETS" {
             val createdOrg = createOrganization()
-
-            val name = "name"
-            val desc = "description"
-            val path = "path"
-
-            secretRepository.create(path, name, desc, createdOrg.id, null, null)
+            val secret = createSecret(createdOrg.id)
 
             requestShouldRequireRole(OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id)) {
                 val updateSecret =
-                    UpdateSecret(name.asPresent(), secretValue.asPresent(), "new description".asPresent())
-                patch("/api/v1/organizations/${createdOrg.id}/secrets/$name") { setBody(updateSecret) }
+                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                patch("/api/v1/organizations/${createdOrg.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }
     }
@@ -751,12 +682,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         "delete a secret" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId)
 
-                val path = SecretsProviderFactoryForTesting.TOKEN_PATH
-                val name = "New secret 8"
-                secretRepository.create(path.path, name, "description", organizationId, null, null)
-
-                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.NoContent
@@ -765,43 +693,34 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 secretRepository.listForOrganization(organizationId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(path) should beNull()
+                provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
         "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
+                val secret = createSecret(organizationId, path = secretErrorPath)
 
-                val name = "New secret 8"
-                val desc = "description"
-                secretRepository.create(secretErrorPath, name, desc, organizationId, null, null)
-
-                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/$name")
+                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}")
 
                 with(response) {
                     status shouldBe HttpStatusCode.InternalServerError
                 }
 
-                secretRepository.getByOrganizationIdAndName(
-                    organizationId,
-                    name
-                )?.mapToApi() shouldBe Secret(name, desc)
+                secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
             }
         }
 
         "require OrganizationPermission.WRITE_SECRETS" {
             val createdOrg = createOrganization()
-
-            val path = SecretsProviderFactoryForTesting.TOKEN_PATH
-            val name = "New secret 8"
-            secretRepository.create(path.path, name, "description", createdOrg.id, null, null)
+            val secret = createSecret(createdOrg.id)
 
             requestShouldRequireRole(
                 OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id),
                 HttpStatusCode.NoContent
             ) {
-                delete("/api/v1/organizations/${createdOrg.id}/secrets/$name")
+                delete("/api/v1/organizations/${createdOrg.id}/secrets/${secret.name}")
             }
         }
     }
@@ -811,8 +730,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
-                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
 
                 val services = (1..8).map { index ->
                     infrastructureServiceRepository.create(
@@ -849,8 +768,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
-                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
 
                 (1..8).shuffled().forEach { index ->
                     infrastructureServiceRepository.create(
@@ -897,8 +816,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
-                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
 
                 val createInfrastructureService = CreateInfrastructureService(
                     "testRepository",
@@ -956,8 +875,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
-            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
+            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
 
             requestShouldRequireRole(
                 OrganizationPermission.WRITE.roleName(createdOrg.id),
@@ -983,8 +902,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
-                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "updateService",
@@ -1028,8 +947,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
-            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
+            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
+
             val service = infrastructureServiceRepository.create(
                 "testRepository",
                 "https://repo.example.org/test",
@@ -1058,8 +978,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = secretRepository.create("p1", "s1", null, orgId, null, null)
-                val passSecret = secretRepository.create("p2", "s2", null, orgId, null, null)
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "deleteService",
@@ -1085,8 +1005,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = secretRepository.create("p1", "s1", null, createdOrg.id, null, null)
-            val passSecret = secretRepository.create("p2", "s2", null, createdOrg.id, null, null)
+            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
+            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
+
             val service = infrastructureServiceRepository.create(
                 "testRepository",
                 "https://repo.example.org/test",
