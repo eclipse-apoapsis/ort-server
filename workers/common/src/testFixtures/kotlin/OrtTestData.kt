@@ -75,7 +75,7 @@ import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
 
 object OrtTestData {
-    private const val TIME_STAMP_SECONDS = 1678119934L
+    const val TIME_STAMP_SECONDS = 1678119934L
 
     val ortRepository = Repository(
         vcs = VcsInfo(
