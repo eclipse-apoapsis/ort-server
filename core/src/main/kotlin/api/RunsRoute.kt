@@ -21,7 +21,9 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.get
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
@@ -47,8 +49,14 @@ fun Route.runs() = route("runs/{runId}") {
             val runId = call.requireParameter("runId").toLong()
             val fileName = call.requireParameter("fileName")
 
-            val repositoryId = checkNotNull(ortRunRepository.get(runId)).repositoryId
-            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId))
+            val ortRun = ortRunRepository.get(runId)
+
+            if (ortRun == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+
+            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
             val downloadData = reportStorageService.fetchReport(runId, fileName)
 

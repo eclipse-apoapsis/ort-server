@@ -118,6 +118,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with NotFound if the ORT run does not exist" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/999/reporter/report.pdf") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
         "require RepositoryPermission.READ_ORT_RUNS" {
             val run = createReport()
 
