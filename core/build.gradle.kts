@@ -48,7 +48,11 @@ dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
-    implementation(project(":services"))
+    implementation(project(":services:authorization-service"))
+    implementation(project(":services:hierarchy-service"))
+    implementation(project(":services:infrastructure-service"))
+    implementation(project(":services:report-storage-service"))
+    implementation(project(":services:secret-service"))
     implementation(project(":storage:storage-spi"))
     implementation(project(":transport:transport-spi"))
 

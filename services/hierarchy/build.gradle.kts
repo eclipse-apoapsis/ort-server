@@ -29,21 +29,17 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":clients:keycloak"))
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":secrets:secrets-spi"))
-    implementation(project(":storage:storage-spi"))
+    api(project(":model"))
+    api(project(":services:authorization-service"))
 
-    implementation(libs.koinKtor)
+    api(libs.exposedCore)
+
+    implementation(project(":dao"))
 
     runtimeOnly(libs.logback)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(testFixtures(project(":dao")))
+
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-
-    testImplementation(testFixtures(project(":clients:keycloak")))
-    testImplementation(testFixtures(project(":dao")))
 }
