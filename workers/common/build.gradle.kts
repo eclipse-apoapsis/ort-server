@@ -19,6 +19,7 @@
 
 plugins {
     application
+    `java-test-fixtures`
 
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
@@ -63,4 +64,7 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
+
+    testFixturesApi(libs.kotlinxDatetime)
+    testFixturesApi(libs.ortModel)
 }
