@@ -19,8 +19,15 @@
 
 package org.ossreviewtoolkit.server.api.v1
 
+import io.konform.validation.Validation
+import io.konform.validation.jsonschema.pattern
+
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.api.v1.validation.Constraints.namePatternMessage
+import org.ossreviewtoolkit.server.api.v1.validation.Constraints.namePatternRegex
+import org.ossreviewtoolkit.server.api.v1.validation.ValidatorFunc
+import org.ossreviewtoolkit.server.api.v1.validation.optionalPattern
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
@@ -44,7 +51,17 @@ data class Organization(
 data class CreateOrganization(
     val name: String,
     val description: String? = null
-)
+) {
+    companion object {
+        val validate: ValidatorFunc<CreateOrganization> = { obj ->
+            Validation {
+                CreateOrganization::name {
+                    pattern(namePatternRegex) hint namePatternMessage
+                }
+            }.invoke(obj)
+        }
+    }
+}
 
 /**
  * Request object for the update organization endpoint.
@@ -53,4 +70,14 @@ data class CreateOrganization(
 data class UpdateOrganization(
     val name: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent
-)
+) {
+    companion object {
+        val validate: ValidatorFunc<UpdateOrganization> = { obj ->
+            Validation {
+                UpdateOrganization::name {
+                    optionalPattern(namePatternRegex) hint namePatternMessage
+                }
+            }.invoke(obj)
+        }
+    }
+}
