@@ -355,8 +355,8 @@
   },
   "groups" : [ {
     "id" : "96f99c64-f68f-4b62-8f00-d9ad85e06b06",
-    "name" : "SUPERUSER",
-    "path" : "/SUPERUSER",
+    "name" : "SUPERUSERS",
+    "path" : "/SUPERUSERS",
     "attributes" : { },
     "realmRoles" : [ ],
     "clientRoles" : {
@@ -441,7 +441,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-master" ],
     "notBefore" : 0,
-    "groups" : [ "/SUPERUSER" ]
+    "groups" : [ "/SUPERUSERS" ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
