@@ -35,6 +35,7 @@ kotlin {
 
                 api(libs.kotlinxDatetime)
 
+                implementation(libs.konform)
                 implementation(libs.kotlinxSerializationJson)
             }
         }

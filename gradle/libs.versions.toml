@@ -44,6 +44,7 @@ keycloakTestcontainerVersion = "2.5.0"
 koin = "3.4.2"
 koinKtor = "3.4.1"
 koinTest = "3.4.1"
+konform = "0.4.0"
 kotest = "5.5.5"
 kotestAssertionsKotlinxTime = "4.4.3"
 kotestAssertionsKtor = "2.0.0"
@@ -87,6 +88,7 @@ kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koinTest" }
+konform = { module = "io.konform:konform", version.ref = "konform" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotestAssertionsKotlinxTime = { module = "io.kotest:kotest-assertions-kotlinx-time", version.ref = "kotestAssertionsKotlinxTime" }
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
