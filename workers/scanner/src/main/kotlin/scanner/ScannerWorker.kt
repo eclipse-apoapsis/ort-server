@@ -25,10 +25,9 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
@@ -46,7 +45,8 @@ class ScannerWorker(
     private val runner: ScannerRunner,
     private val dao: ScannerWorkerDao,
     private val contextFactory: WorkerContextFactory,
-    private val environmentService: EnvironmentService
+    private val environmentService: EnvironmentService,
+    private val ortRunService: OrtRunService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.blockingQuery {
@@ -56,14 +56,12 @@ class ScannerWorker(
                 "ORT run '${scannerJob.ortRunId}' not found."
             }
 
-            val repository = dao.getRepository(ortRun.repositoryId)
-            requireNotNull(repository) {
-                "Repository '${ortRun.repositoryId}' not found."
-            }
+            val repository = ortRunService.getOrtRepositoryInformation(ortRun)
 
             val analyzerRun = dao.getAnalyzerRunForScannerJob(scannerJob)
+
             val ortResult = ortRun.mapToOrt(
-                repository = repository.mapToOrt(findResolvedRevision(ortRun, analyzerRun)),
+                repository = repository,
                 analyzerRun = analyzerRun?.mapToOrt()
             )
 
@@ -109,10 +107,3 @@ class ScannerWorker(
 }
 
 private class ScannerException(message: String) : Exception(message)
-
-/**
- * Obtain the correct resolved revision for the current [ortRun] and [analyzerRun].
- * TODO: This is a work-around. The resolved revision should be stored already when creating the Analyzer result.
- */
-internal fun findResolvedRevision(ortRun: OrtRun, analyzerRun: AnalyzerRun?): String =
-    analyzerRun?.projects?.find { "/" !in it.definitionFilePath }?.vcsProcessed?.revision ?: ortRun.revision

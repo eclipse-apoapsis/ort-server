@@ -30,7 +30,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
-import io.mockk.unmockkAll
 import io.mockk.verify
 
 import kotlinx.datetime.Clock
@@ -44,6 +43,7 @@ import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
@@ -68,16 +68,8 @@ private val scannerJob = ScannerJob(
 )
 
 class ScannerWorkerTest : StringSpec({
-    beforeSpec {
-        mockkStatic(::findResolvedRevision)
-
-        every {
-            findResolvedRevision(any(), any())
-        } returns "some_revision"
-    }
-
-    afterSpec {
-        unmockkAll()
+    val ortRunService = mockk<OrtRunService> {
+        every { getOrtRepositoryInformation(any()) } returns mockk()
     }
 
     "A project should be scanned successfully" {
@@ -117,7 +109,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { generateNetRcFileForCurrentRun(context) } just runs
         }
 
-        val worker = ScannerWorker(mockk(), runner, dao, contextFactory, environmentService)
+        val worker = ScannerWorker(mockk(), runner, dao, contextFactory, environmentService, ortRunService)
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -136,7 +128,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } throws textException
         }
 
-        val worker = ScannerWorker(mockk(), mockk(), dao, mockk(), mockk())
+        val worker = ScannerWorker(mockk(), mockk(), dao, mockk(), mockk(), ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(SCANNER_JOB_ID, TRACE_ID)) {
@@ -152,7 +144,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns invalidJob
         }
 
-        val worker = ScannerWorker(mockk(), mockk(), dao, mockk(), mockk())
+        val worker = ScannerWorker(mockk(), mockk(), dao, mockk(), mockk(), ortRunService)
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)

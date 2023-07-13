@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.ScannerEndpoint
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 import org.ossreviewtoolkit.server.workers.common.env.buildEnvironmentModule
@@ -88,6 +89,7 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
+        singleOf(::OrtRunService)
         singleOf(::ScannerWorkerDao)
         singleOf(::OrtServerNestedProvenanceStorage)
         singleOf(::OrtServerPackageProvenanceStorage)
