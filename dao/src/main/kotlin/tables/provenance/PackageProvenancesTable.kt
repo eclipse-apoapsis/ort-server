@@ -75,6 +75,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     var errorMessage by PackageProvenancesTable.errorMessage
 
     fun mapToModel(): Provenance = when {
+        errorMessage != null -> UnknownProvenance
         artifact != null -> ArtifactProvenance(artifact!!.mapToModel())
         vcs != null -> RepositoryProvenance(vcs!!.mapToModel(), resolvedRevision!!)
         else -> UnknownProvenance
