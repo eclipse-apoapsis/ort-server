@@ -29,6 +29,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     bzip2 \
     curl \
+    git \
     libgcrypt20 \
     libgomp1 \
     libpopt0 \
