@@ -217,7 +217,8 @@ fun ScannerRun.mapToOrt() =
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
-        scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt)
+        scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
+        files = emptySet()
     )
 
 fun ProvenanceResolutionResult.mapToOrt() =
@@ -251,7 +252,6 @@ fun ScanSummary.mapToOrt() =
     OrtScanSummary(
         startTime = startTime.toJavaInstant(),
         endTime = endTime.toJavaInstant(),
-        packageVerificationCode = packageVerificationCode,
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
         issues = issues.map(OrtServerIssue::mapToOrt)

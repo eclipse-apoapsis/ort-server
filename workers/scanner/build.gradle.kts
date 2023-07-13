@@ -43,6 +43,8 @@ dependencies {
     implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
 
+    implementation(platform(libs.ortScanners))
+
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
     runtimeOnly(project(":transport:activemqartemis"))

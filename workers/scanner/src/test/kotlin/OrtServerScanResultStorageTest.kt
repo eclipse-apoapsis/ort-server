@@ -166,7 +166,6 @@ private fun createScanResult(scannerName: String, issue: Issue, provenance: Know
         summary = ScanSummary(
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
-            "fyi3g4i72g482",
             setOf(
                 LicenseFinding(
                     "LicenseRef-23",

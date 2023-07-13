@@ -35,7 +35,6 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 object ScanSummariesTable : LongIdTable("scan_summaries") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val packageVerificationCode = text("package_verification_code")
 }
 
 class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
@@ -43,7 +42,6 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
 
     var startTime by ScanSummariesTable.startTime.transform({ it.toDatabasePrecision() }, { it })
     var endTime by ScanSummariesTable.endTime.transform({ it.toDatabasePrecision() }, { it })
-    var packageVerificationCode by ScanSummariesTable.packageVerificationCode
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
     var issues by OrtIssueDao via ScanSummariesIssuesTable
@@ -51,7 +49,6 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     fun mapToModel() = ScanSummary(
         startTime = startTime,
         endTime = endTime,
-        packageVerificationCode = packageVerificationCode,
         licenseFindings = licenseFindings.map(LicenseFindingDao::mapToModel).toSet(),
         copyrightFindings = copyrightFindings.map(CopyrightFindingDao::mapToModel).toSet(),
         issues = issues.map(OrtIssueDao::mapToModel)

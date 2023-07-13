@@ -124,7 +124,6 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                 this.scanSummary = ScanSummaryDao.new {
                     this.startTime = scanResult.summary.startTime.toKotlinInstant()
                     this.endTime = scanResult.summary.endTime.toKotlinInstant()
-                    this.packageVerificationCode = scanResult.summary.packageVerificationCode
                     this.issues = SizedCollection(issues)
                 }
 
@@ -156,7 +155,6 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
 private fun ScanSummaryDao.mapToOrt() = ScanSummary(
     this.startTime.toJavaInstant(),
     this.endTime.toJavaInstant(),
-    this.packageVerificationCode,
     this.licenseFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     this.copyrightFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     emptySet(), // TODO: Add snippet findings once implemented.

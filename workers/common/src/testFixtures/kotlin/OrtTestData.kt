@@ -330,7 +330,6 @@ object OrtTestData {
         summary = ScanSummary(
             startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
             endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-            packageVerificationCode = "",
             licenseFindings = sortedSetOf(),
             copyrightFindings = sortedSetOf(),
             issues = listOf(ortIssue)
@@ -344,7 +343,8 @@ object OrtTestData {
         environment = ortEnvironment,
         config = ortScannerConfiguration,
         provenances = setOf(ortProvenanceResolutionResult),
-        scanResults = setOf(ortScanResult)
+        scanResults = setOf(ortScanResult),
+        files = emptySet()
     )
 
     val ortResult = OrtResult(

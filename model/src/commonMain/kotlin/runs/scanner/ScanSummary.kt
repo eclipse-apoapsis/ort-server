@@ -26,7 +26,6 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
 data class ScanSummary(
     val startTime: Instant,
     val endTime: Instant,
-    val packageVerificationCode: String,
     val licenseFindings: Set<LicenseFinding>,
     val copyrightFindings: Set<CopyrightFinding>,
     val issues: List<OrtIssue> = emptyList()

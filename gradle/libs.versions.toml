@@ -52,7 +52,7 @@ ktorSwaggerUi = "2.2.0"
 kubernetesClient = "18.0.0"
 logback = "1.4.8"
 mockk = "1.13.5"
-ort = "3949b25ccc"
+ort = "c19d6fc32d"
 postgres = "42.6.0"
 qpidJmsClient = "2.3.0"
 testContainers = "1.17.6"
@@ -121,6 +121,7 @@ ortEvaluator = { module = "com.github.oss-review-toolkit.ort:evaluator", version
 ortPackageCurationProviders = { module = "com.github.oss-review-toolkit.ort:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "com.github.oss-review-toolkit.ort:package-managers", version.ref = "ort" }
 ortScanner = { module = "com.github.oss-review-toolkit.ort:scanner", version.ref = "ort" }
+ortScanners = { module = "com.github.oss-review-toolkit.ort:scanners", version.ref = "ort" }
 ortReporter = { module = "com.github.oss-review-toolkit.ort:reporter", version.ref = "ort" }
 ortReporters = { module = "com.github.oss-review-toolkit.ort:reporters", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }

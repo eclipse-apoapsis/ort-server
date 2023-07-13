@@ -331,7 +331,6 @@ class OrtServerMappingsTest : WordSpec({
                 summary = ScanSummary(
                     startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                     endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                    packageVerificationCode = "",
                     licenseFindings = emptySet(),
                     copyrightFindings = emptySet(),
                     issues = listOf(issue)

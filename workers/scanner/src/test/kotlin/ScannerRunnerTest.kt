@@ -28,8 +28,8 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.plugins.scanners.scancode.ScanCode
 import org.ossreviewtoolkit.scanner.ScannerWrapper
-import org.ossreviewtoolkit.scanner.scanners.scancode.ScanCode
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 
 class ScannerRunnerTest : WordSpec({

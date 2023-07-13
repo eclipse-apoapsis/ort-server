@@ -204,7 +204,6 @@ private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = n
     val scanSummary = ScanSummaryDao.new {
         this.startTime = Clock.System.now()
         this.endTime = Clock.System.now()
-        this.packageVerificationCode = "code"
     }
 
     ScanResultDao.new {

@@ -421,7 +421,6 @@ fun OrtScanSummary.mapToModel() =
     ScanSummary(
         startTime = startTime.toKotlinInstant(),
         endTime = endTime.toKotlinInstant(),
-        packageVerificationCode = packageVerificationCode,
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
         issues = issues.map(OrtOrtIssue::mapToModel)
