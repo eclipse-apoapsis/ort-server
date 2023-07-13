@@ -60,6 +60,7 @@ dependencies {
     runtimeOnly(project(":transport:kubernetes"))
     runtimeOnly(project(":transport:rabbitmq"))
 
+    runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":dao")))

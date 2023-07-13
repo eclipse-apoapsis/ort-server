@@ -28,4 +28,5 @@
     </root>
     <logger name="org.eclipse" level="WARN"/>
     <logger name="org.apache.http" level="WARN"/>
+    <logger name="org.ossreviewtoolkit" level="INFO"/>
 </configuration>

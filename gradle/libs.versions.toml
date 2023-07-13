@@ -50,6 +50,7 @@ kotestExtensionTestContainers = "1.3.4"
 ktor = "2.3.1"
 ktorSwaggerUi = "2.2.0"
 kubernetesClient = "18.0.0"
+log4j = "2.20.0"
 logback = "1.4.8"
 mockk = "1.13.5"
 ort = "c19d6fc32d"
@@ -112,6 +113,7 @@ ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
+log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
