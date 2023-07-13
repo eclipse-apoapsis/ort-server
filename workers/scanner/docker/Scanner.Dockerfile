@@ -27,20 +27,20 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    curl \
     bzip2 \
-    xz-utils \
-    zlib1g \
+    curl \
+    libgcrypt20 \
+    libgomp1 \
+    libpopt0 \
+    libsqlite3-0 \
     libxml2-dev \
     libxslt1-dev \
-    libgomp1 \
-    libsqlite3-0 \
-    libgcrypt20 \
-    libpopt0 \
     libzstd1 \
+    python3 \
+    python3-pip \
     sudo \
+    xz-utils \
+    zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME=ort
