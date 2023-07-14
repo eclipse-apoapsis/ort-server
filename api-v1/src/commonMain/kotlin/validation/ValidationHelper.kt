@@ -19,10 +19,26 @@
 
 package org.ossreviewtoolkit.server.api.v1.validation
 
+import io.konform.validation.ValidationBuilder
 import io.konform.validation.ValidationResult
+
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A typealias containing an argument and a return type for a validation function that should be implemented in entity
  * classes to reduce boilerplate code.
  */
 typealias ValidatorFunc<T> = (T) -> ValidationResult<T>
+
+/**
+ * An extension function for validating [OptionalValue] objects against a given regex [pattern].
+ */
+fun ValidationBuilder<OptionalValue<String>>.optionalPattern(pattern: String) = addConstraint(
+    "must match the expected pattern",
+    pattern
+) {
+    when (it) {
+        is OptionalValue.Present -> it.value.matches(pattern.toRegex())
+        is OptionalValue.Absent -> true
+    }
+}
