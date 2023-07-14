@@ -58,6 +58,7 @@ dependencies {
 
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
+    implementation(libs.konform)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerAuthJwt)
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.ktorServerNetty)
     implementation(libs.ktorServerStatusPages)
     implementation(libs.ktorSwaggerUi)
+    implementation(libs.ktorValidation)
     implementation(libs.micrometerRegistryGraphite)
 
     runtimeOnly(project(":secrets:file"))

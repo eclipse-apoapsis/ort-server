@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidation
 
-import org.ossreviewtoolkit.server.core.plugins.*
-
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
-
-fun Application.module() {
-    configureKoin()
-    configureAuthentication()
-    configureLifecycle()
-    configureStatusPages()
-    configureRouting()
-    configureSerialization()
-    configureMonitoring()
-    configureMetrics()
-    configureHTTP()
-    configureDatabase()
-    configureOpenApi()
-    configureValidation()
+fun Application.configureValidation() {
+    install(RequestValidation) {
+    }
 }

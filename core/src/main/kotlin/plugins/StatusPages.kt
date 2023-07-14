@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.core.plugins
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
@@ -58,6 +59,9 @@ fun Application.configureStatusPages() {
         }
         exception<ReportNotFoundException> { call, e ->
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Report could not be resolved.", e.message))
+        }
+        exception<RequestValidationException> { call, e ->
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Request validation has failed.", e.message))
         }
         exception<UniqueConstraintException> { call, e ->
             call.respond(

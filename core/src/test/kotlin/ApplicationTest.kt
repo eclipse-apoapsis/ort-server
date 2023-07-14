@@ -43,6 +43,7 @@ fun Application.testModule() {
     configureSerialization()
     configureMonitoring()
     configureHTTP()
+    configureValidation()
 }
 
 /**
@@ -56,4 +57,5 @@ fun Application.testAuthModule() {
     configureSerialization()
     configureMonitoring()
     configureHTTP()
+    configureValidation()
 }
