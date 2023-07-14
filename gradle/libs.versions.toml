@@ -37,6 +37,7 @@ activeMQArtemis = "2.28.0"
 exposed = "0.41.1"
 flyway = "9.19.4"
 hikari = "5.0.1"
+jackson = "2.15.2"
 jsonSchemaSerialization = "0.6.6"
 kaml = "0.54.0"
 keycloakTestcontainerVersion = "2.5.0"
@@ -79,6 +80,7 @@ exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "ex
 exposedKotlinDatetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 flywayCore = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-serialization", version.ref = "jsonSchemaSerialization" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }

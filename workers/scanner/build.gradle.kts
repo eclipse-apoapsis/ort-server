@@ -37,6 +37,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":dao"))
     implementation(project(":model"))
+    implementation(project(":storage:storage-spi"))
     implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
@@ -47,6 +48,7 @@ dependencies {
 
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
+    runtimeOnly(project(":storage:database"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))
     runtimeOnly(project(":transport:rabbitmq"))
@@ -55,7 +57,10 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":storage:storage-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
+
+    testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
