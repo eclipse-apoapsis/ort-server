@@ -46,8 +46,9 @@ class ScannerRunnerTest : WordSpec({
                                 every { matches(any()) } returns true
                             }
                             every { details } returns mockk {
-                                every { name } returns "Scanner Details"
+                                every { name } returns "ScanCode"
                             }
+                            every { name } returns "ScanCode"
                         }
                     }
                 )

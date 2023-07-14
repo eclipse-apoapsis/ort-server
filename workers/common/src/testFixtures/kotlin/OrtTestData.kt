@@ -344,7 +344,10 @@ object OrtTestData {
         config = ortScannerConfiguration,
         provenances = setOf(ortProvenanceResolutionResult),
         scanResults = setOf(ortScanResult),
-        files = emptySet()
+        files = emptySet(),
+        // TODO: Provide the correct scanner name `ortScanResult.scanner.name` once the hardcoded mapping to ScanCode in
+        //       `OrtServerMappings` has been removed.
+        scanners = mapOf(ortProvenanceResolutionResult.id to setOf("ScanCode"))
     )
 
     val ortResult = OrtResult(
