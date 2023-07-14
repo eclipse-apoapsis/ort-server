@@ -37,7 +37,8 @@ import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 class ScannerRunner(
     private val packageProvenanceStorage: OrtServerPackageProvenanceStorage,
     private val nestedProvenanceStorage: OrtServerNestedProvenanceStorage,
-    private val scanResultStorage: OrtServerScanResultStorage
+    private val scanResultStorage: OrtServerScanResultStorage,
+    private val fileListStorage: OrtServerFileListStorage
 ) {
     fun run(ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
         val scanStorages = ScanStorages(
@@ -75,7 +76,8 @@ class ScannerRunner(
                 scannerWrappers = mapOf(
                     PackageType.PACKAGE to scannerWrappers,
                     PackageType.PROJECT to scannerWrappers
-                )
+                ),
+                fileListStorage = fileListStorage
             )
 
             return runBlocking { scanner.scan(ortResult, config.skipExcluded, emptyMap()) }

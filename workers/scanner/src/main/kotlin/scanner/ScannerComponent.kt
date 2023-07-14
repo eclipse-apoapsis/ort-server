@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
+import org.ossreviewtoolkit.server.storage.Storage
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.Message
@@ -88,6 +89,11 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+        single {
+            val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+            OrtServerFileListStorage(storage)
+        }
 
         singleOf(::OrtRunService)
         singleOf(::ScannerWorkerDao)
