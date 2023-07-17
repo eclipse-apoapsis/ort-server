@@ -19,11 +19,32 @@
 
 package org.ossreviewtoolkit.server.core.plugins
 
+import io.konform.validation.Invalid
+import io.konform.validation.ValidationResult as KonformValidationResult
+
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
+import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
+
+import org.ossreviewtoolkit.server.api.v1.CreateOrganization
+import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 
 fun Application.configureValidation() {
     install(RequestValidation) {
+        validate<CreateOrganization> { create ->
+            mapValidationResult(CreateOrganization.validate(create))
+        }
+
+        validate<UpdateOrganization> { update ->
+            mapValidationResult(UpdateOrganization.validate(update))
+        }
+    }
+}
+
+private fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult {
+    return when (result) {
+        is Invalid<*> -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
+        else -> KtorValidationResult.Valid
     }
 }

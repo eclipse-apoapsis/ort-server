@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -67,7 +68,7 @@ import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 
-@Suppress("LargeClass")
+@Suppress("LargeClass", "MaxLineLength")
 class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
@@ -196,6 +197,24 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with a Bad Request if the name is invalid" {
+            integrationTestApplication {
+                val org = CreateOrganization(name = " org_name!", description = "description")
+
+                val response = superuserClient.post("/api/v1/organizations") {
+                    setBody(org)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateOrganization"
+
+                organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
+            }
+        }
+
         "create Keycloak roles and groups" {
             integrationTestApplication {
                 val org = CreateOrganization(name = "name", description = "description")
@@ -259,6 +278,32 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     createdOrg.id,
                     updatedOrganization.name.valueOrThrow,
                     updatedOrganization.description.valueOrThrow
+                )
+            }
+        }
+
+        "respond with a Bad Request if the organization name is invalid" {
+            integrationTestApplication {
+                val createdOrg = createOrganization()
+
+                val updatedOrganization = UpdateOrganization(
+                    " !!updated @382 ".asPresent(),
+                    "updated description of testOrg".asPresent()
+                )
+                val response = superuserClient.patch("/api/v1/organizations/${createdOrg.id}") {
+                    setBody(updatedOrganization)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for UpdateOrganization"
+
+                organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
+                    createdOrg.id,
+                    createdOrg.name,
+                    createdOrg.description
                 )
             }
         }
