@@ -145,8 +145,8 @@ internal val pkg = Package(
     ),
     sourceArtifact = RemoteArtifact(
         url = "https://example.com/source.zip",
-        hashValue = "",
-        hashAlgorithm = ""
+        hashValue = "0123456789abcdef0123456789abcdef01234567",
+        hashAlgorithm = "SHA-1"
     ),
     vcs = VcsInfo(
         type = RepositoryType.GIT,
