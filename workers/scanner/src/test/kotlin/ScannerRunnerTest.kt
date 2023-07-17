@@ -36,7 +36,7 @@ class ScannerRunnerTest : WordSpec({
     val runner = ScannerRunner(mockk(), mockk(), mockk())
 
     "run" should {
-        "return a OrtResult with a valid ScannerRun" {
+        "return an OrtResult with a valid ScannerRun" {
             mockkObject(ScannerWrapper)
             mockk<ScannerWrapper> {
                 every { ScannerWrapper.ALL } returns sortedMapOf(
