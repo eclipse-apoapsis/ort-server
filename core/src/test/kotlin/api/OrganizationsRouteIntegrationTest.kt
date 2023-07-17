@@ -399,6 +399,25 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with a Bad Request if a product name is invalid" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val product = CreateProduct(" product!", "description")
+                val response = superuserClient.post("/api/v1/organizations/$orgId/products") {
+                    setBody(product)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateProduct"
+
+                productService.getProduct(1)?.mapToApi().shouldBeNull()
+            }
+        }
+
         "create Keycloak roles and groups" {
             integrationTestApplication {
                 val orgId = createOrganization().id

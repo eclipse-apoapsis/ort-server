@@ -28,7 +28,9 @@ import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
+import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
+import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 
 fun Application.configureValidation() {
     install(RequestValidation) {
@@ -38,6 +40,14 @@ fun Application.configureValidation() {
 
         validate<UpdateOrganization> { update ->
             mapValidationResult(UpdateOrganization.validate(update))
+        }
+
+        validate<CreateProduct> { create ->
+            mapValidationResult(CreateProduct.validate(create))
+        }
+
+        validate<UpdateProduct> { update ->
+            mapValidationResult(UpdateProduct.validate(update))
         }
     }
 }

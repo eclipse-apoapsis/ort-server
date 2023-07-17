@@ -26,6 +26,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -58,6 +59,7 @@ import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 
+@Suppress("MaxLineLength")
 class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
@@ -161,6 +163,26 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             requestShouldRequireRole(ProductPermission.WRITE.roleName(createdProduct.id)) {
                 val updatedProduct = UpdateProduct("updatedName".asPresent(), "updatedDescription".asPresent())
                 patch("/api/v1/products/${createdProduct.id}") { setBody(updatedProduct) }
+            }
+        }
+
+        "respond with a Bad Request if a product name is invalid" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val updatedProduct = UpdateProduct(
+                    " updatedProduct! ".asPresent(),
+                    "updateDescription".asPresent()
+                )
+                val response = superuserClient.patch("/api/v1/products/${createdProduct.id}") {
+                    setBody(updatedProduct)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for UpdateProduct"
             }
         }
     }
