@@ -65,7 +65,11 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                 is ArtifactProvenance -> {
                     ScanResultDao.find(
                         ScanResultsTable.artifactUrl eq provenance.sourceArtifact.url and
-                                (ScanResultsTable.artifactHash eq provenance.sourceArtifact.hash.value)
+                                (ScanResultsTable.artifactHash eq provenance.sourceArtifact.hash.value) and
+                                (
+                                        ScanResultsTable.artifactHashAlgorithm eq
+                                                provenance.sourceArtifact.hash.algorithm.toString()
+                                        )
                     )
                 }
 
@@ -106,6 +110,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                     is ArtifactProvenance -> {
                         this.artifactUrl = provenance.sourceArtifact.url
                         this.artifactHash = provenance.sourceArtifact.hash.value
+                        this.artifactHashAlgorithm = provenance.sourceArtifact.hash.algorithm.toString()
                     }
 
                     is RepositoryProvenance -> {

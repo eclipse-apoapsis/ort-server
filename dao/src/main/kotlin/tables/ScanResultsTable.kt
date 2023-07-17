@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 object ScanResultsTable : LongIdTable("scan_results") {
     val artifactUrl = text("artifact_url").nullable()
     val artifactHash = text("artifact_hash").nullable()
+    val artifactHashAlgorithm = text("artifact_hash_algorithm").nullable()
     val vcsType = text("vcs_type").nullable()
     val vcsUrl = text("vcs_url").nullable()
     val vcsRevision = text("vcs_revision").nullable()
@@ -58,7 +59,8 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByRemoteArtifact(artifact: RemoteArtifact) =
             find {
                 ScanResultsTable.artifactUrl eq artifact.url and
-                        (ScanResultsTable.artifactHash eq artifact.hashValue)
+                        (ScanResultsTable.artifactHash eq artifact.hashValue) and
+                        (ScanResultsTable.artifactHashAlgorithm eq artifact.hashAlgorithm)
             }
 
         fun findByVcsInfo(vcs: VcsInfo) =
@@ -71,6 +73,7 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
 
     var artifactUrl by ScanResultsTable.artifactUrl
     var artifactHash by ScanResultsTable.artifactHash
+    var artifactHashAlgorithm by ScanResultsTable.artifactHashAlgorithm
     var vcsType by ScanResultsTable.vcsType
     var vcsUrl by ScanResultsTable.vcsUrl
     var vcsRevision by ScanResultsTable.vcsRevision
@@ -86,7 +89,7 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
                 sourceArtifact = RemoteArtifact(
                     url = artifactUrl!!,
                     hashValue = artifactHash.orEmpty(),
-                    hashAlgorithm = "" // TODO: Store the hash algorithm or determine it from the hash value.
+                    hashAlgorithm = artifactHashAlgorithm.orEmpty()
                 )
             )
 

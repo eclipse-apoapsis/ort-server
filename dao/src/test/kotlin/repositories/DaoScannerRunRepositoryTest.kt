@@ -213,6 +213,7 @@ private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = n
         this.scannerConfiguration = "scanner-configuration"
         this.artifactUrl = artifact?.url
         this.artifactHash = artifact?.hashValue
+        this.artifactHashAlgorithm = artifact?.hashAlgorithm
         this.vcsType = vcs?.type?.name
         this.vcsUrl = vcs?.url
         this.vcsRevision = vcs?.revision
