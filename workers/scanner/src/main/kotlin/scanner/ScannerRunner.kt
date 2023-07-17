@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
+import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.scanner.ScanStorages
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapper
@@ -38,6 +39,7 @@ class ScannerRunner(
     private val packageProvenanceStorage: OrtServerPackageProvenanceStorage,
     private val nestedProvenanceStorage: OrtServerNestedProvenanceStorage,
     private val scanResultStorage: OrtServerScanResultStorage,
+    private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
     fun run(ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
@@ -77,6 +79,7 @@ class ScannerRunner(
                     PackageType.PACKAGE to scannerWrappers,
                     PackageType.PROJECT to scannerWrappers
                 ),
+                archiver = fileArchiver,
                 fileListStorage = fileListStorage
             )
 

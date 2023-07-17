@@ -24,6 +24,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
@@ -89,6 +91,11 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+        single {
+            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
+            FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
+        }
 
         single {
             val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())

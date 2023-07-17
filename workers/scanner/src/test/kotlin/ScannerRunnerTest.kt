@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.scanner.ScannerWrapper
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 
 class ScannerRunnerTest : WordSpec({
-    val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk())
+    val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk(), mockk())
 
     "run" should {
         "return an OrtResult with a valid ScannerRun" {
