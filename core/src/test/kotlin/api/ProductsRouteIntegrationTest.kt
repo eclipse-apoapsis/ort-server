@@ -23,6 +23,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -425,6 +426,28 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.post("/api/v1/products/$productId/secrets") {
                     setBody(secret)
                 } shouldHaveStatus HttpStatusCode.Conflict
+            }
+        }
+
+        "respond with Bad Request if the secret's name is invalid" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val secret = CreateSecret(" New secret 6!", secretValue, secretDescription)
+
+                val response = superuserClient.post("/api/v1/products/$productId/secrets") {
+                    setBody(secret)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateSecret"
+
+                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi().shouldBeNull()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("product_${productId}_${secret.name}"))?.value shouldBe null
             }
         }
 

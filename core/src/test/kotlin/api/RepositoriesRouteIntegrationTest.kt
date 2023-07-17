@@ -23,10 +23,12 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -440,6 +442,28 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             ) {
                 val createSecret = CreateSecret(secretName, secretValue, secretDescription)
                 post("/api/v1/repositories/${createdRepository.id}/secrets") { setBody(createSecret) }
+            }
+        }
+
+        "respond with Bad Request if the secret's name is invalid" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+                val secret = CreateSecret(" secret_28! ", secretValue, secretDescription)
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/secrets") {
+                    setBody(secret)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateSecret"
+
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi().shouldBeNull()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("repository_${repositoryId}_${secret.name}"))?.value.shouldBeNull()
             }
         }
     }

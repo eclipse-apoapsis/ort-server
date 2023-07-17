@@ -606,6 +606,28 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with Bad Request if the secret's name is invalid" {
+            integrationTestApplication {
+                val organizationId = createOrganization().id
+                val secret = CreateSecret(" New secret 6!", secretValue, secretDescription)
+
+                val response = superuserClient.post("/api/v1/organizations/$organizationId/secrets") {
+                    setBody(secret)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateSecret"
+
+                secretRepository.getByOrganizationIdAndName(organizationId, secret.name)?.mapToApi().shouldBeNull()
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${organizationId}_${secret.name}"))?.value.shouldBeNull()
+            }
+        }
+
         "require OrganizationPermission.WRITE_SECRETS" {
             val createdOrg = createOrganization()
             requestShouldRequireRole(
