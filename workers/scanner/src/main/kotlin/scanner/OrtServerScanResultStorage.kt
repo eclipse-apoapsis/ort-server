@@ -24,8 +24,6 @@ import kotlinx.datetime.toKotlinInstant
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
@@ -45,10 +43,10 @@ import org.ossreviewtoolkit.server.dao.tables.AdditionalScanResultData
 import org.ossreviewtoolkit.server.dao.tables.CopyrightFindingDao
 import org.ossreviewtoolkit.server.dao.tables.LicenseFindingDao
 import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
-import org.ossreviewtoolkit.server.dao.tables.ScanResultsTable
 import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 /**
  * A class providing access to scan results.
@@ -63,21 +61,12 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
     override fun read(provenance: KnownProvenance): List<ScanResult> = db.blockingQuery {
             when (provenance) {
                 is ArtifactProvenance -> {
-                    ScanResultDao.find(
-                        ScanResultsTable.artifactUrl eq provenance.sourceArtifact.url and
-                                (ScanResultsTable.artifactHash eq provenance.sourceArtifact.hash.value) and
-                                (
-                                        ScanResultsTable.artifactHashAlgorithm eq
-                                                provenance.sourceArtifact.hash.algorithm.toString()
-                                        )
-                    )
+                    ScanResultDao.findByRemoteArtifact(provenance.sourceArtifact.mapToModel())
                 }
 
                 is RepositoryProvenance -> {
-                    ScanResultDao.find(
-                        ScanResultsTable.vcsType eq provenance.vcsInfo.type.toString() and
-                                (ScanResultsTable.vcsUrl eq provenance.vcsInfo.url) and
-                                (ScanResultsTable.vcsRevision eq provenance.resolvedRevision)
+                    ScanResultDao.findByVcsInfo(
+                        provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel()
                     )
                 }
             }.map {
@@ -114,7 +103,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                     }
 
                     is RepositoryProvenance -> {
-                        this.vcsType = provenance.vcsInfo.type.toString()
+                        this.vcsType = provenance.vcsInfo.type.mapToModel().name
                         this.vcsUrl = provenance.vcsInfo.url
                         this.vcsRevision = provenance.resolvedRevision
                     }
