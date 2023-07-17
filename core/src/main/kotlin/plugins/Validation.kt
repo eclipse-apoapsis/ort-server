@@ -27,6 +27,7 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
+import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
@@ -53,6 +54,10 @@ fun Application.configureValidation() {
 
         validate<CreateSecret> { create ->
             mapValidationResult(CreateSecret.validate(create))
+        }
+
+        validate<CreateInfrastructureService> { create ->
+            mapValidationResult(CreateInfrastructureService.validate(create))
         }
     }
 }

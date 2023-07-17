@@ -907,6 +907,35 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 }
             }
         }
+
+        "respond with Bad Request if the name of infrastructure service is invalid" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+
+                val createInfrastructureService = CreateInfrastructureService(
+                    " testRepository 15?!",
+                    "https://repo.example.org/test",
+                    "test description",
+                    userSecret.name,
+                    passSecret.name
+                )
+                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
+                    setBody(createInfrastructureService)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateInfrastructureService"
+
+                infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
+                    .shouldBeNull()
+            }
+        }
     }
 
     "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {
