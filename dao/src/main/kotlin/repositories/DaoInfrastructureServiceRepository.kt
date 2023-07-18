@@ -90,8 +90,9 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         }.mapToModel()
     }
 
-    override fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService =
-        db.blockingQuery {
+    override fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService {
+        service.validate()
+        return db.blockingQuery {
             val serviceDao = InfrastructureServicesDao.getOrPut(service)
             InfrastructureServicesRunsTable.insert {
                 it[infrastructureServiceId] = serviceDao.id
@@ -100,6 +101,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
 
             serviceDao.mapToModel()
         }
+    }
 
     override fun listForOrganization(
         organizationId: Long,

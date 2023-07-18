@@ -44,7 +44,9 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
+import org.ossreviewtoolkit.server.model.validation.ValidationException
 
+@Suppress("MaxLineLength")
 class DaoInfrastructureServiceRepositoryTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -193,6 +195,15 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val dbRunService = infrastructureServicesRepository.getOrCreateForRun(runService, fixtures.ortRun.id)
 
                 dbRunService shouldNotBe prodService
+            }
+
+            "throw exception if the entity name is invalid" {
+                val newService = createInfrastructureService(name = " #servicename! ")
+                shouldThrow<ValidationException> {
+                    infrastructureServicesRepository.getOrCreateForRun(newService, fixtures.ortRun.id)
+                }.message shouldBe "The entity name may only contain letters, numbers, hyphen marks and spaces. Leading and trailing spaces are not allowed."
+
+                infrastructureServicesRepository.listForRun(fixtures.ortRun.id) shouldBe emptyList()
             }
         }
 

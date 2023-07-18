@@ -19,6 +19,14 @@
 
 package org.ossreviewtoolkit.server.model
 
+import io.konform.validation.Invalid
+import io.konform.validation.Validation
+import io.konform.validation.jsonschema.pattern
+
+import org.ossreviewtoolkit.server.model.validation.Constraints.namePatternMessage
+import org.ossreviewtoolkit.server.model.validation.Constraints.namePatternRegex
+import org.ossreviewtoolkit.server.model.validation.ValidationException
+
 /**
  * A data class describing an infrastructure service that is referenced during an ORT run.
  *
@@ -48,4 +56,19 @@ data class InfrastructureService(
 
     /** The [Product] this infrastructure service belongs to if any. */
     val product: Product?
-)
+) {
+
+    fun validate() {
+        val validationResult = Validation {
+            InfrastructureService::name {
+                pattern(namePatternRegex) hint namePatternMessage
+            }
+        }.validate(this)
+
+        if (validationResult is Invalid) {
+             throw ValidationException(
+                validationResult.errors.joinToString("; ") { error -> error.message }
+            )
+        }
+    }
+}
