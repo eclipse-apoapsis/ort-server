@@ -110,6 +110,29 @@ services:
       source: ./scripts/docker/keycloak/
       target: /opt/keycloak_init/
 
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.10-5
+    restart: unless-stopped
+    ports:
+      # Carbon Plain Text
+      - "2003-2004:2003-2004"
+      # Carbon Relay
+      - "2013-2014:2013-2014"
+      # Carbon Aggregator
+      - "2023-2024:2023-2024"
+      # Carbon Statsd UDP
+      - "8125:8125/udp"
+      # Carbon Statsd TCP
+      - "8126:8126"
+      # Graphite Webapp
+      - "8888:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 2003" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
   core:
     image: ort-server-core
     depends_on:
@@ -118,6 +141,8 @@ services:
       keycloak:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      graphite:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:8080/api/v1/liveness" ]
@@ -142,6 +167,9 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       SECRETS_PROVIDER_NAME: fileBasedSecretsProvider
       FILE_BASED_PATH: "/etc/fileBasedSecretStorage/secrets.storage"
+      GRAPHITE_HOST: "graphite"
+      GRAPHITE_PORT: 2003
+      GRAPHITE_PROTOCOL: PLAINTEXT
     volumes:
       - type: bind
         source: ~/.ort/server/secrets

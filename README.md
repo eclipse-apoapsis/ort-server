@@ -53,6 +53,7 @@ without TLS.**
 | Keycloak       | http://localhost:8081            | admin:admin       |
 | PostgreSQL     | http://localhost:5433            | postgres:postgres |
 | RabbitMQ       | http://localhost:15672           | admin:admin       |
+| Graphite       | http://localhost:8888            | root:root         |
 
 ### Debugging
 
