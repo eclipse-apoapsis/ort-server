@@ -65,9 +65,11 @@ dependencies {
     implementation(libs.ktorServerContentNegotiation)
     implementation(libs.ktorServerCore)
     implementation(libs.ktorServerDefaultHeaders)
+    implementation(libs.ktorServerMetricsMicrometer)
     implementation(libs.ktorServerNetty)
     implementation(libs.ktorServerStatusPages)
     implementation(libs.ktorSwaggerUi)
+    implementation(libs.micrometerRegistryGraphite)
 
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))

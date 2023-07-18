@@ -53,6 +53,7 @@ ktorSwaggerUi = "2.2.0"
 kubernetesClient = "18.0.0"
 log4j = "2.20.0"
 logback = "1.4.8"
+micrometer = "1.11.2"
 mockk = "1.13.5"
 ort = "119a58d425"
 postgres = "42.6.0"
@@ -108,6 +109,7 @@ ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref
 ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
 ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktorServerDefaultHeaders = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }
+ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
@@ -117,6 +119,7 @@ kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubern
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
 log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
 ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }

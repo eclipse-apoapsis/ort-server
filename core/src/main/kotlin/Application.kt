@@ -33,6 +33,7 @@ fun Application.module() {
     configureRouting()
     configureSerialization()
     configureMonitoring()
+    configureMetrics()
     configureHTTP()
     configureDatabase()
     configureOpenApi()
