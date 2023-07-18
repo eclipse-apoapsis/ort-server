@@ -33,6 +33,7 @@ kotlin {
             dependencies {
                 api(libs.kotlinxDatetime)
 
+                implementation(libs.konform)
                 implementation(libs.kotlinxSerializationJson)
             }
         }
