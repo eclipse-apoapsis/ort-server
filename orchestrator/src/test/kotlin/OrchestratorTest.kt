@@ -211,6 +211,10 @@ class OrchestratorTest : WordSpec() {
                     every { publish(AnalyzerEndpoint, any()) } just runs
                 }
 
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { update(any(), any()) } returns mockk()
+                }
+
                 val createOrtRun = CreateOrtRun(ortRun)
 
                 mockkTransaction {
@@ -222,7 +226,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         mockk(),
                         repositoryRepository,
-                        mockk(),
+                        ortRunRepository,
                         publisher
                     ).handleCreateOrtRun(msgHeader, createOrtRun)
                 }
@@ -248,6 +252,12 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe analyzerJob.id },
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+
+                    // The Ort run status was set to ACTIVE.
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe analyzerJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.ACTIVE) }
                     )
                 }
             }

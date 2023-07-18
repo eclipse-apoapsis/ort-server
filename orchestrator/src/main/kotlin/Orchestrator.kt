@@ -490,6 +490,8 @@ class Orchestrator(
             startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
+
+        ortRunRepository.update(analyzerJob.ortRunId, OrtRunStatus.ACTIVE.asPresent())
     }
 
     /**
