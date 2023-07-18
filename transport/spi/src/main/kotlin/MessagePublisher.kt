@@ -21,6 +21,10 @@ package org.ossreviewtoolkit.server.transport
 
 import com.typesafe.config.Config
 
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(MessagePublisher::class.java)
+
 /**
  * A helper class for sending messages to arbitrary supported endpoints.
  *
@@ -57,6 +61,12 @@ class MessagePublisher(
      * Send the given [message] to the specified [endpoint][to].
      */
     fun <T : Any> publish(to: Endpoint<T>, message: Message<T>) {
+        log.info(
+            "Sending '${message.payload::class.simpleName}' message " +
+                    "to '${to::class.simpleName}'. " +
+                    "TraceID: '${message.header.traceId}'."
+        )
+
         @Suppress("UNCHECKED_CAST")
         val sender = when (to) {
             is OrchestratorEndpoint -> orchestratorSender
