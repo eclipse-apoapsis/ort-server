@@ -23,11 +23,17 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.dbQueryCatching
+import org.ossreviewtoolkit.server.model.Jobs
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
@@ -42,6 +48,11 @@ class RepositoryService(
     private val db: Database,
     private val ortRunRepository: OrtRunRepository,
     private val repositoryRepository: RepositoryRepository,
+    private val analyzerJobRepository: AnalyzerJobRepository,
+    private val advisorJobRepository: AdvisorJobRepository,
+    private val scannerJobRepository: ScannerJobRepository,
+    private val evaluatorJobRepository: EvaluatorJobRepository,
+    private val reporterJobRepository: ReporterJobRepository,
     private val authorizationService: AuthorizationService
 ) {
     /**
@@ -57,6 +68,21 @@ class RepositoryService(
             logger.error("Error while deleting Keycloak roles for repository '$repositoryId'.", it)
         }
     }.getOrThrow()
+
+    /**
+     * Get all [Jobs] for the [OrtRun] with the provided [ortRunIndex] and [repositoryId].
+     */
+    suspend fun getJobs(repositoryId: Long, ortRunIndex: Long): Jobs? = db.dbQuery {
+        val ortRun = ortRunRepository.getByIndex(repositoryId, ortRunIndex) ?: return@dbQuery null
+
+        val analyzerJob = analyzerJobRepository.getForOrtRun(ortRun.id)
+        val advisorJob = advisorJobRepository.getForOrtRun(ortRun.id)
+        val scannerJob = scannerJobRepository.getForOrtRun(ortRun.id)
+        val evaluatorJob = evaluatorJobRepository.getForOrtRun(ortRun.id)
+        val reporterJob = reporterJobRepository.getForOrtRun(ortRun.id)
+
+        Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
+    }
 
     suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.dbQuery {
         ortRunRepository.getByIndex(repositoryId, ortRunIndex)

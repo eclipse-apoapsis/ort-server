@@ -31,6 +31,7 @@ import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvalua
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
+import org.ossreviewtoolkit.server.api.v1.Jobs as ApiJobs
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
@@ -53,6 +54,7 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.Jobs
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
@@ -137,10 +139,23 @@ fun ApiJobConfigurations.mapToModel() =
         reporter?.mapToModel()
     )
 
+fun Jobs.mapToApi() =
+    ApiJobs(analyzer?.mapToApi(), advisor?.mapToApi(), scanner?.mapToApi(), evaluator?.mapToApi(), reporter?.mapToApi())
+
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
-fun OrtRun.mapToApi() =
-    ApiOrtRun(id = id, index = index, repositoryId, revision, createdAt, jobs.mapToApi(), status.mapToApi(), labels)
+fun OrtRun.mapToApi(jobs: ApiJobs) =
+    ApiOrtRun(
+        id = id,
+        index = index,
+        repositoryId,
+        revision,
+        createdAt,
+        this.jobs.mapToApi(),
+        jobs,
+        status.mapToApi(),
+        labels
+    )
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 

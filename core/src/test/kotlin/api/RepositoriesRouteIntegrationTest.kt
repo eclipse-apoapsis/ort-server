@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
+import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
@@ -117,6 +118,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         url: String = repositoryUrl,
         prodId: Long = productId
     ) = productService.createRepository(type, url, prodId)
+
+    fun createJobs(ortRunId: Long): Jobs {
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId).mapToApi()
+        val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId).mapToApi()
+        val scannerJob = dbExtension.fixtures.createScannerJob(ortRunId).mapToApi()
+        val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(ortRunId).mapToApi()
+        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId).mapToApi()
+        return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
+    }
 
     val secretPath = "path"
     val secretName = "name"
@@ -235,7 +245,35 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(run1.mapToApi(), run2.mapToApi())
+                response shouldHaveBody listOf(run1.mapToApi(Jobs()), run2.mapToApi(Jobs()))
+            }
+        }
+
+        "include job details" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val run1 = ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    dbExtension.fixtures.jobConfigurations,
+                    labelsMap
+                )
+
+                val run2 = ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    dbExtension.fixtures.jobConfigurations,
+                    labelsMap
+                )
+
+                val jobs1 = createJobs(run1.id)
+                val jobs2 = createJobs(run2.id)
+
+                val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody listOf(run1.mapToApi(jobs1), run2.mapToApi(jobs2))
             }
         }
 
@@ -250,7 +288,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs$query")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(run2.mapToApi())
+                response shouldHaveBody listOf(run2.mapToApi(Jobs()))
             }
         }
 
@@ -301,7 +339,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response.body<OrtRun>().jobs.analyzer.environmentConfig shouldBe envConfig
+                response.body<OrtRun>().jobConfigs.analyzer.environmentConfig shouldBe envConfig
 
                 MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
 

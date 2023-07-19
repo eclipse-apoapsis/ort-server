@@ -37,20 +37,24 @@ import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ProductRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
@@ -85,8 +89,10 @@ fun ortServerModule(config: ApplicationConfig) = module {
     }
 
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
-    single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+    single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+    single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+    single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     single<OrganizationRepository> { DaoOrganizationRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<ProductRepository> { DaoProductRepository(get()) }
@@ -105,7 +111,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { OrchestratorService(get(), get(), get()) }
     single { OrganizationService(get(), get(), get(), get()) }
     single { ProductService(get(), get(), get(), get()) }
-    single { RepositoryService(get(), get(), get(), get()) }
+    single { RepositoryService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { SecretService(get(), get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)

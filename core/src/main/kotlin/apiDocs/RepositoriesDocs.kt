@@ -27,19 +27,26 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.api.v1.AdvisorJob
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
+import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
+import org.ossreviewtoolkit.server.api.v1.EvaluatorJob
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations
+import org.ossreviewtoolkit.server.api.v1.JobStatus
+import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
+import org.ossreviewtoolkit.server.api.v1.ReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
+import org.ossreviewtoolkit.server.api.v1.ScannerJob
 import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
@@ -73,6 +80,41 @@ private val jobConfigurations = JobConfigurations(
     scanner = ScannerJobConfiguration(),
     evaluator = EvaluatorJobConfiguration(),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp"))
+)
+
+val jobs = Jobs(
+    analyzer = AnalyzerJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = jobConfigurations.analyzer,
+        status = JobStatus.CREATED,
+        repositoryUrl = "",
+        repositoryRevision = ""
+    ),
+    advisor = AdvisorJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = jobConfigurations.advisor!!,
+        status = JobStatus.CREATED
+    ),
+    scanner = ScannerJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = jobConfigurations.scanner!!,
+        status = JobStatus.CREATED
+    ),
+    evaluator = EvaluatorJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = jobConfigurations.evaluator!!,
+        status = JobStatus.CREATED
+    ),
+    reporter = ReporterJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = jobConfigurations.reporter!!,
+        status = JobStatus.CREATED
+    )
 )
 
 val getRepositoryById: OpenApiRoute.() -> Unit = {
@@ -165,7 +207,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
-                                jobs = jobConfigurations,
+                                jobConfigs = jobConfigurations,
+                                jobs = jobs,
                                 status = OrtRunStatus.FINISHED,
                                 labels = mapOf("label key" to "label value")
                             ),
@@ -175,7 +218,8 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now(),
-                                jobs = jobConfigurations,
+                                jobConfigs = jobConfigurations,
+                                jobs = jobs,
                                 status = OrtRunStatus.ACTIVE,
                                 labels = mapOf("label key" to "label value")
                             )
@@ -218,7 +262,8 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = jobConfigurations,
+                            jobConfigs = jobConfigurations,
+                            jobs = jobs,
                             status = OrtRunStatus.CREATED,
                             labels = mapOf("label key" to "label value")
                         )
@@ -257,7 +302,8 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                             repositoryId = 1,
                             revision = "main",
                             createdAt = Clock.System.now(),
-                            jobs = jobConfigurations,
+                            jobConfigs = jobConfigurations,
+                            jobs = jobs,
                             status = OrtRunStatus.ACTIVE,
                             labels = mapOf("label key" to "label value")
                         )

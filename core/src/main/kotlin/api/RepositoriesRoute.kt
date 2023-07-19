@@ -37,6 +37,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
@@ -104,7 +105,10 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val repositoryId = call.requireParameter("repositoryId").toLong()
 
             val ortRuns = repositoryService.getOrtRuns(repositoryId, call.listQueryParameters())
-            call.respond(HttpStatusCode.OK, ortRuns.map { it.mapToApi() })
+            call.respond(
+                HttpStatusCode.OK,
+                ortRuns.map { it.mapToApi(repositoryService.getJobs(repositoryId, it.index)!!.mapToApi()) }
+            )
         }
 
         post(postOrtRun(json)) {
@@ -120,7 +124,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createOrtRun.revision,
                     createOrtRun.jobs.mapToModel(),
                     createOrtRun.labels
-                ).mapToApi()
+                ).mapToApi(Jobs())
             )
         }
 
@@ -132,7 +136,12 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val ortRunIndex = call.requireParameter("ortRunIndex").toLong()
 
                 repositoryService.getOrtRun(repositoryId, ortRunIndex)
-                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                    ?.let {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            it.mapToApi(repositoryService.getJobs(repositoryId, ortRunIndex)!!.mapToApi())
+                        )
+                    }
                     ?: call.respond(HttpStatusCode.NotFound)
             }
         }
