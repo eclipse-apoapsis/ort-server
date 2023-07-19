@@ -98,7 +98,7 @@ val deleteProductById: OpenApiRoute.() -> Unit = {
 
 val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoriesByProductId"
-    summary = "List all repositories for a product."
+    summary = "Get all repositories of a product."
     tags = listOf("Repositories")
 
     request {
@@ -127,7 +127,7 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
 
 val postRepository: OpenApiRoute.() -> Unit = {
     operationId = "CreateRepository"
-    summary = "Create a repository for the product."
+    summary = "Create a repository for a product."
     tags = listOf("Repositories")
 
     request {
@@ -151,7 +151,7 @@ val postRepository: OpenApiRoute.() -> Unit = {
 
 val getSecretsByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByProductId"
-    summary = "List all secrets for a specific product."
+    summary = "Get all secrets of a specific product."
     tags = listOf("Secrets")
 
     request {
@@ -166,7 +166,7 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<List<Secret>> {
                 example(
-                    "List all secrets for a specific product",
+                    "List all secrets of a product",
                     listOf(
                         Secret(
                             "rsa",
@@ -185,7 +185,7 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
 
 val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByProductIdAndName"
-    summary = "Get details of a secret by product id and name."
+    summary = "Get details of a secret of a product."
     tags = listOf("Secrets")
 
     request {
@@ -215,7 +215,7 @@ val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 
 val postSecretForProduct: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForProduct"
-    summary = "Create a secret for productId."
+    summary = "Create a secret for a product."
     tags = listOf("Secrets")
 
     request {
@@ -249,7 +249,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
 
 val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByProductIdIdAndName"
-    summary = "Update a secret by product id and name."
+    summary = "Update a secret of a product."
     tags = listOf("Secrets")
 
     request {
@@ -289,7 +289,7 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 
 val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByProductIdAndName"
-    summary = "Delete a secret by product id and name."
+    summary = "Delete a secret from a product."
     tags = listOf("Secrets")
 
     request {

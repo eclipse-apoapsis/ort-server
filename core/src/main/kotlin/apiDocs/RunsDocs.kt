@@ -25,7 +25,7 @@ import io.ktor.http.HttpStatusCode
 
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
-    summary = "Allows downloading a specific report for a given ORT run."
+    summary = "Download a report of an ORT run."
     tags = listOf("Reports")
 
     request {

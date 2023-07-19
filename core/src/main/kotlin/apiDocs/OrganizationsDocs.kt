@@ -59,7 +59,7 @@ val getOrganizationById: OpenApiRoute.() -> Unit = {
 
 val getOrganizations: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizations"
-    summary = "List all organizations."
+    summary = "Get all organizations."
     tags = listOf("Organizations")
 
     request {
@@ -176,7 +176,7 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
 
 val postProduct: OpenApiRoute.() -> Unit = {
     operationId = "PostProduct"
-    summary = "Create a product for the organization."
+    summary = "Create a product for an organization."
     tags = listOf("Products")
 
     request {
@@ -200,7 +200,7 @@ val postProduct: OpenApiRoute.() -> Unit = {
 
 val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByOrganizationId"
-    summary = "List all secrets for a specific organization."
+    summary = "Get all secrets of an organization."
     tags = listOf("Secrets")
 
     request {
@@ -215,7 +215,7 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<List<Secret>> {
                 example(
-                    "List all secrets for a specific organization",
+                    "Get all secrets of an organization",
                     listOf(
                         Secret(
                             "rsa",
@@ -234,7 +234,7 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
 
 val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByOrganizationIdAndName"
-    summary = "Get details of a secret by organization id and name."
+    summary = "Get details of a secret of an organization."
     tags = listOf("Secrets")
 
     request {
@@ -264,7 +264,7 @@ val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val postSecretForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForOrganization"
-    summary = "Create a secret for organization."
+    summary = "Create a secret for an organization."
     tags = listOf("Secrets")
 
     request {
@@ -298,7 +298,7 @@ val postSecretForOrganization: OpenApiRoute.() -> Unit = {
 
 val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByOrganizationIdAndName"
-    summary = "Update a secret by organization id and name."
+    summary = "Update a secret of an organization."
     tags = listOf("Secrets")
 
     request {
@@ -338,7 +338,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByOrganizationIdAndName"
-    summary = "Delete a secret by organization id and name."
+    summary = "Delete a secret from an organization."
     tags = listOf("Secrets")
 
     request {
@@ -359,7 +359,7 @@ val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetInfrastructureServicesByOrganizationId"
-    summary = "List all infrastructure services (e.g. repositories) for a specific organization."
+    summary = "List all infrastructure services of an organization."
     tags = listOf("Infrastructure services")
 
     request {
@@ -374,7 +374,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<List<Secret>> {
                 example(
-                    "List all infrastructure services for a specific organization",
+                    "List all infrastructure services for an organization",
                     listOf(
                         InfrastructureService(
                             "Artifactory",
@@ -399,7 +399,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
 
 val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostInfrastructureServiceForOrganization"
-    summary = "Create an infrastructure service for a specific organization."
+    summary = "Create an infrastructure service for an organization."
     tags = listOf("Infrastructure services")
 
     request {
@@ -438,7 +438,7 @@ val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
 
 val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
-    summary = "Update an infrastructure service identified by its name for a specific organization."
+    summary = "Update an infrastructure service for an organization."
     tags = listOf("Infrastructure services")
 
     request {
@@ -482,7 +482,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
 
 val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
-    summary = "Delete an infrastructure service identified by its name for a specific organization."
+    summary = "Delete an infrastructure service from an organization."
     tags = listOf("Infrastructure services")
 
     request {
