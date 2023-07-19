@@ -37,12 +37,12 @@ data class AdvisorJob(
     /**
      * The time the job was started.
      */
-    val startedAt: Instant?,
+    val startedAt: Instant? = null,
 
     /**
      * The time the job finished.
      */
-    val finishedAt: Instant?,
+    val finishedAt: Instant? = null,
 
     /**
      * The job configuration.
