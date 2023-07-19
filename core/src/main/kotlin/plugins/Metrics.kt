@@ -29,6 +29,7 @@ import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.core.instrument.util.HierarchicalNameMapper
 import io.micrometer.graphite.GraphiteConfig
 import io.micrometer.graphite.GraphiteMeterRegistry
 
@@ -36,10 +37,13 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureMetrics() {
     val config: ApplicationConfig by inject()
+    val metricsPrefix = config.property("micrometer.graphite.tagsAsPrefix").getString()
 
     // Create and configure the Graphite registry
     val graphiteConfig = GraphiteConfig { key -> config.propertyOrNull("micrometer.$key")?.getString() }
-    val graphiteRegistry = GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM)
+    val graphiteRegistry = GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM) { id, convention ->
+        "$metricsPrefix." + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention)
+    }
 
     // Install MicrometerMetrics feature with the Graphite registry
     install(MicrometerMetrics) {
