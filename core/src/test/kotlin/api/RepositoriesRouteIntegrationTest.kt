@@ -300,6 +300,43 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
+    "GET /repositories/{repositoryId}/runs/{ortRunIndex}" should {
+        "return the requested ORT run" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+
+                val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody run.mapToApi(Jobs())
+            }
+        }
+
+        "include job details" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+
+                val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody run.mapToApi(Jobs())
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val createdRepository = createRepository()
+            val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(createdRepository.id)) {
+                get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
+            }
+        }
+    }
+
     "POST /repositories/{repositoryId}/runs" should {
         "create a new ORT run" {
             integrationTestApplication {
