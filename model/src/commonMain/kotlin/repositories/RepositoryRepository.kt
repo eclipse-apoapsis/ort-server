@@ -35,7 +35,7 @@ interface RepositoryRepository {
     fun create(type: RepositoryType, url: String, productId: Long): Repository
 
     /**
-     * Get a repository by [id]. Returns null if the product is not found.
+     * Get a repository by [id]. Returns null if the repository is not found.
      */
     fun get(id: Long): Repository?
 
