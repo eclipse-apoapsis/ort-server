@@ -69,6 +69,8 @@ import org.ossreviewtoolkit.server.transport.ScannerEndpoint
 
 import org.slf4j.LoggerFactory
 
+private val log = LoggerFactory.getLogger(Orchestrator::class.java)
+
 /**
  * The Orchestrator is the central component that breaks an ORT run into single steps and coordinates their execution.
  * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
@@ -86,7 +88,6 @@ class Orchestrator(
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
 ) {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
     /**
