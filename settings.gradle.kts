@@ -21,6 +21,7 @@ rootProject.name = "ort-server"
 
 include(":api-v1")
 include(":clients:keycloak")
+include(":config:spi")
 include(":core")
 include(":dao")
 include(":model")
@@ -48,6 +49,7 @@ include(":workers:evaluator")
 include(":workers:reporter")
 include(":workers:scanner")
 
+project(":config:spi").name = "config-spi"
 project(":secrets:spi").name = "secrets-spi"
 project(":services:authorization").name = "authorization-service"
 project(":services:hierarchy").name = "hierarchy-service"
