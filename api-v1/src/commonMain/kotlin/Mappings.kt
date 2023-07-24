@@ -78,9 +78,9 @@ fun AdvisorJob.mapToApi() =
         status.mapToApi()
     )
 
-fun AdvisorJobConfiguration.mapToApi() = ApiAdvisorJobConfiguration(advisors)
+fun AdvisorJobConfiguration.mapToApi() = ApiAdvisorJobConfiguration(advisors, parameters, options)
 
-fun ApiAdvisorJobConfiguration.mapToModel() = AdvisorJobConfiguration(advisors)
+fun ApiAdvisorJobConfiguration.mapToModel() = AdvisorJobConfiguration(advisors, parameters, options)
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(

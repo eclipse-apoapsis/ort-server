@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.model.config.Options
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 
 /**
@@ -92,7 +93,17 @@ data class AdvisorJobConfiguration(
     /**
      * The Advisors to use (e.g. NexusIQ, VulnerableCode, DefectDB).
      */
-    val advisors: List<String> = emptyList()
+    val advisors: List<String> = emptyList(),
+
+    /**
+     * High-level parameters of the advisor job.
+     */
+    val parameters: Parameters? = null,
+
+    /**
+     * A map of configuration options that are specific to a concrete advisor.
+     */
+    val options: Map<String, Options>? = null
 )
 
 /**
@@ -129,6 +140,7 @@ data class ReporterJobConfiguration(
 )
 
 /**
- * The type alias for a key-value map of job configuration parameters.
+ * A type for storing key-value pairs of job configuration parameters. These parameters are subject for validation
+ * performed by a validation script, which can then map them to [Options].
  */
 typealias Parameters = Map<String, String>
