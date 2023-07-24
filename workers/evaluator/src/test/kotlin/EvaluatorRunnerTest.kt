@@ -37,7 +37,7 @@ class EvaluatorRunnerTest : WordSpec({
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
-            val result = runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(SCRIPT_FILE))
+            val result = runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = SCRIPT_FILE))
             val expectedRuleViolation = RuleViolation(
                 rule = "Example violation.",
                 pkg = null,
@@ -59,7 +59,7 @@ class EvaluatorRunnerTest : WordSpec({
 
         "throw an exception if script file could not be found" {
             shouldThrow<FileNotFoundException> {
-                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration("unknown.rules.kts"))
+                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = "unknown.rules.kts"))
             }
         }
     }

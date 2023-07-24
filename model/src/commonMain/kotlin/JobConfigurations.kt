@@ -152,9 +152,19 @@ data class ScannerJobConfiguration(
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
+     * License classifications which are passed as parameter to the rules script.
+     */
+    val licenseClassification: String? = null,
+
+    /**
      * The id of the rule set to use for the evaluation.
      */
-    val ruleSet: String? = null
+    val ruleSet: String? = null,
+
+    /**
+     * Additional parameters of the job.
+     */
+    val parameters: Parameters? = null
 )
 
 @Serializable
