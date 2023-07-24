@@ -178,7 +178,17 @@ data class ReporterJobConfiguration(
     /**
      * The report formats to generate.
      */
-    val formats: List<String> = emptyList()
+    val formats: List<String> = emptyList(),
+
+    /**
+     * High-level parameters of a reporter job.
+     */
+    val parameters: Parameters? = null,
+
+    /**
+     * A map of configuration options that are specific to a concrete reporter.
+     */
+    val options: Map<String, Options>? = null
 )
 
 /**

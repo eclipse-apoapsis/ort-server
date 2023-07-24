@@ -192,9 +192,9 @@ fun ReporterJob.mapToApi() =
         status.mapToApi()
     )
 
-fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats)
+fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats, parameters)
 
-fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats)
+fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats, parameters)
 
 fun ScannerJob.mapToApi() =
     ApiScannerJob(
