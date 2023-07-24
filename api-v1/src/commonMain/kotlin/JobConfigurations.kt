@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+
 /**
  * The configurations for the jobs in an [OrtRun].
  */
@@ -38,13 +40,48 @@ data class JobConfigurations(
  */
 @Serializable
 data class AnalyzerJobConfiguration(
+    /**
+     * Enable the analysis of projects that use version ranges to declare their dependencies. If set to true,
+     * dependencies of exactly the same project might change with another scan done at a later time if any of the
+     * (transitive) dependencies are declared using version ranges and a new version of such a dependency was
+     * published in the meantime. If set to false, analysis of projects that use version ranges will fail. Defaults to
+     * false.
+     */
     val allowDynamicVersions: Boolean = false,
+
+    /**
+     * A list of the case-insensitive names of package managers that are enabled. Disabling a package manager in
+     * [disabledPackageManagers] overrides enabling it here.
+     */
+    val disabledPackageManagers: List<String>? = null,
+
+    /**
+     * A list of the case-insensitive names of package managers that are disabled. Disabling a package manager in this
+     * list overrides [enabledPackageManagers].
+     */
+    val enabledPackageManagers: List<String>? = null,
 
     /**
      * An optional [EnvironmentConfig] to be used for this run. If this configuration is defined, it replaces the
      * configuration defined in the repository (if any).
      */
-    val environmentConfig: EnvironmentConfig? = null
+    val environmentConfig: EnvironmentConfig? = null,
+
+    /**
+     * Package manager specific configurations. The key needs to match the name of the package manager class, e.g.
+     * "NuGet" for the NuGet package manager.
+     */
+    val packageManagerOptions: Map<String, PackageManagerConfiguration>? = null,
+
+    /**
+     * A flag to control whether excluded scopes and paths should be skipped during the analysis.
+     */
+    val skipExcluded: Boolean? = null,
+
+    /**
+     * Additional parameters of the job.
+     */
+    val parameters: Parameters? = null
 )
 
 /**
@@ -90,3 +127,8 @@ data class ReporterJobConfiguration(
      */
     val formats: List<String> = emptyList()
 )
+
+/**
+ * The type alias for a key-value map of job configuration parameters.
+ */
+typealias Parameters = Map<String, String>

@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.model.runs
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class PackageManagerConfiguration(
     val mustRunAfter: List<String>? = null,
     val options: Map<String, String>? = null

@@ -95,12 +95,25 @@ fun AnalyzerJob.mapToApi() =
     )
 
 fun AnalyzerJobConfiguration.mapToApi() =
-    ApiAnalyzerJobConfiguration(allowDynamicVersions, environmentConfig?.mapToApi())
+    ApiAnalyzerJobConfiguration(
+        allowDynamicVersions,
+        disabledPackageManagers,
+        enabledPackageManagers,
+        environmentConfig?.mapToApi(),
+        packageManagerOptions,
+        skipExcluded,
+        parameters
+    )
 
 fun ApiAnalyzerJobConfiguration.mapToModel() =
     AnalyzerJobConfiguration(
         allowDynamicVersions,
-        environmentConfig = environmentConfig?.mapToModel()
+        disabledPackageManagers,
+        enabledPackageManagers,
+        environmentConfig?.mapToModel(),
+        packageManagerOptions,
+        skipExcluded,
+        parameters
     )
 
 fun EvaluatorJob.mapToApi() =
