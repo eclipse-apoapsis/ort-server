@@ -112,9 +112,41 @@ data class AdvisorJobConfiguration(
 @Serializable
 data class ScannerJobConfiguration(
     /**
+     * Create archives for packages that have a stored scan result but no license archive yet.
+     */
+    val createMissingArchives: Boolean? = null,
+
+    /**
+     * Mappings from licenses returned by the scanner to valid SPDX licenses. Note that these mappings are only applied
+     * in new scans, stored scan results are not affected.
+     */
+    val detectedLicenseMappings: Map<String, String>? = null,
+
+    /**
+     * A list of glob expressions that match file paths which are to be excluded from scan results.
+     */
+    val ignorePatterns: List<String>? = emptyList(),
+
+    /**
+     * A flag to indicate whether packages that have a concluded license and authors set (to derive copyrights from)
+     * should be skipped in the scan in favor of only using the declared information.
+     */
+    val skipConcluded: Boolean? = null,
+
+    /**
      * Do not scan excluded projects or packages.
      */
-    val skipExcluded: Boolean = false
+    val skipExcluded: Boolean = false,
+
+    /**
+     * High-level parameters of the scanner job.
+     */
+    val parameters: Parameters? = null,
+
+    /**
+     * A map of configuration options that are specific to a concrete scanner.
+     */
+    val options: Map<String, Options>? = null
 )
 
 /**
