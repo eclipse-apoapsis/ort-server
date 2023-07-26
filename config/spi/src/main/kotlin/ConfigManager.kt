@@ -38,7 +38,10 @@ class ConfigManager(
     val context: Context,
 
     /** The provider for configuration files. */
-    private val configFileProvider: ConfigFileProvider
+    private val configFileProvider: ConfigFileProvider,
+
+    /** The provider for secrets from the configuration. */
+    private val configSecretProvider: ConfigSecretProvider
 ) {
     companion object {
         /**
@@ -51,8 +54,16 @@ class ConfigManager(
          */
         const val FILE_PROVIDER_NAME_PROPERTY = "fileProvider"
 
+        /**
+         * The name of the configuration property that defines the name of the config secret provider implementation.
+         */
+        const val SECRET_PROVIDER_NAME_PROPERTY = "secretProvider"
+
         /** The service loader for file provider factories. */
         private val FILE_PROVIDER_LOADER = ServiceLoader.load(ConfigFileProviderFactory::class.java)
+
+        /** The service loader for secret provider factories. */
+        private val SECRET_PROVIDER_LOADER = ServiceLoader.load(ConfigSecretProviderFactory::class.java)
 
         /**
          * Return a new instance of [ConfigManager] that has been initialized with service provider implementations
@@ -67,21 +78,44 @@ class ConfigManager(
 
             val managerConfig = config.getConfig(CONFIG_MANAGER_SECTION)
 
-            val fileProviderName = managerConfig.getStringOrNull(FILE_PROVIDER_NAME_PROPERTY)
-                ?: throw ConfigException("Missing '$FILE_PROVIDER_NAME_PROPERTY' property.", null)
+            val fileProvider = FILE_PROVIDER_LOADER.findProviderFactory(
+                managerConfig,
+                FILE_PROVIDER_NAME_PROPERTY,
+                ConfigFileProviderFactory::name
+            ).createProvider(managerConfig)
 
-            val fileProviderFactory = FILE_PROVIDER_LOADER.find { it.name == fileProviderName }
-                ?: throw ConfigException(
-                    "Could not find ConfigFileProvider with name '$fileProviderName' on classpath.",
-                    null
-                )
-            val fileProvider = fileProviderFactory.createProvider(managerConfig)
+            val secretProvider = SECRET_PROVIDER_LOADER.findProviderFactory(
+                managerConfig,
+                SECRET_PROVIDER_NAME_PROPERTY,
+                ConfigSecretProviderFactory::name
+            ).createProvider(managerConfig)
 
             val resolvedContext = wrapExceptions {
                 if (resolveContext) fileProvider.resolveContext(context) else context
             }
 
-            return ConfigManager(resolvedContext, fileProvider)
+            return ConfigManager(resolvedContext, fileProvider, secretProvider)
+        }
+
+        /**
+         * Try to resolve the factory for the provider of the given type from the given [config]. Determine the name
+         * of the factory implementation from the given [nameProperty]. Use the [nameExtractor] function to obtain
+         * the factory names. Throw a [ConfigException] if the factory cannot be resolved, either due to missing
+         * configuration or if the specified factory cannot be found on the classpath.
+         */
+        private inline fun <reified T> ServiceLoader<T>.findProviderFactory(
+            config: Config,
+            nameProperty: String,
+            nameExtractor: (T) -> String
+        ): T {
+            val providerName = config.getStringOrNull(nameProperty)
+                ?: throw ConfigException("Missing '$nameProperty' property.", null)
+
+            return find { nameExtractor(it) == providerName }
+                ?: throw ConfigException(
+                    "Could not find ${T::class.simpleName} with name '$providerName' on classpath.",
+                    null
+                )
         }
     }
 
@@ -117,6 +151,12 @@ class ConfigManager(
      * underlying [ConfigFileProvider] throws an exception.
      */
     fun listFiles(path: Path): Set<Path> = wrapExceptions { configFileProvider.listFiles(context, path) }
+
+    /**
+     * Return the value of the secret identified by the given [path]. Throw a [ConfigException] if the underlying
+     * [ConfigSecretProvider] throws an exception.
+     */
+    fun getSecret(path: Path): String = wrapExceptions { configSecretProvider.getSecret(path) }
 }
 
 /**

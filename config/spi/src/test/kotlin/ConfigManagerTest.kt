@@ -43,7 +43,11 @@ import kotlin.io.path.toPath
 class ConfigManagerTest : WordSpec({
     "create" should {
         "throw an exception if no provider for config files is specified" {
-            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to mapOf("foo" to "bar"))
+            val managerMap = mapOf(
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+                "foo" to "bar"
+            )
+            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to managerMap)
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
@@ -51,6 +55,21 @@ class ConfigManagerTest : WordSpec({
             }
 
             exception.message shouldContain ConfigManager.FILE_PROVIDER_NAME_PROPERTY
+        }
+
+        "throw an exception if no provider for config secrets is specified" {
+            val managerMap = mapOf(
+                ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
+                "foo" to "bar"
+            )
+            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to managerMap)
+            val config = ConfigFactory.parseMap(configMap)
+
+            val exception = shouldThrow<ConfigException> {
+                ConfigManager.create(config, Context("someContext"))
+            }
+
+            exception.message shouldContain ConfigManager.SECRET_PROVIDER_NAME_PROPERTY
         }
 
         "throw an exception if no section for the config manager is present" {
@@ -65,8 +84,27 @@ class ConfigManagerTest : WordSpec({
         }
 
         "throw an exception if the file provider cannot be found on the classpath" {
-            val providerName = "unknownProvider"
-            val managerMap = mapOf(ConfigManager.FILE_PROVIDER_NAME_PROPERTY to providerName)
+            val providerName = "unknownFileProvider"
+            val managerMap = mapOf(
+                ConfigManager.FILE_PROVIDER_NAME_PROPERTY to providerName,
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME
+            )
+            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to managerMap)
+            val config = ConfigFactory.parseMap(configMap)
+
+            val exception = shouldThrow<ConfigException> {
+                ConfigManager.create(config, Context("someContext"))
+            }
+
+            exception.message shouldContain providerName
+        }
+
+        "throw an exception if the secret provider cannot be found on the classpath" {
+            val providerName = "unknownSecretProvider"
+            val managerMap = mapOf(
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to providerName,
+                ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME
+            )
             val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to managerMap)
             val config = ConfigFactory.parseMap(configMap)
 
@@ -171,7 +209,28 @@ class ConfigManagerTest : WordSpec({
             }
         }
     }
+
+    "getSecret" should {
+        "return the value of a secret" {
+            val manager = createConfigManager()
+
+            val secret = manager.getSecret(Path(TEST_SECRET_NAME))
+
+            secret shouldBe TEST_SECRET_VALUE
+        }
+
+        "handle exceptions from the provider" {
+            val manager = createConfigManager()
+
+            shouldThrow<ConfigException> {
+                manager.getSecret(Path("nonExistingSecret"))
+            }
+        }
+    }
 })
+
+private const val TEST_SECRET_NAME = "top-secret"
+private const val TEST_SECRET_VALUE = "licenseToTest"
 
 /**
  * Create a [ConfigManager] instance that is configured to use test provider implementations. Pass the given
@@ -180,7 +239,9 @@ class ConfigManagerTest : WordSpec({
 private fun createConfigManager(context: Context = testContext(), resolveContext: Boolean = false): ConfigManager {
     val configManagerMap = mapOf(
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
-        ConfigFileProviderFactoryForTesting.FORCE_RESOLVED_PROPERTY to resolveContext
+        ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+        ConfigFileProviderFactoryForTesting.FORCE_RESOLVED_PROPERTY to resolveContext,
+        ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
     )
     val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
     val config = ConfigFactory.parseMap(configMap)
