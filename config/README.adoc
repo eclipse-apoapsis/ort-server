@@ -32,6 +32,17 @@ The factory interface for the configuration file provider abstraction is defined
 
 This means that instances are loaded via the _service loader_ mechanism from the classpath. The interface defines a `name` property that is used to select a specific factory. It has a `createProvider()` function to create the actual provider object based on passed in configuration.
 
+=== Access to Secrets
+Another abstraction allows reading the values of secrets from the configuration that can be used for instance to access external systems ORT Server has to interact with.
+
+==== Access Interface
+The service provider interface is defined by the link:spi/src/main/kotlin/ConfigSecretProvider.kt[ConfigSecretProvider] interface. It is quite simple and contains only a single function to query the value of a secret. The secret in question is identified using the `Path` value type, which is also used by other configuration abstractions. The function returns the value of the secret as a String. It should throw an exception if the requested secret does not exist or cannot be resolved.
+
+Other functionality, like contains checks or listing secrets, is not required. In typical use cases, the secrets to be looked up are directly referenced by their names; so it is sufficient to resolve these names and obtain the corresponding values. This also simplifies concrete implementations, which could for instance lookup the values from environment variables, from files, or from a specific storage for secrets.
+
+==== Factory Interface
+The factory interface for creating concrete `ConfigSecretProvider` instances has exactly the same structure as the one already discussed for `ConfigFileProvider`. So, everything mentioned there applies to this interface as well.
+
 [#config_using]
 == Using Advanced Configuration
 As usual, the configuration abstraction provides a facade class that is responsible for loading the configured provider implementations and that simplifies the interactions with them. This is the link:spi/src/main/kotlin/ConfigManager.kt[ConfigManager] class.
@@ -42,13 +53,30 @@ But except for convenience, there is another reason for storing the context: it 
 
 The interface of the `ConfigManager` class is similar to the ones of the wrapped provider interfaces with a few convenience functions. The class supports error handling by catching all the exceptions thrown by providers and wrapping them in a standard `ConfigException`.
 
-The configuration passed to the `create()` function must contain a section named `configManager` that at least defines the names of the supported provider implementations to be loaded. The section can then contain further, provider-specific properties. The following fragment gives an example:
+The configuration passed to the `create()` function must contain a section named `configManager` that at least defines the names of the supported provider implementations to be loaded. Those are specified by the following properties:
+
+.Mandatory properties to define config providers
+[cols="1,3",options=header]
+|===
+|Property
+|Description
+
+|fileProvider
+|The name of the provider factory implementation for creating the `ConfigFileProvider` instance.
+
+|secretProvider
+|The name of the provider factory implementation for creating the `ConfigSecretProvider` instance.
+|===
+
+In addition, the section can then contain further, provider-specific properties. The following fragment gives an example:
 
 [source]
 ----
 configManager {
   fileProvider = gitHub
-  repository = ort-server-config
-  defaultRevision = main
+  fileProviderRepository = ort-server-config
+  fileProviderDefaultRevision = main
+
+  secretProvider = env
 }
 ----
