@@ -208,8 +208,10 @@ class Orchestrator(
 
             val createdJobs = mutableListOf<JobScheduleFunc>()
 
-            // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
-            if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
+            // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
+            // or the scanner job is skipped.
+            val scannerJobStatus = scannerJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
+            if (scannerJobStatus == JobStatus.FINISHED) {
                 if (ortRun.jobs.evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
                         createdJobs += { scheduleEvaluatorJob(job, header) }
@@ -279,8 +281,10 @@ class Orchestrator(
 
             val createdJobs = mutableListOf<JobScheduleFunc>()
 
-            // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
-            if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
+            // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
+            // or the advisor job is skipped.
+            val advisorJobStatus = advisorJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
+            if (advisorJobStatus == JobStatus.FINISHED) {
                 if (ortRun.jobs.evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
                         createdJobs += { scheduleEvaluatorJob(job, header) }
