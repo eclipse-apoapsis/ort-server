@@ -61,6 +61,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
@@ -928,6 +930,88 @@ class OrchestratorTest : WordSpec() {
                     )
                     ortRunRepository.update(
                         id = withArg { it shouldBe evaluatorJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
+                    )
+                }
+
+                verify(exactly = 0) {
+                    reporterJobRepository.create(any(), any())
+                }
+            }
+        }
+
+        "handleReporterWorkerResult" should {
+            "update the job in the database" {
+                val reporterWorkerResult = ReporterWorkerResult(20230727143725L)
+                val reporterJobRepository = mockk<ReporterJobRepository> {
+                    every { get(reporterWorkerResult.jobId) } returns reporterJob
+                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { get(evaluatorJob.ortRunId) } returns ortRun
+                }
+
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        reporterJobRepository,
+                        mockk(),
+                        ortRunRepository,
+                        mockk()
+                    ).handleReporterWorkerResult(
+                        reporterWorkerResult
+                    )
+                }
+
+                verify(exactly = 1) {
+                    reporterJobRepository.update(
+                        id = withArg { it shouldBe reporterJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.FINISHED) }
+                    )
+                }
+            }
+        }
+
+        "handleReporterWorkerError" should {
+            "update the job and ORT run in the database" {
+                val reporterWorkerError = ReporterWorkerError(20230727145120L)
+                val reporterJobRepository = mockk<ReporterJobRepository> {
+                    every { get(reporterWorkerError.jobId) } returns reporterJob
+                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { update(any(), any()) } returns mockk()
+                }
+
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        reporterJobRepository,
+                        mockk(),
+                        ortRunRepository,
+                        mockk()
+                    ).handleReporterWorkerError(reporterWorkerError)
+                }
+
+                verify(exactly = 1) {
+                    reporterJobRepository.update(
+                        id = withArg { it shouldBe reporterJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                    )
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe reporterJob.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
