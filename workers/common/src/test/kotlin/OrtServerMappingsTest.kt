@@ -97,7 +97,7 @@ class OrtServerMappingsTest : WordSpec({
                 repositoryId = repository.id,
                 revision = "abc123",
                 createdAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                jobs = JobConfigurations(),
+                config = JobConfigurations(),
                 status = OrtRunStatus.CREATED,
                 mapOf("label key" to "label value"),
                 null,

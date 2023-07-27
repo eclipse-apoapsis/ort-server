@@ -164,7 +164,7 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         repositoryId,
         revision,
         createdAt,
-        this.jobs.mapToApi(),
+        config.mapToApi(),
         jobs,
         status.mapToApi(),
         labels

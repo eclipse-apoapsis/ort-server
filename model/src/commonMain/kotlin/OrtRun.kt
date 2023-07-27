@@ -52,7 +52,7 @@ data class OrtRun(
     /**
      * The job configurations for this run.
      */
-    val jobs: JobConfigurations,
+    val config: JobConfigurations,
 
     /**
      * The status of this run.

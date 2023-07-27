@@ -77,7 +77,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         repositoryId = repository.id.value,
         revision = revision,
         createdAt = createdAt,
-        jobs = config,
+        config = config,
         status = status,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,

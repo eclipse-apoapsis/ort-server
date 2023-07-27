@@ -68,7 +68,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             repositoryId = repositoryId,
             revision = revision,
             createdAt = createdOrtRun.createdAt,
-            jobs = jobConfigurations,
+            config = jobConfigurations,
             status = OrtRunStatus.CREATED,
             labelsMap,
             null,
