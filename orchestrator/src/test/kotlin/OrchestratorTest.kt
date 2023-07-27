@@ -566,6 +566,8 @@ class OrchestratorTest : WordSpec() {
 
                 verify(exactly = 0) {
                     evaluatorJobRepository.create(any(), any())
+
+                    ortRunRepository.update(any(), any())
                 }
             }
         }
@@ -787,6 +789,8 @@ class OrchestratorTest : WordSpec() {
 
                 verify(exactly = 0) {
                     evaluatorJobRepository.create(any(), any())
+
+                    ortRunRepository.update(any(), any())
                 }
             }
         }
@@ -941,15 +945,16 @@ class OrchestratorTest : WordSpec() {
         }
 
         "handleReporterWorkerResult" should {
-            "update the job in the database" {
+            "update the job in the database and mark the ORT run as finished" {
                 val reporterWorkerResult = ReporterWorkerResult(20230727143725L)
                 val reporterJobRepository = mockk<ReporterJobRepository> {
                     every { get(reporterWorkerResult.jobId) } returns reporterJob
-                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
+                    every { update(reporterJob.id, any(), any(), any()) } returns reporterJob
                 }
 
                 val ortRunRepository = mockk<OrtRunRepository> {
                     every { get(evaluatorJob.ortRunId) } returns ortRun
+                    every { update(any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -973,6 +978,10 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe reporterJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.FINISHED) }
+                    )
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe reporterJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FINISHED) }
                     )
                 }
             }

@@ -101,9 +101,9 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
-        }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs)
+            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -150,9 +150,9 @@ class Orchestrator(
                 }
             }
 
-            createdJobs
-        }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs)
+            analyzerJob.ortRunId to createdJobs
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'AnalyzerWorkerResult' message.", it)
         }
@@ -221,11 +221,13 @@ class Orchestrator(
                         createdJobs += { scheduleReporterJob(job, header) }
                     }
                 }
+            } else {
+                createdJobs += dummyScheduleFunc
             }
 
-            createdJobs
-        }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs)
+            advisorJob.ortRunId to createdJobs
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'AdvisorWorkerResult' message.", it)
         }
@@ -294,11 +296,13 @@ class Orchestrator(
                         createdJobs += { scheduleReporterJob(job, header) }
                     }
                 }
+            } else {
+                createdJobs += dummyScheduleFunc
             }
 
-            createdJobs
-        }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs)
+            scannerJob.ortRunId to createdJobs
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'ScannerWorkerResult' message.", it)
         }
@@ -352,11 +356,11 @@ class Orchestrator(
                 "ORT run '${evaluatorJob.ortRunId}' not found."
             }
 
-            listOfNotNull(
+            evaluatorJob.ortRunId to listOfNotNull(
                 createReporterJob(ortRun)?.let { { scheduleReporterJob(it, header) } }
             )
-        }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs)
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'EvaluatorWorkerResult' message.", it)
         }
@@ -405,6 +409,8 @@ class Orchestrator(
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
             )
+        }.onSuccess { job ->
+            scheduleCreatedJobs(job.ortRunId, emptyList())
         }.onFailure {
             log.warn("Failed to handle 'ReporterWorkerResult' message.", it)
         }
@@ -478,10 +484,14 @@ class Orchestrator(
             reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
-    private fun scheduleCreatedJobs(createdJobs: CreatedJobs) {
+    private fun scheduleCreatedJobs(runId: Long, createdJobs: CreatedJobs) {
         // TODO: Handle errors during job scheduling.
 
         createdJobs.forEach { it() }
+
+        if (createdJobs.isEmpty()) {
+            ortRunRepository.update(runId, OrtRunStatus.FINISHED.asPresent())
+        }
     }
 
     /**
@@ -579,3 +589,9 @@ typealias JobScheduleFunc = () -> Unit
  * Type definition to represent a list of jobs that have been created and must be scheduled.
  */
 typealias CreatedJobs = List<JobScheduleFunc>
+
+/**
+ * A [JobScheduleFunc] that does not schedule any job. This is used if after handling a result message no job can be
+ * scheduled, but the ORT run is not yet complete.
+ */
+private val dummyScheduleFunc: JobScheduleFunc = {}
