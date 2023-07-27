@@ -44,7 +44,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
-    val jobConfigurations = jsonb("job_configurations", JobConfigurations::class)
+    val config = jsonb("config", JobConfigurations::class)
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
@@ -58,7 +58,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var index by OrtRunsTable.index
     var revision by OrtRunsTable.revision
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var jobConfigurations by OrtRunsTable.jobConfigurations
+    var config by OrtRunsTable.config
     var status by OrtRunsTable.status
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
@@ -77,7 +77,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         repositoryId = repository.id.value,
         revision = revision,
         createdAt = createdAt,
-        jobs = jobConfigurations,
+        jobs = config,
         status = status,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,

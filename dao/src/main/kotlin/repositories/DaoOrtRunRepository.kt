@@ -62,7 +62,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.repository = RepositoryDao[repositoryId]
             this.revision = revision
             this.createdAt = Clock.System.now().toDatabasePrecision()
-            this.jobConfigurations = jobConfigurations
+            this.config = jobConfigurations
             this.status = OrtRunStatus.CREATED
             this.labels = SizedCollection(labels.map { LabelDao.getOrPut(it.key, it.value) })
         }.mapToModel()
