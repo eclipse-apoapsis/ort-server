@@ -101,11 +101,9 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            CreatedJobs(
-                analyzerJob = createAnalyzerJob(ortRun)
-            )
+            listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
         }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs, header)
+            scheduleCreatedJobs(createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -132,25 +130,29 @@ class Orchestrator(
                 "ORT run '${analyzerJob.ortRunId}' not found."
             }
 
-            val createdJobs = CreatedJobs(
-                advisorJob = createAdvisorJob(ortRun),
-                scannerJob = createScannerJob(ortRun)
-            )
+            val createdJobs = listOfNotNull(
+                createAdvisorJob(ortRun)?.let { { scheduleAdvisorJob(it, header) } },
+                createScannerJob(ortRun)?.let { { scheduleScannerJob(it, header) } }
+            ).toMutableList()
 
             // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
-            if (createdJobs.advisorJob == null && createdJobs.scannerJob == null) {
+            if (createdJobs.isEmpty()) {
                 if (ortRun.jobs.evaluator != null) {
                     // Create an evaluator job if no advisor or scanner job is configured.
-                    createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
+                    createEvaluatorJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                    }
                 } else {
-                    // Create a reporter job if no advisor, scanner or reporter job is configured.
-                    createdJobs.reporterJob = createReporterJob(ortRun)
+                    // Create a reporter job if no advisor, scanner or evaluator job is configured.
+                    createReporterJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleReporterJob(job, header) }
+                    }
                 }
             }
 
             createdJobs
         }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs, header)
+            scheduleCreatedJobs(createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'AnalyzerWorkerResult' message.", it)
         }
@@ -204,20 +206,24 @@ class Orchestrator(
                 "ORT run '${advisorJob.ortRunId}' not found."
             }
 
-            val createdJobs = CreatedJobs()
+            val createdJobs = mutableListOf<JobScheduleFunc>()
 
             // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
             if (scannerJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
                 if (ortRun.jobs.evaluator != null) {
-                    createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
+                    createEvaluatorJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                    }
                 } else {
-                    createdJobs.reporterJob = createReporterJob(ortRun)
+                    createReporterJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleReporterJob(job, header) }
+                    }
                 }
             }
 
             createdJobs
         }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs, header)
+            scheduleCreatedJobs(createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'AdvisorWorkerResult' message.", it)
         }
@@ -271,20 +277,24 @@ class Orchestrator(
                 "ORT run '${scannerJob.ortRunId}' not found."
             }
 
-            val createdJobs = CreatedJobs()
+            val createdJobs = mutableListOf<JobScheduleFunc>()
 
             // Create an evaluator or reporter job only if the advisor and scanner jobs have finished successfully.
             if (advisorJobRepository.getForOrtRun(ortRun.id)?.let { it.status == JobStatus.FINISHED } == true) {
                 if (ortRun.jobs.evaluator != null) {
-                    createdJobs.evaluatorJob = createEvaluatorJob(ortRun)
+                    createEvaluatorJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                    }
                 } else {
-                    createdJobs.reporterJob = createReporterJob(ortRun)
+                    createReporterJob(ortRun)?.let { job ->
+                        createdJobs += { scheduleReporterJob(job, header) }
+                    }
                 }
             }
 
             createdJobs
         }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs, header)
+            scheduleCreatedJobs(createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'ScannerWorkerResult' message.", it)
         }
@@ -338,11 +348,11 @@ class Orchestrator(
                 "ORT run '${evaluatorJob.ortRunId}' not found."
             }
 
-            CreatedJobs(
-                reporterJob = createReporterJob(ortRun)
+            listOfNotNull(
+                createReporterJob(ortRun)?.let { { scheduleReporterJob(it, header) } }
             )
         }.onSuccess { createdJobs ->
-            scheduleCreatedJobs(createdJobs, header)
+            scheduleCreatedJobs(createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'EvaluatorWorkerResult' message.", it)
         }
@@ -464,14 +474,10 @@ class Orchestrator(
             reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
-    private fun scheduleCreatedJobs(createdJobs: CreatedJobs, header: MessageHeader) {
+    private fun scheduleCreatedJobs(createdJobs: CreatedJobs) {
         // TODO: Handle errors during job scheduling.
 
-        createdJobs.analyzerJob?.let { scheduleAnalyzerJob(it, header) }
-        createdJobs.advisorJob?.let { scheduleAdvisorJob(it, header) }
-        createdJobs.scannerJob?.let { scheduleScannerJob(it, header) }
-        createdJobs.evaluatorJob?.let { scheduleEvaluatorJob(it, header) }
-        createdJobs.reporterJob?.let { scheduleReporterJob(it, header) }
+        createdJobs.forEach { it() }
     }
 
     /**
@@ -561,12 +567,11 @@ class Orchestrator(
 }
 
 /**
- * A class to collect all jobs created within an orchestrator callback.
+ * Type definition for a function that schedules another worker job.
  */
-private class CreatedJobs(
-    var analyzerJob: AnalyzerJob? = null,
-    var advisorJob: AdvisorJob? = null,
-    var scannerJob: ScannerJob? = null,
-    var evaluatorJob: EvaluatorJob? = null,
-    var reporterJob: ReporterJob? = null
-)
+typealias JobScheduleFunc = () -> Unit
+
+/**
+ * Type definition to represent a list of jobs that have been created and must be scheduled.
+ */
+typealias CreatedJobs = List<JobScheduleFunc>
