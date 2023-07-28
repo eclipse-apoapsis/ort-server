@@ -62,7 +62,8 @@ interface OrtRunRepository {
      */
     fun update(
         id: Long,
-        status: OptionalValue<OrtRunStatus> = OptionalValue.Absent
+        status: OptionalValue<OrtRunStatus> = OptionalValue.Absent,
+        resolvedConfig: OptionalValue<JobConfigurations> = OptionalValue.Absent
     ): OrtRun
 
     /**

@@ -85,10 +85,16 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             emptyList()
         }
 
-    override fun update(id: Long, status: OptionalValue<OrtRunStatus>): OrtRun = db.blockingQuery {
+    override fun update(
+        id: Long,
+        status: OptionalValue<OrtRunStatus>,
+        resolvedConfig: OptionalValue<JobConfigurations>
+    ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent { ortRun.status = it }
+
+        resolvedConfig.ifPresent { ortRun.resolvedConfig = it }
 
         OrtRunDao[id].mapToModel()
     }

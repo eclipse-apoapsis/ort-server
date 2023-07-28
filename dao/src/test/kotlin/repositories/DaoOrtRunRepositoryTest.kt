@@ -47,6 +47,13 @@ class DaoOrtRunRepositoryTest : StringSpec({
         )
     )
 
+    val resolvedJobConfigurations = JobConfigurations(
+        analyzer = AnalyzerJobConfiguration(
+            allowDynamicVersions = false,
+            skipExcluded = true
+        )
+    )
+
     val labelsMap = mapOf("label1" to "label1", "label2" to "label2")
 
     beforeEach {
@@ -127,10 +134,13 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
         val updateStatus = OrtRunStatus.ACTIVE.asPresent()
 
-        val updateResult = ortRunRepository.update(ortRun.id, updateStatus)
+        val updateResult = ortRunRepository.update(ortRun.id, updateStatus, resolvedJobConfigurations.asPresent())
 
-        updateResult shouldBe ortRun.copy(status = updateStatus.value)
-        ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(status = updateStatus.value)
+        updateResult shouldBe ortRun.copy(status = updateStatus.value, resolvedConfig = resolvedJobConfigurations)
+        ortRunRepository.get(ortRun.id) shouldBe ortRun.copy(
+            status = updateStatus.value,
+            resolvedConfig = resolvedJobConfigurations
+        )
     }
 
     "delete should delete the database entry" {
