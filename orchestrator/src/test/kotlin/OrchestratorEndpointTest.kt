@@ -91,6 +91,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     revision = "main",
                     createdAt = Instant.fromEpochSeconds(0),
                     config = JobConfigurations(),
+                    resolvedConfig = JobConfigurations(),
                     status = OrtRunStatus.CREATED,
                     labels = mapOf("label key" to "label value"),
                     null,

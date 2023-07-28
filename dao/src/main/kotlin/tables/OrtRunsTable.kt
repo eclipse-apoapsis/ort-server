@@ -80,6 +80,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         revision = revision,
         createdAt = createdAt,
         config = config,
+        resolvedConfig = resolvedConfig,
         status = status,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,

@@ -165,6 +165,7 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         revision,
         createdAt,
         config.mapToApi(),
+        resolvedConfig?.mapToApi(),
         jobs,
         status.mapToApi(),
         labels

@@ -273,6 +273,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     "main",
                     Instant.parse("2023-06-27T05:17:02Z"),
                     JobConfigurations(),
+                    JobConfigurations(),
                     OrtRunStatus.CREATED,
                     emptyMap(),
                     null,

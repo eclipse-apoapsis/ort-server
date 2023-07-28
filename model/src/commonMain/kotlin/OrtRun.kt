@@ -55,6 +55,12 @@ data class OrtRun(
     val config: JobConfigurations,
 
     /**
+     * The resolved job configurations for this run. This field stores the output of the parameters check and validation
+     * script.
+     */
+    val resolvedConfig: JobConfigurations?,
+
+    /**
      * The status of this run.
      */
     val status: OrtRunStatus,

@@ -171,6 +171,7 @@ class OrchestratorTest : WordSpec() {
             evaluatorJob.configuration,
             reporterJob.configuration
         ),
+        resolvedConfig = null,
         status = OrtRunStatus.CREATED,
         labels = mapOf("label key" to "label value"),
         null,
@@ -191,6 +192,7 @@ class OrchestratorTest : WordSpec() {
             null,
             reporterJob.configuration
         ),
+        resolvedConfig = null,
         status = OrtRunStatus.CREATED,
         labels = mapOf("label key" to "label value"),
         null,
