@@ -137,7 +137,7 @@ class Orchestrator(
 
             // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
             if (createdJobs.isEmpty()) {
-                if (ortRun.config.evaluator != null) {
+                if (getConfig(ortRun).evaluator != null) {
                     // Create an evaluator job if no advisor or scanner job is configured.
                     createEvaluatorJob(ortRun)?.let { job ->
                         createdJobs += { scheduleEvaluatorJob(job, header) }
@@ -212,7 +212,7 @@ class Orchestrator(
             // or the scanner job is skipped.
             val scannerJobStatus = scannerJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
             if (scannerJobStatus == JobStatus.FINISHED) {
-                if (ortRun.config.evaluator != null) {
+                if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
                         createdJobs += { scheduleEvaluatorJob(job, header) }
                     }
@@ -287,7 +287,7 @@ class Orchestrator(
             // or the advisor job is skipped.
             val advisorJobStatus = advisorJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
             if (advisorJobStatus == JobStatus.FINISHED) {
-                if (ortRun.config.evaluator != null) {
+                if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
                         createdJobs += { scheduleEvaluatorJob(job, header) }
                     }
@@ -449,14 +449,14 @@ class Orchestrator(
     private fun createAnalyzerJob(ortRun: OrtRun): AnalyzerJob =
         analyzerJobRepository.create(
             ortRun.id,
-            ortRun.config.analyzer
+            getConfig(ortRun).analyzer
         )
 
     /**
      * Create an [AdvisorJob] if it is enabled.
      */
     private fun createAdvisorJob(ortRun: OrtRun): AdvisorJob? =
-        ortRun.config.advisor?.let { advisorJobConfiguration ->
+        getConfig(ortRun).advisor?.let { advisorJobConfiguration ->
             advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
         }
 
@@ -464,7 +464,7 @@ class Orchestrator(
      * Create a [ScannerJob] if it is enabled.
      */
     private fun createScannerJob(ortRun: OrtRun): ScannerJob? =
-        ortRun.config.scanner?.let { scannerJobConfiguration ->
+        getConfig(ortRun).scanner?.let { scannerJobConfiguration ->
             scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
         }
 
@@ -472,7 +472,7 @@ class Orchestrator(
      * Create an [EvaluatorJob] if it is enabled.
      */
     private fun createEvaluatorJob(ortRun: OrtRun): EvaluatorJob? =
-        ortRun.config.evaluator?.let { evaluatorJobConfiguration ->
+        getConfig(ortRun).evaluator?.let { evaluatorJobConfiguration ->
             evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
         }
 
@@ -480,7 +480,7 @@ class Orchestrator(
      * Create a [ReporterJob] if it is enabled.
      */
     private fun createReporterJob(ortRun: OrtRun): ReporterJob? =
-        ortRun.config.reporter?.let { reporterJobConfiguration ->
+        getConfig(ortRun).reporter?.let { reporterJobConfiguration ->
             reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
@@ -578,6 +578,11 @@ class Orchestrator(
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
+
+    /**
+     * Return a resolved configuration if it is available. Otherwise, return the original configuration.
+     */
+    private fun getConfig(ortRun: OrtRun) = ortRun.resolvedConfig ?: ortRun.config
 }
 
 /**
