@@ -136,6 +136,7 @@ ortReporter = { module = "com.github.oss-review-toolkit.ort:reporter", version.r
 ortReporters = { module = "com.github.oss-review-toolkit.ort:reporters", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "ort" }
+ortScriptingUtils = { module = "com.github.oss-review-toolkit.ort:scripting-utils", version.ref = "ort" }
 ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }

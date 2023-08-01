@@ -45,6 +45,7 @@ include(":utils:config")
 include(":workers:advisor")
 include(":workers:analyzer")
 include(":workers:common")
+include(":workers:config")
 include(":workers:evaluator")
 include(":workers:reporter")
 include(":workers:scanner")
@@ -58,3 +59,4 @@ project(":services:report-storage").name = "report-storage-service"
 project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"
+project(":workers:config").name = "config-worker"
