@@ -91,6 +91,13 @@ class OrtServerMappingsTest : WordSpec({
                 toolVersions = emptyMap()
             )
 
+            val runIssue = OrtServerIssue(
+                timestamp = Instant.parse("2023-08-02T07:59:38Z"),
+                source = "test-tool",
+                message = "Some problem with this run",
+                severity = "WARN"
+            )
+
             val ortRun = OrtRun(
                 id = 1L,
                 index = 1L,
@@ -103,7 +110,10 @@ class OrtServerMappingsTest : WordSpec({
                 mapOf("label key" to "label value"),
                 null,
                 null,
-                emptyMap()
+                emptyMap(),
+                listOf(runIssue),
+                "default",
+                "c80ef3bcd2bec428da923a188dd0870b1153995c"
             )
 
             val analyzerJob = AnalyzerJob(

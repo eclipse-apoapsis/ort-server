@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurati
 import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
 import org.ossreviewtoolkit.server.api.v1.Jobs as ApiJobs
 import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
+import org.ossreviewtoolkit.server.api.v1.OrtIssue as ApiOrtIssue
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
@@ -66,6 +67,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.Secret
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 fun AdvisorJob.mapToApi() =
@@ -157,6 +159,8 @@ fun Jobs.mapToApi() =
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
+fun OrtIssue.mapToApi() = ApiOrtIssue(timestamp, source, message, severity)
+
 fun OrtRun.mapToApi(jobs: ApiJobs) =
     ApiOrtRun(
         id = id,
@@ -168,7 +172,10 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         resolvedConfig?.mapToApi(),
         jobs,
         status.mapToApi(),
-        labels
+        labels,
+        issues = issues.map { it.mapToApi() },
+        configContext,
+        resolvedConfigContext
     )
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)

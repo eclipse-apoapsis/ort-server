@@ -96,7 +96,10 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     labels = mapOf("label key" to "label value"),
                     null,
                     null,
-                    emptyMap()
+                    emptyMap(),
+                    emptyList(),
+                    null,
+                    null
                 )
             )
             val message = Message(msgHeader, createOrtRun)

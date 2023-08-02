@@ -278,6 +278,9 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     emptyMap(),
                     null,
                     null,
+                    null,
+                    emptyList(),
+                    null,
                     null
                 )
             }

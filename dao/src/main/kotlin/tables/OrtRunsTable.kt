@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
 import org.ossreviewtoolkit.server.dao.utils.SortableTable
@@ -46,6 +47,8 @@ object OrtRunsTable : SortableTable("ort_runs") {
     //       frequent changes during early development.
     val config = jsonb("config", JobConfigurations::class)
     val resolvedConfig = jsonb("resolved_config", JobConfigurations::class).nullable()
+    val configContext = text("config_context").nullable()
+    val resolvedConfigContext = text("resolved_config_context").nullable()
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
@@ -61,7 +64,10 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var config by OrtRunsTable.config
     var resolvedConfig by OrtRunsTable.resolvedConfig
+    var configContext by OrtRunsTable.configContext
+    var resolvedConfigContext by OrtRunsTable.resolvedConfigContext
     var status by OrtRunsTable.status
+    var issues by OrtIssueDao via OrtRunsIssuesTable
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
@@ -85,6 +91,9 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,
         vcsProcessedId = vcsProcessedId?.value,
-        nestedRepositoryIds = nestedRepositories.associate { it.path to it.vcsId.value }
+        nestedRepositoryIds = nestedRepositories.associate { it.path to it.vcsId.value },
+        issues = issues.map { it.mapToModel() },
+        configContext = configContext,
+        resolvedConfigContext = resolvedConfigContext
     )
 }

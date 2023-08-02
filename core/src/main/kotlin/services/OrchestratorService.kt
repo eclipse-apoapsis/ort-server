@@ -57,9 +57,10 @@ class OrchestratorService(
         repositoryId: Long,
         revision: String,
         jobConfig: JobConfigurations,
+        configContext: String?,
         labels: Map<String, String>
     ): OrtRun {
-        val ortRun = db.dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig, labels) }
+        val ortRun = db.dbQuery { ortRunRepository.create(repositoryId, revision, jobConfig, configContext, labels) }
 
         // TODO: Set the correct token.
         orchestratorSender.send(

@@ -176,7 +176,10 @@ class OrchestratorTest : WordSpec() {
         labels = mapOf("label key" to "label value"),
         null,
         null,
-        emptyMap()
+        emptyMap(),
+        emptyList(),
+        null,
+        null
     )
 
     private val ortRunAnalyzerAndReporter = OrtRun(
@@ -197,7 +200,10 @@ class OrchestratorTest : WordSpec() {
         labels = mapOf("label key" to "label value"),
         null,
         null,
-        emptyMap()
+        emptyMap(),
+        emptyList(),
+        null,
+        null
     )
 
     init {

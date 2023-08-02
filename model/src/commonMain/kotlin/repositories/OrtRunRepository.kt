@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.model.repositories
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
@@ -36,7 +37,9 @@ interface OrtRunRepository {
         repositoryId: Long,
         revision: String,
         jobConfigurations: JobConfigurations,
-        labels: Map<String, String>
+        configContext: String? = null,
+        labels: Map<String, String>,
+        issues: Collection<OrtIssue> = emptyList()
     ): OrtRun
 
     /**
@@ -58,12 +61,15 @@ interface OrtRunRepository {
     ): List<OrtRun>
 
     /**
-     * Update an ORT run by [id] with the [present][OptionalValue.Present] values.
+     * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] are provided, they are
+     * added to the already existing ones.
      */
     fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus> = OptionalValue.Absent,
-        resolvedConfig: OptionalValue<JobConfigurations> = OptionalValue.Absent
+        resolvedConfig: OptionalValue<JobConfigurations> = OptionalValue.Absent,
+        resolvedConfigContext: OptionalValue<String?> = OptionalValue.Absent,
+        issues: OptionalValue<Collection<OrtIssue>> = OptionalValue.Absent
     ): OrtRun
 
     /**

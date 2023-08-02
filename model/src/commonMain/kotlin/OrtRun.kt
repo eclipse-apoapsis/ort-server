@@ -22,6 +22,8 @@ package org.ossreviewtoolkit.server.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
+
 @Serializable
 data class OrtRun(
     /**
@@ -84,7 +86,26 @@ data class OrtRun(
      * A map of nested repositories, for example Git submodules or Git-Repo modules. The key is the path to the
      * nested repository relative to the root of the main repository and the value is the id of its VCS information.
      */
-    val nestedRepositoryIds: Map<String, Long>?
+    val nestedRepositoryIds: Map<String, Long>?,
+
+    /**
+     * A list with issues that have been found for this run and that are not related to one of the processing steps.
+     * Such issues are created for instance during validation of the run parameters.
+     */
+    val issues: List<OrtIssue>,
+
+    /**
+     * An optional context to be used when obtaining configuration for this ORT run. This context is passed to the
+     * configuration manager and can be used to select a specific subset or a version of configuration properties. If
+     * this value is missing, the default configuration context should be used.
+     */
+    val configContext: String?,
+
+    /**
+     * The resolved configuration context. When an ORT run is started, the configuration context is resolved once and
+     * then stored, so that all workers access the same set of configuration properties.
+     */
+    val resolvedConfigContext: String?
 )
 
 enum class OrtRunStatus {

@@ -35,12 +35,14 @@ import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsLabelsTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
 import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.utils.apply
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
@@ -53,7 +55,9 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         repositoryId: Long,
         revision: String,
         jobConfigurations: JobConfigurations,
-        labels: Map<String, String>
+        configContext: String?,
+        labels: Map<String, String>,
+        issues: Collection<OrtIssue>
     ): OrtRun = db.blockingQuery {
         val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
 
@@ -63,8 +67,10 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.revision = revision
             this.createdAt = Clock.System.now().toDatabasePrecision()
             this.config = jobConfigurations
+            this.configContext = configContext
             this.status = OrtRunStatus.CREATED
             this.labels = SizedCollection(labels.map { LabelDao.getOrPut(it.key, it.value) })
+            this.issues = SizedCollection(issues.map { OrtIssueDao.getOrPut(it) })
         }.mapToModel()
     }
 
@@ -88,13 +94,20 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus>,
-        resolvedConfig: OptionalValue<JobConfigurations>
+        resolvedConfig: OptionalValue<JobConfigurations>,
+        resolvedConfigContext: OptionalValue<String?>,
+        issues: OptionalValue<Collection<OrtIssue>>
     ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent { ortRun.status = it }
 
         resolvedConfig.ifPresent { ortRun.resolvedConfig = it }
+        resolvedConfigContext.ifPresent { ortRun.resolvedConfigContext = it }
+
+        issues.ifPresent { issues ->
+            ortRun.issues = SizedCollection(ortRun.issues + issues.map { OrtIssueDao.getOrPut(it) })
+        }
 
         OrtRunDao[id].mapToModel()
     }

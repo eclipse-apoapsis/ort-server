@@ -74,7 +74,26 @@ data class OrtRun(
     /**
      * The labels of this run.
      */
-    val labels: Map<String, String>
+    val labels: Map<String, String>,
+
+    /**
+     * A list with issues that have been found for this run and that are not related to one of the processing steps.
+     * Such issues are created for instance during validation of the run parameters.
+     */
+    val issues: List<OrtIssue>,
+
+    /**
+     * An optional context to be used when obtaining configuration for this ORT run. This context is passed to the
+     * configuration manager and can be used to select a specific subset or a version of configuration properties. If
+     * this value is missing, the default configuration context should be used.
+     */
+    val configContext: String? = null,
+
+    /**
+     * The resolved configuration context. When an ORT run is started, the configuration context is resolved once and
+     * then stored, so that all workers access the same set of configuration properties.
+     */
+    val resolvedConfigContext: String? = null
 )
 
 /**
@@ -95,7 +114,12 @@ data class CreateOrtRun(
     /**
      * The labels for this run.
      */
-    val labels: Map<String, String>
+    val labels: Map<String, String>,
+
+    /**
+     * The optional context for obtaining the configuration of this run.
+     */
+    val configContext: String? = null
 )
 
 @Serializable

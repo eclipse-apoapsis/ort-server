@@ -211,7 +211,10 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 resolvedConfig = jobConfigurations,
                                 jobs = jobs,
                                 status = OrtRunStatus.FINISHED,
-                                labels = mapOf("label key" to "label value")
+                                labels = mapOf("label key" to "label value"),
+                                issues = emptyList(),
+                                configContext = null,
+                                resolvedConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
                             ),
                             OrtRun(
                                 id = 3,
@@ -223,7 +226,10 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
                                 resolvedConfig = jobConfigurations,
                                 jobs = jobs,
                                 status = OrtRunStatus.ACTIVE,
-                                labels = mapOf("label key" to "label value")
+                                labels = mapOf("label key" to "label value"),
+                                issues = emptyList(),
+                                configContext = null,
+                                resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                             )
                         )
                     )
@@ -268,7 +274,10 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
                             resolvedConfig = jobConfigurations,
                             jobs = jobs,
                             status = OrtRunStatus.CREATED,
-                            labels = mapOf("label key" to "label value")
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            configContext = null,
+                            resolvedConfigContext = null
                         )
                     )
                 )
@@ -309,7 +318,10 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
                             resolvedConfig = jobConfigurations,
                             jobs = jobs,
                             status = OrtRunStatus.ACTIVE,
-                            labels = mapOf("label key" to "label value")
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            configContext = null,
+                            resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                         )
                     )
                 )

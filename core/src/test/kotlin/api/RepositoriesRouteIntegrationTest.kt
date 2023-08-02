@@ -239,8 +239,20 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val run1 = ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations(), labelsMap)
-                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations(), labelsMap)
+                val run1 = ortRunRepository.create(
+                    createdRepository.id,
+                    "branch-1",
+                    JobConfigurations(),
+                    null,
+                    labelsMap
+                )
+                val run2 = ortRunRepository.create(
+                    createdRepository.id,
+                    "branch-2",
+                    JobConfigurations(),
+                    "test",
+                    labelsMap
+                )
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
@@ -257,13 +269,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     createdRepository.id,
                     "revision",
                     dbExtension.fixtures.jobConfigurations,
-                    labelsMap
+                    null,
+                    labelsMap,
                 )
 
                 val run2 = ortRunRepository.create(
                     createdRepository.id,
                     "revision",
                     dbExtension.fixtures.jobConfigurations,
+                    "test",
                     labelsMap
                 )
 
@@ -281,8 +295,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations(), labelsMap)
-                val run2 = ortRunRepository.create(createdRepository.id, "branch-2", JobConfigurations(), labelsMap)
+                ortRunRepository.create(createdRepository.id, "branch-1", JobConfigurations(), null, labelsMap)
+                val run2 = ortRunRepository.create(
+                    createdRepository.id,
+                    "branch-2",
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap
+                )
 
                 val query = "?sort=-revision,-createdAt&limit=1"
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs$query")
@@ -305,7 +325,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+                val run = ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    JobConfigurations(),
+                    "configContext",
+                    labelsMap
+                )
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
 
@@ -318,7 +344,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+                val run = ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap
+                )
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
 
@@ -329,7 +361,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.READ_ORT_RUNS" {
             val createdRepository = createRepository()
-            val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), labelsMap)
+            val run = ortRunRepository.create(createdRepository.id, "revision", JobConfigurations(), null, labelsMap)
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(createdRepository.id)) {
                 get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
