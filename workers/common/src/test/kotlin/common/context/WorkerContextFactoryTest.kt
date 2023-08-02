@@ -29,7 +29,11 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Secret
@@ -39,6 +43,14 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 
 class WorkerContextFactoryTest : WordSpec({
+    beforeSpec {
+        mockkObject(ConfigManager)
+    }
+
+    afterSpec {
+        unmockkAll()
+    }
+
     "ortRun" should {
         "return the OrtRun object" {
             val helper = ContextFactoryTestHelper()
@@ -143,9 +155,60 @@ class WorkerContextFactoryTest : WordSpec({
             context.resolveSecret(secret1) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value
         }
     }
+
+    "configManager" should {
+        "return a ConfigManager using the resolved context" {
+            val resolvedContext = "resolvedConfigContext"
+            val helper = ContextFactoryTestHelper()
+
+            val run = helper.expectRunRequest()
+            every { run.resolvedConfigContext } returns resolvedContext
+
+            val configManager = mockk<ConfigManager>()
+            every { ConfigManager.create(config, Context(resolvedContext)) } returns configManager
+
+            val context = helper.context()
+
+            context.configManager() shouldBe configManager
+        }
+
+        "return a ConfigManager using the original context" {
+            val originalContext = "originalConfigContext"
+            val helper = ContextFactoryTestHelper()
+
+            val run = helper.expectRunRequest()
+            every { run.configContext } returns originalContext
+
+            val configManager = mockk<ConfigManager>()
+            every {
+                ConfigManager.create(config, Context(originalContext), resolveContext = true)
+            } returns configManager
+
+            val context = helper.context()
+
+            context.configManager(resolveContext = true) shouldBe configManager
+        }
+
+        "return a ConfigManager using the default context" {
+            val helper = ContextFactoryTestHelper()
+
+            val run = helper.expectRunRequest()
+            every { run.resolvedConfigContext } returns null
+
+            val configManager = mockk<ConfigManager>()
+            every { ConfigManager.create(config, ConfigManager.DEFAULT_CONTEXT) } returns configManager
+
+            val context = helper.context()
+
+            context.configManager() shouldBe configManager
+        }
+    }
 })
 
 private const val RUN_ID = 20230607142948L
+
+/** The configuration used by the test factory. */
+private val config = createConfig()
 
 /**
  * Return an initialized [Config] object that configures the test secret provider factory.
@@ -174,7 +237,7 @@ private class ContextFactoryTestHelper(
     val repositoryRepository: RepositoryRepository = mockk(),
 
     /** The factory to be tested. */
-    val factory: WorkerContextFactory = WorkerContextFactory(createConfig(), ortRunRepository, repositoryRepository)
+    val factory: WorkerContextFactory = WorkerContextFactory(config, ortRunRepository, repositoryRepository)
 ) {
     /**
      * Prepare the mock [OrtRunRepository] to be queried for the test run ID. Return a mock run that is also returned

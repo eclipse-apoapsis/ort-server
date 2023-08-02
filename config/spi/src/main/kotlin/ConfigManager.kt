@@ -59,6 +59,13 @@ class ConfigManager(
          */
         const val SECRET_PROVIDER_NAME_PROPERTY = "secretProvider"
 
+        /**
+         * Constant for a default configuration context. This indicates that the user has not specified a specific
+         * context. The concrete meaning is up to a [ConfigFileProvider] implementation; it should fall back to some
+         * meaningful default.
+         */
+        val DEFAULT_CONTEXT = Context("")
+
         /** The service loader for file provider factories. */
         private val FILE_PROVIDER_LOADER = ServiceLoader.load(ConfigFileProviderFactory::class.java)
 

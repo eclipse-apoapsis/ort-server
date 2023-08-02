@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.common.context
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Secret
@@ -34,6 +35,13 @@ interface WorkerContext {
 
     /** An object with information about the current repository and its hierarchy. */
     val hierarchy: Hierarchy
+
+    /**
+     * Return an initialized [ConfigManager] object. Depending on the given [resolveContext] flag, the manager is
+     * either using the resolved context (if the value is *false*) or the original context (if the value is *true*).
+     * The original context is only used initially to resolve it.
+     */
+    fun configManager(resolveContext: Boolean = false): ConfigManager
 
     /**
      * Resolve the given [secret] and return its value. Cache the value, so that it can be returned directly when a

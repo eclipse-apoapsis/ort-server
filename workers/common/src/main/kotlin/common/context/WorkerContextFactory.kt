@@ -29,6 +29,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Secret
@@ -67,6 +69,12 @@ class WorkerContextFactory(
 
             override val hierarchy: Hierarchy by lazy {
                 repositoryRepository.getHierarchy(ortRun.repositoryId)
+            }
+
+            override fun configManager(resolveContext: Boolean): ConfigManager {
+                val context = (if (resolveContext) ortRun.configContext else ortRun.resolvedConfigContext)
+                    ?.let { Context(it) } ?: ConfigManager.DEFAULT_CONTEXT
+                return ConfigManager.create(config, context, resolveContext)
             }
 
             override suspend fun resolveSecret(secret: Secret): String =
