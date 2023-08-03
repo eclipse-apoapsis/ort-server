@@ -24,6 +24,8 @@ import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServ
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
+import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
 
 /**
  * A helper class for creating concrete [EnvironmentServiceDefinition] instances from the properties declared in an
@@ -36,6 +38,9 @@ class EnvironmentDefinitionFactory {
 
         /** The name for the [NpmDefinition] type. */
         const val NPM_TYPE = "npm"
+
+        /** The name for the [YarnDefinition] type. */
+        const val YARN_TYPE = "yarn"
 
         /** The name of the property that defines the infrastructure service for a definition. */
         const val SERVICE_PROPERTY = "service"
@@ -53,6 +58,7 @@ class EnvironmentDefinitionFactory {
         when (type) {
             MAVEN_TYPE -> createMavenDefinition(service, DefinitionProperties(properties))
             NPM_TYPE -> createNpmDefinition(service, DefinitionProperties(properties))
+            YARN_TYPE -> createYarnDefinition(service, DefinitionProperties(properties))
             else -> fail("Unsupported definition type '$type'", properties)
         }
 
@@ -79,6 +85,22 @@ class EnvironmentDefinitionFactory {
                 email = getOptionalProperty("email"),
                 authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD),
                 alwaysAuth = getBooleanProperty("alwaysAuth", true)
+            )
+        }
+
+    /**
+     * Create a definition for the _.yarnrc.yml_ configuration file of Yarn with the given [service] and [properties].
+     */
+    private fun createYarnDefinition(
+        service: InfrastructureService,
+        properties: DefinitionProperties
+    ): Result<EnvironmentServiceDefinition> =
+        properties.withRequiredProperties("registryUri") {
+            YarnDefinition(
+                service = service,
+                authMode = getEnumProperty("authMode", YarnAuthMode.AUTH_TOKEN),
+                alwaysAuth = getBooleanProperty("alwaysAuth", true),
+                registryUri = getProperty("registryUri")
             )
         }
 }

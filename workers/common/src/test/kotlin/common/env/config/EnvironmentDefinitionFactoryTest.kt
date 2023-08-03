@@ -31,10 +31,13 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.workers.common.common.env.REGISTRY_URI
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
+import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
 
 class EnvironmentDefinitionFactoryTest : WordSpec() {
     /** A mock for an infrastructure service to be used by tests. */
@@ -156,6 +159,86 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val properties = mapOf("alwaysAuth" to "maybe")
 
                 val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                exception.message shouldContain properties.getValue("alwaysAuth")
+                exception.message shouldContain "TRUE"
+                exception.message shouldContain "FALSE"
+            }
+        }
+
+        "A Yarn definition" should {
+            "be created with the provided values" {
+                val alwaysAuth = "false"
+                val authMode = YarnAuthMode.AUTH_IDENT
+
+                val properties = mapOf(
+                    "registryUri" to REGISTRY_URI,
+                    "alwaysAuth" to alwaysAuth,
+                    "authMode" to authMode.name
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<YarnDefinition>()
+                definition.registryUri shouldBe REGISTRY_URI
+                definition.authMode shouldBe authMode
+                definition.alwaysAuth shouldBe false
+            }
+
+            "be created with default values" {
+                val properties = mapOf("registryUri" to REGISTRY_URI)
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<YarnDefinition>()
+                definition.registryUri shouldBe REGISTRY_URI
+                definition.authMode shouldBe YarnAuthMode.AUTH_TOKEN
+                definition.alwaysAuth shouldBe true
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "anotherProperty"
+                val unsupportedProperty2 = "oneMoreUnsupportedProperty"
+                val properties =
+                    mapOf("registryUri" to REGISTRY_URI, unsupportedProperty1 to "bar", unsupportedProperty2 to "baz")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+                exception.message shouldContain "'$unsupportedProperty2'"
+            }
+
+            "fail if there are missing mandatory properties" {
+                val properties = emptyMap<String, String>()
+
+                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                exception.message shouldContain "Missing required properties: 'registryUri'"
+            }
+
+            "accept enum constants independent on case" {
+                val properties = mapOf("registryUri" to REGISTRY_URI, "authMode" to "auth_token")
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<YarnDefinition>()
+                definition.authMode shouldBe YarnAuthMode.AUTH_TOKEN
+            }
+
+            "fail for an unsupported enum constant" {
+                val properties = mapOf("registryUri" to REGISTRY_URI, "authMode" to "unknown")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                exception.message shouldContain properties.getValue("authMode")
+                exception.message shouldContain YarnAuthMode.AUTH_TOKEN.name
+                exception.message shouldContain YarnAuthMode.AUTH_IDENT.name
+            }
+
+            "fail for an invalid boolean value" {
+                val properties = mapOf("registryUri" to REGISTRY_URI, "alwaysAuth" to "maybe")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
                 exception.message shouldContain properties.getValue("alwaysAuth")
                 exception.message shouldContain "TRUE"
