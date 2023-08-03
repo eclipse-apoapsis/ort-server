@@ -25,8 +25,13 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
+import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
@@ -42,6 +47,17 @@ class MessagePublisherTest : StringSpec({
         MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint) shouldBe message
     }
 
+    "Messages to the Config worker can be published" {
+        val config = createTestSenderConfig(ConfigEndpoint)
+
+        val publisher = MessagePublisher(config)
+
+        val message = Message(HEADER, ConfigRequest(1))
+        publisher.publish(ConfigEndpoint, message)
+
+        MessageSenderFactoryForTesting.expectMessage(ConfigEndpoint) shouldBe message
+    }
+
     "Messages to the Analyzer worker can be published" {
         val config = createTestSenderConfig(AnalyzerEndpoint)
 
@@ -51,6 +67,50 @@ class MessagePublisherTest : StringSpec({
         publisher.publish(AnalyzerEndpoint, message)
 
         MessageSenderFactoryForTesting.expectMessage(AnalyzerEndpoint) shouldBe message
+    }
+
+    "Messages to the Advisor worker can be published" {
+        val config = createTestSenderConfig(AdvisorEndpoint)
+
+        val publisher = MessagePublisher(config)
+
+        val message = Message(HEADER, AdvisorRequest(1))
+        publisher.publish(AdvisorEndpoint, message)
+
+        MessageSenderFactoryForTesting.expectMessage(AdvisorEndpoint) shouldBe message
+    }
+
+    "Messages to the Scanner worker can be published" {
+        val config = createTestSenderConfig(ScannerEndpoint)
+
+        val publisher = MessagePublisher(config)
+
+        val message = Message(HEADER, ScannerRequest(1))
+        publisher.publish(ScannerEndpoint, message)
+
+        MessageSenderFactoryForTesting.expectMessage(ScannerEndpoint) shouldBe message
+    }
+
+    "Messages to the Evaluator worker can be published" {
+        val config = createTestSenderConfig(EvaluatorEndpoint)
+
+        val publisher = MessagePublisher(config)
+
+        val message = Message(HEADER, EvaluatorRequest(1))
+        publisher.publish(EvaluatorEndpoint, message)
+
+        MessageSenderFactoryForTesting.expectMessage(EvaluatorEndpoint) shouldBe message
+    }
+
+    "Messages to the Reporter worker can be published" {
+        val config = createTestSenderConfig(ReporterEndpoint)
+
+        val publisher = MessagePublisher(config)
+
+        val message = Message(HEADER, ReporterRequest(1))
+        publisher.publish(ReporterEndpoint, message)
+
+        MessageSenderFactoryForTesting.expectMessage(ReporterEndpoint) shouldBe message
     }
 })
 

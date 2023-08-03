@@ -42,6 +42,9 @@ class MessagePublisher(
     /** The sender to the Orchestrator endpoint. */
     private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, config) }
 
+    /** The sender to the Config endpoint. */
+    private val configSender by lazy { MessageSenderFactory.createSender(ConfigEndpoint, config) }
+
     /** The sender to the Analyzer endpoint. */
     private val analyzerSender by lazy { MessageSenderFactory.createSender(AnalyzerEndpoint, config) }
 
@@ -70,6 +73,7 @@ class MessagePublisher(
         @Suppress("UNCHECKED_CAST")
         val sender = when (to) {
             is OrchestratorEndpoint -> orchestratorSender
+            is ConfigEndpoint -> configSender
             is AnalyzerEndpoint -> analyzerSender
             is AdvisorEndpoint -> advisorSender
             is ScannerEndpoint -> scannerSender

@@ -23,6 +23,7 @@ import kotlin.reflect.KClass
 
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
@@ -53,6 +54,11 @@ sealed class Endpoint<T : Any>(
  * A concrete [Endpoint] declaration representing the Orchestrator endpoint.
  */
 object OrchestratorEndpoint : Endpoint<OrchestratorMessage>(OrchestratorMessage::class, "orchestrator")
+
+/**
+ * A concrete [Endpoint] declaration representing the Config endpoint.
+ */
+object ConfigEndpoint : Endpoint<ConfigRequest>(ConfigRequest::class, "config")
 
 /**
  * A concrete [Endpoint] declaration representing the Analyzer worker.
