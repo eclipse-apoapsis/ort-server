@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
+import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
 
 /**
  * A table to represent a package license choice.
@@ -39,4 +40,9 @@ class PackageLicenseChoiceDao(id: EntityID<Long>) : LongEntity(id) {
 
     var identifier by IdentifierDao referencedOn PackageLicenseChoicesTable.identifierId
     var licenseChoices by SpdxLicenseChoiceDao via PackageLicenseChoicesSpdxLicenseChoicesTable
+
+    fun mapToModel() = PackageLicenseChoice(
+        identifier = identifier.mapToModel(),
+        licenseChoices = licenseChoices.map(SpdxLicenseChoiceDao::mapToModel)
+    )
 }

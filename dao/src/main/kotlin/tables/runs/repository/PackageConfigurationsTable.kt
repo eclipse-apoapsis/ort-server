@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
+import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
 
 /**
  * A table to store a package configuration, which is part of a
@@ -48,4 +49,12 @@ class PackageConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var pathExcludes by PathExcludeDao via PackageConfigurationsPathExcludesTable
     var licenseFindingCurations by LicenseFindingCurationDao via PackageConfigurationsLicenseFindingCurationsTable
+
+    fun mapToModel() = PackageConfiguration(
+        id = identifier.mapToModel(),
+        sourceArtifactUrl = sourceArtifactUrl,
+        vcs = vcsMatcher?.mapToModel(),
+        pathExcludes = pathExcludes.map(PathExcludeDao::mapToModel),
+        licenseFindingCurations = licenseFindingCurations.map(LicenseFindingCurationDao::mapToModel)
+    )
 }

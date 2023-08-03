@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
 
 /**
  * A table to represent a package curation.
@@ -40,4 +41,9 @@ class PackageCurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var identifier by IdentifierDao referencedOn PackageCurationsTable.identifierId
     var packageCurationData by PackageCurationDataDao referencedOn PackageCurationsTable.packageCurationDataId
+
+    fun mapToModel() = PackageCuration(
+        id = identifier.mapToModel(),
+        data = packageCurationData.mapToModel()
+    )
 }

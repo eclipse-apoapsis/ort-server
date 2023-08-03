@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.runs.repository.VcsMatcher
 
 /**
  * A table to represent a VCS matcher, used within a [PackageConfiguration][PackageConfigurationsTable].
@@ -41,4 +42,6 @@ class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
     var type by VcsMatchersTable.type
     var url by VcsMatchersTable.url
     var revision by VcsMatchersTable.revision
+
+    fun mapToModel() = VcsMatcher(type, url, revision)
 }

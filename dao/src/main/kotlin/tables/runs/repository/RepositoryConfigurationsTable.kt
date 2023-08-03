@@ -26,6 +26,11 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
+import org.ossreviewtoolkit.server.model.runs.repository.Curations
+import org.ossreviewtoolkit.server.model.runs.repository.Excludes
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 /**
  * A table to represent a repository configuration.
@@ -53,4 +58,28 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var packageConfigurations by PackageConfigurationDao via RepositoryConfigurationsPackageConfigurationsTable
     var spdxLicenseChoices by SpdxLicenseChoiceDao via RepositoryConfigurationsSpdxLicenseChoicesTable
     var packageLicenseChoices by PackageLicenseChoiceDao via RepositoryConfigurationsPackageLicenseChoicesTable
+
+    fun mapToModel() = RepositoryConfiguration(
+        id = id.value,
+        ortRunId = ortRun.id.value,
+        analyzerConfig = repositoryAnalyzerConfiguration?.mapToModel(),
+        excludes = Excludes(
+            paths = pathExcludes.map(PathExcludeDao::mapToModel),
+            scopes = scopeExcludes.map(ScopeExcludeDao::mapToModel)
+        ),
+        resolutions = Resolutions(
+            issues = issueResolutions.map(IssueResolutionDao::mapToModel),
+            ruleViolations = ruleViolationResolutions.map(RuleViolationResolutionDao::mapToModel),
+            vulnerabilities = vulnerabilityResolutions.map(VulnerabilityResolutionDao::mapToModel)
+        ),
+        curations = Curations(
+            packages = curations.map(PackageCurationDao::mapToModel),
+            licenseFindings = licenseFindingCurations.map(LicenseFindingCurationDao::mapToModel)
+        ),
+        packageConfigurations = packageConfigurations.map(PackageConfigurationDao::mapToModel),
+        licenseChoices = LicenseChoices(
+            repositoryLicenseChoices = spdxLicenseChoices.map(SpdxLicenseChoiceDao::mapToModel),
+            packageLicenseChoices = packageLicenseChoices.map(PackageLicenseChoiceDao::mapToModel)
+        )
+    )
 }

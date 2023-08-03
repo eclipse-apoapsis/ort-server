@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
+
 /**
  * A table to represent a rule violation resolution, used within a
  * [RepositoryConfiguration][RepositoryConfigurationsTable].
@@ -40,4 +42,6 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     var message by RuleViolationResolutionsTable.message
     var reason by RuleViolationResolutionsTable.reason
     var comment by RuleViolationResolutionsTable.comment
+
+    fun mapToModel() = RuleViolationResolution(message, reason, comment)
 }

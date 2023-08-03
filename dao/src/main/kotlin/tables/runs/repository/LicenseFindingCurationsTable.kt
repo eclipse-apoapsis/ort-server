@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
+
 /**
  * A table to represent a license finding curation, which is part of a
  * [PackageConfiguration][PackageConfigurationsTable] and [RepositoryConfiguration][RepositoryConfigurationsTable].
@@ -49,4 +51,14 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
     var concludedLicense by LicenseFindingCurationsTable.concludedLicense
     var reason by LicenseFindingCurationsTable.reason
     var comment by LicenseFindingCurationsTable.comment
+
+    fun mapToModel() = LicenseFindingCuration(
+        path = path,
+        startLines = startLines.orEmpty(),
+        lineCount = lineCount,
+        detectedLicense = detectedLicense,
+        concludedLicense = concludedLicense,
+        reason = reason,
+        comment = comment
+    )
 }

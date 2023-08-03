@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
+
 /**
  * A table to represent an issue resolution, used within a [RepositoryConfiguration][RepositoryConfigurationsTable].
  */
@@ -39,4 +41,6 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     var message by IssueResolutionsTable.message
     var reason by IssueResolutionsTable.reason
     var comment by IssueResolutionsTable.comment
+
+    fun mapToModel() = IssueResolution(message, reason, comment)
 }

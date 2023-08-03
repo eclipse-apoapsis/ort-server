@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
+
 /**
  * A table to represent a SPDX license choice, used within a [RepositoryConfiguration][RepositoryConfigurationsTable].
  */
@@ -37,4 +39,6 @@ class SpdxLicenseChoiceDao(id: EntityID<Long>) : LongEntity(id) {
 
     var given by SpdxLicenseChoicesTable.given
     var choice by SpdxLicenseChoicesTable.choice
+
+    fun mapToModel() = SpdxLicenseChoice(given, choice)
 }

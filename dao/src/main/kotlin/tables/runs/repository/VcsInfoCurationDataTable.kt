@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
 
 /**
  * A table to represent a VCS info curation data, used within a [PackageCurationData][PackageCurationDataTable].
@@ -43,4 +44,6 @@ class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var url by VcsInfoCurationDataTable.url
     var revision by VcsInfoCurationDataTable.revision
     var path by VcsInfoCurationDataTable.path
+
+    fun mapToModel() = VcsInfoCurationData(type, url, revision, path)
 }

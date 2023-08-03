@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
 
 /**
  * A table to store a repository analyzer configuration, used within a
@@ -48,4 +49,12 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var skipExcluded by RepositoryAnalyzerConfigurationsTable.skipExcluded
     var packageManagerConfigurations by PackageManagerConfigurationDao via
             RepositoryAnalyzerConfigurationsPackageManagerConfigurationsTable
+
+    fun mapToModel() = RepositoryAnalyzerConfiguration(
+        allowDynamicVersions = allowDynamicVersions,
+        enabledPackageManagers = enabledPackageManagers,
+        disabledPackageManagers = disabledPackageManagers,
+        packageManagers = packageManagerConfigurations.associate { it.name to it.mapToModel() },
+        skipExcluded = skipExcluded
+    )
 }

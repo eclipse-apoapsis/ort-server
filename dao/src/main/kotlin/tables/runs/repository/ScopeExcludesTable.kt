@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
+
 /**
  * A table to represent a scope exclude.
  */
@@ -39,4 +41,6 @@ class ScopeExcludeDao(id: EntityID<Long>) : LongEntity(id) {
     var pattern by ScopeExcludesTable.pattern
     var reason by ScopeExcludesTable.reason
     var comment by ScopeExcludesTable.comment
+
+    fun mapToModel() = ScopeExclude(pattern, reason, comment)
 }

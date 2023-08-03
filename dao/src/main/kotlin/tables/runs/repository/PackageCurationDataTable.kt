@@ -27,6 +27,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
 
 /**
  * A table to represent a package configuration data, which is part of a [PackageCuration][PackageCurationsTable].
@@ -65,4 +66,20 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
 
     var authors by AuthorDao via PackageCurationDataAuthors
     var declaredLicenseMappings by DeclaredLicenseMappingDao via PackageCurationDataDeclaredLicenseMappingsTable
+
+    fun mapToModel() = PackageCurationData(
+        comment = comment,
+        purl = purl,
+        cpe = cpe,
+        authors = authors.mapTo(mutableSetOf()) { it.name },
+        concludedLicense = concludedLicense,
+        description = description,
+        homepageUrl = homepageUrl,
+        binaryArtifact = binaryArtifact?.mapToModel(),
+        sourceArtifact = sourceArtifact?.mapToModel(),
+        vcs = vcsInfoCurationData?.mapToModel(),
+        isMetadataOnly = isMetadataOnly,
+        isModified = isModified,
+        declaredLicenseMapping = declaredLicenseMappings.associate { it.license to it.spdxLicense }
+    )
 }

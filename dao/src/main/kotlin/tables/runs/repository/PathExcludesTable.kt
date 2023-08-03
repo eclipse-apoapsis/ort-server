@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
+
 /**
  * A table to represent a path exclude, used within a [PackageConfiguration][PackageConfigurationsTable] and
  * [RepositoryConfiguration][RepositoryConfigurationsTable].
@@ -40,4 +42,6 @@ class PathExcludeDao(id: EntityID<Long>) : LongEntity(id) {
     var pattern by PathExcludesTable.pattern
     var reason by PathExcludesTable.reason
     var comment by PathExcludesTable.comment
+
+    fun mapToModel() = PathExclude(pattern, reason, comment)
 }
