@@ -24,6 +24,7 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -111,28 +112,31 @@ private fun createAnalyzerConfiguration(
     analyzerRun: AnalyzerRunDao,
     analyzerConfiguration: AnalyzerConfiguration
 ): AnalyzerConfigurationDao {
+    val packageManagerConfigurations =
+        analyzerConfiguration.packageManagers?.map { (packageManager, packageManagerConfiguration) ->
+            val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
+                name = packageManager
+                mustRunAfter = packageManagerConfiguration.mustRunAfter
+                hasOptions = (packageManagerConfiguration.options != null)
+            }
+
+            packageManagerConfiguration.options?.forEach { (name, value) ->
+                PackageManagerConfigurationOptionDao.new {
+                    this.packageManagerConfiguration = packageManagerConfigurationDao
+                    this.name = name
+                    this.value = value
+                }
+            }
+
+            packageManagerConfigurationDao
+        }.orEmpty()
+
     val analyzerConfigurationDao = AnalyzerConfigurationDao.new {
         this.analyzerRun = analyzerRun
+        this.packageManagerConfigurations = SizedCollection(packageManagerConfigurations)
         allowDynamicVersions = analyzerConfiguration.allowDynamicVersions
         enabledPackageManagers = analyzerConfiguration.enabledPackageManagers
         disabledPackageManagers = analyzerConfiguration.disabledPackageManagers
-    }
-
-    analyzerConfiguration.packageManagers?.forEach { (packageManager, packageManagerConfiguration) ->
-        val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
-            this.analyzerConfiguration = analyzerConfigurationDao
-            name = packageManager
-            mustRunAfter = packageManagerConfiguration.mustRunAfter
-            hasOptions = (packageManagerConfiguration.options != null)
-        }
-
-        packageManagerConfiguration.options?.forEach { (name, value) ->
-            PackageManagerConfigurationOptionDao.new {
-                this.packageManagerConfiguration = packageManagerConfigurationDao
-                this.name = name
-                this.value = value
-            }
-        }
     }
 
     return analyzerConfigurationDao

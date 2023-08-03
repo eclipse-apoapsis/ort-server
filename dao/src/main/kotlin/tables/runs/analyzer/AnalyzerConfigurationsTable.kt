@@ -48,8 +48,8 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
 
-    val packageManagerConfigurations by PackageManagerConfigurationDao referrersOn
-            PackageManagerConfigurationsTable.analyzerConfigurationId
+    var packageManagerConfigurations by PackageManagerConfigurationDao via
+            AnalyzerConfigurationsPackageManagerConfigurationsTable
 
     fun mapToModel() = AnalyzerConfiguration(
         allowDynamicVersions = allowDynamicVersions,
