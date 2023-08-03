@@ -143,6 +143,18 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The build environment should contain a .yarnrc.yml file" {
+            runEnvironmentTest { homeFolder ->
+                val yarnRcFile = homeFolder.resolve(".yarnrc.yml")
+                val content = yarnRcFile.readText()
+
+                content shouldContain "npmRegistries"
+                content shouldContain "https://registry.example.org/_packaging/test/npm/registry/"
+                content shouldContain "npmAuthIdent"
+                content shouldContain "npmAlwaysAuth: true"
+            }
+        }
+
         "The worker is correctly configured" {
             runEndpointTest {
                 val worker by inject<AnalyzerWorker>()
