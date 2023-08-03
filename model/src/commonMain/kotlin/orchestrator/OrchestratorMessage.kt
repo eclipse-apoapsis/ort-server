@@ -30,6 +30,24 @@ import org.ossreviewtoolkit.server.model.OrtRun
 sealed class OrchestratorMessage
 
 /**
+ * A message notifying the Orchestrator about a result produced by the Config worker.
+ */
+@Serializable
+data class ConfigWorkerResult(
+    /** The ID of the ORT run that was processed by the worker. */
+    val ortRunId: Long
+) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about a failed job of the Config worker.
+ */
+@Serializable
+data class ConfigWorkerError(
+    /** The ID of the ORT run on which the worker failed. */
+    val ortRunId: Long
+) : OrchestratorMessage()
+
+/**
  * A message notifying the Orchestrator about a result produced by the Analyzer Worker.
  */
 @Serializable

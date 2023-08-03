@@ -36,6 +36,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
@@ -74,6 +76,12 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
 
         when (val payload = message.payload) {
             is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, payload)
+            is ConfigWorkerResult ->
+                // TODO: Handle results of the Config worker.
+                log.info("Received result from Config worker: $payload.")
+            is ConfigWorkerError ->
+                // TODO: Handle errors of the Config worker.
+                log.info("Received error result from Config worker: $payload.")
             is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(message.header, payload)
             is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(payload)
             is AdvisorWorkerResult -> orchestrator.handleAdvisorWorkerResult(message.header, payload)
