@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.repository.VcsMatcher
@@ -37,7 +38,23 @@ object VcsMatchersTable : LongIdTable("vcs_matchers") {
 }
 
 class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VcsMatcherDao>(VcsMatchersTable)
+    companion object : LongEntityClass<VcsMatcherDao>(VcsMatchersTable) {
+        fun findByVcsMatcher(vcsMatcher: VcsMatcher): VcsMatcherDao? =
+            find {
+                with(VcsMatchersTable) {
+                    type eq vcsMatcher.type and
+                            (url eq vcsMatcher.url) and
+                            (revision eq vcsMatcher.revision)
+                }
+            }.singleOrNull()
+
+        fun getOrPut(vcsMatcher: VcsMatcher): VcsMatcherDao =
+            findByVcsMatcher(vcsMatcher) ?: new {
+                type = vcsMatcher.type
+                url = vcsMatcher.url
+                revision = vcsMatcher.revision
+            }
+    }
 
     var type by VcsMatchersTable.type
     var url by VcsMatchersTable.url

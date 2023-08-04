@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
 
@@ -37,7 +38,22 @@ object RuleViolationResolutionsTable : LongIdTable("rule_violation_resolutions")
 }
 
 class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<RuleViolationResolutionDao>(RuleViolationResolutionsTable)
+    companion object : LongEntityClass<RuleViolationResolutionDao>(RuleViolationResolutionsTable) {
+        fun findByRuleViolationResolutionDao(
+            ruleViolationResolution: RuleViolationResolution
+        ): RuleViolationResolutionDao? = find {
+            RuleViolationResolutionsTable.message eq ruleViolationResolution.message and
+                    (RuleViolationResolutionsTable.reason eq ruleViolationResolution.reason) and
+                    (RuleViolationResolutionsTable.comment eq ruleViolationResolution.comment)
+        }.singleOrNull()
+
+        fun getOrPut(ruleViolationResolution: RuleViolationResolution): RuleViolationResolutionDao =
+            findByRuleViolationResolutionDao(ruleViolationResolution) ?: new {
+                message = ruleViolationResolution.message
+                reason = ruleViolationResolution.reason
+                comment = ruleViolationResolution.comment
+            }
+    }
 
     var message by RuleViolationResolutionsTable.message
     var reason by RuleViolationResolutionsTable.reason

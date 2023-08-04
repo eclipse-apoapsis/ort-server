@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
 
@@ -35,7 +36,19 @@ object SpdxLicenseChoicesTable : LongIdTable("spdx_license_choices") {
 }
 
 class SpdxLicenseChoiceDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<SpdxLicenseChoiceDao>(SpdxLicenseChoicesTable)
+    companion object : LongEntityClass<SpdxLicenseChoiceDao>(SpdxLicenseChoicesTable) {
+        fun findBySpdxLicenseChoice(spdxLicenseChoice: SpdxLicenseChoice): SpdxLicenseChoiceDao? =
+            find {
+                SpdxLicenseChoicesTable.given eq spdxLicenseChoice.given and
+                        (SpdxLicenseChoicesTable.choice eq spdxLicenseChoice.choice)
+            }.singleOrNull()
+
+        fun getOrPut(spdxLicenseChoice: SpdxLicenseChoice): SpdxLicenseChoiceDao =
+            findBySpdxLicenseChoice(spdxLicenseChoice) ?: new {
+                given = spdxLicenseChoice.given
+                choice = spdxLicenseChoice.choice
+            }
+    }
 
     var given by SpdxLicenseChoicesTable.given
     var choice by SpdxLicenseChoicesTable.choice

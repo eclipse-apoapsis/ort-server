@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
 
@@ -37,7 +38,21 @@ object PathExcludesTable : LongIdTable("path_excludes") {
 }
 
 class PathExcludeDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PathExcludeDao>(PathExcludesTable)
+    companion object : LongEntityClass<PathExcludeDao>(PathExcludesTable) {
+        fun findByPathExclude(pathExclude: PathExclude): PathExcludeDao? =
+            find {
+                PathExcludesTable.pattern eq pathExclude.pattern and
+                        (PathExcludesTable.reason eq pathExclude.reason) and
+                        (PathExcludesTable.comment eq pathExclude.comment)
+            }.singleOrNull()
+
+        fun getOrPut(pathExclude: PathExclude): PathExcludeDao =
+            findByPathExclude(pathExclude) ?: new {
+                pattern = pathExclude.pattern
+                reason = pathExclude.reason
+                comment = pathExclude.comment
+            }
+    }
 
     var pattern by PathExcludesTable.pattern
     var reason by PathExcludesTable.reason

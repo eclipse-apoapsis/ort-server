@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
@@ -38,7 +39,25 @@ object VcsInfoCurationDataTable : LongIdTable("vcs_info_curation_data") {
 }
 
 class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VcsInfoCurationDataDao>(VcsInfoCurationDataTable)
+    companion object : LongEntityClass<VcsInfoCurationDataDao>(VcsInfoCurationDataTable) {
+        fun findByVcsInfoCurationData(vcsCurationData: VcsInfoCurationData): VcsInfoCurationDataDao? =
+            find {
+                with(VcsInfoCurationDataTable) {
+                    type eq vcsCurationData.type and
+                            (url eq vcsCurationData.url) and
+                            (revision eq vcsCurationData.revision) and
+                            (path eq vcsCurationData.path)
+                }
+            }.singleOrNull()
+
+        fun getOrPut(vcsCurationData: VcsInfoCurationData): VcsInfoCurationDataDao =
+            findByVcsInfoCurationData(vcsCurationData) ?: new {
+                type = vcsCurationData.type
+                url = vcsCurationData.url
+                revision = vcsCurationData.revision
+                path = vcsCurationData.path
+            }
+    }
 
     var type by VcsInfoCurationDataTable.type
     var url by VcsInfoCurationDataTable.url

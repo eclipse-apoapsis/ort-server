@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 /**
  * A table to represent declared license mappings, which is part of a [PackageCurationData][PackageCurationDataTable],
@@ -34,7 +35,19 @@ object DeclaredLicenseMappingsTable : LongIdTable("declared_license_mappings") {
 }
 
 class DeclaredLicenseMappingDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<DeclaredLicenseMappingDao>(DeclaredLicenseMappingsTable)
+    companion object : LongEntityClass<DeclaredLicenseMappingDao>(DeclaredLicenseMappingsTable) {
+        fun findByDeclaredLicenseMap(license: String, spdxLicense: String): DeclaredLicenseMappingDao? =
+            find {
+                DeclaredLicenseMappingsTable.license eq license and
+                        (DeclaredLicenseMappingsTable.spdxLicense eq spdxLicense)
+            }.singleOrNull()
+
+        fun getOrPut(license: String, spdxLicense: String): DeclaredLicenseMappingDao =
+            findByDeclaredLicenseMap(license, spdxLicense) ?: new {
+                this.license = license
+                this.spdxLicense = spdxLicense
+            }
+    }
 
     var license by DeclaredLicenseMappingsTable.license
     var spdxLicense by DeclaredLicenseMappingsTable.spdxLicense

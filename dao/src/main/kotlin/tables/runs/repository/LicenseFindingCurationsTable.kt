@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
 
@@ -41,7 +42,31 @@ object LicenseFindingCurationsTable : LongIdTable("license_finding_curations") {
 }
 
 class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<LicenseFindingCurationDao>(LicenseFindingCurationsTable)
+    companion object : LongEntityClass<LicenseFindingCurationDao>(LicenseFindingCurationsTable) {
+        fun findByLicenseFindingCuration(licenseFindingCuration: LicenseFindingCuration): LicenseFindingCurationDao? =
+            find {
+                with(LicenseFindingCurationsTable) {
+                    path eq licenseFindingCuration.path and
+                            (startLines eq licenseFindingCuration.startLines.joinToString(",")) and
+                            (lineCount eq licenseFindingCuration.lineCount) and
+                            (detectedLicense eq licenseFindingCuration.detectedLicense) and
+                            (concludedLicense eq licenseFindingCuration.concludedLicense) and
+                            (reason eq licenseFindingCuration.reason) and
+                            (comment eq licenseFindingCuration.comment)
+                }
+            }.singleOrNull()
+
+        fun getOrPut(licenseFindingCuration: LicenseFindingCuration): LicenseFindingCurationDao =
+            findByLicenseFindingCuration(licenseFindingCuration) ?: new {
+                path = licenseFindingCuration.path
+                startLines = licenseFindingCuration.startLines
+                lineCount = licenseFindingCuration.lineCount
+                detectedLicense = licenseFindingCuration.detectedLicense
+                concludedLicense = licenseFindingCuration.concludedLicense
+                reason = licenseFindingCuration.reason
+                comment = licenseFindingCuration.comment
+            }
+    }
 
     var path by LicenseFindingCurationsTable.path
     var startLines: List<Int>? by LicenseFindingCurationsTable.startLines

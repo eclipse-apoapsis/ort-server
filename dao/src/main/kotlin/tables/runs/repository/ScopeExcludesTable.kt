@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
 
@@ -36,7 +37,21 @@ object ScopeExcludesTable : LongIdTable("scope_excludes") {
 }
 
 class ScopeExcludeDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ScopeExcludeDao>(ScopeExcludesTable)
+    companion object : LongEntityClass<ScopeExcludeDao>(ScopeExcludesTable) {
+        fun findByScopeExclude(scopeExclude: ScopeExclude): ScopeExcludeDao? =
+            find {
+                ScopeExcludesTable.pattern eq scopeExclude.pattern and
+                        (ScopeExcludesTable.reason eq scopeExclude.reason) and
+                        (ScopeExcludesTable.comment eq scopeExclude.comment)
+            }.singleOrNull()
+
+        fun getOrPut(scopeExclude: ScopeExclude): ScopeExcludeDao =
+            findByScopeExclude(scopeExclude) ?: new {
+                pattern = scopeExclude.pattern
+                reason = scopeExclude.reason
+                comment = scopeExclude.comment
+            }
+    }
 
     var pattern by ScopeExcludesTable.pattern
     var reason by ScopeExcludesTable.reason

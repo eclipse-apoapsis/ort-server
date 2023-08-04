@@ -23,6 +23,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
@@ -48,7 +50,49 @@ object PackageCurationDataTable : LongIdTable("package_curation_data") {
 }
 
 class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageCurationDataDao>(PackageCurationDataTable)
+    companion object : LongEntityClass<PackageCurationDataDao>(PackageCurationDataTable) {
+        fun findByPackageCurationData(data: PackageCurationData): PackageCurationDataDao? =
+            find {
+                with(PackageCurationDataTable) {
+                    this.comment eq data.comment and
+                            (this.purl eq data.purl) and
+                            (this.cpe eq data.cpe) and
+                            (this.concludedLicense eq data.concludedLicense) and
+                            (this.description eq data.description) and
+                            (this.homepageUrl eq data.homepageUrl) and
+                            (this.isMetadataOnly eq data.isMetadataOnly) and
+                            (this.isModified eq data.isModified)
+                }
+            }.singleOrNull {
+                it.binaryArtifact?.mapToModel() == data.binaryArtifact &&
+                        it.sourceArtifact?.mapToModel() == data.sourceArtifact &&
+                        it.vcsInfoCurationData?.mapToModel() == data.vcs &&
+                        it.authors.map { author -> author.name } == data.authors &&
+                        it.declaredLicenseMappings
+                            .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping
+            }
+
+        fun getOrPut(data: PackageCurationData): PackageCurationDataDao =
+            findByPackageCurationData(data) ?: new {
+                this.comment = data.comment
+                this.purl = data.purl
+                this.cpe = data.cpe
+                this.concludedLicense = data.concludedLicense
+                this.description = data.description
+                this.homepageUrl = data.homepageUrl
+                this.isMetadataOnly = data.isMetadataOnly
+                this.isModified = data.isModified
+                this.binaryArtifact = data.binaryArtifact?.let { RemoteArtifactDao.getOrPut(it) }
+                this.sourceArtifact = data.sourceArtifact?.let { RemoteArtifactDao.getOrPut(it) }
+                this.vcsInfoCurationData = data.vcs?.let { VcsInfoCurationDataDao.getOrPut(it) }
+                this.authors = SizedCollection(data.authors?.map { AuthorDao.getOrPut(it) }.orEmpty())
+                this.declaredLicenseMappings = SizedCollection(
+                    data.declaredLicenseMapping.map {
+                        DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
+                    }
+                )
+            }
+    }
 
     var binaryArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.binaryArtifactId
     var sourceArtifact by RemoteArtifactDao optionalReferencedOn PackageCurationDataTable.sourceArtifactId

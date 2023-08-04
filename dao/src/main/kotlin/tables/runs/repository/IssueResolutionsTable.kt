@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
 
@@ -36,7 +37,21 @@ object IssueResolutionsTable : LongIdTable("issue_resolutions") {
 }
 
 class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<IssueResolutionDao>(IssueResolutionsTable)
+    companion object : LongEntityClass<IssueResolutionDao>(IssueResolutionsTable) {
+        fun findByIssueResolution(issueResolution: IssueResolution): IssueResolutionDao? =
+            find {
+                IssueResolutionsTable.message eq issueResolution.message and
+                        (IssueResolutionsTable.reason eq issueResolution.reason) and
+                        (IssueResolutionsTable.comment eq issueResolution.comment)
+            }.singleOrNull()
+
+        fun getOrPut(issueResolution: IssueResolution): IssueResolutionDao =
+            findByIssueResolution(issueResolution) ?: new {
+                message = issueResolution.message
+                reason = issueResolution.reason
+                comment = issueResolution.comment
+            }
+    }
 
     var message by IssueResolutionsTable.message
     var reason by IssueResolutionsTable.reason

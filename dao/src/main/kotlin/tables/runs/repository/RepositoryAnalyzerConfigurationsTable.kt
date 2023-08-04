@@ -23,8 +23,11 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
 import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
 
 /**
@@ -39,7 +42,47 @@ object RepositoryAnalyzerConfigurationsTable : LongIdTable("repository_analyzer_
 }
 
 class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<RepositoryAnalyzerConfigurationDao>(RepositoryAnalyzerConfigurationsTable)
+    companion object : LongEntityClass<RepositoryAnalyzerConfigurationDao>(RepositoryAnalyzerConfigurationsTable) {
+        fun findByRepositoryAnalyzerConfiguration(
+            config: RepositoryAnalyzerConfiguration
+        ): RepositoryAnalyzerConfigurationDao? = find {
+            with(RepositoryAnalyzerConfigurationsTable) {
+                this.allowDynamicVersions eq config.allowDynamicVersions and
+                        (this.enabledPackageManagers eq config.enabledPackageManagers?.joinToString(",")) and
+                        (this.disabledPackageManagers eq config.disabledPackageManagers?.joinToString(",")) and
+                        (this.skipExcluded eq config.skipExcluded)
+            }
+        }.singleOrNull {
+            it.packageManagerConfigurations.associate { it.name to it.mapToModel() } == config.packageManagers
+        }
+
+        fun getOrPut(config: RepositoryAnalyzerConfiguration): RepositoryAnalyzerConfigurationDao =
+            findByRepositoryAnalyzerConfiguration(config) ?: new {
+                val pkgManagerConfig = config.packageManagers?.map { (packageManager, packageManagerConfiguration) ->
+                    val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
+                        name = packageManager
+                        mustRunAfter = packageManagerConfiguration.mustRunAfter
+                        hasOptions = (packageManagerConfiguration.options != null)
+                    }
+
+                    packageManagerConfiguration.options?.forEach { (name, value) ->
+                        PackageManagerConfigurationOptionDao.new {
+                            this.packageManagerConfiguration = packageManagerConfigurationDao
+                            this.name = name
+                            this.value = value
+                        }
+                    }
+
+                    packageManagerConfigurationDao
+                }.orEmpty()
+
+                allowDynamicVersions = config.allowDynamicVersions
+                enabledPackageManagers = config.enabledPackageManagers
+                disabledPackageManagers = config.disabledPackageManagers
+                this.packageManagerConfigurations = SizedCollection(pkgManagerConfig)
+                skipExcluded = config.skipExcluded
+            }
+    }
 
     var allowDynamicVersions by RepositoryAnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by RepositoryAnalyzerConfigurationsTable.enabledPackageManagers

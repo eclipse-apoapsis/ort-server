@@ -23,6 +23,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
@@ -40,7 +41,29 @@ object PackageConfigurationsTable : LongIdTable("package_configurations") {
 }
 
 class PackageConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageConfigurationDao>(PackageConfigurationsTable)
+    companion object : LongEntityClass<PackageConfigurationDao>(PackageConfigurationsTable) {
+        fun findByPackageConfiguration(packageConfiguration: PackageConfiguration): PackageConfigurationDao? =
+            find {
+                PackageConfigurationsTable.sourceArtifactUrl eq packageConfiguration.sourceArtifactUrl
+            }.singleOrNull {
+                it.identifier.mapToModel() == packageConfiguration.id &&
+                        it.vcsMatcher?.mapToModel() == packageConfiguration.vcs &&
+                        it.pathExcludes.map(PathExcludeDao::mapToModel) == packageConfiguration.pathExcludes &&
+                        it.licenseFindingCurations
+                            .map(LicenseFindingCurationDao::mapToModel) == packageConfiguration.licenseFindingCurations
+            }
+
+        fun getOrPut(packageConfiguration: PackageConfiguration): PackageConfigurationDao =
+            findByPackageConfiguration(packageConfiguration) ?: new {
+                sourceArtifactUrl = packageConfiguration.sourceArtifactUrl
+                identifier = IdentifierDao.getOrPut(packageConfiguration.id)
+                vcsMatcher = packageConfiguration.vcs?.let { VcsMatcherDao.getOrPut(it) }
+                pathExcludes = SizedCollection(packageConfiguration.pathExcludes.map(PathExcludeDao::getOrPut))
+                licenseFindingCurations = SizedCollection(
+                    packageConfiguration.licenseFindingCurations.map(LicenseFindingCurationDao::getOrPut)
+                )
+            }
+    }
 
     var identifier by IdentifierDao referencedOn PackageConfigurationsTable.identifierId
     var vcsMatcher by VcsMatcherDao optionalReferencedOn PackageConfigurationsTable.vcsMatcherId
