@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
@@ -63,6 +64,7 @@ class Fixtures(private val db: Database) {
     val organizationRepository = DaoOrganizationRepository(db)
     val ortRunRepository = DaoOrtRunRepository(db)
     val productRepository = DaoProductRepository(db)
+    val repositoryConfigurationRepository = DaoRepositoryConfigurationRepository(db)
     val reporterJobRepository = DaoReporterJobRepository(db)
     val reporterRunRepository = DaoReporterRunRepository(db)
     val repositoryRepository = DaoRepositoryRepository(db)
