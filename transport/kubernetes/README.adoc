@@ -29,12 +29,15 @@ endpoint {
         commands = "/bin/sh"
         args = "-c java my.pkg.MyClass"
         mountSecrets = "server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
+        annotationVariables = "ANNOTATION_VAR1, ANNOTATION_VAR2"
     }
 }
 ----
 
 The properties have the following meaning:
 
+.Supported configuration properties
+[cols="1,3,1",options=header]
 |===
 |Property |Description |Default
 
@@ -93,6 +96,34 @@ content of the secret should be made available. At this path, for each key of th
 content is the value of the key. To achieve this, the Kubernetes Transport implementation generates corresponding
 `volume` and `volumeMount` declarations in the pod configuration. This mechanism is useful not only for secrets but
 also for other kinds of external data that should be accessible from a pod, for instance custom certificates.
+|empty
+
+|annotationVariables
+a|It is often useful or necessary to declare specific annotations for the jobs that are created by the Kubernetes Transport implementation. This can be used for instance for documentation purposes, to group certain jobs, or to request specific services from the infrastructure. Since there can be an arbitrary number of annotations that also might become complex, it is difficult to use a single configuration property to define all annotations at once. (And using a dynamic set of configuration properties does not work well either with the typical approach configuration is read in ORT Server.)
+
+To deal with these issues, the implementation introduces a level of indirection: The _annotationVariables_ property does not contain the definitions for annotations itself, but only lists the names of environment variables - separated by comma - that declare annotations. Each referenced environment variable must have a value of the form `key=value`. The _key_ becomes the key of the annotation, the _value_ its value.
+
+As a concrete example, if _annotationVariables_ has the value
+
+ annotationVariables = "VAR1, VAR2"
+
+and there are corresponding environment variables:
+
+ VAR1=annotation1=value1
+ VAR2=annotation2=value2
+
+then the Kubernetes Transport implementation will produce a job declaration containing the following fragment:
+
+[source,yaml]
+----
+template:
+  metadata:
+    annotations:
+      annotation1: value1
+      annotation2: value2
+----
+
+If variables are referenced that do not exist or do not contain an equals ('=') character in their value to separate the key from the value, a warning is logged, and those variables are ignored.
 |empty
 |===
 
