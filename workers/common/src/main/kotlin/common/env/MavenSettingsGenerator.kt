@@ -44,7 +44,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
          * Print XML content with an opening and closing [tag] and the given [content].
          */
         private fun PrintWriter.printTag(tag: String, content: String) {
-            println("            <$tag>$content</$tag>")
+            println("<$tag>$content</$tag>".prependIndent(INDENT_12_SPACES))
         }
     }
 
@@ -54,17 +54,17 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<MavenDefinition>) {
         builder.buildInUserHome(TARGET_NAME) {
             println("<settings xsi:schemaLocation=$SCHEMA>")
-            println("    <servers>")
+            println("<servers>".prependIndent(INDENT_4_SPACES))
 
             definitions.forEach { definition ->
-                println("        <server>")
+                println("<server>".prependIndent(INDENT_8_SPACES))
                 printTag("id", definition.id)
                 printTag("username", builder.secretRef(definition.service.usernameSecret))
                 printTag("password", builder.secretRef(definition.service.passwordSecret))
-                println("        </server>")
+                println("</server>".prependIndent(INDENT_8_SPACES))
             }
 
-            println("    </servers>")
+            println("</servers>".prependIndent(INDENT_4_SPACES))
             println("</settings>")
         }
     }

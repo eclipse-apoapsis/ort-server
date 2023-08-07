@@ -47,3 +47,12 @@ interface EnvironmentConfigGenerator<T : EnvironmentServiceDefinition> {
         generate(builder, definitions.filterIsInstance(environmentDefinitionType))
     }
 }
+
+/**
+ * These constants are intended to be used in package managers' config generators.
+ */
+const val INDENT_2_SPACES = "  "
+const val INDENT_4_SPACES = "    "
+const val INDENT_6_SPACES = "      "
+const val INDENT_8_SPACES = "        "
+const val INDENT_12_SPACES = "            "

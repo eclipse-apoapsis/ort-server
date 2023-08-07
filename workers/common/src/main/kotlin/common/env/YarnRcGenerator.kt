@@ -22,9 +22,6 @@ package org.ossreviewtoolkit.server.workers.common.env
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
 
-private const val INDENT_2_SPACES = "  "
-private const val INDENT_4_SPACES = "    "
-
 /**
  * A specialized generator class for Yarn's _.yarnrc.yml_ configuration files.
  *
