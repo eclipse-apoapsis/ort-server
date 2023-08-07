@@ -21,6 +21,7 @@ rootProject.name = "ort-server"
 
 include(":api-v1")
 include(":clients:keycloak")
+include(":config:secret-file")
 include(":config:spi")
 include(":core")
 include(":dao")
