@@ -25,6 +25,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainInOrder
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -45,6 +46,11 @@ private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS = "secret1->/mnt/sec1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other\""
 
+private val annotationVariables = mapOf(
+    "TEST_ANNOTATION" to "ort-server.org/test=true",
+    "SPEED_ANNOTATION" to "ort-server.org/performance = fast"
+)
+
 class KubernetesMessageSenderFactoryTest : StringSpec({
     "A correct MessageSender can be created" {
         val keyPrefix = "analyzer.sender"
@@ -59,13 +65,15 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.args" to ARGS,
             "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
             "$keyPrefix.enableDebugLogging" to "true",
-            "$keyPrefix.mountSecrets" to SECRET_MOUNTS
+            "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
+            "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString()
         )
         val config = ConfigFactory.parseMap(configMap)
 
         val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
-        val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
+        val envVariables = annotationVariables + ("KUBECONFIG" to kubeconfigPath)
+        val sender = withEnvironment(envVariables) {
             MessageSenderFactory.createSender(AnalyzerEndpoint, config)
         }
 
@@ -83,6 +91,10 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 SecretVolumeMount("secret1", "/mnt/sec1"),
                 SecretVolumeMount("secret2", "/path/with/white space"),
                 SecretVolumeMount("secret3", "/mnt/other")
+            )
+            annotations shouldContainExactly mapOf(
+                "ort-server.org/test" to "true",
+                "ort-server.org/performance" to "fast"
             )
             enableDebugLogging shouldBe true
         }
@@ -114,6 +126,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             restartPolicy shouldBe "OnFailure"
             imagePullSecret should beNull()
             secretVolumes should beEmpty()
+            annotations.keys should beEmpty()
             enableDebugLogging shouldBe false
         }
 
@@ -138,5 +151,52 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             SecretVolumeMount("secret2", "/path/with/white space"),
             SecretVolumeMount("secret3", "/mnt/other")
         )
+    }
+
+    "Invalid variables defining annotations are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val validVariable = "validVariable"
+        val invalidVariable = "invalidVariable"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.annotationVariables" to "$invalidVariable,$validVariable"
+        )
+        val config = ConfigFactory.parseMap(configMap)
+
+        val environment = mapOf(
+            validVariable to "foo=bar",
+            invalidVariable to "not a valid annotation"
+        )
+        withEnvironment(environment) {
+            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+
+            sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+            sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
+        }
+    }
+
+    "Non-existing variables defining annotations are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val validVariable = "validVariable"
+        val nonExistingVariable = "nonExistingVariable"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.annotationVariables" to "$nonExistingVariable,$validVariable"
+        )
+        val config = ConfigFactory.parseMap(configMap)
+
+        val environment = mapOf(
+            validVariable to "foo=bar"
+        )
+        withEnvironment(environment) {
+            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+
+            sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+            sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
+        }
     }
 })

@@ -75,6 +75,13 @@ data class KubernetesSenderConfig(
     /** A list with [SecretVolumeMount]s to be added to the new pod. */
     val secretVolumes: List<SecretVolumeMount> = emptyList(),
 
+    /**
+     * A map with annotations to be added to the new pod. The map defines the keys and values of annotation.
+     * Corresponding annotations are added to the _template_ section of newly created jobs, so that they are present
+     * in the pods created for these jobs.
+     */
+    val annotations: Map<String, String> = emptyMap(),
+
     /** Allows enabling debug logs when interacting with the Kubernetes API. */
     val enableDebugLogging: Boolean = false
 ) {
@@ -123,6 +130,14 @@ data class KubernetesSenderConfig(
          */
         private const val MOUNT_SECRETS_PROPERTY = "mountSecrets"
 
+        /**
+         * The name of the configuration property that allows defining annotations based on environment variables.
+         * If available, the value of this property is interpreted as a comma-separated list of environment variable
+         * names. Each variable is looked up in the current environment. It must have the form _key=value_. The
+         * Kubernetes sender then creates an annotation with the given key and value for the template of the new job.
+         */
+        private const val ANNOTATIONS_VARIABLES_PROPERTY = "annotationVariables"
+
         /** The default value for the restart policy property. */
         private const val DEFAULT_RESTART_POLICY = "OnFailure"
 
@@ -131,6 +146,12 @@ data class KubernetesSenderConfig(
 
         /** Default value for the image pull policy property. */
         private const val DEFAULT_IMAGE_PULL_POLICY = "Never"
+
+        /** The separator used for annotation variables to extract the key and the value. */
+        private const val KEY_VALUE_SEPARATOR = '='
+
+        /** The separator character used in string lists. */
+        private const val LIST_SEPARATOR = ','
 
         private val logger = LoggerFactory.getLogger(KubernetesMessageReceiverFactory::class.java)
 
@@ -142,6 +163,12 @@ data class KubernetesSenderConfig(
 
         /** A regular expression to parse a secret volume mount declaration. */
         private val mountDeclarationRegex = Regex("""(\S+)\s*->\s*(.+)""")
+
+        /** A regular expression to split the list with environment variables defining annotations. */
+        private val splitAnnotationVariablesRegex = splitRegex(LIST_SEPARATOR)
+
+        /** A regular expression to split key value pairs. */
+        private val splitKeyValueRegex = splitRegex(KEY_VALUE_SEPARATOR)
 
         /**
          * Create a [KubernetesSenderConfig] from the provided [config].
@@ -157,8 +184,15 @@ data class KubernetesSenderConfig(
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 secretVolumes = config.getStringOrDefault(MOUNT_SECRETS_PROPERTY, "").toVolumeMounts(),
+                annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
             )
+
+        /**
+         * Return a [Regex] that can be used to split a string at the given [separator] and that handles whitespace
+         * around the separator correctly.
+         */
+        private fun splitRegex(separator: Char): Regex = Regex("""\s*$separator\s*""")
 
         /**
          * Split this string at whitespace characters unless the whitespace is contained in a part surrounded by
@@ -185,6 +219,30 @@ data class KubernetesSenderConfig(
 
             return valid.mapNotNull { it.second }.map { match ->
                 SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!)
+            }
+        }
+
+        /**
+         * Create the map with annotations based on the given string with [variableNames]. Extract the names from the
+         * comma-delimited string. Look up the values of the referenced variables and extract the keys and values of
+         * annotations from them. Ignore non-existing or invalid variables, but log them.
+         */
+        private fun createAnnotations(variableNames: String): Map<String, String> {
+            val (annotations, invalid) = variableNames.split(splitAnnotationVariablesRegex)
+                .map { variable -> variable to (System.getenv(variable).orEmpty()) }
+                .partition { KEY_VALUE_SEPARATOR in it.second }
+
+            if (invalid.isNotEmpty()) {
+                val invalidNames = invalid.map { it.first }
+                logger.warn("Found invalid variables for annotations: $invalidNames")
+                logger.warn(
+                    "Make sure that these variables are defined and have the format 'key${KEY_VALUE_SEPARATOR}value'."
+                )
+            }
+
+            return annotations.associate {
+                val keyValue = it.second.split(splitKeyValueRegex, limit = 2)
+                keyValue[0] to keyValue[1]
             }
         }
     }
