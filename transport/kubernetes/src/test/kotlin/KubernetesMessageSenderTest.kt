@@ -69,6 +69,11 @@ class KubernetesMessageSenderTest : StringSpec({
         expectedEnvVars["SPECIFIC_PROPERTY"] = "foo"
         expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
 
+        val annotations = mapOf(
+            "test.annotation1" to "a test annotation",
+            "test.annotation2" to "anotherTestAnnotation"
+        )
+
         val config = KubernetesSenderConfig(
             namespace = "test-namespace",
             imageName = "busybox",
@@ -81,7 +86,8 @@ class KubernetesMessageSenderTest : StringSpec({
             secretVolumes = listOf(
                 SecretVolumeMount("secretService", "/mnt/secret"),
                 SecretVolumeMount("topSecret", "/mnt/top/secret")
-            )
+            ),
+            annotations = annotations
         )
 
         val sender = KubernetesMessageSender(
@@ -145,5 +151,8 @@ class KubernetesMessageSenderTest : StringSpec({
             id + labels.getValue("trace-id-$idx")
         }
         traceIdFromLabels shouldBe traceId
+
+        val jobAnnotations = job.captured.spec?.template?.metadata?.annotations.orEmpty()
+        jobAnnotations shouldBe annotations
     }
 })

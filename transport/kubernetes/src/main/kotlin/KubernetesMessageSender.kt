@@ -80,6 +80,9 @@ internal class KubernetesMessageSender<T : Any>(
             .withNewSpec()
             .withBackoffLimit(config.backoffLimit)
             .withNewTemplate()
+            .withNewMetadata()
+            .withAnnotations<String, String>(config.annotations)
+            .endMetadata()
             .withNewSpec()
             .withRestartPolicy(config.restartPolicy)
             .withImagePullSecrets(
