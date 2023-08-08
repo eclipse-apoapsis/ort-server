@@ -37,6 +37,8 @@ import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtOrtIssue
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.Package as OrtPackage
+import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
+import org.ossreviewtoolkit.model.PackageCurationData as OrtPackageCurationData
 import org.ossreviewtoolkit.model.Project as OrtProject
 import org.ossreviewtoolkit.model.Provenance as OrtProvenance
 import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceResolutionResult
@@ -51,26 +53,42 @@ import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
+import org.ossreviewtoolkit.model.VcsInfoCurationData as OrtVcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.ClearlyDefinedStorageConfiguration as OrtClearlyDefinedStorageConfiguration
+import org.ossreviewtoolkit.model.config.Curations as OrtCurations
+import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
 import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiverConfiguration
 import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGitHubDefectsConfiguration
 import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
+import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
+import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
+import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
 import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
+import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
+import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
+import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
 import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
 import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
+import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
+import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
+import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
+import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
+import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
+import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -99,6 +117,25 @@ import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Curations
+import org.ossreviewtoolkit.server.model.runs.repository.Excludes
+import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
+import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
+import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
+import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
+import org.ossreviewtoolkit.server.model.runs.repository.VcsMatcher
+import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
 import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.CopyrightFinding
@@ -123,6 +160,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice as OrtSpdxLicenseChoice
 
 fun OrtAdvisorConfiguration.mapToModel() =
     AdvisorConfiguration(
@@ -486,3 +524,108 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
     license = license?.toString(),
     licenseSource = licenseSource?.name
 )
+
+fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfiguration(
+    id = -1L,
+    ortRunId = ortRunId,
+    analyzerConfig = analyzer?.mapToModel(),
+    excludes = excludes.mapToModel(),
+    resolutions = resolutions.mapToModel(),
+    curations = curations.mapToModel(),
+    packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
+    licenseChoices = licenseChoices.mapToModel()
+)
+
+fun OrtRepositoryAnalyzerConfiguration.mapToModel() = RepositoryAnalyzerConfiguration(
+    allowDynamicVersions = allowDynamicVersions,
+    enabledPackageManagers = enabledPackageManagers,
+    disabledPackageManagers = disabledPackageManagers,
+    packageManagers = packageManagers?.mapValues { it.value.mapToModel() },
+    skipExcluded = skipExcluded
+)
+
+fun OrtExcludes.mapToModel() = Excludes(
+    paths = paths.map(OrtPathExclude::mapToModel),
+    scopes = scopes.map(OrtScopeExclude::mapToModel)
+)
+
+fun OrtResolutions.mapToModel() = Resolutions(
+    issues = issues.map(OrtIssueResolution::mapToModel),
+    ruleViolations = ruleViolations.map(OrtRuleViolationResolution::mapToModel),
+    vulnerabilities = vulnerabilities.map(OrtVulnerabilityResolution::mapToModel)
+)
+
+fun OrtCurations.mapToModel() = Curations(
+    packages = packages.map(OrtPackageCuration::mapToModel),
+    licenseFindings = licenseFindings.map(OrtLicenseFindingCuration::mapToModel)
+)
+
+fun OrtPackageCuration.mapToModel() = PackageCuration(
+    id = id.mapToModel(),
+    data = data.mapToModel()
+)
+
+fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
+    path = path,
+    startLines = startLines,
+    lineCount = lineCount,
+    detectedLicense = detectedLicense?.toString(),
+    concludedLicense = concludedLicense.toString(),
+    reason = reason.name,
+    comment = comment
+)
+
+fun OrtPackageCurationData.mapToModel() = PackageCurationData(
+    comment = comment,
+    purl = purl,
+    cpe = cpe,
+    authors = authors,
+    concludedLicense = concludedLicense?.toString(),
+    description = description,
+    homepageUrl = homepageUrl,
+    binaryArtifact = binaryArtifact?.mapToModel(),
+    sourceArtifact = sourceArtifact?.mapToModel(),
+    vcs = vcs?.mapToModel(),
+    isMetadataOnly = isMetadataOnly,
+    isModified = isModified,
+    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.toString() }
+)
+
+fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
+    type = type?.mapToModel(),
+    url = url,
+    revision = revision,
+    path = path
+)
+
+fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
+    id = id.mapToModel(),
+    sourceArtifactUrl = sourceArtifactUrl,
+    vcs = vcs?.mapToModel(),
+    pathExcludes = pathExcludes.map(OrtPathExclude::mapToModel),
+    licenseFindingCurations = licenseFindingCurations.map(OrtLicenseFindingCuration::mapToModel)
+)
+
+fun OrtLicenseChoices.mapToModel() = LicenseChoices(
+    repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),
+    packageLicenseChoices = packageLicenseChoices.map(OrtPackageLicenseChoice::mapToModel)
+)
+
+fun OrtSpdxLicenseChoice.mapToModel() = SpdxLicenseChoice(given?.toString(), choice.toString())
+
+fun OrtPackageLicenseChoice.mapToModel() = PackageLicenseChoice(
+    identifier = packageId.mapToModel(),
+    licenseChoices = licenseChoices.map(OrtSpdxLicenseChoice::mapToModel)
+)
+
+fun OrtVcsMatcher.mapToModel() = VcsMatcher(type.mapToModel(), url, revision)
+
+fun OrtIssueResolution.mapToModel() = IssueResolution(message, reason.name, comment)
+
+fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(message, reason.name, comment)
+
+fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(id, reason.name, comment)
+
+fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
+
+fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
