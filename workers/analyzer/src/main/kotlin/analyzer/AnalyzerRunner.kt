@@ -26,8 +26,10 @@ import org.ossreviewtoolkit.analyzer.determineEnabledPackageManagers
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+import org.ossreviewtoolkit.model.readValueOrNull
 import org.ossreviewtoolkit.plugins.packagecurationproviders.ortconfig.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.utils.ort.ORT_REPO_CONFIG_FILENAME
 
 import org.slf4j.LoggerFactory
 
@@ -38,9 +40,10 @@ class AnalyzerRunner {
         val analyzerConfig = AnalyzerConfiguration(config.allowDynamicVersions)
         val analyzer = Analyzer(analyzerConfig)
 
-        // TODO: Add support for RepositoryConfiguration.
+        val repositoryConfiguration = inputDir.resolve(ORT_REPO_CONFIG_FILENAME).takeIf { it.isFile }?.readValueOrNull()
+            ?: RepositoryConfiguration()
         val enabledPackageManagers = analyzerConfig.determineEnabledPackageManagers()
-        val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, RepositoryConfiguration())
+        val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, repositoryConfiguration)
         if (info.managedFiles.isEmpty()) {
             logger.warn("No definition files found.")
         } else {

@@ -1,0 +1,63 @@
+---
+analyzer:
+  allow_dynamic_versions: true
+  skip_excluded: true
+excludes:
+  paths:
+    - pattern: "**/path"
+      reason: EXAMPLE_OF
+      comment: >-
+        This is only an example path exclude.
+  scopes:
+    - pattern: "test.*"
+      reason: TEST_DEPENDENCY_OF
+      comment: >-
+        This is only an example scope exclude.
+resolutions:
+  issues:
+    - message: "Error message .*"
+      reason: SCANNER_ISSUE
+      comment: >-
+        This is only an example issue resolution.
+  rule_violations:
+    - message: "Rule Violation .*"
+      reason: EXAMPLE_OF_EXCEPTION
+      comment: >-
+        This is only an example rule violation resolution.
+  vulnerabilities:
+    - id: "CVE-ID-1234"
+      reason: INEFFECTIVE_VULNERABILITY
+      comment: >-
+        This is only an example vulnerability resolution.
+curations:
+  license_findings:
+    - path: "README.md"
+      line_count: 1
+      detected_license: "GPL-1.0-or-later"
+      concluded_license: "NONE"
+      reason: DOCUMENTATION_OF
+      comment: >-
+        This is only an example license finding curation.
+  packages:
+    - id: "Maven:org.example:name:1.0.0"
+      curations:
+        comment: >-
+          This is only an example curation.
+        vcs:
+          type: "Git"
+          url: "https://example.org/name.git"
+          revision: "123456789"
+package_configurations:
+  - id: "Maven:org.example:name:1.0.0"
+    source_artifact_url: "https://example.org/name-1.0.0-sources.jar"
+license_choices:
+  repository_license_choices:
+    - given: "LicenseRef-a OR LicenseRef-b"
+      choice: "LicenseRef-b"
+  package_license_choices:
+    - package_id: "Maven:org.example:name:1.0.0"
+      license_choices:
+        - given: "LicenseRef-a OR LicenseRef-b"
+          choice: "LicenseRef-a"
+
+        
