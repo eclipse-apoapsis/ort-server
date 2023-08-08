@@ -51,6 +51,7 @@ class AnalyzerWorkerDaoTest : WordSpec({
         dao = AnalyzerWorkerDao(
             dbExtension.fixtures.analyzerJobRepository,
             dbExtension.fixtures.analyzerRunRepository,
+            dbExtension.fixtures.repositoryConfigurationRepository,
             dbExtension.db
         )
         fixtures = dbExtension.fixtures
@@ -119,6 +120,8 @@ class AnalyzerWorkerDaoTest : WordSpec({
                 vcsProcessedId shouldBe 1
                 nestedRepositoryIds shouldBe mapOf("nested-1" to 2, "nested-2" to 3)
             }
+
+            storedOrtRun.repositoryConfigId shouldBe 1
         }
     }
 })

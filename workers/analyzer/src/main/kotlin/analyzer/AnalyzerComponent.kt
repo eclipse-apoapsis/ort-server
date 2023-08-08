@@ -29,11 +29,13 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -81,6 +83,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
     private fun analyzerModule(): Module = module {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
+        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
 
         singleOf(::AnalyzerWorkerDao)
         singleOf(::AnalyzerDownloader)

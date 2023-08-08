@@ -30,12 +30,14 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 class AnalyzerWorkerDao(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository,
+    private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
     private val db: Database
 ) {
     fun getAnalyzerJob(analyzerJobId: Long) = analyzerJobRepository.get(analyzerJobId)
@@ -60,6 +62,8 @@ class AnalyzerWorkerDao(
 
             val processedVcsInfoDao = VcsInfoDao.getOrPut(ortResult.repository.vcsProcessed.mapToModel())
 
+            val repositoryConfiguration = ortResult.repository.config.mapToModel(job.ortRunId)
+
             ortResult.repository.nestedRepositories.map { nestedRepository ->
                 val nestedVcsInfoDao = VcsInfoDao.getOrPut(nestedRepository.value.mapToModel())
 
@@ -69,6 +73,16 @@ class AnalyzerWorkerDao(
                     it[path] = nestedRepository.key
                 }
             }
+
+            repositoryConfigurationRepository.create(
+                ortRunId = repositoryConfiguration.ortRunId,
+                analyzerConfig = repositoryConfiguration.analyzerConfig,
+                excludes = repositoryConfiguration.excludes,
+                resolutions = repositoryConfiguration.resolutions,
+                curations = repositoryConfiguration.curations,
+                packageConfigurations = repositoryConfiguration.packageConfigurations,
+                licenseChoices = repositoryConfiguration.licenseChoices
+            )
 
             val ortRunDao = OrtRunDao[job.ortRunId]
             ortRunDao.vcsId = vcsInfoDao.id
