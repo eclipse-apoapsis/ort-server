@@ -89,6 +89,12 @@ data class OrtRun(
     val nestedRepositoryIds: Map<String, Long>?,
 
     /**
+     * The ID of the parsed repository configuration. The configuration file is usually stored at the root of the
+     * repository. It will be included in the analyzer worker and can be further processed by the other workers.
+     */
+    val repositoryConfigId: Long?,
+
+    /**
      * A list with issues that have been found for this run and that are not related to one of the processing steps.
      * Such issues are created for instance during validation of the run parameters.
      */

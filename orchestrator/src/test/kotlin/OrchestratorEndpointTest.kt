@@ -97,6 +97,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     null,
                     null,
                     emptyMap(),
+                    null,
                     emptyList(),
                     null,
                     null

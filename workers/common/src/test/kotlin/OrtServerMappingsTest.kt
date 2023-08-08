@@ -111,6 +111,7 @@ class OrtServerMappingsTest : WordSpec({
                 null,
                 null,
                 emptyMap(),
+                null,
                 listOf(runIssue),
                 "default",
                 "c80ef3bcd2bec428da923a188dd0870b1153995c"

@@ -23,6 +23,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationDao
+import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
@@ -77,6 +79,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     val evaluatorJob by EvaluatorJobDao optionalBackReferencedOn EvaluatorJobsTable.ortRunId
     val scannerJob by ScannerJobDao optionalBackReferencedOn ScannerJobsTable.ortRunId
     val reporterJob by ReporterJobDao optionalBackReferencedOn ReporterJobsTable.ortRunId
+    val repositoryConfig by RepositoryConfigurationDao optionalBackReferencedOn RepositoryConfigurationsTable.ortRunId
     val nestedRepositories by NestedRepositoryDao referrersOn NestedRepositoriesTable.ortRunId
 
     fun mapToModel() = OrtRun(
@@ -92,6 +95,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         vcsId = vcsId?.value,
         vcsProcessedId = vcsProcessedId?.value,
         nestedRepositoryIds = nestedRepositories.associate { it.path to it.vcsId.value },
+        repositoryConfigId = repositoryConfig?.id?.value,
         issues = issues.map { it.mapToModel() },
         configContext = configContext,
         resolvedConfigContext = resolvedConfigContext

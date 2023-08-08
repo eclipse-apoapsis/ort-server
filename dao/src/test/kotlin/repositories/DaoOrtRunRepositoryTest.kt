@@ -89,6 +89,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             vcsId = null,
             vcsProcessedId = null,
             nestedRepositoryIds = emptyMap(),
+            repositoryConfigId = null,
             issues = emptyList()
         )
     }

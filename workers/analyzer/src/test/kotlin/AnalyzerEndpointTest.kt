@@ -303,6 +303,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     null,
                     null,
                     null,
+                    null,
                     emptyList(),
                     null,
                     null
