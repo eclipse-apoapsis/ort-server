@@ -32,7 +32,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(libs.kotlinxDatetime)
-                api(libs.ortModel)
 
                 implementation(libs.konform)
                 implementation(libs.kotlinxSerializationJson)
