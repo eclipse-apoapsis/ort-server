@@ -34,7 +34,6 @@ kotlin {
                 implementation(project(":model"))
 
                 api(libs.kotlinxDatetime)
-                api(libs.ortModel)
 
                 implementation(libs.konform)
                 implementation(libs.kotlinxSerializationJson)

@@ -21,8 +21,12 @@ package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.model.config.Options
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+
+/**
+ * A typealias for key-value pairs.
+ */
+typealias Options = Map<String, String>
 
 /**
  * The configurations for the jobs in an [OrtRun].
