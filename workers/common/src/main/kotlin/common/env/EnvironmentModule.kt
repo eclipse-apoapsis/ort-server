@@ -48,6 +48,7 @@ fun buildEnvironmentModule(): Module = module {
                 MavenSettingsGenerator(),
                 NetRcGenerator(),
                 NpmRcGenerator(),
+                NuGetGenerator(),
                 YarnRcGenerator()
             ),
             get()

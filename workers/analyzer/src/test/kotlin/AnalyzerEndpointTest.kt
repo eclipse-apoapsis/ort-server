@@ -143,6 +143,18 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The build environment should contain a NuGet.Config file" {
+            runEnvironmentTest { homeFolder ->
+                val nuGetFile = homeFolder.resolve("NuGet.Config")
+                val content = nuGetFile.readText()
+
+                content shouldContain "packageSources"
+                content shouldContain "https://api.nuget.org/v3/index.json"
+                content shouldContain "packageSourceCredentials"
+                content shouldContain "<add key=\"ClearTextPassword\" "
+            }
+        }
+
         "The build environment should contain a .yarnrc.yml file" {
             runEnvironmentTest { homeFolder ->
                 val yarnRcFile = homeFolder.resolve(".yarnrc.yml")
