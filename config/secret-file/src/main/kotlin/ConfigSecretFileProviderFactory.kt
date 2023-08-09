@@ -26,6 +26,8 @@ import java.io.File
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
 import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactory
 
+import org.slf4j.LoggerFactory
+
 /**
  * Factory implementation for [ConfigSecretFileProvider].
  */
@@ -42,6 +44,8 @@ class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
 
         /** Regular expression to split the property with the list of files. */
         private val splitFilesRegex = Regex("""\s*,\s*""")
+
+        private val logger = LoggerFactory.getLogger(ConfigSecretFileProvider::class.java)
     }
 
     override val name: String
@@ -49,6 +53,8 @@ class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
 
     override fun createProvider(config: Config): ConfigSecretProvider {
         val files = config.getString(FILES_PROPERTY).split(splitFilesRegex).map(::File)
+
+        logger.info("Creating ConfigSecretFileProvider, reading secrets from these files: {}.", files)
 
         return ConfigSecretFileProvider(files)
     }

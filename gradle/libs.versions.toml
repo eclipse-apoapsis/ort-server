@@ -59,6 +59,7 @@ mockk = "1.13.5"
 ort = "119a58d425"
 postgres = "42.6.0"
 qpidJmsClient = "2.3.0"
+slf4j = "2.0.7"
 testContainers = "1.17.6"
 typesafeConfig = "1.4.2"
 vaultTestcontainerVersion = "1.17.6"
@@ -141,6 +142,7 @@ ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", versio
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
+slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
