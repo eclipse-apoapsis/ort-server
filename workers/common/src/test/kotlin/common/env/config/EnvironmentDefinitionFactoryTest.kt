@@ -36,6 +36,8 @@ import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServ
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
+import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
 
@@ -163,6 +165,88 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain properties.getValue("alwaysAuth")
                 exception.message shouldContain "TRUE"
                 exception.message shouldContain "FALSE"
+            }
+        }
+
+        "A NuGet definition" should {
+            "be created with the provided values" {
+                val sourceName = "nuget.org"
+                val sourcePath = "https://api.nuget.org/v3/index.json"
+                val sourceProtocolVersion = "3"
+                val authMode = NuGetAuthMode.PASSWORD
+
+                val properties = mapOf(
+                    "sourceName" to sourceName,
+                    "sourcePath" to sourcePath,
+                    "sourceProtocolVersion" to sourceProtocolVersion,
+                    "authMode" to authMode.name,
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NuGetDefinition>()
+                definition.sourceName shouldBe sourceName
+                definition.sourcePath shouldBe sourcePath
+                definition.sourceProtocolVersion shouldBe sourceProtocolVersion
+                definition.authMode shouldBe authMode
+            }
+
+            "be created with default values" {
+                val sourceName = "nuget.org"
+                val sourcePath = "https://api.nuget.org/v3/index.json"
+
+                val properties = mapOf(
+                    "sourceName" to sourceName,
+                    "sourcePath" to sourcePath
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NuGetDefinition>()
+                definition.sourceName shouldBe sourceName
+                definition.sourcePath shouldBe sourcePath
+                definition.sourceProtocolVersion shouldBe null
+                definition.authMode shouldBe NuGetAuthMode.API_KEY
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "oneMoreUnsupportedProperty"
+                val properties = mapOf("sourceName" to "foo", "sourcePath" to "bar", unsupportedProperty1 to "baz")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+            }
+
+            "accept enum constants independent on case" {
+                val sourceName = "nuget.org"
+                val sourcePath = "https://api.nuget.org/v3/index.json"
+                val properties = mapOf(
+                    "sourceName" to sourceName,
+                    "sourcePath" to sourcePath,
+                    "authMode" to "apI_kEy"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                definition.shouldBeInstanceOf<NuGetDefinition>()
+                definition.authMode shouldBe NuGetAuthMode.API_KEY
+            }
+
+            "fail for an unsupported enum constant" {
+                val sourceName = "nuget.org"
+                val sourcePath = "https://api.nuget.org/v3/index.json"
+                val properties = mapOf(
+                    "sourceName" to sourceName,
+                    "sourcePath" to sourcePath,
+                    "authMode" to "an unknown auth mode"
+                )
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                exception.message shouldContain properties.getValue("authMode")
+                exception.message shouldContain NuGetAuthMode.API_KEY.name
+                exception.message shouldContain NuGetAuthMode.PASSWORD.name
             }
         }
 

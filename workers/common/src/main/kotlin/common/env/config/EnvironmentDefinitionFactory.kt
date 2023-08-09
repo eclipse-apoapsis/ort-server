@@ -24,6 +24,8 @@ import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServ
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
+import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
 import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
 
@@ -38,6 +40,9 @@ class EnvironmentDefinitionFactory {
 
         /** The name for the [NpmDefinition] type. */
         const val NPM_TYPE = "npm"
+
+        /** The name for the [NuGetDefinition] type. */
+        const val NUGET_TYPE = "nuget"
 
         /** The name for the [YarnDefinition] type. */
         const val YARN_TYPE = "yarn"
@@ -58,6 +63,7 @@ class EnvironmentDefinitionFactory {
         when (type) {
             MAVEN_TYPE -> createMavenDefinition(service, DefinitionProperties(properties))
             NPM_TYPE -> createNpmDefinition(service, DefinitionProperties(properties))
+            NUGET_TYPE -> createNuGetDefinition(service, DefinitionProperties(properties))
             YARN_TYPE -> createYarnDefinition(service, DefinitionProperties(properties))
             else -> fail("Unsupported definition type '$type'", properties)
         }
@@ -85,6 +91,23 @@ class EnvironmentDefinitionFactory {
                 email = getOptionalProperty("email"),
                 authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD),
                 alwaysAuth = getBooleanProperty("alwaysAuth", true)
+            )
+        }
+
+    /**
+     * Create a definition for the _NuGet.Config_ configuration file of NuGet with the given [service] and [properties].
+     */
+    private fun createNuGetDefinition(
+        service: InfrastructureService,
+        properties: DefinitionProperties
+    ): Result<EnvironmentServiceDefinition> =
+        properties.withRequiredProperties("sourceName", "sourcePath") {
+            NuGetDefinition(
+                service = service,
+                sourceName = getProperty("sourceName"),
+                sourcePath = getProperty("sourcePath"),
+                sourceProtocolVersion = getOptionalProperty("sourceProtocolVersion"),
+                authMode = getEnumProperty("authMode", NuGetAuthMode.API_KEY)
             )
         }
 
