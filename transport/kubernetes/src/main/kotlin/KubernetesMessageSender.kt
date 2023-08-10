@@ -88,6 +88,7 @@ internal class KubernetesMessageSender<T : Any>(
             .withImagePullSecrets(
                 listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }
             )
+            .withServiceAccountName(config.serviceAccountName)
             .addNewContainer()
             .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
             .withImage(config.imageName)

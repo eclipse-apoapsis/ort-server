@@ -87,7 +87,8 @@ class KubernetesMessageSenderTest : StringSpec({
                 SecretVolumeMount("secretService", "/mnt/secret"),
                 SecretVolumeMount("topSecret", "/mnt/top/secret")
             ),
-            annotations = annotations
+            annotations = annotations,
+            serviceAccountName = "test_service_account"
         )
 
         val sender = KubernetesMessageSender(
@@ -137,6 +138,7 @@ class KubernetesMessageSenderTest : StringSpec({
 
         job.captured.spec?.backoffLimit shouldBe config.backoffLimit
         job.captured.spec?.template?.spec?.restartPolicy shouldBe config.restartPolicy
+        job.captured.spec?.template?.spec?.serviceAccountName shouldBe config.serviceAccountName
         job.captured.spec?.template?.spec?.imagePullSecrets.orEmpty()
             .map { it.name } shouldContainOnly listOf(config.imagePullSecret)
 
