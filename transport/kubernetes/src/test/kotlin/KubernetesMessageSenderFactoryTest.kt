@@ -45,6 +45,7 @@ private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS = "secret1->/mnt/sec1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other\""
+private const val SERVICE_ACCOUNT = "test_service_account"
 
 private val annotationVariables = mapOf(
     "TEST_ANNOTATION" to "ort-server.org/test=true",
@@ -66,7 +67,8 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
             "$keyPrefix.enableDebugLogging" to "true",
             "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
-            "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString()
+            "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
+            "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
         )
         val config = ConfigFactory.parseMap(configMap)
 
@@ -96,6 +98,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 "ort-server.org/test" to "true",
                 "ort-server.org/performance" to "fast"
             )
+            serviceAccountName shouldBe SERVICE_ACCOUNT
             enableDebugLogging shouldBe true
         }
 
@@ -127,6 +130,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             imagePullSecret should beNull()
             secretVolumes should beEmpty()
             annotations.keys should beEmpty()
+            serviceAccountName should beNull()
             enableDebugLogging shouldBe false
         }
 

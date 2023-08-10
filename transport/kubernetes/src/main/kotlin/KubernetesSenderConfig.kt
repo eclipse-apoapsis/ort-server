@@ -82,6 +82,9 @@ data class KubernetesSenderConfig(
      */
     val annotations: Map<String, String> = emptyMap(),
 
+    /** An optional name of a service account to be set for newly created pods. */
+    val serviceAccountName: String? = null,
+
     /** Allows enabling debug logs when interacting with the Kubernetes API. */
     val enableDebugLogging: Boolean = false
 ) {
@@ -138,6 +141,9 @@ data class KubernetesSenderConfig(
          */
         private const val ANNOTATIONS_VARIABLES_PROPERTY = "annotationVariables"
 
+        /** The name of the configuration property defining the name of the service account for pods. */
+        private const val SERVICE_ACCOUNT_PROPERTY = "serviceAccount"
+
         /** The default value for the restart policy property. */
         private const val DEFAULT_RESTART_POLICY = "OnFailure"
 
@@ -185,6 +191,7 @@ data class KubernetesSenderConfig(
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 secretVolumes = config.getStringOrDefault(MOUNT_SECRETS_PROPERTY, "").toVolumeMounts(),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
+                serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
             )
 
