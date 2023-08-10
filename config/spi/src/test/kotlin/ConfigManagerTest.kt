@@ -24,6 +24,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -39,6 +40,8 @@ import java.io.FileNotFoundException
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.toPath
+
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 class ConfigManagerTest : WordSpec({
     "create" should {
@@ -227,6 +230,20 @@ class ConfigManagerTest : WordSpec({
             }
         }
     }
+
+    "config" should {
+        "be accessible" {
+            val testKey = "test.property.key"
+            val testValue = "Success"
+            val configMap = createConfigManagerProperties(resolveContext = false) + mapOf(testKey to testValue)
+            val config = ConfigFactory.parseMap(configMap)
+
+            val configManager = ConfigManager.create(config, ConfigManager.DEFAULT_CONTEXT)
+
+            configManager.getString(testKey) shouldBe testValue
+            configManager.getStringOrNull("foo") should beNull()
+        }
+    }
 })
 
 private const val TEST_SECRET_NAME = "top-secret"
@@ -237,16 +254,24 @@ private const val TEST_SECRET_VALUE = "licenseToTest"
  * [context] and [resolveContext] flag.
  */
 private fun createConfigManager(context: Context = testContext(), resolveContext: Boolean = false): ConfigManager {
+    val configMap = createConfigManagerProperties(resolveContext)
+    val config = ConfigFactory.parseMap(configMap)
+
+    return ConfigManager.create(config, context, resolveContext)
+}
+
+/**
+ * Return a [Map] with properties that are required to create a [ConfigManager] instance. Pass the given
+ * [resolveContext] flag.
+ */
+private fun createConfigManagerProperties(resolveContext: Boolean): Map<String, Map<String, Any>> {
     val configManagerMap = mapOf(
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
         ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
         ConfigFileProviderFactoryForTesting.FORCE_RESOLVED_PROPERTY to resolveContext,
         ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
     )
-    val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
-    val config = ConfigFactory.parseMap(configMap)
-
-    return ConfigManager.create(config, context, resolveContext)
+    return mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
 }
 
 /**

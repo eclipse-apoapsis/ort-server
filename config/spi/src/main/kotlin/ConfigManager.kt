@@ -37,12 +37,15 @@ class ConfigManager(
     /** The [Context] used by this instance. */
     val context: Context,
 
+    /** The application configuration. */
+    val config: Config,
+
     /** The provider for configuration files. */
     private val configFileProvider: ConfigFileProvider,
 
     /** The provider for secrets from the configuration. */
     private val configSecretProvider: ConfigSecretProvider
-) {
+) : Config by config {
     companion object {
         /**
          * The name of the section in the configuration that contains the settings evaluated by this class.
@@ -101,7 +104,7 @@ class ConfigManager(
                 if (resolveContext) fileProvider.resolveContext(context) else context
             }
 
-            return ConfigManager(resolvedContext, fileProvider, secretProvider)
+            return ConfigManager(resolvedContext, config, fileProvider, secretProvider)
         }
 
         /**
