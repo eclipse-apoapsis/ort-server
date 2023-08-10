@@ -30,6 +30,7 @@ endpoint {
         args = "-c java my.pkg.MyClass"
         mountSecrets = "server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
         annotationVariables = "ANNOTATION_VAR1, ANNOTATION_VAR2"
+        serviceAccount = "my_service_account"
     }
 }
 ----
@@ -125,6 +126,10 @@ template:
 
 If variables are referenced that do not exist or do not contain an equals ('=') character in their value to separate the key from the value, a warning is logged, and those variables are ignored.
 |empty
+
+|serviceAccount
+|Allows specifying the name of a service account that is assigned to newly created pods. Service accounts can be used to grant specific permissions to pods.
+|null
 |===
 
 NOTE: The receiver part does not need any specific configuration settings except for the transport type itself.
