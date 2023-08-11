@@ -40,11 +40,11 @@ class ConfigManager(
     /** The application configuration. */
     val config: Config,
 
-    /** The provider for configuration files. */
-    private val configFileProvider: ConfigFileProvider,
+    /** The function to create the provider for configuration files. */
+    private val configFileProviderSupplier: (ConfigSecretProvider) -> ConfigFileProvider,
 
-    /** The provider for secrets from the configuration. */
-    private val configSecretProvider: ConfigSecretProvider
+    /** The function to create the provider for secrets from the configuration. */
+    private val configSecretProviderSupplier: () -> ConfigSecretProvider
 ) : Config by config {
     companion object {
         /**
@@ -80,6 +80,10 @@ class ConfigManager(
          * defined by the given [config]. Configuration files are resolved from the given [context].
          * [Optionally][resolveContext] the context can be resolved first; all later invocations of the
          * [ConfigFileProvider] use the resolved context then.
+         *
+         * The resolving of providers typically happens lazily when they are accessed for the first time. This
+         * simplifies the configuration of client modules which needs to contain properties for the relevant providers
+         * only. However, if [resolveContext] is *true*, the affected providers are created immediately.
          */
         fun create(config: Config, context: Context, resolveContext: Boolean = false): ConfigManager {
             if (!config.hasPath(CONFIG_MANAGER_SECTION)) {
@@ -88,23 +92,33 @@ class ConfigManager(
 
             val managerConfig = config.getConfig(CONFIG_MANAGER_SECTION)
 
-            val secretProvider = SECRET_PROVIDER_LOADER.findProviderFactory(
-                managerConfig,
-                SECRET_PROVIDER_NAME_PROPERTY,
-                ConfigSecretProviderFactory::name
-            ).createProvider(managerConfig)
-
-            val fileProvider = FILE_PROVIDER_LOADER.findProviderFactory(
-                managerConfig,
-                FILE_PROVIDER_NAME_PROPERTY,
-                ConfigFileProviderFactory::name
-            ).createProvider(managerConfig, secretProvider)
-
-            val resolvedContext = wrapExceptions {
-                if (resolveContext) fileProvider.resolveContext(context) else context
+            val secretProviderSupplier: () -> ConfigSecretProvider = {
+                SECRET_PROVIDER_LOADER.findProviderFactory(
+                    managerConfig,
+                    SECRET_PROVIDER_NAME_PROPERTY,
+                    ConfigSecretProviderFactory::name
+                ).createProvider(managerConfig)
             }
 
-            return ConfigManager(resolvedContext, config, fileProvider, secretProvider)
+            val fileProviderSupplier: (ConfigSecretProvider) -> ConfigFileProvider = { secretProvider ->
+                FILE_PROVIDER_LOADER.findProviderFactory(
+                    managerConfig,
+                    FILE_PROVIDER_NAME_PROPERTY,
+                    ConfigFileProviderFactory::name
+                ).createProvider(managerConfig, secretProvider)
+            }
+
+            if (resolveContext) {
+                return wrapExceptions {
+                    val secretProvider = secretProviderSupplier()
+                    val fileProvider = fileProviderSupplier(secretProvider)
+                    val resolvedContext = fileProvider.resolveContext(context)
+
+                    ConfigManager(resolvedContext, config, { fileProvider }, { secretProvider })
+                }
+            }
+
+            return ConfigManager(context, config, fileProviderSupplier, secretProviderSupplier)
         }
 
         /**
@@ -128,6 +142,12 @@ class ConfigManager(
                 )
         }
     }
+
+    /** Stores the provider for secrets. */
+    private val configSecretProvider by lazy { configSecretProviderSupplier() }
+
+    /** Stores the provider for configuration files. */
+    private val configFileProvider by lazy { configFileProviderSupplier(configSecretProvider) }
 
     /**
      * Return an [InputStream] for reading the content of the configuration file at the given [path] in the current
@@ -182,6 +202,9 @@ class ConfigException(message: String, cause: Throwable?) : Exception(message, c
 private fun <T> wrapExceptions(block: () -> T): T =
     try {
         block()
+    } catch (e: ConfigException) {
+        // Do not wrap ConfigExceptions.
+        throw e
     } catch (e: Exception) {
         throw ConfigException("Exception from config provider", e)
     }

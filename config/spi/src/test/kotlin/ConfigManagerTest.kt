@@ -54,7 +54,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config, Context("someContext"))
+                configManager.containsFile(Path("somePath"))
             }
 
             exception.message shouldContain ConfigManager.FILE_PROVIDER_NAME_PROPERTY
@@ -69,7 +70,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config, Context("someContext"))
+                configManager.getSecret(Path("somePath"))
             }
 
             exception.message shouldContain ConfigManager.SECRET_PROVIDER_NAME_PROPERTY
@@ -96,7 +98,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config, Context("someContext"))
+                configManager.containsFile(Path("somePath"))
             }
 
             exception.message shouldContain providerName
@@ -112,7 +115,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config, Context("someContext"))
+                configManager.getSecret(Path("someSecret"))
             }
 
             exception.message shouldContain providerName
@@ -141,6 +145,13 @@ class ConfigManagerTest : WordSpec({
             val configManager = ConfigManager.create(config, testContext())
 
             configManager.containsFile(Path("somePath")) shouldBe false
+        }
+
+        "instantiate providers lazily" {
+            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to emptyMap<String, Any>())
+            val config = ConfigFactory.parseMap(configMap)
+
+            ConfigManager.create(config, testContext())
         }
     }
 
