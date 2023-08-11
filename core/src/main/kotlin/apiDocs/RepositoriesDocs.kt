@@ -24,8 +24,6 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 import io.ktor.http.HttpStatusCode
 
 import kotlinx.datetime.Clock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 import org.ossreviewtoolkit.server.api.v1.AdvisorJob
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
@@ -197,7 +195,7 @@ val deleteRepositoryById: OpenApiRoute.() -> Unit = {
     }
 }
 
-fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
+val getOrtRuns: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRuns"
     summary = "Get all ORT runs of a repository."
     tags = listOf("Repositories")
@@ -213,41 +211,39 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<String> {
+            jsonBody<List<OrtRun>> {
                 example(
                     name = "Get ORT runs",
-                    value = json.encodeToString(
-                        listOf(
-                            OrtRun(
-                                id = 2,
-                                index = 1,
-                                repositoryId = 1,
-                                revision = "main",
-                                createdAt = Clock.System.now(),
-                                config = jobConfigurations,
-                                resolvedConfig = jobConfigurations,
-                                jobs = jobs,
-                                status = OrtRunStatus.FINISHED,
-                                labels = mapOf("label key" to "label value"),
-                                issues = emptyList(),
-                                configContext = null,
-                                resolvedConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
-                            ),
-                            OrtRun(
-                                id = 3,
-                                index = 2,
-                                repositoryId = 1,
-                                revision = "main",
-                                createdAt = Clock.System.now(),
-                                config = jobConfigurations,
-                                resolvedConfig = jobConfigurations,
-                                jobs = jobs,
-                                status = OrtRunStatus.ACTIVE,
-                                labels = mapOf("label key" to "label value"),
-                                issues = emptyList(),
-                                configContext = null,
-                                resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
-                            )
+                    value = listOf(
+                        OrtRun(
+                            id = 2,
+                            index = 1,
+                            repositoryId = 1,
+                            revision = "main",
+                            createdAt = Clock.System.now(),
+                            config = jobConfigurations,
+                            resolvedConfig = jobConfigurations,
+                            jobs = jobs,
+                            status = OrtRunStatus.FINISHED,
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            configContext = null,
+                            resolvedConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
+                        ),
+                        OrtRun(
+                            id = 3,
+                            index = 2,
+                            repositoryId = 1,
+                            revision = "main",
+                            createdAt = Clock.System.now(),
+                            config = jobConfigurations,
+                            resolvedConfig = jobConfigurations,
+                            jobs = jobs,
+                            status = OrtRunStatus.ACTIVE,
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            configContext = null,
+                            resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                         )
                     )
                 )
@@ -256,7 +252,7 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
     }
 }
 
-fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
+val postOrtRun: OpenApiRoute.() -> Unit = {
     operationId = "postOrtRun"
     summary = "Create an ORT run for a repository."
     tags = listOf("Repositories")
@@ -281,25 +277,23 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<String> {
+            jsonBody<OrtRun> {
                 example(
                     name = "Create ORT run",
-                    value = json.encodeToString(
-                        OrtRun(
-                            id = 1,
-                            index = 2,
-                            repositoryId = 1,
-                            revision = "main",
-                            createdAt = Clock.System.now(),
-                            config = jobConfigurations,
-                            resolvedConfig = jobConfigurations,
-                            jobs = jobs,
-                            status = OrtRunStatus.CREATED,
-                            labels = mapOf("label key" to "label value"),
-                            issues = emptyList(),
-                            configContext = null,
-                            resolvedConfigContext = null
-                        )
+                    value = OrtRun(
+                        id = 1,
+                        index = 2,
+                        repositoryId = 1,
+                        revision = "main",
+                        createdAt = Clock.System.now(),
+                        config = jobConfigurations,
+                        resolvedConfig = jobConfigurations,
+                        jobs = jobs,
+                        status = OrtRunStatus.CREATED,
+                        labels = mapOf("label key" to "label value"),
+                        issues = emptyList(),
+                        configContext = null,
+                        resolvedConfigContext = null
                     )
                 )
             }
@@ -307,7 +301,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
     }
 }
 
-fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
+val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRunByIndex"
     summary = "Get details of an ORT run of a repository."
     tags = listOf("Repositories")
@@ -325,25 +319,23 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<String> {
+            jsonBody<OrtRun> {
                 example(
                     name = "Get ORT run",
-                    value = json.encodeToString(
-                        OrtRun(
-                            id = 1,
-                            index = 2,
-                            repositoryId = 1,
-                            revision = "main",
-                            createdAt = Clock.System.now(),
-                            config = jobConfigurations,
-                            resolvedConfig = jobConfigurations,
-                            jobs = jobs,
-                            status = OrtRunStatus.ACTIVE,
-                            labels = mapOf("label key" to "label value"),
-                            issues = emptyList(),
-                            configContext = null,
-                            resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
-                        )
+                    value = OrtRun(
+                        id = 1,
+                        index = 2,
+                        repositoryId = 1,
+                        revision = "main",
+                        createdAt = Clock.System.now(),
+                        config = jobConfigurations,
+                        resolvedConfig = jobConfigurations,
+                        jobs = jobs,
+                        status = OrtRunStatus.ACTIVE,
+                        labels = mapOf("label key" to "label value"),
+                        issues = emptyList(),
+                        configContext = null,
+                        resolvedConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                     )
                 )
             }

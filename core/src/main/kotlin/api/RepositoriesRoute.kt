@@ -31,8 +31,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import kotlinx.serialization.json.Json
-
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
@@ -65,7 +63,6 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
-    val json by inject<Json>()
 
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
@@ -99,7 +96,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getOrtRuns(json)) {
+        get(getOrtRuns) {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
@@ -111,7 +108,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             )
         }
 
-        post(postOrtRun(json)) {
+        post(postOrtRun) {
             requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
@@ -130,7 +127,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get(getOrtRunByIndex(json)) {
+            get(getOrtRunByIndex) {
                 requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
                 val repositoryId = call.requireParameter("repositoryId").toLong()
