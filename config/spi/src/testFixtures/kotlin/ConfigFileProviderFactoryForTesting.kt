@@ -27,6 +27,7 @@ import java.io.InputStream
 import kotlin.IllegalArgumentException
 
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
  * A test implementation of the [ConfigFileProvider] interface. This implementation interprets the context as an
@@ -43,6 +44,13 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
          */
         const val FORCE_RESOLVED_PROPERTY = "forceResolved"
 
+        /**
+         * Name of a configuration property that simulates a secret required by this implementation. If it is defined,
+         * this implementation will query the value from the provided [ConfigManager]. This is used to test whether
+         * access to secrets is possible when a config file provider is created.
+         */
+        const val SECRET_PROPERTY = "secret"
+
         /** A prefix to mark a context as resolved. */
         const val RESOLVED_PREFIX = "resolved://"
 
@@ -51,12 +59,23 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
          * used as [Path] or [Context]. This can be used in tests for exception handling.
          */
         const val ERROR_VALUE = "errorConfig"
+
+        /**
+         * Test whether secrets can be queried from the given [secretProvider] if this check is enabled.
+         */
+        private fun checkConfigManagerSecretAccess(config: Config, secretProvider: ConfigSecretProvider) {
+            config.getStringOrNull(SECRET_PROPERTY)?.let { secret ->
+                secretProvider.getSecret(Path(secret))
+            }
+        }
     }
 
     override val name: String
         get() = NAME
 
-    override fun createProvider(config: Config): ConfigFileProvider {
+    override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider {
+        checkConfigManagerSecretAccess(config, secretProvider)
+
         val forceResolved = config.getBooleanOrDefault(FORCE_RESOLVED_PROPERTY, false)
 
         fun configRoot(context: Context): File {

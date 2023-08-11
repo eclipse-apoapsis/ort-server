@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.config
 
 import com.typesafe.config.Config
 
+import org.ossreviewtoolkit.server.utils.config.getConfigOrEmpty
+
 /**
  * A test implementation of the [ConfigSecretProvider] interface. This implementation reads the known secrets from
  * the configuration passed to the factory. Thus, it can be customized for being used in tests quite easily.
@@ -41,7 +43,7 @@ class ConfigSecretProviderFactoryForTesting : ConfigSecretProviderFactory {
         get() = NAME
 
     override fun createProvider(config: Config): ConfigSecretProvider {
-        val secrets = config.getConfig(SECRETS_PROPERTY)
+        val secrets = config.getConfigOrEmpty(SECRETS_PROPERTY)
             .entrySet().associate { it.key to it.value.unwrapped().toString() }
 
         return object : ConfigSecretProvider {

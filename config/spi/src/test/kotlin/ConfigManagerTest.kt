@@ -131,6 +131,17 @@ class ConfigManagerTest : WordSpec({
                 createConfigManager(Context(ConfigFileProviderFactoryForTesting.ERROR_VALUE), resolveContext = true)
             }
         }
+
+        "pass an initialized secret provider to the file provider" {
+            val providerMap = createConfigProviderProperties(resolveContext = false) +
+                    mapOf(ConfigFileProviderFactoryForTesting.SECRET_PROPERTY to TEST_SECRET_NAME)
+            val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to providerMap)
+            val config = ConfigFactory.parseMap(configMap)
+
+            val configManager = ConfigManager.create(config, testContext())
+
+            configManager.containsFile(Path("somePath")) shouldBe false
+        }
     }
 
     "getFile" should {
@@ -265,13 +276,22 @@ private fun createConfigManager(context: Context = testContext(), resolveContext
  * [resolveContext] flag.
  */
 private fun createConfigManagerProperties(resolveContext: Boolean): Map<String, Map<String, Any>> {
-    val configManagerMap = mapOf(
+    val configManagerMap = createConfigProviderProperties(resolveContext)
+
+    return mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
+}
+
+/**
+ * Return a [Map] with the properties related to the configuration providers. This basically defines the content of
+ * the `configManager` section in the configuration. Pass the given [resolveContext] flag.
+ */
+private fun createConfigProviderProperties(resolveContext: Boolean): Map<String, Any> {
+    return mapOf(
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
         ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
         ConfigFileProviderFactoryForTesting.FORCE_RESOLVED_PROPERTY to resolveContext,
         ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
     )
-    return mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
 }
 
 /**

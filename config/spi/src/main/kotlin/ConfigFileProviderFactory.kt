@@ -31,8 +31,9 @@ interface ConfigFileProviderFactory {
     val name: String
 
     /**
-     * Create a new [ConfigFileProvider] instance based on the given [config]. The object returned by this function
-     * should be fully initialized, so that it can be used to load configuration files.
+     * Create a new [ConfigFileProvider] instance based on the given [config]. If required, secrets can be obtained
+     * from the given [secretProvider]. The object returned by this function should be fully initialized, so that it
+     * can be used to load configuration files.
      */
-    fun createProvider(config: Config): ConfigFileProvider
+    fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider
 }

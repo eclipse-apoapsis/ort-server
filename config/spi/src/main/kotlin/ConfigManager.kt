@@ -88,17 +88,17 @@ class ConfigManager(
 
             val managerConfig = config.getConfig(CONFIG_MANAGER_SECTION)
 
-            val fileProvider = FILE_PROVIDER_LOADER.findProviderFactory(
-                managerConfig,
-                FILE_PROVIDER_NAME_PROPERTY,
-                ConfigFileProviderFactory::name
-            ).createProvider(managerConfig)
-
             val secretProvider = SECRET_PROVIDER_LOADER.findProviderFactory(
                 managerConfig,
                 SECRET_PROVIDER_NAME_PROPERTY,
                 ConfigSecretProviderFactory::name
             ).createProvider(managerConfig)
+
+            val fileProvider = FILE_PROVIDER_LOADER.findProviderFactory(
+                managerConfig,
+                FILE_PROVIDER_NAME_PROPERTY,
+                ConfigFileProviderFactory::name
+            ).createProvider(managerConfig, secretProvider)
 
             val resolvedContext = wrapExceptions {
                 if (resolveContext) fileProvider.resolveContext(context) else context
