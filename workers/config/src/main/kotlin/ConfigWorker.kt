@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.config
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -53,9 +54,12 @@ class ConfigWorker(
     suspend fun run(ortRunId: Long): RunResult = runCatching {
         val context = contextFactory.createContext(ortRunId)
 
-        val configManager = context.configManager(resolveContext = true)
+        val configManager = context.configManager()
+        val configContext = context.ortRun.configContext?.let(::Context)
+        val resolvedContext = configManager.resolveContext(configContext)
+
         // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it configurable.
-        val validationScript = configManager.getFileAsString(VALIDATION_SCRIPT_PATH)
+        val validationScript = configManager.getFileAsString(resolvedContext, VALIDATION_SCRIPT_PATH)
 
         val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(validationScript)
@@ -73,7 +77,7 @@ class ConfigWorker(
                 ortRunId,
                 resolvedConfig = resolvedConfig,
                 issues = validationResult.issues.asPresent(),
-                resolvedConfigContext = configManager.context.name.asPresent()
+                resolvedConfigContext = resolvedContext.name.asPresent()
             )
         }
 

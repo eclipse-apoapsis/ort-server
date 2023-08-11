@@ -34,9 +34,6 @@ import org.ossreviewtoolkit.server.utils.config.getStringOrNull
  * provider interfaces. It also handles occurring exceptions and wraps them into [ConfigException] exceptions.
  */
 class ConfigManager(
-    /** The [Context] used by this instance. */
-    val context: Context,
-
     /** The application configuration. */
     val config: Config,
 
@@ -77,15 +74,11 @@ class ConfigManager(
 
         /**
          * Return a new instance of [ConfigManager] that has been initialized with service provider implementations
-         * defined by the given [config]. Configuration files are resolved from the given [context].
-         * [Optionally][resolveContext] the context can be resolved first; all later invocations of the
-         * [ConfigFileProvider] use the resolved context then.
-         *
-         * The resolving of providers typically happens lazily when they are accessed for the first time. This
-         * simplifies the configuration of client modules which needs to contain properties for the relevant providers
-         * only. However, if [resolveContext] is *true*, the affected providers are created immediately.
+         * defined by the given [config]. The resolving of providers happens lazily when they are accessed for the
+         * first time. This simplifies the configuration of client modules which needs to contain properties for the
+         * relevant providers only.
          */
-        fun create(config: Config, context: Context, resolveContext: Boolean = false): ConfigManager {
+        fun create(config: Config): ConfigManager {
             if (!config.hasPath(CONFIG_MANAGER_SECTION)) {
                 throw ConfigException("Missing '$CONFIG_MANAGER_SECTION' section.", null)
             }
@@ -108,17 +101,7 @@ class ConfigManager(
                 ).createProvider(managerConfig, secretProvider)
             }
 
-            if (resolveContext) {
-                return wrapExceptions {
-                    val secretProvider = secretProviderSupplier()
-                    val fileProvider = fileProviderSupplier(secretProvider)
-                    val resolvedContext = fileProvider.resolveContext(context)
-
-                    ConfigManager(resolvedContext, config, { fileProvider }, { secretProvider })
-                }
-            }
-
-            return ConfigManager(context, config, fileProviderSupplier, secretProviderSupplier)
+            return ConfigManager(config, fileProviderSupplier, secretProviderSupplier)
         }
 
         /**
@@ -141,6 +124,11 @@ class ConfigManager(
                     null
                 )
         }
+
+        /**
+         * Either return [context] if it is not *null* or the [DEFAULT_CONTEXT].
+         */
+        private fun safeContext(context: Context?): Context = context ?: DEFAULT_CONTEXT
     }
 
     /** Stores the provider for secrets. */
@@ -150,17 +138,24 @@ class ConfigManager(
     private val configFileProvider by lazy { configFileProviderSupplier(configSecretProvider) }
 
     /**
-     * Return an [InputStream] for reading the content of the configuration file at the given [path] in the current
-     * [Context]. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
+     * Ask the underlying [ConfigFileProvider] to resolve the given [context]. Throw a [ConfigException] if this fails.
      */
-    fun getFile(path: Path): InputStream = wrapExceptions { configFileProvider.getFile(context, path) }
+    fun resolveContext(context: Context?): Context =
+        wrapExceptions { configFileProvider.resolveContext(safeContext(context)) }
 
     /**
-     * Return the content of the configuration file under the given [path] in the current [Context] as a string.
+     * Return an [InputStream] for reading the content of the configuration file at the given [path] in the given
+     * [context]. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
+     */
+    fun getFile(context: Context?, path: Path): InputStream =
+        wrapExceptions { configFileProvider.getFile(safeContext(context), path) }
+
+    /**
+     * Return the content of the configuration file under the given [path] in the given [context] as a string.
      * Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFileAsString(path: Path): String {
-        val configStream = getFile(path)
+    fun getFileAsString(context: Context?, path: Path): String {
+        val configStream = getFile(context, path)
 
         return wrapExceptions {
             configStream.use { stream ->
@@ -170,17 +165,19 @@ class ConfigManager(
     }
 
     /**
-     * Check whether a configuration file exists at the given [path] in the current [Context]. Throw a
+     * Check whether a configuration file exists at the given [path] in the given [context]. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun containsFile(path: Path): Boolean = wrapExceptions { configFileProvider.contains(context, path) }
+    fun containsFile(context: Context?, path: Path): Boolean =
+        wrapExceptions { configFileProvider.contains(safeContext(context), path) }
 
     /**
-     * Return a [Set] with the [Path]s to configuration files that are located under the given [path]. The provided
-     * [path] should point to a directory, so that it can contain files. Throw a [ConfigException] if the
-     * underlying [ConfigFileProvider] throws an exception.
+     * Return a [Set] with the [Path]s to configuration files that are located under the given [path] in the given
+     * [context]. The provided [path] should point to a directory, so that it can contain files. Throw a
+     * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun listFiles(path: Path): Set<Path> = wrapExceptions { configFileProvider.listFiles(context, path) }
+    fun listFiles(context: Context?, path: Path): Set<Path> =
+        wrapExceptions { configFileProvider.listFiles(safeContext(context), path) }
 
     /**
      * Return the value of the secret identified by the given [path]. Throw a [ConfigException] if the underlying

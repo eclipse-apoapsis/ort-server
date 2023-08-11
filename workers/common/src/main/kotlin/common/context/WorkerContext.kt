@@ -37,11 +37,9 @@ interface WorkerContext {
     val hierarchy: Hierarchy
 
     /**
-     * Return an initialized [ConfigManager] object. Depending on the given [resolveContext] flag, the manager is
-     * either using the resolved context (if the value is *false*) or the original context (if the value is *true*).
-     * The original context is only used initially to resolve it.
+     * Return an initialized [ConfigManager] object.
      */
-    fun configManager(resolveContext: Boolean = false): ConfigManager
+    fun configManager(): ConfigManager
 
     /**
      * Resolve the given [secret] and return its value. Cache the value, so that it can be returned directly when a

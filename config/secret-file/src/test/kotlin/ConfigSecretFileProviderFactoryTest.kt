@@ -57,7 +57,7 @@ class ConfigSecretFileProviderFactoryTest : StringSpec({
  * [secretFiles].
  */
 private fun createConfigManager(vararg secretFiles: File): ConfigManager =
-    ConfigManager.create(createProviderConfig(*secretFiles), ConfigManager.DEFAULT_CONTEXT)
+    ConfigManager.create(createProviderConfig(*secretFiles))
 
 /**
  * Create a [Config] that can be used to instantiate a [ConfigManager] which uses a [ConfigSecretFileProvider] to

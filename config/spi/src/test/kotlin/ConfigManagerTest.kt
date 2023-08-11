@@ -29,7 +29,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldStartWith
 import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.every
@@ -54,8 +53,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                val configManager = ConfigManager.create(config, Context("someContext"))
-                configManager.containsFile(Path("somePath"))
+                val configManager = ConfigManager.create(config)
+                configManager.containsFile(Context("someContext"), Path("somePath"))
             }
 
             exception.message shouldContain ConfigManager.FILE_PROVIDER_NAME_PROPERTY
@@ -70,7 +69,7 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                val configManager = ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config)
                 configManager.getSecret(Path("somePath"))
             }
 
@@ -82,7 +81,7 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config, Context("someContext"))
+                ConfigManager.create(config)
             }
 
             exception.message shouldContain ConfigManager.CONFIG_MANAGER_SECTION
@@ -98,8 +97,8 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                val configManager = ConfigManager.create(config, Context("someContext"))
-                configManager.containsFile(Path("somePath"))
+                val configManager = ConfigManager.create(config)
+                configManager.containsFile(Context("someContext"), Path("somePath"))
             }
 
             exception.message shouldContain providerName
@@ -115,43 +114,57 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             val exception = shouldThrow<ConfigException> {
-                val configManager = ConfigManager.create(config, Context("someContext"))
+                val configManager = ConfigManager.create(config)
                 configManager.getSecret(Path("someSecret"))
             }
 
             exception.message shouldContain providerName
         }
 
-        "resolve the context if requested" {
-            val manager = createConfigManager(resolveContext = true)
-
-            manager.containsFile(Path("root.txt")) shouldBe true
-
-            manager.context.name shouldStartWith ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX
-        }
-
-        "handle exceptions from the provider when resolving the context" {
-            shouldThrow<ConfigException> {
-                createConfigManager(Context(ConfigFileProviderFactoryForTesting.ERROR_VALUE), resolveContext = true)
-            }
-        }
-
         "pass an initialized secret provider to the file provider" {
-            val providerMap = createConfigProviderProperties(resolveContext = false) +
+            val providerMap = createConfigProviderProperties() +
                     mapOf(ConfigFileProviderFactoryForTesting.SECRET_PROPERTY to TEST_SECRET_NAME)
             val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to providerMap)
             val config = ConfigFactory.parseMap(configMap)
 
-            val configManager = ConfigManager.create(config, testContext())
+            val configManager = ConfigManager.create(config)
 
-            configManager.containsFile(Path("somePath")) shouldBe false
+            configManager.containsFile(testContext(), Path("somePath")) shouldBe false
         }
 
         "instantiate providers lazily" {
             val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to emptyMap<String, Any>())
             val config = ConfigFactory.parseMap(configMap)
 
-            ConfigManager.create(config, testContext())
+            ConfigManager.create(config)
+        }
+    }
+
+    "resolveContext" should {
+        "return the resolved context" {
+            val context = "test-context"
+            val manager = createConfigManager()
+
+            val resolvedContext = manager.resolveContext(Context(context))
+
+            resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX + context
+        }
+
+        "use the default context" {
+            val manager = createConfigManager()
+
+            val resolvedContext = manager.resolveContext(null)
+
+            resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
+                    ConfigManager.DEFAULT_CONTEXT.name
+        }
+
+        "handle exceptions from the provider" {
+            val manager = createConfigManager()
+
+            shouldThrow<ConfigException> {
+                manager.resolveContext(Context(ConfigFileProviderFactoryForTesting.ERROR_VALUE))
+            }
         }
     }
 
@@ -159,16 +172,28 @@ class ConfigManagerTest : WordSpec({
         "return a stream for a configuration file" {
             val manager = createConfigManager()
 
-            val fileContent = manager.getFile(Path("root.txt")).use { String(it.readAllBytes()).trim() }
+            val fileContent = manager.getFile(testContext(), Path("root.txt")).use {
+                String(it.readAllBytes()).trim()
+            }
 
             fileContent shouldBe "Root config file."
+        }
+
+        "return a stream for a configuration from the default context" {
+            val manager = createConfigManager()
+
+            val fileContent = manager.getFile(null, Path("test.txt")).use {
+                String(it.readAllBytes()).trim()
+            }
+
+            fileContent shouldBe "Test config file."
         }
 
         "handle exceptions from the provider" {
             val manager = createConfigManager()
 
             val exception = shouldThrow<ConfigException> {
-                manager.getFile(Path("nonExistingPath"))
+                manager.getFile(testContext(), Path("nonExistingPath"))
             }
 
             exception.cause should beInstanceOf<FileNotFoundException>()
@@ -179,18 +204,26 @@ class ConfigManagerTest : WordSpec({
         "return the content of a configuration file as string" {
             val manager = createConfigManager()
 
-            val fileContent = manager.getFileAsString(Path("root.txt")).trim()
+            val fileContent = manager.getFileAsString(testContext(), Path("root.txt")).trim()
 
             fileContent shouldBe "Root config file."
         }
 
+        "return the content of a configuration file from the default context as string" {
+            val manager = createConfigManager()
+
+            val fileContent = manager.getFileAsString(null, Path("test.txt")).trim()
+
+            fileContent shouldBe "Test config file."
+        }
+
         "handle exceptions while reading the stream" {
             val manager = spyk(createConfigManager())
-            every { manager.getFile(any()) } returns mockk()
+            every { manager.getFile(any(), any()) } returns mockk()
 
             // Since an uninitialized mock is returned as stream, it will throw on each method call.
             shouldThrow<ConfigException> {
-                manager.getFileAsString(Path("root.txt"))
+                manager.getFileAsString(testContext(), Path("root.txt"))
             }
         }
     }
@@ -199,20 +232,26 @@ class ConfigManagerTest : WordSpec({
         "return true for an existing configuration file" {
             val manager = createConfigManager()
 
-            manager.containsFile(Path("root.txt")) shouldBe true
+            manager.containsFile(testContext(), Path("root.txt")) shouldBe true
         }
 
         "return false for a non-existing configuration file" {
             val manager = createConfigManager()
 
-            manager.containsFile(Path("nonExistingFile")) shouldBe false
+            manager.containsFile(testContext(), Path("nonExistingFile")) shouldBe false
+        }
+
+        "return true for an existing configuration file in the default context" {
+            val manager = createConfigManager()
+
+            manager.containsFile(null, Path("test.txt")) shouldBe true
         }
 
         "handle exceptions from the provider" {
             val manager = createConfigManager()
 
             shouldThrow<ConfigException> {
-                manager.containsFile(Path(ConfigFileProviderFactoryForTesting.ERROR_VALUE))
+                manager.containsFile(testContext(), Path(ConfigFileProviderFactoryForTesting.ERROR_VALUE))
             }
         }
     }
@@ -221,16 +260,24 @@ class ConfigManagerTest : WordSpec({
         "return a set with Paths representing configuration files in a sub folder" {
             val manager = createConfigManager()
 
-            val paths = manager.listFiles(Path("sub"))
+            val paths = manager.listFiles(testContext(), Path("sub"))
 
             paths shouldContainExactlyInAnyOrder listOf(Path("sub/sub1.txt"), Path("sub/sub2.txt"))
+        }
+
+        "return a set with Paths representing configuration files in the default context" {
+            val manager = createConfigManager()
+
+            val paths = manager.listFiles(null, Path("."))
+
+            paths shouldContainExactlyInAnyOrder listOf(Path("./test.txt"))
         }
 
         "handle exceptions from the provider" {
             val manager = createConfigManager()
 
             shouldThrow<ConfigException> {
-                manager.listFiles(Path("nonExistingPath"))
+                manager.listFiles(testContext(), Path("nonExistingPath"))
             }
         }
     }
@@ -257,10 +304,10 @@ class ConfigManagerTest : WordSpec({
         "be accessible" {
             val testKey = "test.property.key"
             val testValue = "Success"
-            val configMap = createConfigManagerProperties(resolveContext = false) + mapOf(testKey to testValue)
+            val configMap = createConfigManagerProperties() + mapOf(testKey to testValue)
             val config = ConfigFactory.parseMap(configMap)
 
-            val configManager = ConfigManager.create(config, ConfigManager.DEFAULT_CONTEXT)
+            val configManager = ConfigManager.create(config)
 
             configManager.getString(testKey) shouldBe testValue
             configManager.getStringOrNull("foo") should beNull()
@@ -272,35 +319,32 @@ private const val TEST_SECRET_NAME = "top-secret"
 private const val TEST_SECRET_VALUE = "licenseToTest"
 
 /**
- * Create a [ConfigManager] instance that is configured to use test provider implementations. Pass the given
- * [context] and [resolveContext] flag.
+ * Create a [ConfigManager] instance that is configured to use test provider implementations.
  */
-private fun createConfigManager(context: Context = testContext(), resolveContext: Boolean = false): ConfigManager {
-    val configMap = createConfigManagerProperties(resolveContext)
+private fun createConfigManager(): ConfigManager {
+    val configMap = createConfigManagerProperties()
     val config = ConfigFactory.parseMap(configMap)
 
-    return ConfigManager.create(config, context, resolveContext)
+    return ConfigManager.create(config)
 }
 
 /**
- * Return a [Map] with properties that are required to create a [ConfigManager] instance. Pass the given
- * [resolveContext] flag.
+ * Return a [Map] with properties that are required to create a [ConfigManager] instance.
  */
-private fun createConfigManagerProperties(resolveContext: Boolean): Map<String, Map<String, Any>> {
-    val configManagerMap = createConfigProviderProperties(resolveContext)
+private fun createConfigManagerProperties(): Map<String, Map<String, Any>> {
+    val configManagerMap = createConfigProviderProperties()
 
     return mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerMap)
 }
 
 /**
  * Return a [Map] with the properties related to the configuration providers. This basically defines the content of
- * the `configManager` section in the configuration. Pass the given [resolveContext] flag.
+ * the `configManager` section in the configuration.
  */
-private fun createConfigProviderProperties(resolveContext: Boolean): Map<String, Any> {
+private fun createConfigProviderProperties(): Map<String, Any> {
     return mapOf(
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
         ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-        ConfigFileProviderFactoryForTesting.FORCE_RESOLVED_PROPERTY to resolveContext,
         ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
     )
 }

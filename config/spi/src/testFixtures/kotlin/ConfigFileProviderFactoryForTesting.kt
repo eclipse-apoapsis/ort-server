@@ -26,7 +26,6 @@ import java.io.InputStream
 
 import kotlin.IllegalArgumentException
 
-import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
@@ -37,12 +36,6 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
     companion object {
         /** The name of this test implementation. */
         const val NAME = "configFileProviderForTesting"
-
-        /**
-         * Name of a configuration property that enables the _forcedResolved_ mode. In this mode, only contexts are
-         * accepted that have been resolved using the [ConfigFileProvider.resolveContext] function.
-         */
-        const val FORCE_RESOLVED_PROPERTY = "forceResolved"
 
         /**
          * Name of a configuration property that simulates a secret required by this implementation. If it is defined,
@@ -76,16 +69,12 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
     override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider {
         checkConfigManagerSecretAccess(config, secretProvider)
 
-        val forceResolved = config.getBooleanOrDefault(FORCE_RESOLVED_PROPERTY, false)
-
-        fun configRoot(context: Context): File {
-            require(!forceResolved || context.name.startsWith(RESOLVED_PREFIX)) {
-                "Unresolved context: ${context.name}"
+        fun configRoot(context: Context): File =
+            if (context == ConfigManager.DEFAULT_CONTEXT) {
+                File("src/testFixtures/resources/config-files")
+            } else {
+                File(context.name)
             }
-
-            val fileName = if (forceResolved) context.name.removePrefix(RESOLVED_PREFIX) else context.name
-            return File(fileName)
-        }
 
         fun resolveFile(context: Context, path: Path): File =
             path.takeUnless { it.path == ERROR_VALUE }?.let { configRoot(context).resolve(it.path) }
