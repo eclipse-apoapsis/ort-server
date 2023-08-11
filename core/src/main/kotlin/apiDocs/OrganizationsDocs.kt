@@ -123,6 +123,13 @@ val patchOrganizationById: OpenApiRoute.() -> Unit = {
         }
         jsonBody<UpdateOrganization> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            example(
+                name = "Update Organization",
+                value = UpdateOrganization(
+                    name = "My updated Organization".asPresent(),
+                    description = "Updated description".asPresent()
+                )
+            )
         }
     }
 
@@ -319,6 +326,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
                 name = "Update Secret",
                 value = UpdateSecret(
                     name = "My updated Secret".asPresent(),
+                    value = "My updated value".asPresent(),
                     description = "Updated description".asPresent()
                 )
             )
@@ -457,6 +465,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
                 value = UpdateInfrastructureService(
                     url = "https://github.com".asPresent(),
                     description = "Updated description".asPresent(),
+                    usernameSecretRef = "newGitHubUser".asPresent(),
                     passwordSecretRef = "newGitHubPassword".asPresent()
                 )
             )
@@ -474,7 +483,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
                         name = "GitHub",
                         url = "https://github.com",
                         description = "Updated description",
-                        usernameSecretRef = "gitHubUsername",
+                        usernameSecretRef = "newGitHubUser",
                         passwordSecretRef = "newGitHubPassword"
                     )
                 )

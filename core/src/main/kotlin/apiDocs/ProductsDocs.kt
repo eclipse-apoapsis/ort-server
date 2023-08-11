@@ -68,6 +68,10 @@ val patchProductById: OpenApiRoute.() -> Unit = {
         }
         jsonBody<UpdateProduct> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            example(
+                name = "Update Product",
+                value = UpdateProduct(name = "Update Product".asPresent(), description = "Updated product".asPresent())
+            )
         }
     }
 
@@ -267,6 +271,7 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
                 name = "Update Secret",
                 value = UpdateSecret(
                     name = "My updated Secret".asPresent(),
+                    value = "My updated value".asPresent(),
                     description = "Updated description".asPresent()
                 )
             )

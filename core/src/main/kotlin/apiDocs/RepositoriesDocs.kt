@@ -152,6 +152,13 @@ val patchRepositoryById: OpenApiRoute.() -> Unit = {
         }
         jsonBody<UpdateRepository> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            example(
+                name = "Update Repository",
+                value = UpdateRepository(
+                    type = RepositoryType.GIT_REPO.asPresent(),
+                    url = "https://example.com/org/updated-repo.git".asPresent()
+                )
+            )
         }
     }
 
@@ -161,7 +168,11 @@ val patchRepositoryById: OpenApiRoute.() -> Unit = {
             jsonBody<Repository> {
                 example(
                     name = "Update Repository",
-                    value = Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/org/repo.git")
+                    value = Repository(
+                        id = 1,
+                        type = RepositoryType.GIT_REPO,
+                        url = "https://example.com/org/updated-repo.git"
+                    )
                 )
             }
         }
@@ -443,6 +454,7 @@ val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
                 name = "Update Secret",
                 value = UpdateSecret(
                     name = "My updated Secret".asPresent(),
+                    value = "My updated value".asPresent(),
                     description = "Updated description".asPresent()
                 )
             )
