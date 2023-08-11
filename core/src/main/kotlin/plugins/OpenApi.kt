@@ -83,6 +83,10 @@ fun Application.configureOpenApi() {
             }
 
             schemaDefinitionsField = "definitions"
+
+            exampleEncoder { type, example ->
+                json.encodeToString(serializer(type!!), example)
+            }
         }
     }
 }
