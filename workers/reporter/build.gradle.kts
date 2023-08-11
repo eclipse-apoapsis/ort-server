@@ -47,6 +47,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":config:config-spi"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":storage:storage-spi"))
@@ -65,6 +66,7 @@ dependencies {
     runtimeOnly(libs.logback)
     runtimeOnly(platform(libs.ortReporters))
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":storage:storage-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))

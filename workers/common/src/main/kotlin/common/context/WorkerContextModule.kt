@@ -23,6 +23,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
@@ -36,5 +37,6 @@ fun workerContextModule(): Module = module {
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
 
+    single { ConfigManager.create(get()) }
     singleOf(::WorkerContextFactory)
 }

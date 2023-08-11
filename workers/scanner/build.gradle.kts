@@ -35,6 +35,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":config:config-spi"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":storage:storage-spi"))
@@ -56,6 +57,7 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":storage:storage-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))

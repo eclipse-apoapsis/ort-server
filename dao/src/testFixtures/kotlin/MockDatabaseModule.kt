@@ -19,7 +19,9 @@
 
 package org.ossreviewtoolkit.server.dao.test
 
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.mockk
@@ -32,6 +34,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 
 /**
@@ -71,8 +74,10 @@ fun unmockDatabaseModule() {
  * the code under test, without the need to have a real database up and running.
  */
 fun KoinTest.verifyDatabaseModuleIncluded() {
-    val mockConnection by inject<MockConnection>()
+    val configManager by inject<ConfigManager>()
+    configManager shouldNot beNull()
 
+    val mockConnection by inject<MockConnection>()
     mockConnection.success shouldBe true
 }
 

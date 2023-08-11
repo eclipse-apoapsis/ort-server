@@ -33,6 +33,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":config:config-spi"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":transport:transport-spi"))
@@ -41,6 +42,7 @@ dependencies {
     runtimeOnly(project(":transport:kubernetes"))
     runtimeOnly(project(":transport:rabbitmq"))
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(libs.koinTest)

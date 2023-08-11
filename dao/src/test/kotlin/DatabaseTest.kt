@@ -37,6 +37,9 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
+
 class DatabaseTest : WordSpec({
     afterEach {
         unmockkAll()
@@ -58,18 +61,25 @@ class DatabaseTest : WordSpec({
                 sslRootCert = "myTestSSLRootCert"
             )
 
+            val secretsMap = mapOf(
+                "database.username" to dbConfig.username,
+                "database.password" to dbConfig.password
+            )
+            val secretConfigMap = mapOf(
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+                ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
+            )
             val config = ConfigFactory.parseMap(
                 mapOf(
                     "database.url" to dbConfig.jdbcUrl,
                     "database.name" to dbConfig.name,
                     "database.schema" to dbConfig.schema,
-                    "database.username" to dbConfig.username,
-                    "database.password" to dbConfig.password,
                     "database.poolsize" to dbConfig.maximumPoolSize,
                     "database.sslmode" to dbConfig.sslMode,
                     "database.sslcert" to dbConfig.sslCert,
                     "database.sslkey" to dbConfig.sslKey,
                     "database.sslrootcert" to dbConfig.sslRootCert,
+                    ConfigManager.CONFIG_MANAGER_SECTION to secretConfigMap
                 )
             )
 
@@ -82,6 +92,7 @@ class DatabaseTest : WordSpec({
 
             val baseModule = module {
                 single { config }
+                single { ConfigManager.create(get()) }
             }
 
             startKoin {

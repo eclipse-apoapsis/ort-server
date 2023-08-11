@@ -34,7 +34,9 @@ import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
+import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
 import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
 import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
@@ -53,6 +55,12 @@ class EndpointTest : KoinTest, StringSpec() {
         afterEach {
             stopKoin()
             MessageReceiverFactoryForTesting.reset()
+        }
+
+        "The database module should be added" {
+            runEndpointTest {
+                verifyDatabaseModuleIncluded()
+            }
         }
 
         "The worker should be correctly configured" {
@@ -110,7 +118,8 @@ class EndpointTest : KoinTest, StringSpec() {
         withMockDatabaseModule {
             val environment = mapOf(
                 "CONFIG_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME
+                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+                "CONFIG_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

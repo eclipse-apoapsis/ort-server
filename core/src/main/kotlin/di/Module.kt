@@ -32,6 +32,7 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
 import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
@@ -103,6 +104,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
+    single { ConfigManager.create(get()) }
 
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()

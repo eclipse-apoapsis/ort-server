@@ -19,11 +19,14 @@
 
 package org.ossreviewtoolkit.server.orchestrator
 
+import com.typesafe.config.ConfigFactory
+
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
@@ -103,6 +106,9 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
     }
 
     private fun orchestratorModule(): Module = module {
+        single { ConfigFactory.load() }
+        single { ConfigManager.create(get()) }
+
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }

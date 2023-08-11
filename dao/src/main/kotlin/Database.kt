@@ -21,8 +21,6 @@
 
 package org.ossreviewtoolkit.server.dao
 
-import com.typesafe.config.Config
-
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 
@@ -48,6 +46,8 @@ import org.jetbrains.exposed.sql.transactions.transactionManager
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
@@ -106,12 +106,12 @@ data class DatabaseConfig(
 /**
  * Create a [DatabaseConfig] object for the *database* configuration, given in [config].
  */
-fun createDatabaseConfig(config: Config) = DatabaseConfig(
+fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
     jdbcUrl = config.getString("database.url"),
     name = config.getString("database.name"),
     schema = config.getString("database.schema"),
-    username = config.getString("database.username"),
-    password = config.getString("database.password"),
+    username = config.getSecret(Path("database.username")),
+    password = config.getSecret(Path("database.password")),
     maximumPoolSize = config.getInt("database.poolsize"),
     driverClassName = "org.postgresql.Driver",
     sslMode = config.getString("database.sslmode"),

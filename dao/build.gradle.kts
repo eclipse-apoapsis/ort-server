@@ -32,6 +32,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":config:config-spi"))
     implementation(project(":model"))
     implementation(project(":utils:config"))
 
@@ -49,12 +50,15 @@ dependencies {
     runtimeOnly(libs.exposedJdbc)
     runtimeOnly(libs.logback)
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
     testFixturesApi(project(":model"))
+
+    testFixturesImplementation(project(":config:config-spi"))
 
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.koinTest)

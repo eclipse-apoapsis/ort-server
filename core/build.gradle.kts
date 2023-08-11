@@ -45,6 +45,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":api-v1"))
     implementation(project(":clients:keycloak"))
+    implementation(project(":config:config-spi"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))

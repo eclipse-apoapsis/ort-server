@@ -19,12 +19,12 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
@@ -83,6 +83,8 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+
+        single { ConfigManager.create(get()) }
 
         singleOf(::AdvisorWorkerDao)
         singleOf(::AdvisorConfigurator)

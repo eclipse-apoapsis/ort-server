@@ -50,6 +50,7 @@ import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
 import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
@@ -242,7 +243,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ANALYZER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME
+                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+                "ANALYZER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

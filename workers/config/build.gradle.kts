@@ -67,6 +67,7 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(testFixtures(project(":workers:common")))

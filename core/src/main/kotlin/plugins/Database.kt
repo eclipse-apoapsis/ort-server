@@ -19,12 +19,9 @@
 
 package org.ossreviewtoolkit.server.core.plugins
 
-import com.typesafe.config.ConfigFactory
-
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.config.ApplicationConfig
 
 import javax.sql.DataSource
 
@@ -33,6 +30,7 @@ import org.jetbrains.exposed.sql.Database
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
 import org.ossreviewtoolkit.server.dao.createDatabaseConfig
@@ -56,9 +54,9 @@ fun Application.configureDatabase() {
 }
 
 private fun Application.createDataSource(): DataSource {
-    val config: ApplicationConfig by inject()
+    val configManager: ConfigManager by inject()
 
-    val dataSourceConfig = createDatabaseConfig(ConfigFactory.parseMap(config.toMap()))
+    val dataSourceConfig = createDatabaseConfig(configManager)
 
     return createDataSource(dataSourceConfig)
 }

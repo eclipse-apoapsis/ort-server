@@ -24,6 +24,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
@@ -98,6 +99,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
+        single { ConfigManager.create(get()) }
         single { OrtRunService(get()) }
 
         singleOf(::EvaluatorWorkerDao)
