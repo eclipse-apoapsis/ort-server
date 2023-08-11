@@ -34,7 +34,10 @@ val getLiveness: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Liveness> {
-                example("Liveness", Liveness("ORT Server running"))
+                example(
+                    name = "Liveness",
+                    value = Liveness("ORT Server running")
+                )
             }
         }
     }

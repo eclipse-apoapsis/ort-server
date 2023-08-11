@@ -48,7 +48,10 @@ val getProductById: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Product> {
-                example("Create Product", Product(1, "My Product", "Description"))
+                example(
+                    name = "Create Product",
+                    value = Product(id = 1, name = "My Product", description = "Description")
+                )
             }
         }
     }
@@ -72,7 +75,10 @@ val patchProductById: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Product> {
-                example("Update Product", Product(1, "My updated product", "Updated product."))
+                example(
+                    name = "Update Product",
+                    value = Product(id = 1, name = "My updated product", description = "Updated product.")
+                )
             }
         }
     }
@@ -114,10 +120,10 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<List<Repository>> {
                 example(
-                    "Get repositories of a product",
-                    listOf(
-                        Repository(1, RepositoryType.GIT, "https://example.com/first/repo.git"),
-                        Repository(2, RepositoryType.SUBVERSION, "https://example.com/second/repo")
+                    name = "Get repositories of a product",
+                    value = listOf(
+                        Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/first/repo.git"),
+                        Repository(id = 2, type = RepositoryType.SUBVERSION, url = "https://example.com/second/repo")
                     )
                 )
             }
@@ -135,7 +141,13 @@ val postRepository: OpenApiRoute.() -> Unit = {
             description = "The product's ID."
         }
         jsonBody<CreateRepository> {
-            example("Create repository", CreateRepository(RepositoryType.GIT, "https://example.com/namspace/repo.git"))
+            example(
+                name = "Create repository",
+                value = CreateRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/namspace/repo.git",
+                ),
+            )
         }
     }
 
@@ -143,7 +155,10 @@ val postRepository: OpenApiRoute.() -> Unit = {
         HttpStatusCode.Created to {
             description = "Success"
             jsonBody<Repository> {
-                example("Create repository", Repository(1, RepositoryType.GIT, "https://example.com/namspace/repo.git"))
+                example(
+                    name = "Create repository",
+                    value = Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/namspace/repo.git")
+                )
             }
         }
     }
@@ -166,16 +181,10 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<List<Secret>> {
                 example(
-                    "List all secrets of a product",
-                    listOf(
-                        Secret(
-                            "rsa",
-                            "ssh rsa certificate"
-                        ),
-                        Secret(
-                            "secret",
-                            "another secret"
-                        )
+                    name = "List all secrets of a product",
+                    value = listOf(
+                        Secret(name = "rsa", description = "ssh rsa certificate"),
+                        Secret(name = "secret", description = "another secret")
                     )
                 )
             }
@@ -202,11 +211,8 @@ val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example(
-                    "Get Secret",
-                    Secret(
-                        "rsa",
-                        "rsa certificate"
-                    )
+                    name = "Get Secret",
+                    value = Secret(name = "rsa", description = "rsa certificate")
                 )
             }
         }
@@ -221,11 +227,11 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
     request {
         jsonBody<CreateSecret> {
             example(
-                "Create Secret",
-                CreateSecret(
-                    "New secret",
-                    "pr0d-s3cr3t-08_15",
-                    "The new prod secret"
+                name = "Create Secret",
+                value = CreateSecret(
+                    name = "New secret",
+                    value = "pr0d-s3cr3t-08_15",
+                    description = "The new prod secret"
                 )
             )
         }
@@ -236,11 +242,8 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example(
-                    "Create Secret",
-                    Secret(
-                        "rsa",
-                        "New secret"
-                    )
+                    name = "Create Secret",
+                    value = Secret(name = "rsa", description = "New secret")
                 )
             }
         }
@@ -261,10 +264,10 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
         }
         jsonBody<UpdateSecret> {
             example(
-                "Update Secret",
-                UpdateSecret(
-                    "My updated Secret".asPresent(),
-                    "Updated description".asPresent()
+                name = "Update Secret",
+                value = UpdateSecret(
+                    name = "My updated Secret".asPresent(),
+                    description = "Updated description".asPresent()
                 )
             )
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
@@ -276,11 +279,8 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example(
-                    "Update Secret",
-                    Secret(
-                        "My updated Secret",
-                        "Updated description."
-                    )
+                    name = "Update Secret",
+                    value = Secret(name = "My updated Secret", description = "Updated description.")
                 )
             }
         }
