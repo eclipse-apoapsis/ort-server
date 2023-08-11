@@ -375,7 +375,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Secret>> {
+            jsonBody<List<InfrastructureService>> {
                 example(
                     name = "List all infrastructure services for an organization",
                     value = listOf(
@@ -451,7 +451,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
         pathParameter<String>("serviceName") {
             description = "The name of the infrastructure service."
         }
-        jsonBody<UpdateSecret> {
+        jsonBody<UpdateInfrastructureService> {
             example(
                 name = "Update infrastructure service",
                 value = UpdateInfrastructureService(

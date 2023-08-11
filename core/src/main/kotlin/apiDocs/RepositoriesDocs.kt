@@ -202,7 +202,7 @@ fun getOrtRuns(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<OrtRun> {
+            jsonBody<String> {
                 example(
                     name = "Get ORT runs",
                     value = json.encodeToString(
@@ -270,7 +270,7 @@ fun postOrtRun(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<OrtRun> {
+            jsonBody<String> {
                 example(
                     name = "Create ORT run",
                     value = json.encodeToString(
@@ -314,7 +314,7 @@ fun getOrtRunByIndex(json: Json): OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<OrtRun> {
+            jsonBody<String> {
                 example(
                     name = "Get ORT run",
                     value = json.encodeToString(
