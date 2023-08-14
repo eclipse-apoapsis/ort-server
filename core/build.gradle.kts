@@ -84,6 +84,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":clients:keycloak")))
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))

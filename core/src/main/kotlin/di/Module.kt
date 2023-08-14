@@ -86,7 +86,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     }
 
     single<KeycloakClient> {
-        DefaultKeycloakClient.create(get<ApplicationConfig>().createKeycloakClientConfiguration(), get())
+        DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
     }
 
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }

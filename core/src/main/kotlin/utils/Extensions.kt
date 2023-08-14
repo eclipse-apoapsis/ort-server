@@ -20,9 +20,10 @@
 package org.ossreviewtoolkit.server.core.utils
 
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.config.ApplicationConfig
 
 import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OrderDirection
@@ -49,15 +50,15 @@ fun ApplicationCall.numberParameter(name: String): Number? =
         )
     }
 
-fun ApplicationConfig.createKeycloakClientConfiguration() =
-    with(config("keycloak")) {
+fun ConfigManager.createKeycloakClientConfiguration() =
+    with(getConfig("keycloak")) {
         KeycloakClientConfiguration(
-            apiUrl = property("apiUrl").getString(),
-            clientId = property("clientId").getString(),
-            accessTokenUrl = property("accessTokenUrl").getString(),
-            apiUser = property("apiUser").getString(),
-            apiSecret = property("apiSecret").getString(),
-            subjectClientId = property("subjectClientId").getString()
+            apiUrl = getString("apiUrl"),
+            clientId = getString("clientId"),
+            accessTokenUrl = getString("accessTokenUrl"),
+            apiUser = getString("apiUser"),
+            apiSecret = getSecret(Path("keycloakApiSecret")),
+            subjectClientId = getString("subjectClientId")
         )
     }
 
