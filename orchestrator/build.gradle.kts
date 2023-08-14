@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":transport:transport-spi"))
 
+    runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))
     runtimeOnly(project(":transport:rabbitmq"))

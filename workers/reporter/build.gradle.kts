@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":storage:database"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))

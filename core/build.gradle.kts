@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.ktorValidation)
     implementation(libs.micrometerRegistryGraphite)
 
+    runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
     runtimeOnly(project(":storage:database"))
