@@ -298,6 +298,42 @@ class ConfigManagerTest : WordSpec({
                 manager.getSecret(Path("nonExistingSecret"))
             }
         }
+
+        "return the value of a secret from the configuration" {
+            val secretKey = "testSecret"
+            val secretValue = "secretValue"
+            val properties = createConfigManagerProperties() + mapOf(secretKey to secretValue)
+            val manager = createConfigManager(properties)
+
+            val secret = manager.getSecret(Path(secretKey))
+
+            secret shouldBe secretValue
+        }
+
+        "prefer secrets from the configuration over the secret provider" {
+            val secretValue = "overriddenSecretValue"
+            val properties = createConfigManagerProperties() + mapOf(TEST_SECRET_NAME to secretValue)
+            val manager = createConfigManager(properties)
+
+            val secret = manager.getSecret(Path(TEST_SECRET_NAME))
+
+            secret shouldBe secretValue
+        }
+
+        "support switching off reading secrets from the configuration" {
+            val providerProperties = createConfigProviderProperties() + mapOf(
+                ConfigManager.SECRET_FROM_CONFIG_PROPERTY to false
+            )
+            val properties = mapOf(
+                ConfigManager.CONFIG_MANAGER_SECTION to providerProperties,
+                TEST_SECRET_NAME to "someOtherSecretValue"
+            )
+            val manager = createConfigManager(properties)
+
+            val secret = manager.getSecret(Path(TEST_SECRET_NAME))
+
+            secret shouldBe TEST_SECRET_VALUE
+        }
     }
 
     "config" should {
@@ -319,10 +355,11 @@ private const val TEST_SECRET_NAME = "top-secret"
 private const val TEST_SECRET_VALUE = "licenseToTest"
 
 /**
- * Create a [ConfigManager] instance that is configured to use test provider implementations.
+ * Create a [ConfigManager] instance with the given [configuration][configMap].
  */
-private fun createConfigManager(): ConfigManager {
-    val configMap = createConfigManagerProperties()
+private fun createConfigManager(
+    configMap: Map<String, Any> = createConfigManagerProperties()
+): ConfigManager {
     val config = ConfigFactory.parseMap(configMap)
 
     return ConfigManager.create(config)

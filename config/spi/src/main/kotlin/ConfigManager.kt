@@ -24,6 +24,7 @@ import com.typesafe.config.Config
 import java.io.InputStream
 import java.util.ServiceLoader
 
+import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
@@ -41,7 +42,13 @@ class ConfigManager(
     private val configFileProviderSupplier: (ConfigSecretProvider) -> ConfigFileProvider,
 
     /** The function to create the provider for secrets from the configuration. */
-    private val configSecretProviderSupplier: () -> ConfigSecretProvider
+    private val configSecretProviderSupplier: () -> ConfigSecretProvider,
+
+    /**
+     *  A flag whether [getSecret] should check first whether the requested secret is contained in the configuration
+     *  before querying the [ConfigSecretProvider].
+     */
+    private val allowSecretsFromConfig: Boolean
 ) : Config by config {
     companion object {
         /**
@@ -58,6 +65,17 @@ class ConfigManager(
          * The name of the configuration property that defines the name of the config secret provider implementation.
          */
         const val SECRET_PROVIDER_NAME_PROPERTY = "secretProvider"
+
+        /**
+         * The name of the configuration property that controls whether secrets can be loaded from the application
+         * configuration. If this property is set to *true* (which is also the default value), the [getSecret]
+         * function first checks whether a configuration property for the requested path exists. If this is the case,
+         * it returns its value. Otherwise, it delegates the request to the [ConfigSecretProvider]. This behavior is
+         * useful in deployments without a dedicated secret storage. In such scenarios, it is common to pass the
+         * values of secrets via the same mechanisms as normal configuration properties, for instance as environment
+         * variables. It is then not necessary to have a secret provider configured.
+         */
+        const val SECRET_FROM_CONFIG_PROPERTY = "allowSecretsFromConfig"
 
         /**
          * Constant for a default configuration context. This indicates that the user has not specified a specific
@@ -101,7 +119,12 @@ class ConfigManager(
                 ).createProvider(managerConfig, secretProvider)
             }
 
-            return ConfigManager(config, fileProviderSupplier, secretProviderSupplier)
+            return ConfigManager(
+                config,
+                fileProviderSupplier,
+                secretProviderSupplier,
+                managerConfig.getBooleanOrDefault(SECRET_FROM_CONFIG_PROPERTY, true)
+            )
         }
 
         /**
@@ -183,7 +206,14 @@ class ConfigManager(
      * Return the value of the secret identified by the given [path]. Throw a [ConfigException] if the underlying
      * [ConfigSecretProvider] throws an exception.
      */
-    fun getSecret(path: Path): String = wrapExceptions { configSecretProvider.getSecret(path) }
+    fun getSecret(path: Path): String =
+        wrapExceptions {
+            if (allowSecretsFromConfig && config.hasPath(path.path)) {
+                config.getString(path.path)
+            } else {
+                configSecretProvider.getSecret(path)
+            }
+        }
 }
 
 /**
