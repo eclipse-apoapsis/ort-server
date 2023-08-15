@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
+import org.ossreviewtoolkit.server.config.ConfigManager
 
 import org.slf4j.LoggerFactory
 
@@ -37,28 +37,28 @@ class MessagePublisher(
      * The configuration of this endpoint. This determines the transport implementations to be used when sending
      * messages.
      */
-    private val config: Config
+    private val configManager: ConfigManager
 ) {
     /** The sender to the Orchestrator endpoint. */
-    private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, config) }
+    private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
     /** The sender to the Config endpoint. */
-    private val configSender by lazy { MessageSenderFactory.createSender(ConfigEndpoint, config) }
+    private val configSender by lazy { MessageSenderFactory.createSender(ConfigEndpoint, configManager) }
 
     /** The sender to the Analyzer endpoint. */
-    private val analyzerSender by lazy { MessageSenderFactory.createSender(AnalyzerEndpoint, config) }
+    private val analyzerSender by lazy { MessageSenderFactory.createSender(AnalyzerEndpoint, configManager) }
 
     /** The sender to the Advisor endpoint. */
-    private val advisorSender by lazy { MessageSenderFactory.createSender(AdvisorEndpoint, config) }
+    private val advisorSender by lazy { MessageSenderFactory.createSender(AdvisorEndpoint, configManager) }
 
     /** The sender to the Scanner endpoint. */
-    private val scannerSender by lazy { MessageSenderFactory.createSender(ScannerEndpoint, config) }
+    private val scannerSender by lazy { MessageSenderFactory.createSender(ScannerEndpoint, configManager) }
 
     /** The sender to the Evaluator endpoint. */
-    private val evaluatorSender by lazy { MessageSenderFactory.createSender(EvaluatorEndpoint, config) }
+    private val evaluatorSender by lazy { MessageSenderFactory.createSender(EvaluatorEndpoint, configManager) }
 
     /** The sender to the Reporter endpoint. */
-    private val reporterSender by lazy { MessageSenderFactory.createSender(ReporterEndpoint, config) }
+    private val reporterSender by lazy { MessageSenderFactory.createSender(ReporterEndpoint, configManager) }
 
     /**
      * Send the given [message] to the specified [endpoint][to].

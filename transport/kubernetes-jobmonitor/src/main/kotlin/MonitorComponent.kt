@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -39,6 +38,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory
  */
 internal class MonitorComponent(
     /** The configuration of this module. */
-    private val config: Config = ConfigFactory.load()
+    private val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
     companion object {
         /** The prefix for all configuration properties. */
@@ -81,15 +81,15 @@ internal class MonitorComponent(
     suspend fun start() = withContext(Dispatchers.Default) {
         logger.info("Starting Kubernetes Job Monitor Component.")
 
-        if (config.getBoolean(REAPER_ENABLED_PROPERTY)) {
+        if (configManager.getBoolean(REAPER_ENABLED_PROPERTY)) {
             logger.info("Starting Reaper component.")
 
-            val ticker = tickerFlow(config.getInt(REAPER_INTERVAL_PROPERTY).seconds)
+            val ticker = tickerFlow(configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds)
             val reaper by inject<Reaper>()
             launch { reaper.run(ticker) }
         }
 
-        if (config.getBoolean(WATCHING_ENABLED_PROPERTY)) {
+        if (configManager.getBoolean(WATCHING_ENABLED_PROPERTY)) {
             logger.info("Starting watcher component.")
 
             val monitor by inject<JobMonitor>()
@@ -101,20 +101,20 @@ internal class MonitorComponent(
      * Return a [Module] with the components used by this application.
      */
     private fun monitoringModule(): Module {
-        val namespace = config.getString(NAMESPACE_PROPERTY)
+        val namespace = configManager.getString(NAMESPACE_PROPERTY)
 
         return module {
             single { ClientBuilder.defaultClient() }
             single { BatchV1Api(get()) }
             single { CoreV1Api(get()) }
 
-            single { MessageSenderFactory.createSender(OrchestratorEndpoint, config) }
+            single { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
             single { JobWatchHelper.create(get(), namespace) }
             single { JobHandler(get(), get(), namespace) }
             single { FailedJobNotifier(get()) }
             singleOf(::JobMonitor)
-            single { Reaper(get(), get(), config.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
+            single { Reaper(get(), get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
         }
     }
 }

@@ -19,12 +19,13 @@
 
 package org.ossreviewtoolkit.server.transport.artemis
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.TestContainerExtension
+
+import org.ossreviewtoolkit.server.config.ConfigManager
 
 import org.slf4j.LoggerFactory
 
@@ -35,9 +36,9 @@ private const val ARTEMIS_PORT = 61616
 
 /**
  * Extension function to start an Artemis broker in a test container for testing a factory of the given
- * [transportType]. The resulting [Config] can be used to connect to the broker in the container.
+ * [transportType]. The resulting [ConfigManager] can be used to connect to the broker in the container.
  */
-fun Spec.startArtemisContainer(transportType: String): Config {
+fun Spec.startArtemisContainer(transportType: String): ConfigManager {
     val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
     val artemisContainer = install(TestContainerExtension(ARTEMIS_CONTAINER)) {
         startupAttempts = 1
@@ -50,7 +51,8 @@ fun Spec.startArtemisContainer(transportType: String): Config {
     val configMap = mapOf(
         "$keyPrefix.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
         "$keyPrefix.queueName" to "testQueue",
-        "$keyPrefix.type" to "activeMQ"
+        "$keyPrefix.type" to "activeMQ",
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
     )
-    return ConfigFactory.parseMap(configMap)
+    return ConfigManager.create(ConfigFactory.parseMap(configMap))
 }

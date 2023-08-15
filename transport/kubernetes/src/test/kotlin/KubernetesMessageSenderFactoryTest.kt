@@ -33,6 +33,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 
 import java.nio.file.Paths
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 
@@ -70,13 +71,13 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
         )
-        val config = ConfigFactory.parseMap(configMap)
+        val configManager = createConfigManager(configMap)
 
         val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
         val envVariables = annotationVariables + ("KUBECONFIG" to kubeconfigPath)
         val sender = withEnvironment(envVariables) {
-            MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+            MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
         }
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
@@ -112,12 +113,12 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.namespace" to NAMESPACE,
             "$keyPrefix.imageName" to IMAGE_NAME
         )
-        val config = ConfigFactory.parseMap(configMap)
+        val configManager = createConfigManager(configMap)
 
         val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
         val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
-            MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+            MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
         }
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
@@ -145,9 +146,9 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.mountSecrets" to "$SECRET_MOUNTS plus invalid secret mounts->"
         )
-        val config = ConfigFactory.parseMap(configMap)
+        val configManager = createConfigManager(configMap)
 
-        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         sender.config.secretVolumes shouldContainInOrder listOf(
@@ -167,14 +168,14 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.annotationVariables" to "$invalidVariable,$validVariable"
         )
-        val config = ConfigFactory.parseMap(configMap)
+        val configManager = createConfigManager(configMap)
 
         val environment = mapOf(
             validVariable to "foo=bar",
             invalidVariable to "not a valid annotation"
         )
         withEnvironment(environment) {
-            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
             sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
             sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
@@ -191,16 +192,28 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.annotationVariables" to "$nonExistingVariable,$validVariable"
         )
-        val config = ConfigFactory.parseMap(configMap)
+        val configManager = createConfigManager(configMap)
 
         val environment = mapOf(
             validVariable to "foo=bar"
         )
         withEnvironment(environment) {
-            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+            val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
             sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
             sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
         }
     }
 })
+
+/**
+ * Create a [ConfigManager] that wraps the given [configuration][configMap]. Add dummy properties as required.
+ */
+private fun createConfigManager(configMap: Map<String, Any>): ConfigManager {
+    val configManagerMap = configMap + mapOf(
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+    )
+    val config = ConfigFactory.parseMap(configManagerMap)
+
+    return ConfigManager.create(config)
+}

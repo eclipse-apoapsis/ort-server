@@ -37,6 +37,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(project(":model"))
+    testImplementation(testFixtures(project(":config:config-spi")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

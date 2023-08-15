@@ -19,9 +19,10 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
-
 import java.util.ServiceLoader
+
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 
 import org.slf4j.LoggerFactory
 
@@ -64,11 +65,11 @@ interface MessageReceiverFactory {
 
         /**
          * Set up infrastructure to process messages for the given [endpoint][from] with the given [handler] function
-         * based on the provided [config]. The concrete implementation of the [MessageSenderFactory] is determined from
-         * the [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
+         * based on the provided [configManager]. The concrete implementation of the [MessageSenderFactory] is
+         * determined from the [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
          */
-        fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
-            val receiverConfig = config.getConfig("${from.configPrefix}.$CONFIG_PREFIX")
+        fun <T : Any> createReceiver(from: Endpoint<T>, configManager: ConfigManager, handler: EndpointHandler<T>) {
+            val receiverConfig = configManager.subConfig(Path("${from.configPrefix}.$CONFIG_PREFIX"))
             val factoryName = receiverConfig.getString(TYPE_PROPERTY)
             log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
 
@@ -88,8 +89,8 @@ interface MessageReceiverFactory {
 
     /**
      * Set up infrastructure that is able to receive messages to the given [endpoint][from] and calls the provided
-     * [handler] function with the received messages. Use [config] as source of configuration settings for this
+     * [handler] function with the received messages. Use [configManager] as source of configuration settings for this
      * infrastructure.
      */
-    fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>)
+    fun <T : Any> createReceiver(from: Endpoint<T>, configManager: ConfigManager, handler: EndpointHandler<T>)
 }

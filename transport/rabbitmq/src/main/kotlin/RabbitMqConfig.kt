@@ -19,7 +19,8 @@
 
 package org.ossreviewtoolkit.server.transport.rabbitmq
 
-import com.typesafe.config.Config
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 
 import org.slf4j.Logger
 
@@ -53,20 +54,20 @@ class RabbitMqConfig(
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
         /** Name of the configuration property for the username. */
-        private const val USERNAME_PROPERTY = "username"
+        private val USERNAME_PROPERTY = Path("rabbitMqUser")
 
         /** Name of the configuration property for the password. */
-        private const val PASSWORD_PROPERTY = "password"
+        private val PASSWORD_PROPERTY = Path("rabbitMqPassword")
 
         /**
-         * Create a [RabbitMqConfig] from the provided [config].
+         * Create a [RabbitMqConfig] from the provided [configManager].
          */
-        fun createConfig(config: Config) =
+        fun createConfig(configManager: ConfigManager) =
             RabbitMqConfig(
-                serverUri = config.getString(SERVER_URI_PROPERTY),
-                queueName = config.getString(QUEUE_NAME_PROPERTY),
-                username = config.getString(USERNAME_PROPERTY),
-                password = config.getString(PASSWORD_PROPERTY),
+                serverUri = configManager.getString(SERVER_URI_PROPERTY),
+                queueName = configManager.getString(QUEUE_NAME_PROPERTY),
+                username = configManager.getSecret(USERNAME_PROPERTY),
+                password = configManager.getSecret(PASSWORD_PROPERTY),
             )
     }
 

@@ -19,10 +19,9 @@
 
 package org.ossreviewtoolkit.server.transport.artemis
 
-import com.typesafe.config.Config
-
 import org.apache.qpid.jms.JmsConnectionFactory
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
@@ -33,8 +32,8 @@ import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 class ArtemisMessageSenderFactory : MessageSenderFactory {
     override val name: String = ArtemisConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val artemisConfig = ArtemisConfig.createConfig(config)
+    override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
+        val artemisConfig = ArtemisConfig.createConfig(configManager)
         return createSenderWithConnection(to, JmsConnectionFactory(artemisConfig.serverUri), artemisConfig.queueName)
     }
 

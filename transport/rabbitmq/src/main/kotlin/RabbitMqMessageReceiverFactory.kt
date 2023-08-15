@@ -27,10 +27,9 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.Envelope
 
-import com.typesafe.config.Config
-
 import java.util.concurrent.CountDownLatch
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
@@ -48,9 +47,13 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = RabbitMqConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+    override fun <T : Any> createReceiver(
+        from: Endpoint<T>,
+        configManager: ConfigManager,
+        handler: EndpointHandler<T>
+    ) {
         val serializer = JsonSerializer.forClass(from.messageClass)
-        val rabbitMqConfig = RabbitMqConfig.createConfig(config)
+        val rabbitMqConfig = RabbitMqConfig.createConfig(configManager)
 
         logger.info("Starting RabbitMQ message receiver for endpoint '${from.configPrefix}'.")
         rabbitMqConfig.log(logger)

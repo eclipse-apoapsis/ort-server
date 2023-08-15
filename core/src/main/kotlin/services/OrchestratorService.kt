@@ -19,15 +19,11 @@
 
 package org.ossreviewtoolkit.server.core.services
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-
-import io.ktor.server.config.ApplicationConfig
-
 import java.util.UUID
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -44,11 +40,9 @@ import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 class OrchestratorService(
     private val db: Database,
     private val ortRunRepository: OrtRunRepository,
-    applicationConfig: ApplicationConfig
+    configManager: ConfigManager
 ) {
-    private val config: Config = ConfigFactory.parseMap(applicationConfig.toMap())
-
-    private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, config) }
+    private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
     /**
      * Create an ORT run in the database and notify the Orchestrator to handle this run.

@@ -19,12 +19,12 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
@@ -118,9 +118,12 @@ class MessagePublisherTest : StringSpec({
 private val HEADER = MessageHeader("testToken", "testTraceId")
 
 /**
- * Create a [Config] that selects the test transport for the sender to the given [endpoint].
+ * Create a [ConfigManager] that selects the test transport for the sender to the given [endpoint].
  */
-private fun createTestSenderConfig(endpoint: Endpoint<*>): Config {
-    val properties = mapOf("${endpoint.configPrefix}.sender.type" to TEST_TRANSPORT_NAME)
-    return ConfigFactory.parseMap(properties)
+private fun createTestSenderConfig(endpoint: Endpoint<*>): ConfigManager {
+    val properties = mapOf(
+        "${endpoint.configPrefix}.sender.type" to TEST_TRANSPORT_NAME,
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+    )
+    return ConfigManager.create(ConfigFactory.parseMap(properties))
 }

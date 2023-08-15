@@ -21,8 +21,7 @@ package org.ossreviewtoolkit.server.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
-import com.typesafe.config.Config
-
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
@@ -39,8 +38,8 @@ class RabbitMqMessageSenderFactory : MessageSenderFactory {
 
     override val name: String = RabbitMqConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val rabbitMqConfig = RabbitMqConfig.createConfig(config)
+    override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
+        val rabbitMqConfig = RabbitMqConfig.createConfig(configManager)
 
         logger.info("Creating RabbitMQ sender for endpoint '${to.configPrefix}'.")
         rabbitMqConfig.log(logger)

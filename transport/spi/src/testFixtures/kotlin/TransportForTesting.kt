@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.Message
@@ -81,9 +82,9 @@ class MessageSenderFactoryForTesting : MessageSenderFactory {
 
     override val name: String = TEST_TRANSPORT_NAME
 
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
+    override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
         val queue = LinkedBlockingQueue<Message<T>>()
-        val sender = MessageSenderForTesting(to, config, queue)
+        val sender = MessageSenderForTesting(to, configManager, queue)
 
         @Suppress("UNCHECKED_CAST")
         messageQueues[to] = queue as BlockingQueue<Message<*>>
@@ -146,11 +147,15 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
 
     override val name: String = TEST_TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+    override fun <T : Any> createReceiver(
+        from: Endpoint<T>,
+        configManager: ConfigManager,
+        handler: EndpointHandler<T>
+    ) {
         check(createdEndpoint == null) { "Too many invocations of createReceiver." }
 
         createdEndpoint = from
-        createdConfig = config
+        createdConfig = configManager
         createdHandler = handler
     }
 }

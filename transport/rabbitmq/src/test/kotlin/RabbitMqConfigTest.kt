@@ -19,27 +19,28 @@
 
 package org.ossreviewtoolkit.server.transport.rabbitmq
 
-import com.typesafe.config.Config
-
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.mockk
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
+
 class RabbitMqConfigTest : WordSpec({
     "createConfig" should {
-        "create an instance from a Config object" {
+        "create an instance from a ConfigManager object" {
             val serverUri = "tcp://example.org:5445"
             val queueName = "testQueue"
             val username = "user"
             val password = "pass"
 
-            val config = mockk<Config> {
+            val config = mockk<ConfigManager> {
                 every { getString("serverUri") } returns serverUri
                 every { getString("queueName") } returns queueName
-                every { getString("username") } returns username
-                every { getString("password") } returns password
+                every { getSecret(Path("rabbitMqUser")) } returns username
+                every { getSecret(Path("rabbitMqPassword")) } returns password
             }
 
             val rabbitMqConfig = RabbitMqConfig.createConfig(config)

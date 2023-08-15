@@ -19,13 +19,12 @@
 
 package org.ossreviewtoolkit.server.transport.artemis
 
-import com.typesafe.config.Config
-
 import jakarta.jms.MessageConsumer
 import jakarta.jms.TextMessage
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
@@ -55,9 +54,13 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = ArtemisConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+    override fun <T : Any> createReceiver(
+        from: Endpoint<T>,
+        configManager: ConfigManager,
+        handler: EndpointHandler<T>
+    ) {
         val serializer = JsonSerializer.forClass(from.messageClass)
-        val artemisConfig = ArtemisConfig.createConfig(config)
+        val artemisConfig = ArtemisConfig.createConfig(configManager)
 
         logger.info(
             "Starting Artemis message receiver for endpoint '{}' using queue '{}'.",

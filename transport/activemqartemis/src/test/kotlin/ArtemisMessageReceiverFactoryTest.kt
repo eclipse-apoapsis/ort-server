@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.transport.artemis
 
-import com.typesafe.config.Config
-
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -34,6 +32,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -95,10 +94,10 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 })
 
 /**
- * Start a receiver that is initialized from the given [config]. Since the receiver blocks, this has to be done in a
- * separate thread. Return a queue that can be polled to obtain the received messages.
+ * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done
+ * in a separate thread. Return a queue that can be polled to obtain the received messages.
  */
-private fun startReceiver(config: Config): LinkedBlockingQueue<Message<OrchestratorMessage>> {
+private fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
     val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
 
     fun handler(message: Message<OrchestratorMessage>) {
@@ -106,7 +105,7 @@ private fun startReceiver(config: Config): LinkedBlockingQueue<Message<Orchestra
     }
 
     Thread {
-        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, ::handler)
+        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
     }.start()
 
     return queue

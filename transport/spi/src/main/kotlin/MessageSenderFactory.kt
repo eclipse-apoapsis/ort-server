@@ -19,9 +19,10 @@
 
 package org.ossreviewtoolkit.server.transport
 
-import com.typesafe.config.Config
-
 import java.util.ServiceLoader
+
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 
 import org.slf4j.LoggerFactory
 
@@ -52,12 +53,12 @@ interface MessageSenderFactory {
         private val log = LoggerFactory.getLogger(MessageSenderFactory::class.java)
 
         /**
-         * Create a [MessageSender] for sending messages to the given [endpoint][to] based on the given [config].
+         * Create a [MessageSender] for sending messages to the given [endpoint][to] based on the given [configManager].
          * The concrete implementation of the [MessageSenderFactory] is determined from the
          * [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
          */
-        fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-            val senderConfig = config.getConfig("${to.configPrefix}.$CONFIG_PREFIX")
+        fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
+            val senderConfig = configManager.subConfig(Path("${to.configPrefix}.$CONFIG_PREFIX"))
             val factoryName = senderConfig.getString(TYPE_PROPERTY)
             log.info("Creating a MessageSender of type '{}' for endpoint '{}'.", factoryName, to.configPrefix)
 
@@ -76,8 +77,8 @@ interface MessageSenderFactory {
     val name: String
 
     /**
-     * Create a [MessageSender] for sending messages to the given [endpoint][to]. Use [config] as a source of
+     * Create a [MessageSender] for sending messages to the given [endpoint][to]. Use [configManager] as a source of
      * configuration settings (specific to the [MessageSender] implementation).
      */
-    fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T>
+    fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T>
 }

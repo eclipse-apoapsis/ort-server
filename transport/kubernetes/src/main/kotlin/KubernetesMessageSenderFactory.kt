@@ -19,11 +19,10 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes
 
-import com.typesafe.config.Config
-
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.util.ClientBuilder.defaultClient
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.MessageSender
 import org.ossreviewtoolkit.server.transport.MessageSenderFactory
@@ -31,8 +30,8 @@ import org.ossreviewtoolkit.server.transport.MessageSenderFactory
 class KubernetesMessageSenderFactory : MessageSenderFactory {
     override val name: String = KubernetesSenderConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createSender(to: Endpoint<T>, config: Config): MessageSender<T> {
-        val senderConfig = KubernetesSenderConfig.createConfig(config)
+    override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
+        val senderConfig = KubernetesSenderConfig.createConfig(configManager)
 
         val client = defaultClient().setDebugging(senderConfig.enableDebugLogging)
 

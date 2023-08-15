@@ -32,6 +32,7 @@ import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -62,13 +63,14 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             val configMap = mapOf(
                 "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
-                "imageName" to "busybox"
+                "imageName" to "busybox",
+                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
             )
 
-            val config = ConfigFactory.parseMap(configMap)
+            val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
             var receivedMessage: Message<AnalyzerRequest>? = null
-            KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, config) { message ->
+            KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, configManager) { message ->
                 receivedMessage = message
             }
 
@@ -98,11 +100,12 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             val configMap = mapOf(
                 "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
-                "imageName" to "busybox"
+                "imageName" to "busybox",
+                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
             )
-            val config = ConfigFactory.parseMap(configMap)
+            val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
-            KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, config) { _ ->
+            KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, configManager) { _ ->
                 throw IllegalStateException("Test exception")
             }
 

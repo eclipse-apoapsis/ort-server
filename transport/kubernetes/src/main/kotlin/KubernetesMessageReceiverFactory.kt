@@ -19,12 +19,11 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes
 
-import com.typesafe.config.Config
-
 import java.lang.Exception
 
 import kotlin.system.exitProcess
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.Message
@@ -48,7 +47,11 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = KubernetesSenderConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(from: Endpoint<T>, config: Config, handler: EndpointHandler<T>) {
+    override fun <T : Any> createReceiver(
+        from: Endpoint<T>,
+        configManager: ConfigManager,
+        handler: EndpointHandler<T>
+    ) {
         val serializer = JsonSerializer.forClass(from.messageClass)
 
         logger.info("Starting Kubernetes message receiver for endpoint '{}'.", from.configPrefix)

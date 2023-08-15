@@ -28,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
 import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
@@ -37,24 +38,34 @@ class MessageSenderFactoryTest : StringSpec({
 
     "A correct MessageSender should be created" {
         val config = ConfigFactory.parseMap(
-            mapOf("${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME)
+            mapOf(
+                "${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME,
+                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+            )
         )
+        val configManager = ConfigManager.create(config)
 
-        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, config)
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeInstanceOf<MessageSenderForTesting<AnalyzerRequest>>()
         sender.endpoint shouldBe AnalyzerEndpoint
-        sender.config shouldBe config.getConfig("analyzer.sender")
+
+        val expectedConfig = config.getConfig("analyzer.sender")
+        sender.config.entrySet() shouldBe expectedConfig.entrySet()
     }
 
     "An exception should be thrown for a non-existing MessageSenderFactory" {
         val invalidFactoryName = "a non existing message sender factory"
         val config = ConfigFactory.parseMap(
-            mapOf("${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName)
+            mapOf(
+                "${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName,
+                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+            )
         )
+        val configManager = ConfigManager.create(config)
 
         val exception = shouldThrow<IllegalStateException> {
-            MessageSenderFactory.createSender(OrchestratorEndpoint, config)
+            MessageSenderFactory.createSender(OrchestratorEndpoint, configManager)
         }
 
         exception.message should contain(invalidFactoryName)

@@ -21,7 +21,6 @@ package org.ossreviewtoolkit.server.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.extensions.install
@@ -36,6 +35,8 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
@@ -154,19 +155,26 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
         }
     }
 
-    private fun createConfig(): Config {
+    private fun createConfig(): ConfigManager {
+        val secretsMap = mapOf(
+            "rabbitMqUser" to username,
+            "rabbitMqPassword" to password
+        )
+        val configProvidersMap = mapOf(
+            ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+            ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
+        )
         val configMap = mapOf(
             "orchestrator.receiver.serverUri" to "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
             "orchestrator.receiver.queueName" to queueName,
-            "orchestrator.receiver.username" to username,
-            "orchestrator.receiver.password" to password,
-            "orchestrator.receiver.type" to "rabbitMQ"
+            "orchestrator.receiver.type" to "rabbitMQ",
+            ConfigManager.CONFIG_MANAGER_SECTION to configProvidersMap
         )
 
-        return ConfigFactory.parseMap(configMap)
+        return ConfigManager.create(ConfigFactory.parseMap(configMap))
     }
 
-    private fun startReceiver(config: Config): LinkedBlockingQueue<Message<OrchestratorMessage>> {
+    private fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
         val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
 
         fun handler(message: Message<OrchestratorMessage>) {
@@ -174,7 +182,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
         }
 
         Thread {
-            MessageReceiverFactory.createReceiver(OrchestratorEndpoint, config, ::handler)
+            MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
         }.start()
 
         return queue
