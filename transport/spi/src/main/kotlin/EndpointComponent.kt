@@ -28,6 +28,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+
 /**
  * An abstract base class providing functionality useful for components implementing endpoints in the ORT server.
  *
@@ -44,8 +46,8 @@ abstract class EndpointComponent<T : Any>(
     /** The ORT server endpoint implemented by this component. */
     val endpoint: Endpoint<T>,
 
-    /** The configuration for this endpoint. */
-    val config: Config = ConfigFactory.load()
+    /** The configuration for this endpoint wrapped in a [ConfigManager]. */
+    val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
     abstract val endpointHandler: EndpointHandler<T>
 
@@ -59,7 +61,7 @@ abstract class EndpointComponent<T : Any>(
             modules(customModules())
         }
 
-        MessageReceiverFactory.createReceiver(endpoint, config, endpointHandler)
+        MessageReceiverFactory.createReceiver(endpoint, configManager, endpointHandler)
     }
 
     /**
@@ -76,6 +78,7 @@ abstract class EndpointComponent<T : Any>(
     private fun baseModule(): Module = module {
         singleOf(::MessagePublisher)
 
-        single { config }
+        single<Config> { configManager }
+        single { configManager }
     }
 }

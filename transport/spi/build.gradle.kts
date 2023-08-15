@@ -34,7 +34,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":model"))
 
-    api(libs.typesafeConfig)
+    api(project(":config:config-spi"))
     api(libs.koinCore)
     implementation(libs.ktorKotlinxSerialization)
 
