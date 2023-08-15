@@ -208,7 +208,7 @@ fun OrtRun.mapToOrt(
     labels = labels
 )
 
-fun Repository.mapToOrt(revision: String, path: String = "") =
+fun Repository.mapToOrt(revision: String, path: String = "", repositoryConfig: OrtRepositoryConfiguration) =
     OrtRepository(
         vcs = OrtVcsInfo(
             type = OrtVcsType.forName(type.name),
@@ -220,7 +220,7 @@ fun Repository.mapToOrt(revision: String, path: String = "") =
         // TODO: Nested repositories are not stored in the current implementation of the ORT server repository.
         nestedRepositories = emptyMap(),
         // TODO: The repository configuration is not stored at all.
-        config = OrtRepositoryConfiguration()
+        config = repositoryConfig
     )
 
 fun EvaluatorRun.mapToOrt() =

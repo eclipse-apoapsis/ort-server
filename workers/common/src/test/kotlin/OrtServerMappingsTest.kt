@@ -54,6 +54,23 @@ import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Curations
+import org.ossreviewtoolkit.server.model.runs.repository.Excludes
+import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
+import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
+import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
+import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
@@ -359,8 +376,101 @@ class OrtServerMappingsTest : WordSpec({
                 scanResults = setOf(scanResult)
             )
 
+            val pathExclude = PathExclude(
+                pattern = "**/path",
+                reason = "EXAMPLE_OF",
+                comment = "Test path exclude."
+            )
+
+            val licenseFindingCuration = LicenseFindingCuration(
+                path = "**/path",
+                startLines = listOf(8, 9),
+                lineCount = 3,
+                detectedLicense = "LicenseRef-a",
+                concludedLicense = "LicenseRef-b",
+                reason = "DOCUMENTATION_OF",
+                comment = "Test license finding curation."
+            )
+
+            val spdxLicenseChoice = SpdxLicenseChoice(
+                given = "LicenseRef-a OR LicenseRef-b",
+                choice = "LicenseRef-b"
+            )
+
+            val repositoryConfig = RepositoryConfiguration(
+                id = 1L,
+                ortRunId = ortRun.id,
+                analyzerConfig = RepositoryAnalyzerConfiguration(
+                    allowDynamicVersions = true,
+                    enabledPackageManagers = listOf("Gradle", "Maven"),
+                    disabledPackageManagers = listOf("NPM"),
+                    packageManagers = mapOf("Gradle" to PackageManagerConfiguration(listOf("Maven"))),
+                    skipExcluded = true
+                ),
+                excludes = Excludes(
+                    paths = listOf(pathExclude),
+                    scopes = listOf(ScopeExclude("test", "TEST_DEPENDENCY_OF", "Test scope exclude."))
+                ),
+                resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "Error .*",
+                            reason = "SCANNER_ISSUE",
+                            comment = "Test issue resolution."
+                        )
+                    ),
+                    ruleViolations = listOf(
+                        RuleViolationResolution(
+                            message = "Rule 1",
+                            reason = "EXAMPLE_OF_EXCEPTION",
+                            comment = "Test rule violation resolution."
+                        )
+                    ),
+                    vulnerabilities = listOf(
+                        VulnerabilityResolution(
+                            message = "CVE-ID-1234",
+                            reason = "INEFFECTIVE_VULNERABILITY",
+                            comment = "Test vulnerability resolution."
+                        )
+                    )
+                ),
+                curations = Curations(
+                    packages = listOf(
+                        PackageCuration(
+                            id = pkgIdentifier,
+                            data = PackageCurationData(
+                                comment = "Test curation data.",
+                                purl = "Maven:com.example:package:1.0",
+                                concludedLicense = "LicenseRef-a"
+                            )
+                        )
+                    ),
+                    licenseFindings = listOf(licenseFindingCuration)
+                ),
+                packageConfigurations = listOf(
+                    PackageConfiguration(
+                        id = pkgIdentifier,
+                        sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
+                        pathExcludes = listOf(pathExclude),
+                        licenseFindingCurations = listOf(licenseFindingCuration)
+                    )
+                ),
+                licenseChoices = LicenseChoices(
+                    repositoryLicenseChoices = listOf(spdxLicenseChoice),
+                    packageLicenseChoices = listOf(
+                        PackageLicenseChoice(
+                            identifier = pkgIdentifier,
+                            licenseChoices = listOf(spdxLicenseChoice)
+                        )
+                    )
+                )
+            )
+
             val mappedOrtResult = ortRun.mapToOrt(
-                repository = repository.mapToOrt(ortRun.revision),
+                repository = repository.mapToOrt(
+                    revision = ortRun.revision,
+                    repositoryConfig = repositoryConfig.mapToOrt()
+                ),
                 analyzerRun = analyzerRun.mapToOrt(),
                 advisorRun = advisorRun.mapToOrt(),
                 scannerRun = scannerRun.mapToOrt()

@@ -41,6 +41,8 @@ import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
+import org.ossreviewtoolkit.model.PackageCuration
+import org.ossreviewtoolkit.model.PackageCurationData
 import org.ossreviewtoolkit.model.Project
 import org.ossreviewtoolkit.model.ProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact
@@ -58,24 +60,66 @@ import org.ossreviewtoolkit.model.Vulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
+import org.ossreviewtoolkit.model.config.Curations
+import org.ossreviewtoolkit.model.config.Excludes
 import org.ossreviewtoolkit.model.config.FileArchiverConfiguration
 import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration
 import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration
+import org.ossreviewtoolkit.model.config.IssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason
+import org.ossreviewtoolkit.model.config.LicenseChoices
+import org.ossreviewtoolkit.model.config.LicenseFindingCuration
+import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.NexusIqConfiguration
 import org.ossreviewtoolkit.model.config.OsvConfiguration
+import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.config.PackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration
+import org.ossreviewtoolkit.model.config.PathExclude
+import org.ossreviewtoolkit.model.config.PathExcludeReason
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration
+import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.config.RuleViolationResolution
+import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
+import org.ossreviewtoolkit.model.config.ScopeExclude
+import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.StorageType
+import org.ossreviewtoolkit.model.config.VulnerabilityResolution
+import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
+import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 object OrtTestData {
     const val TIME_STAMP_SECONDS = 1678119934L
+
+    val pathExclude = PathExclude(
+        pattern = "**/path",
+        reason = PathExcludeReason.EXAMPLE_OF,
+        comment = "Test path exclude."
+    )
+
+    val licenseFindingCuration = LicenseFindingCuration(
+        path = "**/path",
+        startLines = listOf(8, 9),
+        lineCount = 3,
+        detectedLicense = "LicenseRef-a".toSpdx(),
+        concludedLicense = "LicenseRef-b".toSpdx(),
+        reason = LicenseFindingCurationReason.DOCUMENTATION_OF,
+        comment = "Test license finding curation."
+    )
+
+    val spdxLicenseChoice = SpdxLicenseChoice(
+        given = "LicenseRef-a OR LicenseRef-b".toSpdx(),
+        choice = "LicenseRef-b".toSpdx()
+    )
 
     val ortRepository = Repository(
         vcs = VcsInfo(
@@ -85,7 +129,72 @@ object OrtTestData {
             path = ""
         ),
         nestedRepositories = emptyMap(),
-        config = RepositoryConfiguration()
+        config = RepositoryConfiguration(
+            analyzer = RepositoryAnalyzerConfiguration(
+                allowDynamicVersions = true,
+                enabledPackageManagers = listOf("Gradle", "Maven"),
+                disabledPackageManagers = listOf("NPM"),
+                packageManagers = mapOf("Gradle" to PackageManagerConfiguration(listOf("Maven"))),
+                skipExcluded = true
+            ),
+            excludes = Excludes(
+                paths = listOf(pathExclude),
+                scopes = listOf(ScopeExclude("test", ScopeExcludeReason.TEST_DEPENDENCY_OF, "Test scope exclude."))
+            ),
+            resolutions = Resolutions(
+                issues = listOf(
+                    IssueResolution(
+                        message = "Error .*",
+                        reason = IssueResolutionReason.SCANNER_ISSUE,
+                        comment = "Test issue resolution."
+                    )
+                ),
+                ruleViolations = listOf(
+                    RuleViolationResolution(
+                        message = "Rule 1",
+                        reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
+                        comment = "Test rule violation resolution."
+                    )
+                ),
+                vulnerabilities = listOf(
+                    VulnerabilityResolution(
+                        id = "CVE-ID-1234",
+                        reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
+                        comment = "Test vulnerability resolution."
+                    )
+                )
+            ),
+            curations = Curations(
+                packages = listOf(
+                    PackageCuration(
+                        id = Identifier("Maven", "com.example", "package", "1.0"),
+                        data = PackageCurationData(
+                            comment = "Test curation data.",
+                            purl = "Maven:com.example:package:1.0",
+                            concludedLicense = "LicenseRef-a".toSpdx(),
+                        )
+                    )
+                ),
+                licenseFindings = listOf(licenseFindingCuration)
+            ),
+            packageConfigurations = listOf(
+                PackageConfiguration(
+                    id = Identifier("Maven", "com.example", "package", "1.0"),
+                    sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
+                    pathExcludes = listOf(pathExclude),
+                    licenseFindingCurations = listOf(licenseFindingCuration)
+                )
+            ),
+            licenseChoices = LicenseChoices(
+                repositoryLicenseChoices = listOf(spdxLicenseChoice),
+                packageLicenseChoices = listOf(
+                    PackageLicenseChoice(
+                        packageId = Identifier("Maven", "com.example", "package", "1.0"),
+                        licenseChoices = listOf(spdxLicenseChoice)
+                    )
+                )
+            )
+        )
     )
 
     val ortEnvironment = Environment(

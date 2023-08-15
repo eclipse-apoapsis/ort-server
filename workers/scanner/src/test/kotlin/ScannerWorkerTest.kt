@@ -82,7 +82,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
-        every { repository.mapToOrt(any(), any()) } returns mockk()
+        every { repository.mapToOrt(any(), any(), any()) } returns mockk()
         every { analyzerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
