@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.kubernetesClientExtended)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(project(":config:secret-file"))
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(project(":transport:transport-spi")))
