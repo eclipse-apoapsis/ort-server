@@ -349,6 +349,71 @@ class ConfigManagerTest : WordSpec({
             configManager.getStringOrNull("foo") should beNull()
         }
     }
+
+    "subConfig" should {
+        "throw an exception for an undefined path" {
+            val path = Path("nonExistingPath")
+            val configManager = createConfigManager()
+
+            val exception = shouldThrow<ConfigException> {
+                configManager.subConfig(path)
+            }
+
+            exception.message shouldContain path.path
+        }
+
+        "access config properties under the sub path" {
+            val testKey = "test.property.key"
+            val testValue = "Success"
+            val configMap = createConfigManagerProperties() + mapOf(testKey to testValue)
+            val configManager = createConfigManager(configMap)
+
+            val subManager = configManager.subConfig(Path("test"))
+
+            subManager.getString("property.key") shouldBe testValue
+        }
+
+        "access secrets under the sub path" {
+            val subPath = "sub"
+            val secretKey = "testSecret"
+            val secretValue = "secretValue"
+            val properties = createConfigManagerProperties() + mapOf("$subPath.$secretKey" to secretValue)
+            val manager = createConfigManager(properties)
+
+            val subManager = manager.subConfig(Path(subPath))
+            val secret = subManager.getSecret(Path(secretKey))
+
+            secret shouldBe secretValue
+        }
+
+        "use the same file provider" {
+            val subPath = "sub"
+            val properties = createConfigManagerProperties() + mapOf(subPath to mapOf("someKey" to "someValue"))
+            val manager = createConfigManager(properties)
+
+            val subManager = manager.subConfig(Path(subPath))
+            val configFile = subManager.getFileAsString(testContext(), Path("root.txt")).trim()
+
+            configFile shouldBe "Root config file."
+        }
+
+        "use the same secret provider" {
+            val subPath = "subSecrets"
+            val providerProperties = createConfigProviderProperties() + mapOf(
+                ConfigManager.SECRET_FROM_CONFIG_PROPERTY to false
+            )
+            val properties = mapOf(
+                ConfigManager.CONFIG_MANAGER_SECTION to providerProperties,
+                subPath to mapOf(TEST_SECRET_NAME to "someOtherSecretValue")
+            )
+            val manager = createConfigManager(properties)
+
+            val subManager = manager.subConfig(Path(subPath))
+            val secret = subManager.getSecret(Path(TEST_SECRET_NAME))
+
+            secret shouldBe TEST_SECRET_VALUE
+        }
+    }
 })
 
 private const val TEST_SECRET_NAME = "top-secret"

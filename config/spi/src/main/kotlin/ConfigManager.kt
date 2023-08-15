@@ -214,6 +214,21 @@ class ConfigManager(
                 configSecretProvider.getSecret(path)
             }
         }
+
+    /**
+     * Return a [ConfigManager] instance that is derived from this object, but wraps the sub configuration at the
+     * given [path]. The returned [ConfigManager] uses the same providers.
+     */
+    fun subConfig(path: Path): ConfigManager {
+        if (!hasPath(path.path)) throw ConfigException("Non-existing path for subConfig: ${path.path}", null)
+
+        return ConfigManager(
+            config.getConfig(path.path),
+            { configFileProvider },
+            { configSecretProvider },
+            allowSecretsFromConfig
+        )
+    }
 }
 
 /**
