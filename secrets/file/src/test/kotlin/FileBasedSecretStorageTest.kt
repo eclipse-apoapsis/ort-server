@@ -30,6 +30,7 @@ import java.util.Base64
 
 import kotlinx.serialization.json.Json
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.secrets.SecretStorage.Companion.CONFIG_PREFIX
 import org.ossreviewtoolkit.server.secrets.SecretStorage.Companion.NAME_PROPERTY
 import org.ossreviewtoolkit.server.secrets.file.FileBasedSecretsProvider
@@ -134,9 +135,10 @@ class FileBasedSecretStorageTest : WordSpec() {
 private fun getStorage(storageFile: File): SecretStorage {
     val properties = mapOf(
         "$CONFIG_PREFIX.$NAME_PROPERTY" to FileBasedSecretsProvider.NAME,
-        "$CONFIG_PREFIX.$PATH_PROPERTY" to storageFile.canonicalPath
+        "$CONFIG_PREFIX.$PATH_PROPERTY" to storageFile.canonicalPath,
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someKey" to "someValue")
     )
-    return SecretStorage.createStorage(ConfigFactory.parseMap(properties))
+    return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)))
 }
 
 private fun initStorage(storageFile: File) {

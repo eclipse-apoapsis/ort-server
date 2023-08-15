@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.secrets
 
-import com.typesafe.config.Config
+import org.ossreviewtoolkit.server.config.ConfigManager
 
 /**
  * A factory interface for creating [SecretsProvider] instances.
@@ -35,8 +35,8 @@ interface SecretsProviderFactory {
     val name: String
 
     /**
-     * Create the [SecretsProvider] managed by this factory. Use [config] to obtain the required,
+     * Create the [SecretsProvider] managed by this factory. Use [configManager] to obtain the required,
      * implementation-specific configuration settings.
      */
-    fun createProvider(config: Config): SecretsProvider
+    fun createProvider(configManager: ConfigManager): SecretsProvider
 }

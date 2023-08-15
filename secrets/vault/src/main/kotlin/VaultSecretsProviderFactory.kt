@@ -19,8 +19,7 @@
 
 package org.ossreviewtoolkit.server.secrets.vault
 
-import com.typesafe.config.Config
-
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.secrets.SecretsProvider
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactory
 
@@ -37,8 +36,8 @@ class VaultSecretsProviderFactory : SecretsProviderFactory {
 
     override val name: String = "vault"
 
-    override fun createProvider(config: Config): SecretsProvider {
-        val vaultConfig = VaultConfiguration.create(config)
+    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+        val vaultConfig = VaultConfiguration.create(configManager)
 
         logger.info("Creating VaultSecretsProvider.")
         logger.debug("Vault URI: '${vaultConfig.vaultUri}'.")

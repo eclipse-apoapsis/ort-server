@@ -26,6 +26,8 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
 
 private const val VAULT_URI = "https://vault.example.org:8765"
@@ -36,18 +38,16 @@ private const val PREFIX = "my-secrets"
 private const val NAMESPACE = "my/name/space"
 
 class VaultConfigurationTest : StringSpec({
-    "An instance can be created from a Config" {
+    "An instance can be created from a ConfigManager" {
         val properties = mapOf(
             "vaultUri" to VAULT_URI,
-            "vaultRoleId" to ROLE_ID,
-            "vaultSecretId" to SECRET_ID,
             "vaultRootPath" to ROOT_PATH,
             "vaultPrefix" to PREFIX,
             "vaultNamespace" to NAMESPACE
         )
-        val config = ConfigFactory.parseMap(properties)
+        val configManager = createConfigManager(properties)
 
-        val vaultConfig = VaultConfiguration.create(config)
+        val vaultConfig = VaultConfiguration.create(configManager)
 
         vaultConfig.vaultUri shouldBe VAULT_URI
         vaultConfig.rootPath shouldBe ROOT_PATH
@@ -58,13 +58,11 @@ class VaultConfigurationTest : StringSpec({
 
     "Default values are set" {
         val properties = mapOf(
-            "vaultUri" to VAULT_URI,
-            "vaultRoleId" to ROLE_ID,
-            "vaultSecretId" to SECRET_ID
+            "vaultUri" to VAULT_URI
         )
-        val config = ConfigFactory.parseMap(properties)
+        val configManager = createConfigManager(properties)
 
-        val vaultConfig = VaultConfiguration.create(config)
+        val vaultConfig = VaultConfiguration.create(configManager)
 
         vaultConfig.rootPath shouldBe ""
         vaultConfig.prefix shouldBe "secret"
@@ -74,13 +72,11 @@ class VaultConfigurationTest : StringSpec({
     "A trailing slash is added to the root path if necessary" {
         val properties = mapOf(
             "vaultUri" to VAULT_URI,
-            "vaultRoleId" to ROLE_ID,
-            "vaultSecretId" to SECRET_ID,
             "vaultRootPath" to ROOT_PATH.removeSuffix("/")
         )
-        val config = ConfigFactory.parseMap(properties)
+        val configManager = createConfigManager(properties)
 
-        val vaultConfig = VaultConfiguration.create(config)
+        val vaultConfig = VaultConfiguration.create(configManager)
 
         vaultConfig.rootPath shouldBe ROOT_PATH
     }
@@ -88,14 +84,29 @@ class VaultConfigurationTest : StringSpec({
     "A trailing slash is removed from the prefix if necessary" {
         val properties = mapOf(
             "vaultUri" to VAULT_URI,
-            "vaultRoleId" to ROLE_ID,
-            "vaultSecretId" to SECRET_ID,
             "vaultPrefix" to "$PREFIX/"
         )
-        val config = ConfigFactory.parseMap(properties)
+        val configManager = createConfigManager(properties)
 
-        val vaultConfig = VaultConfiguration.create(config)
+        val vaultConfig = VaultConfiguration.create(configManager)
 
         vaultConfig.prefix shouldBe PREFIX
     }
 })
+
+/**
+ * Return a [ConfigManager] that wraps the given [vaultProperties]. In addition, access to the secrets is possible.
+ */
+private fun createConfigManager(vaultProperties: Map<String, Any>): ConfigManager {
+    val secretProperties = mapOf(
+        "vaultRoleId" to ROLE_ID,
+        "vaultSecretId" to SECRET_ID
+    )
+    val configManagerProperties = mapOf(
+        ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+        ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretProperties
+    )
+    val properties = vaultProperties + mapOf(ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties)
+
+    return ConfigManager.create(ConfigFactory.parseMap(properties))
+}

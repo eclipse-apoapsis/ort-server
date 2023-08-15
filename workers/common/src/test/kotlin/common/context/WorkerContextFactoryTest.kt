@@ -176,16 +176,17 @@ class WorkerContextFactoryTest : WordSpec({
 private const val RUN_ID = 20230607142948L
 
 /** The configuration used by the test factory. */
-private val config = createConfig()
+private val config = createConfigManager()
 
 /**
  * Return an initialized [Config] object that configures the test secret provider factory.
  */
-private fun createConfig(): Config {
+private fun createConfigManager(): ConfigManager {
     val properties = mapOf(
-        SecretStorage.CONFIG_PREFIX to mapOf(SecretStorage.NAME_PROPERTY to SecretsProviderFactoryForTesting.NAME)
+        SecretStorage.CONFIG_PREFIX to mapOf(SecretStorage.NAME_PROPERTY to SecretsProviderFactoryForTesting.NAME),
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
     )
-    return ConfigFactory.parseMap(properties)
+    return ConfigManager.create(ConfigFactory.parseMap(properties))
 }
 
 /**

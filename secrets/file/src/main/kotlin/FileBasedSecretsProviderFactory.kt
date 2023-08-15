@@ -19,8 +19,7 @@
 
 package org.ossreviewtoolkit.server.secrets.file
 
-import com.typesafe.config.Config
-
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.secrets.SecretsProvider
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactory
 import org.ossreviewtoolkit.server.secrets.file.FileBasedSecretsProvider.Companion.NAME
@@ -38,8 +37,8 @@ class FileBasedSecretsProviderFactory : SecretsProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(config: Config): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager): SecretsProvider {
         logger.info("Creating FileBasedSecretsProvider.")
-        return FileBasedSecretsProvider(config)
+        return FileBasedSecretsProvider(configManager)
     }
 }

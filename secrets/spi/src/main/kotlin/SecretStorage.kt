@@ -19,9 +19,10 @@
 
 package org.ossreviewtoolkit.server.secrets
 
-import com.typesafe.config.Config
-
 import java.util.ServiceLoader
+
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path as ConfigPath
 
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].
@@ -51,14 +52,14 @@ class SecretStorage(
         private val LOADER = ServiceLoader.load(SecretsProviderFactory::class.java)
 
         /**
-         * Return an initialized [SecretStorage] implementation based on the given [config]. This function obtains
-         * the sub configuration defined by [CONFIG_PREFIX] from the given [config]. There it looks up the name of
-         * the desired [SecretsProviderFactory] via the [NAME_PROPERTY] property. It then tries to find a factory with
-         * this name via the service loader mechanism and uses this to create a [SecretsProvider]. A [SecretStorage]
-         * instance wrapping this [SecretsProvider] is returned.
+         * Return an initialized [SecretStorage] implementation based on the given [configManager]. This function
+         * obtains the sub configuration defined by [CONFIG_PREFIX] from the given [configManager]. There it looks up
+         * the name of the desired [SecretsProviderFactory] via the [NAME_PROPERTY] property. It then tries to find a
+         * factory with this name via the service loader mechanism and uses this to create a [SecretsProvider]. A
+         * [SecretStorage] instance wrapping this [SecretsProvider] is returned.
          */
-        fun createStorage(config: Config): SecretStorage {
-            if (!config.hasPath("$CONFIG_PREFIX.$NAME_PROPERTY")) {
+        fun createStorage(configManager: ConfigManager): SecretStorage {
+            if (!configManager.hasPath("$CONFIG_PREFIX.$NAME_PROPERTY")) {
                 throw SecretStorageException(
                     """
                     Configuration property '$CONFIG_PREFIX$NAME_PROPERTY' is not set. Please set it to the name of the
@@ -67,7 +68,7 @@ class SecretStorage(
                 )
             }
 
-            val providerConfig = config.getConfig(CONFIG_PREFIX)
+            val providerConfig = configManager.subConfig(ConfigPath(CONFIG_PREFIX))
             val factoryName = providerConfig.getString(NAME_PROPERTY)
             val factory = LOADER.find { it.name == factoryName }
                 ?: throw SecretStorageException("SecretsProviderFactory '$factoryName' not found on classpath.")

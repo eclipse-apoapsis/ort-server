@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.secrets.vault
 
 import com.typesafe.config.Config
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
@@ -80,18 +82,18 @@ data class VaultConfiguration(
         private const val PATH_SEPARATOR = "/"
 
         /**
-         * Create a new [VaultConfiguration] based on the properties stored in the given [config].
+         * Create a new [VaultConfiguration] based on the properties stored in the given [configManager].
          */
-        fun create(config: Config): VaultConfiguration {
+        fun create(configManager: ConfigManager): VaultConfiguration {
             return VaultConfiguration(
-                vaultUri = config.getString(URI_PROPERTY),
+                vaultUri = configManager.getString(URI_PROPERTY),
                 credentials = VaultCredentials(
-                    config.getString(ROLE_ID_PROPERTY),
-                    config.getString(SECRET_ID_PROPERTY)
+                    configManager.getSecret(Path(ROLE_ID_PROPERTY)),
+                    configManager.getSecret(Path(SECRET_ID_PROPERTY))
                 ),
-                rootPath = getOptionalRootPath(config),
-                prefix = getOptionalPrefix(config),
-                namespace = config.getStringOrNull(NAMESPACE_PROPERTY)
+                rootPath = getOptionalRootPath(configManager),
+                prefix = getOptionalPrefix(configManager),
+                namespace = configManager.getStringOrNull(NAMESPACE_PROPERTY)
             )
         }
 

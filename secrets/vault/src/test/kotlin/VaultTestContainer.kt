@@ -19,7 +19,6 @@
 
 package org.ossreviewtoolkit.server.secrets.vault
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.fail
@@ -40,6 +39,8 @@ import io.ktor.client.request.setBody
 
 import java.util.regex.Pattern
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
 
 import org.testcontainers.utility.DockerImageName
@@ -161,19 +162,28 @@ class VaultTestContainer {
     }
 
     /**
-     * Create a [Config] that can be used to obtain a secret storage backed by the managed Vault container.
+     * Create a [ConfigManager] that can be used to obtain a secret storage backed by the managed Vault container.
      */
-    fun createApplicationConfig(): Config {
-        val properties = mapOf(
+    fun createApplicationConfig(): ConfigManager {
+        val vaultProperties = mapOf(
             "name" to "vault",
             "vaultUri" to vault.httpHostAddress,
-            "vaultRoleId" to credentials.roleId,
-            "vaultSecretId" to credentials.secretId,
             "vaultRootPath" to PATH
         )
-        val configMap = mapOf("secretsProvider" to properties)
+        val secretProperties = mapOf(
+            "vaultRoleId" to credentials.roleId,
+            "vaultSecretId" to credentials.secretId
+        )
+        val configManagerProperties = mapOf(
+            ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+            ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretProperties
+        )
+        val configMap = mapOf(
+            "secretsProvider" to vaultProperties,
+            ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties
+        )
 
-        return ConfigFactory.parseMap(configMap)
+        return ConfigManager.create(ConfigFactory.parseMap(configMap))
     }
 
     /**

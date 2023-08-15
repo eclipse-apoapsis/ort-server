@@ -19,8 +19,7 @@
 
 package org.ossreviewtoolkit.server.secrets
 
-import com.typesafe.config.Config
-
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
 
 /**
@@ -87,9 +86,9 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
     override val name: String
         get() = NAME
 
-    override fun createProvider(config: Config): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager): SecretsProvider {
         val storage = createStorage()
-        val errorPath = config.getStringOrDefault(ERROR_PATH_PROPERTY, ".")
+        val errorPath = configManager.getStringOrDefault(ERROR_PATH_PROPERTY, ".")
 
         fun checkPath(path: Path): Path =
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")

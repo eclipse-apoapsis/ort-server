@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.common.context
 
-import com.typesafe.config.Config
-
 import java.util.concurrent.ConcurrentHashMap
 
 import kotlinx.coroutines.Deferred
@@ -43,7 +41,7 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
  */
 class WorkerContextFactory(
     /** The application configuration. */
-    private val config: Config,
+    private val configManager: ConfigManager,
 
     /** The repository for ORT run entities. */
     private val ortRunRepository: OrtRunRepository,
@@ -52,7 +50,7 @@ class WorkerContextFactory(
     private val repositoryRepository: RepositoryRepository
 ) {
     /** The object for accessing secrets. */
-    private val secretStorage by lazy { SecretStorage.createStorage(config) }
+    private val secretStorage by lazy { SecretStorage.createStorage(configManager) }
 
     /**
      * Return a [WorkerContext] for the given [ID of an ORT run][ortRunId]. The context is lazily initialized; so the
@@ -70,7 +68,7 @@ class WorkerContextFactory(
                 repositoryRepository.getHierarchy(ortRun.repositoryId)
             }
 
-            override fun configManager(): ConfigManager = ConfigManager.create(config)
+            override fun configManager(): ConfigManager = ConfigManager.create(configManager)
 
             override suspend fun resolveSecret(secret: Secret): String =
                 resolveSecretAsync(secret).await()

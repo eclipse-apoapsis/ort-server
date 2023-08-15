@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)

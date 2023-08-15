@@ -33,16 +33,17 @@ import io.kotest.matchers.types.beInstanceOf
 
 import kotlin.IllegalArgumentException
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_PATH
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_SECRET
 
 class SecretStorageTest : WordSpec({
     "createStorage" should {
         "fail if the name property is not provided in the configuration" {
-            val config = ConfigFactory.empty()
+            val configManager = createConfigManager(emptyMap())
 
             val exception = shouldThrow<SecretStorageException> {
-                SecretStorage.createStorage(config)
+                SecretStorage.createStorage(configManager)
             }
 
             exception.message shouldContain (SecretStorage.NAME_PROPERTY)
@@ -50,12 +51,12 @@ class SecretStorageTest : WordSpec({
 
         "fail if the configured SecretsProvider cannot be resolved" {
             val providerName = "nonExistingProvider"
-            val config = ConfigFactory.parseMap(
+            val configManager = createConfigManager(
                 mapOf("${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to providerName)
             )
 
             val exception = shouldThrow<SecretStorageException> {
-                SecretStorage.createStorage(config)
+                SecretStorage.createStorage(configManager)
             }
 
             exception.message shouldContain providerName
@@ -251,7 +252,18 @@ private fun createStorage(): SecretStorage {
         "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
         "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH.path
     )
-    val config = ConfigFactory.parseMap(properties)
+    val configManager = createConfigManager(properties)
 
-    return SecretStorage.createStorage(config)
+    return SecretStorage.createStorage(configManager)
+}
+
+/**
+ * Return a [ConfigManager] instance that is initialized with the given [configuration][properties].
+ */
+private fun createConfigManager(properties: Map<String, Any>): ConfigManager {
+    val configManagerProperties = properties + mapOf(
+        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+    )
+
+    return ConfigManager.create(ConfigFactory.parseMap(configManagerProperties))
 }
