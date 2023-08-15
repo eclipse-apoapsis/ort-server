@@ -154,23 +154,6 @@ class WorkerContextFactoryTest : WordSpec({
             context.resolveSecret(secret1) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value
         }
     }
-
-    "configManager" should {
-        "return a ConfigManager" {
-            val resolvedContext = "resolvedConfigContext"
-            val helper = ContextFactoryTestHelper()
-
-            val run = helper.expectRunRequest()
-            every { run.resolvedConfigContext } returns resolvedContext
-
-            val configManager = mockk<ConfigManager>()
-            every { ConfigManager.create(config) } returns configManager
-
-            val context = helper.context()
-
-            context.configManager() shouldBe configManager
-        }
-    }
 })
 
 private const val RUN_ID = 20230607142948L

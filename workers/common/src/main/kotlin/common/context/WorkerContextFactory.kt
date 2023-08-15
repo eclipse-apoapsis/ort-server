@@ -68,8 +68,6 @@ class WorkerContextFactory(
                 repositoryRepository.getHierarchy(ortRun.repositoryId)
             }
 
-            override fun configManager(): ConfigManager = ConfigManager.create(configManager)
-
             override suspend fun resolveSecret(secret: Secret): String =
                 resolveSecretAsync(secret).await()
 
