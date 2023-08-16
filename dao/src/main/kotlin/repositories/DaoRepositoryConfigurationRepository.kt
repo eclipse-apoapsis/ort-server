@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageLicenseChoi
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.PathExcludeDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryAnalyzerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationDao
+import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.RuleViolationResolutionDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.ScopeExcludeDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.SpdxLicenseChoiceDao
