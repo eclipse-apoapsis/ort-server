@@ -28,13 +28,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 import org.koin.ktor.ext.inject
 
-@OptIn(ExperimentalSerializationApi::class)
 fun Application.configureOpenApi() {
     val config: ApplicationConfig by inject()
     val json: Json by inject()
