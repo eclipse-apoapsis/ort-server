@@ -215,10 +215,10 @@ private fun mockValidator(context: WorkerContext, result: ConfigValidationResult
  * Create a mock [ConfigManager]. The mock is configured to return the test validation script.
  */
 private fun mockConfigManager(): ConfigManager = mockk<ConfigManager> {
-    every<String> {
+    every {
         getFileAsString(Context(RESOLVED_CONTEXT), ConfigWorker.VALIDATION_SCRIPT_PATH)
     } returns PARAMETERS_SCRIPT
-    every<Context> { resolveContext(any()) } returns Context(RESOLVED_CONTEXT)
+    every { resolveContext(any()) } returns Context(RESOLVED_CONTEXT)
 }
 
 /**
