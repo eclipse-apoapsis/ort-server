@@ -43,7 +43,6 @@ import org.postgresql.util.PGobject
 private class JsonbColumnType<T : Any>(private val klass: KClass<T>) : ColumnType() {
     override fun sqlType(): String = "JSONB"
 
-    @Suppress("UNCHECKED_CAST")
     override fun notNullValueToDB(value: Any): Any =
         json.encodeToString(serializer(klass.javaObjectType), value).escapeNull()
 
