@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
  */
 interface RepositoryConfigurationRepository {
     /**
-     * Create a repository configuraiton.
+     * Create a repository configuration.
      */
     fun create(
         ortRunId: Long,

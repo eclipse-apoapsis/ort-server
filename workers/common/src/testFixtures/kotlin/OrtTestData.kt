@@ -184,7 +184,7 @@ object OrtTestData {
     val ortIssue = Issue(
         timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         source = "tool-x",
-        message = "An issue occured.",
+        message = "An issue occurred.",
         severity = Severity.ERROR
     )
 

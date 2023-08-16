@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("LargeObjects")
 
 /**
- * Use proprietary API of PosgreSQL to create a large object and populate it with the given [data]. Return the ID of
+ * Use proprietary API of PostgreSQL to create a large object and populate it with the given [data]. Return the ID of
  * this object which needs to be stored in the storage table as a reference.
  */
 internal fun Transaction.storeLargeObject(data: InputStream): Long {

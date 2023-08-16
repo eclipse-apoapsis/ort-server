@@ -99,7 +99,7 @@ class DaoProductRepositoryTest : StringSpec({
     }
 
     "listForOrganization should return all products for an organization" {
-        val otherOrgId = fixtures.createOrganization(name = "ortherOrg").id
+        val otherOrgId = fixtures.createOrganization(name = "otherOrg").id
 
         val name1 = "name1"
         val description1 = "description1"
@@ -118,7 +118,7 @@ class DaoProductRepositoryTest : StringSpec({
     }
 
     "listForOrganization should apply query parameters" {
-        val otherOrgId = fixtures.createOrganization(name = "ortherOrg").id
+        val otherOrgId = fixtures.createOrganization(name = "otherOrg").id
 
         val name1 = "name1"
         val description1 = "description1"

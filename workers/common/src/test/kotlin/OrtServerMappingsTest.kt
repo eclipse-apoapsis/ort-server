@@ -211,7 +211,7 @@ class OrtServerMappingsTest : WordSpec({
             val issue = OrtServerIssue(
                 timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 source = "tool-x",
-                message = "An issue occured.",
+                message = "An issue occurred.",
                 severity = "ERROR"
             )
 
