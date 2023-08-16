@@ -38,7 +38,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.services.ReportStorageService
 
 /**
- * API for the runs endpoint. This endpoint provides information related to ORT runs and their results.
+ * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
 fun Route.runs() = route("runs/{runId}") {
     route("reporter/{fileName}") {

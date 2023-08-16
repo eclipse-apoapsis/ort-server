@@ -5,7 +5,7 @@
 ==== Configure Minikube
 
 Start minikube with one node due the limitation that `minikube mount` can only mount to one node.
-By default minikube uses 2 CPUs and 2GB of memory.
+By default, minikube uses 2 CPUs and 2GB of memory.
 This might not be enough for a good startup performance and to run the ORT server at all, so it is recommended to increase the values, for example to 4 CPUs and 8GB.
 
  minikube start --nodes 1 --cpus 4 --memory 8g
@@ -125,7 +125,7 @@ Then add an alias to localhost in the /etc/hosts file (or your platform equivale
 
  127.0.0.1       localhost ort-server-keycloak postgres artemis core rabbitmq vault
 
-Afterwards, you can configure a local ORT Service with the following JDBC URL:
+Afterward, you can configure a local ORT Service with the following JDBC URL:
 
  jdbc:postgresql://postgres:5432
 

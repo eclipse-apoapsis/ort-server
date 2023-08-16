@@ -168,7 +168,7 @@ The most convenient way to do this is if the access token provided in the reques
 So, this implies that this information is available in Keycloak.
 
 The data structures supported by Keycloak are actually capable to represent the customer data model: Organizations and products can be mapped to groups (which can be hierarchical), and access rights on repositories can be represented by roles (this approach is currently used for the mini server).
-The predefined properties of these structures in Keycloak are quite limited; it is, however, possible to assign arbitrary key-value pairs - so called _attributes_ to them.
+The predefined properties of these structures in Keycloak are quite limited; it is, however, possible to assign arbitrary key-value pairs - so-called _attributes_ to them.
 So it would be an option to store this data directly in Keycloak.
 Updates can be done via the Admin REST API.
 If these API calls are hidden behind a repository implementation, for the client code it is fully transparent that the data comes from a different source.

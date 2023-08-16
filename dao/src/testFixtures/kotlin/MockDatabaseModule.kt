@@ -54,7 +54,7 @@ private fun databaseModuleWithMockConnection() = module {
 /**
  * Mock the function that returns the database module to return a module with a mock connection instead. This can be
  * used to test the message handling logic in server endpoints without having to set up a real database. Make sure
- * to call [unmockDatabaseModule] afterwards to clear the mocking.
+ * to call [unmockDatabaseModule] afterward to clear the mocking.
  */
 fun mockDatabaseModule() {
     mockkStatic(::databaseModule)
@@ -82,7 +82,7 @@ fun KoinTest.verifyDatabaseModuleIncluded() {
 }
 
 /**
- * Run [block] with a [mocked database module][mockDatabaseModule]. Afterwards do cleanup by calling
+ * Run [block] with a [mocked database module][mockDatabaseModule]. Afterward do cleanup by calling
  * [unmockDatabaseModule].
  */
 fun withMockDatabaseModule(block: () -> Unit) {
