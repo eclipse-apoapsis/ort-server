@@ -432,7 +432,7 @@ fun OrtScannerConfiguration.mapToModel() =
         archive = archive?.mapToModel(),
         createMissingArchives = createMissingArchives,
         detectedLicenseMappings = detectedLicenseMapping,
-        options = options?.let { it }.orEmpty(),
+        options = options.orEmpty(),
         storages = storages?.map { (name, storage) ->
             name to when (storage) {
                 is OrtClearlyDefinedStorageConfiguration -> storage.mapToModel()
