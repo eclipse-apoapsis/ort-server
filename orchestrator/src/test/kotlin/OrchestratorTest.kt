@@ -162,14 +162,14 @@ class OrchestratorTest : WordSpec() {
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
-        config = JobConfigurations(
+        jobConfigs = JobConfigurations(
             analyzerJob.configuration,
             advisorJob.configuration,
             scannerJob.configuration,
             evaluatorJob.configuration,
             reporterJob.configuration
         ),
-        resolvedConfig = null,
+        resolvedJobConfigs = null,
         status = OrtRunStatus.CREATED,
         labels = mapOf("label key" to "label value"),
         null,
@@ -187,14 +187,14 @@ class OrchestratorTest : WordSpec() {
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
-        config = JobConfigurations(
+        jobConfigs = JobConfigurations(
             analyzerJob.configuration,
             null,
             null,
             null,
             reporterJob.configuration
         ),
-        resolvedConfig = null,
+        resolvedJobConfigs = null,
         status = OrtRunStatus.CREATED,
         labels = mapOf("label key" to "label value"),
         null,

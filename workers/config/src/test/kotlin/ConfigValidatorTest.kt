@@ -48,14 +48,14 @@ class ConfigValidatorTest : StringSpec({
         val script = loadScript("validation-success.kts")
 
         val run = mockk<OrtRun> {
-            every { config } returns fixtures.jobConfigurations
+            every { jobConfigs } returns fixtures.jobConfigurations
         }
         val context = mockContext(run)
 
         val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
-        validationResult.resolvedConfigurations shouldBe run.config
+        validationResult.resolvedConfigurations shouldBe run.jobConfigs
 
         val expectedIssue = OrtIssue(
             Clock.System.now(),

@@ -78,8 +78,8 @@ class ConfigWorkerTest : StringSpec({
 
                 ortRunRepository.update(
                     id = RUN_ID,
-                    resolvedConfig = resolvedConfig.asPresent(),
-                    resolvedConfigContext = RESOLVED_CONTEXT.asPresent(),
+                    resolvedJobConfigs = resolvedConfig.asPresent(),
+                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
                     issues = validationIssues.asPresent()
                 )
             }
@@ -108,8 +108,8 @@ class ConfigWorkerTest : StringSpec({
 
                 ortRunRepository.update(
                     id = RUN_ID,
-                    resolvedConfig = resolvedConfig.asPresent(),
-                    resolvedConfigContext = RESOLVED_CONTEXT.asPresent(),
+                    resolvedJobConfigs = resolvedConfig.asPresent(),
+                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
                     issues = validationIssues.asPresent()
                 )
             }
@@ -138,7 +138,7 @@ class ConfigWorkerTest : StringSpec({
             verify {
                 ortRunRepository.update(
                     id = RUN_ID,
-                    resolvedConfigContext = RESOLVED_CONTEXT.asPresent(),
+                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
                     issues = validationIssues.asPresent()
                 )
             }
@@ -179,11 +179,11 @@ private val validationIssues = listOf(
 
 /**
  * Create a mock context factory together with a mock context that is returned by the factory. Prepare the mocks to
- * return typical answers. Use the given [orgConfigContext] for the [OrtRun.configContext] property.
+ * return typical answers. Use the given [orgConfigContext] for the [OrtRun.jobConfigContext] property.
  */
 private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<WorkerContextFactory, WorkerContext> {
     val run = mockk<OrtRun> {
-        every { configContext } returns orgConfigContext
+        every { jobConfigContext } returns orgConfigContext
     }
 
     val context = mockk<WorkerContext> {

@@ -36,8 +36,8 @@ interface OrtRunRepository {
     fun create(
         repositoryId: Long,
         revision: String,
-        jobConfigurations: JobConfigurations,
-        configContext: String? = null,
+        jobConfigs: JobConfigurations,
+        jobConfigContext: String? = null,
         labels: Map<String, String>,
         issues: Collection<OrtIssue> = emptyList()
     ): OrtRun
@@ -67,8 +67,8 @@ interface OrtRunRepository {
     fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus> = OptionalValue.Absent,
-        resolvedConfig: OptionalValue<JobConfigurations> = OptionalValue.Absent,
-        resolvedConfigContext: OptionalValue<String?> = OptionalValue.Absent,
+        resolvedJobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
+        resolvedJobConfigContext: OptionalValue<String?> = OptionalValue.Absent,
         issues: OptionalValue<Collection<OrtIssue>> = OptionalValue.Absent
     ): OrtRun
 

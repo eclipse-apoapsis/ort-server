@@ -580,9 +580,9 @@ class Orchestrator(
     }
 
     /**
-     * Return a resolved configuration if it is available. Otherwise, return the original configuration.
+     * Return the resolved job configurations if available. Otherwise, return the original job configurations.
      */
-    private fun getConfig(ortRun: OrtRun) = ortRun.resolvedConfig ?: ortRun.config
+    private fun getConfig(ortRun: OrtRun) = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
 }
 
 /**

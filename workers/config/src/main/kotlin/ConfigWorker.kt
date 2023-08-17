@@ -58,16 +58,16 @@ class ConfigWorker(
     suspend fun run(ortRunId: Long): RunResult = runCatching {
         val context = contextFactory.createContext(ortRunId)
 
-        val configContext = context.ortRun.configContext?.let(::Context)
-        val resolvedContext = configManager.resolveContext(configContext)
+        val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
+        val resolvedJobConfigContext = configManager.resolveContext(jobConfigContext)
 
         // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it configurable.
-        val validationScript = configManager.getFileAsString(resolvedContext, VALIDATION_SCRIPT_PATH)
+        val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
 
         val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(validationScript)
 
-        val (result, resolvedConfig) = when (validationResult) {
+        val (result, resolvedJobConfigs) = when (validationResult) {
             is ConfigValidationResultSuccess ->
                 RunResult.Success to validationResult.resolvedConfigurations.asPresent()
 
@@ -78,9 +78,9 @@ class ConfigWorker(
         db.dbQuery {
             ortRunRepository.update(
                 ortRunId,
-                resolvedConfig = resolvedConfig,
+                resolvedJobConfigs = resolvedJobConfigs,
                 issues = validationResult.issues.asPresent(),
-                resolvedConfigContext = resolvedContext.name.asPresent()
+                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent()
             )
         }
 

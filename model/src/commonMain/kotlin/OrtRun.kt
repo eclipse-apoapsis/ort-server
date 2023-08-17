@@ -54,13 +54,13 @@ data class OrtRun(
     /**
      * The job configurations for this run.
      */
-    val config: JobConfigurations,
+    val jobConfigs: JobConfigurations,
 
     /**
      * The resolved job configurations for this run. This field stores the output of the parameters check and validation
      * script.
      */
-    val resolvedConfig: JobConfigurations?,
+    val resolvedJobConfigs: JobConfigurations?,
 
     /**
      * The status of this run.
@@ -105,13 +105,13 @@ data class OrtRun(
      * configuration manager and can be used to select a specific subset or a version of configuration properties. If
      * this value is missing, the default configuration context should be used.
      */
-    val configContext: String?,
+    val jobConfigContext: String?,
 
     /**
      * The resolved configuration context. When an ORT run is started, the configuration context is resolved once and
      * then stored, so that all workers access the same set of configuration properties.
      */
-    val resolvedConfigContext: String?
+    val resolvedJobConfigContext: String?
 )
 
 enum class OrtRunStatus {

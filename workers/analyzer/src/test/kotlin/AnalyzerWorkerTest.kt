@@ -73,8 +73,8 @@ private val ortRun = OrtRun(
     repositoryId = repository.id,
     revision = "main",
     createdAt = Clock.System.now(),
-    config = JobConfigurations(),
-    resolvedConfig = JobConfigurations(),
+    jobConfigs = JobConfigurations(),
+    resolvedJobConfigs = JobConfigurations(),
     status = OrtRunStatus.ACTIVE,
     labels = emptyMap(),
     vcsId = 1L,
@@ -82,8 +82,8 @@ private val ortRun = OrtRun(
     nestedRepositoryIds = emptyMap(),
     repositoryConfigId = 1L,
     issues = emptyList(),
-    configContext = "context",
-    resolvedConfigContext = "context"
+    jobConfigContext = "context",
+    resolvedJobConfigContext = "context"
 )
 
 private val analyzerJob = AnalyzerJob(

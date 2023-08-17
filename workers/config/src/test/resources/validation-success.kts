@@ -28,6 +28,6 @@ val issue = OrtIssue(
 )
 
 validationResult = ConfigValidationResultSuccess(
-    context.ortRun.config,
+    context.ortRun.jobConfigs,
     listOf(issue)
 )

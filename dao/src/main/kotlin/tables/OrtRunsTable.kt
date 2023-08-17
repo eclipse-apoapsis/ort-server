@@ -47,10 +47,10 @@ object OrtRunsTable : SortableTable("ort_runs") {
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
-    val config = jsonb("config", JobConfigurations::class)
-    val resolvedConfig = jsonb("resolved_config", JobConfigurations::class).nullable()
-    val configContext = text("config_context").nullable()
-    val resolvedConfigContext = text("resolved_config_context").nullable()
+    val jobConfigs = jsonb("job_configs", JobConfigurations::class)
+    val resolvedJobConfigs = jsonb("resolved_job_configs", JobConfigurations::class).nullable()
+    val jobConfigContext = text("job_config_context").nullable()
+    val resolvedJobConfigContext = text("resolved_job_config_context").nullable()
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
@@ -64,10 +64,10 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var index by OrtRunsTable.index
     var revision by OrtRunsTable.revision
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var config by OrtRunsTable.config
-    var resolvedConfig by OrtRunsTable.resolvedConfig
-    var configContext by OrtRunsTable.configContext
-    var resolvedConfigContext by OrtRunsTable.resolvedConfigContext
+    var jobConfigs by OrtRunsTable.jobConfigs
+    var resolvedJobConfigs by OrtRunsTable.resolvedJobConfigs
+    var jobConfigContext by OrtRunsTable.jobConfigContext
+    var resolvedJobConfigContext by OrtRunsTable.resolvedJobConfigContext
     var status by OrtRunsTable.status
     var issues by OrtIssueDao via OrtRunsIssuesTable
     var labels by LabelDao via OrtRunsLabelsTable
@@ -88,8 +88,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         repositoryId = repository.id.value,
         revision = revision,
         createdAt = createdAt,
-        config = config,
-        resolvedConfig = resolvedConfig,
+        jobConfigs = jobConfigs,
+        resolvedJobConfigs = resolvedJobConfigs,
         status = status,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,
@@ -97,7 +97,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         nestedRepositoryIds = nestedRepositories.associate { it.path to it.vcsId.value },
         repositoryConfigId = repositoryConfig?.id?.value,
         issues = issues.map { it.mapToModel() },
-        configContext = configContext,
-        resolvedConfigContext = resolvedConfigContext
+        jobConfigContext = jobConfigContext,
+        resolvedJobConfigContext = resolvedJobConfigContext
     )
 }

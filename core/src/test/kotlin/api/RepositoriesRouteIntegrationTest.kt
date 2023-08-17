@@ -329,7 +329,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     createdRepository.id,
                     "revision",
                     JobConfigurations(),
-                    "configContext",
+                    "jobConfigContext",
                     labelsMap
                 )
 
@@ -408,13 +408,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response.body<OrtRun>().config.analyzer.environmentConfig shouldBe envConfig
+                response.body<OrtRun>().jobConfigs.analyzer.environmentConfig shouldBe envConfig
 
                 MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
 
                 val runs = ortRunRepository.listForRepository(createdRepository.id)
 
-                with(runs.single().config.analyzer) {
+                with(runs.single().jobConfigs.analyzer) {
                     allowDynamicVersions shouldBe true
                     val jobConfig = environmentConfig.shouldNotBeNull()
                     jobConfig.strict shouldBe false

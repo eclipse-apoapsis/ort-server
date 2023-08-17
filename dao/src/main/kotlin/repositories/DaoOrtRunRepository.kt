@@ -54,8 +54,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun create(
         repositoryId: Long,
         revision: String,
-        jobConfigurations: JobConfigurations,
-        configContext: String?,
+        jobConfigs: JobConfigurations,
+        jobConfigContext: String?,
         labels: Map<String, String>,
         issues: Collection<OrtIssue>
     ): OrtRun = db.blockingQuery {
@@ -66,8 +66,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.repository = RepositoryDao[repositoryId]
             this.revision = revision
             this.createdAt = Clock.System.now().toDatabasePrecision()
-            this.config = jobConfigurations
-            this.configContext = configContext
+            this.jobConfigs = jobConfigs
+            this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
             this.labels = SizedCollection(labels.map { LabelDao.getOrPut(it.key, it.value) })
             this.issues = SizedCollection(issues.map { OrtIssueDao.getOrPut(it) })
@@ -94,16 +94,16 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus>,
-        resolvedConfig: OptionalValue<JobConfigurations>,
-        resolvedConfigContext: OptionalValue<String?>,
+        resolvedJobConfigs: OptionalValue<JobConfigurations>,
+        resolvedJobConfigContext: OptionalValue<String?>,
         issues: OptionalValue<Collection<OrtIssue>>
     ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent { ortRun.status = it }
 
-        resolvedConfig.ifPresent { ortRun.resolvedConfig = it }
-        resolvedConfigContext.ifPresent { ortRun.resolvedConfigContext = it }
+        resolvedJobConfigs.ifPresent { ortRun.resolvedJobConfigs = it }
+        resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
 
         issues.ifPresent { issues ->
             ortRun.issues = SizedCollection(ortRun.issues + issues.map { OrtIssueDao.getOrPut(it) })

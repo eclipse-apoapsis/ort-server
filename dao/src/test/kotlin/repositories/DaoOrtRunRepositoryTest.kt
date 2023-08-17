@@ -66,10 +66,10 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
     "create should create an entry in the database" {
         val revision = "revision"
-        val configContext = "someConfigContext"
+        val jobConfigContext = "someConfigContext"
 
         val createdOrtRun =
-            ortRunRepository.create(repositoryId, revision, jobConfigurations, configContext, labelsMap)
+            ortRunRepository.create(repositoryId, revision, jobConfigurations, jobConfigContext, labelsMap)
 
         val dbEntry = ortRunRepository.get(createdOrtRun.id)
 
@@ -80,10 +80,10 @@ class DaoOrtRunRepositoryTest : StringSpec({
             repositoryId = repositoryId,
             revision = revision,
             createdAt = createdOrtRun.createdAt,
-            config = jobConfigurations,
-            resolvedConfig = null,
-            configContext = configContext,
-            resolvedConfigContext = null,
+            jobConfigs = jobConfigurations,
+            resolvedJobConfigs = null,
+            jobConfigContext = jobConfigContext,
+            resolvedJobConfigContext = null,
             status = OrtRunStatus.CREATED,
             labels = labelsMap,
             vcsId = null,
@@ -165,8 +165,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
         val expectedResult = ortRun.copy(
             status = updateStatus.value,
-            resolvedConfig = resolvedJobConfigurations,
-            resolvedConfigContext = resolvedContext,
+            resolvedJobConfigs = resolvedJobConfigurations,
+            resolvedJobConfigContext = resolvedContext,
             issues = listOf(issue1, issue2, issue3)
         )
         updateResult shouldBe expectedResult

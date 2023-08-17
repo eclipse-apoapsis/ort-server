@@ -166,14 +166,14 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         repositoryId,
         revision,
         createdAt,
-        config.mapToApi(),
-        resolvedConfig?.mapToApi(),
+        jobConfigs.mapToApi(),
+        resolvedJobConfigs?.mapToApi(),
         jobs,
         status.mapToApi(),
         labels,
         issues = issues.map { it.mapToApi() },
-        configContext,
-        resolvedConfigContext
+        jobConfigContext,
+        resolvedJobConfigContext
     )
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
