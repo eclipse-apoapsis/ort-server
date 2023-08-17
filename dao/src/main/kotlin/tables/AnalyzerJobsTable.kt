@@ -66,8 +66,6 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
         startedAt = startedAt,
         finishedAt = finishedAt,
         configuration = configuration,
-        status = status,
-        repositoryUrl = ortRun.repository.url,
-        repositoryRevision = ortRun.revision
+        status = status
     )
 }

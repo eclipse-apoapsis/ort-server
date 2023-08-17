@@ -103,9 +103,7 @@ class OrchestratorTest : WordSpec() {
         startedAt = null,
         finishedAt = null,
         configuration = AnalyzerJobConfiguration(),
-        status = JobStatus.CREATED,
-        repositoryUrl = repository.url,
-        repositoryRevision = "main"
+        status = JobStatus.CREATED
     )
 
     private val advisorJob = AdvisorJob(

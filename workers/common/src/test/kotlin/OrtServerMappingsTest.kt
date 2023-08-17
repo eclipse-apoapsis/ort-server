@@ -124,9 +124,7 @@ class OrtServerMappingsTest : WordSpec({
                 startedAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 finishedAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 configuration = AnalyzerJobConfiguration(),
-                status = JobStatus.FINISHED,
-                repositoryUrl = repository.url,
-                repositoryRevision = ortRun.revision
+                status = JobStatus.FINISHED
             )
 
             val analyzerConfiguration = AnalyzerConfiguration(

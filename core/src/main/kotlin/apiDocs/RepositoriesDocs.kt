@@ -85,9 +85,7 @@ val jobs = Jobs(
         id = 1L,
         createdAt = Clock.System.now(),
         configuration = jobConfigurations.analyzer,
-        status = JobStatus.CREATED,
-        repositoryUrl = "",
-        repositoryRevision = ""
+        status = JobStatus.CREATED
     ),
     advisor = AdvisorJob(
         id = 1L,

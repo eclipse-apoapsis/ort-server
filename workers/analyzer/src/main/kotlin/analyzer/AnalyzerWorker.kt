@@ -46,6 +46,10 @@ internal class AnalyzerWorker(
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val job = db.dbQuery { getValidAnalyzerJob(jobId) }
+        val ortRun = db.dbQuery { dao.getOrtRun(job.ortRunId) }
+            ?: throw IllegalArgumentException("The ORT run '${job.ortRunId}' does not exist.")
+        val repository = db.dbQuery { dao.getRepository(ortRun.repositoryId) }
+            ?: throw IllegalArgumentException("The repository '${ortRun.repositoryId}' does not exist.")
 
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
@@ -62,7 +66,7 @@ internal class AnalyzerWorker(
             environmentService.generateNetRcFile(context, listOf(infrastructureService))
         }
 
-        val sourcesDir = downloader.downloadRepository(job.repositoryUrl, job.repositoryRevision)
+        val sourcesDir = downloader.downloadRepository(repository.url, ortRun.revision)
 
         val envConfigFromJob = job.configuration.environmentConfig
         if (envConfigFromJob != null) {
@@ -80,8 +84,8 @@ internal class AnalyzerWorker(
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
         logger.info(
-            "Analyzer job '${job.id}' for repository '${job.repositoryUrl}' finished with " +
-                    "'${analyzerRun.result.issues.values.size}' issues."
+            "Analyzer job '${job.id}' for repository '${repository.url}' with revision ${ortRun.revision} finished " +
+                    "with '${analyzerRun.result.issues.values.size}' issues."
         )
 
         db.dbQuery {

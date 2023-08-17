@@ -51,7 +51,9 @@ class AnalyzerWorkerDaoTest : WordSpec({
         dao = AnalyzerWorkerDao(
             dbExtension.fixtures.analyzerJobRepository,
             dbExtension.fixtures.analyzerRunRepository,
+            dbExtension.fixtures.ortRunRepository,
             dbExtension.fixtures.repositoryConfigurationRepository,
+            dbExtension.fixtures.repositoryRepository,
             dbExtension.db
         )
         fixtures = dbExtension.fixtures

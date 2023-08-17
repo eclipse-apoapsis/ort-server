@@ -30,17 +30,25 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
+import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 class AnalyzerWorkerDao(
     private val analyzerJobRepository: AnalyzerJobRepository,
     private val analyzerRunRepository: AnalyzerRunRepository,
+    private val ortRunRepository: OrtRunRepository,
     private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
+    private val repositoryRepository: RepositoryRepository,
     private val db: Database
 ) {
     fun getAnalyzerJob(analyzerJobId: Long) = analyzerJobRepository.get(analyzerJobId)
+
+    fun getOrtRun(ortRunId: Long) = ortRunRepository.get(ortRunId)
+
+    fun getRepository(repositoryId: Long) = repositoryRepository.get(repositoryId)
 
     fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {
         analyzerRunRepository.create(

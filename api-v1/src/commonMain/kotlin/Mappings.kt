@@ -91,9 +91,7 @@ fun AnalyzerJob.mapToApi() =
         startedAt,
         finishedAt,
         configuration.mapToApi(),
-        status.mapToApi(),
-        repositoryUrl,
-        repositoryRevision
+        status.mapToApi()
     )
 
 fun AnalyzerJobConfiguration.mapToApi() =

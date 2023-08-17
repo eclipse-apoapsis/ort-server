@@ -62,9 +62,7 @@ class DaoAnalyzerJobRepositoryTest : StringSpec({
             startedAt = null,
             finishedAt = null,
             configuration = jobConfigurations.analyzer,
-            status = JobStatus.CREATED,
-            repositoryUrl = dbExtension.fixtures.repository.url,
-            repositoryRevision = dbExtension.fixtures.ortRun.revision
+            status = JobStatus.CREATED
         )
     }
 

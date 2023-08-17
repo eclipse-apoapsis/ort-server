@@ -43,7 +43,12 @@ import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EnvironmentConfig
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
@@ -54,6 +59,33 @@ private const val TRACE_ID = "42"
 
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
+private val repository = Repository(
+    id = 1L,
+    organizationId = 1L,
+    productId = 1L,
+    type = RepositoryType.GIT,
+    url = "https://example.com/git/repository.git"
+)
+
+private val ortRun = OrtRun(
+    id = 1L,
+    index = 1L,
+    repositoryId = repository.id,
+    revision = "main",
+    createdAt = Clock.System.now(),
+    config = JobConfigurations(),
+    resolvedConfig = JobConfigurations(),
+    status = OrtRunStatus.ACTIVE,
+    labels = emptyMap(),
+    vcsId = 1L,
+    vcsProcessedId = 1L,
+    nestedRepositoryIds = emptyMap(),
+    repositoryConfigId = 1L,
+    issues = emptyList(),
+    configContext = "context",
+    resolvedConfigContext = "context"
+)
+
 private val analyzerJob = AnalyzerJob(
     id = JOB_ID,
     ortRunId = 12,
@@ -61,9 +93,7 @@ private val analyzerJob = AnalyzerJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = AnalyzerJobConfiguration(),
-    status = JobStatus.CREATED,
-    repositoryUrl = "https://example.com/git/repository.git",
-    repositoryRevision = "main"
+    status = JobStatus.CREATED
 )
 
 /**
@@ -75,6 +105,8 @@ class AnalyzerWorkerTest : StringSpec({
     "A private repository should be analyzed successfully" {
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getOrtRun(any()) } returns ortRun
+            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
         }
@@ -111,7 +143,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             coVerifyOrder {
                 envService.generateNetRcFile(context, listOf(infrastructureService))
-                downloader.downloadRepository(analyzerJob.repositoryUrl, analyzerJob.repositoryRevision)
+                downloader.downloadRepository(repository.url, ortRun.revision)
                 envService.setUpEnvironment(context, projectDir, infrastructureService)
             }
         }
@@ -120,6 +152,8 @@ class AnalyzerWorkerTest : StringSpec({
     "A repository without credentials should be analyzed successfully" {
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getOrtRun(any()) } returns ortRun
+            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
         }
@@ -168,6 +202,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val dao = mockk<AnalyzerWorkerDao> {
             every { getAnalyzerJob(any()) } returns job
+            every { getOrtRun(any()) } returns ortRun
+            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
         }
