@@ -47,6 +47,7 @@ object PackageCurationDataTable : LongIdTable("package_curation_data") {
     val homepageUrl = text("homepage_url").nullable()
     val isMetadataOnly = bool("is_metadata_only").nullable()
     val isModified = bool("is_modified").nullable()
+    val hasAuthors = bool("has_authors")
 }
 
 class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
@@ -67,7 +68,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                 it.binaryArtifact?.mapToModel() == data.binaryArtifact &&
                         it.sourceArtifact?.mapToModel() == data.sourceArtifact &&
                         it.vcsInfoCurationData?.mapToModel() == data.vcs &&
-                        it.authors.map { author -> author.name } == data.authors &&
+                        it.takeIf { it.hasAuthors }?.authors?.map { author -> author.name }?.toSet() == data.authors &&
                         it.declaredLicenseMappings
                             .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping
             }
@@ -86,6 +87,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                 this.sourceArtifact = data.sourceArtifact?.let { RemoteArtifactDao.getOrPut(it) }
                 this.vcsInfoCurationData = data.vcs?.let { VcsInfoCurationDataDao.getOrPut(it) }
                 this.authors = SizedCollection(data.authors?.map { AuthorDao.getOrPut(it) }.orEmpty())
+                this.hasAuthors = data.authors != null
                 this.declaredLicenseMappings = SizedCollection(
                     data.declaredLicenseMapping.map {
                         DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
@@ -109,13 +111,14 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var isModified by PackageCurationDataTable.isModified
 
     var authors by AuthorDao via PackageCurationDataAuthors
+    var hasAuthors by PackageCurationDataTable.hasAuthors
     var declaredLicenseMappings by DeclaredLicenseMappingDao via PackageCurationDataDeclaredLicenseMappingsTable
 
     fun mapToModel() = PackageCurationData(
         comment = comment,
         purl = purl,
         cpe = cpe,
-        authors = authors.mapTo(mutableSetOf()) { it.name },
+        authors = if (hasAuthors) authors.mapTo(mutableSetOf()) { it.name } else null,
         concludedLicense = concludedLicense,
         description = description,
         homepageUrl = homepageUrl,
