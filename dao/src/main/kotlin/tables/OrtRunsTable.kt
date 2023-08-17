@@ -47,8 +47,8 @@ object OrtRunsTable : SortableTable("ort_runs") {
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
-    val jobConfigs = jsonb("job_configs", JobConfigurations::class)
-    val resolvedJobConfigs = jsonb("resolved_job_configs", JobConfigurations::class).nullable()
+    val jobConfigs = jsonb<JobConfigurations>("job_configs")
+    val resolvedJobConfigs = jsonb<JobConfigurations>("resolved_job_configs").nullable()
     val jobConfigContext = text("job_config_context").nullable()
     val resolvedJobConfigContext = text("resolved_job_config_context").nullable()
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()

@@ -21,60 +21,41 @@
 
 package org.ossreviewtoolkit.server.dao.utils
 
-import kotlin.reflect.KClass
-
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
-
-import org.postgresql.util.PGobject
+import org.jetbrains.exposed.sql.json.jsonb
 
 /**
- * This class provides basic support for Jsonb column types in PostgreSQL databases. This is required because Exposed
- * does not support this column type [1].
- *
- * [1]: https://github.com/JetBrains/Exposed/issues/127
+ * Create a JSONB column using [jsonForJsonbColumns] for serialization and deserialization. As the null character
+ * "\u0000" is not allowed in PostgreSQL JSONB columns it is handled using [escapeNull] and [unescapeNull].
  */
-private class JsonbColumnType<T : Any>(private val klass: KClass<T>) : ColumnType() {
-    override fun sqlType(): String = "JSONB"
-
-    override fun notNullValueToDB(value: Any): Any =
-        json.encodeToString(serializer(klass.javaObjectType), value).escapeNull()
-
-    override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
-        stmt[index] = PGobject().apply {
-            type = sqlType()
-            this.value = value as String?
-        }
-    }
-
-    override fun valueFromDB(value: Any): Any =
-        when (value) {
-            is PGobject -> json.decodeFromString(serializer(klass.javaObjectType), value.value!!.unescapeNull())
-            else -> value
-        }
-}
-
-fun <T : Any> Table.jsonb(name: String, klass: KClass<T>): Column<T> = registerColumn(name, JsonbColumnType(klass))
+inline fun <reified T : Any> Table.jsonb(name: String): Column<T> =
+    jsonb(
+        name = name,
+        serialize = { jsonForJsonbColumns.encodeToString(serializer<T>(), it).escapeNull() },
+        deserialize = { jsonForJsonbColumns.decodeFromString(serializer<T>(), it.unescapeNull()) }
+    )
 
 /**
  * The null character "\u0000" is not allowed in PostgreSQL JSONB columns, so we need to escape it before writing a
  * string to the database.
  * See: [https://www.postgresql.org/docs/11/datatype-json.html]
  */
-private fun String.escapeNull() = replace("\\u0000", "\\\\u0000")
+fun String.escapeNull() = replace("\\u0000", "\\\\u0000")
 
 /**
  * Unescape the null character "\u0000". For details see [escapeNull].
  */
-private fun String.unescapeNull() = replace("\\\\u0000", "\\u0000")
+fun String.unescapeNull() = replace("\\\\u0000", "\\u0000")
 
-private val json = Json {
+/**
+ * A [Json] instance used to serialize and deserialize values for [jsonb] columns.
+ */
+val jsonForJsonbColumns = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
     explicitNulls = false

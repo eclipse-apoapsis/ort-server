@@ -40,7 +40,7 @@ object ScannerJobsTable : LongIdTable("scanner_jobs") {
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
-    val configuration = jsonb("configuration", ScannerJobConfiguration::class)
+    val configuration = jsonb<ScannerJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
 }
 

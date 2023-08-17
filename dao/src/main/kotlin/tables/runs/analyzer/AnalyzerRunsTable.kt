@@ -44,7 +44,7 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
 
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
-    val dependencyGraphs = jsonb("dependency_graphs", DependencyGraphsWrapper::class)
+    val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {

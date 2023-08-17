@@ -51,7 +51,7 @@ object ScanResultsTable : LongIdTable("scan_results") {
     val scannerName = text("scanner_name")
     val scannerVersion = text("scanner_version")
     val scannerConfiguration = text("scanner_configuration")
-    val additionalScanResultData = jsonb("additional_data", AdditionalScanResultData::class).nullable()
+    val additionalScanResultData = jsonb<AdditionalScanResultData>("additional_data").nullable()
 }
 
 class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {

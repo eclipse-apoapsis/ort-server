@@ -40,6 +40,7 @@ dependencies {
     api(libs.koinCore)
 
     implementation(libs.exposedCore)
+    implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.flywayCore)
     implementation(libs.hikari)

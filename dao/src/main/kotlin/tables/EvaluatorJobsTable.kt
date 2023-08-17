@@ -40,7 +40,7 @@ object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
     val createdAt = timestamp("created_at")
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
-    val configuration = jsonb("configuration", EvaluatorJobConfiguration::class)
+    val configuration = jsonb<EvaluatorJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
 }
 
