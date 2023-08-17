@@ -258,7 +258,7 @@ private class TestHelper(
      */
     fun verifyTransaction() {
         coVerify {
-            db.dbQuery(any(), any(), any(), any())
+            db.dbQuery(any(), any(), any())
         }
     }
 }
@@ -269,8 +269,8 @@ private class TestHelper(
  */
 private fun createDatabaseMock(): Database =
     mockk {
-        coEvery { dbQuery(any(), any(), any(), any<() -> Any>()) } answers {
-            val block = arg<() -> Any>(4)
+        coEvery { dbQuery(any(), any(), any<() -> Any>()) } answers {
+            val block = arg<() -> Any>(3)
             block()
         }
         every { transactionManager } returns mockk(relaxed = true)

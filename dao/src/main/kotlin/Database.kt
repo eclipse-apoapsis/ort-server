@@ -131,76 +131,66 @@ fun databaseModule(): Module = module {
 }
 
 /**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
- * [repetitionAttempts], and [readOnly].
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
  *
  * Returns the actual result type. Throws an exception in case of a failure.
  */
 suspend fun <T> Database.dbQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): T =
-    dbQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
+    dbQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
 /**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
- * [repetitionAttempts], and [readOnly].
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
  *
  * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
 suspend fun <T> Database.dbQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): Result<T> =
     runCatching {
         withContext(Dispatchers.IO) {
-            transaction(transactionIsolation, repetitionAttempts, readOnly, this@runCatching) { block() }
+            transaction(transactionIsolation, readOnly, this@runCatching) { block() }
         }
     }.mapExceptions()
 
 /**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
- * [repetitionAttempts], and [readOnly].
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
  *
  * Returns the actual result type. Throws an exception in case of a failure.
  */
 fun <T> Database.blockingQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): T =
-    blockingQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrThrow()
+    blockingQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
 /**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation],
- * [repetitionAttempts], and [readOnly].
+ * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
  *
  * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
  */
 fun <T> Database.blockingQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
 ): Result<T> =
-    runCatching { transaction(transactionIsolation, repetitionAttempts, readOnly, this) { block() } }.mapExceptions()
+    runCatching { transaction(transactionIsolation, readOnly, this) { block() } }.mapExceptions()
 
 /**
- * Execute the [block] in a [blockingQueryCatching], configured with the provided [transactionIsolation],
- * [repetitionAttempts], and [readOnly]. Return the encapsulated value or null if an [EntityNotFoundException] is
- * thrown. Otherwise, throw the exception.
+ * Execute the [block] in a [blockingQueryCatching], configured with the provided [transactionIsolation] and [readOnly].
+ * Return the encapsulated value or null if an [EntityNotFoundException] is thrown. Otherwise, throw the exception.
  */
 fun <T> Database.entityQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    repetitionAttempts: Int = transactionManager.defaultRepetitionAttempts,
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: () -> T
-): T? = blockingQueryCatching(transactionIsolation, repetitionAttempts, readOnly, block).getOrElse {
+): T? = blockingQueryCatching(transactionIsolation, readOnly, block).getOrElse {
     when (it) {
         is EntityNotFoundException -> null
         else -> throw it

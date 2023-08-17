@@ -50,7 +50,7 @@ fun mockkTransaction() {
 
     mockkStatic(TRANSACTION_MANAGER_CLASS)
     every { transaction(any(), capture(slot)) } answers { slot.invoke(mockk()) }
-    every { transaction(any(), any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
+    every { transaction(any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
 }
 
 /**
