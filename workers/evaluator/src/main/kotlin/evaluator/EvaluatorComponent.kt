@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
@@ -46,6 +47,7 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
@@ -96,11 +98,12 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
         single { ConfigManager.create(get()) }
-        single { OrtRunService(get()) }
+        single { OrtRunService(get(), get()) }
 
         singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)

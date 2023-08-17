@@ -27,16 +27,37 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.Repository
-import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
+import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.ossreviewtoolkit.server.model.runs.repository.Curations
+import org.ossreviewtoolkit.server.model.runs.repository.Excludes
+import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
+import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
+import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
+import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
+import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
+import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
+import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtRunServiceTest : WordSpec({
@@ -44,33 +65,43 @@ class OrtRunServiceTest : WordSpec({
 
     lateinit var db: Database
     lateinit var fixtures: Fixtures
+    lateinit var repositoryConfigRepository: RepositoryConfigurationRepository
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
+        repositoryConfigRepository = DaoRepositoryConfigurationRepository(db)
     }
 
     "getOrtRepositoryInformation" should {
         "return ORT repository object" {
-            val service = OrtRunService(db)
+            val service = OrtRunService(db, repositoryConfigRepository)
 
             val vcsInfo = getVcsInfo("https://example.com/repo.git")
             val processedVcsInfo = getVcsInfo("https://example.com/repo-processed.git")
             val nestedVcsInfo1 = getVcsInfo("https://example.com/repo-nested-1.git")
             val nestedVcsInfo2 = getVcsInfo("https://example.com/repo-nested-2.git")
 
-            val ortRun = createOrtRun(db, vcsInfo, processedVcsInfo, nestedVcsInfo1, nestedVcsInfo2, fixtures)
+            val ortRun = createOrtRun(
+                db,
+                vcsInfo,
+                processedVcsInfo,
+                nestedVcsInfo1,
+                nestedVcsInfo2,
+                fixtures,
+                repositoryConfigRepository
+            )
 
             service.getOrtRepositoryInformation(ortRun) shouldBe Repository(
                 vcsInfo.mapToOrt(),
                 processedVcsInfo.mapToOrt(),
                 mapOf("nested-1" to nestedVcsInfo1.mapToOrt(), "nested-2" to nestedVcsInfo2.mapToOrt()),
-                RepositoryConfiguration()
+                OrtTestData.ortRepository.config
             )
         }
 
         "throw exception if VCS information is not present in ORT run" {
-            val service = OrtRunService(db)
+            val service = OrtRunService(db, repositoryConfigRepository)
 
             val ortRun = fixtures.ortRun
 
@@ -89,7 +120,8 @@ private fun createOrtRun(
     processedVcsInfo: VcsInfo,
     nestedVcsInfo1: VcsInfo,
     nestedVcsInfo2: VcsInfo,
-    fixtures: Fixtures
+    fixtures: Fixtures,
+    repositoryConfigurationRepository: RepositoryConfigurationRepository
 ) = db.blockingQuery {
     val vcs = VcsInfoDao.getOrPut(vcsInfo)
     val vcsProcessed = VcsInfoDao.getOrPut(processedVcsInfo)
@@ -109,7 +141,121 @@ private fun createOrtRun(
         }
     }
 
+    val repositoryConfiguration = getRepositoryConfiguration()
+
+    repositoryConfigurationRepository.create(
+        ortRunId = ortRunDao.id.value,
+        analyzerConfig = repositoryConfiguration.analyzerConfig,
+        excludes = repositoryConfiguration.excludes,
+        resolutions = repositoryConfiguration.resolutions,
+        curations = repositoryConfiguration.curations,
+        packageConfigurations = repositoryConfiguration.packageConfigurations,
+        licenseChoices = repositoryConfiguration.licenseChoices
+    )
+
     ortRunDao.mapToModel()
 }
 
 private fun getVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
+
+private fun getRepositoryConfiguration() = RepositoryConfiguration(
+    id = -1L,
+    ortRunId = -1L,
+    analyzerConfig = RepositoryAnalyzerConfiguration(
+        allowDynamicVersions = true,
+        enabledPackageManagers = listOf("Gradle", "Maven"),
+        disabledPackageManagers = listOf("NPM"),
+        packageManagers = mapOf("Gradle" to PackageManagerConfiguration(listOf("Maven"))),
+        skipExcluded = true
+    ),
+    excludes = Excludes(
+        paths = listOf(
+            PathExclude(
+                pattern = "**/path",
+                reason = "EXAMPLE_OF",
+                comment = "Test path exclude."
+            )
+        ),
+        scopes = listOf(ScopeExclude("test", "TEST_DEPENDENCY_OF", "Test scope exclude."))
+    ),
+    resolutions = Resolutions(
+        issues = listOf(
+            IssueResolution(
+                message = "Error .*",
+                reason = "SCANNER_ISSUE",
+                comment = "Test issue resolution."
+            )
+        ),
+        ruleViolations = listOf(
+            RuleViolationResolution(
+                message = "Rule 1",
+                reason = "EXAMPLE_OF_EXCEPTION",
+                comment = "Test rule violation resolution."
+            )
+        ),
+        vulnerabilities = listOf(
+            VulnerabilityResolution(
+                message = "CVE-ID-1234",
+                reason = "INEFFECTIVE_VULNERABILITY",
+                comment = "Test vulnerability resolution."
+            )
+        )
+    ),
+    curations = Curations(
+        packages = listOf(
+            PackageCuration(
+                id = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
+                data = PackageCurationData(
+                    comment = "Test curation data.",
+                    purl = "Maven:com.example:package:1.0",
+                    concludedLicense = "LicenseRef-a"
+                )
+            )
+        ),
+        licenseFindings = listOf(
+            LicenseFindingCuration(
+                path = "**/path",
+                startLines = listOf(8, 9),
+                lineCount = 3,
+                detectedLicense = "LicenseRef-a",
+                concludedLicense = "LicenseRef-b",
+                reason = "DOCUMENTATION_OF",
+                comment = "Test license finding curation."
+            )
+        )
+    ),
+    packageConfigurations = listOf(
+        PackageConfiguration(
+            id = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
+            sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
+            pathExcludes = listOf(
+                PathExclude(
+                    pattern = "**/path",
+                    reason = "EXAMPLE_OF",
+                    comment = "Test path exclude."
+                )
+            ),
+            licenseFindingCurations = listOf(
+                LicenseFindingCuration(
+                    path = "**/path",
+                    startLines = listOf(8, 9),
+                    lineCount = 3,
+                    detectedLicense = "LicenseRef-a",
+                    concludedLicense = "LicenseRef-b",
+                    reason = "DOCUMENTATION_OF",
+                    comment = "Test license finding curation."
+                )
+            )
+        )
+    ),
+    licenseChoices = LicenseChoices(
+        repositoryLicenseChoices = listOf(SpdxLicenseChoice("LicenseRef-a OR LicenseRef-b", "LicenseRef-b")),
+        packageLicenseChoices = listOf(
+            PackageLicenseChoice(
+                identifier = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
+                licenseChoices = listOf(SpdxLicenseChoice("LicenseRef-a OR LicenseRef-b", "LicenseRef-b"))
+            )
+        )
+    )
+
+)

@@ -28,9 +28,11 @@ import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 
 class OrtRunService(
-    private val db: Database
+    private val db: Database,
+    private val repositoryConfigurationRepository: RepositoryConfigurationRepository
 ) {
     /**
      * Fetch the repository data from the database and construct an ORT [Repository] object from a provided ORT run.
@@ -57,12 +59,15 @@ class OrtRunService(
             val nestedRepositories =
                 nestedRepositoryIds.map { Pair(it.key, VcsInfoDao[it.value].mapToModel().mapToOrt()) }.toMap()
 
+            val repositoryConfig =
+                ortRun.repositoryConfigId?.let { repositoryConfigurationRepository.get(it)?.mapToOrt() }
+                    ?: RepositoryConfiguration()
+
             Repository(
                 vcs = vcsInfo.mapToOrt(),
                 vcsProcessed = vcsProcessedInfo.mapToOrt(),
                 nestedRepositories = nestedRepositories,
-                // TODO: Implement storing repository configuration.
-                config = RepositoryConfiguration()
+                config = repositoryConfig
             )
         }
     }
