@@ -1,0 +1,29 @@
+= GitHub config file provider
+
+This module provides an implementation of the `ConfigFileProvider` interface defined by the link:../README.adoc[Configuration abstraction] that reads configuration files from GitHub.
+
+== Synopsis
+The implementation is located in the link:src/main/kotlin/GitHubConfigFileProvider.kt[GitHubConfigFileProvider] class. The provider is using GitHub REST API to access the configuration files stored in repositories.
+
+The implementation is using the provided context to make sure that the branch specified in it is present in the repository. If the branch is present, the `resolveContext` function returns the SHA-1 ID of the last commit in the branch, which can later be utilized to make sure that the same configuration is used for the whole ORT run.
+
+The `listFiles` function can be used to get the list of all the objects of type `file` located in the given path. It requires the provided path to refer to a directory, otherwise a `ConfigException` exception is thrown.
+
+In order to make sure that a configuration file is present in the given path, the `contains` function can be used. It accepts a branch name and a path to a file and returns `true` if the file is present or `false` if the returned object is not a file, or if the specified path does not exist in the given repository at all.
+
+The `getFile` function allows to download a file from the provided path and branch. This function sends a GET request to GitHub API with the header `Accept` set to GitHub's custom content type `application/vnd.github.raw` in order to receive a raw content of the referenced file. If the provided path  refers a directory, GitHub API will ignore the `Accept` header and return a JSON array with the directory content. In this case, as well as in the case when the returned 'Content Type' header is neither one of `application/vnd.github.raw` or `application/json`, or it is missing, a [ConfigException] is thrown with the description of the cause.
+
+== Configuration
+In order to activate `GitHubConfigFileProvider`, the application configuration must contain a section `configManager` with a property `fileProvider` set to the value "github-config". In addition, there are several configuration properties required by the provider. The fragment below shows an example:
+
+[source]
+----
+configManager {
+  fileProvider = "github-config"
+  githubApiUrl = "https://api.github.com"
+  githubRepositoryOwner = "ownername"
+  githubRepositoryName = "reponame"
+}
+----
+
+The provider implementation is using the Bearer Token authorization. The username and the token are obtained from the `ConfigSecretProvider` via `gitHubUsername` and `gitHubApiToken` paths respectively. For the details on GitHub API authorization see the link:https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?apiVersion=2022-11-28[Documentation on Authenticating to the GitHub REST API].
