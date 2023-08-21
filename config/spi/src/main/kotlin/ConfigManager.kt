@@ -21,8 +21,12 @@ package org.ossreviewtoolkit.server.config
 
 import com.typesafe.config.Config
 
+import java.io.File
 import java.io.InputStream
 import java.util.ServiceLoader
+
+import kotlin.io.path.createTempFile
+import kotlin.io.path.outputStream
 
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
@@ -183,6 +187,26 @@ class ConfigManager(
         return wrapExceptions {
             configStream.use { stream ->
                 String(stream.readAllBytes())
+            }
+        }
+    }
+
+    /**
+     * Download the configuration file at the given [path] in the given [context] to a temporary file. If a
+     * [directory] is specified, the file is created there (the directory must exist); otherwise, the default temporary
+     * directory is used for this purpose. Return a [File] pointing to the downloaded configuration data. Throw a
+     * [ConfigException] if the underlying [ConfigFileProvider] throws an exception or the file could not be written.
+     */
+    fun downloadFile(context: Context?, path: Path, directory: File? = null): File {
+        val configStream = getFile(context, path)
+
+        return wrapExceptions {
+            configStream.use { stream ->
+                createTempFile(directory?.toPath()).also {
+                    it.outputStream().use { out ->
+                        stream.copyTo(out)
+                    }
+                }.toFile()
             }
         }
     }

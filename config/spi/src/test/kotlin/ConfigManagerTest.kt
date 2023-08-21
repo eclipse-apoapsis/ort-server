@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -35,7 +36,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 
+import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.toPath
@@ -225,6 +228,62 @@ class ConfigManagerTest : WordSpec({
             shouldThrow<ConfigException> {
                 manager.getFileAsString(testContext(), Path("root.txt"))
             }
+        }
+    }
+
+    "downloadFile" should {
+        "download a configuration file to a temporary directory" {
+            val manager = createConfigManager()
+
+            val file = manager.downloadFile(testContext(), Path("root.txt"))
+
+            try {
+                val fileContent = file.readText().trim()
+                fileContent shouldBe "Root config file."
+            } finally {
+                file.delete() shouldBe true
+            }
+        }
+
+        "download a configuration file from the default context to a temporary directory" {
+            val manager = createConfigManager()
+
+            val file = manager.downloadFile(null, Path("test.txt"))
+
+            try {
+                val fileContent = file.readText().trim()
+                fileContent shouldBe "Test config file."
+            } finally {
+                file.delete() shouldBe true
+            }
+        }
+
+        "download a configuration file to a specific directory" {
+            val directory = tempdir()
+            val manager = createConfigManager()
+
+            val file = manager.downloadFile(testContext(), Path("root.txt"), directory)
+
+            file.parentFile shouldBe directory
+        }
+
+        "handle exceptions from the provider" {
+            val manager = createConfigManager()
+
+            shouldThrow<ConfigException> {
+                manager.downloadFile(testContext(), Path("nonExistingFile"))
+            }
+        }
+
+        "handle exceptions from storing the temporary file" {
+            val directory = File("this/is/a/non-existing/path")
+            val manager = createConfigManager()
+
+            val exception = shouldThrow<ConfigException> {
+                manager.downloadFile(testContext(), Path("root.txt"), directory)
+            }
+
+            exception.cause should beInstanceOf<IOException>()
         }
     }
 
