@@ -59,6 +59,7 @@ dependencies {
     api(libs.ortScanner)
     api(libs.typesafeConfig)
 
+    testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
     testImplementation(testFixtures(project(":dao")))
 

@@ -19,6 +19,9 @@
 
 package org.ossreviewtoolkit.server.workers.common.context
 
+import java.io.File
+
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Secret
@@ -27,8 +30,11 @@ import org.ossreviewtoolkit.server.model.Secret
  * An interface providing information and services useful to multiple worker implementations.
  *
  * Workers requiring this functionality can obtain an instance from a [WorkerContextFactory].
+ *
+ * Some functionality of this interface can consume resources that should be released when they are no longer needed.
+ * This can be done via the [close] function.
  */
-interface WorkerContext {
+interface WorkerContext : AutoCloseable {
     /** The [OrtRun] that is to be processed. */
     val ortRun: OrtRun
 
@@ -48,4 +54,18 @@ interface WorkerContext {
      * sequence.
      */
     suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String>
+
+    /**
+     * Download the configuration file at the specified [path] from the resolved configuration context to a temporary
+     * directory. The downloaded file is registered internally; it is removed automatically when this context is
+     * closed.
+     */
+    suspend fun downloadConfigurationFile(path: Path): File
+
+    /**
+     * Download all the configuration files in the given [paths] collection from the resolved configuration context to
+     * a temporary directory. Return a [Map] that allows access to the temporary files by their paths. The downloaded
+     * files are registered internally; they are removed automatically when this context is closed.
+     */
+    suspend fun downloadConfigurationFiles(paths: Collection<Path>): Map<Path, File>
 }

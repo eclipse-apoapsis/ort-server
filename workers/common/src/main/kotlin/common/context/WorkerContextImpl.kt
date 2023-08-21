@@ -19,15 +19,19 @@
 
 package org.ossreviewtoolkit.server.workers.common.context
 
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Context
+import org.ossreviewtoolkit.server.config.Path as ConfigPath
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Secret
@@ -58,6 +62,9 @@ internal class WorkerContextImpl(
     /** A cache for the secrets that have already been loaded. */
     private val secretsCache = ConcurrentHashMap<String, Deferred<String>>()
 
+    /** A map to keep track on downloaded files, so that they can be removed on close. */
+    private val downloadedFiles = ConcurrentHashMap<ConfigPath, Deferred<Result<File>>>()
+
     override val ortRun: OrtRun by lazy {
         requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
     }
@@ -75,6 +82,23 @@ internal class WorkerContextImpl(
         return secrets.zip(deferredValues.awaitAll()).toMap()
     }
 
+    override suspend fun downloadConfigurationFile(path: ConfigPath): File =
+        downloadFileAsync(path).await().getOrThrow()
+
+    override suspend fun downloadConfigurationFiles(paths: Collection<ConfigPath>): Map<ConfigPath, File> {
+        val results = paths.map { downloadFileAsync(it) }.awaitAll()
+
+        val (success, failure) = results.partition { it.isSuccess }
+        return success.takeIf { failure.isEmpty() }?.let { files ->
+            paths.zip(files.map { it.getOrThrow() })
+        }?.toMap() ?: throw failure.first().exceptionOrNull()!!
+    }
+
+    override fun close() {
+        val files = runBlocking { downloadedFiles.values.awaitAll() }.mapNotNull { it.getOrNull() }
+        files.forEach { it.delete() }
+    }
+
     /**
      * Resolve the given [secret] asynchronously making use of the cache with secrets.
      */
@@ -82,6 +106,21 @@ internal class WorkerContextImpl(
         withContext(Dispatchers.IO) {
             secretsCache.getOrPut(secret.path) {
                 async { secretStorage.getSecret(Path(secret.path)).value }
+            }
+        }
+
+    /**
+     * Download the configuration file defined by the given [path] asynchronously making use of the cache for
+     * already downloaded files.
+     */
+    private suspend fun downloadFileAsync(path: ConfigPath): Deferred<Result<File>> =
+        withContext(Dispatchers.IO) {
+            downloadedFiles.getOrPut(path) {
+                async {
+                    runCatching {
+                        configManager.downloadFile(ortRun.resolvedJobConfigContext?.let(::Context), path)
+                    }
+                }
             }
         }
 }
