@@ -45,7 +45,7 @@ import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 class ConfigValidatorTest : StringSpec({
     "A successful validation should be handled" {
         val fixtures = Fixtures(mockk())
-        val script = loadScript("validation-success.kts")
+        val script = loadScript("validation-success.params.kts")
 
         val run = mockk<OrtRun> {
             every { jobConfigs } returns fixtures.jobConfigurations
@@ -68,7 +68,7 @@ class ConfigValidatorTest : StringSpec({
     }
 
     "A failed validation should be handled" {
-        val script = loadScript("validation-failure.kts")
+        val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
         val validator = ConfigValidator.create(context)

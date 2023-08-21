@@ -49,7 +49,7 @@ class ConfigWorker(
 ) {
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
-        val VALIDATION_SCRIPT_PATH = Path("parameters.kts")
+        val VALIDATION_SCRIPT_PATH = Path("ort-server.params.kts")
     }
 
     /**

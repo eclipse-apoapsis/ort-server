@@ -36,7 +36,7 @@ import org.ossreviewtoolkit.utils.scripting.OrtScriptCompilationConfiguration
  */
 @KotlinScript(
     displayName = "ORT Server parameters validation script",
-    fileExtension = "kts",
+    fileExtension = "params.kts",
     compilationConfiguration = ValidationScriptCompilationConfiguration::class
 )
 open class ValidationScriptTemplate(
