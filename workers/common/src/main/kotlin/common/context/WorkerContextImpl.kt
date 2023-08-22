@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.common.context
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -74,24 +75,24 @@ internal class WorkerContextImpl(
     }
 
     override suspend fun resolveSecret(secret: Secret): String =
-        resolveSecretAsync(secret).await()
+        singleTransform(secret, secretsCache, this::resolveSecret, ::extractSecretKey)
 
     override suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String> {
-        val deferredValues = secrets.map { resolveSecretAsync(it) }
-
-        return secrets.zip(deferredValues.awaitAll()).toMap()
+        return parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
     }
 
     override suspend fun downloadConfigurationFile(path: ConfigPath): File =
-        downloadFileAsync(path).await().getOrThrow()
+        singleTransform(path, downloadedFiles, this::downloadConfigFile, ::identityKeyExtract).getOrThrow()
 
     override suspend fun downloadConfigurationFiles(paths: Collection<ConfigPath>): Map<ConfigPath, File> {
-        val results = paths.map { downloadFileAsync(it) }.awaitAll()
+        val results = parallelTransform(paths, downloadedFiles, this::downloadConfigFile, ::identityKeyExtract)
 
-        val (success, failure) = results.partition { it.isSuccess }
-        return success.takeIf { failure.isEmpty() }?.let { files ->
-            paths.zip(files.map { it.getOrThrow() })
-        }?.toMap() ?: throw failure.first().exceptionOrNull()!!
+        val failure = results.values.find { it.isFailure }
+        return if (failure == null) {
+            results.map { e -> e.key to e.value.getOrThrow() }.toMap()
+        } else {
+            throw failure.exceptionOrNull()!!
+        }
     }
 
     override fun close() {
@@ -100,27 +101,74 @@ internal class WorkerContextImpl(
     }
 
     /**
-     * Resolve the given [secret] asynchronously making use of the cache with secrets.
+     * Helper function to transform a single [data] element using a [transformation function][transform]. Store the
+     * transformed elements in the given [cache]. Since the key used by the cache is not necessarily the data item
+     * itself, obtain it via the given [key extraction function][keyExtract].
      */
-    private suspend fun resolveSecretAsync(secret: Secret): Deferred<String> =
+    private suspend fun <T, K, V> singleTransform(
+        data: T,
+        cache: ConcurrentMap<K, Deferred<V>>,
+        transform: (K) -> V,
+        keyExtract: (T) -> K
+    ): V =
+        transformAsync(data, cache, transform, keyExtract).await()
+
+    /**
+     * Helper function to transform multiple [data] elements in parallel using a [transformation function][transform].
+     * Store the transformed elements in the given [cache]. Since the keys used by the cache are not necessarily the
+     * data items themselves, obtain them via the given [key extraction function][keyExtract]. This function implements
+     * the asynchronous mapping logic. It can be used to handle different kinds of data for which corresponding
+     * transformation and key extraction functions have to be provided.
+     */
+    private suspend fun <T, K, V> parallelTransform(
+        data: Collection<T>,
+        cache: ConcurrentMap<K, Deferred<V>>,
+        transform: (K) -> V,
+        keyExtract: (T) -> K
+    ): Map<T, V> {
+        val results = data.map { transformAsync(it, cache, transform, keyExtract) }.awaitAll()
+
+        return data.zip(results).toMap()
+    }
+
+    /**
+     * Helper function to look up a [data] element from the given [cache] under the key obtained via the given
+     * [key extraction function][keyExtract]. If the element is not contained in the cache, apply the given
+     * [transformation function][transform] and store the result.
+     */
+    private suspend fun <T, K, V> transformAsync(
+        data: T,
+        cache: ConcurrentMap<K, Deferred<V>>,
+        transform: (K) -> V,
+        keyExtract: (T) -> K
+    ): Deferred<V> =
         withContext(Dispatchers.IO) {
-            secretsCache.getOrPut(secret.path) {
-                async { secretStorage.getSecret(Path(secret.path)).value }
-            }
+            val key = keyExtract(data)
+            cache.getOrPut(key) { async { transform(key) } }
         }
 
     /**
-     * Download the configuration file defined by the given [path] asynchronously making use of the cache for
-     * already downloaded files.
+     * Resolve the secret with the given [path] using the [SecretStorage] owned by this instance.
      */
-    private suspend fun downloadFileAsync(path: ConfigPath): Deferred<Result<File>> =
-        withContext(Dispatchers.IO) {
-            downloadedFiles.getOrPut(path) {
-                async {
-                    runCatching {
-                        configManager.downloadFile(ortRun.resolvedJobConfigContext?.let(::Context), path)
-                    }
-                }
-            }
-        }
+    private fun resolveSecret(path: String): String =
+        secretStorage.getSecret(Path(path)).value
+
+    /**
+     * Download the configuration file identified by the given [path] from the current [Context] using the owned
+     * configuration manager.
+     */
+    private fun downloadConfigFile(path: ConfigPath): Result<File> = runCatching {
+        configManager.downloadFile(ortRun.resolvedJobConfigContext?.let(::Context), path)
+    }
 }
+
+/**
+ * A key extraction function for [Secret]s. As key for the given [secret] its path is used.
+ */
+private fun extractSecretKey(secret: Secret): String = secret.path
+
+/**
+ * An identity key extraction function that uses the given [t] as its own key. This is used if the cache for a
+ * transformation stores the involved data objects as keys directly.
+ */
+private fun <T> identityKeyExtract(t: T): T = t
