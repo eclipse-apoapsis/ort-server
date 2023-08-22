@@ -34,7 +34,13 @@ object PackageCurationProviderConfigsTable : LongIdTable("package_curation_provi
 }
 
 class PackageCurationProviderConfigDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageCurationProviderConfigDao>(PackageCurationProviderConfigsTable)
+    companion object : LongEntityClass<PackageCurationProviderConfigDao>(PackageCurationProviderConfigsTable) {
+        fun findByName(name: String): PackageCurationProviderConfigDao? =
+            find { PackageCurationProviderConfigsTable.name eq name }.limit(1).firstOrNull()
+
+        fun getOrPut(provider: PackageCurationProviderConfig): PackageCurationProviderConfigDao =
+            findByName(provider.name) ?: new { name = provider.name }
+    }
 
     var name by PackageCurationProviderConfigsTable.name
 

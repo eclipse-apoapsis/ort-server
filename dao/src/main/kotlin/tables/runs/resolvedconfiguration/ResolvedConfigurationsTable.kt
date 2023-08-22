@@ -41,7 +41,13 @@ object ResolvedConfigurationsTable : LongIdTable("resolved_configurations") {
 }
 
 class ResolvedConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ResolvedConfigurationDao>(ResolvedConfigurationsTable)
+    companion object : LongEntityClass<ResolvedConfigurationDao>(ResolvedConfigurationsTable) {
+        fun findByOrtRunId(ortRunId: Long): ResolvedConfigurationDao? =
+            find { ResolvedConfigurationsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()
+
+        fun getOrPut(ortRunId: Long): ResolvedConfigurationDao =
+            findByOrtRunId(ortRunId) ?: new { this.ortRun = OrtRunDao[ortRunId] }
+    }
 
     var ortRun by OrtRunDao referencedOn ResolvedConfigurationsTable.ortRunId
 
