@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 
 /**
  * Return a [Module] with bean definitions required to obtain a [WorkerContextFactory]. Workers requiring a
@@ -36,5 +37,6 @@ fun workerContextModule(): Module = module {
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
 
+    single { OptionsTransformerFactory() }
     singleOf(::WorkerContextFactory)
 }
