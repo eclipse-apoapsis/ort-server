@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.common.env.config
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.ossreviewtoolkit.server.workers.common.env.definition.ConanDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
@@ -35,6 +36,9 @@ import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
  */
 class EnvironmentDefinitionFactory {
     companion object {
+        /** The name for the [ConanDefinition] type. */
+        const val CONAN_TYPE = "conan"
+
         /** The name for the [MavenDefinition] type. */
         const val MAVEN_TYPE = "maven"
 
@@ -61,11 +65,28 @@ class EnvironmentDefinitionFactory {
         properties: Map<String, String>
     ): Result<EnvironmentServiceDefinition> =
         when (type) {
+            CONAN_TYPE -> createConanDefinition(service, DefinitionProperties(properties))
             MAVEN_TYPE -> createMavenDefinition(service, DefinitionProperties(properties))
             NPM_TYPE -> createNpmDefinition(service, DefinitionProperties(properties))
             NUGET_TYPE -> createNuGetDefinition(service, DefinitionProperties(properties))
             YARN_TYPE -> createYarnDefinition(service, DefinitionProperties(properties))
             else -> fail("Unsupported definition type '$type'", properties)
+        }
+
+    /**
+     * Create a definition for the _remotes.json_ configuration file of Conan with the given [service] and [properties].
+     */
+    private fun createConanDefinition(
+        service: InfrastructureService,
+        properties: DefinitionProperties
+    ): Result<EnvironmentServiceDefinition> =
+        properties.withRequiredProperties("name", "url") {
+            ConanDefinition(
+                service = service,
+                name = getProperty("name"),
+                url = getProperty("url"),
+                verifySsl = getBooleanProperty("verifySsl", true)
+            )
         }
 
     /**

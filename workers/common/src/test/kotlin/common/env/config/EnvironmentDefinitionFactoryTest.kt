@@ -32,6 +32,9 @@ import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.workers.common.common.env.REGISTRY_URI
+import org.ossreviewtoolkit.server.workers.common.common.env.REMOTE_NAME
+import org.ossreviewtoolkit.server.workers.common.common.env.REMOTE_URL
+import org.ossreviewtoolkit.server.workers.common.env.definition.ConanDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
@@ -91,6 +94,48 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val properties = mapOf("id" to "someId", EnvironmentDefinitionFactory.SERVICE_PROPERTY to "service")
 
                 createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
+            }
+        }
+
+        "A ConanDefinition" should {
+            "be created successfully" {
+                val properties = mapOf(
+                    "name" to REMOTE_NAME,
+                    "url" to REMOTE_URL,
+                    "verifySsl" to "true"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.CONAN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<ConanDefinition>()
+                definition.name shouldBe REMOTE_NAME
+                definition.url shouldBe REMOTE_URL
+                definition.verifySsl shouldBe true
+            }
+
+            "fail if mandatory properties is missing" {
+                val exception = createFailed(EnvironmentDefinitionFactory.CONAN_TYPE, emptyMap())
+
+                exception.message shouldContain "'name'"
+                exception.message shouldContain "'url'"
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "anotherProperty"
+                val unsupportedProperty2 = "oneMoreUnsupportedProperty"
+
+                val properties = mapOf(
+                    "name" to REMOTE_NAME,
+                    "url" to REMOTE_URL,
+                    "verifySsl" to "true",
+                    unsupportedProperty1 to "bar",
+                    unsupportedProperty2 to "baz"
+                )
+
+                val exception = createFailed(EnvironmentDefinitionFactory.CONAN_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+                exception.message shouldContain "'$unsupportedProperty2'"
             }
         }
 
