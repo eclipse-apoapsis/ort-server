@@ -45,6 +45,7 @@ fun buildEnvironmentModule(): Module = module {
         EnvironmentService(
             get(),
             listOf(
+                ConanGenerator(),
                 MavenSettingsGenerator(),
                 NetRcGenerator(),
                 NpmRcGenerator(),

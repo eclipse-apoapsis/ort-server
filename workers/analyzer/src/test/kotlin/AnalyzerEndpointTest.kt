@@ -114,6 +114,18 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The build environment should contain a remotes.json file" {
+            runEnvironmentTest { homeFolder ->
+                val conanRemotesFile = homeFolder.resolve(".conan/remotes.json")
+                val content = conanRemotesFile.readText()
+
+                content shouldContain "conancenter"
+                content shouldContain "https://center.conan.io"
+                content shouldContain "verify_ssl"
+                content shouldContain "true"
+            }
+        }
+
         "The build environment should contain a .netrc file" {
             runEnvironmentTest { homeFolder ->
                 val netrcFile = homeFolder.resolve(".netrc")
