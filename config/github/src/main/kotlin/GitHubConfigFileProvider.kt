@@ -55,7 +55,7 @@ class GitHubConfigFileProvider(
 ) : ConfigFileProvider {
     companion object {
         /**
-         * The account owner of the repository. The name is not case-sensitive.
+         * Configuration property for the base URL to access the GitHub API. Defaults to the standard GitHub API URL.
          */
         const val GITHUB_API_URL = "gitHubApiUrl"
 

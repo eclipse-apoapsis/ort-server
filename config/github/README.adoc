@@ -20,9 +20,9 @@ In order to activate `GitHubConfigFileProvider`, the application configuration m
 ----
 configManager {
   fileProvider = "github-config"
-  githubApiUrl = "https://api.github.com"
-  githubRepositoryOwner = "ownername"
-  githubRepositoryName = "reponame"
+  gitHubApiUrl = "https://api.github.com"
+  gitHubRepositoryOwner = "ownername"
+  gitHubRepositoryName = "reponame"
 }
 ----
 

@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.config.ConfigFileProviderFactory
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.GITHUB_API_URL
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_NAME
+import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_OWNER
 
 import org.slf4j.LoggerFactory
 
@@ -47,7 +48,7 @@ class GitHubConfigFileProviderFactory : ConfigFileProviderFactory {
         logger.info("Creating GitHubConfigFileProvider.")
         logger.debug("GitHub URI: '${config.getString(GITHUB_API_URL)}'.")
         logger.debug("GitHub Repository: '${config.getString(REPOSITORY_NAME)}'.")
-        logger.debug("GitHub Repository Owner: '${config.getString(GITHUB_API_URL)}'.")
+        logger.debug("GitHub Repository Owner: '${config.getString(REPOSITORY_OWNER)}'.")
 
         return GitHubConfigFileProvider(config, secretProvider)
     }
