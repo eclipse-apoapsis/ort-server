@@ -256,12 +256,15 @@ private fun WireMockServer.stubExistingRevision() {
             urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$REVISION")
         ).willReturn(
             okJson(
-                "{\n" +
-                        "    \"name\": \"app.config\",\n" +
-                        "    \"path\": \"$CONFIG_PATH\",\n" +
-                        "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b5\",\n" +
-                        "    \"size\": 303\n" +
-                        "}"
+                """
+                    {
+                      "name": "app.config",
+                      "commit": {
+                        "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                        "url": "https://www.example.org/some-commit-url"
+                      }
+                    }
+                """.trimIndent()
             )
         )
     )
@@ -276,11 +279,13 @@ private fun WireMockServer.stubMissingRevision() {
             urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/${REVISION + 1}")
         ).willReturn(
             okJson(
-                "{\n" +
-                        "    \"name\": \"app.config\",\n" +
-                        "    \"path\": \"$CONFIG_PATH\",\n" +
-                        "    \"size\": 303\n" +
-                        "}"
+                """
+                    {
+                      "name": "app.config",
+                      "path": "$CONFIG_PATH",
+                      "size": 303
+                    }
+                """.trimIndent()
             )
         )
     )
@@ -297,10 +302,12 @@ private fun WireMockServer.stubRevisionNotFound() {
             status(
                 HttpStatusCode.NotFound.value
             ).withBody(
-                "{\n" +
-                        "    \"message\": \"Branch not found\",\n" +
-                        "    \"documentation_url\": \"https://docs.github.com/\"\n" +
-                        "}"
+                """
+                    {
+                      "message": "Branch not found",
+                      "documentation_url": "https://docs.github.com/"
+                    }
+                """.trimIndent()
             )
         )
     )
@@ -332,10 +339,12 @@ private fun WireMockServer.stubFileNotFound() {
             status(
                 HttpStatusCode.NotFound.value
             ).withBody(
-                "{\n" +
-                        "    \"message\": \"Not Found\",\n" +
-                        "    \"documentation_url\": \"https://docs.github.com/\"\n" +
-                        "}"
+                """
+                    {
+                      "message": "Not Found",
+                      "documentation_url": "https://docs.github.com/"
+                    }
+                """.trimIndent()
             )
         )
     )

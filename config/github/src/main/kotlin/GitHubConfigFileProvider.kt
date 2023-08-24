@@ -99,7 +99,7 @@ class GitHubConfigFileProvider(
 
         val jsonBody = getJsonBody(response)
 
-        val commitId = jsonBody.jsonObject["sha"]?.jsonPrimitive?.content
+        val commitId = jsonBody.jsonObject["commit"]?.jsonObject?.get("sha")?.jsonPrimitive?.content
             ?: throw NoSuchFieldException("Couldn't find SHA-1 commit ID for the branch ${context.name}")
 
         return Context(commitId)
