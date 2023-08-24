@@ -44,6 +44,8 @@ import org.ossreviewtoolkit.model.Provenance as OrtProvenance
 import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
+import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
+import org.ossreviewtoolkit.model.ResolvedPackageCurations.Provider as OrtPackageCurationProvider
 import org.ossreviewtoolkit.model.RootDependencyIndex
 import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
@@ -91,6 +93,8 @@ import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.DependencyGraph
@@ -322,6 +326,8 @@ fun OrtPackage.mapToModel() =
         isModified = isModified
     )
 
+fun OrtPackageCurationProvider.mapToModel() = PackageCurationProviderConfig(name = id)
+
 fun OrtPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(
         mustRunAfter = mustRunAfter,
@@ -366,6 +372,12 @@ fun OrtRemoteArtifact.mapToModel() =
         url = url,
         hashValue = hash.value,
         hashAlgorithm = hash.algorithm.toString()
+    )
+
+fun OrtResolvedPackageCurations.mapToModel() =
+    ResolvedPackageCurations(
+        provider = provider.mapToModel(),
+        curations = curations.map { it.mapToModel() }
     )
 
 fun OrtScannerDetails.mapToModel() =

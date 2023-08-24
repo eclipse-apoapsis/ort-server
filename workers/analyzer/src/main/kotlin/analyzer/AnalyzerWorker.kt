@@ -79,6 +79,7 @@ internal class AnalyzerWorker(
         val ortResult = runner.run(sourcesDir, job.configuration)
 
         dao.storeRepositoryInformation(ortResult, job)
+        dao.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
 
         val analyzerRun = ortResult.analyzer
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")

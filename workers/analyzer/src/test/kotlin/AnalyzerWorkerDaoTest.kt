@@ -31,15 +31,23 @@ import java.io.File
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.model.AnalyzerRun
+import org.ossreviewtoolkit.model.Hash
+import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.PackageCuration
+import org.ossreviewtoolkit.model.PackageCurationData
+import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 class AnalyzerWorkerDaoTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -54,6 +62,7 @@ class AnalyzerWorkerDaoTest : WordSpec({
             dbExtension.fixtures.ortRunRepository,
             dbExtension.fixtures.repositoryConfigurationRepository,
             dbExtension.fixtures.repositoryRepository,
+            dbExtension.fixtures.resolvedConfigurationRepository,
             dbExtension.db
         )
         fixtures = dbExtension.fixtures
@@ -124,6 +133,66 @@ class AnalyzerWorkerDaoTest : WordSpec({
             }
 
             storedOrtRun.repositoryConfigId shouldBe 1
+        }
+    }
+
+    "storeResolvedPackageCurations" should {
+        "store the resolved package curations" {
+            val curations = listOf(
+                ResolvedPackageCurations(
+                    ResolvedPackageCurations.Provider("provider1"),
+                    curations = setOf(
+                        PackageCuration(
+                            id = Identifier("Maven:org.example:package1:1.0"),
+                            data = PackageCurationData(
+                                comment = "comment 1",
+                                purl = "purl",
+                                cpe = "cpe",
+                                authors = setOf("author 1", "author 2"),
+                                concludedLicense = "Apache-2.0".toSpdx(),
+                                description = "description",
+                                homepageUrl = "homepageUrl",
+                                binaryArtifact = RemoteArtifact(
+                                    url = "binary URL",
+                                    Hash.Companion.create("1234567890abcdef1234567890abcdef12345678")
+                                ),
+                                sourceArtifact = RemoteArtifact(
+                                    url = "source URL",
+                                    Hash.Companion.create("abcdef1234567890abcdef1234567890abcdef12")
+                                ),
+                                vcs = VcsInfoCurationData(
+                                    type = VcsType.GIT,
+                                    url = "vcs URL",
+                                    revision = "revision",
+                                    path = "path"
+                                ),
+                                isMetadataOnly = false,
+                                isModified = false,
+                                declaredLicenseMapping = mapOf(
+                                    "Apache 2.0" to "Apache-2.0".toSpdx(),
+                                    "BSD 3" to "BSD-3-Clause".toSpdx()
+                                )
+                            )
+                        ),
+                        PackageCuration(
+                            id = Identifier("Maven:org.example:package1:1.0"),
+                            data = PackageCurationData(comment = "comment 2")
+                        ),
+                        PackageCuration(
+                            id = Identifier("Maven:org.example:package2:1.0"),
+                            data = PackageCurationData(comment = "comment 3")
+                        )
+                    )
+                )
+            )
+
+            dao.storeResolvedPackageCurations(fixtures.ortRun.id, curations)
+
+            val resolvedConfiguration =
+                dbExtension.fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+
+            resolvedConfiguration.shouldNotBeNull()
+            resolvedConfiguration.packageCurations should containExactly(curations.map { it.mapToModel() })
         }
     }
 })

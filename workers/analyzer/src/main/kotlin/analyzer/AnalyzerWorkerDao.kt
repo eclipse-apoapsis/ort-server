@@ -23,6 +23,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -33,6 +34,7 @@ import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 
@@ -42,6 +44,7 @@ class AnalyzerWorkerDao(
     private val ortRunRepository: OrtRunRepository,
     private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
     private val repositoryRepository: RepositoryRepository,
+    private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
     private val db: Database
 ) {
     fun getAnalyzerJob(analyzerJobId: Long) = analyzerJobRepository.get(analyzerJobId)
@@ -95,6 +98,12 @@ class AnalyzerWorkerDao(
             val ortRunDao = OrtRunDao[job.ortRunId]
             ortRunDao.vcsId = vcsInfoDao.id
             ortRunDao.vcsProcessedId = processedVcsInfoDao.id
+        }
+    }
+
+    fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
+        db.blockingQuery {
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
         }
     }
 }

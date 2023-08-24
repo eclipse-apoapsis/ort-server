@@ -109,6 +109,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -156,6 +157,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -206,6 +208,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
