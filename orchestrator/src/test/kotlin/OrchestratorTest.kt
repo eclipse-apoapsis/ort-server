@@ -58,6 +58,9 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
@@ -74,6 +77,7 @@ import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.ConfigEndpoint
 import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
@@ -208,7 +212,7 @@ class OrchestratorTest : WordSpec() {
 
     init {
         "handleCreateOrtRun" should {
-            "create an ORT run in the database and notify the analyzer" {
+            "create an ORT run in the database and notify the Config worker" {
                 val analyzerJobRepository = mockk<AnalyzerJobRepository> {
                     every { create(any(), any()) } returns analyzerJob
                     every { update(any(), any(), any(), any()) } returns mockk()
@@ -219,7 +223,7 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 val publisher = mockk<MessagePublisher> {
-                    every { publish(AnalyzerEndpoint, any()) } just runs
+                    every { publish(ConfigEndpoint, any()) } just runs
                 }
 
                 val ortRunRepository = mockk<OrtRunRepository> {
@@ -243,9 +247,59 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 verify(exactly = 1) {
+                    // The message was sent.
+                    publisher.publish(
+                        to = withArg { it shouldBe ConfigEndpoint },
+                        message = withArg<Message<ConfigRequest>> {
+                            it.header shouldBe msgHeader
+                            it.payload shouldBe ConfigRequest(ortRun.id)
+                        }
+                    )
+
+                    // The Ort run status was set to ACTIVE.
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe analyzerJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.ACTIVE) }
+                    )
+                }
+            }
+        }
+
+        "handleConfigWorkerResult" should {
+            "create an analyzer job" {
+                val configWorkerResult = ConfigWorkerResult(ortRun.id)
+                val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+                    every { create(any(), any()) } returns analyzerJob
+                    every { update(any(), any(), any(), any()) } returns mockk()
+                }
+
+                val publisher = mockk<MessagePublisher> {
+                    every { publish(AnalyzerEndpoint, any()) } just runs
+                }
+
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { get(configWorkerResult.ortRunId) } returns ortRun
+                    every { update(any(), any()) } returns mockk()
+                }
+
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        analyzerJobRepository,
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleConfigWorkerResult(msgHeader, configWorkerResult)
+                }
+
+                verify(exactly = 1) {
                     // The job was created in the database
                     analyzerJobRepository.create(
-                        ortRunId = withArg { it shouldBe createOrtRun.ortRun.id },
+                        ortRunId = withArg { it shouldBe configWorkerResult.ortRunId },
                         configuration = withArg { it shouldBe analyzerJob.configuration }
                     )
 
@@ -264,11 +318,38 @@ class OrchestratorTest : WordSpec() {
                         startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
+                }
+            }
+        }
 
-                    // The Ort run status was set to ACTIVE.
+        "handleConfigWorkerError" should {
+            "update the ORT run in the database" {
+                val ortRunRepository = mockk<OrtRunRepository> {
+                    every { update(ortRun.id, any()) } returns mockk()
+                }
+
+                val publisher = mockk<MessagePublisher>()
+
+                val configWorkerError = ConfigWorkerError(ortRun.id)
+
+                mockkTransaction {
+                    Orchestrator(
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        mockk(),
+                        ortRunRepository,
+                        publisher
+                    ).handleConfigWorkerError(configWorkerError)
+                }
+
+                verify(exactly = 1) {
                     ortRunRepository.update(
-                        id = withArg { it shouldBe analyzerJob.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.ACTIVE) }
+                        id = withArg { it shouldBe advisorJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
             }

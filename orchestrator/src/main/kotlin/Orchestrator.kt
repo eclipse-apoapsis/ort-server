@@ -40,6 +40,9 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
@@ -60,6 +63,7 @@ import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
+import org.ossreviewtoolkit.server.transport.ConfigEndpoint
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -101,11 +105,42 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
+            ortRun.id to listOf { scheduleConfigWorkerJob(ortRun.id, header) }
         }.onSuccess { (runId, createdJobs) ->
             scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
+        }
+    }
+
+    /**
+     * Handle messages of the type [ConfigWorkerResult].
+     */
+    fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            val ortRun = requireNotNull(ortRunRepository.get(configWorkerResult.ortRunId)) {
+                "ORT run '${configWorkerResult.ortRunId}' not found."
+            }
+
+            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
+        }.onSuccess { (runId, createdJobs) ->
+            scheduleCreatedJobs(runId, createdJobs)
+        }.onFailure {
+            log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
+        }
+    }
+
+    /**
+     * Handle messages of the type [ConfigWorkerError].
+     */
+    fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            ortRunRepository.update(
+                id = configWorkerError.ortRunId,
+                status = OrtRunStatus.FAILED.asPresent()
+            )
+        }.onFailure {
+            log.warn("Failed to handle 'ConfigWorkerError' message.", it)
         }
     }
 
@@ -495,6 +530,15 @@ class Orchestrator(
     }
 
     /**
+     * Publish a message to the [ConfigEndpoint] and update the current ORT run to the active state.
+     */
+    private fun scheduleConfigWorkerJob(runId: Long, header: MessageHeader) {
+        publisher.publish(ConfigEndpoint, Message(header = header, payload = ConfigRequest(runId)))
+
+        ortRunRepository.update(runId, OrtRunStatus.ACTIVE.asPresent())
+    }
+
+    /**
      * Publish a message to the [AnalyzerEndpoint] and update the [analyzerJob] status to [JobStatus.SCHEDULED].
      */
     private fun scheduleAnalyzerJob(analyzerJob: AnalyzerJob, header: MessageHeader) {
@@ -511,8 +555,6 @@ class Orchestrator(
             startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
-
-        ortRunRepository.update(analyzerJob.ortRunId, OrtRunStatus.ACTIVE.asPresent())
     }
 
     /**
