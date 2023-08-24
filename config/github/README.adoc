@@ -26,4 +26,4 @@ configManager {
 }
 ----
 
-The provider implementation is using the Bearer Token authorization. The username and the token are obtained from the `ConfigSecretProvider` via `gitHubUsername` and `gitHubApiToken` paths respectively. For the details on GitHub API authorization see the link:https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?apiVersion=2022-11-28[Documentation on Authenticating to the GitHub REST API].
+The provider implementation is using the Bearer Token authorization. The token is obtained from the `ConfigSecretProvider` via the `gitHubApiToken` path. For the details on GitHub API authorization see the link:https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?apiVersion=2022-11-28[Documentation on Authenticating to the GitHub REST API].

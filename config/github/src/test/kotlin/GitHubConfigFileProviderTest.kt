@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.config.github
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
@@ -29,6 +30,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.status
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.matching.UrlPattern
 
 import com.typesafe.config.ConfigFactory
 
@@ -57,7 +59,6 @@ import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Compan
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_NAME
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_OWNER
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.TOKEN
-import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.USER_NAME
 
 class GitHubConfigFileProviderTest : WordSpec() {
     override suspend fun beforeSpec(spec: Spec) {
@@ -210,15 +211,16 @@ class GitHubConfigFileProviderTest : WordSpec() {
 }
 
 /** A mock for GitHub API to be used by tests. */
-val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
 
-const val OWNER = "owner"
-const val REPOSITORY = "repository"
-const val REVISION = "configs-branch"
-const val CONFIG_PATH = "/config/app.config"
-const val DIRECTORY_PATH = "/config"
-const val CONTENT = "repository: repo, username: user, password: pass"
-const val NOT_FOUND = "NotFound"
+internal const val OWNER = "owner"
+internal const val REPOSITORY = "repository"
+internal const val REVISION = "configs-branch"
+internal const val CONFIG_PATH = "/config/app.config"
+internal const val DIRECTORY_PATH = "/config"
+internal const val CONTENT = "repository: repo, username: user, password: pass"
+internal const val NOT_FOUND = "NotFound"
+internal const val API_TOKEN = "test-api-token"
 
 /**
  * Returns a configured [GitHubConfigFileProvider] instance.
@@ -226,8 +228,7 @@ const val NOT_FOUND = "NotFound"
 private fun getProvider(): GitHubConfigFileProvider {
     val secretProvider = mockk<ConfigSecretProvider>()
 
-    every { secretProvider.getSecret(USER_NAME) } returns "userName"
-    every { secretProvider.getSecret(TOKEN) } returns "userToken"
+    every { secretProvider.getSecret(TOKEN) } returns API_TOKEN
 
     val config = ConfigFactory.parseMap(
         mapOf(
@@ -241,11 +242,17 @@ private fun getProvider(): GitHubConfigFileProvider {
 }
 
 /**
+ * Prepare stubbing of a GET request with the expected authorization header.
+ */
+private fun authorizedGet(pattern: UrlPattern): MappingBuilder =
+    get(pattern).withHeader("Authorization", equalTo("Bearer $API_TOKEN"))
+
+/**
  * A stub for successfully resolving a revision.
  */
-fun WireMockServer.stubExistingRevision() {
+private fun WireMockServer.stubExistingRevision() {
     stubFor(
-        get(
+        authorizedGet(
             urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$REVISION")
         ).willReturn(
             okJson(
@@ -263,9 +270,9 @@ fun WireMockServer.stubExistingRevision() {
 /**
  * A stub with a missing SHA-1 commit ID.
  */
-fun WireMockServer.stubMissingRevision() {
+private fun WireMockServer.stubMissingRevision() {
     stubFor(
-        get(
+        authorizedGet(
             urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/${REVISION + 1}")
         ).willReturn(
             okJson(
@@ -282,9 +289,9 @@ fun WireMockServer.stubMissingRevision() {
 /**
  * A stub which returns a "Not Found" response for a revision.
  */
-fun WireMockServer.stubRevisionNotFound() {
+private fun WireMockServer.stubRevisionNotFound() {
     stubFor(
-        get(
+        authorizedGet(
             urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/${REVISION + NOT_FOUND}")
         ).willReturn(
             status(
@@ -302,9 +309,9 @@ fun WireMockServer.stubRevisionNotFound() {
 /**
  * A stub for successfully getting a raw file.
  */
-fun WireMockServer.stubRawFile() {
+private fun WireMockServer.stubRawFile() {
     stubFor(
-        get(
+        authorizedGet(
             urlPathEqualTo("/repos/$OWNER/$REPOSITORY/contents/$CONFIG_PATH")
         ).withQueryParam("ref", equalTo(REVISION))
             .withHeader("Accept", equalTo(RAW_CONTENT_TYPE_HEADER))
@@ -317,9 +324,9 @@ fun WireMockServer.stubRawFile() {
 /**
  * A stub which returns a "Not Found" response for a file.
  */
-fun WireMockServer.stubFileNotFound() {
+private fun WireMockServer.stubFileNotFound() {
     stubFor(
-        get(
+        authorizedGet(
             urlPathEqualTo("/repos/$OWNER/$REPOSITORY/contents/${CONFIG_PATH + NOT_FOUND}")
         ).willReturn(
             status(
@@ -337,9 +344,9 @@ fun WireMockServer.stubFileNotFound() {
 /**
  * A stub returning a response with unexpected json content type.
  */
-fun WireMockServer.stubUnexpectedJsonContentType() {
+private fun WireMockServer.stubUnexpectedJsonContentType() {
     stubFor(
-        get(
+        authorizedGet(
             urlPathEqualTo("/repos/$OWNER/$REPOSITORY/contents/${CONFIG_PATH + 1}")
         ).withQueryParam("ref", equalTo(REVISION))
             .willReturn(
@@ -359,9 +366,9 @@ fun WireMockServer.stubUnexpectedJsonContentType() {
 /**
  * A stub for successfully getting a file information in JSON format.
  */
-fun WireMockServer.stubJsonFileContentType() {
+private fun WireMockServer.stubJsonFileContentType() {
     stubFor(
-        get(
+        authorizedGet(
             urlPathEqualTo("/repos/$OWNER/$REPOSITORY/contents/$CONFIG_PATH")
         ).withQueryParam("ref", equalTo(REVISION + 1))
             .willReturn(
@@ -382,9 +389,9 @@ fun WireMockServer.stubJsonFileContentType() {
 /**
  * A stub returning a response for a path referencing a directory with several objects.
  */
-fun WireMockServer.stubDirectory() {
+private fun WireMockServer.stubDirectory() {
     stubFor(
-        get(
+        authorizedGet(
             urlPathEqualTo("/repos/$OWNER/$REPOSITORY/contents/$DIRECTORY_PATH")
         ).withQueryParam("ref", equalTo(REVISION))
             .willReturn(

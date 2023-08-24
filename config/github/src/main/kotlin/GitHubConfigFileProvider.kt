@@ -41,8 +41,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-import okhttp3.Credentials
-
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigFileProvider
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
@@ -68,11 +66,6 @@ class GitHubConfigFileProvider(
          * The name of the repository without the .git extension. The name is not case-sensitive.
          */
         const val REPOSITORY_NAME = "gitHubRepositoryName"
-
-        /**
-         * The path to the secret containing of the name of the user with access rights for the given repository.
-         */
-        val USER_NAME = Path("gitHubUsername")
 
         /**
          * The path to the secret containing of the GitHub API token of the user with access rights for the given
@@ -178,10 +171,7 @@ class GitHubConfigFileProvider(
         return HttpClient(OkHttp) {
             defaultRequest {
                 url(config.getString(GITHUB_API_URL))
-                header(
-                    "Authorization",
-                    Credentials.basic(secretProvider.getSecret(USER_NAME), secretProvider.getSecret(TOKEN))
-                )
+                header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
             }
 
             // Required in order to handle "Not Found" responses manually.
