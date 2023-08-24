@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.ortScriptingUtils)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))

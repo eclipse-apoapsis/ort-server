@@ -47,6 +47,7 @@ dependencies {
 
     implementation(platform(libs.ortScanners))
 
+    runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))

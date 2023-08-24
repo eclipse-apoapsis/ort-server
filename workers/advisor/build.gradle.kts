@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.ortAdvisor)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))

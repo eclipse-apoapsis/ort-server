@@ -74,6 +74,7 @@ dependencies {
     implementation(platform(libs.ortPackageManagers))
     implementation(libs.ortDownloader)
 
+    runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
