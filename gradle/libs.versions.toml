@@ -33,7 +33,7 @@ versionCatalogUpdatePlugin = "0.8.0"
 versionsPlugin = "0.47.0"
 
 # Gradle dependencies
-activeMQArtemis = "2.28.0"
+activeMQArtemis = "2.30.0"
 exposed = "0.41.1"
 flyway = "9.19.4"
 hikari = "5.0.1"
