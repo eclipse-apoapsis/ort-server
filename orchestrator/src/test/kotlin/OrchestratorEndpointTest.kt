@@ -50,6 +50,8 @@ import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
+import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
@@ -115,6 +117,40 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleCreateOrtRun(message.header, createOrtRun)
+                }
+            }
+        }
+
+        "ConfigWorkerResult messages should be handled" {
+            val configWorkerResult = ConfigWorkerResult(49)
+            val message = Message(msgHeader, configWorkerResult)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleConfigWorkerResult(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleConfigWorkerResult(message.header, configWorkerResult)
+                }
+            }
+        }
+
+        "ConfigWorkerError messages should be handled" {
+            val configWorkerError = ConfigWorkerError(49)
+            val message = Message(msgHeader, configWorkerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleConfigWorkerError(any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleConfigWorkerError(configWorkerError)
                 }
             }
         }
