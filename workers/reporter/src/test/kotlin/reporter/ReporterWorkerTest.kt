@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
@@ -65,7 +66,7 @@ private val reporterJob = ReporterJob(
 )
 
 class ReporterWorkerTest : StringSpec({
-    val runner = ReporterRunner(mockk(relaxed = true))
+    val runner = ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory())
 
     val ortRunService = mockk<OrtRunService> {
         every { getOrtRepositoryInformation(any()) } returns mockk()

@@ -64,12 +64,23 @@ import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ReporterComponent::class.java)
 
 class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
+    companion object {
+        /**
+         * A prefix used by the reporter worker to mark options in the job configuration as template files. When
+         * processing the job options, all values starting with this prefix are interpreted as template files that
+         * need to be downloaded via the config manager. Via this mechanism, arbitrary template files can be
+         * specified in a generic way.
+         */
+        const val TEMPLATE_REFERENCE = "reporter-template://"
+    }
+
     override val endpointHandler: EndpointHandler<ReporterRequest> = { message ->
         val reporterWorker by inject<ReporterWorker>()
         val publisher by inject<MessagePublisher>()
@@ -92,7 +103,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(reporterModule(), databaseModule())
+    override fun customModules(): List<Module> = listOf(reporterModule(), databaseModule(), workerContextModule())
 
     private fun reporterModule(): Module = module {
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
