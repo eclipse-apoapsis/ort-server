@@ -24,11 +24,6 @@ import com.typesafe.config.Config
 import org.ossreviewtoolkit.server.config.ConfigFileProvider
 import org.ossreviewtoolkit.server.config.ConfigFileProviderFactory
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
-import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.GITHUB_API_URL
-import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_NAME
-import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_OWNER
-
-import org.slf4j.LoggerFactory
 
 /**
  * Factory implementation for [GitHubConfigFileProvider].
@@ -37,19 +32,11 @@ class GitHubConfigFileProviderFactory : ConfigFileProviderFactory {
     companion object {
         /** The name of this provider implementation. */
         const val NAME = "github-config"
-
-        private val logger = LoggerFactory.getLogger(GitHubConfigFileProviderFactory::class.java)
     }
 
     override val name: String
         get() = NAME
 
-    override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider {
-        logger.info("Creating GitHubConfigFileProvider.")
-        logger.debug("GitHub URI: '${config.getString(GITHUB_API_URL)}'.")
-        logger.debug("GitHub Repository: '${config.getString(REPOSITORY_NAME)}'.")
-        logger.debug("GitHub Repository Owner: '${config.getString(REPOSITORY_OWNER)}'.")
-
-        return GitHubConfigFileProvider(config, secretProvider)
-    }
+    override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider =
+        GitHubConfigFileProvider.create(config, secretProvider)
 }

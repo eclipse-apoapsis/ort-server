@@ -32,6 +32,7 @@ dependencies {
     api(libs.typesafeConfig)
 
     implementation(project(":config:config-spi"))
+    implementation(project(":utils:config"))
 
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)

@@ -46,10 +46,18 @@ import org.ossreviewtoolkit.server.config.ConfigFileProvider
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+
+import org.slf4j.LoggerFactory
 
 class GitHubConfigFileProvider(
-    private val config: Config,
-    private val secretProvider: ConfigSecretProvider
+    /** The HTTP client to be used for all requests. */
+    private val httpClient: HttpClient,
+
+    /**
+     * The base URL for accessing the GitHub REST API for the repository that contains the managed configuration files.
+     */
+    private val baseUrl: String
 ) : ConfigFileProvider {
     companion object {
         /**
@@ -82,19 +90,51 @@ class GitHubConfigFileProvider(
          * The header value indicating that the response format is JSON.
          */
         const val JSON_CONTENT_TYPE_HEADER = "application/json"
-    }
 
-    private val owner = config.getString(REPOSITORY_OWNER)
-    private val repository = config.getString(REPOSITORY_NAME)
-    private val gitHubApiUrl = config.getString(GITHUB_API_URL)
-    private val httpClient = createClient()
+        /** The default URL to the GitHub REST API. */
+        private const val DEFAULT_GITHUB_API_URL = "https://api.github.com"
+
+        private val logger = LoggerFactory.getLogger(GitHubConfigFileProvider::class.java)
+
+        /**
+         * Create a new instance of [GitHubConfigFileProvider] that is initialized based on the given [config] and
+         * [secretProvider].
+         */
+        fun create(config: Config, secretProvider: ConfigSecretProvider): GitHubConfigFileProvider {
+            val owner = config.getString(REPOSITORY_OWNER)
+            val repository = config.getString(REPOSITORY_NAME)
+            val gitHubApiUrl = config.getStringOrDefault(GITHUB_API_URL, DEFAULT_GITHUB_API_URL)
+
+            logger.info("Creating GitHubConfigFileProvider.")
+            logger.debug("GitHub URI: '{}'.", gitHubApiUrl)
+            logger.debug("GitHub Repository: '{}'.", repository)
+            logger.debug("GitHub Repository Owner: '{}'.", owner)
+
+            val baseUrl = "$gitHubApiUrl/repos/$owner/$repository"
+            return GitHubConfigFileProvider(createClient(secretProvider), baseUrl)
+        }
+
+        /**
+         * Create the HTTP client to be used for all requests against the GitHub REST API.
+         */
+        private fun createClient(secretProvider: ConfigSecretProvider): HttpClient {
+            return HttpClient(OkHttp) {
+                defaultRequest {
+                    header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
+                }
+
+                // Required in order to handle "Not Found" responses manually.
+                expectSuccess = false
+            }
+        }
+    }
 
     override fun resolveContext(context: Context): Context {
         val response =
-            sendHttpRequest("$gitHubApiUrl/repos/$owner/$repository/branches/${context.name}", JSON_CONTENT_TYPE_HEADER)
+            sendHttpRequest("/branches/${context.name}", JSON_CONTENT_TYPE_HEADER)
 
         if (!response.isPresent()) {
-            throw ConfigException("The branch ${context.name} is not found in the repository $repository", null)
+            throw ConfigException("The branch '${context.name}' is not found in the config repository.", null)
         }
 
         val jsonBody = getJsonBody(response)
@@ -113,7 +153,7 @@ class GitHubConfigFileProvider(
      */
     override fun getFile(context: Context, path: Path): InputStream {
         val response = sendHttpRequest(
-            "$gitHubApiUrl/repos/$owner/$repository/contents/${path.path}?ref=${context.name}",
+            "/contents/${path.path}?ref=${context.name}",
             RAW_CONTENT_TYPE_HEADER
         )
 
@@ -137,7 +177,7 @@ class GitHubConfigFileProvider(
 
     override fun contains(context: Context, path: Path): Boolean {
         val response = sendHttpRequest(
-            "$gitHubApiUrl/repos/$owner/$repository/contents/${path.path}?ref=${context.name}",
+            "/contents/${path.path}?ref=${context.name}",
             JSON_CONTENT_TYPE_HEADER
         )
 
@@ -150,7 +190,7 @@ class GitHubConfigFileProvider(
 
     override fun listFiles(context: Context, path: Path): Set<Path> {
         val response = sendHttpRequest(
-            "$gitHubApiUrl/repos/$owner/$repository/contents/${path.path}?ref=${context.name}",
+            "/contents/${path.path}?ref=${context.name}",
             JSON_CONTENT_TYPE_HEADER
         )
 
@@ -167,23 +207,17 @@ class GitHubConfigFileProvider(
             .toSet()
     }
 
-    private fun createClient(): HttpClient {
-        return HttpClient(OkHttp) {
-            defaultRequest {
-                url(config.getString(GITHUB_API_URL))
-                header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
-            }
-
-            // Required in order to handle "Not Found" responses manually.
-            expectSuccess = false
-        }
-    }
-
+    /**
+     * Send a request to the GitHub REST API as defined by [baseUrl] with the provided [path].
+     */
     private fun sendHttpRequest(
-        url: String,
+        path: String,
         contentType: String
     ) = runBlocking {
-        httpClient.get(url) {
+        val requestUrl = "$baseUrl$path"
+        logger.debug("GET '{}'", requestUrl)
+
+        httpClient.get(requestUrl) {
             header("Accept", contentType)
         }
     }

@@ -238,7 +238,7 @@ private fun getProvider(): GitHubConfigFileProvider {
         )
     )
 
-    return GitHubConfigFileProvider(config, secretProvider)
+    return GitHubConfigFileProvider.create(config, secretProvider)
 }
 
 /**
