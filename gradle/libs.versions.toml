@@ -37,6 +37,7 @@ activeMQArtemis = "2.30.0"
 curator = "5.5.0"
 exposed = "0.41.1"
 flyway = "9.19.4"
+hawtio = "2.17.6"
 hikari = "5.0.1"
 jackson = "2.15.2"
 jsonSchemaSerialization = "0.6.6"
@@ -84,6 +85,7 @@ exposedDao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "expo
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposedKotlinDatetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 flywayCore = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+hawtio = { module = "io.hawt:hawtio-war", version.ref = "hawtio" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-serialization", version.ref = "jsonSchemaSerialization" }
