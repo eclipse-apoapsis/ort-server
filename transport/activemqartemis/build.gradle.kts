@@ -33,6 +33,9 @@ dependencies {
     implementation(project(":transport:transport-spi"))
 
     implementation(libs.activeMQArtemis)
+    // Force the latest version of curator-client, which fixes multiple security vulnerabilities by using a newer log4j
+    // version.
+    implementation(libs.curatorClient)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.qpidJmsClient)
 

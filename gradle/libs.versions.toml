@@ -34,6 +34,7 @@ versionsPlugin = "0.47.0"
 
 # Gradle dependencies
 activeMQArtemis = "2.30.0"
+curator = "5.5.0"
 exposed = "0.41.1"
 flyway = "9.19.4"
 hikari = "5.0.1"
@@ -77,6 +78,7 @@ versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin
 
 [libraries]
 activeMQArtemis = { module = "org.apache.activemq:apache-artemis", version.ref = "activeMQArtemis" }
+curatorClient = { module = "org.apache.curator:curator-client", version.ref = "curator" }
 exposedCore = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposedDao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
