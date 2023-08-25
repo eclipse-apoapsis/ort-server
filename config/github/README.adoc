@@ -23,7 +23,43 @@ configManager {
   gitHubApiUrl = "https://api.github.com"
   gitHubRepositoryOwner = "ownername"
   gitHubRepositoryName = "reponame"
+  gitHubDefaultBranch = "config"
 }
 ----
+
+Table <<tab_github_config>> contains a description of the supported configuration properties:
+
+[#tab_github_config]
+.Supported configuration options
+[cols="1,3,1,1",options=header]
+|===
+|Property |Description |Default |Secret
+
+|gitHubApiUrl
+|Defines the base URL of the GitHub REST API. Typically, this property does not need to be specified, since the default value should work.
+|https://api.github.com
+|no
+
+|gitHubRepositoryOwner
+|The name of the owner of the repository that contains the configuration information. This corresponds to the `OWNER` parameter of the GitHub REST API.
+|none
+|no
+
+|gitHubRepositoryName
+|The name of the repository that contains the configuration information. Together with the `gitHubRepositoryOwner` property, the repository is uniquely identified. This corresponds to the `REPO` parameter of the GitHub REST API.
+|none
+|no
+
+|gitHubDefaultBranch
+|The default branch in the repository that contains the configuration information. Users can select a specific branch by passing a corresponding `Context` to the `resolveContext()` function. If here the default context is provided, this provider implementation uses the configured default branch.
+|main
+|no
+
+|gitHubApiToken
+|The personal access token to authorize against the GitHub REST API.
+|none
+|yes
+
+|===
 
 The provider implementation is using the Bearer Token authorization. The token is obtained from the `ConfigSecretProvider` via the `gitHubApiToken` path. For the details on GitHub API authorization see the link:https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?apiVersion=2022-11-28[Documentation on Authenticating to the GitHub REST API].
