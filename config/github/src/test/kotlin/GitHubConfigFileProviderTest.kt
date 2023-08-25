@@ -50,9 +50,11 @@ import io.mockk.mockk
 import java.util.Base64
 
 import org.ossreviewtoolkit.server.config.ConfigException
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.DEFAULT_BRANCH
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.GITHUB_API_URL
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.JSON_CONTENT_TYPE_HEADER
 import org.ossreviewtoolkit.server.config.github.GitHubConfigFileProvider.Companion.RAW_CONTENT_TYPE_HEADER
@@ -81,6 +83,16 @@ class GitHubConfigFileProviderTest : WordSpec() {
                 val provider = getProvider()
 
                 val resolvedContext = provider.resolveContext(Context(REVISION))
+                resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
+            }
+
+            "resolve the default context successfully" {
+                server.stubExistingRevision()
+
+                val provider = getProvider()
+
+                val resolvedContext = provider.resolveContext(ConfigManager.DEFAULT_CONTEXT)
+
                 resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
             }
 
@@ -234,7 +246,8 @@ private fun getProvider(): GitHubConfigFileProvider {
         mapOf(
             GITHUB_API_URL to server.baseUrl(),
             REPOSITORY_OWNER to OWNER,
-            REPOSITORY_NAME to REPOSITORY
+            REPOSITORY_NAME to REPOSITORY,
+            DEFAULT_BRANCH to REVISION
         )
     )
 

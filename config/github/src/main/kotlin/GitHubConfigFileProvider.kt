@@ -43,6 +43,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigFileProvider
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.ConfigSecretProvider
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
@@ -57,7 +58,10 @@ class GitHubConfigFileProvider(
     /**
      * The base URL for accessing the GitHub REST API for the repository that contains the managed configuration files.
      */
-    private val baseUrl: String
+    private val baseUrl: String,
+
+    /** The default branch to be used if the default context is provided. */
+    private val defaultBranch: String
 ) : ConfigFileProvider {
     companion object {
         /**
@@ -74,6 +78,11 @@ class GitHubConfigFileProvider(
          * The name of the repository without the .git extension. The name is not case-sensitive.
          */
         const val REPOSITORY_NAME = "gitHubRepositoryName"
+
+        /**
+         * Configuration property that defines the default branch to be used if the user provides the default context.
+         */
+        const val DEFAULT_BRANCH = "gitHubDefaultBranch"
 
         /**
          * The path to the secret containing of the GitHub API token of the user with access rights for the given
@@ -94,6 +103,9 @@ class GitHubConfigFileProvider(
         /** The default URL to the GitHub REST API. */
         private const val DEFAULT_GITHUB_API_URL = "https://api.github.com"
 
+        /** The default value for the default branch property. */
+        private const val DEFAULT_REPOSITORY_BRANCH = "main"
+
         private val logger = LoggerFactory.getLogger(GitHubConfigFileProvider::class.java)
 
         /**
@@ -104,14 +116,16 @@ class GitHubConfigFileProvider(
             val owner = config.getString(REPOSITORY_OWNER)
             val repository = config.getString(REPOSITORY_NAME)
             val gitHubApiUrl = config.getStringOrDefault(GITHUB_API_URL, DEFAULT_GITHUB_API_URL)
+            val defaultBranch = config.getStringOrDefault(DEFAULT_BRANCH, DEFAULT_REPOSITORY_BRANCH)
 
             logger.info("Creating GitHubConfigFileProvider.")
             logger.debug("GitHub URI: '{}'.", gitHubApiUrl)
-            logger.debug("GitHub Repository: '{}'.", repository)
-            logger.debug("GitHub Repository Owner: '{}'.", owner)
+            logger.debug("GitHub repository: '{}'.", repository)
+            logger.debug("GitHub repository owner: '{}'.", owner)
+            logger.debug("GitHub default branch: '{}'.", defaultBranch)
 
             val baseUrl = "$gitHubApiUrl/repos/$owner/$repository"
-            return GitHubConfigFileProvider(createClient(secretProvider), baseUrl)
+            return GitHubConfigFileProvider(createClient(secretProvider), baseUrl, defaultBranch)
         }
 
         /**
@@ -130,8 +144,8 @@ class GitHubConfigFileProvider(
     }
 
     override fun resolveContext(context: Context): Context {
-        val response =
-            sendHttpRequest("/branches/${context.name}", JSON_CONTENT_TYPE_HEADER)
+        val branchName = if (context == ConfigManager.DEFAULT_CONTEXT) defaultBranch else context.name
+        val response = sendHttpRequest("/branches/$branchName", JSON_CONTENT_TYPE_HEADER)
 
         if (!response.isPresent()) {
             throw ConfigException("The branch '${context.name}' is not found in the config repository.", null)
