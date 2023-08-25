@@ -81,7 +81,7 @@ dependencies {
 }
 
 jib {
-    from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
+    from.image = "docker://ort-server-config-worker-base-image:latest"
     to.image = "${dockerImagePrefix}ort-server-config-worker:$dockerImageTag"
 
     container {
