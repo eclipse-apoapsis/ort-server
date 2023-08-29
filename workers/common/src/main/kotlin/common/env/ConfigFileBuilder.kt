@@ -78,6 +78,11 @@ class ConfigFileBuilder(val context: WorkerContext) {
             text.replace(entry.key, secretValues.getValue(entry.value))
         }
 
+        // Make sure that the parent directory exists in case the config should be stored in a subdirectory.
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+
         file.writeText(content)
     }
 
