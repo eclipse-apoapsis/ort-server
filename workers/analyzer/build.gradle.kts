@@ -89,7 +89,7 @@ dependencies {
     testImplementation(testFixtures(project(":transport:transport-spi")))
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.koinTest)
-    testImplementation(libs.kotestAssertionsKotlinxTime)
+    testImplementation(libs.kotestAssertionsKotlinxDatetime)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

@@ -48,7 +48,7 @@ koinKtor = "3.4.1"
 koinTest = "3.4.1"
 konform = "0.4.0"
 kotest = "5.6.2"
-kotestAssertionsKotlinxTime = "4.4.3"
+kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
 ktor = "2.3.1"
@@ -94,7 +94,7 @@ koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koinTest" }
 konform = { module = "io.konform:konform", version.ref = "konform" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotestAssertionsKotlinxTime = { module = "io.kotest:kotest-assertions-kotlinx-time", version.ref = "kotestAssertionsKotlinxTime" }
+kotestAssertionsKotlinxDatetime = { module = "io.kotest.extensions:kotest-assertions-kotlinx-datetime", version.ref = "kotestAssertionsKotlinxDatetime" }
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestFrameworkApi = { module = "io.kotest:kotest-framework-api", version.ref = "kotest" }
