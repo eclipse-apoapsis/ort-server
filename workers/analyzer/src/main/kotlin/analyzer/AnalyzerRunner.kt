@@ -29,6 +29,7 @@ import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.readValueOrNull
 import org.ossreviewtoolkit.plugins.packagecurationproviders.ortconfig.OrtConfigPackageCurationProvider
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.ort.ORT_REPO_CONFIG_FILENAME
 
 import org.slf4j.LoggerFactory
@@ -37,7 +38,16 @@ private val logger = LoggerFactory.getLogger(AnalyzerRunner::class.java)
 
 class AnalyzerRunner {
     fun run(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
-        val analyzerConfig = AnalyzerConfiguration(config.allowDynamicVersions)
+        val ortPackageManagerOptions =
+            config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
+
+        val analyzerConfig = AnalyzerConfiguration(
+            config.allowDynamicVersions,
+            config.enabledPackageManagers,
+            config.disabledPackageManagers,
+            ortPackageManagerOptions,
+            config.skipExcluded ?: false
+        )
         val analyzer = Analyzer(analyzerConfig)
 
         val repositoryConfiguration = inputDir.resolve(ORT_REPO_CONFIG_FILENAME).takeIf { it.isFile }?.readValueOrNull()

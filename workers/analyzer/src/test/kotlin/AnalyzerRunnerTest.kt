@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.model.PackageCurationData
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.Curations
 import org.ossreviewtoolkit.model.config.Excludes
 import org.ossreviewtoolkit.model.config.IssueResolution
@@ -56,6 +57,8 @@ import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
@@ -169,6 +172,32 @@ class AnalyzerRunnerTest : WordSpec({
             result.vcs shouldNotBe VcsInfo.EMPTY
             result.vcsProcessed shouldNotBe VcsInfo.EMPTY
             result.nestedRepositories should beEmpty()
+        }
+
+        "pass all the properties to ORT Analyzer" {
+            val enabledPackageManagers = listOf("conan", "npm")
+            val disabledPackageManagers = listOf("maven")
+            val packageManagerOptions = mapOf("conan" to PackageManagerConfiguration(listOf("npm")))
+
+            val config = AnalyzerJobConfiguration(
+                allowDynamicVersions = true,
+                enabledPackageManagers = enabledPackageManagers,
+                disabledPackageManagers = disabledPackageManagers,
+                packageManagerOptions = packageManagerOptions,
+                skipExcluded = true
+            )
+
+            val result = runner.run(projectDir, config)
+
+            result.analyzer shouldNotBe null
+
+            result.analyzer?.config shouldBe AnalyzerConfiguration(
+                true,
+                enabledPackageManagers,
+                disabledPackageManagers,
+                packageManagerOptions.map { entry -> entry.key to entry.value.mapToOrt() }.toMap(),
+                true
+            )
         }
 
         "return an unmanaged project for a directory with only an empty subdirectory" {
