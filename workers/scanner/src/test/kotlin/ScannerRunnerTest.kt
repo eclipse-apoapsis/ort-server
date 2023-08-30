@@ -22,43 +22,86 @@ package org.ossreviewtoolkit.server.workers.scanner
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.unmockkAll
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.plugins.scanners.scancode.ScanCode
 import org.ossreviewtoolkit.scanner.ScannerWrapper
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 
 class ScannerRunnerTest : WordSpec({
+    beforeSpec { mockScanCode() }
+
+    afterSpec { unmockkAll() }
+
     val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk(), mockk())
 
     "run" should {
         "return an OrtResult with a valid ScannerRun" {
-            mockkObject(ScannerWrapper)
-            mockk<ScannerWrapper> {
-                every { ScannerWrapper.ALL } returns sortedMapOf(
-                    "ScanCode" to mockk {
-                        every { create(any(), any()) } returns mockk<ScanCode> {
-                            every { criteria } returns mockk {
-                                every { matches(any()) } returns true
-                            }
-                            every { details } returns mockk {
-                                every { name } returns "ScanCode"
-                            }
-                            every { name } returns "ScanCode"
-                        }
-                    }
-                )
-            }
-
             val result = runner.run(OrtResult.EMPTY, ScannerJobConfiguration())
 
             val scannerRun = result.scanner.shouldNotBeNull()
             scannerRun.provenances shouldBe emptySet()
             scannerRun.scanResults shouldBe emptySet()
         }
+
+        "pass all the scanner job configuration properties to a scanner" {
+            val detectedLicenseMapping: Map<String, String> = mapOf(
+                "LicenseRef-scancode-agpl-generic-additional-terms" to SpdxConstants.NOASSERTION,
+                "LicenseRef-scancode-generic-cla" to SpdxConstants.NOASSERTION,
+                "LicenseRef-scancode-generic-exception" to SpdxConstants.NOASSERTION
+            )
+
+            val ignorePatterns: List<String> = listOf(
+                "**/*.spdx.yml",
+                "**/*.spdx.yaml",
+                "**/*.spdx.json"
+            )
+
+            val scannerConfig = ScannerJobConfiguration(
+                skipConcluded = true,
+                createMissingArchives = true,
+                detectedLicenseMappings = detectedLicenseMapping,
+                ignorePatterns = ignorePatterns
+            )
+
+            val result = runner.run(OrtResult.EMPTY, scannerConfig)
+
+            result.scanner shouldNotBe null
+
+            result.scanner?.config shouldBe ScannerConfiguration(
+                skipConcluded = true,
+                createMissingArchives = true,
+                detectedLicenseMapping = detectedLicenseMapping,
+                ignorePatterns = ignorePatterns,
+                options = emptyMap()
+            )
+        }
     }
 })
+
+private fun mockScanCode() {
+    mockkObject(ScannerWrapper)
+    mockk<ScannerWrapper> {
+        every { ScannerWrapper.ALL } returns sortedMapOf(
+            "ScanCode" to mockk {
+                every { create(any(), any()) } returns mockk<ScanCode> {
+                    every { criteria } returns mockk {
+                        every { matches(any()) } returns true
+                    }
+                    every { details } returns mockk {
+                        every { name } returns "ScanCode"
+                    }
+                    every { name } returns "ScanCode"
+                }
+            }
+        )
+    }
+}

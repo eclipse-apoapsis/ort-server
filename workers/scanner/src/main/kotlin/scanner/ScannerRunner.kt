@@ -50,7 +50,13 @@ class ScannerRunner(
             nestedProvenanceStorage = nestedProvenanceStorage
         )
 
-        val scannerConfig = ScannerConfiguration()
+        val scannerConfig = ScannerConfiguration(
+            skipConcluded = config.skipConcluded ?: false,
+            createMissingArchives = config.createMissingArchives ?: false,
+            detectedLicenseMapping = config.detectedLicenseMappings ?: emptyMap(),
+            ignorePatterns = config.ignorePatterns ?: emptyList()
+        )
+
         val downloaderConfig = DownloaderConfiguration()
         val workingTreeCache = DefaultWorkingTreeCache()
         val provenanceDownloader = DefaultProvenanceDownloader(downloaderConfig, workingTreeCache)
