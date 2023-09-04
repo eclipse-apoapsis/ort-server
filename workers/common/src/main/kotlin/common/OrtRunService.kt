@@ -19,13 +19,11 @@
 
 package org.ossreviewtoolkit.server.workers.common
 
-import kotlinx.coroutines.runBlocking
-
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
-import org.ossreviewtoolkit.server.dao.dbQuery
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
@@ -37,38 +35,36 @@ class OrtRunService(
     /**
      * Fetch the repository data from the database and construct an ORT [Repository] object from a provided ORT run.
      */
-    fun getOrtRepositoryInformation(ortRun: OrtRun) = runBlocking {
-        db.dbQuery {
-            val vcsId = ortRun.vcsId
-            requireNotNull(vcsId) {
-                "VCS information is missing from ORT run '${ortRun.id}'."
-            }
-
-            val vcsProcessedId = ortRun.vcsProcessedId
-            requireNotNull(vcsProcessedId) {
-                "VCS processed information is missing from ORT run '${ortRun.id}'."
-            }
-
-            val nestedRepositoryIds = ortRun.nestedRepositoryIds
-            requireNotNull(nestedRepositoryIds) {
-                "Nested repositories information is missing from ORT run '${ortRun.id}'."
-            }
-
-            val vcsInfo = VcsInfoDao[vcsId].mapToModel()
-            val vcsProcessedInfo = VcsInfoDao[vcsProcessedId].mapToModel()
-            val nestedRepositories =
-                nestedRepositoryIds.map { Pair(it.key, VcsInfoDao[it.value].mapToModel().mapToOrt()) }.toMap()
-
-            val repositoryConfig =
-                ortRun.repositoryConfigId?.let { repositoryConfigurationRepository.get(it)?.mapToOrt() }
-                    ?: RepositoryConfiguration()
-
-            Repository(
-                vcs = vcsInfo.mapToOrt(),
-                vcsProcessed = vcsProcessedInfo.mapToOrt(),
-                nestedRepositories = nestedRepositories,
-                config = repositoryConfig
-            )
+    fun getOrtRepositoryInformation(ortRun: OrtRun) = db.blockingQuery {
+        val vcsId = ortRun.vcsId
+        requireNotNull(vcsId) {
+            "VCS information is missing from ORT run '${ortRun.id}'."
         }
+
+        val vcsProcessedId = ortRun.vcsProcessedId
+        requireNotNull(vcsProcessedId) {
+            "VCS processed information is missing from ORT run '${ortRun.id}'."
+        }
+
+        val nestedRepositoryIds = ortRun.nestedRepositoryIds
+        requireNotNull(nestedRepositoryIds) {
+            "Nested repositories information is missing from ORT run '${ortRun.id}'."
+        }
+
+        val vcsInfo = VcsInfoDao[vcsId].mapToModel()
+        val vcsProcessedInfo = VcsInfoDao[vcsProcessedId].mapToModel()
+        val nestedRepositories =
+            nestedRepositoryIds.map { Pair(it.key, VcsInfoDao[it.value].mapToModel().mapToOrt()) }.toMap()
+
+        val repositoryConfig =
+            ortRun.repositoryConfigId?.let { repositoryConfigurationRepository.get(it)?.mapToOrt() }
+                ?: RepositoryConfiguration()
+
+        Repository(
+            vcs = vcsInfo.mapToOrt(),
+            vcsProcessed = vcsProcessedInfo.mapToOrt(),
+            nestedRepositories = nestedRepositories,
+            config = repositoryConfig
+        )
     }
 }
