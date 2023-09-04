@@ -28,7 +28,6 @@ import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -36,6 +35,10 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
+import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -66,16 +69,18 @@ class OrtRunServiceTest : WordSpec({
     lateinit var db: Database
     lateinit var fixtures: Fixtures
     lateinit var repositoryConfigRepository: RepositoryConfigurationRepository
+    lateinit var resolvedConfigurationRepository: ResolvedConfigurationRepository
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
-        repositoryConfigRepository = DaoRepositoryConfigurationRepository(db)
+        repositoryConfigRepository = dbExtension.fixtures.repositoryConfigurationRepository
+        resolvedConfigurationRepository = dbExtension.fixtures.resolvedConfigurationRepository
     }
 
     "getOrtRepositoryInformation" should {
         "return ORT repository object" {
-            val service = OrtRunService(db, repositoryConfigRepository)
+            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
 
             val vcsInfo = getVcsInfo("https://example.com/repo.git")
             val processedVcsInfo = getVcsInfo("https://example.com/repo-processed.git")
@@ -101,7 +106,7 @@ class OrtRunServiceTest : WordSpec({
         }
 
         "throw exception if VCS information is not present in ORT run" {
-            val service = OrtRunService(db, repositoryConfigRepository)
+            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
 
             val ortRun = fixtures.ortRun
 
@@ -110,6 +115,45 @@ class OrtRunServiceTest : WordSpec({
             }
 
             exception.message shouldBe "VCS information is missing from ORT run '1'."
+        }
+    }
+
+    "getResolvedConfiguration" should {
+        "return the resolved configuration" {
+            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
+
+            val ortRun = fixtures.ortRun
+
+            val id = Identifier("type", "namespace", "name", "version")
+
+            val packageConfigurations = listOf(PackageConfiguration(id = id))
+            resolvedConfigurationRepository.addPackageConfigurations(ortRun.id, packageConfigurations)
+
+            val packageCurations = listOf(
+                ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig(name = "name"),
+                    curations = listOf(PackageCuration(id = id, PackageCurationData()))
+                )
+            )
+            resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)
+
+            val resolutions = Resolutions(
+                issues = listOf(IssueResolution(message = "message", reason = "reason", comment = "comment"))
+            )
+            resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
+
+            service.getResolvedConfiguration(ortRun) shouldBe
+                    ResolvedConfiguration(packageConfigurations, packageCurations, resolutions)
+        }
+
+        "return an empty resolved configuration if no resolved configuration was stored" {
+            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
+
+            service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration(
+                packageConfigurations = emptyList(),
+                packageCurations = emptyList(),
+                resolutions = Resolutions()
+            )
         }
     }
 })

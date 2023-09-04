@@ -27,10 +27,14 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
+import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
+import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 class OrtRunService(
     private val db: Database,
-    private val repositoryConfigurationRepository: RepositoryConfigurationRepository
+    private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
+    private val resolvedConfigurationRepository: ResolvedConfigurationRepository
 ) {
     /**
      * Fetch the repository data from the database and construct an ORT [Repository] object from a provided ORT run.
@@ -65,6 +69,18 @@ class OrtRunService(
             vcsProcessed = vcsProcessedInfo.mapToOrt(),
             nestedRepositories = nestedRepositories,
             config = repositoryConfig
+        )
+    }
+
+    /**
+     * Return the resolved configuration for the provided [ortRun]. If no resolved configuration is stored, an empty
+     * resolved configuration is returned.
+     */
+    fun getResolvedConfiguration(ortRun: OrtRun) = db.blockingQuery {
+        resolvedConfigurationRepository.getForOrtRun(ortRun.id) ?: ResolvedConfiguration(
+            packageConfigurations = emptyList(),
+            packageCurations = emptyList(),
+            resolutions = Resolutions()
         )
     }
 }
