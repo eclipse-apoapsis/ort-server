@@ -28,9 +28,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 
+import java.io.File
+
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
@@ -95,7 +99,16 @@ class EvaluatorWorkerTest : StringSpec({
             every { getRepository(any()) } returns repository
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
+        val configManager = mockk<ConfigManager> {
+            every {
+                getFileAsString(
+                    any(),
+                    Path(SCRIPT_FILE)
+                )
+            } returns String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
+        }
+
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager), dao, ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -115,7 +128,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), dao, ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -131,7 +144,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(), dao, ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), dao, ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)

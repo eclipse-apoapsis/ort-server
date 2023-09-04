@@ -1,0 +1,26 @@
+---
+# Example license-classifications.yml based on categorization from
+# https://github.com/nexB/scancode-toolkit/commit/ed644e4
+#
+# To demonstrate how one can insert a custom written offer
+# include-source-code-offer-in-notice-file has been set to
+# true for all licenses of the GPL family.
+categories:
+- name: "include-in-notice-file"
+  description: >-
+    This category is checked by templates used by the ORT report generator. The licenses associated with this
+    category are included into NOTICE files.
+- name: "include-source-code-offer-in-notice-file"
+  description: >-
+    A marker category that indicates that the licenses assigned to it require that the source code of the packages
+    needs to be provided.
+
+categorizations:
+- id: "AGPL-1.0"
+  categories:
+  - "include-in-notice-file"
+  - "include-source-code-offer-in-notice-file"
+- id: "AGPL-1.0-only"
+  categories:
+  - "include-in-notice-file"
+  - "include-source-code-offer-in-notice-file"

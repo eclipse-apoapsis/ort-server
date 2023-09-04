@@ -19,29 +19,40 @@
 
 package org.ossreviewtoolkit.server.workers.evaluator
 
-import java.io.FileNotFoundException
-
 import org.ossreviewtoolkit.evaluator.Evaluator
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
+import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 
-class EvaluatorRunner {
+class EvaluatorRunner(
+    /**
+     * The config manager is used to download the rule script as well as the file describing license classifications.
+     */
+    private val configManager: ConfigManager
+) {
+    /**
+     * The rule set script and the license classifications file are obtained from the [configManager] using the
+     * respective paths specified in [config]. In case the path to the license classifications file is not provided,
+     * an empty [LicenseClassifications] is passed to the Evaluator.
+     */
     fun run(ortResult: OrtResult, config: EvaluatorJobConfiguration): EvaluatorRun {
-        requireNotNull(config.ruleSet) {
-            "No rule set is provided."
-        }
+        val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
+            ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
-        // TODO: Only rules script files, which are on the classpath can be used as rulesSet. Therefore, it only works
-        //       with the OSADL rules set. The absolute path of the script file has to be configured in the job
-        //       configuration so that it can be found on the classpath. In the future it has to be possible to apply
-        //       other rules.
-        val scriptUrl = config.ruleSet?.let { javaClass.getResource(it) }
-            ?: throw FileNotFoundException("Could not find rule set '${config.ruleSet}'.")
-        val script = scriptUrl.readText()
+        val licenseClassifications = config.licenseClassification?.let {
+            configManager.getFile(null, Path(it)).use { rawLicenseClassifications ->
+                yamlMapper.readValue(rawLicenseClassifications, LicenseClassifications::class.java)
+            }
+        } ?: LicenseClassifications()
 
-        // TODO: Currently, there is no concept for configuring and applying resolutions and license classifications.
-        val evaluator = Evaluator(ortResult)
+        val evaluator = Evaluator(
+            ortResult = ortResult,
+            licenseClassifications = licenseClassifications
+        )
 
         return evaluator.run(script)
     }

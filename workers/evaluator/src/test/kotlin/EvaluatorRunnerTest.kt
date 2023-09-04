@@ -23,21 +23,32 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
-import java.io.FileNotFoundException
+import io.mockk.every
+import io.mockk.mockk
+
+import java.io.File
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.server.config.ConfigException
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 
 const val SCRIPT_FILE = "/example.rules.kts"
+private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
+private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 
 class EvaluatorRunnerTest : WordSpec({
-    val runner = EvaluatorRunner()
+    val runner = EvaluatorRunner(createConfigManager())
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
-            val result = runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = SCRIPT_FILE))
+            val result = runner.run(
+                OrtResult.EMPTY,
+                EvaluatorJobConfiguration(ruleSet = SCRIPT_FILE, licenseClassification = LICENSE_CLASSIFICATIONS_FILE)
+            )
             val expectedRuleViolation = RuleViolation(
                 rule = "Example violation.",
                 pkg = null,
@@ -58,9 +69,43 @@ class EvaluatorRunnerTest : WordSpec({
         }
 
         "throw an exception if script file could not be found" {
-            shouldThrow<FileNotFoundException> {
-                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = "unknown.rules.kts"))
+            shouldThrow<ConfigException> {
+                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = UNKNOWN_RULES_KTS))
             }
         }
     }
 })
+
+private fun createConfigManager(): ConfigManager {
+    val configManager = mockk<ConfigManager> {
+        every {
+            getFileAsString(
+                any(),
+                Path(SCRIPT_FILE)
+            )
+        } returns String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
+
+        every {
+            getFile(
+                any(),
+                Path(LICENSE_CLASSIFICATIONS_FILE)
+            )
+        } returns File("src/test/resources/license-classifications.yml").inputStream()
+
+        every {
+            getFileAsString(
+                any(),
+                Path(UNKNOWN_RULES_KTS)
+            )
+        } answers { callOriginal() }
+
+        every {
+            getFile(
+                any(),
+                Path(UNKNOWN_RULES_KTS)
+            )
+        } answers { callOriginal() }
+    }
+
+    return configManager
+}
