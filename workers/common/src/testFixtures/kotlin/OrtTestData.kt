@@ -48,6 +48,8 @@ import org.ossreviewtoolkit.model.ProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.RepositoryProvenance
+import org.ossreviewtoolkit.model.ResolvedConfiguration
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.RootDependencyIndex
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
@@ -55,6 +57,7 @@ import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.Vulnerability
 import org.ossreviewtoolkit.model.VulnerabilityReference
@@ -459,12 +462,83 @@ object OrtTestData {
         scanners = mapOf(ortProvenanceResolutionResult.id to setOf("ScanCode"))
     )
 
+    val resolvedConfiguration = ResolvedConfiguration(
+        packageConfigurations = listOf(
+            PackageConfiguration(
+                id = ortPkgIdentifier,
+                sourceArtifactUrl = "https://example.org/artifact.zip",
+                pathExcludes = listOf(pathExclude),
+                licenseFindingCurations = listOf(licenseFindingCuration)
+            )
+        ),
+        packageCurations = listOf(
+            ResolvedPackageCurations(
+                provider = ResolvedPackageCurations.Provider(id = "name"),
+                curations = setOf(
+                    PackageCuration(
+                        id = ortPkgIdentifier,
+                        data = PackageCurationData(
+                            comment = "comment",
+                            purl = "purl",
+                            cpe = "cpe",
+                            authors = setOf("author 1", "author 2"),
+                            concludedLicense = "Apache-2.0".toSpdx(),
+                            description = "description",
+                            homepageUrl = "https://example.org",
+                            binaryArtifact = RemoteArtifact(
+                                url = "https://example.org/binary.zip",
+                                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                url = "https://example.org.source.zip",
+                                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
+                            ),
+                            vcs = VcsInfoCurationData(
+                                type = VcsType.GIT,
+                                url = "https://example.org/repo.git",
+                                revision = "revision",
+                                path = "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false,
+                            declaredLicenseMapping = mapOf("Apache" to "Apache-2.0".toSpdx())
+                        )
+                    )
+                )
+            )
+        ),
+        resolutions = Resolutions(
+            issues = listOf(
+                IssueResolution(
+                    message = "message",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                    comment = "comment"
+                )
+            ),
+            ruleViolations = listOf(
+                RuleViolationResolution(
+                    message = "message",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "comment"
+                )
+            ),
+            vulnerabilities = listOf(
+                VulnerabilityResolution(
+                    id = "message",
+                    reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                    comment = "comment"
+                )
+            )
+        )
+    )
+
     val ortResult = OrtResult(
         repository = ortRepository,
         analyzer = ortAnalyzerRun,
         advisor = ortAdvisorRun,
         scanner = ortScannerRun,
         evaluator = null,
-        labels = mapOf("label key" to "label value")
+        labels = mapOf("label key" to "label value"),
+        resolvedConfiguration = resolvedConfiguration
     )
 }

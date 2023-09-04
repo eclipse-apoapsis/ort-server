@@ -57,6 +57,8 @@ import org.ossreviewtoolkit.model.ProvenanceResolutionResult as OrtProvenanceRes
 import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository as OrtRepository
 import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
+import org.ossreviewtoolkit.model.ResolvedConfiguration as OrtResolvedConfiguration
+import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.RootDependencyIndex as OrtRootDependencyIndex
 import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
@@ -115,6 +117,9 @@ import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProv
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.DependencyGraph
@@ -198,14 +203,16 @@ fun OrtRun.mapToOrt(
     analyzerRun: OrtAnalyzerRun? = null,
     advisorRun: OrtAdvisorRun? = null,
     scannerRun: OrtScannerRun? = null,
-    evaluatorRun: OrtEvaluatorRun? = null
+    evaluatorRun: OrtEvaluatorRun? = null,
+    resolvedConfiguration: OrtResolvedConfiguration
 ) = OrtResult(
     repository = repository,
     analyzer = analyzerRun,
     advisor = advisorRun,
     scanner = scannerRun,
     evaluator = evaluatorRun,
-    labels = labels
+    labels = labels,
+    resolvedConfiguration = resolvedConfiguration
 )
 
 fun Repository.mapToOrt(revision: String, path: String = "", repositoryConfig: OrtRepositoryConfiguration) =
@@ -692,4 +699,19 @@ fun PackageLicenseChoice.mapToOrt() =
     OrtPackageLicenseChoice(
         packageId = identifier.mapToOrt(),
         licenseChoices = licenseChoices.map(SpdxLicenseChoice::mapToOrt)
+    )
+
+fun PackageCurationProviderConfig.mapToOrt() = OrtResolvedPackageCurations.Provider(id = name)
+
+fun ResolvedPackageCurations.mapToOrt() =
+    OrtResolvedPackageCurations(
+        provider = provider.mapToOrt(),
+        curations = curations.map { it.mapToOrt() }.toSet()
+    )
+
+fun ResolvedConfiguration.mapToOrt() =
+    OrtResolvedConfiguration(
+        packageConfigurations = packageConfigurations.map { it.mapToOrt() },
+        packageCurations = packageCurations.map { it.mapToOrt() },
+        resolutions = resolutions.mapToOrt()
     )

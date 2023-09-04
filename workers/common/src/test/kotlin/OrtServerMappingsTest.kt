@@ -32,6 +32,9 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.DependencyGraph
@@ -70,6 +73,7 @@ import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
 import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
 import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
+import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
 import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
@@ -466,6 +470,78 @@ class OrtServerMappingsTest : WordSpec({
                 )
             )
 
+            val resolvedConfiguration = ResolvedConfiguration(
+                packageConfigurations = listOf(
+                    PackageConfiguration(
+                        id = pkgIdentifier,
+                        sourceArtifactUrl = "https://example.org/artifact.zip",
+                        pathExcludes = listOf(pathExclude),
+                        licenseFindingCurations = listOf(licenseFindingCuration)
+                    )
+                ),
+                packageCurations = listOf(
+                    ResolvedPackageCurations(
+                        provider = PackageCurationProviderConfig(name = "name"),
+                        curations = listOf(
+                            PackageCuration(
+                                id = pkgIdentifier,
+                                data = PackageCurationData(
+                                    comment = "comment",
+                                    purl = "purl",
+                                    cpe = "cpe",
+                                    authors = setOf("author 1", "author 2"),
+                                    concludedLicense = "Apache-2.0",
+                                    description = "description",
+                                    homepageUrl = "https://example.org",
+                                    binaryArtifact = RemoteArtifact(
+                                        url = "https://example.org/binary.zip",
+                                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                                        hashAlgorithm = "SHA-1"
+                                    ),
+                                    sourceArtifact = RemoteArtifact(
+                                        url = "https://example.org.source.zip",
+                                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                                        hashAlgorithm = "SHA-1"
+                                    ),
+                                    vcs = VcsInfoCurationData(
+                                        type = RepositoryType.GIT,
+                                        url = "https://example.org/repo.git",
+                                        revision = "revision",
+                                        path = "path"
+                                    ),
+                                    isMetadataOnly = false,
+                                    isModified = false,
+                                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
+                                )
+                            )
+                        )
+                    )
+                ),
+                resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "message",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "comment"
+                        )
+                    ),
+                    ruleViolations = listOf(
+                        RuleViolationResolution(
+                            message = "message",
+                            reason = "CANT_FIX_EXCEPTION",
+                            comment = "comment"
+                        )
+                    ),
+                    vulnerabilities = listOf(
+                        VulnerabilityResolution(
+                            message = "message",
+                            reason = "CANT_FIX_VULNERABILITY",
+                            comment = "comment"
+                        )
+                    )
+                )
+            )
+
             val mappedOrtResult = ortRun.mapToOrt(
                 repository = repository.mapToOrt(
                     revision = ortRun.revision,
@@ -473,7 +549,8 @@ class OrtServerMappingsTest : WordSpec({
                 ),
                 analyzerRun = analyzerRun.mapToOrt(),
                 advisorRun = advisorRun.mapToOrt(),
-                scannerRun = scannerRun.mapToOrt()
+                scannerRun = scannerRun.mapToOrt(),
+                resolvedConfiguration = resolvedConfiguration.mapToOrt()
             )
 
             mappedOrtResult shouldBe OrtTestData.ortResult

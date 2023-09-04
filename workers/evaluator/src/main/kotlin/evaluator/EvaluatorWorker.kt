@@ -50,6 +50,7 @@ internal class EvaluatorWorker(
         }
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
 
         val analyzerRun = db.blockingQuery { dao.getAnalyzerRunForEvaluatorJob(evaluatorJob) }
         val advisorRun = db.blockingQuery { dao.getAdvisorRunForEvaluatorJob(evaluatorJob) }
@@ -59,7 +60,8 @@ internal class EvaluatorWorker(
             repository = repository,
             analyzerRun = analyzerRun?.mapToOrt(),
             advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt()
+            scannerRun = scannerRun?.mapToOrt(),
+            resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
         val evaluatorRun = runner.run(ortResult, evaluatorJob.configuration)

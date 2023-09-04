@@ -57,12 +57,14 @@ class ScannerWorker(
             }
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+            val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
 
             val analyzerRun = dao.getAnalyzerRunForScannerJob(scannerJob)
 
             val ortResult = ortRun.mapToOrt(
                 repository = repository,
-                analyzerRun = analyzerRun?.mapToOrt()
+                analyzerRun = analyzerRun?.mapToOrt(),
+                resolvedConfiguration = resolvedConfiguration.mapToOrt()
             )
 
             Pair(scannerJob, ortResult)

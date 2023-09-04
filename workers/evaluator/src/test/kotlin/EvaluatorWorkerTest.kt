@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
@@ -64,6 +65,7 @@ private val evaluatorJob = EvaluatorJob(
 class EvaluatorWorkerTest : StringSpec({
     val ortRunService = mockk<OrtRunService> {
         every { getOrtRepositoryInformation(any()) } returns mockk()
+        every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
     }
 
     "A project should be evaluated successfully" {
@@ -81,7 +83,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { scannerRun.mapToOrt() } returns mockk()
-        every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val dao = mockk<EvaluatorWorkerDao> {
             every { getAnalyzerRunForEvaluatorJob(any()) } returns analyzerRun

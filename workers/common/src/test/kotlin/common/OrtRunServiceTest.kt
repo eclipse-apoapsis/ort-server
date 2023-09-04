@@ -149,11 +149,7 @@ class OrtRunServiceTest : WordSpec({
         "return an empty resolved configuration if no resolved configuration was stored" {
             val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
 
-            service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration(
-                packageConfigurations = emptyList(),
-                packageCurations = emptyList(),
-                resolutions = Resolutions()
-            )
+            service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration()
         }
     }
 })

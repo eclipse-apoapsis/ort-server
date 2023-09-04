@@ -29,7 +29,6 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 class OrtRunService(
     private val db: Database,
@@ -77,10 +76,6 @@ class OrtRunService(
      * resolved configuration is returned.
      */
     fun getResolvedConfiguration(ortRun: OrtRun) = db.blockingQuery {
-        resolvedConfigurationRepository.getForOrtRun(ortRun.id) ?: ResolvedConfiguration(
-            packageConfigurations = emptyList(),
-            packageCurations = emptyList(),
-            resolutions = Resolutions()
-        )
+        resolvedConfigurationRepository.getForOrtRun(ortRun.id) ?: ResolvedConfiguration()
     }
 }

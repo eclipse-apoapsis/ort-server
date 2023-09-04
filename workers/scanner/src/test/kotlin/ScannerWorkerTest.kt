@@ -42,6 +42,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
@@ -70,6 +71,7 @@ private val scannerJob = ScannerJob(
 class ScannerWorkerTest : StringSpec({
     val ortRunService = mockk<OrtRunService> {
         every { getOrtRepositoryInformation(any()) } returns mockk()
+        every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
     }
 
     "A project should be scanned successfully" {
@@ -84,7 +86,7 @@ class ScannerWorkerTest : StringSpec({
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { repository.mapToOrt(any(), any(), any()) } returns mockk()
         every { analyzerRun.mapToOrt() } returns mockk()
-        every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val dao = mockk<ScannerWorkerDao> {
             every { getAnalyzerRunForScannerJob(any()) } returns analyzerRun

@@ -31,14 +31,14 @@ import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
  */
 data class ResolvedConfiguration(
     /** The resolved [PackageConfiguration]s. */
-    val packageConfigurations: List<PackageConfiguration>,
+    val packageConfigurations: List<PackageConfiguration> = emptyList(),
 
     /**
      * The resolved [PackageCuration]s for all enabled [provider][PackageCurationProviderConfig]s, ordered by highest
      * priority first.
      */
-    val packageCurations: List<ResolvedPackageCurations>,
+    val packageCurations: List<ResolvedPackageCurations> = emptyList(),
 
     /** The resolved [Resolutions]. */
-    val resolutions: Resolutions
+    val resolutions: Resolutions = Resolutions()
 )

@@ -38,6 +38,7 @@ import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
@@ -70,6 +71,7 @@ class ReporterWorkerTest : StringSpec({
 
     val ortRunService = mockk<OrtRunService> {
         every { getOrtRepositoryInformation(any()) } returns mockk()
+        every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
     }
 
     "Reports for a project should be created successfully" {
@@ -89,7 +91,7 @@ class ReporterWorkerTest : StringSpec({
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
         every { scannerRun.mapToOrt() } returns mockk()
-        every { ortRun.mapToOrt(any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val dao = mockk<ReporterWorkerDao> {
             every { getAnalyzerRunForReporterJob(any()) } returns analyzerRun

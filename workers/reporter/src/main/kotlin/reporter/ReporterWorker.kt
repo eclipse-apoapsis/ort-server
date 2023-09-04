@@ -55,6 +55,7 @@ internal class ReporterWorker(
             }
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+            val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
 
             val analyzerRun = dao.getAnalyzerRunForReporterJob(reporterJob)
             val advisorRun = dao.getAdvisorRunForReporterJob(reporterJob)
@@ -66,7 +67,8 @@ internal class ReporterWorker(
                 analyzerRun = analyzerRun?.mapToOrt(),
                 advisorRun = advisorRun?.mapToOrt(),
                 evaluatorRun = evaluatorRun?.mapToOrt(),
-                scannerRun = scannerRun?.mapToOrt()
+                scannerRun = scannerRun?.mapToOrt(),
+                resolvedConfiguration = resolvedConfiguration.mapToOrt()
             )
 
             Pair(reporterJob, ortResult)
