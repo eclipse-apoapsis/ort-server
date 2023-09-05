@@ -106,6 +106,7 @@ private val jobConfigurations = JobConfigurations(
     ),
     evaluator = EvaluatorJobConfiguration(
         licenseClassification = "license-classifications.yml",
+        packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
         ruleSet = "rules.evaluator.kts"
     ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp"))

@@ -167,6 +167,11 @@ data class EvaluatorJobConfiguration(
     val licenseClassification: String? = null,
 
     /**
+     * The list of package configuration providers to use.
+     */
+    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+
+    /**
      * The id of the rule set to use for the evaluation.
      */
     val ruleSet: String? = null,

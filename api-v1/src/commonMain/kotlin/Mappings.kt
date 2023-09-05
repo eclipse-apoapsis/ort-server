@@ -132,9 +132,21 @@ fun EvaluatorJob.mapToApi() =
         status.mapToApi()
     )
 
-fun EvaluatorJobConfiguration.mapToApi() = ApiEvaluatorJobConfiguration(licenseClassification, ruleSet, parameters)
+fun EvaluatorJobConfiguration.mapToApi() =
+    ApiEvaluatorJobConfiguration(
+        licenseClassification,
+        packageConfigurationProviders.map { it.mapToApi() },
+        ruleSet,
+        parameters
+    )
 
-fun ApiEvaluatorJobConfiguration.mapToModel() = EvaluatorJobConfiguration(licenseClassification, ruleSet, parameters)
+fun ApiEvaluatorJobConfiguration.mapToModel() =
+    EvaluatorJobConfiguration(
+        licenseClassification,
+        packageConfigurationProviders.map { it.mapToModel() },
+        ruleSet,
+        parameters
+    )
 
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
 
