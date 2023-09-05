@@ -195,7 +195,7 @@ private fun getRepositoryConfiguration() = RepositoryConfiguration(
         ),
         vulnerabilities = listOf(
             VulnerabilityResolution(
-                message = "CVE-ID-1234",
+                externalId = "CVE-ID-1234",
                 reason = "INEFFECTIVE_VULNERABILITY",
                 comment = "Test vulnerability resolution."
             )

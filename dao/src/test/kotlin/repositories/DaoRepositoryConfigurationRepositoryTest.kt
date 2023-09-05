@@ -133,7 +133,7 @@ internal val ruleViolationResolution = RuleViolationResolution(
 )
 
 internal val vulnerabilityResolution = VulnerabilityResolution(
-    message = "vulnerability id",
+    externalId = "vulnerability id",
     reason = "INEFFECTIVE_VULNERABILITY",
     comment = "Test vulnerability resolution."
 )

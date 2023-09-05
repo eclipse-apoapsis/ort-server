@@ -260,13 +260,13 @@ private val ruleViolationResolution2 = RuleViolationResolution(
 )
 
 private val vulnerabilityResolution1 = VulnerabilityResolution(
-    message = "vulnerability1",
+    externalId = "vulnerability1",
     reason = "CANT_FIX_VULNERABILITY",
     comment = "comment1"
 )
 
 private val vulnerabilityResolution2 = VulnerabilityResolution(
-    message = "vulnerability2",
+    externalId = "vulnerability2",
     reason = "INEFFECTIVE_VULNERABILITY",
     comment = "comment2"
 )

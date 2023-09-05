@@ -624,7 +624,7 @@ fun RuleViolationResolution.mapToOrt() =
     )
 
 fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
-    id = message,
+    id = externalId,
     reason = OrtVulnerabilityResolutionReason.valueOf(reason),
     comment = comment
 )
