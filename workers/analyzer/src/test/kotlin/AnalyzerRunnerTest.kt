@@ -57,6 +57,7 @@ import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
+import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.safeMkdirs
@@ -183,21 +184,24 @@ class AnalyzerRunnerTest : WordSpec({
                 allowDynamicVersions = true,
                 enabledPackageManagers = enabledPackageManagers,
                 disabledPackageManagers = disabledPackageManagers,
+                packageCurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
                 packageManagerOptions = packageManagerOptions,
                 skipExcluded = true
             )
 
             val result = runner.run(projectDir, config)
+            val analyzerResult = result.analyzer.shouldNotBeNull()
 
-            result.analyzer shouldNotBe null
-
-            result.analyzer?.config shouldBe AnalyzerConfiguration(
+            analyzerResult.config shouldBe AnalyzerConfiguration(
                 true,
                 enabledPackageManagers,
                 disabledPackageManagers,
                 packageManagerOptions.map { entry -> entry.key to entry.value.mapToOrt() }.toMap(),
                 true
             )
+
+            result.resolvedConfiguration.packageCurations.map { it.provider.id } should
+                    containExactly("RepositoryConfiguration", "OrtConfig")
         }
 
         "return an unmanaged project for a directory with only an empty subdirectory" {

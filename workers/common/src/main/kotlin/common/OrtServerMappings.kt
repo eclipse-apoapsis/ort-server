@@ -99,6 +99,7 @@ import org.ossreviewtoolkit.model.config.PathExcludeReason as OrtPathExcludeReas
 import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
 import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
+import org.ossreviewtoolkit.model.config.ProviderPluginConfiguration as OrtProviderPluginConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
@@ -116,6 +117,7 @@ import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulne
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
@@ -714,4 +716,12 @@ fun ResolvedConfiguration.mapToOrt() =
         packageConfigurations = packageConfigurations.map { it.mapToOrt() },
         packageCurations = packageCurations.map { it.mapToOrt() },
         resolutions = resolutions.mapToOrt()
+    )
+
+fun ProviderPluginConfiguration.mapToOrt() =
+    OrtProviderPluginConfiguration(
+        type = type,
+        id = id,
+        enabled = enabled,
+        config = config
     )

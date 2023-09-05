@@ -24,10 +24,12 @@ import java.io.File
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.determineEnabledPackageManagers
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.readValueOrNull
-import org.ossreviewtoolkit.plugins.packagecurationproviders.ortconfig.OrtConfigPackageCurationProvider
+import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
+import org.ossreviewtoolkit.plugins.packagecurationproviders.api.SimplePackageCurationProvider
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.ort.ORT_REPO_CONFIG_FILENAME
@@ -73,9 +75,18 @@ class AnalyzerRunner {
             logger.info("Found $count definition file(s) from ${filesPerManager.size} package manager(s) in total.")
         }
 
-        // TODO: Add support for curation providers.
-        val curationProvider = OrtConfigPackageCurationProvider()
-        val ortResult = analyzer.analyze(info, listOf("OrtConfig" to curationProvider))
+        val packageCurationProviders = buildList {
+            add(
+                ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID to SimplePackageCurationProvider(
+                    repositoryConfiguration.curations.packages
+                )
+            )
+
+            val packageCurationProviderConfigs = config.packageCurationProviders.map { it.mapToOrt() }
+            addAll(PackageCurationProviderFactory.create(packageCurationProviderConfigs))
+        }
+
+        val ortResult = analyzer.analyze(info, packageCurationProviders)
 
         val projectCount = ortResult.getProjects().size
         val packageCount = ortResult.getPackages().size
