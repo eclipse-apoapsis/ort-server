@@ -534,7 +534,7 @@ class OrtServerMappingsTest : WordSpec({
                     ),
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
-                            message = "message",
+                            externalId = "message",
                             reason = "CANT_FIX_VULNERABILITY",
                             comment = "comment"
                         )
