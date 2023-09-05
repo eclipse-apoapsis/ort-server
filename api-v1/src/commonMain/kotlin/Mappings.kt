@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
 import org.ossreviewtoolkit.server.api.v1.OrtIssue as ApiOrtIssue
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
+import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
@@ -68,6 +69,7 @@ import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 fun AdvisorJob.mapToApi() =
@@ -100,7 +102,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         disabledPackageManagers,
         enabledPackageManagers,
         environmentConfig?.mapToApi(),
-        packageManagerOptions,
+        packageManagerOptions?.mapValues { it.value.mapToApi() },
         skipExcluded,
         parameters
     )
@@ -111,7 +113,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         disabledPackageManagers,
         enabledPackageManagers,
         environmentConfig?.mapToModel(),
-        packageManagerOptions,
+        packageManagerOptions?.mapValues { it.value.mapToModel() },
         skipExcluded,
         parameters
     )
@@ -254,3 +256,9 @@ fun ApiEnvironmentConfig.mapToModel() =
         environmentDefinitions = environmentDefinitions,
         strict = strict
     )
+
+fun PackageManagerConfiguration.mapToApi() =
+    ApiPackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)
+
+fun ApiPackageManagerConfiguration.mapToModel() =
+    PackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)

@@ -21,8 +21,6 @@ package org.ossreviewtoolkit.server.api.v1
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-
 /**
  * A typealias for key-value pairs.
  */
