@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.server.api.v1.JobStatus
 import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
+import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.ReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
@@ -55,6 +56,8 @@ import org.ossreviewtoolkit.server.model.util.asPresent
 private val jobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(
         allowDynamicVersions = true,
+        disabledPackageManagers = listOf("NPM", "SBT"),
+        enabledPackageManagers = listOf("Gradle", "Maven"),
         environmentConfig = EnvironmentConfig(
             infrastructureServices = listOf(
                 InfrastructureService(
@@ -84,11 +87,27 @@ private val jobConfigurations = JobConfigurations(
                     "minTotalLicenseScore" to "0"
                 )
             )
-        )
+        ),
+        packageManagerOptions = mapOf(
+            "Gradle" to PackageManagerConfiguration(
+                mustRunAfter = listOf("Maven"),
+                options = mapOf("gradleVersion" to "8.1.1")
+            )
+        ),
+        skipExcluded = true
     ),
     advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
-    scanner = ScannerJobConfiguration(),
-    evaluator = EvaluatorJobConfiguration(),
+    scanner = ScannerJobConfiguration(
+        createMissingArchives = true,
+        detectedLicenseMappings = mapOf("LicenseRef-scancode-generic-cla" to "NOASSERTION"),
+        ignorePatterns = listOf("**/META-INF/DEPENDENCIES"),
+        skipConcluded = true,
+        skipExcluded = true
+    ),
+    evaluator = EvaluatorJobConfiguration(
+        licenseClassification = "license-classifications.yml",
+        ruleSet = "rules.evaluator.kts"
+    ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp"))
 )
 
