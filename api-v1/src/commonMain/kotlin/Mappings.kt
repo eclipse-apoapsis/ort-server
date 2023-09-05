@@ -38,6 +38,7 @@ import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
+import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
@@ -61,6 +62,7 @@ import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Product
+import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.Repository
@@ -102,6 +104,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         disabledPackageManagers,
         enabledPackageManagers,
         environmentConfig?.mapToApi(),
+        packageCurationProviders.map { it.mapToApi() },
         packageManagerOptions?.mapValues { it.value.mapToApi() },
         skipExcluded,
         parameters
@@ -113,6 +116,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         disabledPackageManagers,
         enabledPackageManagers,
         environmentConfig?.mapToModel(),
+        packageCurationProviders.map { it.mapToModel() },
         packageManagerOptions?.mapValues { it.value.mapToModel() },
         skipExcluded,
         parameters
@@ -262,3 +266,19 @@ fun PackageManagerConfiguration.mapToApi() =
 
 fun ApiPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)
+
+fun ProviderPluginConfiguration.mapToApi() =
+    ApiProviderPluginConfiguration(
+        type = type,
+        id = id,
+        enabled = enabled,
+        config = config
+    )
+
+fun ApiProviderPluginConfiguration.mapToModel() =
+    ProviderPluginConfiguration(
+        type = type,
+        id = id,
+        enabled = enabled,
+        config = config
+    )

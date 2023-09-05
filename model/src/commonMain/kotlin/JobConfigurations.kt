@@ -70,6 +70,11 @@ data class AnalyzerJobConfiguration(
     val environmentConfig: EnvironmentConfig? = null,
 
     /**
+     * The list of package curation providers to use.
+     */
+    val packageCurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+
+    /**
      * Package manager specific configurations. The key needs to match the name of the package manager class, e.g.
      * "NuGet" for the NuGet package manager.
      */

@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.server.api.v1.JobStatus
 import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
+import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.ReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository
@@ -70,6 +71,17 @@ private val jobConfigurations = JobConfigurations(
                         "service" to "Artifactory",
                         "id" to "repo"
                     )
+                )
+            )
+        ),
+        packageCurationProviders = listOf(
+            ProviderPluginConfiguration(
+                type = "ClearlyDefined",
+                id = "ClearlyDefined",
+                enabled = true,
+                config = mapOf(
+                    "serverUrl" to "https://api.clearlydefined.io",
+                    "minTotalLicenseScore" to "0"
                 )
             )
         )
