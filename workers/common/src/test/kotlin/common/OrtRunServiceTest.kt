@@ -40,27 +40,15 @@ import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationPr
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
-import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
-import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
-import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtRunServiceTest : WordSpec({
@@ -181,7 +169,7 @@ private fun createOrtRun(
         }
     }
 
-    val repositoryConfiguration = getRepositoryConfiguration()
+    val repositoryConfiguration = OrtTestData.repository.config.mapToModel(fixtures.ortRun.id)
 
     repositoryConfigurationRepository.create(
         ortRunId = ortRunDao.id.value,
@@ -197,105 +185,3 @@ private fun createOrtRun(
 }
 
 private fun getVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
-
-private fun getRepositoryConfiguration() = RepositoryConfiguration(
-    id = -1L,
-    ortRunId = -1L,
-    analyzerConfig = RepositoryAnalyzerConfiguration(
-        allowDynamicVersions = true,
-        enabledPackageManagers = listOf("Gradle", "Maven"),
-        disabledPackageManagers = listOf("NPM"),
-        packageManagers = mapOf("Gradle" to PackageManagerConfiguration(listOf("Maven"))),
-        skipExcluded = true
-    ),
-    excludes = Excludes(
-        paths = listOf(
-            PathExclude(
-                pattern = "**/path",
-                reason = "EXAMPLE_OF",
-                comment = "Test path exclude."
-            )
-        ),
-        scopes = listOf(ScopeExclude("test", "TEST_DEPENDENCY_OF", "Test scope exclude."))
-    ),
-    resolutions = Resolutions(
-        issues = listOf(
-            IssueResolution(
-                message = "Error .*",
-                reason = "SCANNER_ISSUE",
-                comment = "Test issue resolution."
-            )
-        ),
-        ruleViolations = listOf(
-            RuleViolationResolution(
-                message = "Rule 1",
-                reason = "EXAMPLE_OF_EXCEPTION",
-                comment = "Test rule violation resolution."
-            )
-        ),
-        vulnerabilities = listOf(
-            VulnerabilityResolution(
-                externalId = "CVE-ID-1234",
-                reason = "INEFFECTIVE_VULNERABILITY",
-                comment = "Test vulnerability resolution."
-            )
-        )
-    ),
-    curations = Curations(
-        packages = listOf(
-            PackageCuration(
-                id = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
-                data = PackageCurationData(
-                    comment = "Test curation data.",
-                    purl = "Maven:com.example:package:1.0",
-                    concludedLicense = "LicenseRef-a"
-                )
-            )
-        ),
-        licenseFindings = listOf(
-            LicenseFindingCuration(
-                path = "**/path",
-                startLines = listOf(8, 9),
-                lineCount = 3,
-                detectedLicense = "LicenseRef-a",
-                concludedLicense = "LicenseRef-b",
-                reason = "DOCUMENTATION_OF",
-                comment = "Test license finding curation."
-            )
-        )
-    ),
-    packageConfigurations = listOf(
-        PackageConfiguration(
-            id = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
-            sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
-            pathExcludes = listOf(
-                PathExclude(
-                    pattern = "**/path",
-                    reason = "EXAMPLE_OF",
-                    comment = "Test path exclude."
-                )
-            ),
-            licenseFindingCurations = listOf(
-                LicenseFindingCuration(
-                    path = "**/path",
-                    startLines = listOf(8, 9),
-                    lineCount = 3,
-                    detectedLicense = "LicenseRef-a",
-                    concludedLicense = "LicenseRef-b",
-                    reason = "DOCUMENTATION_OF",
-                    comment = "Test license finding curation."
-                )
-            )
-        )
-    ),
-    licenseChoices = LicenseChoices(
-        repositoryLicenseChoices = listOf(SpdxLicenseChoice("LicenseRef-a OR LicenseRef-b", "LicenseRef-b")),
-        packageLicenseChoices = listOf(
-            PackageLicenseChoice(
-                identifier = Identifier(type = "Maven", namespace = "com.example", name = "package", version = "1.0"),
-                licenseChoices = listOf(SpdxLicenseChoice("LicenseRef-a OR LicenseRef-b", "LicenseRef-b"))
-            )
-        )
-    )
-
-)
