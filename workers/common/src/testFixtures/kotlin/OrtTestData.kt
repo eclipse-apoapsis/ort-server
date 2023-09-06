@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.HashAlgorithm
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.LicenseFinding
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
@@ -56,6 +57,7 @@ import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
@@ -104,17 +106,17 @@ object OrtTestData {
     const val TIME_STAMP_SECONDS = 1678119934L
 
     val pathExclude = PathExclude(
-        pattern = "**/path",
+        pattern = "excluded/**",
         reason = PathExcludeReason.EXAMPLE_OF,
         comment = "Test path exclude."
     )
 
     val licenseFindingCuration = LicenseFindingCuration(
-        path = "**/path",
+        path = "file1",
         startLines = listOf(1),
         lineCount = 2,
-        detectedLicense = "LicenseRef-detected".toSpdx(),
-        concludedLicense = "LicenseRef-detected-concluded".toSpdx(),
+        detectedLicense = "LicenseRef-detected1".toSpdx(),
+        concludedLicense = "LicenseRef-detected1-concluded".toSpdx(),
         reason = LicenseFindingCurationReason.INCORRECT,
         comment = "Test license finding curation."
     )
@@ -468,7 +470,24 @@ object OrtTestData {
         summary = ScanSummary(
             startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
             endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-            licenseFindings = setOf(),
+            licenseFindings = setOf(
+                LicenseFinding(
+                    license = "LicenseRef-detected-excluded",
+                    location = TextLocation(path = "excluded/file", startLine = 1, endLine = 2)
+                ),
+                LicenseFinding(
+                    license = "LicenseRef-detected1",
+                    location = TextLocation(path = "file1", startLine = 1, endLine = 2)
+                ),
+                LicenseFinding(
+                    license = "LicenseRef-detected2",
+                    location = TextLocation(path = "file2", startLine = 1, endLine = 2)
+                ),
+                LicenseFinding(
+                    license = "LicenseRef-detected3",
+                    location = TextLocation(path = "file3", startLine = 1, endLine = 2)
+                )
+            ),
             copyrightFindings = setOf(),
             issues = listOf(issue)
         ),

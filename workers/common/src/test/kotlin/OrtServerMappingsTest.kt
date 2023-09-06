@@ -79,6 +79,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.LicenseFinding
 import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
@@ -87,6 +88,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 
 private const val TIME_STAMP_SECONDS = 1678119934L
 
@@ -394,7 +396,24 @@ class OrtServerMappingsTest : WordSpec({
                 summary = ScanSummary(
                     startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                     endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                    licenseFindings = emptySet(),
+                    licenseFindings = setOf(
+                        LicenseFinding(
+                            spdxLicense = "LicenseRef-detected-excluded",
+                            location = TextLocation(path = "excluded/file", startLine = 1, endLine = 2)
+                        ),
+                        LicenseFinding(
+                            spdxLicense = "LicenseRef-detected1",
+                            location = TextLocation(path = "file1", startLine = 1, endLine = 2)
+                        ),
+                        LicenseFinding(
+                            spdxLicense = "LicenseRef-detected2",
+                            location = TextLocation(path = "file2", startLine = 1, endLine = 2)
+                        ),
+                        LicenseFinding(
+                            spdxLicense = "LicenseRef-detected3",
+                            location = TextLocation(path = "file3", startLine = 1, endLine = 2)
+                        )
+                    ),
                     copyrightFindings = emptySet(),
                     issues = listOf(issue)
                 ),
@@ -413,17 +432,17 @@ class OrtServerMappingsTest : WordSpec({
             )
 
             val pathExclude = PathExclude(
-                pattern = "**/path",
+                pattern = "excluded/**",
                 reason = "EXAMPLE_OF",
                 comment = "Test path exclude."
             )
 
             val licenseFindingCuration = LicenseFindingCuration(
-                path = "**/path",
+                path = "file1",
                 startLines = listOf(1),
                 lineCount = 2,
-                detectedLicense = "LicenseRef-detected",
-                concludedLicense = "LicenseRef-detected-concluded",
+                detectedLicense = "LicenseRef-detected1",
+                concludedLicense = "LicenseRef-detected1-concluded",
                 reason = "INCORRECT",
                 comment = "Test license finding curation."
             )
