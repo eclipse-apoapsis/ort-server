@@ -198,7 +198,7 @@ class OrtServerMappingsTest : WordSpec({
                 purl = "Maven:com.example:package:1.0",
                 cpe = "cpe:example",
                 authors = setOf("Author One", "Author Two"),
-                declaredLicenses = setOf("Eclipse Public License 1.0"),
+                declaredLicenses = setOf("LicenseRef-declared", "LicenseRef-unknown"),
                 description = "Example description",
                 homepageUrl = "https://example.org/package",
                 binaryArtifact = RemoteArtifact(
@@ -352,7 +352,7 @@ class OrtServerMappingsTest : WordSpec({
                     purl = "purl",
                     cpe = "cpe",
                     authors = setOf("author 1", "author 2"),
-                    concludedLicense = "Apache-2.0",
+                    concludedLicense = "LicenseRef-concluded",
                     description = "description",
                     homepageUrl = "https://example.org/package-curated",
                     binaryArtifact = RemoteArtifact(
@@ -373,7 +373,7 @@ class OrtServerMappingsTest : WordSpec({
                     ),
                     isMetadataOnly = false,
                     isModified = false,
-                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
+                    declaredLicenseMapping = mapOf("LicenseRef-unknown" to "LicenseRef-curated")
                 )
             )
 
@@ -420,11 +420,11 @@ class OrtServerMappingsTest : WordSpec({
 
             val licenseFindingCuration = LicenseFindingCuration(
                 path = "**/path",
-                startLines = listOf(8, 9),
-                lineCount = 3,
-                detectedLicense = "LicenseRef-a",
-                concludedLicense = "LicenseRef-b",
-                reason = "DOCUMENTATION_OF",
+                startLines = listOf(1),
+                lineCount = 2,
+                detectedLicense = "LicenseRef-detected",
+                concludedLicense = "LicenseRef-detected-concluded",
+                reason = "INCORRECT",
                 comment = "Test license finding curation."
             )
 

@@ -111,11 +111,11 @@ object OrtTestData {
 
     val licenseFindingCuration = LicenseFindingCuration(
         path = "**/path",
-        startLines = listOf(8, 9),
-        lineCount = 3,
-        detectedLicense = "LicenseRef-a".toSpdx(),
-        concludedLicense = "LicenseRef-b".toSpdx(),
-        reason = LicenseFindingCurationReason.DOCUMENTATION_OF,
+        startLines = listOf(1),
+        lineCount = 2,
+        detectedLicense = "LicenseRef-detected".toSpdx(),
+        concludedLicense = "LicenseRef-detected-concluded".toSpdx(),
+        reason = LicenseFindingCurationReason.INCORRECT,
         comment = "Test license finding curation."
     )
 
@@ -147,7 +147,7 @@ object OrtTestData {
             purl = "purl",
             cpe = "cpe",
             authors = setOf("author 1", "author 2"),
-            concludedLicense = "Apache-2.0".toSpdx(),
+            concludedLicense = "LicenseRef-concluded".toSpdx(),
             description = "description",
             homepageUrl = "https://example.org/package-curated",
             binaryArtifact = RemoteArtifact(
@@ -166,7 +166,7 @@ object OrtTestData {
             ),
             isMetadataOnly = false,
             isModified = false,
-            declaredLicenseMapping = mapOf("Apache" to "Apache-2.0".toSpdx())
+            declaredLicenseMapping = mapOf("LicenseRef-unknown" to "LicenseRef-curated".toSpdx())
         )
     )
 
@@ -285,7 +285,7 @@ object OrtTestData {
         purl = "Maven:com.example:package:1.0",
         cpe = "cpe:example",
         authors = setOf("Author One", "Author Two"),
-        declaredLicenses = setOf("Eclipse Public License 1.0"),
+        declaredLicenses = setOf("LicenseRef-declared", "LicenseRef-unknown"),
         description = "Example description",
         homepageUrl = "https://example.org/package",
         binaryArtifact = RemoteArtifact(
