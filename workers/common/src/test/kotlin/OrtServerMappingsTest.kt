@@ -355,7 +355,7 @@ class OrtServerMappingsTest : WordSpec({
             val scanResult = ScanResult(
                 provenance = repositoryProvenance,
                 scanner = ScannerDetail(
-                    name = "name",
+                    name = "ScanCode",
                     version = "version",
                     configuration = "configuration"
                 ),

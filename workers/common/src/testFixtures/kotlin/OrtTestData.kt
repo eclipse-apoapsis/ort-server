@@ -450,7 +450,8 @@ object OrtTestData {
     val scanResult = ScanResult(
         provenance = repositoryProvenance,
         scanner = ScannerDetails(
-            name = "name",
+            // This has to be "ScanCode" because the value is currently hardcoded in `OrtServerMappings`.
+            name = "ScanCode",
             version = "version",
             configuration = "configuration"
         ),
@@ -472,9 +473,7 @@ object OrtTestData {
         provenances = setOf(provenanceResolutionResult),
         scanResults = setOf(scanResult),
         files = emptySet(),
-        // TODO: Provide the correct scanner name `scanResult.scanner.name` once the hardcoded mapping to ScanCode in
-        //       `OrtServerMappings` has been removed.
-        scanners = mapOf(provenanceResolutionResult.id to setOf("ScanCode"))
+        scanners = mapOf(provenanceResolutionResult.id to setOf(scanResult.scanner.name))
     )
 
     val resolvedConfiguration = ResolvedConfiguration(
