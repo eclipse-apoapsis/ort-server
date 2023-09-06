@@ -124,7 +124,7 @@ object OrtTestData {
         choice = "LicenseRef-b".toSpdx()
     )
 
-    val ortRepository = Repository(
+    val repository = Repository(
         vcs = VcsInfo(
             type = VcsType.GIT,
             url = "https://github.com/org/repo.git",
@@ -200,7 +200,7 @@ object OrtTestData {
         )
     )
 
-    val ortEnvironment = Environment(
+    val environment = Environment(
         os = "Linux",
         ortVersion = "def456",
         javaVersion = "17",
@@ -210,7 +210,7 @@ object OrtTestData {
         toolVersions = emptyMap()
     )
 
-    val ortAnalyzerConfiguration = AnalyzerConfiguration(
+    val analyzerConfiguration = AnalyzerConfiguration(
         allowDynamicVersions = false,
         enabledPackageManagers = listOf("Maven", "Gradle"),
         disabledPackageManagers = listOf("NPM"),
@@ -221,7 +221,7 @@ object OrtTestData {
         )
     )
 
-    val ortProject = Project(
+    val project = Project(
         id = Identifier(
             type = "Maven",
             namespace = "com.example",
@@ -248,15 +248,15 @@ object OrtTestData {
         scopeNames = sortedSetOf("compile")
     )
 
-    val ortPkgIdentifier = Identifier(
+    val pkgIdentifier = Identifier(
         type = "Maven",
         namespace = "com.example",
         name = "package",
         version = "1.0"
     )
 
-    val ortPkg = Package(
-        id = ortPkgIdentifier,
+    val pkg = Package(
+        id = pkgIdentifier,
         purl = "Maven:com.example:package:1.0",
         cpe = "cpe:example",
         authors = setOf("Author One", "Author Two"),
@@ -293,15 +293,15 @@ object OrtTestData {
         isModified = true
     )
 
-    val ortIssue = Issue(
+    val issue = Issue(
         timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         source = "tool-x",
         message = "An issue occurred.",
         severity = Severity.ERROR
     )
 
-    val ortDependencyGraph = DependencyGraph(
-        packages = listOf(ortPkgIdentifier),
+    val dependencyGraph = DependencyGraph(
+        packages = listOf(pkgIdentifier),
         nodes = listOf(DependencyGraphNode(0)),
         edges = emptyList(),
         scopes = mapOf(
@@ -309,24 +309,24 @@ object OrtTestData {
         )
     )
 
-    val ortAnalyzerRun = AnalyzerRun(
+    val analyzerRun = AnalyzerRun(
         startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-        environment = ortEnvironment,
-        config = ortAnalyzerConfiguration,
+        environment = environment,
+        config = analyzerConfiguration,
         result = AnalyzerResult(
-            projects = setOf(ortProject),
-            packages = setOf(ortPkg),
-            issues = mapOf(ortPkgIdentifier to listOf(ortIssue)),
-            dependencyGraphs = mapOf("Maven" to ortDependencyGraph)
+            projects = setOf(project),
+            packages = setOf(pkg),
+            issues = mapOf(pkgIdentifier to listOf(issue)),
+            dependencyGraphs = mapOf("Maven" to dependencyGraph)
         )
     )
 
-    val ortOsvConfiguration = OsvConfiguration(
+    val osvConfiguration = OsvConfiguration(
         serverUrl = "https://osv.com"
     )
 
-    val ortGithubDefectsConfiguration = GitHubDefectsConfiguration(
+    val githubDefectsConfiguration = GitHubDefectsConfiguration(
         token = null,
         endpointUrl = "https://github.com",
         labelFilter = listOf("filter-1", "filter-2"),
@@ -334,29 +334,29 @@ object OrtTestData {
         parallelRequests = 2
     )
 
-    val ortVulnerableCodeConfiguration = VulnerableCodeConfiguration(
+    val vulnerableCodeConfiguration = VulnerableCodeConfiguration(
         serverUrl = "https://vulnerablecode.com",
         apiKey = null
     )
 
-    val ortNexusIqConfiguration = NexusIqConfiguration(
+    val nexusIqConfiguration = NexusIqConfiguration(
         serverUrl = "https://nexusiq.com",
         browseUrl = "https://nexusiq.com/browse",
         username = null,
         password = null
     )
 
-    val ortAdvisorConfiguration = AdvisorConfiguration(
-        osv = ortOsvConfiguration,
-        gitHubDefects = ortGithubDefectsConfiguration,
-        vulnerableCode = ortVulnerableCodeConfiguration,
-        nexusIq = ortNexusIqConfiguration,
+    val advisorConfiguration = AdvisorConfiguration(
+        osv = osvConfiguration,
+        gitHubDefects = githubDefectsConfiguration,
+        vulnerableCode = vulnerableCodeConfiguration,
+        nexusIq = nexusIqConfiguration,
         options = emptyMap()
     )
 
-    val ortAdvisorRecord = AdvisorRecord(
+    val advisorRecord = AdvisorRecord(
         advisorResults = sortedMapOf(
-            ortPkgIdentifier to listOf(
+            pkgIdentifier to listOf(
                 AdvisorResult(
                     advisor = AdvisorDetails(
                         name = "VulnerableCode",
@@ -365,7 +365,7 @@ object OrtTestData {
                     summary = AdvisorSummary(
                         startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-                        issues = listOf(ortIssue)
+                        issues = listOf(issue)
                     ),
                     defects = emptyList(),
                     vulnerabilities = listOf(
@@ -387,33 +387,33 @@ object OrtTestData {
         )
     )
 
-    val ortAdvisorRun = AdvisorRun(
+    val advisorRun = AdvisorRun(
         startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-        environment = ortEnvironment,
-        config = ortAdvisorConfiguration,
-        results = ortAdvisorRecord
+        environment = environment,
+        config = advisorConfiguration,
+        results = advisorRecord
     )
 
-    val ortFileStorageConfiguration = FileStorageConfiguration(
+    val fileStorageConfiguration = FileStorageConfiguration(
         localFileStorage = LocalFileStorageConfiguration(
             directory = File("/path/to/storage"),
             compression = true
         )
     )
 
-    val ortScannerConfiguration = ScannerConfiguration(
+    val scannerConfiguration = ScannerConfiguration(
         skipConcluded = true,
         archive = FileArchiverConfiguration(
             enabled = true,
-            fileStorage = ortFileStorageConfiguration
+            fileStorage = fileStorageConfiguration
         ),
         createMissingArchives = true,
         detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
         options = mapOf("scanner-1" to mapOf("option-key-1" to "option-value-1")),
         storages = mapOf(
             "local" to FileBasedStorageConfiguration(
-                backend = ortFileStorageConfiguration,
+                backend = fileStorageConfiguration,
                 type = StorageType.PROVENANCE_BASED
             )
         ),
@@ -421,19 +421,19 @@ object OrtTestData {
         storageWriters = listOf("writer-1", "writer-2"),
         ignorePatterns = listOf("pattern-1", "pattern-2"),
         provenanceStorage = ProvenanceStorageConfiguration(
-            fileStorage = ortFileStorageConfiguration
+            fileStorage = fileStorageConfiguration
         )
     )
 
-    val ortRepositoryProvenance = RepositoryProvenance(ortPkg.vcsProcessed, ortPkg.vcsProcessed.revision)
+    val repositoryProvenance = RepositoryProvenance(pkg.vcsProcessed, pkg.vcsProcessed.revision)
 
-    val ortProvenanceResolutionResult = ProvenanceResolutionResult(
-        id = ortPkgIdentifier,
-        packageProvenance = ortRepositoryProvenance
+    val provenanceResolutionResult = ProvenanceResolutionResult(
+        id = pkgIdentifier,
+        packageProvenance = repositoryProvenance
     )
 
-    val ortScanResult = ScanResult(
-        provenance = ortRepositoryProvenance,
+    val scanResult = ScanResult(
+        provenance = repositoryProvenance,
         scanner = ScannerDetails(
             name = "name",
             version = "version",
@@ -444,28 +444,28 @@ object OrtTestData {
             endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
             licenseFindings = sortedSetOf(),
             copyrightFindings = sortedSetOf(),
-            issues = listOf(ortIssue)
+            issues = listOf(issue)
         ),
         additionalData = mapOf("data-1" to "value-1")
     )
 
-    val ortScannerRun = ScannerRun(
+    val scannerRun = ScannerRun(
         startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-        environment = ortEnvironment,
-        config = ortScannerConfiguration,
-        provenances = setOf(ortProvenanceResolutionResult),
-        scanResults = setOf(ortScanResult),
+        environment = environment,
+        config = scannerConfiguration,
+        provenances = setOf(provenanceResolutionResult),
+        scanResults = setOf(scanResult),
         files = emptySet(),
-        // TODO: Provide the correct scanner name `ortScanResult.scanner.name` once the hardcoded mapping to ScanCode in
+        // TODO: Provide the correct scanner name `scanResult.scanner.name` once the hardcoded mapping to ScanCode in
         //       `OrtServerMappings` has been removed.
-        scanners = mapOf(ortProvenanceResolutionResult.id to setOf("ScanCode"))
+        scanners = mapOf(provenanceResolutionResult.id to setOf("ScanCode"))
     )
 
     val resolvedConfiguration = ResolvedConfiguration(
         packageConfigurations = listOf(
             PackageConfiguration(
-                id = ortPkgIdentifier,
+                id = pkgIdentifier,
                 sourceArtifactUrl = "https://example.org/artifact.zip",
                 pathExcludes = listOf(pathExclude),
                 licenseFindingCurations = listOf(licenseFindingCuration)
@@ -476,7 +476,7 @@ object OrtTestData {
                 provider = ResolvedPackageCurations.Provider(id = "name"),
                 curations = setOf(
                     PackageCuration(
-                        id = ortPkgIdentifier,
+                        id = pkgIdentifier,
                         data = PackageCurationData(
                             comment = "comment",
                             purl = "purl",
@@ -532,11 +532,11 @@ object OrtTestData {
         )
     )
 
-    val ortResult = OrtResult(
-        repository = ortRepository,
-        analyzer = ortAnalyzerRun,
-        advisor = ortAdvisorRun,
-        scanner = ortScannerRun,
+    val result = OrtResult(
+        repository = repository,
+        analyzer = analyzerRun,
+        advisor = advisorRun,
+        scanner = scannerRun,
         evaluator = null,
         labels = mapOf("label key" to "label value"),
         resolvedConfiguration = resolvedConfiguration

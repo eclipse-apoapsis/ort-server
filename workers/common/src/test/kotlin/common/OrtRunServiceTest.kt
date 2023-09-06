@@ -101,7 +101,7 @@ class OrtRunServiceTest : WordSpec({
                 vcsInfo.mapToOrt(),
                 processedVcsInfo.mapToOrt(),
                 mapOf("nested-1" to nestedVcsInfo1.mapToOrt(), "nested-2" to nestedVcsInfo2.mapToOrt()),
-                OrtTestData.ortRepository.config
+                OrtTestData.repository.config
             )
         }
 

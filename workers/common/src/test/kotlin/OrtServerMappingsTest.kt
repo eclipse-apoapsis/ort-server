@@ -553,7 +553,7 @@ class OrtServerMappingsTest : WordSpec({
                 resolvedConfiguration = resolvedConfiguration.mapToOrt()
             )
 
-            mappedOrtResult shouldBe OrtTestData.ortResult
+            mappedOrtResult shouldBe OrtTestData.result
         }
     }
 })

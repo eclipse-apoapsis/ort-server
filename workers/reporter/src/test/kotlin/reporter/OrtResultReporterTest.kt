@@ -41,10 +41,10 @@ class OrtResultReporterTest : WordSpec({
             // Set the options of the advisor configuration to null because the configured empty map will be serialized
             // as null. Changing the value in OrtTestData is not possible, because the options in the server model are
             // not nullable and changing it would therefore make other tests fail.
-            val advisorRun = OrtTestData.ortAdvisorRun.copy(
-                config = OrtTestData.ortAdvisorConfiguration.copy(options = null)
+            val advisorRun = OrtTestData.advisorRun.copy(
+                config = OrtTestData.advisorConfiguration.copy(options = null)
             )
-            val ortResult = OrtTestData.ortResult.copy(advisor = advisorRun)
+            val ortResult = OrtTestData.result.copy(advisor = advisorRun)
             val input = ReporterInput(ortResult = ortResult)
 
             val reportFiles = reporter.generateReport(input, tempdir())
