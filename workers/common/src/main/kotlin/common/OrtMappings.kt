@@ -600,7 +600,7 @@ fun OrtPackageCurationData.mapToModel() = PackageCurationData(
     vcs = vcs?.mapToModel(),
     isMetadataOnly = isMetadataOnly,
     isModified = isModified,
-    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.toString() }
+    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() }
 )
 
 fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
