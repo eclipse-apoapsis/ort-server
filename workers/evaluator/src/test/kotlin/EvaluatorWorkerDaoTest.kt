@@ -20,11 +20,17 @@
 package org.ossreviewtoolkit.server.workers.evaluator
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
@@ -33,6 +39,8 @@ import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
+import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.utils.common.gibibytes
 
 private const val TIME_STAMP_SECONDS = 1678119934L
@@ -52,6 +60,7 @@ class EvaluatorWorkerDaoTest : WordSpec({
             evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
             ortRunRepository = dbExtension.fixtures.ortRunRepository,
             repositoryRepository = dbExtension.fixtures.repositoryRepository,
+            resolvedConfigurationRepository = dbExtension.fixtures.resolvedConfigurationRepository,
             evaluatorRunRepository = dbExtension.fixtures.evaluatorRunRepository,
             scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
             scannerRunRepository = dbExtension.fixtures.scannerRunRepository
@@ -218,6 +227,37 @@ class EvaluatorWorkerDaoTest : WordSpec({
             dao.storeEvaluatorRun(evaluatorRun)
 
             dbExtension.fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
+        }
+    }
+
+    "storeResolvedPackageConfigurations" should {
+        "store the resolved package configurations" {
+            val configurations = listOf(
+                PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    pathExcludes = listOf(OrtTestData.pathExclude),
+                    licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
+                ),
+                PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    vcs = VcsMatcher(
+                        type = VcsType.GIT,
+                        url = OrtTestData.pkgCuratedRepositoryUrl,
+                        revision = OrtTestData.pkgCuratedRevision
+                    ),
+                    pathExcludes = listOf(OrtTestData.pathExclude),
+                    licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
+                )
+            )
+
+            dao.storeResolvedPackageConfigurations(fixtures.ortRun.id, configurations)
+
+            val resolvedConfiguration =
+                dbExtension.fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+
+            resolvedConfiguration.shouldNotBeNull()
+            resolvedConfiguration.packageConfigurations should containExactly(configurations.map { it.mapToModel() })
         }
     }
 })

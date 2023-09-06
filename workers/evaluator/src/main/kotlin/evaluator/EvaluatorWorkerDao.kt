@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.evaluator
 
+import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
@@ -28,13 +29,16 @@ import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
+@Suppress("LongParameterList")
 class EvaluatorWorkerDao(
     private val advisorJobRepository: AdvisorJobRepository,
     private val advisorRunRepository: AdvisorRunRepository,
@@ -44,6 +48,7 @@ class EvaluatorWorkerDao(
     private val evaluatorRunRepository: EvaluatorRunRepository,
     private val ortRunRepository: OrtRunRepository,
     private val repositoryRepository: RepositoryRepository,
+    private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
     private val scannerJobRepository: ScannerJobRepository,
     private val scannerRunRepository: ScannerRunRepository
 ) {
@@ -77,6 +82,13 @@ class EvaluatorWorkerDao(
             evaluatorRun.startTime,
             evaluatorRun.endTime,
             evaluatorRun.violations
+        )
+    }
+
+    fun storeResolvedPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) {
+        resolvedConfigurationRepository.addPackageConfigurations(
+            ortRunId,
+            packageConfigurations.map { it.mapToModel() }
         )
     }
 }
