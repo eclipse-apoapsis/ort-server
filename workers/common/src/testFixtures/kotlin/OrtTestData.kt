@@ -277,7 +277,7 @@ object OrtTestData {
             path = ""
         ),
         homepageUrl = "https://example.org/project",
-        scopeNames = sortedSetOf("compile")
+        scopeNames = setOf("compile")
     )
 
     val pkg = Package(
@@ -468,8 +468,8 @@ object OrtTestData {
         summary = ScanSummary(
             startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
             endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-            licenseFindings = sortedSetOf(),
-            copyrightFindings = sortedSetOf(),
+            licenseFindings = setOf(),
+            copyrightFindings = setOf(),
             issues = listOf(issue)
         ),
         additionalData = mapOf("data-1" to "value-1")
