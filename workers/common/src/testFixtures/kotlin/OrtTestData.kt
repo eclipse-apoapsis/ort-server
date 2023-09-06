@@ -128,6 +128,13 @@ object OrtTestData {
     const val projectProcessedRepositoryUrl = "https://example.org/project.git"
     const val projectRevision = "project123"
 
+    val pkgIdentifier = Identifier(
+        type = "Maven",
+        namespace = "com.example",
+        name = "package",
+        version = "1.0"
+    )
+
     const val pkgBinaryArtifactUrl = "https://example.org/binary.zip"
     const val pkgCuratedBinaryArtifactUrl = "https://example.org/binary-curated.zip"
     const val pkgSourceArtifactUrl = "https://example.org/source.zip"
@@ -185,7 +192,7 @@ object OrtTestData {
             curations = Curations(
                 packages = listOf(
                     PackageCuration(
-                        id = Identifier("Maven", "com.example", "package", "1.0"),
+                        id = pkgIdentifier,
                         data = PackageCurationData(
                             comment = "Test curation data.",
                             purl = "Maven:com.example:package:1.0",
@@ -197,7 +204,7 @@ object OrtTestData {
             ),
             packageConfigurations = listOf(
                 PackageConfiguration(
-                    id = Identifier("Maven", "com.example", "package", "1.0"),
+                    id = pkgIdentifier,
                     sourceArtifactUrl = pkgCuratedSourceArtifactUrl,
                     pathExcludes = listOf(pathExclude),
                     licenseFindingCurations = listOf(licenseFindingCuration)
@@ -207,7 +214,7 @@ object OrtTestData {
                 repositoryLicenseChoices = listOf(spdxLicenseChoice),
                 packageLicenseChoices = listOf(
                     PackageLicenseChoice(
-                        packageId = Identifier("Maven", "com.example", "package", "1.0"),
+                        packageId = pkgIdentifier,
                         licenseChoices = listOf(spdxLicenseChoice)
                     )
                 )
@@ -261,13 +268,6 @@ object OrtTestData {
         ),
         homepageUrl = "https://example.org/project",
         scopeNames = sortedSetOf("compile")
-    )
-
-    val pkgIdentifier = Identifier(
-        type = "Maven",
-        namespace = "com.example",
-        name = "package",
-        version = "1.0"
     )
 
     val pkg = Package(
