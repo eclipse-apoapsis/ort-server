@@ -22,11 +22,19 @@ package org.ossreviewtoolkit.server.workers.evaluator
 import org.ossreviewtoolkit.evaluator.Evaluator
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.CopyrightGarbage
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
+import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
+import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class EvaluatorRunner(
     /**
@@ -49,9 +57,27 @@ class EvaluatorRunner(
             }
         } ?: LicenseClassifications()
 
+        val packageConfigurationProvider = buildList {
+            val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
+            add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
+
+            val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
+            addAll(PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second })
+        }.let { CompositePackageConfigurationProvider(it) }
+
+        // TODO: Make the hardcoded values below configurable.
+        val licenseInfoResolver = LicenseInfoResolver(
+            provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
+            copyrightGarbage = CopyrightGarbage(),
+            addAuthorsToCopyrights = true,
+            archiver = null,
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
+        )
+
         val evaluator = Evaluator(
             ortResult = ortResult,
-            licenseClassifications = licenseClassifications
+            licenseClassifications = licenseClassifications,
+            licenseInfoResolver = licenseInfoResolver
         )
 
         return evaluator.run(script)

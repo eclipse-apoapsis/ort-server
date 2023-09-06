@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":workers:common"))
 
     implementation(libs.ortEvaluator)
+    implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(libs.typesafeConfig)
 
     runtimeOnly(project(":config:github"))
@@ -68,6 +69,7 @@ dependencies {
     testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(project(":workers:common")))
 
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)

@@ -1,0 +1,10 @@
+id: "Maven:com.example:package:1.0"
+source_artifact_url: "https://example.org/source-curated.zip"
+license_finding_curations:
+- path: "file2"
+  start_lines: "1"
+  line_count: 2
+  detected_license: "LicenseRef-detected2"
+  concluded_license: "LicenseRef-detected2-concluded"
+  reason: "INCORRECT"
+  comment: "Test license finding curation."
