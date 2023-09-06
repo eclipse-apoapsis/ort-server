@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun
+import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.DependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphNode
 import org.ossreviewtoolkit.model.Hash
@@ -47,7 +48,6 @@ import org.ossreviewtoolkit.model.Project
 import org.ossreviewtoolkit.model.ProvenanceResolutionResult
 import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
-import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ResolvedConfiguration
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.RootDependencyIndex
@@ -450,15 +450,15 @@ object OrtTestData {
         )
     )
 
-    val repositoryProvenance = RepositoryProvenance(pkg.vcsProcessed, pkg.vcsProcessed.revision)
+    val artifactProvenance = ArtifactProvenance(pkgCuration.data.sourceArtifact!!)
 
     val provenanceResolutionResult = ProvenanceResolutionResult(
         id = pkgIdentifier,
-        packageProvenance = repositoryProvenance
+        packageProvenance = artifactProvenance
     )
 
     val scanResult = ScanResult(
-        provenance = repositoryProvenance,
+        provenance = artifactProvenance,
         scanner = ScannerDetails(
             // This has to be "ScanCode" because the value is currently hardcoded in `OrtServerMappings`.
             name = "ScanCode",
@@ -490,7 +490,7 @@ object OrtTestData {
         packageConfigurations = listOf(
             PackageConfiguration(
                 id = pkgIdentifier,
-                sourceArtifactUrl = pkgSourceArtifactUrl,
+                sourceArtifactUrl = pkgCuratedSourceArtifactUrl,
                 pathExcludes = listOf(pathExclude),
                 licenseFindingCurations = listOf(licenseFindingCuration)
             )

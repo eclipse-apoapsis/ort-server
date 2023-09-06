@@ -75,13 +75,13 @@ import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
 import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
 import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
 import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
+import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
@@ -345,15 +345,47 @@ class OrtServerMappingsTest : WordSpec({
                 )
             )
 
-            val repositoryProvenance = RepositoryProvenance(pkg.vcsProcessed, pkg.vcsProcessed.revision)
+            val packageCuration = PackageCuration(
+                id = pkgIdentifier,
+                data = PackageCurationData(
+                    comment = "comment",
+                    purl = "purl",
+                    cpe = "cpe",
+                    authors = setOf("author 1", "author 2"),
+                    concludedLicense = "Apache-2.0",
+                    description = "description",
+                    homepageUrl = "https://example.org/package-curated",
+                    binaryArtifact = RemoteArtifact(
+                        url = OrtTestData.pkgCuratedBinaryArtifactUrl,
+                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                        hashAlgorithm = "SHA-1"
+                    ),
+                    sourceArtifact = RemoteArtifact(
+                        url = OrtTestData.pkgCuratedSourceArtifactUrl,
+                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                        hashAlgorithm = "SHA-1"
+                    ),
+                    vcs = VcsInfoCurationData(
+                        type = RepositoryType.GIT,
+                        url = OrtTestData.pkgCuratedRepositoryUrl,
+                        revision = OrtTestData.pkgCuratedRevision,
+                        path = OrtTestData.pkgCuratedPath
+                    ),
+                    isMetadataOnly = false,
+                    isModified = false,
+                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
+                )
+            )
+
+            val artifactProvenance = ArtifactProvenance(packageCuration.data.sourceArtifact!!)
 
             val provenanceResolutionResult = ProvenanceResolutionResult(
                 id = pkgIdentifier,
-                packageProvenance = repositoryProvenance
+                packageProvenance = artifactProvenance
             )
 
             val scanResult = ScanResult(
-                provenance = repositoryProvenance,
+                provenance = artifactProvenance,
                 scanner = ScannerDetail(
                     name = "ScanCode",
                     version = "version",
@@ -399,38 +431,6 @@ class OrtServerMappingsTest : WordSpec({
             val spdxLicenseChoice = SpdxLicenseChoice(
                 given = "LicenseRef-a OR LicenseRef-b",
                 choice = "LicenseRef-b"
-            )
-
-            val packageCuration = PackageCuration(
-                id = pkgIdentifier,
-                data = PackageCurationData(
-                    comment = "comment",
-                    purl = "purl",
-                    cpe = "cpe",
-                    authors = setOf("author 1", "author 2"),
-                    concludedLicense = "Apache-2.0",
-                    description = "description",
-                    homepageUrl = "https://example.org/package-curated",
-                    binaryArtifact = RemoteArtifact(
-                        url = OrtTestData.pkgCuratedBinaryArtifactUrl,
-                        hashValue = "0123456789abcdef0123456789abcdef01234567",
-                        hashAlgorithm = "SHA-1"
-                    ),
-                    sourceArtifact = RemoteArtifact(
-                        url = OrtTestData.pkgCuratedSourceArtifactUrl,
-                        hashValue = "0123456789abcdef0123456789abcdef01234567",
-                        hashAlgorithm = "SHA-1"
-                    ),
-                    vcs = VcsInfoCurationData(
-                        type = RepositoryType.GIT,
-                        url = OrtTestData.pkgCuratedRepositoryUrl,
-                        revision = OrtTestData.pkgCuratedRevision,
-                        path = OrtTestData.pkgCuratedPath
-                    ),
-                    isMetadataOnly = false,
-                    isModified = false,
-                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
-                )
             )
 
             val repositoryConfig = RepositoryConfiguration(
@@ -497,7 +497,7 @@ class OrtServerMappingsTest : WordSpec({
                 packageConfigurations = listOf(
                     PackageConfiguration(
                         id = pkgIdentifier,
-                        sourceArtifactUrl = OrtTestData.pkgSourceArtifactUrl,
+                        sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
                         pathExcludes = listOf(pathExclude),
                         licenseFindingCurations = listOf(licenseFindingCuration)
                     )
