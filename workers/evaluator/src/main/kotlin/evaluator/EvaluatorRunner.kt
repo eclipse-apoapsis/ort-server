@@ -24,10 +24,12 @@ import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
+import org.ossreviewtoolkit.model.utils.ConfigurationResolver
 import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
@@ -47,7 +49,7 @@ class EvaluatorRunner(
      * respective paths specified in [config]. In case the path to the license classifications file is not provided,
      * an empty [LicenseClassifications] is passed to the Evaluator.
      */
-    fun run(ortResult: OrtResult, config: EvaluatorJobConfiguration): EvaluatorRun {
+    fun run(ortResult: OrtResult, config: EvaluatorJobConfiguration): EvaluatorRunnerResult {
         val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
             ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
@@ -80,6 +82,19 @@ class EvaluatorRunner(
             licenseInfoResolver = licenseInfoResolver
         )
 
-        return evaluator.run(script)
+        val evaluatorRun = evaluator.run(script)
+
+        val packageConfigurations = ConfigurationResolver.resolvePackageConfigurations(
+            identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
+            scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
+            packageConfigurationProvider = packageConfigurationProvider
+        )
+
+        return EvaluatorRunnerResult(evaluatorRun, packageConfigurations)
     }
 }
+
+data class EvaluatorRunnerResult(
+    val evaluatorRun: EvaluatorRun,
+    val packageConfigurations: List<PackageConfiguration>
+)

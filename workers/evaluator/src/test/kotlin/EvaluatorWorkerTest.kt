@@ -25,8 +25,10 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.runs
 
 import java.io.File
 
@@ -97,6 +99,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeEvaluatorRun(any()) } returns mockk()
             every { getOrtRun(any()) } returns ortRun
             every { getRepository(any()) } returns repository
+            every { storeResolvedPackageConfigurations(any(), any()) } just runs
         }
 
         val configManager = mockk<ConfigManager> {

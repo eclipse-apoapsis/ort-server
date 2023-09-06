@@ -64,11 +64,12 @@ internal class EvaluatorWorker(
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
-        val evaluatorRun = runner.run(ortResult, evaluatorJob.configuration)
+        val evaluatorRunnerResult = runner.run(ortResult, evaluatorJob.configuration)
 
         db.blockingQuery {
             getValidEvaluatorJob(evaluatorJob.id)
-            dao.storeEvaluatorRun(evaluatorRun.mapToModel(evaluatorJob.id))
+            dao.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(evaluatorJob.id))
+            dao.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
         }
 
         RunResult.Success

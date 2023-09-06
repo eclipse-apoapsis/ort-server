@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.evaluator
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -33,12 +34,16 @@ import java.io.File
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.LicenseFindingCuration
+import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
+import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 const val SCRIPT_FILE = "/example.rules.kts"
 private const val PACKAGE_CONFIGURATION_RULES = "package-configurations.rules.kts"
@@ -64,7 +69,7 @@ class EvaluatorRunnerTest : WordSpec({
                 howToFix = ""
             )
 
-            result.violations shouldBe listOf(expectedRuleViolation)
+            result.evaluatorRun.violations shouldBe listOf(expectedRuleViolation)
         }
 
         "throw an exception when no rule set is provided" {
@@ -90,8 +95,17 @@ class EvaluatorRunnerTest : WordSpec({
             // rules create rule violations if detected licenses LicenseRef-detected1 or LicenseRef-detected2 are
             // found. If the package configuration is applied, the result will only contain a rule violation for the
             // LicenseRef-detected2 finding.
-            result.violations should haveSize(1)
-            result.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected2'."
+            result.evaluatorRun.violations should haveSize(1)
+            result.evaluatorRun.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected2'."
+
+            result.packageConfigurations should containExactly(
+                PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    pathExcludes = listOf(OrtTestData.pathExclude),
+                    licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
+                )
+            )
         }
 
         "use the package configurations from the configured providers" {
@@ -124,8 +138,27 @@ class EvaluatorRunnerTest : WordSpec({
             // LicenseRef-detected2 finding. The used rules create rule violations if detected licenses
             // LicenseRef-detected1 or LicenseRef-detected2 are found. If the package configuration is applied, the
             // result will only contain a rule violation for the LicenseRef-detected1 finding.
-            result.violations should haveSize(1)
-            result.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected1'."
+            result.evaluatorRun.violations should haveSize(1)
+            result.evaluatorRun.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected1'."
+
+            result.packageConfigurations should containExactly(
+                PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    pathExcludes = emptyList(),
+                    licenseFindingCurations = listOf(
+                        LicenseFindingCuration(
+                            path = "file2",
+                            startLines = listOf(1),
+                            lineCount = 2,
+                            detectedLicense = "LicenseRef-detected2".toSpdx(),
+                            concludedLicense = "LicenseRef-detected2-concluded".toSpdx(),
+                            reason = LicenseFindingCurationReason.INCORRECT,
+                            comment = "Test license finding curation."
+                        )
+                    )
+                )
+            )
         }
     }
 })
