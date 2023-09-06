@@ -128,13 +128,7 @@ object OrtTestData {
     const val projectProcessedRepositoryUrl = "https://example.org/project.git"
     const val projectRevision = "project123"
 
-    val pkgIdentifier = Identifier(
-        type = "Maven",
-        namespace = "com.example",
-        name = "package",
-        version = "1.0"
-    )
-
+    val pkgIdentifier = Identifier("Maven:com.example:package:1.0")
     const val pkgBinaryArtifactUrl = "https://example.org/binary.zip"
     const val pkgCuratedBinaryArtifactUrl = "https://example.org/binary-curated.zip"
     const val pkgSourceArtifactUrl = "https://example.org/source.zip"
@@ -244,12 +238,7 @@ object OrtTestData {
     )
 
     val project = Project(
-        id = Identifier(
-            type = "Maven",
-            namespace = "com.example",
-            name = "project",
-            version = "1.0"
-        ),
+        id = Identifier("Maven:com.example:project:1.0"),
         cpe = "cpe:example",
         definitionFilePath = "pom.xml",
         authors = setOf("Author One", "Author Two"),
