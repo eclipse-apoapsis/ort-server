@@ -140,6 +140,36 @@ object OrtTestData {
     const val pkgCuratedRevision = "package123-curated"
     const val pkgCuratedPath = "path"
 
+    val pkgCuration = PackageCuration(
+        id = pkgIdentifier,
+        data = PackageCurationData(
+            comment = "comment",
+            purl = "purl",
+            cpe = "cpe",
+            authors = setOf("author 1", "author 2"),
+            concludedLicense = "Apache-2.0".toSpdx(),
+            description = "description",
+            homepageUrl = "https://example.org/package-curated",
+            binaryArtifact = RemoteArtifact(
+                url = pkgCuratedBinaryArtifactUrl,
+                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
+            ),
+            sourceArtifact = RemoteArtifact(
+                url = pkgCuratedSourceArtifactUrl,
+                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
+            ),
+            vcs = VcsInfoCurationData(
+                type = VcsType.GIT,
+                url = pkgCuratedRepositoryUrl,
+                revision = pkgCuratedRevision,
+                path = pkgCuratedPath
+            ),
+            isMetadataOnly = false,
+            isModified = false,
+            declaredLicenseMapping = mapOf("Apache" to "Apache-2.0".toSpdx())
+        )
+    )
+
     val repository = Repository(
         vcs = VcsInfo(
             type = VcsType.GIT,
@@ -184,16 +214,7 @@ object OrtTestData {
                 )
             ),
             curations = Curations(
-                packages = listOf(
-                    PackageCuration(
-                        id = pkgIdentifier,
-                        data = PackageCurationData(
-                            comment = "Test curation data.",
-                            purl = "Maven:com.example:package:1.0",
-                            concludedLicense = "LicenseRef-a".toSpdx(),
-                        )
-                    )
-                ),
+                packages = listOf(pkgCuration),
                 licenseFindings = listOf(licenseFindingCuration)
             ),
             packageConfigurations = listOf(
@@ -476,38 +497,10 @@ object OrtTestData {
         ),
         packageCurations = listOf(
             ResolvedPackageCurations(
-                provider = ResolvedPackageCurations.Provider(id = "name"),
-                curations = setOf(
-                    PackageCuration(
-                        id = pkgIdentifier,
-                        data = PackageCurationData(
-                            comment = "comment",
-                            purl = "purl",
-                            cpe = "cpe",
-                            authors = setOf("author 1", "author 2"),
-                            concludedLicense = "Apache-2.0".toSpdx(),
-                            description = "description",
-                            homepageUrl = "https://example.org/package-curated",
-                            binaryArtifact = RemoteArtifact(
-                                url = pkgCuratedBinaryArtifactUrl,
-                                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                url = pkgCuratedSourceArtifactUrl,
-                                hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
-                            ),
-                            vcs = VcsInfoCurationData(
-                                type = VcsType.GIT,
-                                url = pkgCuratedRepositoryUrl,
-                                revision = pkgCuratedRevision,
-                                path = pkgCuratedPath
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false,
-                            declaredLicenseMapping = mapOf("Apache" to "Apache-2.0".toSpdx())
-                        )
-                    )
-                )
+                provider = ResolvedPackageCurations.Provider(
+                    id = ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID
+                ),
+                curations = setOf(pkgCuration)
             )
         ),
         resolutions = Resolutions(

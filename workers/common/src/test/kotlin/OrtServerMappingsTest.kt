@@ -401,6 +401,38 @@ class OrtServerMappingsTest : WordSpec({
                 choice = "LicenseRef-b"
             )
 
+            val packageCuration = PackageCuration(
+                id = pkgIdentifier,
+                data = PackageCurationData(
+                    comment = "comment",
+                    purl = "purl",
+                    cpe = "cpe",
+                    authors = setOf("author 1", "author 2"),
+                    concludedLicense = "Apache-2.0",
+                    description = "description",
+                    homepageUrl = "https://example.org/package-curated",
+                    binaryArtifact = RemoteArtifact(
+                        url = OrtTestData.pkgCuratedBinaryArtifactUrl,
+                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                        hashAlgorithm = "SHA-1"
+                    ),
+                    sourceArtifact = RemoteArtifact(
+                        url = OrtTestData.pkgCuratedSourceArtifactUrl,
+                        hashValue = "0123456789abcdef0123456789abcdef01234567",
+                        hashAlgorithm = "SHA-1"
+                    ),
+                    vcs = VcsInfoCurationData(
+                        type = RepositoryType.GIT,
+                        url = OrtTestData.pkgCuratedRepositoryUrl,
+                        revision = OrtTestData.pkgCuratedRevision,
+                        path = OrtTestData.pkgCuratedPath
+                    ),
+                    isMetadataOnly = false,
+                    isModified = false,
+                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
+                )
+            )
+
             val repositoryConfig = RepositoryConfiguration(
                 id = 1L,
                 ortRunId = ortRun.id,
@@ -439,16 +471,7 @@ class OrtServerMappingsTest : WordSpec({
                     )
                 ),
                 curations = Curations(
-                    packages = listOf(
-                        PackageCuration(
-                            id = pkgIdentifier,
-                            data = PackageCurationData(
-                                comment = "Test curation data.",
-                                purl = "Maven:com.example:package:1.0",
-                                concludedLicense = "LicenseRef-a"
-                            )
-                        )
-                    ),
+                    packages = listOf(packageCuration),
                     licenseFindings = listOf(licenseFindingCuration)
                 ),
                 packageConfigurations = listOf(
@@ -481,40 +504,8 @@ class OrtServerMappingsTest : WordSpec({
                 ),
                 packageCurations = listOf(
                     ResolvedPackageCurations(
-                        provider = PackageCurationProviderConfig(name = "name"),
-                        curations = listOf(
-                            PackageCuration(
-                                id = pkgIdentifier,
-                                data = PackageCurationData(
-                                    comment = "comment",
-                                    purl = "purl",
-                                    cpe = "cpe",
-                                    authors = setOf("author 1", "author 2"),
-                                    concludedLicense = "Apache-2.0",
-                                    description = "description",
-                                    homepageUrl = "https://example.org/package-curated",
-                                    binaryArtifact = RemoteArtifact(
-                                        url = OrtTestData.pkgCuratedBinaryArtifactUrl,
-                                        hashValue = "0123456789abcdef0123456789abcdef01234567",
-                                        hashAlgorithm = "SHA-1"
-                                    ),
-                                    sourceArtifact = RemoteArtifact(
-                                        url = OrtTestData.pkgCuratedSourceArtifactUrl,
-                                        hashValue = "0123456789abcdef0123456789abcdef01234567",
-                                        hashAlgorithm = "SHA-1"
-                                    ),
-                                    vcs = VcsInfoCurationData(
-                                        type = RepositoryType.GIT,
-                                        url = OrtTestData.pkgCuratedRepositoryUrl,
-                                        revision = OrtTestData.pkgCuratedRevision,
-                                        path = OrtTestData.pkgCuratedPath
-                                    ),
-                                    isMetadataOnly = false,
-                                    isModified = false,
-                                    declaredLicenseMapping = mapOf("Apache" to "Apache-2.0")
-                                )
-                            )
-                        )
+                        provider = PackageCurationProviderConfig(name = "RepositoryConfiguration"),
+                        curations = listOf(packageCuration)
                     )
                 ),
                 resolutions = Resolutions(
