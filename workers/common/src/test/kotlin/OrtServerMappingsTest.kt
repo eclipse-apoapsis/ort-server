@@ -99,7 +99,7 @@ class OrtServerMappingsTest : WordSpec({
                 organizationId = 1L,
                 productId = 1L,
                 type = RepositoryType.GIT,
-                url = "https://github.com/org/repo.git"
+                url = OrtTestData.projectProcessedRepositoryUrl
             )
 
             val environment = Environment(
@@ -123,7 +123,7 @@ class OrtServerMappingsTest : WordSpec({
                 id = 1L,
                 index = 1L,
                 repositoryId = repository.id,
-                revision = "abc123",
+                revision = OrtTestData.projectRevision,
                 createdAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 jobConfigs = JobConfigurations(),
                 resolvedJobConfigs = JobConfigurations(),
@@ -172,17 +172,17 @@ class OrtServerMappingsTest : WordSpec({
                 declaredLicenses = setOf("The MIT License", "Eclipse Public License 1.0"),
                 vcs = VcsInfo(
                     type = RepositoryType.GIT,
-                    url = "git@github.com/org/project.git",
+                    url = OrtTestData.projectRepositoryUrl,
                     revision = "",
                     path = ""
                 ),
                 vcsProcessed = VcsInfo(
                     type = RepositoryType.GIT,
-                    url = "https://github.com/org.project.git",
-                    revision = "abc123",
+                    url = OrtTestData.projectProcessedRepositoryUrl,
+                    revision = OrtTestData.projectRevision,
                     path = ""
                 ),
-                homepageUrl = "https://example-homepage.com",
+                homepageUrl = "https://example.org/project",
                 scopeNames = setOf("compile")
             )
 
@@ -200,27 +200,27 @@ class OrtServerMappingsTest : WordSpec({
                 authors = setOf("Author One", "Author Two"),
                 declaredLicenses = setOf("Eclipse Public License 1.0"),
                 description = "Example description",
-                homepageUrl = "https://package-homepage.com",
+                homepageUrl = "https://example.org/package",
                 binaryArtifact = RemoteArtifact(
-                    url = "https://repo.com/package-1.0.jar",
+                    url = OrtTestData.pkgBinaryArtifactUrl,
                     hashValue = "123456",
                     hashAlgorithm = "SHA-1"
                 ),
                 sourceArtifact = RemoteArtifact(
-                    url = "https://repo.com/package-1.0-sources.jar",
+                    url = OrtTestData.pkgSourceArtifactUrl,
                     hashValue = "654321",
                     hashAlgorithm = "SHA-1"
                 ),
                 vcs = VcsInfo(
                     type = RepositoryType.GIT,
-                    url = "git://github.com/org/package.git",
-                    revision = "1.0",
+                    url = OrtTestData.pkgRepositoryUrl,
+                    revision = OrtTestData.pkgRevision,
                     path = ""
                 ),
                 vcsProcessed = VcsInfo(
                     type = RepositoryType.GIT,
-                    url = "https://github.com/org/package.git",
-                    revision = "1.0",
+                    url = OrtTestData.pkgProcessedRepositoryUrl,
+                    revision = OrtTestData.pkgRevision,
                     path = ""
                 ),
                 isMetadataOnly = true,
@@ -290,7 +290,7 @@ class OrtServerMappingsTest : WordSpec({
                 description = "Example description.",
                 references = listOf(
                     VulnerabilityReference(
-                        url = "http://cve.mitre.org",
+                        url = "http://cve.example.org",
                         scoringSystem = "CVSS3",
                         severity = "5.5"
                     )
@@ -454,7 +454,7 @@ class OrtServerMappingsTest : WordSpec({
                 packageConfigurations = listOf(
                     PackageConfiguration(
                         id = pkgIdentifier,
-                        sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
+                        sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
                         pathExcludes = listOf(pathExclude),
                         licenseFindingCurations = listOf(licenseFindingCuration)
                     )
@@ -474,7 +474,7 @@ class OrtServerMappingsTest : WordSpec({
                 packageConfigurations = listOf(
                     PackageConfiguration(
                         id = pkgIdentifier,
-                        sourceArtifactUrl = "https://example.org/artifact.zip",
+                        sourceArtifactUrl = OrtTestData.pkgSourceArtifactUrl,
                         pathExcludes = listOf(pathExclude),
                         licenseFindingCurations = listOf(licenseFindingCuration)
                     )
@@ -492,22 +492,22 @@ class OrtServerMappingsTest : WordSpec({
                                     authors = setOf("author 1", "author 2"),
                                     concludedLicense = "Apache-2.0",
                                     description = "description",
-                                    homepageUrl = "https://example.org",
+                                    homepageUrl = "https://example.org/package-curated",
                                     binaryArtifact = RemoteArtifact(
-                                        url = "https://example.org/binary.zip",
+                                        url = OrtTestData.pkgCuratedBinaryArtifactUrl,
                                         hashValue = "0123456789abcdef0123456789abcdef01234567",
                                         hashAlgorithm = "SHA-1"
                                     ),
                                     sourceArtifact = RemoteArtifact(
-                                        url = "https://example.org.source.zip",
+                                        url = OrtTestData.pkgCuratedSourceArtifactUrl,
                                         hashValue = "0123456789abcdef0123456789abcdef01234567",
                                         hashAlgorithm = "SHA-1"
                                     ),
                                     vcs = VcsInfoCurationData(
                                         type = RepositoryType.GIT,
-                                        url = "https://example.org/repo.git",
-                                        revision = "revision",
-                                        path = "path"
+                                        url = OrtTestData.pkgCuratedRepositoryUrl,
+                                        revision = OrtTestData.pkgCuratedRevision,
+                                        path = OrtTestData.pkgCuratedPath
                                     ),
                                     isMetadataOnly = false,
                                     isModified = false,

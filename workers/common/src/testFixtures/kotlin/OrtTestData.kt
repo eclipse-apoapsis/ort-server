@@ -124,11 +124,26 @@ object OrtTestData {
         choice = "LicenseRef-b".toSpdx()
     )
 
+    const val projectRepositoryUrl = "git@example.org/project.git"
+    const val projectProcessedRepositoryUrl = "https://example.org/project.git"
+    const val projectRevision = "project123"
+
+    const val pkgBinaryArtifactUrl = "https://example.org/binary.zip"
+    const val pkgCuratedBinaryArtifactUrl = "https://example.org/binary-curated.zip"
+    const val pkgSourceArtifactUrl = "https://example.org/source.zip"
+    const val pkgCuratedSourceArtifactUrl = "https://example.org/source-curated.zip"
+    const val pkgRepositoryUrl = "git@example.org/package.git"
+    const val pkgProcessedRepositoryUrl = "https://example.org/package.git"
+    const val pkgCuratedRepositoryUrl = "https://example.org/package-curated.git"
+    const val pkgRevision = "package123"
+    const val pkgCuratedRevision = "package123-curated"
+    const val pkgCuratedPath = "path"
+
     val repository = Repository(
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = "https://github.com/org/repo.git",
-            revision = "abc123",
+            url = projectProcessedRepositoryUrl,
+            revision = projectRevision,
             path = ""
         ),
         nestedRepositories = emptyMap(),
@@ -183,7 +198,7 @@ object OrtTestData {
             packageConfigurations = listOf(
                 PackageConfiguration(
                     id = Identifier("Maven", "com.example", "package", "1.0"),
-                    sourceArtifactUrl = "https://example.com/package-1.0-sources-correct.jar",
+                    sourceArtifactUrl = pkgCuratedSourceArtifactUrl,
                     pathExcludes = listOf(pathExclude),
                     licenseFindingCurations = listOf(licenseFindingCuration)
                 )
@@ -234,17 +249,17 @@ object OrtTestData {
         declaredLicenses = setOf("The MIT License", "Eclipse Public License 1.0"),
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = "git@github.com/org/project.git",
+            url = projectRepositoryUrl,
             revision = "",
             path = ""
         ),
         vcsProcessed = VcsInfo(
             type = VcsType.GIT,
-            url = "https://github.com/org.project.git",
-            revision = "abc123",
+            url = projectProcessedRepositoryUrl,
+            revision = projectRevision,
             path = ""
         ),
-        homepageUrl = "https://example-homepage.com",
+        homepageUrl = "https://example.org/project",
         scopeNames = sortedSetOf("compile")
     )
 
@@ -262,16 +277,16 @@ object OrtTestData {
         authors = setOf("Author One", "Author Two"),
         declaredLicenses = setOf("Eclipse Public License 1.0"),
         description = "Example description",
-        homepageUrl = "https://package-homepage.com",
+        homepageUrl = "https://example.org/package",
         binaryArtifact = RemoteArtifact(
-            url = "https://repo.com/package-1.0.jar",
+            url = pkgBinaryArtifactUrl,
             hash = Hash(
                 value = "123456",
                 algorithm = HashAlgorithm.SHA1
             )
         ),
         sourceArtifact = RemoteArtifact(
-            url = "https://repo.com/package-1.0-sources.jar",
+            url = pkgSourceArtifactUrl,
             hash = Hash(
                 value = "654321",
                 algorithm = HashAlgorithm.SHA1
@@ -279,14 +294,14 @@ object OrtTestData {
         ),
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = "git://github.com/org/package.git",
-            revision = "1.0",
+            url = pkgRepositoryUrl,
+            revision = pkgRevision,
             path = ""
         ),
         vcsProcessed = VcsInfo(
             type = VcsType.GIT,
-            url = "https://github.com/org/package.git",
-            revision = "1.0",
+            url = pkgProcessedRepositoryUrl,
+            revision = pkgRevision,
             path = ""
         ),
         isMetadataOnly = true,
@@ -375,7 +390,7 @@ object OrtTestData {
                             description = "Example description.",
                             references = listOf(
                                 VulnerabilityReference(
-                                    url = URI("http://cve.mitre.org"),
+                                    url = URI("http://cve.example.org"),
                                     scoringSystem = "CVSS3",
                                     severity = "5.5"
                                 )
@@ -466,7 +481,7 @@ object OrtTestData {
         packageConfigurations = listOf(
             PackageConfiguration(
                 id = pkgIdentifier,
-                sourceArtifactUrl = "https://example.org/artifact.zip",
+                sourceArtifactUrl = pkgSourceArtifactUrl,
                 pathExcludes = listOf(pathExclude),
                 licenseFindingCurations = listOf(licenseFindingCuration)
             )
@@ -484,20 +499,20 @@ object OrtTestData {
                             authors = setOf("author 1", "author 2"),
                             concludedLicense = "Apache-2.0".toSpdx(),
                             description = "description",
-                            homepageUrl = "https://example.org",
+                            homepageUrl = "https://example.org/package-curated",
                             binaryArtifact = RemoteArtifact(
-                                url = "https://example.org/binary.zip",
+                                url = pkgCuratedBinaryArtifactUrl,
                                 hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
                             ),
                             sourceArtifact = RemoteArtifact(
-                                url = "https://example.org.source.zip",
+                                url = pkgCuratedSourceArtifactUrl,
                                 hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
                             ),
                             vcs = VcsInfoCurationData(
                                 type = VcsType.GIT,
-                                url = "https://example.org/repo.git",
-                                revision = "revision",
-                                path = "path"
+                                url = pkgCuratedRepositoryUrl,
+                                revision = pkgCuratedRevision,
+                                path = pkgCuratedPath
                             ),
                             isMetadataOnly = false,
                             isModified = false,
