@@ -106,7 +106,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
         single { ConfigManager.create(get()) }
-        single { OrtRunService(get(), get(), get()) }
+        single { OrtRunService(get(), get(), get(), get()) }
 
         singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)

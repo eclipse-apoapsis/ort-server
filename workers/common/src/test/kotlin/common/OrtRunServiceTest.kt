@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.workers.common.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.jetbrains.exposed.sql.Database
@@ -67,7 +69,12 @@ class OrtRunServiceTest : WordSpec({
         repositoryConfigRepository = dbExtension.fixtures.repositoryConfigurationRepository
         resolvedConfigurationRepository = dbExtension.fixtures.resolvedConfigurationRepository
 
-        service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
+        service = OrtRunService(
+            db,
+            fixtures.ortRunRepository,
+            repositoryConfigRepository,
+            resolvedConfigurationRepository
+        )
     }
 
     "getOrtRepositoryInformation" should {
@@ -103,6 +110,16 @@ class OrtRunServiceTest : WordSpec({
             }
 
             exception.message shouldBe "VCS information is missing from ORT run '1'."
+        }
+    }
+
+    "getOrtRun" should {
+        "return the ORT run" {
+            service.getOrtRun(fixtures.ortRun.id) shouldBe fixtures.ortRun
+        }
+
+        "return null if the ORT run does not exist" {
+            service.getOrtRun(-1L) should beNull()
         }
     }
 
