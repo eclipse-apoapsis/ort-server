@@ -58,18 +58,20 @@ class OrtRunServiceTest : WordSpec({
     lateinit var fixtures: Fixtures
     lateinit var repositoryConfigRepository: RepositoryConfigurationRepository
     lateinit var resolvedConfigurationRepository: ResolvedConfigurationRepository
+    lateinit var service: OrtRunService
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
+
         repositoryConfigRepository = dbExtension.fixtures.repositoryConfigurationRepository
         resolvedConfigurationRepository = dbExtension.fixtures.resolvedConfigurationRepository
+
+        service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
     }
 
     "getOrtRepositoryInformation" should {
         "return ORT repository object" {
-            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
-
             val vcsInfo = getVcsInfo("https://example.com/repo.git")
             val processedVcsInfo = getVcsInfo("https://example.com/repo-processed.git")
             val nestedVcsInfo1 = getVcsInfo("https://example.com/repo-nested-1.git")
@@ -94,8 +96,6 @@ class OrtRunServiceTest : WordSpec({
         }
 
         "throw exception if VCS information is not present in ORT run" {
-            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
-
             val ortRun = fixtures.ortRun
 
             val exception = shouldThrow<IllegalArgumentException> {
@@ -108,8 +108,6 @@ class OrtRunServiceTest : WordSpec({
 
     "getResolvedConfiguration" should {
         "return the resolved configuration" {
-            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
-
             val ortRun = fixtures.ortRun
 
             val id = Identifier("type", "namespace", "name", "version")
@@ -135,8 +133,6 @@ class OrtRunServiceTest : WordSpec({
         }
 
         "return an empty resolved configuration if no resolved configuration was stored" {
-            val service = OrtRunService(db, repositoryConfigRepository, resolvedConfigurationRepository)
-
             service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration()
         }
     }
