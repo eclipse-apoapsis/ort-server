@@ -58,8 +58,10 @@ class OrtRunServiceTest : WordSpec({
 
     lateinit var db: Database
     lateinit var fixtures: Fixtures
+
     lateinit var repositoryConfigRepository: RepositoryConfigurationRepository
     lateinit var resolvedConfigurationRepository: ResolvedConfigurationRepository
+
     lateinit var service: OrtRunService
 
     beforeEach {
@@ -71,10 +73,48 @@ class OrtRunServiceTest : WordSpec({
 
         service = OrtRunService(
             db,
+            fixtures.advisorJobRepository,
+            fixtures.analyzerJobRepository,
+            fixtures.evaluatorJobRepository,
             fixtures.ortRunRepository,
+            fixtures.reporterJobRepository,
             repositoryConfigRepository,
-            resolvedConfigurationRepository
+            resolvedConfigurationRepository,
+            fixtures.scannerJobRepository
         )
+    }
+
+    "getAdvisorJob" should {
+        "return the advisor job" {
+            fixtures.advisorJob
+            service.getAdvisorJob(fixtures.ortRun.id) shouldBe fixtures.advisorJob
+        }
+
+        "return null if the advisor job does not exist" {
+            service.getAdvisorJob(-1L) should beNull()
+        }
+    }
+
+    "getAnalyzerJob" should {
+        "return the analyzer job" {
+            fixtures.analyzerJob
+            service.getAnalyzerJob(fixtures.ortRun.id) shouldBe fixtures.analyzerJob
+        }
+
+        "return null if the advisor job does not exist" {
+            service.getAnalyzerJob(-1L) should beNull()
+        }
+    }
+
+    "getEvaluatorJob" should {
+        "return the evaluator job" {
+            fixtures.evaluatorJob
+            service.getEvaluatorJob(fixtures.ortRun.id) shouldBe fixtures.evaluatorJob
+        }
+
+        "return null if the evaluator job does not exist" {
+            service.getEvaluatorJob(-1L) should beNull()
+        }
     }
 
     "getOrtRepositoryInformation" should {
@@ -123,6 +163,17 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "getReporterJob" should {
+        "return the reporter job" {
+            fixtures.reporterJob
+            service.getReporterJob(fixtures.ortRun.id) shouldBe fixtures.reporterJob
+        }
+
+        "return null if the reporter job does not exist" {
+            service.getReporterJob(-1L) should beNull()
+        }
+    }
+
     "getResolvedConfiguration" should {
         "return the resolved configuration" {
             val ortRun = fixtures.ortRun
@@ -151,6 +202,17 @@ class OrtRunServiceTest : WordSpec({
 
         "return an empty resolved configuration if no resolved configuration was stored" {
             service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration()
+        }
+    }
+
+    "getScannerJob" should {
+        "return the scanner job" {
+            fixtures.scannerJob
+            service.getScannerJob(fixtures.ortRun.id) shouldBe fixtures.scannerJob
+        }
+
+        "return null if the scanner job does not exist" {
+            service.getScannerJob(-1L) should beNull()
         }
     }
 })
