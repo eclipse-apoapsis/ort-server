@@ -124,9 +124,9 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
         single { ConfigManager.create(get()) }
-        single { OrtRunService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 
+        singleOf(::OrtRunService)
         singleOf(::ReportStorage)
         singleOf(::ReporterWorkerDao)
         singleOf(::ReporterRunner)

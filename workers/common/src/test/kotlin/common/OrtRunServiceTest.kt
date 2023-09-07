@@ -25,6 +25,8 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import kotlinx.datetime.Clock
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
@@ -41,17 +43,22 @@ import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepos
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
+import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
 import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
 import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.ossreviewtoolkit.utils.common.gibibytes
 
 class OrtRunServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -74,13 +81,18 @@ class OrtRunServiceTest : WordSpec({
         service = OrtRunService(
             db,
             fixtures.advisorJobRepository,
+            fixtures.advisorRunRepository,
             fixtures.analyzerJobRepository,
+            fixtures.analyzerRunRepository,
             fixtures.evaluatorJobRepository,
+            fixtures.evaluatorRunRepository,
             fixtures.ortRunRepository,
             fixtures.reporterJobRepository,
+            fixtures.reporterRunRepository,
             repositoryConfigRepository,
             resolvedConfigurationRepository,
-            fixtures.scannerJobRepository
+            fixtures.scannerJobRepository,
+            fixtures.scannerRunRepository
         )
     }
 
@@ -95,6 +107,33 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "getAdvisorRun" should {
+        "return the advisor run" {
+            val createdAdvisorRun = dbExtension.fixtures.advisorRunRepository.create(
+                advisorJobId = fixtures.advisorJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = AdvisorConfiguration(null, null, null, null, emptyMap()),
+                advisorRecords = emptyMap()
+            )
+
+            service.getAdvisorRun(fixtures.ortRun.id) shouldBe createdAdvisorRun
+        }
+
+        "return null if the advisor run does not exist" {
+            service.getAdvisorRun(-1L) should beNull()
+        }
+    }
+
     "getAnalyzerJob" should {
         "return the analyzer job" {
             fixtures.analyzerJob
@@ -106,6 +145,36 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "getAnalyzerRun" should {
+        "return the analyzer run" {
+            val createdAnalyzerRun = dbExtension.fixtures.analyzerRunRepository.create(
+                analyzerJobId = fixtures.analyzerJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = AnalyzerConfiguration(),
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = emptyMap(),
+                dependencyGraphs = emptyMap()
+            )
+
+            service.getAnalyzerRun(fixtures.ortRun.id) shouldBe createdAnalyzerRun
+        }
+
+        "return null if the analyzer run does not exist" {
+            service.getAnalyzerRun(-1L) should beNull()
+        }
+    }
+
     "getEvaluatorJob" should {
         "return the evaluator job" {
             fixtures.evaluatorJob
@@ -114,6 +183,23 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if the evaluator job does not exist" {
             service.getEvaluatorJob(-1L) should beNull()
+        }
+    }
+
+    "getEvaluatorRun" should {
+        "return the evaluator run" {
+            val createdEvaluatorRun = dbExtension.fixtures.evaluatorRunRepository.create(
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                violations = emptyList()
+            )
+
+            service.getEvaluatorRun(fixtures.ortRun.id) shouldBe createdEvaluatorRun
+        }
+
+        "return null if the evaluator run does not exist" {
+            service.getEvaluatorRun(-1L) should beNull()
         }
     }
 
@@ -174,6 +260,23 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "getReporterRun" should {
+        "return the reporter run" {
+            val createdReporterRun = dbExtension.fixtures.reporterRunRepository.create(
+                reporterJobId = fixtures.reporterJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                reports = emptyList()
+            )
+
+            service.getReporterRun(fixtures.ortRun.id) shouldBe createdReporterRun
+        }
+
+        "return null if the reporter run does not exist" {
+            service.getReporterRun(-1L) should beNull()
+        }
+    }
+
     "getResolvedConfiguration" should {
         "return the resolved configuration" {
             val ortRun = fixtures.ortRun
@@ -213,6 +316,43 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if the scanner job does not exist" {
             service.getScannerJob(-1L) should beNull()
+        }
+    }
+
+    "getScannerRun" should {
+        "return the scanner run" {
+            val createdScannerRun = dbExtension.fixtures.scannerRunRepository.create(
+                scannerJobId = fixtures.scannerJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = ScannerConfiguration(
+                    skipConcluded = true,
+                    archive = null,
+                    createMissingArchives = true,
+                    detectedLicenseMappings = emptyMap(),
+                    storages = emptyMap(),
+                    options = emptyMap(),
+                    storageReaders = null,
+                    storageWriters = null,
+                    ignorePatterns = emptyList(),
+                    provenanceStorage = null
+                )
+            )
+
+            service.getScannerRun(fixtures.ortRun.id) shouldBe createdScannerRun
+        }
+
+        "return null if the scanner run does not exist" {
+            service.getScannerRun(-1L) should beNull()
         }
     }
 })

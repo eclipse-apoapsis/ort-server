@@ -28,11 +28,14 @@ import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
+import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoResolvedConfigurationRepository
@@ -42,11 +45,14 @@ import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
+import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
+import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
@@ -96,11 +102,14 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
 
     private fun scannerModule(): Module = module {
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
         single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
         single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
