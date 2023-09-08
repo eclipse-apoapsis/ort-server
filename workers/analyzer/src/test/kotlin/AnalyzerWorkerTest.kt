@@ -49,6 +49,9 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
@@ -103,10 +106,16 @@ private fun AnalyzerWorker.testRun(): RunResult = runBlocking { run(JOB_ID, TRAC
 
 class AnalyzerWorkerTest : StringSpec({
     "A private repository should be analyzed successfully" {
-        val dao = mockk<AnalyzerWorkerDao> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
+        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+            every { this@mockk.get(any()) } returns analyzerJob
+        }
+
+        val repositoryRepository = mockk<RepositoryRepository> {
+            every { this@mockk.get(any()) } returns repository
+        }
+
+        val ortRunService = mockk<OrtRunService> {
             every { getOrtRun(any()) } returns ortRun
-            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
@@ -130,7 +139,16 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, projectDir, infrastructureService) } returns mockk()
         }
 
-        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            AnalyzerRunner(),
+            analyzerJobRepository,
+            repositoryRepository,
+            ortRunService,
+            contextFactory,
+            envService
+        )
 
         mockkTransaction {
             val result = worker.testRun()
@@ -138,8 +156,8 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
-                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
-                dao.storeRepositoryInformation(any(), any())
+                ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+                ortRunService.storeRepositoryInformation(any(), any())
             }
 
             coVerifyOrder {
@@ -151,10 +169,16 @@ class AnalyzerWorkerTest : StringSpec({
     }
 
     "A repository without credentials should be analyzed successfully" {
-        val dao = mockk<AnalyzerWorkerDao> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
+        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+            every { this@mockk.get(any()) } returns analyzerJob
+        }
+
+        val repositoryRepository = mockk<RepositoryRepository> {
+            every { this@mockk.get(any()) } returns repository
+        }
+
+        val ortRunService = mockk<OrtRunService> {
             every { getOrtRun(any()) } returns ortRun
-            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
@@ -176,7 +200,16 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, projectDir, null) } returns mockk()
         }
 
-        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            AnalyzerRunner(),
+            analyzerJobRepository,
+            repositoryRepository,
+            ortRunService,
+            contextFactory,
+            envService
+        )
 
         mockkTransaction {
             val result = worker.testRun()
@@ -184,7 +217,7 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
-                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+                ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
             }
 
             coVerify(exactly = 0) {
@@ -202,10 +235,16 @@ class AnalyzerWorkerTest : StringSpec({
         val jobConfig = AnalyzerJobConfiguration(environmentConfig = envConfig)
         val job = analyzerJob.copy(configuration = jobConfig)
 
-        val dao = mockk<AnalyzerWorkerDao> {
-            every { getAnalyzerJob(any()) } returns job
+        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+            every { this@mockk.get(any()) } returns job
+        }
+
+        val repositoryRepository = mockk<RepositoryRepository> {
+            every { this@mockk.get(any()) } returns repository
+        }
+
+        val ortRunService = mockk<OrtRunService> {
             every { getOrtRun(any()) } returns ortRun
-            every { getRepository(any()) } returns repository
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
@@ -225,7 +264,16 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, envConfig, null) } returns mockk()
         }
 
-        val worker = AnalyzerWorker(mockk(), downloader, AnalyzerRunner(), dao, contextFactory, envService)
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            AnalyzerRunner(),
+            analyzerJobRepository,
+            repositoryRepository,
+            ortRunService,
+            contextFactory,
+            envService
+        )
 
         mockkTransaction {
             val result = worker.testRun()
@@ -233,7 +281,7 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
-                dao.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
+                ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID })
             }
 
             coVerify {
@@ -244,11 +292,20 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
-        val dao = mockk<AnalyzerWorkerDao> {
-            every { getAnalyzerJob(any()) } throws testException
+        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+            every { this@mockk.get(any()) } throws testException
         }
 
-        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao, mockk(), mockk())
+        val worker = AnalyzerWorker(
+            mockk(),
+            mockk(),
+            AnalyzerRunner(),
+            analyzerJobRepository,
+            mockk(),
+            mockk(),
+            mockk(),
+            mockk()
+        )
 
         mockkTransaction {
             when (val result = worker.testRun()) {
@@ -260,11 +317,20 @@ class AnalyzerWorkerTest : StringSpec({
 
     "An ignore result should be returned for an invalid job" {
         val invalidJob = analyzerJob.copy(status = JobStatus.FINISHED)
-        val dao = mockk<AnalyzerWorkerDao> {
-            every { getAnalyzerJob(any()) } returns invalidJob
+        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
+            every { this@mockk.get(any()) } returns invalidJob
         }
 
-        val worker = AnalyzerWorker(mockk(), mockk(), AnalyzerRunner(), dao, mockk(), mockk())
+        val worker = AnalyzerWorker(
+            mockk(),
+            mockk(),
+            AnalyzerRunner(),
+            analyzerJobRepository,
+            mockk(),
+            mockk(),
+            mockk(),
+            mockk()
+        )
 
         mockkTransaction {
             val result = worker.testRun()

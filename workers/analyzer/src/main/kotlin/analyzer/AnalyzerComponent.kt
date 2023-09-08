@@ -27,21 +27,11 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -51,6 +41,7 @@ import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 import org.ossreviewtoolkit.server.workers.common.env.buildEnvironmentModule
+import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
 
 import org.slf4j.LoggerFactory
 
@@ -83,18 +74,17 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> =
-        listOf(analyzerModule(), databaseModule(), workerContextModule(), buildEnvironmentModule())
+    override fun customModules(): List<Module> = listOf(
+        analyzerModule(),
+        databaseModule(),
+        ortRunServiceModule(),
+        workerContextModule(),
+        buildEnvironmentModule()
+    )
 
     private fun analyzerModule(): Module = module {
-        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
-        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
-        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
-        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
-        single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
 
-        singleOf(::AnalyzerWorkerDao)
         singleOf(::AnalyzerDownloader)
         singleOf(::AnalyzerRunner)
         singleOf(::AnalyzerWorker)

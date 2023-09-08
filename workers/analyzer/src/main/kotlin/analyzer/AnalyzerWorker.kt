@@ -24,7 +24,10 @@ import org.jetbrains.exposed.sql.Database
 import org.ossreviewtoolkit.server.dao.dbQuery
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
@@ -40,15 +43,17 @@ internal class AnalyzerWorker(
     private val db: Database,
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner,
-    private val dao: AnalyzerWorkerDao,
+    private val analyzerJobRepository: AnalyzerJobRepository,
+    private val repositoryRepository: RepositoryRepository,
+    private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val job = db.dbQuery { getValidAnalyzerJob(jobId) }
-        val ortRun = db.dbQuery { dao.getOrtRun(job.ortRunId) }
+        val ortRun = ortRunService.getOrtRun(job.ortRunId)
             ?: throw IllegalArgumentException("The ORT run '${job.ortRunId}' does not exist.")
-        val repository = db.dbQuery { dao.getRepository(ortRun.repositoryId) }
+        val repository = db.dbQuery { repositoryRepository.get(ortRun.repositoryId) }
             ?: throw IllegalArgumentException("The repository '${ortRun.repositoryId}' does not exist.")
 
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
@@ -78,8 +83,8 @@ internal class AnalyzerWorker(
 
         val ortResult = runner.run(sourcesDir, job.configuration)
 
-        dao.storeRepositoryInformation(ortResult, job)
-        dao.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
+        ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
+        ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
 
         val analyzerRun = ortResult.analyzer
             ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
@@ -91,7 +96,7 @@ internal class AnalyzerWorker(
 
         db.dbQuery {
             getValidAnalyzerJob(jobId)
-            dao.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
+            ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
         }
 
         RunResult.Success
@@ -110,7 +115,7 @@ internal class AnalyzerWorker(
     }
 
     private fun getValidAnalyzerJob(jobId: Long) =
-        dao.getAnalyzerJob(jobId)?.validate()
+        analyzerJobRepository.get(jobId)?.validate()
             ?: throw IllegalArgumentException("The analyzer job '$jobId' does not exist.")
 
     private fun AnalyzerJob.validate() = apply {
