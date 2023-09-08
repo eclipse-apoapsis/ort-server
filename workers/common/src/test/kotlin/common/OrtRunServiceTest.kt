@@ -205,10 +205,10 @@ class OrtRunServiceTest : WordSpec({
 
     "getOrtRepositoryInformation" should {
         "return ORT repository object" {
-            val vcsInfo = getVcsInfo("https://example.com/repo.git")
-            val processedVcsInfo = getVcsInfo("https://example.com/repo-processed.git")
-            val nestedVcsInfo1 = getVcsInfo("https://example.com/repo-nested-1.git")
-            val nestedVcsInfo2 = getVcsInfo("https://example.com/repo-nested-2.git")
+            val vcsInfo = createVcsInfo("https://example.com/repo.git")
+            val processedVcsInfo = createVcsInfo("https://example.com/repo-processed.git")
+            val nestedVcsInfo1 = createVcsInfo("https://example.com/repo-nested-1.git")
+            val nestedVcsInfo2 = createVcsInfo("https://example.com/repo-nested-2.git")
 
             val ortRun = createOrtRun(
                 db,
@@ -399,4 +399,4 @@ private fun createOrtRun(
     ortRunDao.mapToModel()
 }
 
-private fun getVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
+private fun createVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
