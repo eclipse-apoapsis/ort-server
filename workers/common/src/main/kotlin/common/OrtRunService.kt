@@ -20,10 +20,14 @@
 package org.ossreviewtoolkit.server.workers.common
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
+import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AnalyzerJob
@@ -175,5 +179,59 @@ class OrtRunService(
      */
     fun getScannerRun(ortRunId: Long) = db.blockingQuery {
         getScannerJob(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
+    }
+
+    fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {
+        analyzerRunRepository.create(
+            analyzerJobId = analyzerRun.analyzerJobId,
+            startTime = analyzerRun.startTime,
+            endTime = analyzerRun.endTime,
+            environment = analyzerRun.environment,
+            config = analyzerRun.config,
+            projects = analyzerRun.projects,
+            packages = analyzerRun.packages,
+            issues = analyzerRun.issues,
+            dependencyGraphs = analyzerRun.dependencyGraphs
+        )
+    }
+
+    fun storeRepositoryInformation(ortRunId: Long, repositoryInformation: Repository) {
+        db.blockingQuery {
+            val vcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcs.mapToModel())
+
+            val processedVcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcsProcessed.mapToModel())
+
+            val repositoryConfiguration = repositoryInformation.config.mapToModel(ortRunId)
+
+            repositoryInformation.nestedRepositories.map { nestedRepository ->
+                val nestedVcsInfoDao = VcsInfoDao.getOrPut(nestedRepository.value.mapToModel())
+
+                NestedRepositoriesTable.insert {
+                    it[this.ortRunId] = ortRunId
+                    it[vcsId] = nestedVcsInfoDao.id
+                    it[path] = nestedRepository.key
+                }
+            }
+
+            repositoryConfigurationRepository.create(
+                ortRunId = repositoryConfiguration.ortRunId,
+                analyzerConfig = repositoryConfiguration.analyzerConfig,
+                excludes = repositoryConfiguration.excludes,
+                resolutions = repositoryConfiguration.resolutions,
+                curations = repositoryConfiguration.curations,
+                packageConfigurations = repositoryConfiguration.packageConfigurations,
+                licenseChoices = repositoryConfiguration.licenseChoices
+            )
+
+            val ortRunDao = OrtRunDao[ortRunId]
+            ortRunDao.vcsId = vcsInfoDao.id
+            ortRunDao.vcsProcessedId = processedVcsInfoDao.id
+        }
+    }
+
+    fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
+        db.blockingQuery {
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
+        }
     }
 }

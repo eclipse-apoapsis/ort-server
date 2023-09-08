@@ -35,7 +35,7 @@ import org.ossreviewtoolkit.server.model.util.OrderDirection
  * when writing timestamps to the database to ensure that the created DAO objects use the same precision as the
  * database.
  */
-internal fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
+fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
 
 /**
  * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.

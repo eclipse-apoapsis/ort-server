@@ -21,7 +21,9 @@ package org.ossreviewtoolkit.server.workers.common.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -30,13 +32,18 @@ import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
+import org.ossreviewtoolkit.model.Hash
+import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.VcsInfoCurationData
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
+import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
@@ -44,6 +51,7 @@ import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationPr
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
+import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -59,6 +67,7 @@ import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.gibibytes
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 class OrtRunServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -353,6 +362,123 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if the scanner run does not exist" {
             service.getScannerRun(-1L) should beNull()
+        }
+    }
+
+    "storeAnalyzerRun" should {
+        "store the run correctly" {
+            val analyzerRun = AnalyzerRun(
+                id = 1L,
+                analyzerJobId = fixtures.analyzerJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = AnalyzerConfiguration(packageManagers = emptyMap()),
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = emptyMap(),
+                dependencyGraphs = emptyMap()
+            )
+
+            service.storeAnalyzerRun(analyzerRun)
+
+            fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe analyzerRun
+        }
+    }
+
+    "storeRepositoryInformation" should {
+        "store repository information correctly" {
+            val repository = db.blockingQuery {
+                val vcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/repo.git"))
+                val processedVcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/processed-repo.git"))
+                val nestedVcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/nested-repo.git"))
+                val nestedVcsPath = "path"
+
+                val ortRunDao = OrtRunDao[fixtures.ortRun.id]
+                ortRunDao.vcsId = vcsInfo.id
+                ortRunDao.vcsProcessedId = processedVcsInfo.id
+
+                Repository(
+                    vcsInfo.mapToModel().mapToOrt(),
+                    processedVcsInfo.mapToModel().mapToOrt(),
+                    mapOf(nestedVcsPath to nestedVcsInfo.mapToModel().mapToOrt()),
+                    OrtTestData.repository.config
+                )
+            }
+
+            service.storeRepositoryInformation(fixtures.ortRun.id, repository)
+
+            // Reload ORT run to load VCS values updated above.
+            val ortRun = fixtures.ortRunRepository.get(fixtures.ortRun.id).shouldNotBeNull()
+            service.getOrtRepositoryInformation(ortRun) shouldBe repository
+        }
+    }
+
+    "storeResolvedPackageCurations" should {
+        "store the resolved package curations" {
+            val curations = listOf(
+                org.ossreviewtoolkit.model.ResolvedPackageCurations(
+                    org.ossreviewtoolkit.model.ResolvedPackageCurations.Provider("provider1"),
+                    curations = setOf(
+                        org.ossreviewtoolkit.model.PackageCuration(
+                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package1:1.0"),
+                            data = org.ossreviewtoolkit.model.PackageCurationData(
+                                comment = "comment 1",
+                                purl = "purl",
+                                cpe = "cpe",
+                                authors = setOf("author 1", "author 2"),
+                                concludedLicense = "Apache-2.0".toSpdx(),
+                                description = "description",
+                                homepageUrl = "homepageUrl",
+                                binaryArtifact = RemoteArtifact(
+                                    url = "binary URL",
+                                    Hash.create("1234567890abcdef1234567890abcdef12345678")
+                                ),
+                                sourceArtifact = RemoteArtifact(
+                                    url = "source URL",
+                                    Hash.create("abcdef1234567890abcdef1234567890abcdef12")
+                                ),
+                                vcs = VcsInfoCurationData(
+                                    type = VcsType.GIT,
+                                    url = "vcs URL",
+                                    revision = "revision",
+                                    path = "path"
+                                ),
+                                isMetadataOnly = false,
+                                isModified = false,
+                                declaredLicenseMapping = mapOf(
+                                    "Apache 2.0" to "Apache-2.0".toSpdx(),
+                                    "BSD 3" to "BSD-3-Clause".toSpdx()
+                                )
+                            )
+                        ),
+                        org.ossreviewtoolkit.model.PackageCuration(
+                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package1:1.0"),
+                            data = org.ossreviewtoolkit.model.PackageCurationData(comment = "comment 2")
+                        ),
+                        org.ossreviewtoolkit.model.PackageCuration(
+                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package2:1.0"),
+                            data = org.ossreviewtoolkit.model.PackageCurationData(comment = "comment 3")
+                        )
+                    )
+                )
+            )
+
+            service.storeResolvedPackageCurations(fixtures.ortRun.id, curations)
+
+            val resolvedConfiguration =
+                dbExtension.fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+
+            resolvedConfiguration.shouldNotBeNull()
+            resolvedConfiguration.packageCurations should containExactly(curations.map { it.mapToModel() })
         }
     }
 })
