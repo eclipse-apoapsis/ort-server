@@ -24,6 +24,7 @@ import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
+import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
@@ -241,6 +242,15 @@ class OrtRunService(
         )
     }
 
+    fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
+        evaluatorRunRepository.create(
+            evaluatorRun.evaluatorJobId,
+            evaluatorRun.startTime,
+            evaluatorRun.endTime,
+            evaluatorRun.violations
+        )
+    }
+
     fun storeRepositoryInformation(ortRunId: Long, repositoryInformation: Repository) {
         db.blockingQuery {
             val vcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcs.mapToModel())
@@ -272,6 +282,15 @@ class OrtRunService(
             val ortRunDao = OrtRunDao[ortRunId]
             ortRunDao.vcsId = vcsInfoDao.id
             ortRunDao.vcsProcessedId = processedVcsInfoDao.id
+        }
+    }
+
+    fun storeResolvedPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) {
+        db.blockingQuery {
+            resolvedConfigurationRepository.addPackageConfigurations(
+                ortRunId,
+                packageConfigurations.map { it.mapToModel() }
+            )
         }
     }
 

@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -54,7 +55,9 @@ import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCu
 import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
@@ -495,6 +498,32 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "storeEvaluatorRun" should {
+        "store the run correctly" {
+            val evaluatorRun = EvaluatorRun(
+                id = 1L,
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                violations = listOf(
+                    OrtRuleViolation(
+                        rule = "rule",
+                        fixtures.identifier,
+                        license = "license",
+                        licenseSource = "license source",
+                        severity = "ERROR",
+                        message = "the rule is violated",
+                        howToFix = "how to fix info"
+                    )
+                )
+            )
+
+            service.storeEvaluatorRun(evaluatorRun)
+
+            fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
+        }
+    }
+
     "storeRepositoryInformation" should {
         "store repository information correctly" {
             val repository = db.blockingQuery {
@@ -520,6 +549,37 @@ class OrtRunServiceTest : WordSpec({
             // Reload ORT run to load VCS values updated above.
             val ortRun = fixtures.ortRunRepository.get(fixtures.ortRun.id).shouldNotBeNull()
             service.getOrtRepositoryInformation(ortRun) shouldBe repository
+        }
+    }
+
+    "storeResolvedPackageConfigurations" should {
+        "store the resolved package configurations" {
+            val configurations = listOf(
+                org.ossreviewtoolkit.model.config.PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    pathExcludes = listOf(OrtTestData.pathExclude),
+                    licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
+                ),
+                org.ossreviewtoolkit.model.config.PackageConfiguration(
+                    id = OrtTestData.pkgIdentifier,
+                    vcs = VcsMatcher(
+                        type = VcsType.GIT,
+                        url = OrtTestData.pkgCuratedRepositoryUrl,
+                        revision = OrtTestData.pkgCuratedRevision
+                    ),
+                    pathExcludes = listOf(OrtTestData.pathExclude),
+                    licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
+                )
+            )
+
+            service.storeResolvedPackageConfigurations(fixtures.ortRun.id, configurations)
+
+            val resolvedConfiguration =
+                dbExtension.fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+
+            resolvedConfiguration.shouldNotBeNull()
+            resolvedConfiguration.packageConfigurations should containExactly(configurations.map { it.mapToModel() })
         }
     }
 
