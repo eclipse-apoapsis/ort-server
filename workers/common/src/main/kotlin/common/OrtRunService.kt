@@ -135,7 +135,7 @@ class OrtRunService(
     }
 
     /**
-     * Fetch the repository data from the database and construct an ORT [Repository] object from a provided ORT run.
+     * Return the [Repository] information for the provided [OrtRun].
      */
     fun getOrtRepositoryInformation(ortRun: OrtRun) = db.blockingQuery {
         val vcsId = ortRun.vcsId
@@ -217,6 +217,9 @@ class OrtRunService(
         getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
     }
 
+    /**
+     * Store the provided [advisorRun].
+     */
     fun storeAdvisorRun(advisorRun: AdvisorRun) {
         advisorRunRepository.create(
             advisorJobId = advisorRun.advisorJobId,
@@ -228,6 +231,9 @@ class OrtRunService(
         )
     }
 
+    /**
+     * Store the provided [analyzerRun].
+     */
     fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
@@ -242,6 +248,9 @@ class OrtRunService(
         )
     }
 
+    /**
+     * Store the provided [evaluatorRun].
+     */
     fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
         evaluatorRunRepository.create(
             evaluatorRun.evaluatorJobId,
@@ -251,6 +260,9 @@ class OrtRunService(
         )
     }
 
+    /**
+     * Store the provided [reporterRun].
+     */
     fun storeReporterRun(reporterRun: ReporterRun) {
         reporterRunRepository.create(
             reporterRun.reporterJobId,
@@ -260,6 +272,9 @@ class OrtRunService(
         )
     }
 
+    /**
+     * Store the provided [repositoryInformation] associated with the [ortRunId].
+     */
     fun storeRepositoryInformation(ortRunId: Long, repositoryInformation: Repository) {
         db.blockingQuery {
             val vcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcs.mapToModel())
@@ -294,6 +309,9 @@ class OrtRunService(
         }
     }
 
+    /**
+     * Store the provided resolved [packageConfigurations] associated with the [ortRunId].
+     */
     fun storeResolvedPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) {
         db.blockingQuery {
             resolvedConfigurationRepository.addPackageConfigurations(
@@ -303,12 +321,18 @@ class OrtRunService(
         }
     }
 
+    /**
+     * Store the provided resolved [packageCurations] associated with the [ortRunId].
+     */
     fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
         db.blockingQuery {
             resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
         }
     }
 
+    /**
+     * Store the provided [scannerRun].
+     */
     fun storeScannerRun(scannerRun: ScannerRun) {
         scannerRunRepository.create(
             scannerJobId = scannerRun.scannerJobId,
