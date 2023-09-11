@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.EvaluatorJob
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ScannerJob
@@ -45,6 +46,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
+import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
@@ -68,6 +70,7 @@ class OrtRunService(
     private val reporterJobRepository: ReporterJobRepository,
     private val reporterRunRepository: ReporterRunRepository,
     private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
+    private val repositoryRepository: RepositoryRepository,
     private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
     private val scannerJobRepository: ScannerJobRepository,
     private val scannerRunRepository: ScannerRunRepository
@@ -121,6 +124,13 @@ class OrtRunService(
      */
     fun getEvaluatorRunForOrtRun(ortRunId: Long) = db.blockingQuery {
         getEvaluatorJobForOrtRun(ortRunId)?.let { evaluatorRunRepository.getByJobId(it.id) }
+    }
+
+    /**
+     * Return the [Hierarchy] for the provided [ortRunId] or `null` if the run does not exist.
+     */
+    fun getHierarchyForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getOrtRun(ortRunId)?.let { repositoryRepository.getHierarchy(it.repositoryId) }
     }
 
     /**

@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
@@ -99,6 +100,7 @@ class OrtRunServiceTest : WordSpec({
             fixtures.reporterJobRepository,
             fixtures.reporterRunRepository,
             repositoryConfigRepository,
+            fixtures.repositoryRepository,
             resolvedConfigurationRepository,
             fixtures.scannerJobRepository,
             fixtures.scannerRunRepository
@@ -242,6 +244,17 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if no evaluator run for the ORT run exists" {
             service.getEvaluatorRunForOrtRun(-1L) should beNull()
+        }
+    }
+
+    "getHierarchy" should {
+        "return the hierarchy for the ORT run" {
+            service.getHierarchyForOrtRun(fixtures.ortRun.id) shouldBe
+                    Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
+        }
+
+        "return null if the ORT run does not exist" {
+            service.getHierarchyForOrtRun(-1L) should beNull()
         }
     }
 

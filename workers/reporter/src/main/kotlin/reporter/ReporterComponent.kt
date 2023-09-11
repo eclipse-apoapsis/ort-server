@@ -26,11 +26,9 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.storage.Storage
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
@@ -83,8 +81,6 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         listOf(reporterModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
 
     private fun reporterModule(): Module = module {
-        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
-
         single { ConfigManager.create(get()) }
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 

@@ -26,11 +26,9 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.transport.EndpointComponent
 import org.ossreviewtoolkit.server.transport.EndpointHandler
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
@@ -70,8 +68,6 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
     override fun customModules(): List<Module> = listOf(evaluatorModule(), databaseModule(), ortRunServiceModule())
 
     private fun evaluatorModule(): Module = module {
-        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
-
         single { ConfigManager.create(get()) }
 
         singleOf(::EvaluatorWorkerDao)
