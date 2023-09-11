@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
@@ -38,11 +39,11 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class AdvisorWorker(
     private val db: Database,
     private val runner: AdvisorRunner,
-    private val dao: AdvisorWorkerDao
+    private val ortRunService: OrtRunService
 ) {
     fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
-        val advisorJob = db.blockingQuery { getValidAdvisorJob(advisorJobId) }
-        val analyzerRun = db.blockingQuery { dao.getAnalyzerRunForAdvisorJob(advisorJob) }
+        val advisorJob = getValidAdvisorJob(advisorJobId)
+        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(advisorJob.ortRunId)
 
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
@@ -53,7 +54,7 @@ internal class AdvisorWorker(
 
         db.blockingQuery {
             getValidAdvisorJob(advisorJobId)
-            dao.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
+            ortRunService.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
         }
 
         RunResult.Success
@@ -72,7 +73,7 @@ internal class AdvisorWorker(
     }
 
     private fun getValidAdvisorJob(jobId: Long) =
-        dao.getAdvisorJob(jobId)?.validate()
+        ortRunService.getAdvisorJob(jobId)?.validate()
             ?: throw IllegalArgumentException("The advisor job '$jobId' does not exist.")
 
     private fun AdvisorJob.validate() = apply {

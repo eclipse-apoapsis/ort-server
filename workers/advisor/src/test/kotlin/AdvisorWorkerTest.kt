@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
+import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val ANALYZER_JOB_ID = 1L
@@ -67,13 +68,13 @@ class AdvisorWorkerTest : StringSpec({
             every { packages } returns emptySet()
         }
 
-        val dao = mockk<AdvisorWorkerDao> {
+        val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } returns advisorJob
-            every { getAnalyzerRunForAdvisorJob(any()) } returns analyzerRun
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { storeAdvisorRun(any()) } just runs
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), dao)
+        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -81,18 +82,18 @@ class AdvisorWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
-                dao.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
+                ortRunService.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
             }
         }
     }
 
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
-        val dao = mockk<AdvisorWorkerDao> {
+        val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } throws testException
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), dao)
+        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)) {
@@ -104,11 +105,11 @@ class AdvisorWorkerTest : StringSpec({
 
     "An ignore result should be returned for an invalid job" {
         val invalidJob = advisorJob.copy(status = JobStatus.FINISHED)
-        val dao = mockk<AdvisorWorkerDao> {
+        val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } returns invalidJob
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), dao)
+        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
