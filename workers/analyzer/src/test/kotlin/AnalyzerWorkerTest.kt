@@ -42,6 +42,7 @@ import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EnvironmentConfig
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
@@ -49,8 +50,6 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
@@ -69,6 +68,8 @@ private val repository = Repository(
     type = RepositoryType.GIT,
     url = "https://example.com/git/repository.git"
 )
+
+private val hierarchy = Hierarchy(repository, mockk(), mockk())
 
 private val ortRun = OrtRun(
     id = 1L,
@@ -106,15 +107,9 @@ private fun AnalyzerWorker.testRun(): RunResult = runBlocking { run(JOB_ID, TRAC
 
 class AnalyzerWorkerTest : StringSpec({
     "A private repository should be analyzed successfully" {
-        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
-            every { this@mockk.get(any()) } returns analyzerJob
-        }
-
-        val repositoryRepository = mockk<RepositoryRepository> {
-            every { this@mockk.get(any()) } returns repository
-        }
-
         val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
@@ -143,8 +138,6 @@ class AnalyzerWorkerTest : StringSpec({
             mockk(),
             downloader,
             AnalyzerRunner(),
-            analyzerJobRepository,
-            repositoryRepository,
             ortRunService,
             contextFactory,
             envService
@@ -169,15 +162,9 @@ class AnalyzerWorkerTest : StringSpec({
     }
 
     "A repository without credentials should be analyzed successfully" {
-        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
-            every { this@mockk.get(any()) } returns analyzerJob
-        }
-
-        val repositoryRepository = mockk<RepositoryRepository> {
-            every { this@mockk.get(any()) } returns repository
-        }
-
         val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
@@ -204,8 +191,6 @@ class AnalyzerWorkerTest : StringSpec({
             mockk(),
             downloader,
             AnalyzerRunner(),
-            analyzerJobRepository,
-            repositoryRepository,
             ortRunService,
             contextFactory,
             envService
@@ -235,15 +220,9 @@ class AnalyzerWorkerTest : StringSpec({
         val jobConfig = AnalyzerJobConfiguration(environmentConfig = envConfig)
         val job = analyzerJob.copy(configuration = jobConfig)
 
-        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
-            every { this@mockk.get(any()) } returns job
-        }
-
-        val repositoryRepository = mockk<RepositoryRepository> {
-            every { this@mockk.get(any()) } returns repository
-        }
-
         val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns job
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
@@ -268,8 +247,6 @@ class AnalyzerWorkerTest : StringSpec({
             mockk(),
             downloader,
             AnalyzerRunner(),
-            analyzerJobRepository,
-            repositoryRepository,
             ortRunService,
             contextFactory,
             envService
@@ -292,17 +269,15 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
-        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
-            every { this@mockk.get(any()) } throws testException
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } throws testException
         }
 
         val worker = AnalyzerWorker(
             mockk(),
             mockk(),
             AnalyzerRunner(),
-            analyzerJobRepository,
-            mockk(),
-            mockk(),
+            ortRunService,
             mockk(),
             mockk()
         )
@@ -317,17 +292,15 @@ class AnalyzerWorkerTest : StringSpec({
 
     "An ignore result should be returned for an invalid job" {
         val invalidJob = analyzerJob.copy(status = JobStatus.FINISHED)
-        val analyzerJobRepository = mockk<AnalyzerJobRepository> {
-            every { this@mockk.get(any()) } returns invalidJob
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns invalidJob
         }
 
         val worker = AnalyzerWorker(
             mockk(),
             mockk(),
             AnalyzerRunner(),
-            analyzerJobRepository,
-            mockk(),
-            mockk(),
+            ortRunService,
             mockk(),
             mockk()
         )
