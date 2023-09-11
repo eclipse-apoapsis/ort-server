@@ -251,6 +251,15 @@ class OrtRunService(
         )
     }
 
+    fun storeReporterRun(reporterRun: ReporterRun) {
+        reporterRunRepository.create(
+            reporterRun.reporterJobId,
+            reporterRun.startTime,
+            reporterRun.endTime,
+            reporterRun.reports
+        )
+    }
+
     fun storeRepositoryInformation(ortRunId: Long, repositoryInformation: Repository) {
         db.blockingQuery {
             val vcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcs.mapToModel())

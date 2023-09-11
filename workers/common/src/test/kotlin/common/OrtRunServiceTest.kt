@@ -61,6 +61,8 @@ import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.ossreviewtoolkit.server.model.runs.reporter.Report
+import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
 import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
@@ -522,6 +524,22 @@ class OrtRunServiceTest : WordSpec({
             service.storeEvaluatorRun(evaluatorRun)
 
             fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
+        }
+    }
+
+    "storeReporterRun" should {
+        "store the run correctly" {
+            val reporterRun = ReporterRun(
+                id = 1L,
+                reporterJobId = fixtures.reporterJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                reports = listOf(Report("report1.zip"), Report("report2.zip"))
+            )
+
+            service.storeReporterRun(reporterRun)
+
+            fixtures.reporterRunRepository.getByJobId(fixtures.reporterJob.id) shouldBe reporterRun
         }
     }
 
