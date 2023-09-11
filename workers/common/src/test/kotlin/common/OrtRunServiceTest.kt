@@ -57,6 +57,7 @@ import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
+import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
 import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
@@ -430,6 +431,38 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if no scanner run for the ORT run exists" {
             service.getScannerRunForOrtRun(-1L) should beNull()
+        }
+    }
+
+    "storeAdvisorRun" should {
+        "store the run correctly" {
+            val advisorRun = AdvisorRun(
+                id = 1,
+                advisorJobId = fixtures.advisorJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = AdvisorConfiguration(
+                    githubDefectsConfiguration = null,
+                    nexusIqConfiguration = null,
+                    osvConfiguration = null,
+                    vulnerableCodeConfiguration = null,
+                    options = emptyMap()
+                ),
+                advisorRecords = emptyMap()
+            )
+
+            service.storeAdvisorRun(advisorRun)
+
+            fixtures.advisorRunRepository.getByJobId(fixtures.advisorJob.id) shouldBe advisorRun
         }
     }
 

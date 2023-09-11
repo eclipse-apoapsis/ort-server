@@ -216,6 +216,17 @@ class OrtRunService(
         getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
     }
 
+    fun storeAdvisorRun(advisorRun: AdvisorRun) {
+        advisorRunRepository.create(
+            advisorJobId = advisorRun.advisorJobId,
+            startTime = advisorRun.startTime,
+            endTime = advisorRun.endTime,
+            environment = advisorRun.environment,
+            config = advisorRun.config,
+            advisorRecords = advisorRun.advisorRecords
+        )
+    }
+
     fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
