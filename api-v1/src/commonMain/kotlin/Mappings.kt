@@ -134,7 +134,7 @@ fun EvaluatorJob.mapToApi() =
 
 fun EvaluatorJobConfiguration.mapToApi() =
     ApiEvaluatorJobConfiguration(
-        licenseClassification,
+        licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         ruleSet,
         parameters
@@ -142,7 +142,7 @@ fun EvaluatorJobConfiguration.mapToApi() =
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
     EvaluatorJobConfiguration(
-        licenseClassification,
+        licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToModel() },
         ruleSet,
         parameters

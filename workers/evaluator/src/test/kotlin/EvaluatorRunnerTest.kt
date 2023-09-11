@@ -57,7 +57,10 @@ class EvaluatorRunnerTest : WordSpec({
         "return an EvaluatorRun with one rule violation" {
             val result = runner.run(
                 OrtResult.EMPTY,
-                EvaluatorJobConfiguration(ruleSet = SCRIPT_FILE, licenseClassification = LICENSE_CLASSIFICATIONS_FILE)
+                EvaluatorJobConfiguration(
+                    ruleSet = SCRIPT_FILE,
+                    licenseClassificationsFile = LICENSE_CLASSIFICATIONS_FILE
+                )
             )
             val expectedRuleViolation = RuleViolation(
                 rule = "Example violation.",

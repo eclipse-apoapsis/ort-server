@@ -105,7 +105,7 @@ private val jobConfigurations = JobConfigurations(
         skipExcluded = true
     ),
     evaluator = EvaluatorJobConfiguration(
-        licenseClassification = "license-classifications.yml",
+        licenseClassificationsFile = "license-classifications.yml",
         packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
         ruleSet = "rules.evaluator.kts"
     ),

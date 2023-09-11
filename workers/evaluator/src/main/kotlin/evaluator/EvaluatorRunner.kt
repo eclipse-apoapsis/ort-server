@@ -53,7 +53,7 @@ class EvaluatorRunner(
         val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
             ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
-        val licenseClassifications = config.licenseClassification?.let {
+        val licenseClassifications = config.licenseClassificationsFile?.let {
             configManager.getFile(null, Path(it)).use { rawLicenseClassifications ->
                 yamlMapper.readValue(rawLicenseClassifications, LicenseClassifications::class.java)
             }

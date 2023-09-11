@@ -161,9 +161,9 @@ data class ScannerJobConfiguration(
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
-     * License classifications which are passed as parameter to the rules script.
+     * The path to the license classifications file which is resolved from the configured configuration source.
      */
-    val licenseClassification: String? = null,
+    val licenseClassificationsFile: String? = null,
 
     /**
      * The list of package configuration providers to use.
