@@ -39,22 +39,20 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class EvaluatorWorker(
     private val db: Database,
     private val runner: EvaluatorRunner,
-    private val dao: EvaluatorWorkerDao,
     private val ortRunService: OrtRunService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val evaluatorJob = db.blockingQuery { getValidEvaluatorJob(jobId) }
-        val ortRun = db.blockingQuery { dao.getOrtRun(evaluatorJob.ortRunId) }
+        val evaluatorJob = getValidEvaluatorJob(jobId)
+        val ortRun = ortRunService.getOrtRun(evaluatorJob.ortRunId)
         requireNotNull(ortRun) {
             "ORT run '${evaluatorJob.ortRunId}' not found."
         }
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-
-        val analyzerRun = db.blockingQuery { dao.getAnalyzerRunForEvaluatorJob(evaluatorJob) }
-        val advisorRun = db.blockingQuery { dao.getAdvisorRunForEvaluatorJob(evaluatorJob) }
-        val scannerRun = db.blockingQuery { dao.getScannerRunForEvaluatorJob(evaluatorJob) }
+        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
+        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
+        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
 
         val ortResult = ortRun.mapToOrt(
             repository = repository,
@@ -68,8 +66,8 @@ internal class EvaluatorWorker(
 
         db.blockingQuery {
             getValidEvaluatorJob(evaluatorJob.id)
-            dao.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(evaluatorJob.id))
-            dao.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
+            ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(evaluatorJob.id))
+            ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
         }
 
         RunResult.Success
@@ -88,7 +86,7 @@ internal class EvaluatorWorker(
     }
 
     private fun getValidEvaluatorJob(jobId: Long) =
-        dao.getEvaluatorJob(jobId)?.validate()
+        ortRunService.getEvaluatorJob(jobId)?.validate()
             ?: throw IllegalArgumentException("The evaluator job '$jobId' does not exist.")
 
     private fun EvaluatorJob.validate() = apply {

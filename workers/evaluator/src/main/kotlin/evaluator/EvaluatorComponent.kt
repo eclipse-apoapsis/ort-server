@@ -70,7 +70,6 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
     private fun evaluatorModule(): Module = module {
         single { ConfigManager.create(get()) }
 
-        singleOf(::EvaluatorWorkerDao)
         singleOf(::EvaluatorRunner)
         singleOf(::EvaluatorWorker)
     }

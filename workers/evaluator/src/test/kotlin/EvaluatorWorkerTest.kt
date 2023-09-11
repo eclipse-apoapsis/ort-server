@@ -40,9 +40,9 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
@@ -69,16 +69,11 @@ private val evaluatorJob = EvaluatorJob(
 )
 
 class EvaluatorWorkerTest : StringSpec({
-    val ortRunService = mockk<OrtRunService> {
-        every { getOrtRepositoryInformation(any()) } returns mockk()
-        every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-    }
-
     "A project should be evaluated successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
         val scannerRun = mockk<ScannerRun>()
-        val repository = mockk<Repository>()
+        val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
             every { repositoryId } returns REPOSITORY_ID
@@ -91,14 +86,16 @@ class EvaluatorWorkerTest : StringSpec({
         every { scannerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
-        val dao = mockk<EvaluatorWorkerDao> {
-            every { getAnalyzerRunForEvaluatorJob(any()) } returns analyzerRun
-            every { getAdvisorRunForEvaluatorJob(any()) } returns advisorRun
-            every { getScannerRunForEvaluatorJob(any()) } returns scannerRun
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorRunForOrtRun(any()) } returns advisorRun
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
-            every { storeEvaluatorRun(any()) } returns mockk()
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getOrtRun(any()) } returns ortRun
-            every { getRepository(any()) } returns repository
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerRunForOrtRun(any()) } returns scannerRun
+            every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
         }
 
@@ -111,7 +108,7 @@ class EvaluatorWorkerTest : StringSpec({
             } returns String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager), dao, ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager), ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -119,7 +116,7 @@ class EvaluatorWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             coVerify(exactly = 1) {
-                dao.storeEvaluatorRun(any())
+                ortRunService.storeEvaluatorRun(any())
                 ortRunService.getOrtRepositoryInformation(ortRun)
             }
         }
@@ -127,11 +124,11 @@ class EvaluatorWorkerTest : StringSpec({
 
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
-        val dao = mockk<EvaluatorWorkerDao> {
+        val ortRunService = mockk<OrtRunService> {
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), dao, ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService)
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -143,11 +140,11 @@ class EvaluatorWorkerTest : StringSpec({
 
     "An ignore result should be returned for an invalid job" {
         val invalidJob = evaluatorJob.copy(status = JobStatus.FINISHED)
-        val dao = mockk<EvaluatorWorkerDao> {
+        val ortRunService = mockk<OrtRunService> {
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), dao, ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
