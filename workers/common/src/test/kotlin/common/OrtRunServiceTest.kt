@@ -105,6 +105,17 @@ class OrtRunServiceTest : WordSpec({
         )
     }
 
+    "getAdvisorJob" should {
+        "return the advisor job" {
+            fixtures.advisorJob
+            service.getAdvisorJob(fixtures.advisorJob.id) shouldBe fixtures.advisorJob
+        }
+
+        "return null if the job does not exist" {
+            service.getAdvisorJob(-1L) should beNull()
+        }
+    }
+
     "getAdvisorJobForOrtRun" should {
         "return the advisor job for the ORT run" {
             fixtures.advisorJob
@@ -140,6 +151,17 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if no advisor run for the ORT run exists" {
             service.getAdvisorRunForOrtRun(-1L) should beNull()
+        }
+    }
+
+    "getAnalyzerJob" should {
+        "return the analyzer job" {
+            fixtures.analyzerJob
+            service.getAnalyzerJob(fixtures.analyzerJob.id) shouldBe fixtures.analyzerJob
+        }
+
+        "return null if the job does not exist" {
+            service.getAnalyzerJob(-1L) should beNull()
         }
     }
 
@@ -181,6 +203,17 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if the analyzer run for the ORT run exists" {
             service.getAnalyzerRunForOrtRun(-1L) should beNull()
+        }
+    }
+
+    "getEvaluatorJob" should {
+        "return the evaluator job" {
+            fixtures.evaluatorJob
+            service.getEvaluatorJob(fixtures.evaluatorJob.id) shouldBe fixtures.evaluatorJob
+        }
+
+        "return null if the job does not exist" {
+            service.getEvaluatorJob(-1L) should beNull()
         }
     }
 
@@ -258,6 +291,17 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "getReporterJob" should {
+        "return the reporter job" {
+            fixtures.reporterJob
+            service.getReporterJob(fixtures.reporterJob.id) shouldBe fixtures.reporterJob
+        }
+
+        "return null if the job does not exist" {
+            service.getReporterJob(-1L) should beNull()
+        }
+    }
+
     "getReporterJobForOrtRun" should {
         "return the reporter job for the ORT run" {
             fixtures.reporterJob
@@ -314,6 +358,17 @@ class OrtRunServiceTest : WordSpec({
 
         "return an empty resolved configuration if no resolved configuration was stored" {
             service.getResolvedConfiguration(fixtures.ortRun) shouldBe ResolvedConfiguration()
+        }
+    }
+
+    "getScannerJob" should {
+        "return the scanner job" {
+            fixtures.scannerJob
+            service.getScannerJob(fixtures.scannerJob.id) shouldBe fixtures.scannerJob
+        }
+
+        "return null if the job does not exist" {
+            service.getScannerJob(-1L) should beNull()
         }
     }
 

@@ -55,7 +55,7 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "TooManyFunctions")
 class OrtRunService(
     private val db: Database,
     private val advisorJobRepository: AdvisorJobRepository,
@@ -73,6 +73,11 @@ class OrtRunService(
     private val scannerRunRepository: ScannerRunRepository
 ) {
     /**
+     * Return the [AdvisorJob] with the provided [id] or `null` if the job does not exist.
+     */
+    fun getAdvisorJob(id: Long) = db.blockingQuery { advisorJobRepository.get(id) }
+
+    /**
      * Return the [AdvisorJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
     fun getAdvisorJobForOrtRun(ortRunId: Long) = db.blockingQuery { advisorJobRepository.getForOrtRun(ortRunId) }
@@ -85,6 +90,11 @@ class OrtRunService(
     }
 
     /**
+     * Return the [AnalyzerJob] with the provided [id] or `null` if the job does not exist.
+     */
+    fun getAnalyzerJob(id: Long) = db.blockingQuery { analyzerJobRepository.get(id) }
+
+    /**
      * Return the [AnalyzerJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
     fun getAnalyzerJobForOrtRun(ortRunId: Long) = db.blockingQuery { analyzerJobRepository.getForOrtRun(ortRunId) }
@@ -95,6 +105,11 @@ class OrtRunService(
     fun getAnalyzerRunForOrtRun(ortRunId: Long) = db.blockingQuery {
         getAnalyzerJobForOrtRun(ortRunId)?.let { analyzerRunRepository.getByJobId(it.id) }
     }
+
+    /**
+     * Return the [EvaluatorJob] with the provided [id] or `null` if the job does not exist.
+     */
+    fun getEvaluatorJob(id: Long) = db.blockingQuery { evaluatorJobRepository.get(id) }
 
     /**
      * Return the [EvaluatorJob] for the provided [ortRunId] or `null` if the job does not exist.
@@ -150,6 +165,11 @@ class OrtRunService(
     fun getOrtRun(id: Long) = db.blockingQuery { ortRunRepository.get(id) }
 
     /**
+     * Return the [ReporterJob] with the provided [id] or `null` if the job does not exist.
+     */
+    fun getReporterJob(id: Long) = db.blockingQuery { reporterJobRepository.get(id) }
+
+    /**
      * Return the [ReporterJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
     fun getReporterJobForOrtRun(ortRunId: Long) = db.blockingQuery { reporterJobRepository.getForOrtRun(ortRunId) }
@@ -168,6 +188,11 @@ class OrtRunService(
     fun getResolvedConfiguration(ortRun: OrtRun) = db.blockingQuery {
         resolvedConfigurationRepository.getForOrtRun(ortRun.id) ?: ResolvedConfiguration()
     }
+
+    /**
+     * Return the [ScannerJob] with the provided [id] or `null` if the job does not exist.
+     */
+    fun getScannerJob(id: Long) = db.blockingQuery { scannerJobRepository.get(id) }
 
     /**
      * Return the [ScannerJob] for the provided [ortRunId] or `null` if the job does not exist.
