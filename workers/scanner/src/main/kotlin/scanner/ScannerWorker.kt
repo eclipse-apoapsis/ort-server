@@ -43,15 +43,14 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 class ScannerWorker(
     private val db: Database,
     private val runner: ScannerRunner,
-    private val dao: ScannerWorkerDao,
+    private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
-    private val environmentService: EnvironmentService,
-    private val ortRunService: OrtRunService
+    private val environmentService: EnvironmentService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.blockingQuery {
             val scannerJob = getValidScannerJob(jobId)
-            val ortRun = dao.getOrtRun(scannerJob.ortRunId)
+            val ortRun = ortRunService.getOrtRun(scannerJob.ortRunId)
             requireNotNull(ortRun) {
                 "ORT run '${scannerJob.ortRunId}' not found."
             }
@@ -59,7 +58,7 @@ class ScannerWorker(
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
             val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
 
-            val analyzerRun = dao.getAnalyzerRunForScannerJob(scannerJob)
+            val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
 
             val ortResult = ortRun.mapToOrt(
                 repository = repository,
@@ -79,7 +78,7 @@ class ScannerWorker(
 
         db.blockingQuery {
             getValidScannerJob(scannerJob.id)
-            dao.storeScannerRun(scannerRun.mapToModel(scannerJob.id))
+            ortRunService.storeScannerRun(scannerRun.mapToModel(scannerJob.id))
         }
 
         RunResult.Success
@@ -98,7 +97,7 @@ class ScannerWorker(
     }
 
     private fun getValidScannerJob(jobId: Long) =
-        dao.getScannerJob(jobId)?.validate()
+        ortRunService.getScannerJob(jobId)?.validate()
             ?: throw IllegalArgumentException("The scanner job '$jobId' does not exist.")
 
     private fun ScannerJob.validate() = apply {
