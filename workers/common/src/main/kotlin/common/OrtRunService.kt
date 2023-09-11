@@ -75,37 +75,37 @@ class OrtRunService(
     /**
      * Return the [AdvisorJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
-    fun getAdvisorJob(ortRunId: Long) = db.blockingQuery { advisorJobRepository.getForOrtRun(ortRunId) }
+    fun getAdvisorJobForOrtRun(ortRunId: Long) = db.blockingQuery { advisorJobRepository.getForOrtRun(ortRunId) }
 
     /**
      * Return the [AdvisorRun] for the provided [ortRunId] or `null` if the run does not exist.
      */
-    fun getAdvisorRun(ortRunId: Long) = db.blockingQuery {
-        getAdvisorJob(ortRunId)?.let { advisorRunRepository.getByJobId(it.id) }
+    fun getAdvisorRunForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getAdvisorJobForOrtRun(ortRunId)?.let { advisorRunRepository.getByJobId(it.id) }
     }
 
     /**
      * Return the [AnalyzerJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
-    fun getAnalyzerJob(ortRunId: Long) = db.blockingQuery { analyzerJobRepository.getForOrtRun(ortRunId) }
+    fun getAnalyzerJobForOrtRun(ortRunId: Long) = db.blockingQuery { analyzerJobRepository.getForOrtRun(ortRunId) }
 
     /**
      * Return the [AnalyzerRun] for the provided [ortRunId] or `null` if the run does not exist.
      */
-    fun getAnalyzerRun(ortRunId: Long) = db.blockingQuery {
-        getAnalyzerJob(ortRunId)?.let { analyzerRunRepository.getByJobId(it.id) }
+    fun getAnalyzerRunForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getAnalyzerJobForOrtRun(ortRunId)?.let { analyzerRunRepository.getByJobId(it.id) }
     }
 
     /**
      * Return the [EvaluatorJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
-    fun getEvaluatorJob(ortRunId: Long) = db.blockingQuery { evaluatorJobRepository.getForOrtRun(ortRunId) }
+    fun getEvaluatorJobForOrtRun(ortRunId: Long) = db.blockingQuery { evaluatorJobRepository.getForOrtRun(ortRunId) }
 
     /**
      * Return the [EvaluatorRun] for the provided [ortRunId] or `null` if the run does not exist.
      */
-    fun getEvaluatorRun(ortRunId: Long) = db.blockingQuery {
-        getEvaluatorJob(ortRunId)?.let { evaluatorRunRepository.getByJobId(it.id) }
+    fun getEvaluatorRunForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getEvaluatorJobForOrtRun(ortRunId)?.let { evaluatorRunRepository.getByJobId(it.id) }
     }
 
     /**
@@ -152,13 +152,13 @@ class OrtRunService(
     /**
      * Return the [ReporterJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
-    fun getReporterJob(ortRunId: Long) = db.blockingQuery { reporterJobRepository.getForOrtRun(ortRunId) }
+    fun getReporterJobForOrtRun(ortRunId: Long) = db.blockingQuery { reporterJobRepository.getForOrtRun(ortRunId) }
 
     /**
      * Return the [ReporterRun] for the provided [ortRunId] or `null` if the run does not exist.
      */
-    fun getReporterRun(ortRunId: Long) = db.blockingQuery {
-        getReporterJob(ortRunId)?.let { reporterRunRepository.getByJobId(it.id) }
+    fun getReporterRunForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getReporterJobForOrtRun(ortRunId)?.let { reporterRunRepository.getByJobId(it.id) }
     }
 
     /**
@@ -172,13 +172,13 @@ class OrtRunService(
     /**
      * Return the [ScannerJob] for the provided [ortRunId] or `null` if the job does not exist.
      */
-    fun getScannerJob(ortRunId: Long) = db.blockingQuery { scannerJobRepository.getForOrtRun(ortRunId) }
+    fun getScannerJobForOrtRun(ortRunId: Long) = db.blockingQuery { scannerJobRepository.getForOrtRun(ortRunId) }
 
     /**
      * Return the [ScannerRun] for the provided [ortRunId] or `null` if the run does not exist.
      */
-    fun getScannerRun(ortRunId: Long) = db.blockingQuery {
-        getScannerJob(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
+    fun getScannerRunForOrtRun(ortRunId: Long) = db.blockingQuery {
+        getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
     }
 
     fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {

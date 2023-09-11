@@ -105,19 +105,19 @@ class OrtRunServiceTest : WordSpec({
         )
     }
 
-    "getAdvisorJob" should {
-        "return the advisor job" {
+    "getAdvisorJobForOrtRun" should {
+        "return the advisor job for the ORT run" {
             fixtures.advisorJob
-            service.getAdvisorJob(fixtures.ortRun.id) shouldBe fixtures.advisorJob
+            service.getAdvisorJobForOrtRun(fixtures.ortRun.id) shouldBe fixtures.advisorJob
         }
 
-        "return null if the advisor job does not exist" {
-            service.getAdvisorJob(-1L) should beNull()
+        "return null if no advisor job for the ORT run exists" {
+            service.getAdvisorJobForOrtRun(-1L) should beNull()
         }
     }
 
-    "getAdvisorRun" should {
-        "return the advisor run" {
+    "getAdvisorRunForOrtRun" should {
+        "return the advisor run for the ORT run" {
             val createdAdvisorRun = dbExtension.fixtures.advisorRunRepository.create(
                 advisorJobId = fixtures.advisorJob.id,
                 startTime = Clock.System.now(),
@@ -135,27 +135,27 @@ class OrtRunServiceTest : WordSpec({
                 advisorRecords = emptyMap()
             )
 
-            service.getAdvisorRun(fixtures.ortRun.id) shouldBe createdAdvisorRun
+            service.getAdvisorRunForOrtRun(fixtures.ortRun.id) shouldBe createdAdvisorRun
         }
 
-        "return null if the advisor run does not exist" {
-            service.getAdvisorRun(-1L) should beNull()
+        "return null if no advisor run for the ORT run exists" {
+            service.getAdvisorRunForOrtRun(-1L) should beNull()
         }
     }
 
-    "getAnalyzerJob" should {
-        "return the analyzer job" {
+    "getAnalyzerJobForOrtRun" should {
+        "return the analyzer job for the ORT run" {
             fixtures.analyzerJob
-            service.getAnalyzerJob(fixtures.ortRun.id) shouldBe fixtures.analyzerJob
+            service.getAnalyzerJobForOrtRun(fixtures.ortRun.id) shouldBe fixtures.analyzerJob
         }
 
-        "return null if the advisor job does not exist" {
-            service.getAnalyzerJob(-1L) should beNull()
+        "return null if no advisor job for the ORT run exists" {
+            service.getAnalyzerJobForOrtRun(-1L) should beNull()
         }
     }
 
-    "getAnalyzerRun" should {
-        "return the analyzer run" {
+    "getAnalyzerRunForOrtRun" should {
+        "return the analyzer run for the ORT run" {
             val createdAnalyzerRun = dbExtension.fixtures.analyzerRunRepository.create(
                 analyzerJobId = fixtures.analyzerJob.id,
                 startTime = Clock.System.now(),
@@ -176,27 +176,27 @@ class OrtRunServiceTest : WordSpec({
                 dependencyGraphs = emptyMap()
             )
 
-            service.getAnalyzerRun(fixtures.ortRun.id) shouldBe createdAnalyzerRun
+            service.getAnalyzerRunForOrtRun(fixtures.ortRun.id) shouldBe createdAnalyzerRun
         }
 
-        "return null if the analyzer run does not exist" {
-            service.getAnalyzerRun(-1L) should beNull()
+        "return null if the analyzer run for the ORT run exists" {
+            service.getAnalyzerRunForOrtRun(-1L) should beNull()
         }
     }
 
-    "getEvaluatorJob" should {
-        "return the evaluator job" {
+    "getEvaluatorJobForOrtRun" should {
+        "return the evaluator job for the ORT run" {
             fixtures.evaluatorJob
-            service.getEvaluatorJob(fixtures.ortRun.id) shouldBe fixtures.evaluatorJob
+            service.getEvaluatorJobForOrtRun(fixtures.ortRun.id) shouldBe fixtures.evaluatorJob
         }
 
-        "return null if the evaluator job does not exist" {
-            service.getEvaluatorJob(-1L) should beNull()
+        "return null if no evaluator job for the ORT run exists" {
+            service.getEvaluatorJobForOrtRun(-1L) should beNull()
         }
     }
 
-    "getEvaluatorRun" should {
-        "return the evaluator run" {
+    "getEvaluatorRunForOrtRun" should {
+        "return the evaluator run for the ORT run" {
             val createdEvaluatorRun = dbExtension.fixtures.evaluatorRunRepository.create(
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now(),
@@ -204,11 +204,11 @@ class OrtRunServiceTest : WordSpec({
                 violations = emptyList()
             )
 
-            service.getEvaluatorRun(fixtures.ortRun.id) shouldBe createdEvaluatorRun
+            service.getEvaluatorRunForOrtRun(fixtures.ortRun.id) shouldBe createdEvaluatorRun
         }
 
-        "return null if the evaluator run does not exist" {
-            service.getEvaluatorRun(-1L) should beNull()
+        "return null if no evaluator run for the ORT run exists" {
+            service.getEvaluatorRunForOrtRun(-1L) should beNull()
         }
     }
 
@@ -258,19 +258,19 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
-    "getReporterJob" should {
-        "return the reporter job" {
+    "getReporterJobForOrtRun" should {
+        "return the reporter job for the ORT run" {
             fixtures.reporterJob
-            service.getReporterJob(fixtures.ortRun.id) shouldBe fixtures.reporterJob
+            service.getReporterJobForOrtRun(fixtures.ortRun.id) shouldBe fixtures.reporterJob
         }
 
-        "return null if the reporter job does not exist" {
-            service.getReporterJob(-1L) should beNull()
+        "return null if no reporter job for the ORT run exists" {
+            service.getReporterJobForOrtRun(-1L) should beNull()
         }
     }
 
-    "getReporterRun" should {
-        "return the reporter run" {
+    "getReporterRunForOrtRun" should {
+        "return the reporter run for the ORT run" {
             val createdReporterRun = dbExtension.fixtures.reporterRunRepository.create(
                 reporterJobId = fixtures.reporterJob.id,
                 startTime = Clock.System.now(),
@@ -278,11 +278,11 @@ class OrtRunServiceTest : WordSpec({
                 reports = emptyList()
             )
 
-            service.getReporterRun(fixtures.ortRun.id) shouldBe createdReporterRun
+            service.getReporterRunForOrtRun(fixtures.ortRun.id) shouldBe createdReporterRun
         }
 
-        "return null if the reporter run does not exist" {
-            service.getReporterRun(-1L) should beNull()
+        "return null if no reporter run for the ORT run exists" {
+            service.getReporterRunForOrtRun(-1L) should beNull()
         }
     }
 
@@ -317,19 +317,19 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
-    "getScannerJob" should {
-        "return the scanner job" {
+    "getScannerJobForOrtRun" should {
+        "return the scanner job for the ORT run" {
             fixtures.scannerJob
-            service.getScannerJob(fixtures.ortRun.id) shouldBe fixtures.scannerJob
+            service.getScannerJobForOrtRun(fixtures.ortRun.id) shouldBe fixtures.scannerJob
         }
 
-        "return null if the scanner job does not exist" {
-            service.getScannerJob(-1L) should beNull()
+        "return null if no scanner job for the ORT run exists" {
+            service.getScannerJobForOrtRun(-1L) should beNull()
         }
     }
 
-    "getScannerRun" should {
-        "return the scanner run" {
+    "getScannerRunForOrtRun" should {
+        "return the scanner run for the ORT run" {
             val createdScannerRun = dbExtension.fixtures.scannerRunRepository.create(
                 scannerJobId = fixtures.scannerJob.id,
                 startTime = Clock.System.now(),
@@ -357,11 +357,11 @@ class OrtRunServiceTest : WordSpec({
                 )
             )
 
-            service.getScannerRun(fixtures.ortRun.id) shouldBe createdScannerRun
+            service.getScannerRunForOrtRun(fixtures.ortRun.id) shouldBe createdScannerRun
         }
 
-        "return null if the scanner run does not exist" {
-            service.getScannerRun(-1L) should beNull()
+        "return null if no scanner run for the ORT run exists" {
+            service.getScannerRunForOrtRun(-1L) should beNull()
         }
     }
 
