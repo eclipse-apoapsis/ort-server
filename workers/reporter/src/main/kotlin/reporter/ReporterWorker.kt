@@ -26,8 +26,8 @@ import org.jetbrains.exposed.sql.Database
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
-import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
 import org.ossreviewtoolkit.server.model.runs.reporter.Report
+import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
@@ -42,25 +42,22 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class ReporterWorker(
     private val db: Database,
     private val runner: ReporterRunner,
-    private val dao: ReporterWorkerDao,
-    private val reporterRunRepository: ReporterRunRepository,
     private val ortRunService: OrtRunService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (reporterJob, ortResult) = db.blockingQuery {
             val reporterJob = getValidReporterJob(jobId)
-            val ortRun = dao.getOrtRun(reporterJob.ortRunId)
+            val ortRun = ortRunService.getOrtRun(reporterJob.ortRunId)
             requireNotNull(ortRun) {
                 "ORT run '${reporterJob.ortRunId}' not found."
             }
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
             val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-
-            val analyzerRun = dao.getAnalyzerRunForReporterJob(reporterJob)
-            val advisorRun = dao.getAdvisorRunForReporterJob(reporterJob)
-            val evaluatorRun = dao.getEvaluatorRunForReporterJob(reporterJob)
-            val scannerRun = dao.getScannerRunForReporterJob(reporterJob)
+            val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
+            val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
+            val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
+            val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
 
             val ortResult = ortRun.mapToOrt(
                 repository = repository,
@@ -85,7 +82,15 @@ internal class ReporterWorker(
             .map { file -> Report(file.name) }
             .toList()
 
-        reporterRunRepository.create(reporterJob.id, startTime, endTime, reports)
+        val reporterRun = ReporterRun(
+            id = -1L,
+            reporterJobId = jobId,
+            startTime = startTime,
+            endTime = endTime,
+            reports = reports
+        )
+
+        ortRunService.storeReporterRun(reporterRun)
 
         RunResult.Success
     }.getOrElse {
@@ -103,7 +108,7 @@ internal class ReporterWorker(
     }
 
     private fun getValidReporterJob(jobId: Long) =
-        dao.getReporterJob(jobId)?.validate()
+        ortRunService.getReporterJob(jobId)?.validate()
             ?: throw IllegalArgumentException("The reporter job '$jobId' does not exist.")
 
     private fun ReporterJob.validate() = apply {

@@ -85,7 +85,6 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 
         singleOf(::ReportStorage)
-        singleOf(::ReporterWorkerDao)
         singleOf(::ReporterRunner)
         singleOf(::ReporterWorker)
     }
