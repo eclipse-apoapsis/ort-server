@@ -299,4 +299,14 @@ class OrtRunService(
             resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
         }
     }
+
+    fun storeScannerRun(scannerRun: ScannerRun) {
+        scannerRunRepository.create(
+            scannerJobId = scannerRun.scannerJobId,
+            startTime = scannerRun.startTime,
+            endTime = scannerRun.endTime,
+            environment = scannerRun.environment,
+            config = scannerRun.config
+        )
+    }
 }

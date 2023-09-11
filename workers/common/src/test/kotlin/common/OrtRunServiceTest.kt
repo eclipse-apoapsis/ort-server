@@ -67,6 +67,7 @@ import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
 import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
 import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.mapToModel
@@ -640,6 +641,44 @@ class OrtRunServiceTest : WordSpec({
 
             resolvedConfiguration.shouldNotBeNull()
             resolvedConfiguration.packageCurations should containExactly(curations.map { it.mapToModel() })
+        }
+    }
+
+    "storeScannerRun" should {
+        "store the run correctly" {
+            val scannerRun = ScannerRun(
+                id = 1L,
+                scannerJobId = fixtures.scannerJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = ScannerConfiguration(
+                    skipConcluded = true,
+                    archive = null,
+                    createMissingArchives = true,
+                    detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
+                    options = emptyMap(),
+                    storages = emptyMap(),
+                    storageReaders = listOf("reader-1"),
+                    storageWriters = listOf("writer-1"),
+                    ignorePatterns = listOf("pattern-1"),
+                    provenanceStorage = null
+                ),
+                provenances = emptySet(),
+                scanResults = emptySet()
+            )
+
+            service.storeScannerRun(scannerRun)
+
+            fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun
         }
     }
 })
