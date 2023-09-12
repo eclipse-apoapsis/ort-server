@@ -169,47 +169,21 @@ class EvaluatorRunnerTest : WordSpec({
 
 private fun createConfigManager(): ConfigManager {
     val configManager = mockk<ConfigManager> {
-        every {
-            getFileAsString(
-                any(),
-                Path(SCRIPT_FILE)
-            )
-        } returns String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
+        every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
+                String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
 
-        every {
-            getFileAsString(
-                any(),
-                Path(PACKAGE_CONFIGURATION_RULES)
-            )
-        } returns File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
+        every { getFileAsString(any(), Path(PACKAGE_CONFIGURATION_RULES)) } returns
+                File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
 
-        every {
-            getFile(
-                any(),
-                Path(LICENSE_CLASSIFICATIONS_FILE)
-            )
-        } answers { File("src/test/resources/license-classifications.yml").inputStream() }
+        every { getFile(any(), Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
+                { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every {
-            getFile(
-                any(),
-                Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)
-            )
-        } answers { File("src/test/resources/license-classifications.yml").inputStream() }
+        every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
+                { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every {
-            getFileAsString(
-                any(),
-                Path(UNKNOWN_RULES_KTS)
-            )
-        } answers { callOriginal() }
+        every { getFileAsString(any(), Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
 
-        every {
-            getFile(
-                any(),
-                Path(UNKNOWN_RULES_KTS)
-            )
-        } answers { callOriginal() }
+        every { getFile(any(), Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
     }
 
     return configManager
