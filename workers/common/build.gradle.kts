@@ -47,13 +47,14 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":config:config-spi"))
     implementation(project(":dao"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
 
+    api(project(":config:config-spi"))
+    api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
     api(libs.ortModel)
     api(libs.ortScanner)
