@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 const val SCRIPT_FILE = "/example.rules.kts"
@@ -187,7 +188,14 @@ private fun createConfigManager(): ConfigManager {
                 any(),
                 Path(LICENSE_CLASSIFICATIONS_FILE)
             )
-        } returns File("src/test/resources/license-classifications.yml").inputStream()
+        } answers { File("src/test/resources/license-classifications.yml").inputStream() }
+
+        every {
+            getFile(
+                any(),
+                Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)
+            )
+        } answers { File("src/test/resources/license-classifications.yml").inputStream() }
 
         every {
             getFileAsString(

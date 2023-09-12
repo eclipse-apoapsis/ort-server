@@ -161,7 +161,8 @@ data class ScannerJobConfiguration(
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
-     * The path to the license classifications file which is resolved from the configured configuration source.
+     * The path to the license classifications file which is resolved from the configured configuration source. If this
+     * is null, the default path from ORT will be used.
      */
     val licenseClassificationsFile: String? = null,
 

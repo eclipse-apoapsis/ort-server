@@ -50,6 +50,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
 
@@ -100,12 +101,10 @@ class EvaluatorWorkerTest : StringSpec({
         }
 
         val configManager = mockk<ConfigManager> {
-            every {
-                getFileAsString(
-                    any(),
-                    Path(SCRIPT_FILE)
-                )
-            } returns String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
+            every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
+                    File("src/test/resources/example.rules.kts").readText()
+            every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
+                    File("src/test/resources/license-classifications.yml").inputStream()
         }
 
         val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager), ortRunService)

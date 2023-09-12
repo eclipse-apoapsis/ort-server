@@ -30,13 +30,14 @@ import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
-import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
 class EvaluatorRunner(
     /**
@@ -53,11 +54,11 @@ class EvaluatorRunner(
         val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
             ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
-        val licenseClassifications = config.licenseClassificationsFile?.let {
-            configManager.getFile(null, Path(it)).use { rawLicenseClassifications ->
-                yamlMapper.readValue(rawLicenseClassifications, LicenseClassifications::class.java)
-            }
-        } ?: LicenseClassifications()
+        val licenseClassifications = configManager.readConfigFileWithDefault(
+            path = config.licenseClassificationsFile,
+            defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
+            fallbackValue = LicenseClassifications()
+        )
 
         val packageConfigurationProvider = buildList {
             val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
