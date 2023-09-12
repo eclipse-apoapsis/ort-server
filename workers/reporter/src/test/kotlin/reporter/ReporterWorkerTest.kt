@@ -67,7 +67,7 @@ private val reporterJob = ReporterJob(
 )
 
 class ReporterWorkerTest : StringSpec({
-    val runner = ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory())
+    val runner = ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory(), mockk())
 
     "Reports for a project should be created successfully" {
         val analyzerRun = mockk<AnalyzerRun>()

@@ -27,6 +27,12 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.CopyrightGarbage
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
+import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
+import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.model.utils.PackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.Path
@@ -49,7 +55,10 @@ class ReporterRunner(
     private val contextFactory: WorkerContextFactory,
 
     /** The factory for creating a transformer for options. */
-    private val transformerFactory: OptionsTransformerFactory
+    private val transformerFactory: OptionsTransformerFactory,
+
+    /** The file archiver used for resolving license files. */
+    private val fileArchiver: FileArchiver
 ) {
     fun run(runId: Long, ortResult: OrtResult, config: ReporterJobConfiguration): Map<String, List<File>> {
         val reporters = config.formats.map { format ->
@@ -63,7 +72,16 @@ class ReporterRunner(
         // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
         //       default values. This should be changed as soon as other parameters can be configured in the
         //       reporter worker.
-        val reporterInput = ReporterInput(ortResult)
+        val reporterInput = ReporterInput(
+            ortResult = ortResult,
+            licenseInfoResolver = LicenseInfoResolver(
+                provider = DefaultLicenseInfoProvider(ortResult, PackageConfigurationProvider.EMPTY),
+                copyrightGarbage = CopyrightGarbage(),
+                addAuthorsToCopyrights = true,
+                archiver = fileArchiver,
+                licenseFilePatterns = LicenseFilePatterns.DEFAULT
+            )
+        )
 
         val results = runBlocking(Dispatchers.IO) {
             contextFactory.createContext(runId).use { context ->

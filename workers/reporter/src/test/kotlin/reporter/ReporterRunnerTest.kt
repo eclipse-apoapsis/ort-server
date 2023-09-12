@@ -60,7 +60,7 @@ class ReporterRunnerTest : WordSpec({
             val storage = mockk<ReportStorage>()
             every { storage.storeReportFiles(any(), any()) } just runs
             val (contextFactory, _) = mockContext()
-            val runner = ReporterRunner(storage, contextFactory, OptionsTransformerFactory())
+            val runner = ReporterRunner(storage, contextFactory, OptionsTransformerFactory(), mockk())
 
             val result = runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf("WebApp")))
 
@@ -113,7 +113,7 @@ class ReporterRunnerTest : WordSpec({
                 paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
             }
 
-            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory())
+            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory(), mockk())
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig)
 
             val slotPlainOptions = slot<Options>()
@@ -166,7 +166,7 @@ class ReporterRunnerTest : WordSpec({
                 paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
             }
 
-            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory())
+            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory(), mockk())
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig)
 
             val slotOptions = slot<Options>()
@@ -199,7 +199,7 @@ class ReporterRunnerTest : WordSpec({
             val (contextFactory, _) = mockContext()
 
             val exception = shouldThrow<IllegalArgumentException> {
-                val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory())
+                val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory(), mockk())
 
                 runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf(reportFormat)))
             }
@@ -209,7 +209,7 @@ class ReporterRunnerTest : WordSpec({
 
         "should throw an exception when requesting an unknown report format" {
             val (contextFactory, _) = mockContext()
-            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory())
+            val runner = ReporterRunner(mockk(relaxed = true), contextFactory, OptionsTransformerFactory(), mockk())
 
             shouldThrow<IllegalArgumentException> {
                 runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(listOf("UnknownFormat")))

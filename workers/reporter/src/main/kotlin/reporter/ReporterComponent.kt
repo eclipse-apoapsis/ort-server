@@ -24,6 +24,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
@@ -36,6 +38,7 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.ReporterEndpoint
+import org.ossreviewtoolkit.server.workers.common.OrtServerFileArchiveStorage
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
@@ -83,6 +86,11 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
     private fun reporterModule(): Module = module {
         single { ConfigManager.create(get()) }
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
+
+        single {
+            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
+            FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
+        }
 
         singleOf(::ReportStorage)
         singleOf(::ReporterRunner)
