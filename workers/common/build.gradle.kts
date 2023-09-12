@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
 
     api(project(":config:config-spi"))
+    api(project(":storage:storage-spi"))
     api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
     api(libs.ortModel)
@@ -61,8 +62,9 @@ dependencies {
     api(libs.typesafeConfig)
 
     testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":secrets:secrets-spi")))
     testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":secrets:secrets-spi")))
+    testImplementation(testFixtures(project(":storage:storage-spi")))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

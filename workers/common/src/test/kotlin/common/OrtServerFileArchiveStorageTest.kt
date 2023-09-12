@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.ossreviewtoolkit.server.workers.common
 
 import com.typesafe.config.ConfigFactory
 
