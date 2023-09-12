@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
+import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.server.config.ConfigManager
@@ -43,7 +44,12 @@ class EvaluatorRunner(
     /**
      * The config manager is used to download the rule script as well as the file describing license classifications.
      */
-    private val configManager: ConfigManager
+    private val configManager: ConfigManager,
+
+    /**
+     * The file archiver is used to resolve license files which is optional input for the rules.
+     */
+    private val fileArchiver: FileArchiver
 ) {
     /**
      * The rule set script and the license classifications file are obtained from the [configManager] using the
@@ -73,7 +79,7 @@ class EvaluatorRunner(
             provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
             copyrightGarbage = CopyrightGarbage(),
             addAuthorsToCopyrights = true,
-            archiver = null,
+            archiver = fileArchiver,
             licenseFilePatterns = LicenseFilePatterns.DEFAULT
         )
 

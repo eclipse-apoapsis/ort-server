@@ -52,7 +52,7 @@ private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 
 class EvaluatorRunnerTest : WordSpec({
-    val runner = EvaluatorRunner(createConfigManager())
+    val runner = EvaluatorRunner(createConfigManager(), mockk())
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
