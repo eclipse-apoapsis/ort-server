@@ -170,7 +170,7 @@ class EvaluatorRunnerTest : WordSpec({
 private fun createConfigManager(): ConfigManager {
     val configManager = mockk<ConfigManager> {
         every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
-                String(File("src/test/resources/example.rules.kts").inputStream().readAllBytes())
+                File("src/test/resources/example.rules.kts").readText()
 
         every { getFileAsString(any(), Path(PACKAGE_CONFIGURATION_RULES)) } returns
                 File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
