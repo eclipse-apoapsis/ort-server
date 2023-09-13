@@ -33,10 +33,15 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.model.Hash
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
+import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
+import org.ossreviewtoolkit.model.PackageCurationData as OrtPackageCurationData
 import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
@@ -574,13 +579,13 @@ class OrtRunServiceTest : WordSpec({
     "storeResolvedPackageConfigurations" should {
         "store the resolved package configurations" {
             val configurations = listOf(
-                org.ossreviewtoolkit.model.config.PackageConfiguration(
+                OrtPackageConfiguration(
                     id = OrtTestData.pkgIdentifier,
                     sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
                     pathExcludes = listOf(OrtTestData.pathExclude),
                     licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
                 ),
-                org.ossreviewtoolkit.model.config.PackageConfiguration(
+                OrtPackageConfiguration(
                     id = OrtTestData.pkgIdentifier,
                     vcs = VcsMatcher(
                         type = VcsType.GIT,
@@ -605,12 +610,12 @@ class OrtRunServiceTest : WordSpec({
     "storeResolvedPackageCurations" should {
         "store the resolved package curations" {
             val curations = listOf(
-                org.ossreviewtoolkit.model.ResolvedPackageCurations(
-                    org.ossreviewtoolkit.model.ResolvedPackageCurations.Provider("provider1"),
+                OrtResolvedPackageCurations(
+                    OrtResolvedPackageCurations.Provider("provider1"),
                     curations = setOf(
-                        org.ossreviewtoolkit.model.PackageCuration(
-                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package1:1.0"),
-                            data = org.ossreviewtoolkit.model.PackageCurationData(
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package1:1.0"),
+                            data = OrtPackageCurationData(
                                 comment = "comment 1",
                                 purl = "purl",
                                 cpe = "cpe",
@@ -640,13 +645,13 @@ class OrtRunServiceTest : WordSpec({
                                 )
                             )
                         ),
-                        org.ossreviewtoolkit.model.PackageCuration(
-                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package1:1.0"),
-                            data = org.ossreviewtoolkit.model.PackageCurationData(comment = "comment 2")
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package1:1.0"),
+                            data = OrtPackageCurationData(comment = "comment 2")
                         ),
-                        org.ossreviewtoolkit.model.PackageCuration(
-                            id = org.ossreviewtoolkit.model.Identifier("Maven:org.example:package2:1.0"),
-                            data = org.ossreviewtoolkit.model.PackageCurationData(comment = "comment 3")
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package2:1.0"),
+                            data = OrtPackageCurationData(comment = "comment 3")
                         )
                     )
                 )
