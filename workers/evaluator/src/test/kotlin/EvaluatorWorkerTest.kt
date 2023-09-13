@@ -35,6 +35,7 @@ import java.io.File
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
@@ -50,6 +51,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
@@ -103,6 +105,7 @@ class EvaluatorWorkerTest : StringSpec({
         val configManager = mockk<ConfigManager> {
             every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
                     File("src/test/resources/example.rules.kts").readText()
+            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
         }

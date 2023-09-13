@@ -38,6 +38,7 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
 class EvaluatorRunner(
@@ -60,6 +61,12 @@ class EvaluatorRunner(
         val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
             ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
+        val copyrightGarbage = configManager.readConfigFileWithDefault(
+            path = config.copyrightGarbageFile,
+            defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
+            fallbackValue = CopyrightGarbage()
+        )
+
         val licenseClassifications = configManager.readConfigFileWithDefault(
             path = config.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
@@ -77,7 +84,7 @@ class EvaluatorRunner(
         // TODO: Make the hardcoded values below configurable.
         val licenseInfoResolver = LicenseInfoResolver(
             provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
-            copyrightGarbage = CopyrightGarbage(),
+            copyrightGarbage = copyrightGarbage,
             addAuthorsToCopyrights = true,
             archiver = fileArchiver,
             licenseFilePatterns = LicenseFilePatterns.DEFAULT

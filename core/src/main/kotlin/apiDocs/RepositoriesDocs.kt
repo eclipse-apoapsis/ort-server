@@ -105,6 +105,7 @@ private val jobConfigurations = JobConfigurations(
         skipExcluded = true
     ),
     evaluator = EvaluatorJobConfiguration(
+        copyrightGarbageFile = "copyright-garbage.yml",
         licenseClassificationsFile = "license-classifications.yml",
         packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
         ruleSet = "rules.evaluator.kts"
