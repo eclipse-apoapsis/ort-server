@@ -108,6 +108,7 @@ private val jobConfigurations = JobConfigurations(
         copyrightGarbageFile = "copyright-garbage.yml",
         licenseClassificationsFile = "license-classifications.yml",
         packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
+        resolutionsFile = "resolutions.yml",
         ruleSet = "rules.evaluator.kts"
     ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp"))

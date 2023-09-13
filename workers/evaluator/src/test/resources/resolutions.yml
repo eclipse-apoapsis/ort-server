@@ -1,0 +1,13 @@
+---
+issues:
+- message: ".*"
+  reason: "CANT_FIX_ISSUE"
+  comment: "comment"
+rule_violations:
+- message: ".*"
+  reason: "CANT_FIX_EXCEPTION"
+  comment: "comment"
+vulnerabilities:
+- id: ".*"
+  reason: "CANT_FIX_VULNERABILITY"
+  comment: "comment"

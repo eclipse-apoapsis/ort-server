@@ -25,11 +25,13 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
+import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
@@ -40,6 +42,7 @@ import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 class EvaluatorRunner(
     /**
@@ -81,6 +84,16 @@ class EvaluatorRunner(
             addAll(PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second })
         }.let { CompositePackageConfigurationProvider(it) }
 
+        val resolutionsFromOrtResult = ortResult.getResolutions()
+
+        val resolutionsFromFile = configManager.readConfigFileWithDefault(
+            path = config.resolutionsFile,
+            defaultPath = ORT_RESOLUTIONS_FILENAME,
+            fallbackValue = Resolutions()
+        )
+
+        val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+
         // TODO: Make the hardcoded values below configurable.
         val licenseInfoResolver = LicenseInfoResolver(
             provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
@@ -93,7 +106,8 @@ class EvaluatorRunner(
         val evaluator = Evaluator(
             ortResult = ortResult,
             licenseClassifications = licenseClassifications,
-            licenseInfoResolver = licenseInfoResolver
+            licenseInfoResolver = licenseInfoResolver,
+            resolutionProvider = resolutionProvider
         )
 
         val evaluatorRun = evaluator.run(script)
@@ -104,11 +118,19 @@ class EvaluatorRunner(
             packageConfigurationProvider = packageConfigurationProvider
         )
 
-        return EvaluatorRunnerResult(evaluatorRun, packageConfigurations)
+        val resolutions = ConfigurationResolver.resolveResolutions(
+            issues = ortResult.getIssues().values.flatten(),
+            ruleViolations = evaluatorRun.violations,
+            vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
+            resolutionProvider = resolutionProvider
+        )
+
+        return EvaluatorRunnerResult(evaluatorRun, packageConfigurations, resolutions)
     }
 }
 
 data class EvaluatorRunnerResult(
     val evaluatorRun: EvaluatorRun,
-    val packageConfigurations: List<PackageConfiguration>
+    val packageConfigurations: List<PackageConfiguration>,
+    val resolutions: Resolutions
 )

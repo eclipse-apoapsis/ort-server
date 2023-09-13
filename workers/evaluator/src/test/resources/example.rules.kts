@@ -1,6 +1,6 @@
 // Add an example RuleViolation to the list
 ruleViolations += RuleViolation(
-    rule = "Example violation.",
+    rule = "TEST_RULE",
     pkg = null,
     license = null,
     licenseSource = null,

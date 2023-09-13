@@ -68,6 +68,7 @@ internal class EvaluatorWorker(
             getValidEvaluatorJob(evaluatorJob.id)
             ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(evaluatorJob.id))
             ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
+            ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
         }
 
         RunResult.Success

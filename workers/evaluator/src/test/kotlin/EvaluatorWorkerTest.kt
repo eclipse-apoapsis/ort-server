@@ -53,6 +53,7 @@ import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
 
@@ -100,6 +101,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getScannerRunForOrtRun(any()) } returns scannerRun
             every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
+            every { storeResolvedResolutions(any(), any()) } just runs
         }
 
         val configManager = mockk<ConfigManager> {
@@ -108,6 +110,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
+            every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
         }
 
         val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager, mockk()), ortRunService)

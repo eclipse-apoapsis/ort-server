@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.evaluator
 
+import com.fasterxml.jackson.module.kotlin.readValue
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
@@ -37,6 +39,7 @@ import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
@@ -45,11 +48,13 @@ import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 const val SCRIPT_FILE = "/example.rules.kts"
 private const val PACKAGE_CONFIGURATION_RULES = "package-configurations.rules.kts"
 private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
+private const val RESOLUTIONS_FILE = "/resolutions.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 
 class EvaluatorRunnerTest : WordSpec({
@@ -65,7 +70,7 @@ class EvaluatorRunnerTest : WordSpec({
                 )
             )
             val expectedRuleViolation = RuleViolation(
-                rule = "Example violation.",
+                rule = "TEST_RULE",
                 pkg = null,
                 license = null,
                 licenseSource = null,
@@ -165,6 +170,19 @@ class EvaluatorRunnerTest : WordSpec({
                 )
             )
         }
+
+        "use the resolutions from the repository configuration and resolutions file" {
+            val result = runner.run(
+                OrtTestData.result,
+                EvaluatorJobConfiguration(resolutionsFile = RESOLUTIONS_FILE, ruleSet = SCRIPT_FILE)
+            )
+
+            val expectedResolutions = OrtTestData.result.repository.config.resolutions.merge(
+                yamlMapper.readValue(File("src/test/resources/resolutions.yml"))
+            )
+
+            result.resolutions shouldBe expectedResolutions
+        }
     }
 })
 
@@ -183,6 +201,11 @@ private fun createConfigManager(): ConfigManager {
 
         every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
+
+        every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+
+        every { getFile(any(), Path(RESOLUTIONS_FILE)) } answers
+                { File("src/test/resources/resolutions.yml").inputStream() }
 
         every { getFileAsString(any(), Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
 

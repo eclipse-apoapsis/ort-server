@@ -178,6 +178,12 @@ data class EvaluatorJobConfiguration(
     val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
 
     /**
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * the default path from ORT will be used.
+     */
+    val resolutionsFile: String? = null,
+
+    /**
      * The id of the rule set to use for the evaluation.
      */
     val ruleSet: String? = null,
