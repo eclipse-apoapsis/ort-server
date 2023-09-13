@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -327,6 +328,15 @@ class OrtRunService(
     fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
         db.blockingQuery {
             resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
+        }
+    }
+
+    /**
+     * Store the provided resolved [resolutions] associated with the [ortRunId].
+     */
+    fun storeResolvedResolutions(ortRunId: Long, resolutions: Resolutions) {
+        db.blockingQuery {
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolutions.mapToModel())
         }
     }
 

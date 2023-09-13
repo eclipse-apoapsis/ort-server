@@ -41,8 +41,14 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
+import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
+import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
+import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
+import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
@@ -659,11 +665,33 @@ class OrtRunServiceTest : WordSpec({
 
             service.storeResolvedPackageCurations(fixtures.ortRun.id, curations)
 
-            val resolvedConfiguration =
-                dbExtension.fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+            val resolvedConfiguration = fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
 
             resolvedConfiguration.shouldNotBeNull()
             resolvedConfiguration.packageCurations should containExactly(curations.map { it.mapToModel() })
+        }
+    }
+
+    "storeResolvedResolutions" should {
+        "store the resolved resolutions" {
+            val resolutions = org.ossreviewtoolkit.model.config.Resolutions(
+                issues = listOf(
+                    OrtIssueResolution("message", IssueResolutionReason.CANT_FIX_ISSUE, "comment")
+                ),
+                ruleViolations = listOf(
+                    OrtRuleViolationResolution("message", RuleViolationResolutionReason.CANT_FIX_EXCEPTION, "comment")
+                ),
+                vulnerabilities = listOf(
+                    OrtVulnerabilityResolution("id", VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY, "comment")
+                )
+            )
+
+            service.storeResolvedResolutions(fixtures.ortRun.id, resolutions)
+
+            val resolvedConfiguration = fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+
+            resolvedConfiguration.shouldNotBeNull()
+            resolvedConfiguration.resolutions shouldBe resolutions.mapToModel()
         }
     }
 
