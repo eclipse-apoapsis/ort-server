@@ -220,9 +220,9 @@ fun ReporterJob.mapToApi() =
         status.mapToApi()
     )
 
-fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats, parameters)
+fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats, parameters, options)
 
-fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats, parameters)
+fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats, parameters, options)
 
 fun ScannerJob.mapToApi() =
     ApiScannerJob(
@@ -240,7 +240,8 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     ignorePatterns,
     skipConcluded,
     skipExcluded,
-    parameters
+    parameters,
+    options
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
@@ -249,7 +250,8 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     ignorePatterns,
     skipConcluded,
     skipExcluded,
-    parameters
+    parameters,
+    options
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)
