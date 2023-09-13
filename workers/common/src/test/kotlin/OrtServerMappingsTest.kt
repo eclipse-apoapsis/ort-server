@@ -469,21 +469,21 @@ class OrtServerMappingsTest : WordSpec({
                 resolutions = Resolutions(
                     issues = listOf(
                         IssueResolution(
-                            message = "Error .*",
+                            message = issue.message,
                             reason = "SCANNER_ISSUE",
                             comment = "Test issue resolution."
                         )
                     ),
                     ruleViolations = listOf(
                         RuleViolationResolution(
-                            message = "Rule 1",
+                            message = ".*",
                             reason = "EXAMPLE_OF_EXCEPTION",
                             comment = "Test rule violation resolution."
                         )
                     ),
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
-                            externalId = "CVE-ID-1234",
+                            externalId = vulnerability.externalId,
                             reason = "INEFFECTIVE_VULNERABILITY",
                             comment = "Test vulnerability resolution."
                         )
@@ -530,23 +530,23 @@ class OrtServerMappingsTest : WordSpec({
                 resolutions = Resolutions(
                     issues = listOf(
                         IssueResolution(
-                            message = "message",
+                            message = issue.message,
                             reason = "CANT_FIX_ISSUE",
-                            comment = "comment"
+                            comment = "Test issue resolution."
                         )
                     ),
                     ruleViolations = listOf(
                         RuleViolationResolution(
-                            message = "message",
+                            message = ".*",
                             reason = "CANT_FIX_EXCEPTION",
-                            comment = "comment"
+                            comment = "Test rule violation resolution."
                         )
                     ),
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
-                            externalId = "message",
+                            externalId = vulnerability.externalId,
                             reason = "CANT_FIX_VULNERABILITY",
-                            comment = "comment"
+                            comment = "Test vulnerability resolution."
                         )
                     )
                 )

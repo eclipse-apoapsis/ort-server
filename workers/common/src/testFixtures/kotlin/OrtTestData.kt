@@ -172,6 +172,26 @@ object OrtTestData {
         )
     )
 
+    val issue = Issue(
+        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+        source = "tool-x",
+        message = "An issue occurred.",
+        severity = Severity.ERROR
+    )
+
+    val vulnerability = Vulnerability(
+        id = "CVE-2023-0001",
+        summary = "Example summary.",
+        description = "Example description.",
+        references = listOf(
+            VulnerabilityReference(
+                url = URI("http://cve.example.org"),
+                scoringSystem = "CVSS3",
+                severity = "5.5"
+            )
+        )
+    )
+
     val repository = Repository(
         vcs = VcsInfo(
             type = VcsType.GIT,
@@ -195,21 +215,21 @@ object OrtTestData {
             resolutions = Resolutions(
                 issues = listOf(
                     IssueResolution(
-                        message = "Error .*",
+                        message = issue.message,
                         reason = IssueResolutionReason.SCANNER_ISSUE,
                         comment = "Test issue resolution."
                     )
                 ),
                 ruleViolations = listOf(
                     RuleViolationResolution(
-                        message = "Rule 1",
+                        message = ".*",
                         reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                         comment = "Test rule violation resolution."
                     )
                 ),
                 vulnerabilities = listOf(
                     VulnerabilityResolution(
-                        id = "CVE-ID-1234",
+                        id = vulnerability.id,
                         reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                         comment = "Test vulnerability resolution."
                     )
@@ -320,13 +340,6 @@ object OrtTestData {
         isModified = true
     )
 
-    val issue = Issue(
-        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-        source = "tool-x",
-        message = "An issue occurred.",
-        severity = Severity.ERROR
-    )
-
     val dependencyGraph = DependencyGraph(
         packages = listOf(pkgIdentifier),
         nodes = listOf(DependencyGraphNode(0)),
@@ -395,20 +408,7 @@ object OrtTestData {
                         issues = listOf(issue)
                     ),
                     defects = emptyList(),
-                    vulnerabilities = listOf(
-                        Vulnerability(
-                            id = "CVE-2023-0001",
-                            summary = "Example summary.",
-                            description = "Example description.",
-                            references = listOf(
-                                VulnerabilityReference(
-                                    url = URI("http://cve.example.org"),
-                                    scoringSystem = "CVSS3",
-                                    severity = "5.5"
-                                )
-                            )
-                        )
-                    )
+                    vulnerabilities = listOf(vulnerability)
                 )
             )
         )
@@ -525,23 +525,23 @@ object OrtTestData {
         resolutions = Resolutions(
             issues = listOf(
                 IssueResolution(
-                    message = "message",
+                    message = issue.message,
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "comment"
+                    comment = "Test issue resolution."
                 )
             ),
             ruleViolations = listOf(
                 RuleViolationResolution(
-                    message = "message",
+                    message = ".*",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "comment"
+                    comment = "Test rule violation resolution."
                 )
             ),
             vulnerabilities = listOf(
                 VulnerabilityResolution(
-                    id = "message",
+                    id = vulnerability.id,
                     reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
-                    comment = "comment"
+                    comment = "Test vulnerability resolution."
                 )
             )
         )
