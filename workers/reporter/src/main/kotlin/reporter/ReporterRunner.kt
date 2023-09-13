@@ -35,11 +35,15 @@ import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.model.utils.PackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.ort.showStackTrace
 
@@ -57,10 +61,18 @@ class ReporterRunner(
     /** The factory for creating a transformer for options. */
     private val transformerFactory: OptionsTransformerFactory,
 
+    /** The config manager used to download configuration files. */
+    private val configManager: ConfigManager,
+
     /** The file archiver used for resolving license files. */
     private val fileArchiver: FileArchiver
 ) {
-    fun run(runId: Long, ortResult: OrtResult, config: ReporterJobConfiguration): Map<String, List<File>> {
+    fun run(
+        runId: Long,
+        ortResult: OrtResult,
+        config: ReporterJobConfiguration,
+        evaluatorConfig: EvaluatorJobConfiguration?
+    ): Map<String, List<File>> {
         val reporters = config.formats.map { format ->
             requireNotNull(Reporter.ALL[format]) {
                 "No reporter found for the configured format '$format'."
@@ -69,6 +81,14 @@ class ReporterRunner(
 
         val outputDir = createOrtTempDir("reporter-worker")
 
+        val copyrightGarbageFile =
+            if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
+        val copyrightGarbage = configManager.readConfigFileWithDefault(
+            path = copyrightGarbageFile,
+            defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
+            fallbackValue = CopyrightGarbage()
+        )
+
         // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
         //       default values. This should be changed as soon as other parameters can be configured in the
         //       reporter worker.
@@ -76,11 +96,12 @@ class ReporterRunner(
             ortResult = ortResult,
             licenseInfoResolver = LicenseInfoResolver(
                 provider = DefaultLicenseInfoProvider(ortResult, PackageConfigurationProvider.EMPTY),
-                copyrightGarbage = CopyrightGarbage(),
+                copyrightGarbage = copyrightGarbage,
                 addAuthorsToCopyrights = true,
                 archiver = fileArchiver,
                 licenseFilePatterns = LicenseFilePatterns.DEFAULT
-            )
+            ),
+            copyrightGarbage = copyrightGarbage
         )
 
         val results = runBlocking(Dispatchers.IO) {

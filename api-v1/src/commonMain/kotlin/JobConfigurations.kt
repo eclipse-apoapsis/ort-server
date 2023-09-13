@@ -201,6 +201,16 @@ data class EvaluatorJobConfiguration(
 @Serializable
 data class ReporterJobConfiguration(
     /**
+     * The path to the copyright garbage file which is resolved from the configured configuration source. If this is
+     * null, the default path from ORT will be used.
+     *
+     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
+     * [value from the evaluator job configuration][EvaluatorJobConfiguration.copyrightGarbageFile] is used to ensure
+     * consistency.**
+     */
+    val copyrightGarbageFile: String? = null,
+
+    /**
      * The report formats to generate.
      */
     val formats: List<String> = emptyList(),

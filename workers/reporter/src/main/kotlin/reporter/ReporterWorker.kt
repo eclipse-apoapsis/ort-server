@@ -23,7 +23,6 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.Database
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.runs.reporter.Report
@@ -45,35 +44,33 @@ internal class ReporterWorker(
     private val ortRunService: OrtRunService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val (reporterJob, ortResult) = db.blockingQuery {
-            val reporterJob = getValidReporterJob(jobId)
-            val ortRun = ortRunService.getOrtRun(reporterJob.ortRunId)
-            requireNotNull(ortRun) {
-                "ORT run '${reporterJob.ortRunId}' not found."
-            }
-
-            val repository = ortRunService.getOrtRepositoryInformation(ortRun)
-            val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-            val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
-            val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
-            val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
-            val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
-
-            val ortResult = ortRun.mapToOrt(
-                repository = repository,
-                analyzerRun = analyzerRun?.mapToOrt(),
-                advisorRun = advisorRun?.mapToOrt(),
-                evaluatorRun = evaluatorRun?.mapToOrt(),
-                scannerRun = scannerRun?.mapToOrt(),
-                resolvedConfiguration = resolvedConfiguration.mapToOrt()
-            )
-
-            Pair(reporterJob, ortResult)
+        val reporterJob = getValidReporterJob(jobId)
+        val ortRun = ortRunService.getOrtRun(reporterJob.ortRunId)
+        requireNotNull(ortRun) {
+            "ORT run '${reporterJob.ortRunId}' not found."
         }
+
+        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
+        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
+        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
+        val evaluatorJob = ortRunService.getEvaluatorJobForOrtRun(ortRun.id)
+        val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
+        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
+
+        val ortResult = ortRun.mapToOrt(
+            repository = repository,
+            analyzerRun = analyzerRun?.mapToOrt(),
+            advisorRun = advisorRun?.mapToOrt(),
+            evaluatorRun = evaluatorRun?.mapToOrt(),
+            scannerRun = scannerRun?.mapToOrt(),
+            resolvedConfiguration = resolvedConfiguration.mapToOrt()
+        )
 
         val startTime = Clock.System.now()
 
-        val runResults = runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration)
+        val runResults =
+            runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration, evaluatorJob?.configuration)
 
         val endTime = Clock.System.now()
 

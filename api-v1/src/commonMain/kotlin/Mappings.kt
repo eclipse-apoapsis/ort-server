@@ -220,9 +220,11 @@ fun ReporterJob.mapToApi() =
         status.mapToApi()
     )
 
-fun ReporterJobConfiguration.mapToApi() = ApiReporterJobConfiguration(formats, parameters, options)
+fun ReporterJobConfiguration.mapToApi() =
+    ApiReporterJobConfiguration(copyrightGarbageFile, formats, parameters, options)
 
-fun ApiReporterJobConfiguration.mapToModel() = ReporterJobConfiguration(formats, parameters, options)
+fun ApiReporterJobConfiguration.mapToModel() =
+    ReporterJobConfiguration(copyrightGarbageFile, formats, parameters, options)
 
 fun ScannerJob.mapToApi() =
     ApiScannerJob(

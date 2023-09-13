@@ -33,7 +33,11 @@ import io.mockk.runs
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.server.config.ConfigException
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
+import org.ossreviewtoolkit.server.model.EvaluatorJob
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -56,19 +60,27 @@ private const val REPOSITORY_ID = 1L
 private const val ORT_RUN_ID = 12L
 private const val TRACE_ID = "42"
 
+private val evaluatorJob = EvaluatorJob(
+    id = 1L,
+    ortRunId = ORT_RUN_ID,
+    createdAt = Clock.System.now(),
+    startedAt = Clock.System.now(),
+    finishedAt = null,
+    configuration = EvaluatorJobConfiguration(),
+    status = JobStatus.CREATED
+)
+
 private val reporterJob = ReporterJob(
     id = REPORTER_JOB_ID,
     ortRunId = ORT_RUN_ID,
     createdAt = Clock.System.now(),
     startedAt = Clock.System.now(),
     finishedAt = null,
-    configuration = ReporterJobConfiguration(listOf("WebApp")),
+    configuration = ReporterJobConfiguration(formats = listOf("WebApp")),
     status = JobStatus.CREATED
 )
 
 class ReporterWorkerTest : StringSpec({
-    val runner = ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory(), mockk())
-
     "Reports for a project should be created successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
@@ -91,6 +103,7 @@ class ReporterWorkerTest : StringSpec({
         val ortRunService = mockk<OrtRunService> {
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getEvaluatorJobForOrtRun(any()) } returns evaluatorJob
             every { getEvaluatorRunForOrtRun(any()) } returns evaluatorRun
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRepositoryInformation(any()) } returns mockk()
@@ -101,7 +114,21 @@ class ReporterWorkerTest : StringSpec({
             every { storeReporterRun(any()) } just runs
         }
 
-        val worker = ReporterWorker(mockk(), runner, ortRunService)
+        val configManager = mockk<ConfigManager> {
+            every { getFile(any(), any()) } throws ConfigException("", null)
+        }
+
+        val worker = ReporterWorker(
+            mockk(),
+            ReporterRunner(
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            ),
+            ortRunService
+        )
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
@@ -121,7 +148,11 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } throws testException
         }
 
-        val worker = ReporterWorker(mockk(), runner, ortRunService)
+        val worker = ReporterWorker(
+            mockk(),
+            ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory(), mockk(), mockk()),
+            ortRunService
+        )
 
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
@@ -137,7 +168,11 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns invalidJob
         }
 
-        val worker = ReporterWorker(mockk(), runner, ortRunService)
+        val worker = ReporterWorker(
+            mockk(),
+            ReporterRunner(mockk(relaxed = true), mockk(relaxed = true), OptionsTransformerFactory(), mockk(), mockk()),
+            ortRunService
+        )
 
         mockkTransaction {
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
