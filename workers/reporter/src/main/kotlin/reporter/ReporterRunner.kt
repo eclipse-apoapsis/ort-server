@@ -30,10 +30,13 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.config.orEmpty
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
+import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
@@ -43,13 +46,13 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.ort.showStackTrace
 
@@ -112,6 +115,22 @@ class ReporterRunner(
             }
         }.let { CompositePackageConfigurationProvider(it) }
 
+        val resolutionProvider = if (evaluatorConfig != null) {
+            // Use only the resolved resolutions if they were already resolved by the evaluator.
+            DefaultResolutionProvider(ortResult.resolvedConfiguration.resolutions.orEmpty())
+        } else {
+            // Resolve resolutions from the repository configuration and resolutions file.
+            val resolutionsFromOrtResult = ortResult.getResolutions()
+
+            val resolutionsFromFile = configManager.readConfigFileWithDefault(
+                path = config.resolutionsFile,
+                defaultPath = ORT_RESOLUTIONS_FILENAME,
+                fallbackValue = Resolutions()
+            )
+
+            DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+        }
+
         // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
         //       default values. This should be changed as soon as other parameters can be configured in the
         //       reporter worker.
@@ -125,7 +144,8 @@ class ReporterRunner(
                 licenseFilePatterns = LicenseFilePatterns.DEFAULT
             ),
             copyrightGarbage = copyrightGarbage,
-            packageConfigurationProvider = packageConfigurationProvider
+            packageConfigurationProvider = packageConfigurationProvider,
+            resolutionProvider = resolutionProvider
         )
 
         val results = runBlocking(Dispatchers.IO) {
@@ -182,13 +202,25 @@ class ReporterRunner(
             )
         }
 
-        return ReporterRunnerResult(reports, packageConfigurations)
+        val resolutions = if (evaluatorConfig != null) {
+            null
+        } else {
+            ConfigurationResolver.resolveResolutions(
+                issues = ortResult.getIssues().values.flatten(),
+                ruleViolations = ortResult.getRuleViolations(),
+                vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
+                resolutionProvider = resolutionProvider
+            )
+        }
+
+        return ReporterRunnerResult(reports, packageConfigurations, resolutions)
     }
 }
 
 data class ReporterRunnerResult(
     val reports: Map<String, List<File>>,
-    val resolvedPackageConfigurations: List<PackageConfiguration>?
+    val resolvedPackageConfigurations: List<PackageConfiguration>?,
+    val resolvedResolutions: Resolutions?
 )
 
 /** Regular expression to split multiple template paths. */

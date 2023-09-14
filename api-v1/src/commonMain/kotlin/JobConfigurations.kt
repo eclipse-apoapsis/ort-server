@@ -225,6 +225,16 @@ data class ReporterJobConfiguration(
     val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
 
     /**
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * the default path from ORT will be used.
+     *
+     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
+     * [value from the evaluator job configuration][EvaluatorJobConfiguration.resolutionsFile] is used to ensure
+     * consistency.**
+     */
+    val resolutionsFile: String? = null,
+
+    /**
      * High-level parameters of a reporter job.
      */
     val parameters: Parameters? = null,

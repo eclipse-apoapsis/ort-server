@@ -97,6 +97,9 @@ internal class ReporterWorker(
             reporterRunnerResult.resolvedPackageConfigurations?.let {
                 ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
             }
+            reporterRunnerResult.resolvedResolutions?.let {
+                ortRunService.storeResolvedResolutions(ortRun.id, it)
+            }
         }
 
         RunResult.Success

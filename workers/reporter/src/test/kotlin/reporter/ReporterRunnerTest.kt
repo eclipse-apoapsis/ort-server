@@ -42,7 +42,13 @@ import io.mockk.verify
 import java.io.File
 import java.io.FileNotFoundException
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.toJavaInstant
+
+import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.RuleViolation
+import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigException
@@ -51,12 +57,10 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.Options
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 private const val RUN_ID = 20230522093727L
 
@@ -326,6 +330,82 @@ class ReporterRunnerTest : WordSpec({
 
             result.resolvedPackageConfigurations should
                     containExactlyInAnyOrder(OrtTestData.result.repository.config.packageConfigurations)
+        }
+
+        "use the resolutions resolved by the evaluator" {
+            val (contextFactory, _) = mockContext()
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+
+            val format = "format"
+            val reporter = reporterMock(format)
+            val reporterInputSlot = slot<ReporterInput>()
+            every { reporter.generateReport(capture(reporterInputSlot), any(), any()) } returns emptyList()
+
+            mockkObject(Reporter)
+            every { Reporter.ALL } returns sortedMapOf(format to reporter)
+
+            val ruleViolation = RuleViolation("RULE", null, null, null, Severity.ERROR, "message", "howToFix")
+
+            val result = runner.run(
+                runId = RUN_ID,
+                ortResult = OrtTestData.result.copy(
+                    evaluator = EvaluatorRun(
+                        startTime = Clock.System.now().toJavaInstant(),
+                        endTime = Clock.System.now().toJavaInstant(),
+                        violations = listOf(ruleViolation)
+                    )
+                ),
+                config = ReporterJobConfiguration(formats = listOf(format)),
+                evaluatorConfig = EvaluatorJobConfiguration()
+            )
+
+            result.resolvedResolutions should beNull()
+
+            reporterInputSlot.isCaptured shouldBe true
+            reporterInputSlot.captured.resolutionProvider.isResolved(OrtTestData.issue) shouldBe true
+            reporterInputSlot.captured.resolutionProvider.isResolved(ruleViolation) shouldBe true
+            reporterInputSlot.captured.resolutionProvider.isResolved(OrtTestData.vulnerability) shouldBe true
+        }
+
+        "resolve resolutions if no evaluator job is configured" {
+            val (contextFactory, _) = mockContext()
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+
+            val format = "format"
+            val reporter = reporterMock(format)
+            every { reporter.generateReport(any(), any(), any()) } returns emptyList()
+
+            mockkObject(Reporter)
+            every { Reporter.ALL } returns sortedMapOf(format to reporter)
+
+            val result = runner.run(
+                runId = RUN_ID,
+                ortResult = OrtTestData.result.copy(
+                    evaluator = EvaluatorRun(
+                        startTime = Clock.System.now().toJavaInstant(),
+                        endTime = Clock.System.now().toJavaInstant(),
+                        violations = listOf(
+                            RuleViolation("RULE", null, null, null, Severity.ERROR, "message", "howToFix")
+                        )
+                    )
+                ),
+                config = ReporterJobConfiguration(formats = listOf(format)),
+                evaluatorConfig = null
+            )
+
+            result.resolvedResolutions shouldBe OrtTestData.result.repository.config.resolutions
         }
     }
 })
