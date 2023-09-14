@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.config.orEmpty
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
@@ -52,6 +53,7 @@ import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.ort.showStackTrace
@@ -96,6 +98,17 @@ class ReporterRunner(
             path = copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
             fallbackValue = CopyrightGarbage()
+        )
+
+        val licenseClassificationsFile = if (evaluatorConfig != null) {
+            evaluatorConfig.licenseClassificationsFile
+        } else {
+            config.licenseClassificationsFile
+        }
+        val licenseClassifications = configManager.readConfigFileWithDefault(
+            path = licenseClassificationsFile,
+            defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
+            fallbackValue = LicenseClassifications()
         )
 
         val packageConfigurationProvider = buildList {
@@ -144,6 +157,7 @@ class ReporterRunner(
                 licenseFilePatterns = LicenseFilePatterns.DEFAULT
             ),
             copyrightGarbage = copyrightGarbage,
+            licenseClassifications = licenseClassifications,
             packageConfigurationProvider = packageConfigurationProvider,
             resolutionProvider = resolutionProvider
         )

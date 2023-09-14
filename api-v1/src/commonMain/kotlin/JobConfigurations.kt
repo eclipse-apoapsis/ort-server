@@ -216,6 +216,16 @@ data class ReporterJobConfiguration(
     val formats: List<String> = emptyList(),
 
     /**
+     * The path to the license classifications file which is resolved from the configured configuration source. If this
+     * is null, the default path from ORT will be used.
+     *
+     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
+     * [value from the evaluator job configuration][EvaluatorJobConfiguration.licenseClassificationsFile] is used to
+     * ensure consistency.**
+     */
+    val licenseClassificationsFile: String? = null,
+
+    /**
      * The list of package configuration providers to use.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
