@@ -29,19 +29,25 @@ import kotlinx.coroutines.runBlocking
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
+import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
+import org.ossreviewtoolkit.model.utils.ConfigurationResolver
 import org.ossreviewtoolkit.model.utils.FileArchiver
-import org.ossreviewtoolkit.model.utils.PackageConfigurationProvider
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
@@ -72,7 +78,7 @@ class ReporterRunner(
         ortResult: OrtResult,
         config: ReporterJobConfiguration,
         evaluatorConfig: EvaluatorJobConfiguration?
-    ): Map<String, List<File>> {
+    ): ReporterRunnerResult {
         val reporters = config.formats.map { format ->
             requireNotNull(Reporter.ALL[format]) {
                 "No reporter found for the configured format '$format'."
@@ -89,19 +95,37 @@ class ReporterRunner(
             fallbackValue = CopyrightGarbage()
         )
 
+        val packageConfigurationProvider = buildList {
+            if (evaluatorConfig != null) {
+                // Use only the resolved package configurations if they were already resolved by the evaluator.
+                val resolvedPackageConfigurations = ortResult.resolvedConfiguration.packageConfigurations.orEmpty()
+                add(SimplePackageConfigurationProvider(resolvedPackageConfigurations))
+            } else {
+                // Resolve package configurations from the configured providers.
+                val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
+                add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
+
+                val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
+                addAll(
+                    PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second }
+                )
+            }
+        }.let { CompositePackageConfigurationProvider(it) }
+
         // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
         //       default values. This should be changed as soon as other parameters can be configured in the
         //       reporter worker.
         val reporterInput = ReporterInput(
             ortResult = ortResult,
             licenseInfoResolver = LicenseInfoResolver(
-                provider = DefaultLicenseInfoProvider(ortResult, PackageConfigurationProvider.EMPTY),
+                provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
                 copyrightGarbage = copyrightGarbage,
                 addAuthorsToCopyrights = true,
                 archiver = fileArchiver,
                 licenseFilePatterns = LicenseFilePatterns.DEFAULT
             ),
-            copyrightGarbage = copyrightGarbage
+            copyrightGarbage = copyrightGarbage,
+            packageConfigurationProvider = packageConfigurationProvider
         )
 
         val results = runBlocking(Dispatchers.IO) {
@@ -143,12 +167,29 @@ class ReporterRunner(
             }"
         }
 
-        return results.first.associate {
+        val reports = results.first.associate {
             logger.info("Successfully created '${it.first.type}' report.")
             it.first.type to it.second.getOrDefault(emptyList())
         }
+
+        val packageConfigurations = if (evaluatorConfig != null) {
+            null
+        } else {
+            ConfigurationResolver.resolvePackageConfigurations(
+                identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
+                scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
+                packageConfigurationProvider = packageConfigurationProvider
+            )
+        }
+
+        return ReporterRunnerResult(reports, packageConfigurations)
     }
 }
+
+data class ReporterRunnerResult(
+    val reports: Map<String, List<File>>,
+    val resolvedPackageConfigurations: List<PackageConfiguration>?
+)
 
 /** Regular expression to split multiple template paths. */
 private val regExSplitPaths = Regex("""\s*,\s*""")

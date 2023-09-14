@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":transport:transport-spi"))
     implementation(project(":workers:common"))
 
+    implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 

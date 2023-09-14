@@ -212,6 +212,15 @@ data class ReporterJobConfiguration(
     val formats: List<String> = emptyList(),
 
     /**
+     * The list of package configuration providers to use.
+     *
+     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
+     * [value from the evaluator job configuration][EvaluatorJobConfiguration.packageConfigurationProviders] is used to
+     * ensure consistency.**
+     */
+    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+
+    /**
      * High-level parameters of a reporter job.
      */
     val parameters: Parameters? = null,

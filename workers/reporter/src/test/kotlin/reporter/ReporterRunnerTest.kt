@@ -22,7 +22,10 @@ package org.ossreviewtoolkit.server.workers.reporter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempfile
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldMatchAll
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -41,14 +44,19 @@ import java.io.FileNotFoundException
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.Options
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
+import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 
 private const val RUN_ID = 20230522093727L
 
@@ -70,12 +78,12 @@ class ReporterRunnerTest : WordSpec({
 
             val result = runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(formats = listOf("WebApp")), null)
 
-            result.shouldMatchAll(
+            result.reports.shouldMatchAll(
                 "WebApp" to { it.size shouldBe 1 }
             )
 
             verify {
-                storage.storeReportFiles(RUN_ID, result.getValue("WebApp"))
+                storage.storeReportFiles(RUN_ID, result.reports.getValue("WebApp"))
             }
         }
 
@@ -244,6 +252,80 @@ class ReporterRunnerTest : WordSpec({
             shouldThrow<IllegalArgumentException> {
                 runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(formats = listOf("UnknownFormat")), null)
             }
+        }
+
+        "use the package configurations resolved by the evaluator" {
+            val (contextFactory, _) = mockContext()
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+
+            val format = "format"
+            val reporter = reporterMock(format)
+            val reporterInputSlot = slot<ReporterInput>()
+            every { reporter.generateReport(capture(reporterInputSlot), any(), any()) } returns emptyList()
+
+            mockkObject(Reporter)
+            every { Reporter.ALL } returns sortedMapOf(format to reporter)
+
+            val result = runner.run(
+                runId = RUN_ID,
+                ortResult = OrtTestData.result,
+                config = ReporterJobConfiguration(formats = listOf(format)),
+                evaluatorConfig = EvaluatorJobConfiguration()
+            )
+
+            result.resolvedPackageConfigurations should beNull()
+
+            reporterInputSlot.isCaptured shouldBe true
+            val resolvedLicense =
+                reporterInputSlot.captured.licenseInfoResolver.resolveLicenseInfo(OrtTestData.pkgIdentifier)
+
+            val expectedLicenseFindingCurations =
+                OrtTestData.result.repository.config.packageConfigurations.flatMap { it.licenseFindingCurations }
+            val actualLicenseFindingCurations =
+                resolvedLicense.licenseInfo.detectedLicenseInfo.findings.flatMap { it.licenseFindingCurations }
+
+            actualLicenseFindingCurations should containExactlyInAnyOrder(expectedLicenseFindingCurations)
+
+            val expectedPathExcludes =
+                OrtTestData.result.repository.config.packageConfigurations.flatMap { it.pathExcludes }
+            val actualPathExcludes =
+                resolvedLicense.licenseInfo.detectedLicenseInfo.findings.flatMap { it.pathExcludes }
+
+            actualPathExcludes should containExactlyInAnyOrder(expectedPathExcludes)
+        }
+
+        "resolve package configurations if no evaluator job is configured" {
+            val (contextFactory, _) = mockContext()
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+
+            val format = "format"
+            val reporter = reporterMock(format)
+            every { reporter.generateReport(any(), any(), any()) } returns emptyList()
+
+            mockkObject(Reporter)
+            every { Reporter.ALL } returns sortedMapOf(format to reporter)
+
+            val result = runner.run(
+                runId = RUN_ID,
+                ortResult = OrtTestData.result,
+                config = ReporterJobConfiguration(formats = listOf(format)),
+                evaluatorConfig = null
+            )
+
+            result.resolvedPackageConfigurations should
+                    containExactlyInAnyOrder(OrtTestData.result.repository.config.packageConfigurations)
         }
     }
 })

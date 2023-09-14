@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.runs.reporter.Report
@@ -69,12 +70,16 @@ internal class ReporterWorker(
 
         val startTime = Clock.System.now()
 
-        val runResults =
-            runner.run(reporterJob.ortRunId, ortResult, reporterJob.configuration, evaluatorJob?.configuration)
+        val reporterRunnerResult = runner.run(
+            reporterJob.ortRunId,
+            ortResult,
+            reporterJob.configuration,
+            evaluatorJob?.configuration
+        )
 
         val endTime = Clock.System.now()
 
-        val reports = runResults.values
+        val reports = reporterRunnerResult.reports.values
             .flatMap { it.toList() }
             .map { file -> Report(file.name) }
             .toList()
@@ -87,7 +92,12 @@ internal class ReporterWorker(
             reports = reports
         )
 
-        ortRunService.storeReporterRun(reporterRun)
+        db.blockingQuery {
+            ortRunService.storeReporterRun(reporterRun)
+            reporterRunnerResult.resolvedPackageConfigurations?.let {
+                ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
+            }
+        }
 
         RunResult.Success
     }.getOrElse {
