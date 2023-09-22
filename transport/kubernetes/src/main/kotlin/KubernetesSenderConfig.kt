@@ -23,6 +23,7 @@ import com.typesafe.config.Config
 
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
+import org.ossreviewtoolkit.server.utils.config.getLongOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
@@ -59,6 +60,9 @@ data class KubernetesSenderConfig(
 
     /** A secret required for pulling the image from the container registry. */
     val imagePullSecret: String? = null,
+
+    /** The user id to use for running the pod. */
+    val userId: Long = DEFAULT_USER_ID,
 
     /** The restart policy for the job. */
     val restartPolicy: String = DEFAULT_RESTART_POLICY,
@@ -99,6 +103,9 @@ data class KubernetesSenderConfig(
 
         /** The name of the configuration property for the container image name. */
         private const val IMAGE_NAME_PROPERTY = "imageName"
+
+        /** The name of the configuration property for the user id. */
+        private const val USER_ID_PROPERTY = "userId"
 
         /** The name of the configuration property defining the restart policy for jobs. */
         private const val RESTART_POLICY_PROPERTY = "restartPolicy"
@@ -144,6 +151,9 @@ data class KubernetesSenderConfig(
         /** The name of the configuration property defining the name of the service account for pods. */
         private const val SERVICE_ACCOUNT_PROPERTY = "serviceAccount"
 
+        /** The default value for the user id. */
+        private const val DEFAULT_USER_ID = 1000L
+
         /** The default value for the restart policy property. */
         private const val DEFAULT_RESTART_POLICY = "OnFailure"
 
@@ -185,6 +195,7 @@ data class KubernetesSenderConfig(
                 imageName = config.getString(IMAGE_NAME_PROPERTY),
                 imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
                 imagePullSecret = config.getStringOrNull(IMAGE_PULL_SECRET_PROPERTY),
+                userId = config.getLongOrDefault(USER_ID_PROPERTY, DEFAULT_USER_ID),
                 restartPolicy = config.getStringOrDefault(RESTART_POLICY_PROPERTY, DEFAULT_RESTART_POLICY),
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),

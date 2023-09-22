@@ -49,6 +49,16 @@ fun Config.getIntOrDefault(path: String, default: Int): Int = getIntOrNull(path)
 fun Config.getIntOrNull(path: String): Int? = withPath(path)?.getInt(path)
 
 /**
+ * Return the long value with the given [path] or [default] if it cannot be found.
+ */
+fun Config.getLongOrDefault(path: String, default: Long): Long = getLongOrNull(path) ?: default
+
+/**
+ * Return the long value with the given [path] or `null` if it cannot be found.
+ */
+fun Config.getLongOrNull(path: String): Long? = withPath(path)?.getLong(path)
+
+/**
  * Return the string value with the given [path] or [default] if it cannot be found.
  */
 fun Config.getStringOrDefault(path: String, default: String): String = getStringOrNull(path) ?: default

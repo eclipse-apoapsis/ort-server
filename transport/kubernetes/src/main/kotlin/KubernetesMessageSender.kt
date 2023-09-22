@@ -23,6 +23,7 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
+import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
 import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
@@ -84,6 +85,7 @@ internal class KubernetesMessageSender<T : Any>(
                         .withAnnotations<String, String>(config.annotations)
                     .endMetadata()
                     .withNewSpec()
+                        .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(config.userId).build())
                         .withRestartPolicy(config.restartPolicy)
                         .withImagePullSecrets(
                             listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }

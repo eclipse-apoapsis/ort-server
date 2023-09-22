@@ -80,6 +80,7 @@ class KubernetesMessageSenderTest : StringSpec({
             commands = commands,
             args = arguments,
             imagePullPolicy = "Always",
+            userId = 1111L,
             restartPolicy = "Never",
             backoffLimit = 11,
             imagePullSecret = "image_pull_secret",
@@ -137,6 +138,7 @@ class KubernetesMessageSenderTest : StringSpec({
         }
 
         job.captured.spec?.backoffLimit shouldBe config.backoffLimit
+        job.captured.spec?.template?.spec?.securityContext?.runAsUser shouldBe config.userId
         job.captured.spec?.template?.spec?.restartPolicy shouldBe config.restartPolicy
         job.captured.spec?.template?.spec?.serviceAccountName shouldBe config.serviceAccountName
         job.captured.spec?.template?.spec?.imagePullSecrets.orEmpty()
