@@ -88,6 +88,10 @@ class KubernetesMessageSenderTest : StringSpec({
                 SecretVolumeMount("secretService", "/mnt/secret"),
                 SecretVolumeMount("topSecret", "/mnt/top/secret")
             ),
+            pvcVolumes = listOf(
+                PvcVolumeMount("pvc1", "/mnt/readOnly", readOnly = true),
+                PvcVolumeMount("pvc2", "/mnt/data", readOnly = false)
+            ),
             annotations = annotations,
             serviceAccountName = "test_service_account"
         )
@@ -124,7 +128,7 @@ class KubernetesMessageSenderTest : StringSpec({
             jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
 
             val mounts = volumeMounts.orEmpty()
-            mounts shouldHaveSize 2
+            mounts shouldHaveSize 4
             with(mounts[0]) {
                 readOnly shouldBe true
                 name shouldBe "secret-volume-1"
@@ -134,6 +138,16 @@ class KubernetesMessageSenderTest : StringSpec({
                 readOnly shouldBe true
                 name shouldBe "secret-volume-2"
                 mountPath shouldBe "/mnt/top/secret"
+            }
+            with(mounts[2]) {
+                readOnly shouldBe true
+                name shouldBe "pvc-volume-1"
+                mountPath shouldBe "/mnt/readOnly"
+            }
+            with(mounts[3]) {
+                readOnly shouldBe false
+                name shouldBe "pvc-volume-2"
+                mountPath shouldBe "/mnt/data"
             }
         }
 
@@ -145,8 +159,13 @@ class KubernetesMessageSenderTest : StringSpec({
             .map { it.name } shouldContainOnly listOf(config.imagePullSecret)
 
         val volumes = job.captured.spec?.template?.spec?.volumes.orEmpty()
-        volumes shouldHaveSize 2
-        volumes.map { it.name } shouldContainExactly listOf("secret-volume-1", "secret-volume-2")
+        volumes shouldHaveSize 4
+        volumes.map { it.name } shouldContainExactly listOf(
+            "secret-volume-1",
+            "secret-volume-2",
+            "pvc-volume-1",
+            "pvc-volume-2"
+        )
         val secrets = volumes.mapNotNull { it.secret?.secretName }
         secrets shouldContainExactly listOf("secretService", "topSecret")
 

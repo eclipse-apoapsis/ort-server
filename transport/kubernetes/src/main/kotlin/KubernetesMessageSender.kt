@@ -23,6 +23,7 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
+import io.kubernetes.client.openapi.models.V1PersistentVolumeClaimVolumeSource
 import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
 import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
@@ -41,6 +42,9 @@ private const val TRACE_LABEL_LENGTH = 60
 
 /** A prefix for generating names for secret volumes. */
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
+
+/** A prefix for generating names for PVC volumes. */
+private const val PVC_VOLUME_PREFIX = "pvc-volume-"
 
 /**
  * A set with the names of environment variables that should not be passed to the environment of newly created jobs.
@@ -125,17 +129,25 @@ internal class KubernetesMessageSender<T : Any>(
     }
 
     /**
-     * Return a list with volumes for the [SecretVolumeMount]s contained in the sender configuration.
+     * Return a list with volumes declared in the sender configuration.
      */
     private fun createVolumes(): List<V1Volume> =
         config.secretVolumes.mapIndexed { index, volumeMount ->
             V1Volume()
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .secret(V1SecretVolumeSource().secretName(volumeMount.secretName))
+        } + config.pvcVolumes.mapIndexed { index, volumeMount ->
+            V1Volume()
+                .name("$PVC_VOLUME_PREFIX${index + 1}")
+                .persistentVolumeClaim(
+                    V1PersistentVolumeClaimVolumeSource()
+                        .claimName(volumeMount.claimName)
+                        .readOnly(volumeMount.readOnly)
+                )
         }
 
     /**
-     * Return a list with volume mounts for the [SecretVolumeMount]s contained in the sender configuration.
+     * Return a list with volume mounts for the volume mount declarations contained in the sender configuration.
      */
     private fun createVolumeMounts(): List<V1VolumeMount> =
         config.secretVolumes.mapIndexed { index, volumeMount ->
@@ -143,6 +155,11 @@ internal class KubernetesMessageSender<T : Any>(
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
                 .readOnly(true)
+        } + config.pvcVolumes.mapIndexed { index, volumeMount ->
+            V1VolumeMount()
+                .name("$PVC_VOLUME_PREFIX${index + 1}")
+                .mountPath(volumeMount.mountPath)
+                .readOnly(volumeMount.readOnly)
         }
 
     /**
