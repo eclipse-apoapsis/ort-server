@@ -42,6 +42,20 @@ data class SecretVolumeMount(
 )
 
 /**
+ * A data class defining a volume mount for a pod based on a persistent volume claim.
+ */
+data class PvcVolumeMount(
+    /** The name of the referenced persistent volume claim. */
+    val claimName: String,
+
+    /** The path where the volume is mounted into the pod. */
+    val mountPath: String,
+
+    /** A flag whether this is a read-only volume. */
+    val readOnly: Boolean
+)
+
+/**
  * A configuration class used by the sender part of the Kubernetes Transport implementation.
  *
  * Note that there is an asymmetry between the configuration requirements of the sender and the receiver part: The
@@ -78,6 +92,9 @@ data class KubernetesSenderConfig(
 
     /** A list with [SecretVolumeMount]s to be added to the new pod. */
     val secretVolumes: List<SecretVolumeMount> = emptyList(),
+
+    /** A list with [PvcVolumeMount]s to be added to the new pod. */
+    val pvcVolumes: List<PvcVolumeMount> = emptyList(),
 
     /**
      * A map with annotations to be added to the new pod. The map defines the keys and values of annotation.
@@ -141,6 +158,17 @@ data class KubernetesSenderConfig(
         private const val MOUNT_SECRETS_PROPERTY = "mountSecrets"
 
         /**
+         * The name of the configuration property that defines volume mounts based on persistent volume claims. Via
+         * this mechanism, pods can be assigned volumes with shared data. The value of the property consists of a
+         * number of mount declarations separated by whitespace. (If a mount declaration contains whitespace itself, it
+         * must be surrounded by quotes.) A single mount declaration has the form _pvcName->path,access_, where
+         * _pvcName_ is the name of the referenced persistent volume claim, _path_ is the path in the filesystem of
+         * the pod where the content of the volume is to be mounted, and _access_ is a flag determining whether the
+         * volume is read-only ('R') or writeable ('W').
+         */
+        private const val MOUNT_PVCS_PROPERTY = "mountPvcs"
+
+        /**
          * The name of the configuration property that allows defining annotations based on environment variables.
          * If available, the value of this property is interpreted as a comma-separated list of environment variable
          * names. Each variable is looked up in the current environment. It must have the form _key=value_. The
@@ -178,7 +206,10 @@ data class KubernetesSenderConfig(
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
         /** A regular expression to parse a secret volume mount declaration. */
-        private val mountDeclarationRegex = Regex("""(\S+)\s*->\s*(.+)""")
+        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*(.+)""")
+
+        /** A regular expression to parse a PVC-based volume mount declaration. */
+        private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
 
         /** A regular expression to split the list with environment variables defining annotations. */
         private val splitAnnotationVariablesRegex = splitRegex(LIST_SEPARATOR)
@@ -200,7 +231,8 @@ data class KubernetesSenderConfig(
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
-                secretVolumes = config.getStringOrDefault(MOUNT_SECRETS_PROPERTY, "").toVolumeMounts(),
+                secretVolumes = config.parseSecretVolumeMounts(),
+                pvcVolumes = config.parsePvcVolumeMounts(),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
@@ -222,23 +254,44 @@ data class KubernetesSenderConfig(
             }.filterNot { it.isEmpty() }
 
         /**
-         * Parse this string as a number of [SecretVolumeMount] objects as described at [MOUNT_SECRETS_PROPERTY].
+         * Parse the given [property] of this [Config] as a number of volume mount objects as defined by the given
+         * [regex] and the [parse] function.
          */
-        private fun String.toVolumeMounts(): List<SecretVolumeMount> {
-            val (valid, invalid) = splitAtWhitespace().map { it to mountDeclarationRegex.matchEntire(it) }
+        private fun <T> Config.toVolumeMounts(property: String, regex: Regex, parse: (MatchResult) -> T): List<T> {
+            val declarations = getStringOrDefault(property, "")
+            val (valid, invalid) = declarations.splitAtWhitespace()
+                .map { it to regex.matchEntire(it) }
                 .partition { it.second != null }
 
             if (invalid.isNotEmpty()) {
                 val invalidDeclarations = invalid.map { it.first }
                 logger.warn(
-                    "Found invalid secret volume mount declarations: $invalidDeclarations. These are ignored."
+                    "Found invalid volume mount declarations: $invalidDeclarations. These are ignored."
                 )
             }
 
-            return valid.mapNotNull { it.second }.map { match ->
+            return valid.mapNotNull { it.second }.map(parse)
+        }
+
+        /**
+         * Parse the secret volume mount declarations from this [Config].
+         */
+        private fun Config.parseSecretVolumeMounts(): List<SecretVolumeMount> =
+            toVolumeMounts(MOUNT_SECRETS_PROPERTY, mountSecretDeclarationRegex) { match ->
                 SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!)
             }
-        }
+
+        /**
+         * Parse the PVC-based volume mount declarations from this [Config].
+         */
+        private fun Config.parsePvcVolumeMounts(): List<PvcVolumeMount> =
+            toVolumeMounts(MOUNT_PVCS_PROPERTY, mountPvcDeclarationRegex) { match ->
+                PvcVolumeMount(
+                    match.groups[1]?.value!!,
+                    match.groups[2]?.value!!,
+                    match.groups[3]?.value?.lowercase() == "r"
+                )
+            }
 
         /**
          * Create the map with annotations based on the given string with [variableNames]. Extract the names from the

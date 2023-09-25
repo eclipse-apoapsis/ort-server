@@ -46,6 +46,7 @@ private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS = "secret1->/mnt/sec1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other\""
+private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space,W\" \"pvc3 -> /mnt/other,r\""
 private const val SERVICE_ACCOUNT = "test_service_account"
 
 private val annotationVariables = mapOf(
@@ -68,6 +69,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.backoffLimit" to BACKOFF_LIMIT,
             "$keyPrefix.enableDebugLogging" to "true",
             "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
+            "$keyPrefix.mountPvcs" to PVC_MOUNTS,
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
         )
@@ -94,6 +96,11 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 SecretVolumeMount("secret1", "/mnt/sec1"),
                 SecretVolumeMount("secret2", "/path/with/white space"),
                 SecretVolumeMount("secret3", "/mnt/other")
+            )
+            pvcVolumes shouldContainInOrder listOf(
+                PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
+                PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+                PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
             )
             annotations shouldContainExactly mapOf(
                 "ort-server.org/test" to "true",
@@ -155,6 +162,27 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             SecretVolumeMount("secret1", "/mnt/sec1"),
             SecretVolumeMount("secret2", "/path/with/white space"),
             SecretVolumeMount("secret3", "/mnt/other")
+        )
+    }
+
+    "Invalid pvc mount declarations are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.mountPvcs" to "$PVC_MOUNTS p->/foo,X plus invalid secret mounts->"
+        )
+        val configManager = createConfigManager(configMap)
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+
+        sender.config.pvcVolumes shouldContainInOrder listOf(
+            PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
+            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+            PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
         )
     }
 
