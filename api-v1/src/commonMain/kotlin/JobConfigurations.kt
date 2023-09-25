@@ -135,6 +135,17 @@ data class ScannerJobConfiguration(
     val ignorePatterns: List<String>? = emptyList(),
 
     /**
+     * The list of the names of the scanners to use to scan projects. If this is null, projects are scanned with the
+     * configured [scanners].
+     */
+    val projectScanners: List<String>? = null,
+
+    /**
+     * The list of the names of the scanners to use.
+     */
+    val scanners: List<String>? = listOf("ScanCode"),
+
+    /**
      * A flag to indicate whether packages that have a concluded license and authors set (to derive copyrights from)
      * should be skipped in the scan in favor of only using the declared information.
      */

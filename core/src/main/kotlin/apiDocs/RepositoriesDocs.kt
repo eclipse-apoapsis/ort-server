@@ -101,6 +101,8 @@ private val jobConfigurations = JobConfigurations(
         createMissingArchives = true,
         detectedLicenseMappings = mapOf("LicenseRef-scancode-generic-cla" to "NOASSERTION"),
         ignorePatterns = listOf("**/META-INF/DEPENDENCIES"),
+        projectScanners = listOf("SCANOSS"),
+        scanners = listOf("ScanCode"),
         skipConcluded = true,
         skipExcluded = true
     ),
