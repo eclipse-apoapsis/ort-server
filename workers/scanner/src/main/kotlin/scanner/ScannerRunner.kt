@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.scanner.provenance.DefaultPackageProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.DefaultWorkingTreeCache
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.utils.common.Options
 
 class ScannerRunner(
     private val packageProvenanceStorage: OrtServerPackageProvenanceStorage,
@@ -54,7 +55,8 @@ class ScannerRunner(
             skipConcluded = config.skipConcluded ?: false,
             createMissingArchives = config.createMissingArchives ?: false,
             detectedLicenseMapping = config.detectedLicenseMappings ?: emptyMap(),
-            ignorePatterns = config.ignorePatterns ?: emptyList()
+            ignorePatterns = config.ignorePatterns ?: emptyList(),
+            options = config.options
         )
 
         val downloaderConfig = DownloaderConfiguration()
@@ -68,9 +70,10 @@ class ScannerRunner(
             scanStorages.nestedProvenanceStorage,
             workingTreeCache
         )
-        val scannerWrappers = ScannerWrapper.ALL["ScanCode"]
-            ?.let { listOf(it.create(emptyMap())) }
-            .orEmpty()
+
+        val packageScannerWrappers = createScanners(config.scanners.orEmpty(), scannerConfig.options)
+        val projectScannerWrappers =
+            createScanners(config.projectScanners ?: config.scanners.orEmpty(), scannerConfig.options)
 
         try {
             val scanner = Scanner(
@@ -82,8 +85,8 @@ class ScannerRunner(
                 packageProvenanceResolver = packageProvenanceResolver,
                 nestedProvenanceResolver = nestedProvenanceResolver,
                 scannerWrappers = mapOf(
-                    PackageType.PACKAGE to scannerWrappers,
-                    PackageType.PROJECT to scannerWrappers
+                    PackageType.PACKAGE to packageScannerWrappers,
+                    PackageType.PROJECT to projectScannerWrappers
                 ),
                 archiver = fileArchiver,
                 fileListStorage = fileListStorage
@@ -95,3 +98,9 @@ class ScannerRunner(
         }
     }
 }
+
+private fun createScanners(names: List<String>, options: Map<String, Options>?): List<ScannerWrapper> =
+    names.map {
+        ScannerWrapper.ALL[it]
+            ?: throw IllegalArgumentException("Scanner '$it' is not one of ${ScannerWrapper.ALL.keys.joinToString()}")
+    }.map { it.create(options?.get(it.type).orEmpty()) }

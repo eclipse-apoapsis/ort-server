@@ -28,23 +28,26 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import io.mockk.verify
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
-import org.ossreviewtoolkit.plugins.scanners.scancode.ScanCode
+import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
 import org.ossreviewtoolkit.scanner.ScannerWrapper
+import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 
 class ScannerRunnerTest : WordSpec({
-    beforeSpec { mockScanCode() }
-
-    afterSpec { unmockkAll() }
+    afterEach { unmockkAll() }
 
     val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk(), mockk())
 
     "run" should {
         "return an OrtResult with a valid ScannerRun" {
+            val factory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(factory))
+
             val result = runner.run(OrtResult.EMPTY, ScannerJobConfiguration())
 
             val scannerRun = result.scanner.shouldNotBeNull()
@@ -52,7 +55,10 @@ class ScannerRunnerTest : WordSpec({
             scannerRun.scanResults shouldBe emptySet()
         }
 
-        "pass all the scanner job configuration properties to a scanner" {
+        "pass all the scanner job configuration properties to the scanner" {
+            val factory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(factory))
+
             val detectedLicenseMapping: Map<String, String> = mapOf(
                 "LicenseRef-scancode-agpl-generic-additional-terms" to SpdxConstants.NOASSERTION,
                 "LicenseRef-scancode-generic-cla" to SpdxConstants.NOASSERTION,
@@ -84,24 +90,53 @@ class ScannerRunnerTest : WordSpec({
                 options = emptyMap()
             )
         }
+
+        "create the configured scanners with the correct options" {
+            val scanCodeFactory = mockScannerWrapperFactory("ScanCode")
+            val licenseeFactory = mockScannerWrapperFactory("Licensee")
+            mockScannerWrapperAll(listOf(scanCodeFactory, licenseeFactory))
+
+            val scanCodeOptions = mapOf("option1" to "value1", "option2" to "value2")
+            val licenseeOptions = mapOf("option3" to "value3", "option4" to "value4")
+
+            val jobConfig = ScannerJobConfiguration(
+                scanners = listOf("ScanCode"),
+                projectScanners = listOf("Licensee"),
+                options = mapOf(
+                    "ScanCode" to scanCodeOptions,
+                    "Licensee" to licenseeOptions
+                )
+            )
+
+            runner.run(OrtResult.EMPTY, jobConfig)
+
+            verify(exactly = 1) {
+                scanCodeFactory.create(scanCodeOptions)
+                licenseeFactory.create(licenseeOptions)
+            }
+        }
     }
 })
 
-private fun mockScanCode() {
+private fun mockScannerWrapperFactory(scannerName: String) =
+    mockk<ScannerWrapperFactory<*>> {
+        every { type } returns scannerName
+
+        every { create(any()) } returns mockk<CommandLinePathScannerWrapper> {
+            every { criteria } returns mockk {
+                every { matches(any()) } returns true
+            }
+            every { details } returns mockk {
+                every { name } returns scannerName
+            }
+            every { name } returns scannerName
+            every { filterSecretOptions(any()) } returnsArgument 0
+        }
+    }
+
+private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory<*>>) {
     mockkObject(ScannerWrapper)
     mockk<ScannerWrapper> {
-        every { ScannerWrapper.ALL } returns sortedMapOf(
-            "ScanCode" to mockk {
-                every { create(any()) } returns mockk<ScanCode> {
-                    every { criteria } returns mockk {
-                        every { matches(any()) } returns true
-                    }
-                    every { details } returns mockk {
-                        every { name } returns "ScanCode"
-                    }
-                    every { name } returns "ScanCode"
-                }
-            }
-        )
+        every { ScannerWrapper.ALL } returns scanners.associateByTo(sortedMapOf()) { it.type }
     }
 }
