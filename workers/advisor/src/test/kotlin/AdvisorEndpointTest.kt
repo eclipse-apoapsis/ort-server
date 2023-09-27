@@ -23,7 +23,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.mockkClass
@@ -71,6 +73,14 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "The database module should be added" {
             runEndpointTest {
                 verifyDatabaseModuleIncluded()
+            }
+        }
+
+        "The worker should be correctly configured" {
+            runEndpointTest {
+                val worker by inject<AdvisorWorker>()
+
+                worker shouldNot beNull()
             }
         }
 

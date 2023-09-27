@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
 
 import org.slf4j.LoggerFactory
 
@@ -75,7 +76,7 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(advisorModule(), databaseModule())
+    override fun customModules(): List<Module> = listOf(advisorModule(), databaseModule(), ortRunServiceModule())
 
     private fun advisorModule(): Module = module {
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
