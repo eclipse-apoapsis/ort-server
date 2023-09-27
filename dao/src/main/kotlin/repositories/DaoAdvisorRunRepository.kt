@@ -81,7 +81,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
             }
 
             results.forEach { result ->
-                val issues = result.issues.map(OrtIssueDao::getOrPut)
+                val issues = result.issues.mapTo(mutableSetOf(), OrtIssueDao::getOrPut)
                 val defects = result.defects.map(DefectDao::getOrPut)
                 val vulnerabilities = result.vulnerabilities.map(VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {

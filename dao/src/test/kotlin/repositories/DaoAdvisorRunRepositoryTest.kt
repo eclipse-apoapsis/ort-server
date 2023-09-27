@@ -20,9 +20,12 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+
+import kotlin.time.Duration.Companion.nanoseconds
 
 import kotlinx.datetime.Clock
 
@@ -82,6 +85,20 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
             createdAdvisorRun1 shouldBe advisorRun.copy(id = createdAdvisorRun1.id, advisorJobId = advisorJobId)
             createdAdvisorRun2 shouldBe advisorRun.copy(id = createdAdvisorRun2.id, advisorJobId = advisorJob2.id)
             createdAdvisorRun3 shouldBe advisorRun.copy(id = createdAdvisorRun3.id, advisorJobId = advisorJob3.id)
+        }
+
+        "handle issues with timestamps close to each other" {
+            val issue2 = issue.copy(timestamp = issue.timestamp.plus(1.nanoseconds))
+            val advisorResult2 = advisorResult.copy(issues = advisorResult.issues + issue2)
+            val advisorRun2 = advisorRun.copy(advisorRecords = mapOf(identifier to listOf(advisorResult2)))
+
+            val createdAdvisorRun = advisorRunRepository.create(advisorJobId, advisorRun2)
+
+            val dbEntry = advisorRunRepository.get(createdAdvisorRun.id)
+
+            dbEntry.shouldNotBeNull()
+            val record = dbEntry.advisorRecords.getValue(identifier)
+            record.first().issues shouldContainExactly listOf(issue)
         }
     }
 
