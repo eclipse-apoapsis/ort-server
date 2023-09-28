@@ -30,6 +30,9 @@ import org.ossreviewtoolkit.server.transport.MessageSender
 /** A prefix for the name of a label storing a part of the trace ID. */
 private const val TRACE_LABEL_PREFIX = "trace-id-"
 
+/** The label which stores the ORT run ID. */
+private const val RUN_ID_LABEL = "run-id"
+
 /**
  * A helper class that sends a message to the Orchestrator about a failed job. The content of this message is extracted
  * from the job's metadata.
@@ -41,13 +44,14 @@ internal class FailedJobNotifier(
     fun sendFailedJobNotification(job: V1Job) {
         val endpointName = job.metadata?.name?.substringBefore('-')
         if (endpointName != null) {
-            val traceLabels = job.metadata?.labels.orEmpty().filterKeys { it.startsWith(TRACE_LABEL_PREFIX) }.toList()
+            val labels = job.metadata?.labels.orEmpty()
+            val traceLabels = labels.filterKeys { it.startsWith(TRACE_LABEL_PREFIX) }.toList()
                 .sortedBy { it.first.substringAfter(TRACE_LABEL_PREFIX).toInt() }
             val traceId = traceLabels.fold("") { id, label -> "$id${label.second}" }
+            val ortRunId = labels[RUN_ID_LABEL]?.toLong()
 
-            if (traceId.isNotEmpty()) {
-                // TODO: Obtain the correct ORT run ID.
-                val header = MessageHeader(token = "", traceId = traceId, 0)
+            if (traceId.isNotEmpty() && ortRunId != null) {
+                val header = MessageHeader(token = "", traceId = traceId, ortRunId)
                 val message = Message(header, WorkerError(endpointName))
                 sender.send(message)
             }

@@ -47,7 +47,8 @@ class FailedJobNotifierTest : StringSpec({
             labels = mapOf(
                 "trace-id-0" to "trace1_",
                 "trace-id-1" to "trace2_",
-                "trace-id-2" to "trace3"
+                "trace-id-2" to "trace3",
+                "run-id" to "1234"
             )
         }
 
@@ -65,6 +66,7 @@ class FailedJobNotifierTest : StringSpec({
 
         with(slot.captured) {
             header.traceId shouldBe "trace1_trace2_trace3"
+            header.ortRunId shouldBe 1234
             payload shouldBe WorkerError("analyzer")
         }
     }
@@ -93,6 +95,27 @@ class FailedJobNotifierTest : StringSpec({
 
         val meta = V1ObjectMeta().apply {
             name = "advisor-someFailedJob"
+            labels = mapOf("run-id" to "1")
+        }
+
+        val job = V1Job().apply {
+            metadata = meta
+        }
+
+        val notifier = FailedJobNotifier(sender)
+        notifier.sendFailedJobNotification(job)
+
+        verify(exactly = 0) {
+            sender.send(any())
+        }
+    }
+
+    "A job without an ORT run ID in metadata is ignored" {
+        val sender = mockk<MessageSender<OrchestratorMessage>>()
+
+        val meta = V1ObjectMeta().apply {
+            name = "advisor-someFailedJob"
+            labels = mapOf("trace-id-0" to "someTraceId")
         }
 
         val job = V1Job().apply {

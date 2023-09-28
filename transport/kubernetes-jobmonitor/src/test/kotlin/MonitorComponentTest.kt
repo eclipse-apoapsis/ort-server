@@ -81,6 +81,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
         "The watcher component is started" {
             val jobName = "analyzer-test-job"
             val traceId = "test-trace-id"
+            val runId = 27L
 
             runComponentTest(enableReaper = false) { component ->
                 declareMock<BatchV1Api> {
@@ -119,7 +120,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                     }
                     metadata = V1ObjectMeta().apply {
                         name = jobName
-                        labels = mapOf("trace-id-0" to traceId)
+                        labels = mapOf("trace-id-0" to traceId, "run-id" to runId.toString())
                     }
                 }
 
@@ -150,6 +151,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
 
                 val notification = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 notification.header.traceId shouldBe traceId
+                notification.header.ortRunId shouldBe runId
             }
         }
 
