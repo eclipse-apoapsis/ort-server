@@ -19,10 +19,15 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
@@ -112,5 +117,65 @@ class DaoEvaluatorJobRepositoryTest : StringSpec({
         evaluatorJobRepository.delete(evaluatorJob.id)
 
         evaluatorJobRepository.get(evaluatorJob.id) shouldBe null
+    }
+
+    "complete should mark a job as completed" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = evaluatorJobRepository.complete(evaluatorJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe evaluatorJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should mark a job as completed" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = evaluatorJobRepository.tryComplete(evaluatorJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe evaluatorJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should not change an already completed job" {
+        val evaluatorJob = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FAILED
+        evaluatorJobRepository.complete(evaluatorJob.id, updatedFinishedAt, updateStatus)
+
+        val updateResult =
+            evaluatorJobRepository.tryComplete(evaluatorJob.id, updatedFinishedAt.plus(10.seconds), JobStatus.FINISHED)
+
+        updateResult should beNull()
+
+        evaluatorJobRepository.get(evaluatorJob.id) shouldBe evaluatorJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should fail for a non-existing job" {
+        shouldThrow<IllegalArgumentException> {
+            evaluatorJobRepository.tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
+        }
     }
 })

@@ -19,10 +19,16 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
@@ -110,5 +116,75 @@ class DaoAnalyzerJobRepositoryTest : StringSpec({
         analyzerJobRepository.delete(analyzerJob.id)
 
         analyzerJobRepository.get(analyzerJob.id) shouldBe null
+    }
+
+    "complete should mark a job as completed" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = analyzerJobRepository.complete(analyzerJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe analyzerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "complete should only accept states that indicate a completed job" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        listOf(JobStatus.CREATED, JobStatus.SCHEDULED, JobStatus.RUNNING).forAll { status ->
+            shouldThrow<IllegalArgumentException> {
+                analyzerJobRepository.complete(analyzerJob.id, Clock.System.now(), status)
+            }
+        }
+    }
+
+    "tryComplete should mark a job as completed" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = analyzerJobRepository.tryComplete(analyzerJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe analyzerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should not change an already completed job" {
+        val analyzerJob = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FAILED
+        analyzerJobRepository.complete(analyzerJob.id, updatedFinishedAt, updateStatus)
+
+        val updateResult =
+            analyzerJobRepository.tryComplete(analyzerJob.id, updatedFinishedAt.plus(10.seconds), JobStatus.FINISHED)
+
+        updateResult should beNull()
+
+        analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should fail for a non-existing job" {
+        shouldThrow<IllegalArgumentException> {
+            analyzerJobRepository.tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
+        }
     }
 })

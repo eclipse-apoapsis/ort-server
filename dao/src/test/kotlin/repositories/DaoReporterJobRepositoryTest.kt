@@ -19,10 +19,15 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
@@ -112,5 +117,65 @@ class DaoReporterJobRepositoryTest : StringSpec({
         reporterJobRepository.delete(reporterJob.id)
 
         reporterJobRepository.get(reporterJob.id) shouldBe null
+    }
+
+    "complete should mark a job as completed" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = reporterJobRepository.complete(reporterJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe reporterJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        reporterJobRepository.get(reporterJob.id) shouldBe reporterJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should mark a job as completed" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = reporterJobRepository.tryComplete(reporterJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe reporterJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        reporterJobRepository.get(reporterJob.id) shouldBe reporterJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should not change an already completed job" {
+        val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FAILED
+        reporterJobRepository.complete(reporterJob.id, updatedFinishedAt, updateStatus)
+
+        val updateResult =
+            reporterJobRepository.tryComplete(reporterJob.id, updatedFinishedAt.plus(10.seconds), JobStatus.FINISHED)
+
+        updateResult should beNull()
+
+        reporterJobRepository.get(reporterJob.id) shouldBe reporterJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should fail for a non-existing job" {
+        shouldThrow<IllegalArgumentException> {
+            reporterJobRepository.tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
+        }
     }
 })

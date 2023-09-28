@@ -19,10 +19,15 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
@@ -111,5 +116,65 @@ class DaoScannerJobRepositoryTest : StringSpec({
         scannerJobRepository.delete(scannerJob.id)
 
         scannerJobRepository.get(scannerJob.id) shouldBe null
+    }
+
+    "complete should mark a job as completed" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = scannerJobRepository.complete(scannerJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe scannerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should mark a job as completed" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FINISHED
+
+        val updateResult = scannerJobRepository.tryComplete(scannerJob.id, updatedFinishedAt, updateStatus)
+
+        updateResult shouldBe scannerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+        scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should not change an already completed job" {
+        val scannerJob = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+
+        val updatedFinishedAt = Clock.System.now()
+        val updateStatus = JobStatus.FAILED
+        scannerJobRepository.complete(scannerJob.id, updatedFinishedAt, updateStatus)
+
+        val updateResult =
+            scannerJobRepository.tryComplete(scannerJob.id, updatedFinishedAt.plus(10.seconds), JobStatus.FINISHED)
+
+        updateResult should beNull()
+
+        scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
+            finishedAt = updatedFinishedAt.toDatabasePrecision(),
+            status = updateStatus
+        )
+    }
+
+    "tryComplete should fail for a non-existing job" {
+        shouldThrow<IllegalArgumentException> {
+            scannerJobRepository.tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
+        }
     }
 })

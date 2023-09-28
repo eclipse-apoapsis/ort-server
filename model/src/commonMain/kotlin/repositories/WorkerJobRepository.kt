@@ -24,6 +24,7 @@ import kotlinx.datetime.Instant
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.WorkerJob
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.asPresent
 
 /**
  * A common interface for repositories that manage worker jobs.
@@ -51,4 +52,42 @@ interface WorkerJobRepository<T : WorkerJob> {
         finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
         status: OptionalValue<JobStatus> = OptionalValue.Absent
     ): T
+
+    /**
+     * Mark a job by [id] as completed by updating the given [finishedAt] date and setting the given [status].
+     */
+    fun complete(id: Long, finishedAt: Instant, status: JobStatus): T {
+        require(status in completedJobStates) {
+            "complete can only be called with a JobStatus that mark the job as completed: $completedJobStates."
+        }
+
+        return update(
+            id,
+            finishedAt = finishedAt.asPresent(),
+            status = status.asPresent()
+        )
+    }
+
+    /**
+     * Mark a job by [id] as completed if it is not yet in a completed state. This function works similar to
+     * [complete], but first checks the [JobStatus] of the affected job. It can be used to complete jobs in a safe
+     * way, in case multiple completion messages are received. If the update is possible, return the updated entity;
+     * otherwise, return *null*.
+     */
+    fun tryComplete(id: Long, finishedAt: Instant, status: JobStatus): T? {
+        val currentStatus = requireNotNull(get(id)?.status) {
+            "${javaClass.simpleName}: Job '$id' not found."
+        }
+
+        return if (currentStatus !in completedJobStates) {
+            complete(id, finishedAt, status)
+        } else {
+            null
+        }
+    }
 }
+
+/**
+ * A set with the [JobStatus] values that indicate a completed job.
+ */
+private val completedJobStates = setOf(JobStatus.FINISHED, JobStatus.FAILED)
