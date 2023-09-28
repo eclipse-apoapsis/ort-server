@@ -19,41 +19,17 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import kotlinx.datetime.Instant
-
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A repository of [advisor jobs][AdvisorJob].
  */
-interface AdvisorJobRepository {
+interface AdvisorJobRepository : WorkerJobRepository<AdvisorJob> {
     /**
      * Create an advisor job.
      */
     fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob
-
-    /**
-     * Get an advisor job by [id]. Returns null if the advisor job is not found.
-     */
-    fun get(id: Long): AdvisorJob?
-
-    /**
-     * Get the advisor job for an [ORT run][ortRunId].
-     */
-    fun getForOrtRun(ortRunId: Long): AdvisorJob?
-
-    /**
-     * Update an advisor job by [id] with the [present][OptionalValue.Present] values.
-     */
-    fun update(
-        id: Long,
-        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent
-    ): AdvisorJob
 
     /**
      * Delete an advisor job by [id].

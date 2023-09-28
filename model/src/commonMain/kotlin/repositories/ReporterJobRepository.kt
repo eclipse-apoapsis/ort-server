@@ -19,38 +19,17 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import kotlinx.datetime.Instant
-
-import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A repository of [ReporterJob]s.
  */
-interface ReporterJobRepository {
+interface ReporterJobRepository : WorkerJobRepository<ReporterJob> {
     /**
      * Create a reporter job.
      */
     fun create(ortRunId: Long, configuration: ReporterJobConfiguration): ReporterJob
-
-    /**
-     * Get a reporter job by [id]. Returns null if the reporter job was not found.
-     */
-    fun get(id: Long): ReporterJob?
-
-    /**
-     * Get the reporter job for an [ORT run][ortRunId]. Returns null if no reporter job was found for the [ortRunId].
-     */
-    fun getForOrtRun(ortRunId: Long): ReporterJob?
-
-    fun update(
-        id: Long,
-        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent,
-    ): ReporterJob
 
     /**
      * Delete a reporter job by [id].

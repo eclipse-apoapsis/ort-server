@@ -19,41 +19,17 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import kotlinx.datetime.Instant
-
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A repository of [evaluator jobs][EvaluatorJob].
  */
-interface EvaluatorJobRepository {
+interface EvaluatorJobRepository : WorkerJobRepository<EvaluatorJob> {
     /**
      * Create an evaluator job.
      */
     fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob
-
-    /**
-     * Get an evaluator job by [id]. Returns null if the evaluator job is not found.
-     */
-    fun get(id: Long): EvaluatorJob?
-
-    /**
-     * Get the evaluator job for an [ORT run][ortRunId].
-     */
-    fun getForOrtRun(ortRunId: Long): EvaluatorJob?
-
-    /**
-     * Update an evaluator job by [id] with the [present][OptionalValue.Present] values.
-     */
-    fun update(
-        id: Long,
-        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent
-    ): EvaluatorJob
 
     /**
      * Delete an evaluator job by [id].

@@ -19,41 +19,17 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import kotlinx.datetime.Instant
-
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A repository of [analyzer jobs][AnalyzerJob].
  */
-interface AnalyzerJobRepository {
+interface AnalyzerJobRepository : WorkerJobRepository<AnalyzerJob> {
     /**
      * Create an analyzer job.
      */
     fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob
-
-    /**
-     * Get an analyzer job by [id]. Returns null if the analyzer job is not found.
-     */
-    fun get(id: Long): AnalyzerJob?
-
-    /**
-     * Get the analyzer job for an [ORT run][ortRunId].
-     */
-    fun getForOrtRun(ortRunId: Long): AnalyzerJob?
-
-    /**
-     * Update an analyzer job by [id] with the [present][OptionalValue.Present] values.
-     */
-    fun update(
-        id: Long,
-        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent
-    ): AnalyzerJob
 
     /**
      * Delete an analyzer job by [id].

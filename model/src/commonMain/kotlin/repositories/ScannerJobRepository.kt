@@ -19,41 +19,17 @@
 
 package org.ossreviewtoolkit.server.model.repositories
 
-import kotlinx.datetime.Instant
-
-import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.ScannerJob
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 /**
  * A repository of [scanner jobs][ScannerJob].
  */
-interface ScannerJobRepository {
+interface ScannerJobRepository : WorkerJobRepository<ScannerJob> {
     /**
      * Create a scanner job.
      */
     fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob
-
-    /**
-     * Get a scanner job by [id]. Returns null if the scanner job is not found.
-     */
-    fun get(id: Long): ScannerJob?
-
-    /**
-     * Get the scanner job for an [ORT run][ortRunId].
-     */
-    fun getForOrtRun(ortRunId: Long): ScannerJob?
-
-    /**
-     * Update a scanner job by [id] with the [present][OptionalValue.Present] values.
-     */
-    fun update(
-        id: Long,
-        startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent
-    ): ScannerJob
 
     /**
      * Delete a scanner job by [id].
