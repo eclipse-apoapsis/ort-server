@@ -176,6 +176,8 @@ class KubernetesMessageSenderTest : StringSpec({
         }
         traceIdFromLabels shouldBe traceId
 
+        labels["run-id"] shouldBe message.header.ortRunId.toString()
+
         val jobAnnotations = job.captured.spec?.template?.metadata?.annotations.orEmpty()
         jobAnnotations shouldBe annotations
     }

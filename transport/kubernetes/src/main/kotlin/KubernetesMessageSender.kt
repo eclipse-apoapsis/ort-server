@@ -40,6 +40,9 @@ private const val TRACE_LABEL_PREFIX = "trace-id-"
 /** The maximum length of the value of a trace label. */
 private const val TRACE_LABEL_LENGTH = 60
 
+/** The label to store the current ORT run ID. */
+private const val RUN_ID_LABEL = "run-id"
+
 /** A prefix for generating names for secret volumes. */
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
@@ -77,11 +80,12 @@ internal class KubernetesMessageSender<T : Any>(
         )
 
         val envVars = createEnvironment()
+        val labels = createTraceIdLabels(message.header.traceId) + (RUN_ID_LABEL to message.header.ortRunId.toString())
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()
                 .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
-                .withLabels<String, String>(createTraceIdLabels(message.header.traceId))
+                .withLabels<String, String>(labels)
             .endMetadata()
             .withNewSpec()
                 .withBackoffLimit(config.backoffLimit)
