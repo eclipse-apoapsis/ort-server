@@ -34,7 +34,13 @@ data class MessageHeader(
      * An identifier for the current request. This purpose of this string is to allow a correlation of multiple
      * messages that are exchanged to handle a single request.
      */
-    val traceId: String
+    val traceId: String,
+
+    /**
+     * The ID of the ORT run this message relates to. Via this property, a direct association to an ORT run can be
+     * established.
+     */
+    val ortRunId: Long
 )
 
 /**

@@ -51,7 +51,7 @@ class KubernetesMessageSenderTest : StringSpec({
 
         val traceId = "0123456789".repeat(20)
         val payload = AnalyzerRequest(1)
-        val header = MessageHeader(token = "testToken", traceId = traceId)
+        val header = MessageHeader(token = "testToken", traceId = traceId, 9)
         val message = Message(header, payload)
 
         val commands = listOf("/bin/sh")
@@ -67,6 +67,7 @@ class KubernetesMessageSenderTest : StringSpec({
 
         val expectedEnvVars = envVars.toMutableMap()
         expectedEnvVars["SPECIFIC_PROPERTY"] = "foo"
+        expectedEnvVars["runId"] = message.header.ortRunId.toString()
         expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
 
         val annotations = mapOf(

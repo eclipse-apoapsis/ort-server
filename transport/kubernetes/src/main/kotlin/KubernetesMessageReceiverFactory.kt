@@ -58,9 +58,10 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
 
         val token = System.getenv("token")
         val traceId = System.getenv("traceId")
+        val runId = System.getenv("runId").toLong()
         val payload = System.getenv("payload")
 
-        val msg = Message(MessageHeader(token, traceId), serializer.fromJson(payload))
+        val msg = Message(MessageHeader(token, traceId, runId), serializer.fromJson(payload))
 
         @Suppress("TooGenericExceptionCaught")
         try {

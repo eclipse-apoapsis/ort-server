@@ -56,7 +56,7 @@ private const val EVALUATOR_JOB_ID = 1L
 private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
+private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 25)
 
 private val evaluatorRequest = EvaluatorRequest(EVALUATOR_JOB_ID)
 

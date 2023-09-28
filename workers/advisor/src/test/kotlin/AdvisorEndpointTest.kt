@@ -57,7 +57,7 @@ private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 private const val VULNERABLE_CODE_API_KEY = "vulnerable_code_api_key"
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
+private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 23)
 
 private val advisorRequest = AdvisorRequest(
     advisorJobId = ADVISOR_JOB_ID

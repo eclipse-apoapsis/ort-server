@@ -33,6 +33,9 @@ internal object RabbitMqMessageConverter {
     /** Name of the message property that stores the trace ID. */
     private const val TRACE_PROPERTY = "traceId"
 
+    /** Name of the message property that stores the ORT run ID. */
+    private const val RUN_ID_PROPERTY = "runId"
+
     /**
      * Convert the [message headers][this] to the AMQP compatible [BasicProperties].
      */
@@ -42,7 +45,8 @@ internal object RabbitMqMessageConverter {
         .headers(
             mapOf(
                 TOKEN_PROPERTY to token,
-                TRACE_PROPERTY to traceId
+                TRACE_PROPERTY to traceId,
+                RUN_ID_PROPERTY to ortRunId
             )
         ).build()
 
@@ -57,7 +61,8 @@ internal object RabbitMqMessageConverter {
     fun <T> toTransportMessage(delivery: Delivery, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
             delivery.properties.headers[TOKEN_PROPERTY].toString(),
-            delivery.properties.headers[TRACE_PROPERTY].toString()
+            delivery.properties.headers[TRACE_PROPERTY].toString(),
+            delivery.properties.headers[RUN_ID_PROPERTY] as Long
         )
         val payload = serializer.fromJson(String(delivery.body, Charsets.UTF_8))
 

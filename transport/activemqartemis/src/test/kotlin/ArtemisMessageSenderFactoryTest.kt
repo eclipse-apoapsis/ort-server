@@ -49,7 +49,7 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
         val config = startArtemisContainer("sender")
 
         val payload = AnalyzerWorkerResult(42)
-        val header = MessageHeader(token = "1234567890", traceId = "dick.tracy")
+        val header = MessageHeader(token = "1234567890", traceId = "dick.tracy", 11)
         val message = Message(header, payload)
 
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.sender.serverUri"))
@@ -65,6 +65,7 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
             val receivedMessage = consumer.receive(5000) as TextMessage
             receivedMessage.getStringProperty("token") shouldBe header.token
             receivedMessage.getStringProperty("traceId") shouldBe header.traceId
+            receivedMessage.getLongProperty("runId") shouldBe header.ortRunId
 
             val serializer = JsonSerializer.forType<OrchestratorMessage>()
             val payload2 = serializer.fromJson(receivedMessage.text)

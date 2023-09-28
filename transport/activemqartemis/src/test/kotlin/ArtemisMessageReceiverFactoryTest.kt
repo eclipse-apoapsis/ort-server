@@ -55,16 +55,18 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 
             val token1 = "token1"
             val traceId1 = "trace1"
+            val runId1 = 1L
             val payload1 = AnalyzerWorkerError(21)
             val token2 = "token2"
             val traceId2 = "trace2"
+            val runId2 = 2L
             val payload2 = AnalyzerWorkerResult(42)
 
-            producer.send(serializer.createMessage(session, token1, traceId1, payload1))
-            producer.send(serializer.createMessage(session, token2, traceId2, payload2))
+            producer.send(serializer.createMessage(session, token1, traceId1, runId1, payload1))
+            producer.send(serializer.createMessage(session, token2, traceId2, runId2, payload2))
 
-            messageQueue.checkMessage(token1, traceId1, payload1)
-            messageQueue.checkMessage(token2, traceId2, payload2)
+            messageQueue.checkMessage(token1, traceId1, runId1, payload1)
+            messageQueue.checkMessage(token2, traceId2, runId2, payload2)
         }
     }
 
@@ -85,10 +87,11 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 
             val token = "token"
             val traceId = "trace"
+            val runId = 3L
             val payload = AnalyzerWorkerResult(42)
-            producer.send(serializer.createMessage(session, token, traceId, payload))
+            producer.send(serializer.createMessage(session, token, traceId, runId, payload))
 
-            messageQueue.checkMessage(token, traceId, payload)
+            messageQueue.checkMessage(token, traceId, runId, payload)
         }
     }
 })
@@ -112,28 +115,31 @@ private fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Mes
 }
 
 /**
- * Create a JMS messaging using this serializer and the given [session] with the provided [token], [traceId], and
- * [payload].
+ * Create a JMS messaging using this serializer and the given [session] with the provided [token], [traceId]
+ * [runId], and [payload].
  */
 private fun <T> JsonSerializer<T>.createMessage(
     session: Session,
     token: String,
     traceId: String,
+    runId: Long,
     payload: T
 ): TextMessage =
     session.createTextMessage(toJson(payload)).apply {
         setStringProperty("token", token)
         setStringProperty("traceId", traceId)
+        setLongProperty("runId", runId)
     }
 
 /**
- * Check that the next message in this queue has the given [token], [traceId], and [payload].
+ * Check that the next message in this queue has the given [token], [traceId], [runId], and [payload].
  */
-private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, payload: T) {
+private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, runId: Long, payload: T) {
     val message = poll(5, TimeUnit.SECONDS)
 
     message.shouldNotBeNull()
     message.header.token shouldBe token
     message.header.traceId shouldBe traceId
+    message.header.ortRunId shouldBe runId
     message.payload shouldBe payload
 }

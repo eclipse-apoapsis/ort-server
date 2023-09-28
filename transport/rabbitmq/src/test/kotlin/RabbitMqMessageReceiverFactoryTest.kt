@@ -89,27 +89,29 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
 
                 val token1 = "token1"
                 val traceId1 = "trace1"
+                val runId1 = 1L
                 val payload1 = AnalyzerWorkerError(1)
                 val token2 = "token2"
                 val traceId2 = "trace2"
+                val runId2 = 2L
                 val payload2 = AnalyzerWorkerResult(42)
 
                 channel.basicPublish(
                     "",
                     queueName,
-                    MessageHeader(token1, traceId1).toAmqpProperties(),
+                    MessageHeader(token1, traceId1, runId1).toAmqpProperties(),
                     serializer.toJson(payload1).toByteArray()
                 )
 
                 channel.basicPublish(
                     "",
                     queueName,
-                    MessageHeader(token2, traceId2).toAmqpProperties(),
+                    MessageHeader(token2, traceId2, runId2).toAmqpProperties(),
                     serializer.toJson(payload2).toByteArray()
                 )
 
-                messageQueue.checkMessage(token1, traceId1, payload1)
-                messageQueue.checkMessage(token2, traceId2, payload2)
+                messageQueue.checkMessage(token1, traceId1, runId1, payload1)
+                messageQueue.checkMessage(token2, traceId2, runId2, payload2)
             }
         }
 
@@ -136,21 +138,22 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
                 channel.basicPublish(
                     "",
                     queueName,
-                    MessageHeader("tokenInvalid", "traceIdInvalid").toAmqpProperties(),
+                    MessageHeader("tokenInvalid", "traceIdInvalid", -1).toAmqpProperties(),
                     "Invalid payload".toByteArray()
                 )
 
                 val token = "validtoken"
                 val traceId = "validtrace"
+                val runId = 10L
                 val payload = AnalyzerWorkerResult(42)
                 channel.basicPublish(
                     "",
                     queueName,
-                    MessageHeader(token, traceId).toAmqpProperties(),
+                    MessageHeader(token, traceId, runId).toAmqpProperties(),
                     serializer.toJson(payload).toByteArray()
                 )
 
-                messageQueue.checkMessage(token, traceId, payload)
+                messageQueue.checkMessage(token, traceId, runId, payload)
             }
         }
     }
@@ -189,14 +192,15 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
     }
 
     /**
-     * Check that the next message in this queue has the given [token], [traceId], and [payload].
+     * Check that the next message in this queue has the given [token], [traceId], [runId], and [payload].
      */
-    private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, payload: T) {
+    private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, runId: Long, payload: T) {
         val message = poll(5, TimeUnit.SECONDS)
 
         message.shouldNotBeNull()
         message.header.token shouldBe token
         message.header.traceId shouldBe traceId
+        message.header.ortRunId shouldBe runId
         message.payload shouldBe payload
     }
 }

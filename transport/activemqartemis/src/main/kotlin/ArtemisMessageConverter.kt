@@ -37,6 +37,9 @@ internal object ArtemisMessageConverter {
     /** Name of the message property that stores the trace ID. */
     private const val TRACE_PROPERTY = "traceId"
 
+    /** Name of the message property that stores the ORT run ID. */
+    private const val RUN_ID_PROPERTY = "runId"
+
     /**
      * Convert the given [message] to a JMS [TextMessage] using the provided [serializer] and [session].
      */
@@ -44,6 +47,7 @@ internal object ArtemisMessageConverter {
         session.createTextMessage(serializer.toJson(message.payload)).apply {
             setStringProperty(TOKEN_PROPERTY, message.header.token)
             setStringProperty(TRACE_PROPERTY, message.header.traceId)
+            setLongProperty(RUN_ID_PROPERTY, message.header.ortRunId)
         }
 
     /**
@@ -52,7 +56,8 @@ internal object ArtemisMessageConverter {
     fun <T> toTransportMessage(jmsMessage: TextMessage, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
             token = jmsMessage.getStringProperty(TOKEN_PROPERTY),
-            traceId = jmsMessage.getStringProperty(TRACE_PROPERTY)
+            traceId = jmsMessage.getStringProperty(TRACE_PROPERTY),
+            ortRunId = jmsMessage.getLongProperty(RUN_ID_PROPERTY)
         )
         val payload = serializer.fromJson(jmsMessage.text)
 

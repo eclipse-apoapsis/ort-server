@@ -89,7 +89,8 @@ import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 class OrchestratorTest : WordSpec() {
     private val msgHeader = MessageHeader(
         token = "token",
-        traceId = "traceId"
+        traceId = "traceId",
+        ortRunId = 18
     )
 
     private val repository = Repository(
@@ -393,10 +394,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleAnalyzerWorkerResult(
-                        MessageHeader(msgHeader.token, msgHeader.traceId),
-                        analyzerWorkerResult
-                    )
+                    ).handleAnalyzerWorkerResult(msgHeader, analyzerWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -467,10 +465,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleAnalyzerWorkerResult(
-                        MessageHeader(msgHeader.token, msgHeader.traceId),
-                        analyzerWorkerResult
-                    )
+                    ).handleAnalyzerWorkerResult(msgHeader, analyzerWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -527,7 +522,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+                    ).handleScannerWorkerResult(msgHeader, scannerWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -591,7 +586,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+                    ).handleScannerWorkerResult(msgHeader, scannerWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -650,7 +645,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleScannerWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), scannerWorkerResult)
+                    ).handleScannerWorkerResult(msgHeader, scannerWorkerResult)
                 }
 
                 verify(exactly = 0) {
@@ -746,7 +741,7 @@ class OrchestratorTest : WordSpec() {
                         repositoryRepository = mockk(),
                         ortRunRepository = ortRunRepository,
                         publisher = publisher
-                    ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
+                    ).handleAdvisorWorkerResult(msgHeader, advisorWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -811,7 +806,7 @@ class OrchestratorTest : WordSpec() {
                         repositoryRepository = mockk(),
                         ortRunRepository = ortRunRepository,
                         publisher = publisher
-                    ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
+                    ).handleAdvisorWorkerResult(msgHeader, advisorWorkerResult)
                 }
 
                 verify(exactly = 1) {
@@ -873,7 +868,7 @@ class OrchestratorTest : WordSpec() {
                         repositoryRepository = mockk(),
                         ortRunRepository = ortRunRepository,
                         publisher = publisher
-                    ).handleAdvisorWorkerResult(MessageHeader(msgHeader.token, msgHeader.traceId), advisorWorkerResult)
+                    ).handleAdvisorWorkerResult(msgHeader, advisorWorkerResult)
                 }
 
                 verify(exactly = 0) {
@@ -960,10 +955,7 @@ class OrchestratorTest : WordSpec() {
                         mockk(),
                         ortRunRepository,
                         publisher
-                    ).handleEvaluatorWorkerResult(
-                        MessageHeader(msgHeader.token, msgHeader.traceId),
-                        evaluatorWorkerResult
-                    )
+                    ).handleEvaluatorWorkerResult(msgHeader, evaluatorWorkerResult)
                 }
 
                 verify(exactly = 1) {

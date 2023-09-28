@@ -62,7 +62,8 @@ import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 class OrchestratorEndpointTest : KoinTest, StringSpec() {
     private val msgHeader = MessageHeader(
         token = "token",
-        traceId = "traceId"
+        traceId = "traceId",
+        ortRunId = 17
     )
 
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {

@@ -46,7 +46,8 @@ internal class FailedJobNotifier(
             val traceId = traceLabels.fold("") { id, label -> "$id${label.second}" }
 
             if (traceId.isNotEmpty()) {
-                val header = MessageHeader(token = "", traceId = traceId)
+                // TODO: Obtain the correct ORT run ID.
+                val header = MessageHeader(token = "", traceId = traceId, 0)
                 val message = Message(header, WorkerError(endpointName))
                 sender.send(message)
             }

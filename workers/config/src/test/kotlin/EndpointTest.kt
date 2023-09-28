@@ -137,6 +137,6 @@ private const val RUN_ID = 20230803092449L
 private const val TOKEN = "token"
 private const val TRACE_ID = "trace-id"
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
+private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 24)
 
 private val configRequest = ConfigRequest(RUN_ID)

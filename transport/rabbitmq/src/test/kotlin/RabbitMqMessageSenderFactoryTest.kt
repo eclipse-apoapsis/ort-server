@@ -72,7 +72,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
             val config = createConfig()
 
             val payload = AnalyzerWorkerResult(42)
-            val header = MessageHeader(token = "1234567890", traceId = "dick.tracy")
+            val header = MessageHeader(token = "1234567890", traceId = "dick.tracy", ortRunId = 44)
             val message = Message(header, payload)
 
             val connectionFactory = ConnectionFactory().apply {
@@ -104,6 +104,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
 
                         delivery.properties.headers["token"].toString() shouldBe header.token
                         delivery.properties.headers["traceId"].toString() shouldBe header.traceId
+                        delivery.properties.headers["runId"].toString() shouldBe header.ortRunId.toString()
 
                         val serializer = JsonSerializer.forType<OrchestratorMessage>()
                         val receivedPayload = serializer.fromJson(receivedMessage)

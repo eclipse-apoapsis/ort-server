@@ -115,7 +115,7 @@ class MessagePublisherTest : StringSpec({
 })
 
 /** A test message header. */
-private val HEADER = MessageHeader("testToken", "testTraceId")
+private val HEADER = MessageHeader("testToken", "testTraceId", 17)
 
 /**
  * Create a [ConfigManager] that selects the test transport for the sender to the given [endpoint].

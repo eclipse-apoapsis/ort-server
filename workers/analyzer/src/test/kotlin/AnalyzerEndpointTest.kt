@@ -84,7 +84,7 @@ private const val JOB_ID = 1L
 private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID)
+private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 24)
 
 private val analyzerRequest = AnalyzerRequest(
     analyzerJobId = JOB_ID

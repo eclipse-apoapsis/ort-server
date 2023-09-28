@@ -72,6 +72,7 @@ internal class KubernetesMessageSender<T : Any>(
         val msgMap = mapOf(
             "token" to message.header.token,
             "traceId" to message.header.traceId,
+            "runId" to message.header.ortRunId.toString(),
             "payload" to serializer.toJson(message.payload)
         )
 

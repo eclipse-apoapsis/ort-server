@@ -138,4 +138,4 @@ private class CustomProcessingService(
 }
 
 /** A test message header. */
-private val HEADER = MessageHeader("testToken", "testTraceId")
+private val HEADER = MessageHeader("testToken", "testTraceId", 42)

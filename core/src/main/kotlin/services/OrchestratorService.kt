@@ -61,7 +61,8 @@ class OrchestratorService(
             Message(
                 header = MessageHeader(
                     token = "",
-                    traceId = UUID.randomUUID().toString()
+                    traceId = UUID.randomUUID().toString(),
+                    ortRunId = ortRun.id
                 ),
                 payload = CreateOrtRun(ortRun)
             )
