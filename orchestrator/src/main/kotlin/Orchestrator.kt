@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ScannerJob
+import org.ossreviewtoolkit.server.model.WorkerJob
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
@@ -60,6 +61,7 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
+import org.ossreviewtoolkit.server.model.repositories.WorkerJobRepository
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
@@ -198,23 +200,7 @@ class Orchestrator(
      */
     fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = analyzerWorkerError.jobId
-
-            val analyzerJob = requireNotNull(analyzerJobRepository.get(jobId)) {
-                "Analyzer job '$jobId' not found."
-            }
-
-            analyzerJobRepository.update(
-                id = analyzerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the analyzerJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = analyzerJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
+            handleWorkerError(analyzerJobRepository, analyzerWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'AnalyzerWorkerError' message.", it)
         }
@@ -273,23 +259,7 @@ class Orchestrator(
      */
     fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = advisorWorkerError.jobId
-
-            val advisorJob = requireNotNull(advisorJobRepository.get(jobId)) {
-                "Advisor job '$jobId' not found."
-            }
-
-            advisorJobRepository.update(
-                id = advisorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the advisorJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = advisorJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
+            handleWorkerError(advisorJobRepository, advisorWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'AdvisorWorkerError' message.", it)
         }
@@ -348,23 +318,7 @@ class Orchestrator(
      */
     fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = scannerWorkerError.jobId
-
-            val scannerJob = requireNotNull(scannerJobRepository.get(jobId)) {
-                "Scanner job '$jobId' not found."
-            }
-
-            scannerJobRepository.update(
-                id = scannerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the scannerJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = scannerJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
+            handleWorkerError(scannerJobRepository, scannerWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'ScannerWorkerError' message.", it)
         }
@@ -406,23 +360,7 @@ class Orchestrator(
      */
     fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = evaluatorWorkerError.jobId
-
-            val evaluatorJob = requireNotNull(evaluatorJobRepository.get(jobId)) {
-                "Evaluator job '$jobId' not found."
-            }
-
-            evaluatorJobRepository.update(
-                id = evaluatorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the evaluatorJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = evaluatorJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
+            handleWorkerError(evaluatorJobRepository, evaluatorWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'EvaluatorWorkerError' message.", it)
         }
@@ -456,23 +394,7 @@ class Orchestrator(
      */
     fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = reporterWorkerError.jobId
-
-            val reporterJob = requireNotNull(reporterJobRepository.get(jobId)) {
-                "Reporter job '$jobId' not found."
-            }
-
-            reporterJobRepository.update(
-                id = reporterJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FAILED.asPresent()
-            )
-
-            // If the reporterJob failed, the whole OrtRun will be treated as failed.
-            ortRunRepository.update(
-                id = reporterJob.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
-            )
+            handleWorkerError(reporterJobRepository, reporterWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'ReporterWorkerError' message.", it)
         }
@@ -625,6 +547,20 @@ class Orchestrator(
      * Return the resolved job configurations if available. Otherwise, return the original job configurations.
      */
     private fun getConfig(ortRun: OrtRun) = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
+
+    /**
+     * Handle an error notification from a worker job with the given [jobId] using the given [jobRepository]. Mark
+     * both the job and the whole OrtRun as failed.
+     */
+    private fun <T : WorkerJob> handleWorkerError(jobRepository: WorkerJobRepository<T>, jobId: Long) {
+        val updatedJob = jobRepository.complete(jobId, Clock.System.now(), JobStatus.FAILED)
+
+        // If the worker job failed, the whole OrtRun will be treated as failed.
+        ortRunRepository.update(
+            id = updatedJob.ortRunId,
+            status = OrtRunStatus.FAILED.asPresent()
+        )
+    }
 }
 
 /**

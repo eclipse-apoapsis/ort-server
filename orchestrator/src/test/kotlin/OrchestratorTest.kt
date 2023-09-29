@@ -669,8 +669,7 @@ class OrchestratorTest : WordSpec() {
 
                 val analyzerWorkerError = AnalyzerWorkerError(123)
 
-                every { analyzerJobRepository.get(analyzerWorkerError.jobId) } returns analyzerJob
-                every { analyzerJobRepository.update(analyzerJob.id, any(), any(), any()) } returns mockk()
+                every { analyzerJobRepository.complete(analyzerJob.id, any(), any()) } returns analyzerJob
                 every { ortRunRepository.update(any(), any()) } returns mockk()
 
                 mockkTransaction {
@@ -689,10 +688,10 @@ class OrchestratorTest : WordSpec() {
 
                 verify(exactly = 1) {
                     // The job status was updated.
-                    analyzerJobRepository.update(
+                    analyzerJobRepository.complete(
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                        status = withArg { it shouldBe JobStatus.FAILED }
                     )
 
                     // The ORT run status was updated.
@@ -882,8 +881,7 @@ class OrchestratorTest : WordSpec() {
         "handleAdvisorWorkerError" should {
             "update the job and the ORT run in the database " {
                 val advisorJobRepository = mockk<AdvisorJobRepository> {
-                    every { get(advisorJob.id) } returns advisorJob
-                    every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                    every { complete(advisorJob.id, any(), any()) } returns advisorJob
                 }
 
                 val ortRunRepository = mockk<OrtRunRepository> {
@@ -909,10 +907,10 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 verify(exactly = 1) {
-                    advisorJobRepository.update(
+                    advisorJobRepository.complete(
                         id = withArg { it shouldBe advisorJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                        status = withArg { it shouldBe JobStatus.FAILED }
                     )
 
                     ortRunRepository.update(
@@ -981,10 +979,9 @@ class OrchestratorTest : WordSpec() {
 
         "handleEvaluatorWorkerError" should {
             "update the job and ORT run in the database, never create a reporter job" {
-                val evaluatorWorkerError = EvaluatorWorkerError(987)
+                val evaluatorWorkerError = EvaluatorWorkerError(evaluatorJob.id)
                 val evaluatorJobRepository = mockk<EvaluatorJobRepository> {
-                    every { get(evaluatorWorkerError.jobId) } returns evaluatorJob
-                    every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
+                    every { complete(evaluatorJob.id, any(), any()) } returns evaluatorJob
                 }
 
                 val reporterJobRepository = mockk<ReporterJobRepository> {}
@@ -1008,10 +1005,10 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 verify(exactly = 1) {
-                    evaluatorJobRepository.update(
+                    evaluatorJobRepository.complete(
                         id = withArg { it shouldBe evaluatorJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                        status = withArg { it shouldBe JobStatus.FAILED }
                     )
                     ortRunRepository.update(
                         id = withArg { it shouldBe evaluatorJob.ortRunId },
@@ -1072,8 +1069,7 @@ class OrchestratorTest : WordSpec() {
             "update the job and ORT run in the database" {
                 val reporterWorkerError = ReporterWorkerError(20230727145120L)
                 val reporterJobRepository = mockk<ReporterJobRepository> {
-                    every { get(reporterWorkerError.jobId) } returns reporterJob
-                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
+                    every { complete(reporterWorkerError.jobId, any(), any()) } returns reporterJob
                 }
 
                 val ortRunRepository = mockk<OrtRunRepository> {
@@ -1095,10 +1091,10 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 verify(exactly = 1) {
-                    reporterJobRepository.update(
-                        id = withArg { it shouldBe reporterJob.id },
+                    reporterJobRepository.complete(
+                        id = withArg { it shouldBe reporterWorkerError.jobId },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
-                        status = withArg { it.verifyOptionalValue(JobStatus.FAILED) }
+                        status = withArg { it shouldBe JobStatus.FAILED }
                     )
                     ortRunRepository.update(
                         id = withArg { it shouldBe reporterJob.ortRunId },
@@ -1119,6 +1115,12 @@ private fun OptionalValue<Instant?>.verifyTimeRange(allowedDiff: Duration) {
     val now = Clock.System.now()
 
     value.shouldBeBetween(now - allowedDiff, now)
+}
+
+private fun Instant.verifyTimeRange(allowedDiff: Duration) {
+    val now = Clock.System.now()
+
+    this.shouldBeBetween(now - allowedDiff, now)
 }
 
 private fun <T> OptionalValue<T>.verifyOptionalValue(expectedValue: T) {
