@@ -54,6 +54,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
+import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
@@ -95,6 +96,15 @@ class Orchestrator(
     private val publisher: MessagePublisher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
+
+    /** A map storing all job repositories by the worker endpoint names. */
+    private val jobRepositories = mapOf(
+        AnalyzerEndpoint.configPrefix to analyzerJobRepository,
+        AdvisorEndpoint.configPrefix to advisorJobRepository,
+        ScannerEndpoint.configPrefix to scannerJobRepository,
+        EvaluatorEndpoint.configPrefix to evaluatorJobRepository,
+        ReporterEndpoint.configPrefix to reporterJobRepository
+    )
 
     /**
      * Handle messages of the type [CreateOrtRun].
@@ -401,6 +411,21 @@ class Orchestrator(
     }
 
     /**
+     * Handle messages of the type [WorkerError] for the given [ortRunId].
+     */
+    fun handleWorkerError(ortRunId: Long, workerError: WorkerError) {
+        log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
+
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            jobRepositories[workerError.endpointName]?.let { repository ->
+                handleWorkerErrorForRepository(ortRunId, repository)
+            } ?: failOrtRun(ortRunId)
+        }.onFailure {
+            log.warn("Failed to handle 'WorkerError' message.", it)
+        }
+    }
+
+    /**
      * Create an [AnalyzerJob].
      */
     private fun createAnalyzerJob(ortRun: OrtRun): AnalyzerJob =
@@ -556,8 +581,28 @@ class Orchestrator(
         val updatedJob = jobRepository.complete(jobId, Clock.System.now(), JobStatus.FAILED)
 
         // If the worker job failed, the whole OrtRun will be treated as failed.
+        failOrtRun(updatedJob.ortRunId)
+    }
+
+    /**
+     * Handle a fatal worker error for the given [ortRunId] which affects the worker managed by the given [repository].
+     */
+    private fun <T : WorkerJob> handleWorkerErrorForRepository(ortRunId: Long, repository: WorkerJobRepository<T>) {
+        val job = requireNotNull(repository.getForOrtRun(ortRunId)) {
+            "ORT run '$ortRunId' not found."
+        }
+
+        repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
+            failOrtRun(ortRunId)
+        }
+    }
+
+    /**
+     * Set the status of the ORT run identified by the given [ortRunId] as failed.
+      */
+    private fun failOrtRun(ortRunId: Long) {
         ortRunRepository.update(
-            id = updatedJob.ortRunId,
+            id = ortRunId,
             status = OrtRunStatus.FAILED.asPresent()
         )
     }
