@@ -20,42 +20,29 @@
 package org.ossreviewtoolkit.server.model
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class ScannerJob(
-    /**
-     * The unique identifier.
-     */
-    override val id: Long,
+/**
+ * A common interface for all concrete worker job classes.
+ *
+ * The jobs have a larger number of properties in common. This interface makes it possible to access those in a
+ * generic way.
+ */
+interface WorkerJob {
+    /** The unique identifier of this job. */
+    val id: Long
 
-    /**
-     * The ID of the [OrtRun] this [ScannerJob] is a part of.
-     */
-    override val ortRunId: Long,
+    /** The ID of the [OrtRun] this [WorkerJob] is a part of. */
+    val ortRunId: Long
 
-    /**
-     * The time the job was created.
-     */
-    override val createdAt: Instant,
+    /** The time the job was created. */
+    val createdAt: Instant
 
-    /**
-     * The time the job was started.
-     */
-    override val startedAt: Instant?,
+    /** The time the job was started. */
+    val startedAt: Instant?
 
-    /**
-     * The time the job finished.
-     */
-    override val finishedAt: Instant?,
+    /** The time the job finished. */
+    val finishedAt: Instant?
 
-    /**
-     * The job configuration.
-     */
-    val configuration: ScannerJobConfiguration,
-
-    /**
-     * The job status.
-     */
-    override val status: JobStatus,
-) : WorkerJob
+    /** The job status. */
+    val status: JobStatus
+}

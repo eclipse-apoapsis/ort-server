@@ -27,27 +27,27 @@ data class ReporterJob(
     /**
      * The unique identifier.
      */
-    val id: Long,
+    override val id: Long,
 
     /**
      * The ID of the [OrtRun] this [ScannerJob] is a part of.
      */
-    val ortRunId: Long,
+    override val ortRunId: Long,
 
     /**
      * The time the job was created.
      */
-    val createdAt: Instant,
+    override val createdAt: Instant,
 
     /**
      * The time the job was started.
      */
-    val startedAt: Instant?,
+    override val startedAt: Instant?,
 
     /**
      * The time the job finished.
      */
-    val finishedAt: Instant?,
+    override val finishedAt: Instant?,
 
     /**
      * The job configuration.
@@ -57,5 +57,5 @@ data class ReporterJob(
     /**
      * The job status.
      */
-    val status: JobStatus
-)
+    override val status: JobStatus
+) : WorkerJob
