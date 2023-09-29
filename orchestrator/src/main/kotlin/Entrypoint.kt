@@ -91,9 +91,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
             is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(payload)
             is ReporterWorkerError -> orchestrator.handleReporterWorkerError(payload)
-            is WorkerError ->
-                // TODO: Handle fatal worker errors.
-                log.error("Received worker error: $payload.")
+            is WorkerError -> orchestrator.handleWorkerError(message.header.ortRunId, payload)
         }
     }
 

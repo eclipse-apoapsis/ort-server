@@ -53,6 +53,7 @@ import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
 import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
 import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
+import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
@@ -220,6 +221,23 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleAdvisorWorkerError(advisorWorkerError)
+                }
+            }
+        }
+
+        "WorkerError message should be handled" {
+            val workerError = WorkerError("analyzer")
+            val message = Message(msgHeader, workerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleWorkerError(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleWorkerError(msgHeader.ortRunId, workerError)
                 }
             }
         }
