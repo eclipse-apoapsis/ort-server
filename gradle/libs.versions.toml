@@ -58,7 +58,7 @@ log4j = "2.20.0"
 logback = "1.4.8"
 micrometer = "1.11.2"
 mockk = "1.13.5"
-ort = "119a58d425"
+ort = "3.0.0"
 postgres = "42.6.0"
 qpidJmsClient = "2.3.0"
 slf4j = "2.0.7"
@@ -129,21 +129,20 @@ log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-ort = { module = "com.github.oss-review-toolkit:ort", version.ref = "ort" }
-ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }
-ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
-ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
-ortEvaluator = { module = "com.github.oss-review-toolkit.ort:evaluator", version.ref = "ort" }
-ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "ort" }
-ortPackageConfigurationProviders = { module = "com.github.oss-review-toolkit.ort:package-configuration-providers", version.ref = "ort" }
-ortPackageCurationProviders = { module = "com.github.oss-review-toolkit.ort:package-curation-providers", version.ref = "ort" }
-ortPackageManagers = { module = "com.github.oss-review-toolkit.ort:package-managers", version.ref = "ort" }
-ortReporter = { module = "com.github.oss-review-toolkit.ort:reporter", version.ref = "ort" }
-ortReporters = { module = "com.github.oss-review-toolkit.ort:reporters", version.ref = "ort" }
-ortScanner = { module = "com.github.oss-review-toolkit.ort:scanner", version.ref = "ort" }
-ortScanners = { module = "com.github.oss-review-toolkit.ort:scanners", version.ref = "ort" }
-ortScriptingUtils = { module = "com.github.oss-review-toolkit.ort:scripting-utils", version.ref = "ort" }
-ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
+ortAdvisor = { module = "org.ossreviewtoolkit:advisor", version.ref = "ort" }
+ortAnalyzer = { module = "org.ossreviewtoolkit:analyzer", version.ref = "ort" }
+ortDownloader = { module = "org.ossreviewtoolkit:downloader", version.ref = "ort" }
+ortEvaluator = { module = "org.ossreviewtoolkit:evaluator", version.ref = "ort" }
+ortModel = { module = "org.ossreviewtoolkit:model", version.ref = "ort" }
+ortPackageConfigurationProviders = { module = "org.ossreviewtoolkit.plugins:package-configuration-providers", version.ref = "ort" }
+ortPackageCurationProviders = { module = "org.ossreviewtoolkit.plugins:package-curation-providers", version.ref = "ort" }
+ortPackageManagers = { module = "org.ossreviewtoolkit.plugins:package-managers", version.ref = "ort" }
+ortReporter = { module = "org.ossreviewtoolkit:reporter", version.ref = "ort" }
+ortReporters = { module = "org.ossreviewtoolkit.plugins:reporters", version.ref = "ort" }
+ortScanner = { module = "org.ossreviewtoolkit:scanner", version.ref = "ort" }
+ortScanners = { module = "org.ossreviewtoolkit.plugins:scanners", version.ref = "ort" }
+ortScriptingUtils = { module = "org.ossreviewtoolkit.utils:scripting-utils", version.ref = "ort" }
+ortTestUtils = { module = "org.ossreviewtoolkit.utils:test-utils", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }

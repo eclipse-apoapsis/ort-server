@@ -69,7 +69,7 @@ class ScannerRunner(
             workingTreeCache
         )
         val scannerWrappers = ScannerWrapper.ALL["ScanCode"]
-            ?.let { listOf(it.create(scannerConfig, downloaderConfig)) }
+            ?.let { listOf(it.create(emptyMap())) }
             .orEmpty()
 
         try {

@@ -31,18 +31,6 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
-repositories {
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.eclipse.org/content/repositories/sw360-releases/")
-        }
-
-        filter {
-            includeGroup("org.eclipse.sw360")
-        }
-    }
-}
-
 group = "ort.ossreviewtoolkit.server.workers"
 version = "0.0.1"
 

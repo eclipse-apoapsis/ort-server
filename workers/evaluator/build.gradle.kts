@@ -34,18 +34,6 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
-repositories {
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.eclipse.org/content/repositories/sw360-releases/")
-        }
-
-        filter {
-            includeGroup("org.eclipse.sw360")
-        }
-    }
-}
-
 dependencies {
     implementation(project(":config:config-spi"))
     implementation(project(":dao"))

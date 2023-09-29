@@ -30,16 +30,6 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
-
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.eclipse.org/content/repositories/sw360-releases/")
-        }
-
-        filter {
-            includeGroup("org.eclipse.sw360")
-        }
-    }
 }
 
 tasks.withType<Test>().configureEach {

@@ -92,7 +92,7 @@ private fun mockScanCode() {
     mockk<ScannerWrapper> {
         every { ScannerWrapper.ALL } returns sortedMapOf(
             "ScanCode" to mockk {
-                every { create(any(), any()) } returns mockk<ScanCode> {
+                every { create(any()) } returns mockk<ScanCode> {
                     every { criteria } returns mockk {
                         every { matches(any()) } returns true
                     }

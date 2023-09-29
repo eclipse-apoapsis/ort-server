@@ -519,7 +519,7 @@ object OrtTestData {
                 provider = ResolvedPackageCurations.Provider(
                     id = ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID
                 ),
-                curations = setOf(pkgCuration)
+                curations = listOf(pkgCuration)
             )
         ),
         resolutions = Resolutions(

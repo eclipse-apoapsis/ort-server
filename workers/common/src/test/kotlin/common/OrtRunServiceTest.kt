@@ -618,7 +618,7 @@ class OrtRunServiceTest : WordSpec({
             val curations = listOf(
                 OrtResolvedPackageCurations(
                     OrtResolvedPackageCurations.Provider("provider1"),
-                    curations = setOf(
+                    curations = listOf(
                         OrtPackageCuration(
                             id = OrtIdentifier("Maven:org.example:package1:1.0"),
                             data = OrtPackageCurationData(

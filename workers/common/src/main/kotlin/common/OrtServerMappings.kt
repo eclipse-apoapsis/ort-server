@@ -708,7 +708,7 @@ fun PackageCurationProviderConfig.mapToOrt() = OrtResolvedPackageCurations.Provi
 fun ResolvedPackageCurations.mapToOrt() =
     OrtResolvedPackageCurations(
         provider = provider.mapToOrt(),
-        curations = curations.map { it.mapToOrt() }.toSet()
+        curations = curations.map { it.mapToOrt() }
     )
 
 fun ResolvedConfiguration.mapToOrt() =
