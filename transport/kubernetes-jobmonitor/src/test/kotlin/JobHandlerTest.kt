@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.openapi.models.V1Job
+import io.kubernetes.client.openapi.models.V1JobCondition
 import io.kubernetes.client.openapi.models.V1JobList
 import io.kubernetes.client.openapi.models.V1JobStatus
 import io.kubernetes.client.openapi.models.V1ObjectMeta
@@ -42,6 +43,7 @@ import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
 import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
 private const val NAMESPACE = "EventHandlerNamespace"
@@ -161,11 +163,17 @@ class JobHandlerTest : WordSpec({
                 "old_job",
                 status = V1JobStatus().apply { completionTime = referenceTime.minusDays(1) }
             )
+            val matchJob3 = createJob(
+                "failedJob",
+                status = V1JobStatus().apply {
+                    addConditionsItem(V1JobCondition().apply { type("Failed") })
+                }
+            )
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val jobList = V1JobList().apply { items = listOf(matchJob1, runningJob, youngJob, matchJob2) }
+            val jobList = V1JobList().apply { items = listOf(matchJob1, runningJob, youngJob, matchJob2, matchJob3) }
             every {
                 jobApi.listNamespacedJob(
                     NAMESPACE,
@@ -185,44 +193,82 @@ class JobHandlerTest : WordSpec({
             val handler = JobHandler(jobApi, coreApi, NAMESPACE)
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
-            jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2)
+            jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2, matchJob3)
         }
     }
 
     "isFailed" should {
         "return true for a failed job" {
             val failedStatus = V1JobStatus().apply {
-                completionTime = OffsetDateTime.now()
-                failed = 1
+                addConditionsItem(
+                    V1JobCondition().apply { type("someType") }
+                )
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
             }
             val job = createJob("failedJob", failedStatus)
 
             job.isFailed() shouldBe true
         }
 
-        "return false for a job that is still running" {
+        "return false for a job that was completed normally" {
+            val completedStatus = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Complete") }
+                )
+            }
+            val job = createJob("completedJob", completedStatus)
+
+            job.isFailed() shouldBe false
+        }
+
+        "return false for a job without any conditions" {
             val runningJob = createJob("ongoing")
 
             runningJob.isFailed() shouldBe false
         }
+    }
 
-        "return false for a job with 0 failed pods" {
-            val successStatus = V1JobStatus().apply {
-                completionTime = OffsetDateTime.now()
-                failed = 0
-            }
-            val job = createJob("successJob", successStatus)
+    "isCompleted" should {
+        "return true for a job with a completion date" {
+            val status = V1JobStatus().apply { completionTime = OffsetDateTime.now() }
+            val completedJob = createJob("iAmDone", status)
 
-            job.isFailed() shouldBe false
+            completedJob.isCompleted() shouldBe true
         }
 
-        "return false for a job with a null value for failed pods" {
-            val successStatus = V1JobStatus().apply {
-                completionTime = OffsetDateTime.now()
+        "return false for a job without a matching condition" {
+            val status = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("someType") }
+                )
             }
-            val job = createJob("successJob", successStatus)
+            val runningJob = createJob("runningJob", status)
 
-            job.isFailed() shouldBe false
+            runningJob.isCompleted() shouldBe false
+        }
+
+        "return true for a job with a Complete condition" {
+            val status = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Complete") }
+                )
+            }
+            val completeJob = createJob("completeJob", status)
+
+            completeJob.isCompleted() shouldBe true
+        }
+
+        "return true for a job with a Failed condition" {
+            val status = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
+            }
+            val failedJob = createJob("failedJob", status)
+
+            failedJob.isCompleted() shouldBe true
         }
     }
 })

@@ -28,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.openapi.models.V1Job
+import io.kubernetes.client.openapi.models.V1JobCondition
 import io.kubernetes.client.openapi.models.V1JobList
 import io.kubernetes.client.openapi.models.V1JobStatus
 import io.kubernetes.client.openapi.models.V1ObjectMeta
@@ -40,8 +41,6 @@ import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
-
-import java.time.OffsetDateTime
 
 import kotlin.time.Duration.Companion.seconds
 
@@ -115,8 +114,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
 
                 val job = V1Job().apply {
                     status = V1JobStatus().apply {
-                        completionTime = OffsetDateTime.now()
-                        failed = 1
+                        addConditionsItem(V1JobCondition().apply { type("Failed") })
                     }
                     metadata = V1ObjectMeta().apply {
                         name = jobName

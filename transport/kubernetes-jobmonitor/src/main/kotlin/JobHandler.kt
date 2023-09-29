@@ -44,18 +44,38 @@ internal class JobHandler(
     companion object {
         private val logger = LoggerFactory.getLogger(JobHandler::class.java)
 
-        /**
-         * Return a flag whether this job has failed. For jobs that are still running result is *false*.
-         */
-        fun V1Job.isFailed(): Boolean = status?.completionTime != null && (status?.failed ?: 0) > 0
+        /** Constant for a condition type that indicates that a job has failed. */
+        private const val FAILED_CONDITION = "Failed"
+
+        /** Constant for a condition type that indicates a normal completion of a job. */
+        private const val COMPLETE_CONDITION = "Complete"
+
+        /** A set with the condition types that indicate that a job is completed. */
+        private val COMPLETED_CONDITIONS = setOf(COMPLETE_CONDITION, FAILED_CONDITION)
 
         /**
-         * Return a flag whether this job has completed before the given [time].
+         * Return a flag whether this job has failed. For jobs that are still running the result is *false*.
+         */
+        fun V1Job.isFailed(): Boolean = status?.conditions.orEmpty().any { it.type == FAILED_CONDITION }
+
+        /**
+         * Return a flag whether this job has completed, either successfully or in failure state.
+         * See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#jobstatus-v1-batch.
+         */
+        fun V1Job.isCompleted(): Boolean =
+            status?.completionTime != null ||
+                    status?.conditions.orEmpty().any { it.type in COMPLETED_CONDITIONS }
+
+        /**
+         * Return a flag whether this job has completed before the given [time]. Note that a completion time is only
+         * available for jobs that have been completed normally; in case of failed jobs, it is undefined. For such
+         * jobs, this function returns *true*, since failed jobs need to be handled immediately.
          */
         private fun V1Job.completedBefore(time: OffsetDateTime): Boolean {
-            val completionTime = status?.completionTime ?: OffsetDateTime.now()
+            if (!isCompleted()) return false
 
-            return completionTime.isBefore(time)
+            val completionTime = status?.completionTime
+            return completionTime == null || completionTime.isBefore(time)
         }
     }
 
