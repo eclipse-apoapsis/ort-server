@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.common.context
 
 import java.io.File
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
@@ -40,6 +41,9 @@ interface WorkerContext : AutoCloseable {
 
     /** An object with information about the current repository and its hierarchy. */
     val hierarchy: Hierarchy
+
+    /** The object providing access to the ORT Server configuration. */
+    val configManager: ConfigManager
 
     /**
      * Resolve the given [secret] and return its value. Cache the value, so that it can be returned directly when a

@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 import org.slf4j.LoggerFactory
 
@@ -72,3 +73,9 @@ inline fun <reified T> ConfigManager.readConfigFile(
 }.getOrElse {
     if (it is ConfigException) exceptionHandler(it) else throw it
 }
+
+/**
+ * Return the resolved context for accessing configuration files from this [WorkerContext] if it is defined.
+ */
+val WorkerContext.resolvedConfigurationContext: Context?
+    get() = ortRun.resolvedJobConfigContext?.let(::Context)

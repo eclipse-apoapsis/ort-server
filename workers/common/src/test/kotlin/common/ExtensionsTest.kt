@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -30,9 +32,13 @@ import io.mockk.mockk
 
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.readConfigFile
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 
 class ExtensionsTest : WordSpec({
     data class ConfigClass(val name: String, val value: String)
@@ -136,6 +142,31 @@ class ExtensionsTest : WordSpec({
             shouldThrow<MismatchedInputException> {
                 configManager.readConfigFile<ConfigClass>("path") shouldBe configFile
             }
+        }
+    }
+
+    "resolvedConfigurationContext" should {
+        "return null if no resolved context is available" {
+            val ortRun = mockk<OrtRun> {
+                every { resolvedJobConfigContext } returns null
+            }
+            val workerContext = mockk<WorkerContext> {
+                every { this@mockk.ortRun } returns ortRun
+            }
+
+            workerContext.resolvedConfigurationContext should beNull()
+        }
+
+        "return the resolved context if it is available" {
+            val resolvedContext = "theResolvedContext"
+            val ortRun = mockk<OrtRun> {
+                every { resolvedJobConfigContext } returns resolvedContext
+            }
+            val workerContext = mockk<WorkerContext> {
+                every { this@mockk.ortRun } returns ortRun
+            }
+
+            workerContext.resolvedConfigurationContext shouldBe Context(resolvedContext)
         }
     }
 })

@@ -46,7 +46,7 @@ import org.ossreviewtoolkit.server.secrets.SecretStorage
  */
 internal class WorkerContextImpl(
     /** The object allowing access to the application configuration. */
-    private val configManager: ConfigManager,
+    override val configManager: ConfigManager,
 
     /** The repository for ORT run entities. */
     private val ortRunRepository: OrtRunRepository,
