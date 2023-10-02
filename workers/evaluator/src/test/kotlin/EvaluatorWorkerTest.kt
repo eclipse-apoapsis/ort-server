@@ -51,6 +51,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -101,7 +103,6 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns evaluatorJob
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerRunForOrtRun(any()) } returns scannerRun
             every { storeEvaluatorRun(any()) } returns mockk()
@@ -118,7 +119,14 @@ class EvaluatorWorkerTest : StringSpec({
             every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager, mockk()), ortRunService)
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+        }
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
+
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager, mockk()), ortRunService, contextFactory)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -138,7 +146,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -154,7 +162,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)

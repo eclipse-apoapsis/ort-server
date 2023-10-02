@@ -40,6 +40,7 @@ import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.workers.common.OrtServerFileArchiveStorage
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
 
 import org.slf4j.LoggerFactory
@@ -69,7 +70,8 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
-    override fun customModules(): List<Module> = listOf(evaluatorModule(), databaseModule(), ortRunServiceModule())
+    override fun customModules(): List<Module> =
+        listOf(evaluatorModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
 
     private fun evaluatorModule(): Module = module {
         single { ConfigManager.create(get()) }

@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -39,14 +40,13 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class EvaluatorWorker(
     private val db: Database,
     private val runner: EvaluatorRunner,
-    private val ortRunService: OrtRunService
+    private val ortRunService: OrtRunService,
+    private val workerContextFactory: WorkerContextFactory
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val evaluatorJob = getValidEvaluatorJob(jobId)
-        val ortRun = ortRunService.getOrtRun(evaluatorJob.ortRunId)
-        requireNotNull(ortRun) {
-            "ORT run '${evaluatorJob.ortRunId}' not found."
-        }
+        val workerContext = workerContextFactory.createContext(evaluatorJob.ortRunId)
+        val ortRun = workerContext.ortRun
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
