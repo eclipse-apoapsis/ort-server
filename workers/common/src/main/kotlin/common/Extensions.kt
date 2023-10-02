@@ -44,7 +44,7 @@ inline fun <reified T> ConfigManager.readConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
-    context: Context? = null
+    context: Context?
 ): T = if (path != null) {
     readConfigFile(path, context) {
         logger.error("Could not read config file from path '$path'.")
@@ -64,7 +64,7 @@ inline fun <reified T> ConfigManager.readConfigFileWithDefault(
  */
 inline fun <reified T> ConfigManager.readConfigFile(
     path: String,
-    context: Context? = null,
+    context: Context?,
     exceptionHandler: (ConfigException) -> T = { throw it }
 ): T = runCatching {
     getFile(context, Path(path)).use {

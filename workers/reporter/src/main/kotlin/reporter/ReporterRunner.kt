@@ -97,7 +97,8 @@ class ReporterRunner(
         val copyrightGarbage = configManager.readConfigFileWithDefault(
             path = copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
-            fallbackValue = CopyrightGarbage()
+            fallbackValue = CopyrightGarbage(),
+            context = null
         )
 
         val licenseClassificationsFile = if (evaluatorConfig != null) {
@@ -108,7 +109,8 @@ class ReporterRunner(
         val licenseClassifications = configManager.readConfigFileWithDefault(
             path = licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
-            fallbackValue = LicenseClassifications()
+            fallbackValue = LicenseClassifications(),
+            context = null
         )
 
         val packageConfigurationProvider = buildList {
@@ -138,7 +140,8 @@ class ReporterRunner(
             val resolutionsFromFile = configManager.readConfigFileWithDefault(
                 path = config.resolutionsFile,
                 defaultPath = ORT_RESOLUTIONS_FILENAME,
-                fallbackValue = Resolutions()
+                fallbackValue = Resolutions(),
+                context = null
             )
 
             DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))

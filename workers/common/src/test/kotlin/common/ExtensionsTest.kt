@@ -60,11 +60,13 @@ class ExtensionsTest : WordSpec({
 
     "readConfigFileWithDefault" should {
         "deserialize the file at path if path is not null" {
+            val context = Context("resolvedContext")
+
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } returns configFileYaml.byteInputStream()
+                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
-            configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue) shouldBe configFile
+            configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue, context) shouldBe configFile
         }
 
         "throw an exception if the file at path cannot be read" {
@@ -73,7 +75,7 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<ConfigException> {
-                configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue)
+                configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue, null)
             } shouldBe configException
         }
 
@@ -83,16 +85,18 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<MismatchedInputException> {
-                configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue)
+                configManager.readConfigFileWithDefault(path, defaultPath, fallbackValue, null)
             }
         }
 
         "deserialize the file at the default path if path is null" {
+            val context = Context("theContext")
+
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(defaultPath)) } returns configFileYaml.byteInputStream()
+                every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
             }
 
-            configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue) shouldBe configFile
+            configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue, context) shouldBe configFile
         }
 
         "return the fallback value if the file at default path cannot be read" {
@@ -100,7 +104,7 @@ class ExtensionsTest : WordSpec({
                 every { getFile(any(), Path(defaultPath)) } throws configException
             }
 
-            configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue) shouldBe fallbackValue
+            configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue, null) shouldBe fallbackValue
         }
 
         "throw an exception if the file at default path cannot be deserialized" {
@@ -109,18 +113,20 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<MismatchedInputException> {
-                configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue) shouldBe fallbackValue
+                configManager.readConfigFileWithDefault(null, defaultPath, fallbackValue, null) shouldBe fallbackValue
             }
         }
     }
 
     "readConfigFile" should {
         "deserialize the config file" {
+            val context = Context("myConfigContext")
+
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } returns configFileYaml.byteInputStream()
+                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
-            configManager.readConfigFile<ConfigClass>(path) shouldBe configFile
+            configManager.readConfigFile<ConfigClass>(path, context) shouldBe configFile
         }
 
         "call the exception handler if a ConfigException occurs" {
@@ -129,7 +135,7 @@ class ExtensionsTest : WordSpec({
             }
 
             var capturedException: ConfigException? = null
-            configManager.readConfigFile("path") { capturedException = it }
+            configManager.readConfigFile("path", null) { capturedException = it }
 
             capturedException shouldBe configException
         }
@@ -140,7 +146,7 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<MismatchedInputException> {
-                configManager.readConfigFile<ConfigClass>("path") shouldBe configFile
+                configManager.readConfigFile<ConfigClass>("path", null) shouldBe configFile
             }
         }
     }
