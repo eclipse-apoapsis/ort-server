@@ -62,7 +62,7 @@ internal class EvaluatorWorker(
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
-        val evaluatorRunnerResult = runner.run(ortResult, evaluatorJob.configuration)
+        val evaluatorRunnerResult = runner.run(ortResult, evaluatorJob.configuration, workerContext)
 
         db.blockingQuery {
             getValidEvaluatorJob(evaluatorJob.id)

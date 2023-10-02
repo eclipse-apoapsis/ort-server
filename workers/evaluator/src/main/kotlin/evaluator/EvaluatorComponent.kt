@@ -26,7 +26,6 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
-import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.databaseModule
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
 import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
@@ -74,8 +73,6 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         listOf(evaluatorModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
 
     private fun evaluatorModule(): Module = module {
-        single { ConfigManager.create(get()) }
-
         single {
             val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))

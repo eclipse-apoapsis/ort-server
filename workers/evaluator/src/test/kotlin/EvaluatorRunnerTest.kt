@@ -42,10 +42,13 @@ import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
@@ -57,8 +60,10 @@ private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
 private const val RESOLUTIONS_FILE = "/resolutions.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 
+private val resolvedConfiContext = Context("resolvedContext")
+
 class EvaluatorRunnerTest : WordSpec({
-    val runner = EvaluatorRunner(createConfigManager(), mockk())
+    val runner = EvaluatorRunner(mockk())
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
@@ -67,7 +72,8 @@ class EvaluatorRunnerTest : WordSpec({
                 EvaluatorJobConfiguration(
                     ruleSet = SCRIPT_FILE,
                     licenseClassificationsFile = LICENSE_CLASSIFICATIONS_FILE
-                )
+                ),
+                createWorkerContext()
             )
             val expectedRuleViolation = RuleViolation(
                 rule = "TEST_RULE",
@@ -84,20 +90,25 @@ class EvaluatorRunnerTest : WordSpec({
 
         "throw an exception when no rule set is provided" {
             shouldThrow<IllegalArgumentException> {
-                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration())
+                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(), createWorkerContext())
             }
         }
 
         "throw an exception if script file could not be found" {
             shouldThrow<ConfigException> {
-                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(ruleSet = UNKNOWN_RULES_KTS))
+                runner.run(
+                    OrtResult.EMPTY,
+                    EvaluatorJobConfiguration(ruleSet = UNKNOWN_RULES_KTS),
+                    createWorkerContext()
+                )
             }
         }
 
         "use the package configurations from the repository configuration" {
             val result = runner.run(
                 OrtTestData.result,
-                EvaluatorJobConfiguration(ruleSet = PACKAGE_CONFIGURATION_RULES)
+                EvaluatorJobConfiguration(ruleSet = PACKAGE_CONFIGURATION_RULES),
+                createWorkerContext()
             )
 
             // The test data contains a package with a LicenseRef-detected1 and a LicenseRef-detected2 license finding
@@ -140,7 +151,8 @@ class EvaluatorRunnerTest : WordSpec({
                             )
                         )
                     )
-                )
+                ),
+                createWorkerContext()
             )
 
             // The test data contains a package with a LicenseRef-detected1 and a LicenseRef-detected2 license finding
@@ -174,7 +186,8 @@ class EvaluatorRunnerTest : WordSpec({
         "use the resolutions from the repository configuration and resolutions file" {
             val result = runner.run(
                 OrtTestData.result,
-                EvaluatorJobConfiguration(resolutionsFile = RESOLUTIONS_FILE, ruleSet = SCRIPT_FILE)
+                EvaluatorJobConfiguration(resolutionsFile = RESOLUTIONS_FILE, ruleSet = SCRIPT_FILE),
+                createWorkerContext()
             )
 
             val expectedResolutions = OrtTestData.result.repository.config.resolutions.merge(
@@ -188,29 +201,38 @@ class EvaluatorRunnerTest : WordSpec({
 
 private fun createConfigManager(): ConfigManager {
     val configManager = mockk<ConfigManager> {
-        every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
+        every { getFileAsString(resolvedConfiContext, Path(SCRIPT_FILE)) } returns
                 File("src/test/resources/example.rules.kts").readText()
 
-        every { getFileAsString(any(), Path(PACKAGE_CONFIGURATION_RULES)) } returns
+        every { getFileAsString(resolvedConfiContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
                 File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
 
-        every { getFile(any(), Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
+        every { getFile(resolvedConfiContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfiContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
 
-        every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
+        every { getFile(resolvedConfiContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfiContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
 
-        every { getFile(any(), Path(RESOLUTIONS_FILE)) } answers
+        every { getFile(resolvedConfiContext, Path(RESOLUTIONS_FILE)) } answers
                 { File("src/test/resources/resolutions.yml").inputStream() }
 
-        every { getFileAsString(any(), Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        every { getFileAsString(resolvedConfiContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
 
-        every { getFile(any(), Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        every { getFile(resolvedConfiContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
     }
 
     return configManager
+}
+
+private fun createWorkerContext(): WorkerContext {
+    val configManagerMock = createConfigManager()
+
+    return mockk {
+        every { configManager } returns configManagerMock
+        every { resolvedConfigurationContext } returns resolvedConfiContext
+    }
 }

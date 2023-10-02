@@ -35,45 +35,53 @@ import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
-import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 class EvaluatorRunner(
     /**
-     * The config manager is used to download the rule script as well as the file describing license classifications.
-     */
-    private val configManager: ConfigManager,
-
-    /**
      * The file archiver is used to resolve license files which is optional input for the rules.
      */
     private val fileArchiver: FileArchiver
 ) {
     /**
-     * The rule set script and the license classifications file are obtained from the [configManager] using the
+     * Invoke the [Evaluator] for the current ORT run.
+     * The rule set script and the license classifications file are downloaded from the configuration using the
      * respective paths specified in [config]. In case the path to the license classifications file is not provided,
      * an empty [LicenseClassifications] is passed to the Evaluator.
      */
-    fun run(ortResult: OrtResult, config: EvaluatorJobConfiguration): EvaluatorRunnerResult {
-        val script = config.ruleSet?.let { configManager.getFileAsString(null, Path(it)) }
+    fun run(
+        ortResult: OrtResult,
+        config: EvaluatorJobConfiguration,
+        workerContext: WorkerContext
+    ): EvaluatorRunnerResult {
+        val script = config.ruleSet?.let {
+            workerContext.configManager.getFileAsString(
+                workerContext.resolvedConfigurationContext,
+                Path(it)
+            )
+        }
             ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
 
-        val copyrightGarbage = configManager.readConfigFileWithDefault(
+        val copyrightGarbage = workerContext.configManager.readConfigFileWithDefault(
             path = config.copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
-            fallbackValue = CopyrightGarbage()
+            fallbackValue = CopyrightGarbage(),
+            workerContext.resolvedConfigurationContext
         )
 
-        val licenseClassifications = configManager.readConfigFileWithDefault(
+        val licenseClassifications = workerContext.configManager.readConfigFileWithDefault(
             path = config.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
-            fallbackValue = LicenseClassifications()
+            fallbackValue = LicenseClassifications(),
+            workerContext.resolvedConfigurationContext
         )
 
         val packageConfigurationProvider = buildList {
@@ -86,10 +94,11 @@ class EvaluatorRunner(
 
         val resolutionsFromOrtResult = ortResult.getResolutions()
 
-        val resolutionsFromFile = configManager.readConfigFileWithDefault(
+        val resolutionsFromFile = workerContext.configManager.readConfigFileWithDefault(
             path = config.resolutionsFile,
             defaultPath = ORT_RESOLUTIONS_FILENAME,
-            fallbackValue = Resolutions()
+            fallbackValue = Resolutions(),
+            workerContext.resolvedConfigurationContext
         )
 
         val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))

@@ -89,6 +89,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { repositoryId } returns REPOSITORY_ID
             every { revision } returns "main"
+            every { resolvedJobConfigContext } returns null
         }
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
@@ -121,12 +122,13 @@ class EvaluatorWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.configManager } returns configManager
         }
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(ORT_RUN_ID) } returns context
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(configManager, mockk()), ortRunService, contextFactory)
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService, contextFactory)
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -146,7 +148,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService, mockk())
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -162,7 +164,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService, mockk())
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
