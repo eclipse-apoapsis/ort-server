@@ -29,6 +29,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.unmockkAll
 
 import java.io.File
 
@@ -73,6 +74,10 @@ private val evaluatorJob = EvaluatorJob(
 )
 
 class EvaluatorWorkerTest : StringSpec({
+    afterSpec {
+        unmockkAll()
+    }
+
     "A project should be evaluated successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
