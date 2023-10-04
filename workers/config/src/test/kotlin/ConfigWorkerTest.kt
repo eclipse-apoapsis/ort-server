@@ -38,14 +38,17 @@ import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
+import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 
 class ConfigWorkerTest : StringSpec({
     beforeSpec {
@@ -57,11 +60,11 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "The ORT run configuration should be validated successfully" {
-        val (contextFactory, context) = mockContext()
+        val (contextFactory, _) = mockContext()
         val configManager = mockConfigManager()
 
         val resolvedConfig = mockk<JobConfigurations>()
-        mockValidator(context, ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
@@ -87,11 +90,11 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A null configuration context should be used if the user has not specified one" {
-        val (contextFactory, context) = mockContext(null)
+        val (contextFactory, _) = mockContext(null)
         val configManager = mockConfigManager()
 
         val resolvedConfig = mockk<JobConfigurations>()
-        mockValidator(context, ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
@@ -117,10 +120,10 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A failed validation should be handled" {
-        val (contextFactory, context) = mockContext()
+        val (contextFactory, _) = mockContext()
         val configManager = mockConfigManager()
 
-        mockValidator(context, ConfigValidationResultFailure(validationIssues))
+        mockValidator(ConfigValidationResultFailure(validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
@@ -158,6 +161,39 @@ class ConfigWorkerTest : StringSpec({
             else -> fail("Unexpected result: $result")
         }
     }
+
+    "The context passed to the validator should have the correct resolved configuration context" {
+        val (contextFactory, context) = mockContext()
+        val configManager = mockConfigManager()
+
+        val resolvedConfig = mockk<JobConfigurations>()
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+
+        val ortRunRepository = mockk<OrtRunRepository> {
+            every {
+                update(RUN_ID, any(), any(), any(), any())
+            } returns mockk()
+        }
+
+        mockkTransaction {
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            worker.testRun() shouldBe RunResult.Success
+
+            val slotContext = mutableListOf<WorkerContext>()
+            verify {
+                ConfigValidator.create(capture(slotContext))
+            }
+            val capturedContext = slotContext.last()
+
+            // Test whether normal delegation works with the context.
+            val testHierarchy = mockk<Hierarchy>()
+            every { context.hierarchy } returns testHierarchy
+            capturedContext.hierarchy shouldBe testHierarchy
+
+            // Test whether the resolved configuration context has been overloaded.
+            capturedContext.resolvedConfigurationContext shouldBe Context(RESOLVED_CONTEXT)
+        }
+    }
 })
 
 /** The ID of a test run. */
@@ -182,9 +218,24 @@ private val validationIssues = listOf(
  * return typical answers. Use the given [orgConfigContext] for the [OrtRun.jobConfigContext] property.
  */
 private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<WorkerContextFactory, WorkerContext> {
-    val run = mockk<OrtRun> {
-        every { jobConfigContext } returns orgConfigContext
-    }
+    val run = OrtRun(
+        id = 1,
+        index = 2,
+        repositoryId = 3,
+        revision = "main",
+        createdAt = Clock.System.now(),
+        jobConfigs = JobConfigurations(),
+        resolvedJobConfigs = null,
+        status = OrtRunStatus.ACTIVE,
+        labels = emptyMap(),
+        vcsId = null,
+        vcsProcessedId = null,
+        nestedRepositoryIds = null,
+        repositoryConfigId = null,
+        issues = emptyList(),
+        jobConfigContext = orgConfigContext,
+        resolvedJobConfigContext = null
+    )
 
     val context = mockk<WorkerContext> {
         every { ortRun } returns run
@@ -198,15 +249,15 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
 }
 
 /**
- * Create a mock [ConfigValidator] and prepare the factory function to return it for the given [context]. The mock
- * is configured to return the given [result] for the test script.
+ * Create a mock [ConfigValidator] and prepare the factory function to return it. The mock is configured to return the
+ * given [result] for the test script.
  */
-private fun mockValidator(context: WorkerContext, result: ConfigValidationResult): ConfigValidator {
+private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
     val validator = mockk<ConfigValidator> {
         every { validate(PARAMETERS_SCRIPT) } returns result
     }
 
-    every { ConfigValidator.create(context) } returns validator
+    every { ConfigValidator.create(any()) } returns validator
 
     return validator
 }
