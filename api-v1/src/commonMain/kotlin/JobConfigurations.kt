@@ -207,6 +207,39 @@ data class EvaluatorJobConfiguration(
 )
 
 /**
+ * A class defining an asset (such as a font or an image) which is required to generate a report.
+ *
+ * The Reporter can be configured to download specific assets from the configuration before starting the report
+ * generation. That way it is ensured that files referenced from reporter templates are actually available locally at
+ * the expected relative paths.
+ *
+ * A [ReporterAsset] can be a single file or a directory. In the latter case, all files contained in the directory are
+ * downloaded.
+ */
+@Serializable
+data class ReporterAsset(
+    /**
+     * The source path of this asset in the configuration. This path is passed to the configuration manager in order to
+     * download this asset.
+     */
+    val sourcePath: String,
+
+    /**
+     * A path (relative to the location of reporter template files) where this asset should be placed. Typically,
+     * assets are referenced via relative paths from reporter templates, e.g. _./images/logo.png_. Using this
+     * property, such a relative path can be specified. If it is *null*, the root folder of the reporter worker
+     * (which also contains the downloaded templates) is used.
+     */
+    val targetFolder: String? = null,
+
+    /**
+     * An optional name for the downloaded asset. This property can be used to rename the asset file or folder locally.
+     * If it is undefined, the original name (determined from the last path component of [sourcePath]) is used.
+     */
+    val targetName: String? = null
+)
+
+/**
  * The configuration for a reporter job.
  */
 @Serializable
@@ -254,6 +287,19 @@ data class ReporterJobConfiguration(
      * consistency.**
      */
     val resolutionsFile: String? = null,
+
+    /**
+     * A list with [ReporterAsset]s pointing to files that must be downloaded before the generation of reports is
+     * started.
+     */
+    val assetFiles: List<ReporterAsset> = emptyList(),
+
+    /**
+     * A list with [ReporterAsset]s pointing to directories that must be downloaded before the generation of reports
+     * is started. This is analogous to [assetFiles], but all the files contained in the specified directory are
+     * downloaded.
+     */
+    val assetDirectories: List<ReporterAsset> = emptyList(),
 
     /**
      * High-level parameters of a reporter job.

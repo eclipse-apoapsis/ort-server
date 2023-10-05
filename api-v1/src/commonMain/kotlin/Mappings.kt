@@ -39,6 +39,7 @@ import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
+import org.ossreviewtoolkit.server.api.v1.ReporterAsset as ApiReporterAsset
 import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
@@ -63,6 +64,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
+import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJob
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.model.Repository
@@ -227,6 +229,8 @@ fun ReporterJobConfiguration.mapToApi() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         resolutionsFile,
+        assetFiles.map { it.mapToApi() },
+        assetDirectories.map { it.mapToApi() },
         parameters,
         options
     )
@@ -238,6 +242,8 @@ fun ApiReporterJobConfiguration.mapToModel() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToModel() },
         resolutionsFile,
+        assetFiles.map { it.mapToModel() },
+        assetDirectories.map { it.mapToModel() },
         parameters,
         options
     )
@@ -322,3 +328,9 @@ fun ApiProviderPluginConfiguration.mapToModel() =
         enabled = enabled,
         config = config
     )
+
+fun ReporterAsset.mapToApi() =
+    ApiReporterAsset(sourcePath, targetFolder, targetName)
+
+fun ApiReporterAsset.mapToModel() =
+    ReporterAsset(sourcePath, targetFolder, targetName)
