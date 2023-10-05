@@ -24,21 +24,15 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.beEmptyArray
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
 import io.mockk.every
 import io.mockk.mockk
 
-import kotlin.io.path.fileSize
-
-import org.ossreviewtoolkit.server.config.ConfigException
 import org.ossreviewtoolkit.server.config.ConfigFileProviderFactoryForTesting
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
@@ -188,40 +182,65 @@ class WorkerContextFactoryTest : WordSpec({
 
     "downloadConfigurationFile" should {
         "download a single configuration file" {
-            val helper = ContextFactoryTestHelper()
-            helper.expectRunRequest()
-
-            helper.context().use { context ->
-                val file = context.downloadConfigurationFile(Path("config1.txt"))
-
-                file.readText() shouldBe "Configuration1"
-            }
-        }
-
-        "remove downloaded configuration files when the context is closed" {
+            val dir = tempdir()
             val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
-            val file1 = context.downloadConfigurationFile(Path("config1.txt"))
-            val file2 = context.downloadConfigurationFile(Path("config2.txt"))
+            val file = context.downloadConfigurationFile(Path("config1.txt"), dir)
 
-            context.close()
+            file.name shouldBe "config1.txt"
+            file.readText() shouldBe "Configuration1"
+        }
 
-            file1.isFile shouldBe false
-            file2.isFile shouldBe false
+        "allow renaming a configuration file" {
+            val dir = tempdir()
+            val targetName = "my-config.txt"
+            val helper = ContextFactoryTestHelper()
+            helper.expectRunRequest()
+            val context = helper.context()
+
+            val file = context.downloadConfigurationFile(Path("config1.txt"), dir, targetName)
+
+            file.name shouldBe targetName
+            file.readText() shouldBe "Configuration1"
         }
 
         "cache files that have already been downloaded" {
+            val dir = tempdir()
             val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
+            val context = helper.context()
 
-            helper.context().use { context ->
-                val file1 = context.downloadConfigurationFile(Path("config1.txt"))
-                val file2 = context.downloadConfigurationFile(Path("config1.txt"))
+            val file1 = context.downloadConfigurationFile(Path("config1.txt"), dir)
+                val file2 = context.downloadConfigurationFile(Path("config1.txt"), dir)
 
                 file1 shouldBe file2
-            }
+        }
+
+        "not cache downloaded files if they use different names" {
+            val dir = tempdir()
+            val helper = ContextFactoryTestHelper()
+            helper.expectRunRequest()
+            val context = helper.context()
+
+            val file1 = context.downloadConfigurationFile(Path("config1.txt"), dir)
+            val file2 = context.downloadConfigurationFile(Path("config1.txt"), dir, "otherConfig.txt")
+
+            file1 shouldNotBe file2
+        }
+
+        "not cache downloaded files if they use different target directories" {
+            val dir1 = tempdir()
+            val dir2 = tempdir()
+            val helper = ContextFactoryTestHelper()
+            helper.expectRunRequest()
+            val context = helper.context()
+
+            val file1 = context.downloadConfigurationFile(Path("config1.txt"), dir1)
+            val file2 = context.downloadConfigurationFile(Path("config1.txt"), dir2)
+
+            file1 shouldNotBe file2
         }
     }
 
@@ -233,7 +252,7 @@ class WorkerContextFactoryTest : WordSpec({
             helper.context().use { context ->
                 val path1 = Path("config1.txt")
                 val path2 = Path("config2.txt")
-                val files = context.downloadConfigurationFiles(listOf(path1, path2))
+                val files = context.downloadConfigurationFiles(listOf(path1, path2), tempdir())
 
                 files shouldHaveSize 2
 
@@ -242,54 +261,17 @@ class WorkerContextFactoryTest : WordSpec({
             }
         }
 
-        "remove downloaded configuration files when the context is closed" {
-            val helper = ContextFactoryTestHelper()
-            helper.expectRunRequest()
-            val context = helper.context()
-
-            val files = context.downloadConfigurationFiles(listOf(Path("config1.txt"), Path("config2.txt")))
-
-            context.close()
-
-            files.values.forAll { it.isFile shouldBe false }
-        }
-
         "cache files that have already been downloaded" {
+            val dir = tempdir()
             val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
 
             helper.context().use { context ->
                 val path = Path("config1.txt")
-                val file1 = context.downloadConfigurationFile(path)
-                val files = context.downloadConfigurationFiles(listOf(path))
+                val file1 = context.downloadConfigurationFile(path, dir)
+                val files = context.downloadConfigurationFiles(listOf(path), dir)
 
                 files[path] shouldBe file1
-            }
-        }
-
-        "handle exceptions when downloading multiple configuration files gracefully" {
-            val helper = ContextFactoryTestHelper()
-            helper.expectRunRequest()
-            val context = helper.context()
-
-            runCatching {
-                val file1 = context.downloadConfigurationFile(Path("config1.txt"))
-                val tempDir = file1.parentFile
-                val fileSize = file1.toPath().fileSize()
-
-                shouldThrow<ConfigException> {
-                    context.downloadConfigurationFiles(listOf(Path("config2.txt"), Path("willThrow")))
-                }
-
-                context.close()
-
-                // Check that config2.txt is no longer present in the temporary directory.
-                val foundFiles = tempDir.listFiles { file ->
-                    file.toPath().fileSize() == fileSize && file.readText() == "Configuration2"
-                }.shouldNotBeNull()
-                foundFiles should beEmptyArray()
-            }.onFailure {
-                context.close()
             }
         }
     }

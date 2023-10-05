@@ -126,7 +126,7 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val (contextFactory, context) = mockContext()
-            coEvery { context.downloadConfigurationFiles(any()) } answers {
+            coEvery { context.downloadConfigurationFiles(any(), configDirectory) } answers {
                 val paths = firstArg<Collection<Path>>()
                 paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
             }
@@ -185,7 +185,7 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val (contextFactory, context) = mockContext()
-            coEvery { context.downloadConfigurationFiles(any()) } answers {
+            coEvery { context.downloadConfigurationFiles(any(), configDirectory) } answers {
                 val paths = firstArg<Collection<Path>>()
                 paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
             }
@@ -410,6 +410,9 @@ class ReporterRunnerTest : WordSpec({
     }
 })
 
+/** The temporary directory returned by the context mock for storing configuration files. */
+private val configDirectory = File("tempConfigDir")
+
 /**
  * Create a mock [Reporter] that is prepared to return the given [reporterType].
  */
@@ -419,10 +422,12 @@ private fun reporterMock(reporterType: String): Reporter =
     }
 
 /**
- * Return a pair of a mock context factory and a mock context. The factory is prepared to return the context.
+ * Return a pair of a mock context factory and a mock context. The factory is prepared to return the context. The
+ * context mock is prepared to create a temporary directory.
  */
 private fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
     val context = mockk<WorkerContext> {
+        every { createTempDir() } returns configDirectory
         every { close() } just runs
     }
     val factory = mockk<WorkerContextFactory> {

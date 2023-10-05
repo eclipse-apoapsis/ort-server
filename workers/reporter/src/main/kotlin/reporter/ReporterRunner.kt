@@ -167,9 +167,10 @@ class ReporterRunner(
 
         val results = runBlocking(Dispatchers.IO) {
             contextFactory.createContext(runId).use { context ->
+                val templateDir = context.createTempDir()
                 val transformedOptions = transformerFactory.newTransformer(config.options.orEmpty())
                     .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
-                    .transform { context.downloadReporterTemplates(it) }
+                    .transform { context.downloadReporterTemplates(it, templateDir) }
 
                 reporters.map { reporter ->
                     async {
@@ -244,11 +245,14 @@ data class ReporterRunnerResult(
 private val regExSplitPaths = Regex("""\s*,\s*""")
 
 /**
- * Download the reporter template files specified by the given [templates] collection. Return a [Map] pointing to
- * the paths of the temporary files that have been downloaded. Each item in the given collection can point to multiple
- * template files using a comma as separator.
+ * Download the reporter template files specified by the given [templates] collection to the given [directory]. Return
+ * a [Map] pointing to the paths of the temporary files that have been downloaded. Each item in the given collection
+ * can point to multiple template files using a comma as separator.
  */
-private suspend fun WorkerContext.downloadReporterTemplates(templates: Collection<String>): Map<String, String> {
+private suspend fun WorkerContext.downloadReporterTemplates(
+    templates: Collection<String>,
+    directory: File
+): Map<String, String> {
     val splitPaths = templates.associateWith { pathValue ->
         pathValue.split(regExSplitPaths)
     }
@@ -258,7 +262,7 @@ private suspend fun WorkerContext.downloadReporterTemplates(templates: Collectio
         .mapTo(mutableSetOf()) { it.toTemplatePath() }
     logger.info("Downloading the following template files: {}.", allPaths)
 
-    val downloadedPaths = downloadConfigurationFiles(allPaths)
+    val downloadedPaths = downloadConfigurationFiles(allPaths, directory)
 
     return splitPaths.mapValues { entry ->
         entry.value.joinToString(separator = ",") {

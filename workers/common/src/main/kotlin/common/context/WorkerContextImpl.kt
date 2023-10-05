@@ -28,7 +28,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 import org.ossreviewtoolkit.server.config.ConfigManager
@@ -66,8 +65,8 @@ internal class WorkerContextImpl(
     /** A cache for the secrets that have already been loaded. */
     private val secretsCache = ConcurrentHashMap<String, Deferred<String>>()
 
-    /** A map to keep track on downloaded files, so that they can be removed on close. */
-    private val downloadedFiles = ConcurrentHashMap<ConfigPath, Deferred<Result<File>>>()
+    /** A cache for configuration files that have been downloaded. */
+    private val downloadedFiles = ConcurrentHashMap<String, Deferred<Result<File>>>()
 
     /**
      * A set to store the temporary directories created by this context that need to be cleaned up on closing. The
@@ -86,6 +85,9 @@ internal class WorkerContextImpl(
     override fun createTempDir(): File =
         createOrtTempDir(ortRunId.toString()).also(tempDirectories::add)
 
+    /** Stores the resolved configuration context. */
+    private val currentContext by lazy { ortRun.resolvedJobConfigContext?.let(::Context) }
+
     override suspend fun resolveSecret(secret: Secret): String =
         singleTransform(secret, secretsCache, this::resolveSecret, ::extractSecretKey)
 
@@ -93,11 +95,28 @@ internal class WorkerContextImpl(
         return parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
     }
 
-    override suspend fun downloadConfigurationFile(path: ConfigPath): File =
-        singleTransform(path, downloadedFiles, this::downloadConfigFile, ::identityKeyExtract).getOrThrow()
+    override suspend fun downloadConfigurationFile(
+        path: ConfigPath,
+        directory: File,
+        targetName: String?
+    ): File =
+        singleTransform(
+            path,
+            downloadedFiles,
+            downloadConfigFile(directory, targetName),
+            extractDownloadFileKey(directory.absolutePath, targetName)
+        ).getOrThrow()
 
-    override suspend fun downloadConfigurationFiles(paths: Collection<ConfigPath>): Map<ConfigPath, File> {
-        val results = parallelTransform(paths, downloadedFiles, this::downloadConfigFile, ::identityKeyExtract)
+    override suspend fun downloadConfigurationFiles(
+        paths: Collection<ConfigPath>,
+        directory: File
+    ): Map<ConfigPath, File> {
+        val results = parallelTransform(
+            paths,
+            downloadedFiles,
+            downloadConfigFile(directory, null),
+            extractDownloadFileKey(directory.absolutePath, null)
+        )
 
         val failure = results.values.find { it.isFailure }
         return if (failure == null) {
@@ -108,9 +127,6 @@ internal class WorkerContextImpl(
     }
 
     override fun close() {
-        val files = runBlocking { downloadedFiles.values.awaitAll() }.mapNotNull { it.getOrNull() }
-        files.forEach { it.delete() }
-
         tempDirectories.forEach { it.safeDeleteRecursively(force = true) }
     }
 
@@ -168,12 +184,16 @@ internal class WorkerContextImpl(
         secretStorage.getSecret(Path(path)).value
 
     /**
-     * Download the configuration file identified by the given [path] from the current [Context] using the owned
-     * configuration manager.
+     * Return a function to download configuration files from the current [Context] into the given [directory],
+     * optionally using the given [targetName].
      */
-    private fun downloadConfigFile(path: ConfigPath): Result<File> = runCatching {
-        configManager.downloadFile(ortRun.resolvedJobConfigContext?.let(::Context), path)
-    }
+    private fun downloadConfigFile(directory: File, targetName: String?): (String) -> Result<File> =
+        { key ->
+            runCatching {
+                val path = ConfigPath(key.substringBefore('|'))
+                configManager.downloadFile(currentContext, path, directory, targetName)
+            }
+        }
 }
 
 /**
@@ -182,7 +202,11 @@ internal class WorkerContextImpl(
 private fun extractSecretKey(secret: Secret): String = secret.path
 
 /**
- * An identity key extraction function that uses the given [t] as its own key. This is used if the cache for a
- * transformation stores the involved data objects as keys directly.
+ * Return a key extraction function for configuration files that are downloaded to the given [directory] and optionally
+ * renamed to the given [targetName]. The resulting function ensures that all relevant components are reflected in
+ * the cache key.
  */
-private fun <T> identityKeyExtract(t: T): T = t
+private fun extractDownloadFileKey(directory: String, targetName: String?): (ConfigPath) -> String = { path ->
+    val name = targetName ?: path.nameComponent
+    "${path.path}|$directory|$name"
+}

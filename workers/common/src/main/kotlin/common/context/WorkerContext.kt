@@ -66,16 +66,14 @@ interface WorkerContext : AutoCloseable {
     suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String>
 
     /**
-     * Download the configuration file at the specified [path] from the resolved configuration context to a temporary
-     * directory. The downloaded file is registered internally; it is removed automatically when this context is
-     * closed.
+     * Download the configuration file at the specified [path] from the resolved configuration context to the given
+     * [directory]. Optionally, override the file name with the given [targetName].
      */
-    suspend fun downloadConfigurationFile(path: Path): File
+    suspend fun downloadConfigurationFile(path: Path, directory: File, targetName: String? = null): File
 
     /**
      * Download all the configuration files in the given [paths] collection from the resolved configuration context to
-     * a temporary directory. Return a [Map] that allows access to the temporary files by their paths. The downloaded
-     * files are registered internally; they are removed automatically when this context is closed.
+     * the given [directory]. Return a [Map] that allows access to the resulting files by their paths.
      */
-    suspend fun downloadConfigurationFiles(paths: Collection<Path>): Map<Path, File>
+    suspend fun downloadConfigurationFiles(paths: Collection<Path>, directory: File): Map<Path, File>
 }
