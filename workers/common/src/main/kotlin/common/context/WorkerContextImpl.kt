@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.common.context
 
 import java.io.File
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
@@ -40,6 +41,8 @@ import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
 import org.ossreviewtoolkit.server.secrets.Path
 import org.ossreviewtoolkit.server.secrets.SecretStorage
+import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
+import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 /**
  * The internal default implementation of the [WorkerContext] interface.
@@ -66,6 +69,12 @@ internal class WorkerContextImpl(
     /** A map to keep track on downloaded files, so that they can be removed on close. */
     private val downloadedFiles = ConcurrentHashMap<ConfigPath, Deferred<Result<File>>>()
 
+    /**
+     * A set to store the temporary directories created by this context that need to be cleaned up on closing. The
+     * underlying concurrent map is used to guarantee thread-safe access.
+     */
+    private val tempDirectories = Collections.newSetFromMap(ConcurrentHashMap<File, Boolean>())
+
     override val ortRun: OrtRun by lazy {
         requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
     }
@@ -73,6 +82,9 @@ internal class WorkerContextImpl(
     override val hierarchy: Hierarchy by lazy {
         repositoryRepository.getHierarchy(ortRun.repositoryId)
     }
+
+    override fun createTempDir(): File =
+        createOrtTempDir(ortRunId.toString()).also(tempDirectories::add)
 
     override suspend fun resolveSecret(secret: Secret): String =
         singleTransform(secret, secretsCache, this::resolveSecret, ::extractSecretKey)
@@ -98,6 +110,8 @@ internal class WorkerContextImpl(
     override fun close() {
         val files = runBlocking { downloadedFiles.values.awaitAll() }.mapNotNull { it.getOrNull() }
         files.forEach { it.delete() }
+
+        tempDirectories.forEach { it.safeDeleteRecursively(force = true) }
     }
 
     /**

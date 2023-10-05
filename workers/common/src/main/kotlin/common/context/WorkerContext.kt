@@ -46,6 +46,12 @@ interface WorkerContext : AutoCloseable {
     val configManager: ConfigManager
 
     /**
+     * Return a new temporary directory that can be used by a worker to deal with temporary files. When this context
+     * is closed this directory is deleted with all its content.
+     */
+    fun createTempDir(): File
+
+    /**
      * Resolve the given [secret] and return its value. Cache the value, so that it can be returned directly when a
      * [Secret] with the same path is queried again.
      */

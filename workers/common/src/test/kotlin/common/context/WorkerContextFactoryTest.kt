@@ -31,6 +31,7 @@ import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 import io.mockk.every
 import io.mockk.mockk
@@ -89,6 +90,35 @@ class WorkerContextFactoryTest : WordSpec({
             val context = helper.context()
 
             context.hierarchy shouldBe hierarchy
+        }
+    }
+
+    "createTempDir" should {
+        "return a temporary directory" {
+            val helper = ContextFactoryTestHelper()
+            helper.context().use { context ->
+                val dir1 = context.createTempDir()
+                val dir2 = context.createTempDir()
+
+                dir1.isDirectory shouldBe true
+                dir1 shouldNotBe dir2
+            }
+        }
+
+        "remove the content of the temporary directory when the context is closed" {
+            val helper = ContextFactoryTestHelper()
+            val tempDir = helper.context().use { context ->
+                val dir = context.createTempDir()
+
+                dir.resolve("testFile.txt").writeText("This is a test file.")
+                val subDir = dir.resolve("sub")
+                subDir.mkdir() shouldBe true
+                subDir.resolve("sub.txt").writeText("A test file in a sub folder.")
+
+                dir
+            }
+
+            tempDir.exists() shouldBe false
         }
     }
 
