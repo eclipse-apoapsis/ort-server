@@ -25,9 +25,6 @@ import java.io.File
 import java.io.InputStream
 import java.util.ServiceLoader
 
-import kotlin.io.path.createTempFile
-import kotlin.io.path.outputStream
-
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
@@ -156,6 +153,11 @@ class ConfigManager(
          * Either return [context] if it is not *null* or the [DEFAULT_CONTEXT].
          */
         private fun safeContext(context: Context?): Context = context ?: DEFAULT_CONTEXT
+
+        /**
+         * Return the system's temporary directory.
+         */
+        private fun getTempDir(): File = File(System.getProperty("java.io.tmpdir"))
     }
 
     /** Stores the provider for secrets. */
@@ -192,22 +194,24 @@ class ConfigManager(
     }
 
     /**
-     * Download the configuration file at the given [path] in the given [context] to a temporary file. If a
+     * Download the configuration file at the given [path] in the given [context] to a directory. If a
      * [directory] is specified, the file is created there (the directory must exist); otherwise, the default temporary
-     * directory is used for this purpose. Return a [File] pointing to the downloaded configuration data. Throw a
-     * [ConfigException] if the underlying [ConfigFileProvider] throws an exception or the file could not be written.
+     * directory is used for this purpose. If specified, use [targetName] as name for the new file. Otherwise,
+     * derive the file name from the given [path] (by extracting the last path component). Return a [File] pointing to
+     * the downloaded configuration data. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an
+     * exception or the file could not be written.
      */
-    fun downloadFile(context: Context?, path: Path, directory: File? = null): File {
+    fun downloadFile(context: Context?, path: Path, directory: File = getTempDir(), targetName: String? = null): File {
+        val targetFile = File(directory, targetName ?: path.nameComponent)
         val configStream = getFile(context, path)
 
         return wrapExceptions {
             configStream.use { stream ->
-                createTempFile(directory?.toPath()).also {
-                    it.outputStream().use { out ->
-                        stream.copyTo(out)
-                    }
-                }.toFile()
+                targetFile.outputStream().use { out ->
+                    stream.copyTo(out)
+                }
             }
+            targetFile
         }
     }
 

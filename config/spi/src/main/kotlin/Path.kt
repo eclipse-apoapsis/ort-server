@@ -19,8 +19,17 @@
 
 package org.ossreviewtoolkit.server.config
 
+import java.io.File
+
 /**
  * A class representing a path of a property in the configuration of the application.
  */
 @JvmInline
-value class Path(val path: String)
+value class Path(val path: String) {
+    /**
+     * Return the name of the file or directory referenced by this configuration [Path]. This is obtained from the
+     * last path component.
+     */
+    val nameComponent: String
+        get() = File(path).name
+}

@@ -267,6 +267,26 @@ class ConfigManagerTest : WordSpec({
             file.parentFile shouldBe directory
         }
 
+        "use the file name from the configuration path" {
+            val directory = tempdir()
+            val manager = createConfigManager()
+
+            val file = manager.downloadFile(testContext(), Path("sub/sub1.txt"), directory)
+
+            file.name shouldBe "sub1.txt"
+        }
+
+        "allow overriding the file name" {
+            val targetName = "config.yml"
+            val directory = tempdir()
+            val manager = createConfigManager()
+
+            val file = manager.downloadFile(testContext(), Path("sub/sub1.txt"), directory, targetName)
+
+            file.parentFile shouldBe directory
+            file.name shouldBe targetName
+        }
+
         "handle exceptions from the provider" {
             val manager = createConfigManager()
 
