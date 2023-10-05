@@ -35,7 +35,7 @@ versionsPlugin = "0.47.0"
 # Gradle dependencies
 activeMQArtemis = "2.30.0"
 curator = "5.5.0"
-exposed = "0.42.0"
+exposed = "0.44.0"
 flyway = "9.19.4"
 hawtio = "2.17.6"
 hikari = "5.0.1"
