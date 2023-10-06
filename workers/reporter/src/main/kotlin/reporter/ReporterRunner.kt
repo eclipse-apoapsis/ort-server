@@ -24,7 +24,9 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
@@ -48,6 +50,7 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.JobOptions
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
@@ -170,13 +173,7 @@ class ReporterRunner(
 
         val results = runBlocking(Dispatchers.IO) {
             contextFactory.createContext(runId).use { context ->
-                val templateDir = context.createTempDir()
-                val transformedOptions = transformerFactory.newTransformer(config.options.orEmpty())
-                    .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
-                    .transform { context.downloadReporterTemplates(it, templateDir) }
-
-                context.downloadAssetFiles(config.assetFiles, templateDir)
-                context.downloadAssetDirectories(config.assetDirectories, templateDir)
+                val transformedOptions = downloadInputFiles(context, config)
 
                 reporters.map { reporter ->
                     async {
@@ -238,6 +235,28 @@ class ReporterRunner(
         }
 
         return ReporterRunnerResult(reports, packageConfigurations, resolutions)
+    }
+
+    /**
+     * Handle the download of all files that need to be present for the reporters to execute as specified in the given
+     * [config]. This includes template files and other assets like fonts or images. Use the given [context] for the
+     * download.
+     */
+    private suspend fun downloadInputFiles(
+        context: WorkerContext,
+        config: ReporterJobConfiguration
+    ): JobOptions = withContext(Dispatchers.IO) {
+        val templateDir = context.createTempDir()
+        val transformedOptions = async {
+            transformerFactory.newTransformer(config.options.orEmpty())
+                .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
+                .transform { context.downloadReporterTemplates(it, templateDir) }
+        }
+
+        launch { context.downloadAssetFiles(config.assetFiles, templateDir) }
+        launch { context.downloadAssetDirectories(config.assetDirectories, templateDir) }
+
+        transformedOptions.await()
     }
 }
 
