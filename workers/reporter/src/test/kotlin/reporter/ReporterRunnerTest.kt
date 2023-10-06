@@ -81,6 +81,7 @@ class ReporterRunnerTest : WordSpec({
     }
 
     val configDirectory = tempdir()
+    val outputDirectory = tempdir()
 
     /**
      * Return a pair of a mock context factory and a mock context. The factory is prepared to return the context. The
@@ -88,7 +89,7 @@ class ReporterRunnerTest : WordSpec({
      */
     fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
         val context = mockk<WorkerContext> {
-            every { createTempDir() } returns configDirectory
+            every { createTempDir() } returnsMany listOf(configDirectory, outputDirectory)
             every { close() } just runs
         }
         val factory = mockk<WorkerContextFactory> {
@@ -167,8 +168,8 @@ class ReporterRunnerTest : WordSpec({
             val slotPlainOptions = slot<Options>()
             val slotTemplateOptions = slot<Options>()
             verify {
-                plainReporter.generateReport(any(), any(), capture(slotPlainOptions))
-                templateReporter.generateReport(any(), any(), capture(slotTemplateOptions))
+                plainReporter.generateReport(any(), outputDirectory, capture(slotPlainOptions))
+                templateReporter.generateReport(any(), outputDirectory, capture(slotTemplateOptions))
 
                 context.close()
             }

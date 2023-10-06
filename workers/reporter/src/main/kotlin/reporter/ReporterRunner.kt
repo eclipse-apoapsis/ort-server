@@ -61,7 +61,6 @@ import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
-import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.ort.showStackTrace
 
 import org.slf4j.LoggerFactory
@@ -95,8 +94,6 @@ class ReporterRunner(
                 "No reporter found for the configured format '$format'."
             }
         }
-
-        val outputDir = createOrtTempDir("reporter-worker")
 
         val copyrightGarbageFile =
             if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
@@ -174,6 +171,8 @@ class ReporterRunner(
         val results = runBlocking(Dispatchers.IO) {
             contextFactory.createContext(runId).use { context ->
                 val transformedOptions = downloadInputFiles(context, config)
+
+                val outputDir = context.createTempDir()
 
                 reporters.map { reporter ->
                     async {
