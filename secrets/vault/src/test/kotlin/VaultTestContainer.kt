@@ -146,9 +146,9 @@ class VaultTestContainer {
     /** The managed [VaultContainer]. */
     val vault: VaultContainer<*> = VaultContainer(image)
         .withVaultToken(VAULT_TOKEN)
-        .withSecretInVault("secret/${PATH}user", "value=scott")
-        .withSecretInVault("secret/${PATH}password", "value=tiger")
-        .withSecretInVault("secret/${PATH}strange", "noValue=set")
+        .withSecret("secret/${PATH}user", "value=scott")
+        .withSecret("secret/${PATH}password", "value=tiger")
+        .withSecret("secret/${PATH}strange", "noValue=set")
 
     /** The credentials for accessing the container. */
     private val credentials: VaultCredentials by lazy { setUpCredentials() }
@@ -209,3 +209,12 @@ fun Spec.installVaultTestContainer(): VaultTestContainer {
 
     return container
 }
+
+/**
+ * Add a [secret] ath [path] to the [VaultContainer]. The [secret] must be in the form `secret=value`.
+ */
+private fun <SELF : VaultContainer<SELF>> VaultContainer<SELF>.withSecret(
+    path: String,
+    secret: String
+): VaultContainer<SELF> =
+    withInitCommand("kv put $path $secret")
