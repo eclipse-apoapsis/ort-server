@@ -27,8 +27,8 @@ import javax.sql.DataSource
 
 import org.jetbrains.exposed.sql.Database
 
-import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.inject
+import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.connect
@@ -48,7 +48,7 @@ fun Application.configureDatabase() {
     dataSource.migrate()
 
     environment.monitor.subscribe(ApplicationStarted) {
-        GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
+        attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
         environment.monitor.raise(DatabaseReady, db)
     }
 }

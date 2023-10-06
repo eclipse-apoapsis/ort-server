@@ -31,8 +31,8 @@ import java.lang.IllegalArgumentException
 
 import org.jetbrains.exposed.sql.Database
 
-import org.koin.core.context.GlobalContext
 import org.koin.core.context.stopKoin
+import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
 /**
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
@@ -76,7 +76,7 @@ fun ortServerTestApplication(
     if (db != null) {
         application {
             environment.monitor.subscribe(ApplicationStarted) {
-                GlobalContext.getKoinApplicationOrNull()?.koin?.declare(db)
+                attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
             }
         }
     }
