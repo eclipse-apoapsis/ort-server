@@ -70,6 +70,7 @@ import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 
 private const val RUN_ID = 20230522093727L
+private val configurationContext = Context("theConfigContext")
 
 class ReporterRunnerTest : WordSpec({
     afterEach {
@@ -89,6 +90,7 @@ class ReporterRunnerTest : WordSpec({
      */
     fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
         val context = mockk<WorkerContext> {
+            every { resolvedConfigurationContext } returns configurationContext
             every { createTempDir() } returnsMany listOf(configDirectory, outputDirectory)
             every { close() } just runs
         }

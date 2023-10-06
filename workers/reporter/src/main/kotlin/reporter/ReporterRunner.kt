@@ -89,87 +89,88 @@ class ReporterRunner(
         config: ReporterJobConfiguration,
         evaluatorConfig: EvaluatorJobConfiguration?
     ): ReporterRunnerResult {
-        val reporters = config.formats.map { format ->
-            requireNotNull(Reporter.ALL[format]) {
-                "No reporter found for the configured format '$format'."
+        return contextFactory.createContext(runId).use { context ->
+            val reporters = config.formats.map { format ->
+                requireNotNull(Reporter.ALL[format]) {
+                    "No reporter found for the configured format '$format'."
+                }
             }
-        }
 
-        val copyrightGarbageFile =
-            if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
-        val copyrightGarbage = configManager.readConfigFileWithDefault(
-            path = copyrightGarbageFile,
-            defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
-            fallbackValue = CopyrightGarbage(),
-            context = null
-        )
-
-        val licenseClassificationsFile = if (evaluatorConfig != null) {
-            evaluatorConfig.licenseClassificationsFile
-        } else {
-            config.licenseClassificationsFile
-        }
-        val licenseClassifications = configManager.readConfigFileWithDefault(
-            path = licenseClassificationsFile,
-            defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
-            fallbackValue = LicenseClassifications(),
-            context = null
-        )
-
-        val packageConfigurationProvider = buildList {
-            if (evaluatorConfig != null) {
-                // Use only the resolved package configurations if they were already resolved by the evaluator.
-                val resolvedPackageConfigurations = ortResult.resolvedConfiguration.packageConfigurations.orEmpty()
-                add(SimplePackageConfigurationProvider(resolvedPackageConfigurations))
-            } else {
-                // Resolve package configurations from the configured providers.
-                val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
-                add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
-
-                val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
-                addAll(
-                    PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second }
-                )
-            }
-        }.let { CompositePackageConfigurationProvider(it) }
-
-        val resolutionProvider = if (evaluatorConfig != null) {
-            // Use only the resolved resolutions if they were already resolved by the evaluator.
-            DefaultResolutionProvider(ortResult.resolvedConfiguration.resolutions.orEmpty())
-        } else {
-            // Resolve resolutions from the repository configuration and resolutions file.
-            val resolutionsFromOrtResult = ortResult.getResolutions()
-
-            val resolutionsFromFile = configManager.readConfigFileWithDefault(
-                path = config.resolutionsFile,
-                defaultPath = ORT_RESOLUTIONS_FILENAME,
-                fallbackValue = Resolutions(),
-                context = null
+            val copyrightGarbageFile =
+                if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
+            val copyrightGarbage = configManager.readConfigFileWithDefault(
+                path = copyrightGarbageFile,
+                defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
+                fallbackValue = CopyrightGarbage(),
+                context = context.resolvedConfigurationContext
             )
 
-            DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
-        }
+            val licenseClassificationsFile = if (evaluatorConfig != null) {
+                evaluatorConfig.licenseClassificationsFile
+            } else {
+                config.licenseClassificationsFile
+            }
+            val licenseClassifications = configManager.readConfigFileWithDefault(
+                path = licenseClassificationsFile,
+                defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
+                fallbackValue = LicenseClassifications(),
+                context = context.resolvedConfigurationContext
+            )
 
-        // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
-        //       default values. This should be changed as soon as other parameters can be configured in the
-        //       reporter worker.
-        val reporterInput = ReporterInput(
-            ortResult = ortResult,
-            licenseInfoResolver = LicenseInfoResolver(
-                provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
+            val packageConfigurationProvider = buildList {
+                if (evaluatorConfig != null) {
+                    // Use only the resolved package configurations if they were already resolved by the evaluator.
+                    val resolvedPackageConfigurations = ortResult.resolvedConfiguration.packageConfigurations.orEmpty()
+                    add(SimplePackageConfigurationProvider(resolvedPackageConfigurations))
+                } else {
+                    // Resolve package configurations from the configured providers.
+                    val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
+                    add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
+
+                    val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
+                    addAll(
+                        PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
+                            .map { it.second }
+                    )
+                }
+            }.let { CompositePackageConfigurationProvider(it) }
+
+            val resolutionProvider = if (evaluatorConfig != null) {
+                // Use only the resolved resolutions if they were already resolved by the evaluator.
+                DefaultResolutionProvider(ortResult.resolvedConfiguration.resolutions.orEmpty())
+            } else {
+                // Resolve resolutions from the repository configuration and resolutions file.
+                val resolutionsFromOrtResult = ortResult.getResolutions()
+
+                val resolutionsFromFile = configManager.readConfigFileWithDefault(
+                    path = config.resolutionsFile,
+                    defaultPath = ORT_RESOLUTIONS_FILENAME,
+                    fallbackValue = Resolutions(),
+                    context = context.resolvedConfigurationContext
+                )
+
+                DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+            }
+
+            // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
+            //       default values. This should be changed as soon as other parameters can be configured in the
+            //       reporter worker.
+            val reporterInput = ReporterInput(
+                ortResult = ortResult,
+                licenseInfoResolver = LicenseInfoResolver(
+                    provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
+                    copyrightGarbage = copyrightGarbage,
+                    addAuthorsToCopyrights = true,
+                    archiver = fileArchiver,
+                    licenseFilePatterns = LicenseFilePatterns.DEFAULT
+                ),
                 copyrightGarbage = copyrightGarbage,
-                addAuthorsToCopyrights = true,
-                archiver = fileArchiver,
-                licenseFilePatterns = LicenseFilePatterns.DEFAULT
-            ),
-            copyrightGarbage = copyrightGarbage,
-            licenseClassifications = licenseClassifications,
-            packageConfigurationProvider = packageConfigurationProvider,
-            resolutionProvider = resolutionProvider
-        )
+                licenseClassifications = licenseClassifications,
+                packageConfigurationProvider = packageConfigurationProvider,
+                resolutionProvider = resolutionProvider
+            )
 
-        val results = runBlocking(Dispatchers.IO) {
-            contextFactory.createContext(runId).use { context ->
+            val results = runBlocking(Dispatchers.IO) {
                 val transformedOptions = downloadInputFiles(context, config)
 
                 val outputDir = context.createTempDir()
@@ -185,55 +186,55 @@ class ReporterRunner(
                         }
                     }
                 }.awaitAll()
+            }.partition { it.second.isSuccess }
+
+            require(results.second.isEmpty()) {
+                val failures = results.second.associate { (reporter, failure) ->
+                    reporter.type to failure.exceptionOrNull()!!
+                }
+
+                failures.forEach { (reporter, e) ->
+                    e.showStackTrace()
+
+                    logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
+                }
+
+                "There was an error creating the report(s) for ${
+                    failures.entries
+                        .joinToString(separator = "\n", prefix = "\n") {
+                            "${it.key}: ${it.value.javaClass.name} = ${it.value.message}"
+                        }
+                }"
             }
-        }.partition { it.second.isSuccess }
 
-        require(results.second.isEmpty()) {
-            val failures = results.second.associate { (reporter, failure) ->
-                reporter.type to failure.exceptionOrNull()!!
+            val reports = results.first.associate {
+                logger.info("Successfully created '${it.first.type}' report.")
+                it.first.type to it.second.getOrDefault(emptyList())
             }
 
-            failures.forEach { (reporter, e) ->
-                e.showStackTrace()
-
-                logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
+            val packageConfigurations = if (evaluatorConfig != null) {
+                null
+            } else {
+                ConfigurationResolver.resolvePackageConfigurations(
+                    identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
+                    scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
+                    packageConfigurationProvider = packageConfigurationProvider
+                )
             }
 
-            "There was an error creating the report(s) for ${
-                failures.entries
-                    .joinToString(separator = "\n", prefix = "\n") {
-                        "${it.key}: ${it.value.javaClass.name} = ${it.value.message}"
-                    }
-            }"
-        }
+            val resolutions = if (evaluatorConfig != null) {
+                null
+            } else {
+                ConfigurationResolver.resolveResolutions(
+                    issues = ortResult.getIssues().values.flatten(),
+                    ruleViolations = ortResult.getRuleViolations(),
+                    vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
+                    resolutionProvider = resolutionProvider
+                )
+            }
 
-        val reports = results.first.associate {
-            logger.info("Successfully created '${it.first.type}' report.")
-            it.first.type to it.second.getOrDefault(emptyList())
+            ReporterRunnerResult(reports, packageConfigurations, resolutions)
         }
-
-        val packageConfigurations = if (evaluatorConfig != null) {
-            null
-        } else {
-            ConfigurationResolver.resolvePackageConfigurations(
-                identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
-                scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
-                packageConfigurationProvider = packageConfigurationProvider
-            )
-        }
-
-        val resolutions = if (evaluatorConfig != null) {
-            null
-        } else {
-            ConfigurationResolver.resolveResolutions(
-                issues = ortResult.getIssues().values.flatten(),
-                ruleViolations = ortResult.getRuleViolations(),
-                vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
-                resolutionProvider = resolutionProvider
-            )
-        }
-
-        return ReporterRunnerResult(reports, packageConfigurations, resolutions)
     }
 
     /**
