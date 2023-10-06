@@ -46,12 +46,15 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
+import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
@@ -172,6 +175,9 @@ class ReporterRunner(
                     .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
                     .transform { context.downloadReporterTemplates(it, templateDir) }
 
+                context.downloadAssetFiles(config.assetFiles, templateDir)
+                context.downloadAssetDirectories(config.assetDirectories, templateDir)
+
                 reporters.map { reporter ->
                     async {
                         logger.info("Generating the '${reporter.type}' report...")
@@ -270,6 +276,43 @@ private suspend fun WorkerContext.downloadReporterTemplates(
         }
     }
 }
+
+/**
+ * Download all the [ReporterAsset] files from the given [assets] collection to the specified [directory].
+ * Relative paths are handled correctly.
+ */
+private suspend fun WorkerContext.downloadAssetFiles(assets: Collection<ReporterAsset>, directory: File) {
+    assets.forEach { asset ->
+        val targetDir = createAssetDirectory(asset, directory)
+
+        logger.info("Downloading asset file '{}' to '{}'.", asset.sourcePath, targetDir)
+
+        downloadConfigurationFile(Path(asset.sourcePath), targetDir, asset.targetName)
+    }
+}
+
+/**
+ * Download all the [ReporterAsset] directories from the given [assets] collection to the specified [directory].
+ * For each directory, obtain the contained files and download them.
+ */
+private suspend fun WorkerContext.downloadAssetDirectories(assets: Collection<ReporterAsset>, directory: File) {
+    assets.forEach { asset ->
+        val content = configManager.listFiles(resolvedConfigurationContext, Path(asset.sourcePath))
+        val targetDir = createAssetDirectory(asset, directory)
+
+        logger.info("Downloading asset directory '{}' to '{}'.", asset.sourcePath, targetDir)
+        logger.debug("The directory contains these files: {}}.", content)
+
+        downloadConfigurationFiles(content, targetDir)
+    }
+}
+
+/**
+ * Create the directory in which to download an asset if necessary. Evaluate the target folder of the given [asset] for
+ * this purpose. Use the provided [directory] as parent.
+ */
+private fun createAssetDirectory(asset: ReporterAsset, directory: File): File =
+    asset.targetFolder?.let(directory::resolve)?.also { it.safeMkdirs() } ?: directory
 
 /**
  * Transform this string to a [Path] for downloading a reporter template file. This requires removing the prefix
