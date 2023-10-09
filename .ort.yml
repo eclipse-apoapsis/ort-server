@@ -16,15 +16,15 @@ excludes:
 
 curations:
   packages:
-    - id: "Maven:org.ossreviewtoolkit.utils:spdx-utils:"
-      curations:
-        concluded_license: 'Apache-2.0'
-        comment: |
-          The SPDX utils contain a list of every known license. Conclude the license as this is an ORT internal
-          dependency and we can be sure that the license is in fact Apache-2.0.
+  - id: "Maven:org.ossreviewtoolkit.utils:spdx-utils:"
+    curations:
+      concluded_license: 'Apache-2.0'
+      comment: |
+        The SPDX utils contain a list of every known license. Conclude the license as this is an ORT internal
+        dependency and we can be sure that the license is in fact Apache-2.0.
 
 resolutions:
   issues:
-    - message: "ERROR: Timeout after .+ seconds while scanning file 'rules/matrixseqexpl.json'."
-      reason: SCANNER_ISSUE
-      comment: "This file does not contain any license declarations."
+  - message: "ERROR: Timeout after .+ seconds while scanning file 'rules/matrixseqexpl.json'."
+    reason: SCANNER_ISSUE
+    comment: "This file does not contain any license declarations."
