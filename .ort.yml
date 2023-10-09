@@ -36,3 +36,10 @@ resolutions:
       by the ORT scanner. The component is vulnerable to Denial of Service attacks causing out of memory errors for
       specially crafted parser inputs. Since it is used here only to parse responses of valid SW360 servers, this is not
       an issue.
+  - id: "CVE-2022-45685"
+    reason: "INEFFECTIVE_VULNERABILITY"
+    comment: |
+      This vulnerability is reported for the jettison package which is a transitive dependency of the SW360 client used
+      by the ORT scanner. The component is vulnerable to Denial of Service attacks due to uncontrolled recursion for
+      specially crafted parser input. Since it is used only to parse responses of valid SW360 servers, this is not an
+      issue.
