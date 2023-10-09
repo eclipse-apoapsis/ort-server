@@ -236,6 +236,44 @@ class ReporterRunnerTest : WordSpec({
             slotOptions.captured shouldBe expectedTemplateOptions
         }
 
+        "resolve the placeholder for the current working directory in reporter options" {
+            val templateFormat = "testTemplate"
+            val templateReporter = reporterMock(templateFormat)
+            every { templateReporter.generateReport(any(), any(), any()) } returns listOf(tempfile())
+
+            mockReportersAll(templateFormat to templateReporter)
+
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(templateFormat),
+                options = mapOf(
+                    templateFormat to mapOf(
+                        "currentWorkingDir" to "${ReporterComponent.WORK_DIR_PLACEHOLDER}/reports"
+                    )
+                )
+            )
+
+            val (contextFactory, _) = mockContext()
+
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
+
+            val slotOptions = slot<Options>()
+            verify {
+                templateReporter.generateReport(any(), any(), capture(slotOptions))
+            }
+
+            val expectedTemplateOptions = mapOf(
+                "currentWorkingDir" to "${configDirectory.absolutePath}/reports"
+            )
+            slotOptions.captured shouldBe expectedTemplateOptions
+        }
+
         "should throw an exception when a reporter fails" {
             val reportFormat = "TestFormat"
 

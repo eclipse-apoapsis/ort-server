@@ -248,7 +248,17 @@ class ReporterRunner(
     ): JobOptions = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
         val transformedOptions = async {
-            transformerFactory.newTransformer(config.options.orEmpty())
+            // Handle the placeholder for the working directory.
+            val workDirOptions = transformerFactory.newTransformer(config.options.orEmpty())
+                .filter { it.contains(ReporterComponent.WORK_DIR_PLACEHOLDER) }
+                .transform { options ->
+                    options.associateWith {
+                        it.replace(ReporterComponent.WORK_DIR_PLACEHOLDER, templateDir.absolutePath)
+                    }
+                }
+
+            // Handle download of referenced template files.
+            transformerFactory.newTransformer(workDirOptions)
                 .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
                 .transform { context.downloadReporterTemplates(it, templateDir) }
         }

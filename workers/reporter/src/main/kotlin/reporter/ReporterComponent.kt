@@ -56,6 +56,13 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
          * specified in a generic way.
          */
         const val TEMPLATE_REFERENCE = "reporter-template://"
+
+        /**
+         * A placeholder that can be used in reporter options to refer to the current working directory. It is
+         * replaced by the temporary directory in which reporter templates and asset files are located. Some reporters
+         * need this information, for instance to define the search path for fonts.
+         */
+        const val WORK_DIR_PLACEHOLDER = "\${workdir}"
     }
 
     override val endpointHandler: EndpointHandler<ReporterRequest> = { message ->
