@@ -139,12 +139,11 @@ class EnvironmentDefinitionFactory {
         service: InfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
-        properties.withRequiredProperties("registryUri") {
+        properties.withRequiredProperties {
             YarnDefinition(
                 service = service,
                 authMode = getEnumProperty("authMode", YarnAuthMode.AUTH_TOKEN),
-                alwaysAuth = getBooleanProperty("alwaysAuth", true),
-                registryUri = getProperty("registryUri")
+                alwaysAuth = getBooleanProperty("alwaysAuth", true)
             )
         }
 }

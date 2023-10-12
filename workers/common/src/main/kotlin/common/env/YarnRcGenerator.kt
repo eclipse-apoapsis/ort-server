@@ -45,7 +45,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
                     println()
                 }
 
-                println("\"${definition.registryUri}\":".prependIndent(INDENT_2_SPACES))
+                println("\"${definition.service.url}\":".prependIndent(INDENT_2_SPACES))
 
                 if (definition.alwaysAuth) { println("npmAlwaysAuth: true".prependIndent(INDENT_4_SPACES)) }
 

@@ -174,7 +174,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 val content = yarnRcFile.readText()
 
                 content shouldContain "npmRegistries"
-                content shouldContain "https://registry.example.org/_packaging/test/npm/registry/"
+                content shouldContain "https://repo.example.org/test/repository.git"
                 content shouldContain "npmAuthIdent"
                 content shouldContain "npmAlwaysAuth: true"
             }

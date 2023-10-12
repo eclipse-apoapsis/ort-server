@@ -31,11 +31,6 @@ class YarnDefinition(
     service: InfrastructureService,
 
     /**
-     * Represents the registry URI.
-     */
-    val registryUri: String,
-
-    /**
      * A flag to control the generation of the `mpmAlwaysAuth` property for this registry. Via this flag, Yarn can be
      * instructed to always send authentication information.
      */

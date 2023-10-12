@@ -301,7 +301,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val authMode = YarnAuthMode.AUTH_IDENT
 
                 val properties = mapOf(
-                    "registryUri" to REGISTRY_URI,
                     "alwaysAuth" to alwaysAuth,
                     "authMode" to authMode.name
                 )
@@ -309,18 +308,16 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
                 definition.shouldBeInstanceOf<YarnDefinition>()
-                definition.registryUri shouldBe REGISTRY_URI
                 definition.authMode shouldBe authMode
                 definition.alwaysAuth shouldBe false
             }
 
             "be created with default values" {
-                val properties = mapOf("registryUri" to REGISTRY_URI)
+                val properties = emptyMap<String, String>()
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
                 definition.shouldBeInstanceOf<YarnDefinition>()
-                definition.registryUri shouldBe REGISTRY_URI
                 definition.authMode shouldBe YarnAuthMode.AUTH_TOKEN
                 definition.alwaysAuth shouldBe true
             }
@@ -337,16 +334,8 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain "'$unsupportedProperty2'"
             }
 
-            "fail if there are missing mandatory properties" {
-                val properties = emptyMap<String, String>()
-
-                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
-
-                exception.message shouldContain "Missing required properties: 'registryUri'"
-            }
-
             "accept enum constants independent on case" {
-                val properties = mapOf("registryUri" to REGISTRY_URI, "authMode" to "auth_token")
+                val properties = mapOf("authMode" to "auth_token")
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
@@ -355,7 +344,7 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
             }
 
             "fail for an unsupported enum constant" {
-                val properties = mapOf("registryUri" to REGISTRY_URI, "authMode" to "unknown")
+                val properties = mapOf("authMode" to "unknown")
 
                 val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
@@ -365,7 +354,7 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
             }
 
             "fail for an invalid boolean value" {
-                val properties = mapOf("registryUri" to REGISTRY_URI, "alwaysAuth" to "maybe")
+                val properties = mapOf("alwaysAuth" to "maybe")
 
                 val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
