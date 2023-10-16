@@ -228,7 +228,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator1, generator2), configLoader)
 
-            val configResult = environmentService.setUpEnvironment(context, envConfig, null)
+            val configResult = environmentService.setUpEnvironment(context, envConfig)
 
             configResult shouldBe resolvedConfig
 
@@ -251,29 +251,11 @@ class EnvironmentServiceTest : WordSpec({
             serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator), configLoader)
-            environmentService.setUpEnvironment(context, envConfig, null)
+            environmentService.setUpEnvironment(context, envConfig)
 
             val (_, definitions) = generator.verify(context, null)
             definitions shouldHaveSize 1
             definitions.first().service shouldBe service
-        }
-
-        "assign the infrastructure service for the repository to the current ORT run" {
-            val repositoryService = mockk<InfrastructureService>()
-            val otherService = mockk<InfrastructureService>()
-
-            val context = mockContext()
-            val envConfig = mockk<EnvironmentConfig>()
-            val resolvedConfig = ResolvedEnvironmentConfig(listOf(otherService), emptyList())
-            val configLoader = mockConfigLoader(envConfig, resolvedConfig)
-
-            val serviceRepository = mockk<InfrastructureServiceRepository>()
-            val assignedServices = serviceRepository.expectServiceAssignments()
-
-            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            environmentService.setUpEnvironment(context, envConfig, repositoryService)
-
-            assignedServices shouldContainExactlyInAnyOrder listOf(repositoryService, otherService)
         }
     }
 

@@ -239,7 +239,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val envService = mockk<EnvironmentService> {
-            coEvery { setUpEnvironment(context, envConfig, null) } returns mockk()
+            coEvery { setUpEnvironment(context, envConfig) } returns mockk()
         }
 
         val worker = AnalyzerWorker(
@@ -261,7 +261,7 @@ class AnalyzerWorkerTest : StringSpec({
             }
 
             coVerify {
-                envService.setUpEnvironment(context, envConfig, null)
+                envService.setUpEnvironment(context, envConfig)
             }
         }
     }

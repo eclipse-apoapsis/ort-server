@@ -83,17 +83,15 @@ class EnvironmentService(
 
     /**
      * Set up the analysis environment for the current repository defined by the given [context] using the provided
-     * [config]. The credentials of this repository - if any - are defined by the given [repositoryService]. This
-     * function can be used if the environment configuration was passed when the run was triggered.
+     * [config]. This function can be used if the environment configuration was passed when the run was triggered.
      */
     suspend fun setUpEnvironment(
         context: WorkerContext,
-        config: EnvironmentConfig,
-        repositoryService: InfrastructureService?
+        config: EnvironmentConfig
     ): ResolvedEnvironmentConfig {
         val resolvedConfig = configLoader.resolve(config, context.hierarchy)
 
-        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
+        return setUpEnvironmentForConfig(context, resolvedConfig, null)
     }
 
     /**

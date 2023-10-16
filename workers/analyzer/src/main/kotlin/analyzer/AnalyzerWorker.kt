@@ -59,7 +59,7 @@ internal class AnalyzerWorker(
 
         val repositoryService = if (envConfigFromJob != null) {
             logger.info("Setting up environment from configuration provided in the Analyzer job.")
-            environmentService.setUpEnvironment(context, envConfigFromJob, null)
+            environmentService.setUpEnvironment(context, envConfigFromJob)
             null
         } else {
             environmentService.findInfrastructureServiceForRepository(context)?.also { serviceForRepo ->
