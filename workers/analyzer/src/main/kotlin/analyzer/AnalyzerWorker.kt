@@ -55,25 +55,27 @@ internal class AnalyzerWorker(
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
         val context = contextFactory.createContext(job.ortRunId)
-        val repositoryService = environmentService.findInfrastructureServiceForRepository(context)
+        val envConfigFromJob = job.configuration.environmentConfig
 
-        repositoryService?.let { infrastructureService ->
-            logger.info(
-                "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
-                        "repository.",
-                infrastructureService
-            )
+        val repositoryService = if (envConfigFromJob != null) {
+            logger.info("Setting up environment from configuration provided in the Analyzer job.")
+            environmentService.setUpEnvironment(context, envConfigFromJob, null)
+            null
+        } else {
+            environmentService.findInfrastructureServiceForRepository(context)?.also { serviceForRepo ->
+                logger.info(
+                    "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
+                            "repository.",
+                    serviceForRepo
+                )
 
-            environmentService.generateNetRcFile(context, listOf(infrastructureService))
+                environmentService.generateNetRcFile(context, listOf(serviceForRepo))
+            }
         }
 
         val sourcesDir = downloader.downloadRepository(repository.url, ortRun.revision)
 
-        val envConfigFromJob = job.configuration.environmentConfig
-        if (envConfigFromJob != null) {
-            logger.info("Setting up environment from configuration provided in the Analyzer job.")
-            environmentService.setUpEnvironment(context, envConfigFromJob, repositoryService)
-        } else {
+        if (envConfigFromJob == null) {
             environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
         }
 

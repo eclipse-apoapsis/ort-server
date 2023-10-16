@@ -239,7 +239,6 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val envService = mockk<EnvironmentService> {
-            every { findInfrastructureServiceForRepository(context) } returns null
             coEvery { setUpEnvironment(context, envConfig, null) } returns mockk()
         }
 
