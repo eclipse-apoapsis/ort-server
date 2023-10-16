@@ -105,12 +105,18 @@ class EnvironmentService(
         config: ResolvedEnvironmentConfig,
         repositoryService: InfrastructureService?
     ): ResolvedEnvironmentConfig {
-        val allServices = config.environmentDefinitions.mapTo(mutableSetOf()) { it.service }
-        allServices += config.infrastructureServices
-        repositoryService?.let { allServices += it }
-        assignServicesToOrtRun(context, allServices)
+        val environmentServices = config.environmentDefinitions.mapTo(mutableSetOf()) { it.service }
+        val infraServices = config.infrastructureServices.toMutableList()
+        repositoryService?.let { infraServices += it }
 
-        generateConfigFiles(context, config.environmentDefinitions)
+        val unreferencedServices = infraServices.filterNot { it in environmentServices }
+        val allEnvironmentDefinitions = config.environmentDefinitions +
+                unreferencedServices.map(::EnvironmentServiceDefinition)
+
+        environmentServices += infraServices
+        assignServicesToOrtRun(context, environmentServices)
+
+        generateConfigFiles(context, allEnvironmentDefinitions)
 
         return config
     }

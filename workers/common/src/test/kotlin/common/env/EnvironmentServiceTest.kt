@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -235,6 +236,26 @@ class EnvironmentServiceTest : WordSpec({
             val args2 = generator2.verify(context, definitions)
 
             args1.first shouldNotBe args2.first
+        }
+
+        "handle infrastructure services not referenced by environment definitions" {
+            val service = mockk<InfrastructureService>()
+            val context = mockContext()
+            val generator = mockGenerator()
+
+            val envConfig = mockk<EnvironmentConfig>()
+            val resolvedConfig = ResolvedEnvironmentConfig(listOf(service), emptyList())
+            val configLoader = mockConfigLoader(envConfig, resolvedConfig)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, listOf(generator), configLoader)
+            environmentService.setUpEnvironment(context, envConfig, null)
+
+            val (_, definitions) = generator.verify(context, null)
+            definitions shouldHaveSize 1
+            definitions.first().service shouldBe service
         }
 
         "assign the infrastructure service for the repository to the current ORT run" {
