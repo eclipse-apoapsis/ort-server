@@ -107,9 +107,9 @@ data class AdvisorJobConfiguration(
     val parameters: Parameters? = null,
 
     /**
-     * A map of configuration options that are specific to a concrete advisor.
+     * A map of plugin configurations that are specific to a concrete advisor.
      */
-    val options: Map<String, Options>? = null
+    val config: Map<String, PluginConfiguration>? = null
 )
 
 /**
@@ -161,9 +161,9 @@ data class ScannerJobConfiguration(
     val parameters: Parameters? = null,
 
     /**
-     * A map of configuration options that are specific to a concrete scanner.
+     * A map of plugin configurations that are specific to a concrete scanner.
      */
-    val options: Map<String, Options>? = null
+    val config: Map<String, PluginConfiguration>? = null
 )
 
 /**

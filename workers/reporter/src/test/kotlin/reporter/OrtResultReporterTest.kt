@@ -42,9 +42,18 @@ class OrtResultReporterTest : WordSpec({
             // as null. Changing the value in OrtTestData is not possible, because the options in the server model are
             // not nullable and changing it would therefore make other tests fail.
             val advisorRun = OrtTestData.advisorRun.copy(
-                config = OrtTestData.advisorConfiguration.copy(options = null)
+                config = OrtTestData.advisorConfiguration.copy(config = null)
             )
             val ortResult = OrtTestData.result.copy(advisor = advisorRun)
+
+            // Remove the secrets from the scanner configuration as they will not be serialized.
+            val scannerRun = OrtTestData.scannerRun.copy(
+                config = OrtTestData.scannerConfiguration.copy(
+                    config = OrtTestData.scannerConfiguration.config?.mapValues { it.value.copy(secrets = emptyMap()) }
+                )
+            )
+            val expectedOrtResult = ortResult.copy(scanner = scannerRun)
+
             val input = ReporterInput(ortResult = ortResult)
 
             val reportFiles = reporter.generateReport(input, tempdir())
@@ -52,7 +61,8 @@ class OrtResultReporterTest : WordSpec({
 
             val ortResultFile = reportFiles.single()
             ortResultFile.name shouldBe "ort-result.yml"
-            ortResultFile.readValue<OrtResult>() shouldBe ortResult
+            val actualResult = ortResultFile.readValue<OrtResult>()
+            actualResult shouldBe expectedOrtResult
         }
 
         "be found by the service loader" {

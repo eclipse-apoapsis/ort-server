@@ -17,19 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.ossreviewtoolkit.server.dao.tables.runs.scanner
 
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.jetbrains.exposed.sql.Table
 
-data class ScannerConfiguration(
-    val skipConcluded: Boolean,
-    val archive: FileArchiveConfiguration? = null,
-    val createMissingArchives: Boolean,
-    val detectedLicenseMappings: Map<String, String>,
-    val config: Map<String, PluginConfiguration>,
-    val storages: Map<String, ScanStorageConfiguration?>?,
-    val storageReaders: List<String>?,
-    val storageWriters: List<String>?,
-    val ignorePatterns: List<String>,
-    val provenanceStorage: ProvenanceStorageConfiguration?
-)
+/**
+ * A junction table to link [ScannerConfigurationsTable] with [ScannerConfigurationSecretsTable].
+ */
+object ScannerConfigurationsSecretsTable : Table("scanner_configurations_secrets") {
+    val scannerConfigurationId = reference("scanner_configuration_id", ScannerConfigurationsTable)
+    val scannerConfigurationSecretId = reference("scanner_configuration_secret_id", ScannerConfigurationSecretsTable)
+
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(scannerConfigurationId, scannerConfigurationSecretId, name = "${tableName}_pkey")
+}

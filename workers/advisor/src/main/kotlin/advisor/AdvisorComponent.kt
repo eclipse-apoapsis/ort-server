@@ -87,7 +87,6 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
 
         single { ConfigManager.create(get()) }
 
-        singleOf(::AdvisorConfigurator)
         singleOf(::AdvisorRunner)
         singleOf(::AdvisorWorker)
     }

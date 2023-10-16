@@ -19,25 +19,15 @@
 
 package org.ossreviewtoolkit.server.dao.tables.runs.scanner
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.Table
 
 /**
- * A table to store an option for a specific scanner.
+ * A junction table to link [ScannerConfigurationsTable] with [ScannerConfigurationOptionsTable].
  */
-object ScannerConfigurationsOptionsTable : LongIdTable("scanner_configuration_options") {
-    val scannerOptionId = reference("scanner_configuration_scanner_option_id", ScannerConfigurationsScannerOptionsTable)
-    val key = text("key")
-    val value = text("value")
-}
+object ScannerConfigurationsOptionsTable : Table("scanner_configurations_options") {
+    val scannerConfigurationId = reference("scanner_configuration_id", ScannerConfigurationsTable)
+    val scannerConfigurationOptionId = reference("scanner_configuration_option_id", ScannerConfigurationOptionsTable)
 
-class ScannerConfigurationOptionDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ScannerConfigurationOptionDao>(ScannerConfigurationsOptionsTable)
-
-    var scannerOption by ScannerConfigurationScannerOptionDao referencedOn
-            ScannerConfigurationsOptionsTable.scannerOptionId
-    var key by ScannerConfigurationsOptionsTable.key
-    var value by ScannerConfigurationsOptionsTable.value
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(scannerConfigurationId, scannerConfigurationOptionId, name = "${tableName}_pkey")
 }

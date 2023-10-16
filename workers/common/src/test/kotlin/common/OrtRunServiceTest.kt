@@ -162,7 +162,7 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap(),
                     toolVersions = emptyMap()
                 ),
-                config = AdvisorConfiguration(null, null, null, null, emptyMap()),
+                config = AdvisorConfiguration(emptyMap()),
                 advisorRecords = emptyMap()
             )
 
@@ -435,7 +435,7 @@ class OrtRunServiceTest : WordSpec({
                     createMissingArchives = true,
                     detectedLicenseMappings = emptyMap(),
                     storages = emptyMap(),
-                    options = emptyMap(),
+                    config = emptyMap(),
                     storageReaders = null,
                     storageWriters = null,
                     ignorePatterns = emptyList(),
@@ -467,13 +467,7 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap(),
                     toolVersions = emptyMap()
                 ),
-                config = AdvisorConfiguration(
-                    githubDefectsConfiguration = null,
-                    nexusIqConfiguration = null,
-                    osvConfiguration = null,
-                    vulnerableCodeConfiguration = null,
-                    options = emptyMap()
-                ),
+                config = AdvisorConfiguration(emptyMap()),
                 advisorRecords = emptyMap()
             )
 
@@ -716,7 +710,7 @@ class OrtRunServiceTest : WordSpec({
                     archive = null,
                     createMissingArchives = true,
                     detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
-                    options = emptyMap(),
+                    config = emptyMap(),
                     storages = emptyMap(),
                     storageReaders = listOf("reader-1"),
                     storageWriters = listOf("writer-1"),

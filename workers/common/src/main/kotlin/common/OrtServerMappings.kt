@@ -81,7 +81,6 @@ import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
 import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiveConfiguration
 import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGithubDefectsConfiguration
 import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
@@ -89,13 +88,12 @@ import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason as OrtLicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
-import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason as OrtPathExcludeReason
+import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
 import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
@@ -113,10 +111,10 @@ import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360St
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
-import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
@@ -142,12 +140,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.Defect
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.Curations
 import org.ossreviewtoolkit.server.model.runs.repository.Excludes
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
@@ -351,7 +345,7 @@ fun ScannerConfiguration.mapToOrt() =
         archive = archive?.mapToOrt(),
         createMissingArchives = createMissingArchives,
         detectedLicenseMapping = detectedLicenseMappings,
-        options = options,
+        config = config.mapValues { it.value.mapToOrt() },
         storages = storages?.mapNotNull { (name, storage) ->
             storage?.let {
                 name to when (it) {
@@ -508,23 +502,8 @@ fun AnalyzerConfiguration.mapToOrt() =
 
 fun AdvisorConfiguration.mapToOrt() =
     OrtAdvisorConfiguration(
-        gitHubDefects = githubDefectsConfiguration?.mapToOrt(),
-        nexusIq = nexusIqConfiguration?.mapToOrt(),
-        osv = osvConfiguration?.mapToOrt(),
-        vulnerableCode = vulnerableCodeConfiguration?.mapToOrt(),
-        // TODO: Reimplement the options for the ORT server AdvisorConfiguration to store options from type
-        //       Map<String, Map<String, String> and not Map<String, String>.
-        options = emptyMap()
+        config = config.mapValues { it.value.mapToOrt() }
     )
-
-fun GithubDefectsConfiguration.mapToOrt() =
-    OrtGithubDefectsConfiguration(null, endpointUrl, labelFilter, maxNumberOfIssuesPerRepository, parallelRequests)
-
-fun NexusIqConfiguration.mapToOrt() = OrtNexusIqConfiguration(serverUrl, browseUrl, null, null)
-
-fun OsvConfiguration.mapToOrt() = OrtOsvConfiguration(serverUrl)
-
-fun VulnerableCodeConfiguration.mapToOrt() = OrtVulnerableCodeConfiguration(serverUrl, null)
 
 fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(mustRunAfter, options)
 
@@ -718,10 +697,17 @@ fun ResolvedConfiguration.mapToOrt() =
         resolutions = resolutions.mapToOrt()
     )
 
+fun PluginConfiguration.mapToOrt() =
+    OrtPluginConfiguration(
+        options = options,
+        secrets = secrets
+    )
+
 fun ProviderPluginConfiguration.mapToOrt() =
     OrtProviderPluginConfiguration(
         type = type,
         id = id,
         enabled = enabled,
-        config = config
+        options = options,
+        secrets = secrets
     )

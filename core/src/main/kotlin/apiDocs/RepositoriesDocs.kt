@@ -82,7 +82,7 @@ private val jobConfigurations = JobConfigurations(
                 type = "ClearlyDefined",
                 id = "ClearlyDefined",
                 enabled = true,
-                config = mapOf(
+                options = mapOf(
                     "serverUrl" to "https://api.clearlydefined.io",
                     "minTotalLicenseScore" to "0"
                 )

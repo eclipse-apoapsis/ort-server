@@ -24,6 +24,7 @@ import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
@@ -45,8 +46,10 @@ import org.ossreviewtoolkit.server.dao.tables.runs.scanner.PostgresStorageConfig
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ProvenanceStorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationOptionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationScannerOptionDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationSecretDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationStorageDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsOptionsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsSecretsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.StorageConfigurationDao
@@ -217,17 +220,22 @@ private fun createScannerConfiguration(
         this.detectedLicenseMappings = SizedCollection(detectedLicenseMappings)
     }
 
-    scannerConfiguration.options.forEach { (scanner, scannerOptions) ->
-        val scannerOptionKey = ScannerConfigurationScannerOptionDao.new {
-            this.scannerConfiguration = scannerConfigurationDao
-            this.scanner = scanner
+    scannerConfiguration.config.forEach { (scanner, pluginConfig) ->
+        pluginConfig.options.forEach { (option, value) ->
+            val optionDao = ScannerConfigurationOptionDao.getOrPut(scanner, option, value)
+
+            ScannerConfigurationsOptionsTable.insert {
+                it[scannerConfigurationId] = scannerConfigurationDao.id
+                it[scannerConfigurationOptionId] = optionDao.id
+            }
         }
 
-        scannerOptions.forEach { (key, value) ->
-            ScannerConfigurationOptionDao.new {
-                this.scannerOption = scannerOptionKey
-                this.key = key
-                this.value = value
+        pluginConfig.secrets.forEach { (secret, value) ->
+            val secretDao = ScannerConfigurationSecretDao.getOrPut(scanner, secret, value)
+
+            ScannerConfigurationsSecretsTable.insert {
+                it[scannerConfigurationId] = scannerConfigurationDao.id
+                it[scannerConfigurationSecretId] = secretDao.id
             }
         }
     }

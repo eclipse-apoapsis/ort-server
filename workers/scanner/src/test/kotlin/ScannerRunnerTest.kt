@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
 import org.ossreviewtoolkit.scanner.ScannerWrapper
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 
@@ -87,32 +88,39 @@ class ScannerRunnerTest : WordSpec({
                 createMissingArchives = true,
                 detectedLicenseMapping = detectedLicenseMapping,
                 ignorePatterns = ignorePatterns,
-                options = emptyMap()
+                config = null
             )
         }
 
-        "create the configured scanners with the correct options" {
+        "create the configured scanners with the correct options and secrets" {
             val scanCodeFactory = mockScannerWrapperFactory("ScanCode")
             val licenseeFactory = mockScannerWrapperFactory("Licensee")
             mockScannerWrapperAll(listOf(scanCodeFactory, licenseeFactory))
 
-            val scanCodeOptions = mapOf("option1" to "value1", "option2" to "value2")
-            val licenseeOptions = mapOf("option3" to "value3", "option4" to "value4")
+            val scanCodeConfig = PluginConfiguration(
+                options = mapOf("option1" to "value1", "option2" to "value2"),
+                secrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
+            )
+
+            val licenseeConfig = PluginConfiguration(
+                options = mapOf("option3" to "value3", "option4" to "value4"),
+                secrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
+            )
 
             val jobConfig = ScannerJobConfiguration(
                 scanners = listOf("ScanCode"),
                 projectScanners = listOf("Licensee"),
-                options = mapOf(
-                    "ScanCode" to scanCodeOptions,
-                    "Licensee" to licenseeOptions
+                config = mapOf(
+                    "ScanCode" to scanCodeConfig,
+                    "Licensee" to licenseeConfig
                 )
             )
 
             runner.run(OrtResult.EMPTY, jobConfig)
 
             verify(exactly = 1) {
-                scanCodeFactory.create(scanCodeOptions)
-                licenseeFactory.create(licenseeOptions)
+                scanCodeFactory.create(scanCodeConfig.options, scanCodeConfig.secrets)
+                licenseeFactory.create(licenseeConfig.options, licenseeConfig.secrets)
             }
         }
     }
@@ -122,15 +130,16 @@ private fun mockScannerWrapperFactory(scannerName: String) =
     mockk<ScannerWrapperFactory<*>> {
         every { type } returns scannerName
 
-        every { create(any()) } returns mockk<CommandLinePathScannerWrapper> {
-            every { criteria } returns mockk {
+        every {
+            create(any<Map<String, String>>(), any<Map<String, String>>())
+        } returns mockk<CommandLinePathScannerWrapper> {
+            every { matcher } returns mockk {
                 every { matches(any()) } returns true
             }
             every { details } returns mockk {
                 every { name } returns scannerName
             }
             every { name } returns scannerName
-            every { filterSecretOptions(any()) } returnsArgument 0
         }
     }
 

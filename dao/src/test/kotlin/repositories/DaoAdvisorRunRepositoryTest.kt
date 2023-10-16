@@ -32,6 +32,7 @@ import kotlinx.datetime.Clock
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
@@ -39,12 +40,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.Defect
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 
 class DaoAdvisorRunRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -152,23 +149,35 @@ val environment = Environment(
 )
 
 val advisorConfiguration = AdvisorConfiguration(
-    githubDefectsConfiguration = GithubDefectsConfiguration(
-        endpointUrl = "https://github.com/defects",
-        labelFilter = listOf("!any"),
-        maxNumberOfIssuesPerRepository = 5,
-        parallelRequests = 2
-    ),
-    nexusIqConfiguration = NexusIqConfiguration(
-        serverUrl = "https://nexus-iq.com",
-        browseUrl = "https://nexus-iq.com/browse"
-    ),
-    osvConfiguration = OsvConfiguration(
-        serverUrl = "https://google.com/osv"
-    ),
-    vulnerableCodeConfiguration = VulnerableCodeConfiguration(
-        serverUrl = "https://vulnerable-code.com"
-    ),
-    options = mapOf("config-key1" to "config-value1")
+    config = mapOf(
+        "GitHubDefects" to PluginConfiguration(
+            options = mapOf(
+                "endpointUrl" to "https://github.com/defects",
+                "labelFilter" to "!any",
+                "maxNumberOfIssuesPerRepository" to "5",
+                "parallelRequests" to "2"
+            ),
+            secrets = mapOf("token" to "tokenValue")
+        ),
+        "NexusIQ" to PluginConfiguration(
+            options = mapOf(
+                "serverUrl" to "https://example.org/nexus",
+                "browseUrl" to "https://example.org/nexus/browse"
+            ),
+            secrets = mapOf(
+                "username" to "user",
+                "password" to "pass"
+            )
+        ),
+        "OSV" to PluginConfiguration(
+            options = mapOf("serverUrl" to "https://google.com/osv"),
+            secrets = emptyMap()
+        ),
+        "VulnerableCode" to PluginConfiguration(
+            options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+            secrets = mapOf("apiKey" to "key")
+        )
+    )
 )
 
 val identifier = Identifier(

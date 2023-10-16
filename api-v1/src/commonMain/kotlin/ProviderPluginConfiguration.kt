@@ -42,8 +42,14 @@ data class ProviderPluginConfiguration(
     val enabled: Boolean = true,
 
     /**
-     * The configuration of the provider. See the specific implementation for available configuration
-     * options.
+     * The configuration options of the provider. See the specific implementation for available configuration options.
      */
-    val config: Map<String, String> = emptyMap()
+    val options: Options = emptyMap(),
+
+    /**
+     * The configuration secrets of the provider. See the specific implementation for available secret options. Note
+     * that values in this map are not the actual values of the secrets, but references to secrets in the secret
+     * storage.
+     */
+    val secrets: Options = emptyMap()
 )

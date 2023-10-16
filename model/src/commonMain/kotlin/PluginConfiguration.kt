@@ -17,19 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.ossreviewtoolkit.server.model
 
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import kotlinx.serialization.Serializable
 
-data class ScannerConfiguration(
-    val skipConcluded: Boolean,
-    val archive: FileArchiveConfiguration? = null,
-    val createMissingArchives: Boolean,
-    val detectedLicenseMappings: Map<String, String>,
-    val config: Map<String, PluginConfiguration>,
-    val storages: Map<String, ScanStorageConfiguration?>?,
-    val storageReaders: List<String>?,
-    val storageWriters: List<String>?,
-    val ignorePatterns: List<String>,
-    val provenanceStorage: ProvenanceStorageConfiguration?
+@Serializable
+data class PluginConfiguration(
+    /**
+     * The configuration options of the plugin. See the specific implementation for available configuration options.
+     */
+    val options: Options,
+
+    /**
+     * The configuration secrets of the plugin. See the specific implementation for available secret options. Note that
+     * values in this map are not the actual values of the secrets, but references to secrets in the secret storage.
+     */
+    val secrets: Options
 )

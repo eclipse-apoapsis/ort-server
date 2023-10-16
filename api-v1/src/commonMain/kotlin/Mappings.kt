@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.server.api.v1.OrtIssue as ApiOrtIssue
 import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
 import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.ossreviewtoolkit.server.api.v1.PluginConfiguration as ApiPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
 import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.ReporterAsset as ApiReporterAsset
@@ -62,6 +63,7 @@ import org.ossreviewtoolkit.server.model.Jobs
 import org.ossreviewtoolkit.server.model.Organization
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.Product
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.ReporterAsset
@@ -86,9 +88,11 @@ fun AdvisorJob.mapToApi() =
         status.mapToApi()
     )
 
-fun AdvisorJobConfiguration.mapToApi() = ApiAdvisorJobConfiguration(advisors, parameters, options)
+fun AdvisorJobConfiguration.mapToApi() =
+    ApiAdvisorJobConfiguration(advisors, parameters, config?.mapValues { it.value.mapToApi() })
 
-fun ApiAdvisorJobConfiguration.mapToModel() = AdvisorJobConfiguration(advisors, parameters, options)
+fun ApiAdvisorJobConfiguration.mapToModel() =
+    AdvisorJobConfiguration(advisors, parameters, config?.mapValues { it.value.mapToModel() })
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
@@ -267,7 +271,7 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     skipConcluded,
     skipExcluded,
     parameters,
-    options
+    config?.mapValues { it.value.mapToApi() }
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
@@ -279,7 +283,7 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     skipConcluded,
     skipExcluded,
     parameters,
-    options
+    config?.mapValues { it.value.mapToModel() }
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)
@@ -313,12 +317,17 @@ fun PackageManagerConfiguration.mapToApi() =
 fun ApiPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)
 
+fun PluginConfiguration.mapToApi() = ApiPluginConfiguration(options = options, secrets = secrets)
+
+fun ApiPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)
+
 fun ProviderPluginConfiguration.mapToApi() =
     ApiProviderPluginConfiguration(
         type = type,
         id = id,
         enabled = enabled,
-        config = config
+        options = options,
+        secrets = secrets
     )
 
 fun ApiProviderPluginConfiguration.mapToModel() =
@@ -326,7 +335,8 @@ fun ApiProviderPluginConfiguration.mapToModel() =
         type = type,
         id = id,
         enabled = enabled,
-        config = config
+        options = options,
+        secrets = secrets
     )
 
 fun ReporterAsset.mapToApi() =

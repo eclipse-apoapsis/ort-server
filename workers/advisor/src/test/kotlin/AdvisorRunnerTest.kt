@@ -25,30 +25,79 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import io.mockk.verify
 
+import org.ossreviewtoolkit.advisor.AdviceProvider
+import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.advisor.Advisor
-import org.ossreviewtoolkit.model.AdvisorRun
-import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Package
+import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 
 class AdvisorRunnerTest : WordSpec({
-    val configurator = mockk<AdvisorConfigurator>()
-    val runner = AdvisorRunner(configurator)
+    val runner = AdvisorRunner()
+
+    afterEach { unmockkAll() }
 
     "run" should {
-        "invoke the advisor created by the configurator" {
-            val packages = setOf(Package.EMPTY.copy(id = Identifier("type", "namespace", "name", "version")))
-            val config = AdvisorJobConfiguration(listOf("TestAdviceProvider"))
+        "return a valid AdvisorRun" {
+            val factory = mockAdviceProviderFactory("VulnerableCode")
+            mockAdvisorAll(listOf(factory))
 
-            val advisor = mockk<Advisor>()
-            val advisorRun = mockk<AdvisorRun>()
-            every { configurator.createAdvisor(config.advisors) } returns advisor
-            coEvery { advisor.advise(packages) } returns advisorRun
+            val run = runner.run(emptySet(), AdvisorJobConfiguration())
 
-            val actualAdvisorRun = runner.run(packages, config)
+            run.config shouldBe AdvisorConfiguration()
+        }
 
-            actualAdvisorRun shouldBe advisorRun
+        "create the configured advice providers with the correct options and secrets" {
+            val osvFactory = mockAdviceProviderFactory("OSV")
+            val vulnerableCodeFactory = mockAdviceProviderFactory("VulnerableCode")
+            mockAdvisorAll(listOf(osvFactory, vulnerableCodeFactory))
+
+            val osvConfig = PluginConfiguration(
+                options = mapOf("option1" to "value1", "option2" to "value2"),
+                secrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
+            )
+
+            val vulnerableCodeConfig = PluginConfiguration(
+                options = mapOf("option3" to "value3", "option4" to "value4"),
+                secrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
+            )
+
+            val jobConfig = AdvisorJobConfiguration(
+                advisors = listOf("OSV", "VulnerableCode"),
+                config = mapOf(
+                    "OSV" to osvConfig,
+                    "VulnerableCode" to vulnerableCodeConfig
+                )
+            )
+
+            runner.run(setOf(Package.EMPTY), jobConfig)
+
+            verify(exactly = 1) {
+               osvFactory.create(osvConfig.options, osvConfig.secrets)
+               vulnerableCodeFactory.create(vulnerableCodeConfig.options, vulnerableCodeConfig.secrets)
+            }
         }
     }
 })
+
+private fun mockAdviceProviderFactory(adviceProviderName: String) =
+    mockk<AdviceProviderFactory<*>> {
+        every { type } returns adviceProviderName
+
+        every { create(any(), any()) } returns mockk<AdviceProvider> {
+            every { providerName } returns adviceProviderName
+            coEvery { retrievePackageFindings(any()) } returns emptyMap()
+        }
+    }
+
+private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory<*>>) {
+    mockkObject(Advisor)
+    mockk<Advisor> {
+        every { Advisor.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.type }
+    }
+}

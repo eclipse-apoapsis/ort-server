@@ -51,6 +51,7 @@ allprojects {
                 maven("https://jitpack.io")
             }
             filter {
+                includeGroup("com.github.oss-review-toolkit.ort")
                 includeModule("com.github.Ricky12Awesome", "json-schema-serialization")
             }
         }
@@ -69,7 +70,7 @@ subprojects {
     dependencies {
         "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
 
-        "detektPlugins"("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
+        "detektPlugins"("com.github.oss-review-toolkit.ort:detekt-rules:${rootProject.libs.versions.ort.get()}")
     }
 
     detekt {

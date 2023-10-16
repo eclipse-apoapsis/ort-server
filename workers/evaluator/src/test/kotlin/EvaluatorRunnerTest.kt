@@ -145,7 +145,7 @@ class EvaluatorRunnerTest : WordSpec({
                     packageConfigurationProviders = listOf(
                         ProviderPluginConfiguration(
                             type = "Dir",
-                            config = mapOf(
+                            options = mapOf(
                                 "path" to "src/test/resources/package-configurations",
                                 "mustExist" to "true"
                             )

@@ -67,18 +67,16 @@ import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
 import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiverConfiguration
 import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration as OrtGitHubDefectsConfiguration
 import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.NexusIqConfiguration as OrtNexusIqConfiguration
-import org.ossreviewtoolkit.model.config.OsvConfiguration as OrtOsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
+import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
 import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
@@ -91,7 +89,7 @@ import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
-import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration as OrtVulnerableCodeConfiguration
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
@@ -115,12 +113,8 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 import org.ossreviewtoolkit.server.model.runs.advisor.Defect
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.Curations
 import org.ossreviewtoolkit.server.model.runs.repository.Excludes
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
@@ -168,14 +162,7 @@ import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice as OrtSpdxLicense
 
 fun OrtAdvisorConfiguration.mapToModel() =
     AdvisorConfiguration(
-        githubDefectsConfiguration = gitHubDefects?.mapToModel(),
-        nexusIqConfiguration = nexusIq?.mapToModel(),
-        osvConfiguration = osv?.mapToModel(),
-        vulnerableCodeConfiguration = vulnerableCode?.mapToModel(),
-        // TODO: Currently, the type of options is Map<String, String>, which should be
-        //       Map<String, Map<String, String>>. This has to be fixed in order to create the database
-        //       correctly.
-        options = emptyMap()
+        config = config?.mapValues { it.value.mapToModel() }.orEmpty()
     )
 
 fun OrtAdvisorResult.mapToModel() =
@@ -263,14 +250,6 @@ fun OrtDependencyGraphNode.mapToModel() =
         issues = issues.map { it.mapToModel() }
     )
 
-fun OrtGitHubDefectsConfiguration.mapToModel() =
-    GithubDefectsConfiguration(
-        endpointUrl = endpointUrl,
-        labelFilter = labelFilter,
-        maxNumberOfIssuesPerRepository = maxNumberOfIssuesPerRepository,
-        parallelRequests = parallelRequests
-    )
-
 fun RootDependencyIndex.mapToModel() =
     DependencyGraphRoot(
         root = root,
@@ -297,8 +276,6 @@ fun OrtLicenseFinding.mapToModel() =
         score = score
     )
 
-fun OrtNexusIqConfiguration.mapToModel() = NexusIqConfiguration(serverUrl = serverUrl, browseUrl = browseUrl)
-
 fun OrtOrtIssue.mapToModel() =
     OrtIssue(
         timestamp = timestamp.toKotlinInstant(),
@@ -306,8 +283,6 @@ fun OrtOrtIssue.mapToModel() =
         message = message,
         severity = severity.name
     )
-
-fun OrtOsvConfiguration.mapToModel() = OsvConfiguration(serverUrl = serverUrl)
 
 fun OrtPackage.mapToModel() =
     Package(
@@ -415,8 +390,6 @@ fun OrtVulnerabilityReference.mapToModel() =
         severity = severity
     )
 
-fun OrtVulnerableCodeConfiguration.mapToModel() = VulnerableCodeConfiguration(serverUrl = serverUrl)
-
 fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
     EvaluatorRun(
         id = -1,
@@ -444,7 +417,7 @@ fun OrtScannerConfiguration.mapToModel() =
         archive = archive?.mapToModel(),
         createMissingArchives = createMissingArchives,
         detectedLicenseMappings = detectedLicenseMapping,
-        options = options.orEmpty(),
+        config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
         storages = storages?.map { (name, storage) ->
             name to when (storage) {
                 is OrtClearlyDefinedStorageConfiguration -> storage.mapToModel()
@@ -641,3 +614,5 @@ fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(id, reason
 fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
 
 fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
+
+fun OrtPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)

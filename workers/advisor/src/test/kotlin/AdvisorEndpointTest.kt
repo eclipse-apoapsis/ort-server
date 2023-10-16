@@ -84,18 +84,6 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
             }
         }
 
-        "VulnerableCode is configured as advisor provider" {
-            runEndpointTest {
-                val configurator: AdvisorConfigurator by inject()
-
-                val advisorConfig = configurator.createAdvisorConfiguration(
-                    configurator.findConfiguredProviders(listOf("VulnerableCode"))
-                )
-
-                advisorConfig.vulnerableCode?.apiKey shouldBe VULNERABLE_CODE_API_KEY
-            }
-        }
-
         "A message to advice a project should be processed" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {

@@ -19,8 +19,6 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
-import com.typesafe.config.ConfigFactory
-
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -59,7 +57,7 @@ private val advisorJob = AdvisorJob(
 /**
  * Return an [AdvisorRunner] to be used by tests.
  */
-private fun createRunner(): AdvisorRunner = AdvisorRunner(AdvisorConfigurator(ConfigFactory.empty()))
+private fun createRunner(): AdvisorRunner = AdvisorRunner()
 
 class AdvisorWorkerTest : StringSpec({
     "A project should be advised successfully" {

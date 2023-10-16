@@ -24,14 +24,16 @@ import kotlinx.coroutines.runBlocking
 import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.Package
+import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-internal class AdvisorRunner(
-    /** The object to obtain an initialized [Advisor]. */
-    private val configurator: AdvisorConfigurator
-) {
+internal class AdvisorRunner {
     fun run(packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun {
-        val advisor = configurator.createAdvisor(config.advisors)
+        val providerFactories = config.advisors.mapNotNull { Advisor.ALL[it] }
+        val advisorConfig = AdvisorConfiguration(config.config?.mapValues { it.value.mapToOrt() })
+
+        val advisor = Advisor(providerFactories, advisorConfig)
 
         return runBlocking { advisor.advise(packages) }
     }

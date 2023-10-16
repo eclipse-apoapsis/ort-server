@@ -30,6 +30,7 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.Repository
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
@@ -51,12 +52,8 @@ import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.advisor.GithubDefectsConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.NexusIqConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.OsvConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
 import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.server.model.runs.repository.Curations
 import org.ossreviewtoolkit.server.model.runs.repository.Excludes
 import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
@@ -258,32 +255,36 @@ class OrtServerMappingsTest : WordSpec({
                 dependencyGraphs = mapOf("Maven" to dependencyGraph)
             )
 
-            val vulnerableCodeConfiguration = VulnerableCodeConfiguration(
-                serverUrl = "https://vulnerablecode.com"
-            )
-
-            val osvConfiguration = OsvConfiguration(
-                serverUrl = "https://osv.com"
-            )
-
-            val githubDefectsConfiguration = GithubDefectsConfiguration(
-                endpointUrl = "https://github.com",
-                labelFilter = listOf("filter-1", "filter-2"),
-                maxNumberOfIssuesPerRepository = 5,
-                parallelRequests = 2
-            )
-
-            val nexusIqConfiguration = NexusIqConfiguration(
-                serverUrl = "https://nexusiq.com",
-                browseUrl = "https://nexusiq.com/browse"
-            )
-
             val advisorConfiguration = AdvisorConfiguration(
-                osvConfiguration = osvConfiguration,
-                githubDefectsConfiguration = githubDefectsConfiguration,
-                nexusIqConfiguration = nexusIqConfiguration,
-                vulnerableCodeConfiguration = vulnerableCodeConfiguration,
-                options = emptyMap()
+                config = mapOf(
+                    "GitHubDefects" to PluginConfiguration(
+                        options = mapOf(
+                            "endpointUrl" to "https://github.com/defects",
+                            "labelFilter" to "!any",
+                            "maxNumberOfIssuesPerRepository" to "5",
+                            "parallelRequests" to "2"
+                        ),
+                        secrets = mapOf("token" to "tokenValue")
+                    ),
+                    "NexusIQ" to PluginConfiguration(
+                        options = mapOf(
+                            "serverUrl" to "https://example.org/nexus",
+                            "browseUrl" to "https://example.org/nexus/browse"
+                        ),
+                        secrets = mapOf(
+                            "username" to "user",
+                            "password" to "pass"
+                        )
+                    ),
+                    "OSV" to PluginConfiguration(
+                        options = mapOf("serverUrl" to "https://google.com/osv"),
+                        secrets = emptyMap()
+                    ),
+                    "VulnerableCode" to PluginConfiguration(
+                        options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                        secrets = mapOf("apiKey" to "key")
+                    )
+                )
             )
 
             val vulnerability = Vulnerability(
@@ -335,7 +336,16 @@ class OrtServerMappingsTest : WordSpec({
                 ),
                 createMissingArchives = true,
                 detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
-                options = mapOf("scanner-1" to mapOf("option-key-1" to "option-value-1")),
+                config = mapOf(
+                    "scanner-1" to PluginConfiguration(
+                        options = mapOf("option-key-1" to "option-value-1"),
+                        secrets = mapOf("secret-key-1" to "secret-value-1")
+                    ),
+                    "scanner-2" to PluginConfiguration(
+                        options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
+                        secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
+                    )
+                ),
                 storages = mapOf(
                     "local" to FileBasedStorageConfiguration(fileStorageConfiguration, "PROVENANCE_BASED")
                 ),

@@ -19,27 +19,15 @@
 
 package org.ossreviewtoolkit.server.dao.tables.runs.advisor
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.Table
 
 /**
- * A table to represent a key-value pair, which belongs to an option for an [AdvisorConfigurationsTable].
+ * A junction table to link [AdvisorConfigurationsTable] with [AdvisorConfigurationOptionsTable].
  */
-object AdvisorConfigurationsOptionsTable : LongIdTable("advisor_configuration_options") {
+object AdvisorConfigurationsOptionsTable : Table("advisor_configurations_options") {
     val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable)
+    val advisorConfigurationOptionId = reference("advisor_configuration_option_id", AdvisorConfigurationOptionsTable)
 
-    val key = text("key")
-    val value = text("value")
-}
-
-class AdvisorConfigurationsOptionDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<AdvisorConfigurationsOptionDao>(AdvisorConfigurationsOptionsTable)
-
-    var advisorConfiguration by AdvisorConfigurationDao referencedOn
-            AdvisorConfigurationsOptionsTable.advisorConfigurationId
-
-    var key by AdvisorConfigurationsOptionsTable.key
-    var value by AdvisorConfigurationsOptionsTable.value
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(advisorConfigurationId, advisorConfigurationOptionId, name = "${tableName}_pkey")
 }

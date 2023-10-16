@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
 
 /**
@@ -31,33 +32,33 @@ import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
  */
 object AdvisorConfigurationsTable : LongIdTable("advisor_configurations") {
     val advisorRunId = reference("advisor_run_id", AdvisorRunsTable)
-    val githubDefectsConfigurationId =
-        reference("github_defects_configuration_id", GithubDefectsConfigurationsTable).nullable()
-    val nexusIqConfigurationId = reference("nexus_iq_configuration_id", NexusIqConfigurationsTable).nullable()
-    val osvConfigurationId = reference("osv_configuration_id", OsvConfigurationsTable).nullable()
-    val vulnerableCodeConfigurationId =
-        reference("vulnerable_code_configuration_id", VulnerableCodeConfigurationsTable).nullable()
 }
 
 class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AdvisorConfigurationDao>(AdvisorConfigurationsTable)
 
     var advisorRun by AdvisorRunDao referencedOn AdvisorConfigurationsTable.advisorRunId
-    var githubDefectsConfiguration by GithubDefectsConfigurationDao optionalReferencedOn
-            AdvisorConfigurationsTable.githubDefectsConfigurationId
-    var nexusIqConfiguration by NexusIqConfigurationDao optionalReferencedOn
-            AdvisorConfigurationsTable.nexusIqConfigurationId
-    var osvConfiguration by OsvConfigurationDao optionalReferencedOn AdvisorConfigurationsTable.osvConfigurationId
-    var vulnerableCodeConfiguration by VulnerableCodeConfigurationDao optionalReferencedOn
-            AdvisorConfigurationsTable.vulnerableCodeConfigurationId
 
-    val options by AdvisorConfigurationsOptionDao referrersOn AdvisorConfigurationsOptionsTable.advisorConfigurationId
+    var options by AdvisorConfigurationOptionDao via AdvisorConfigurationsOptionsTable
+    var secrets by AdvisorConfigurationSecretDao via AdvisorConfigurationsSecretsTable
 
-    fun mapToModel() = AdvisorConfiguration(
-        githubDefectsConfiguration = githubDefectsConfiguration?.mapToModel(),
-        nexusIqConfiguration = nexusIqConfiguration?.mapToModel(),
-        osvConfiguration = osvConfiguration?.mapToModel(),
-        vulnerableCodeConfiguration = vulnerableCodeConfiguration?.mapToModel(),
-        options = options.associate { it.key to it.value }
-    )
+    fun mapToModel(): AdvisorConfiguration {
+        val optionsByAdvisor = options.groupBy { it.advisor }
+            .mapValues { (_, value) -> value.associate { it.option to it.value } }
+        val secretsByAdvisor = secrets.groupBy { it.advisor }
+            .mapValues { (_, value) -> value.associate { it.secret to it.value } }
+
+        val config = buildMap {
+            (optionsByAdvisor.keys + secretsByAdvisor.keys).forEach { advisor ->
+                val pluginConfiguration = PluginConfiguration(
+                    options = optionsByAdvisor[advisor].orEmpty(),
+                    secrets = secretsByAdvisor[advisor].orEmpty()
+                )
+
+                put(advisor, pluginConfiguration)
+            }
+        }
+
+        return AdvisorConfiguration(config)
+    }
 }

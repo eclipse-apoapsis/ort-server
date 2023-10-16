@@ -41,6 +41,7 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -238,9 +239,15 @@ internal val scannerConfiguration = ScannerConfiguration(
         "license-1" to "spdx-license-1",
         "license-2" to "spdx-license-2"
     ),
-    options = mapOf(
-        "scanner-1" to mapOf("option-key-1" to "option-value-1"),
-        "scanner-2" to mapOf("option-key-1" to "option-value1", "option-key-2" to "option-value-2")
+    config = mapOf(
+        "scanner-1" to PluginConfiguration(
+            options = mapOf("option-key-1" to "option-value-1"),
+            secrets = mapOf("secret-key-1" to "secret-value-1")
+        ),
+        "scanner-2" to PluginConfiguration(
+            options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
+            secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
+        )
     ),
     storages = mapOf(
         "local" to FileBasedStorageConfiguration(

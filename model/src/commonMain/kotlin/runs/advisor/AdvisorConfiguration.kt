@@ -19,10 +19,8 @@
 
 package org.ossreviewtoolkit.server.model.runs.advisor
 
+import org.ossreviewtoolkit.server.model.PluginConfiguration
+
 data class AdvisorConfiguration(
-    val githubDefectsConfiguration: GithubDefectsConfiguration?,
-    val nexusIqConfiguration: NexusIqConfiguration?,
-    val osvConfiguration: OsvConfiguration?,
-    val vulnerableCodeConfiguration: VulnerableCodeConfiguration?,
-    val options: Map<String, String>
+    val config: Map<String, PluginConfiguration>
 )

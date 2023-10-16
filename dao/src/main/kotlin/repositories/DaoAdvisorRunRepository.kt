@@ -23,22 +23,22 @@ import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationsOptionDao
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationOptionDao
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationSecretDao
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationsOptionsTable
+import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationsSecretsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorResultDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunIdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.DefectDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.GithubDefectsConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.NexusIqConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.OsvConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.VulnerabilityDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.VulnerableCodeConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
@@ -113,32 +113,25 @@ private fun createAdvisorConfiguration(
 ): AdvisorConfigurationDao {
     val advisorConfigurationDao = AdvisorConfigurationDao.new {
         advisorRun = advisorRunDao
-
-        githubDefectsConfiguration = advisorConfiguration.githubDefectsConfiguration?.let {
-            GithubDefectsConfigurationDao.getOrPut(
-                it.endpointUrl,
-                it.labelFilter,
-                it.maxNumberOfIssuesPerRepository,
-                it.parallelRequests
-            )
-        }
-
-        nexusIqConfiguration = advisorConfiguration.nexusIqConfiguration?.let {
-            NexusIqConfigurationDao.getOrPut(it.serverUrl, it.browseUrl)
-        }
-
-        osvConfiguration = advisorConfiguration.osvConfiguration?.let { OsvConfigurationDao.getOrPut(it.serverUrl) }
-
-        vulnerableCodeConfiguration = advisorConfiguration.vulnerableCodeConfiguration?.let {
-            VulnerableCodeConfigurationDao.getOrPut(it.serverUrl)
-        }
     }
 
-    advisorConfiguration.options.forEach { (key, value) ->
-        AdvisorConfigurationsOptionDao.new {
-            this.advisorConfiguration = advisorConfigurationDao
-            this.key = key
-            this.value = value
+    advisorConfiguration.config.forEach { (advisor, pluginConfig) ->
+        pluginConfig.options.forEach { (option, value) ->
+            val optionDao = AdvisorConfigurationOptionDao.getOrPut(advisor, option, value)
+
+            AdvisorConfigurationsOptionsTable.insert {
+                it[advisorConfigurationId] = advisorConfigurationDao.id
+                it[advisorConfigurationOptionId] = optionDao.id
+            }
+        }
+
+        pluginConfig.secrets.forEach { (secret, value) ->
+            val secretDao = AdvisorConfigurationSecretDao.getOrPut(advisor, secret, value)
+
+            AdvisorConfigurationsSecretsTable.insert {
+                it[advisorConfigurationId] = advisorConfigurationDao.id
+                it[advisorConfigurationSecretId] = secretDao.id
+            }
         }
     }
 

@@ -70,20 +70,18 @@ import org.ossreviewtoolkit.model.config.Excludes
 import org.ossreviewtoolkit.model.config.FileArchiverConfiguration
 import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration
-import org.ossreviewtoolkit.model.config.GitHubDefectsConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.LicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.NexusIqConfiguration
-import org.ossreviewtoolkit.model.config.OsvConfiguration
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
@@ -96,7 +94,6 @@ import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.StorageType
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
-import org.ossreviewtoolkit.model.config.VulnerableCodeConfiguration
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
@@ -362,36 +359,36 @@ object OrtTestData {
         )
     )
 
-    val osvConfiguration = OsvConfiguration(
-        serverUrl = "https://osv.com"
-    )
-
-    val githubDefectsConfiguration = GitHubDefectsConfiguration(
-        token = null,
-        endpointUrl = "https://github.com",
-        labelFilter = listOf("filter-1", "filter-2"),
-        maxNumberOfIssuesPerRepository = 5,
-        parallelRequests = 2
-    )
-
-    val vulnerableCodeConfiguration = VulnerableCodeConfiguration(
-        serverUrl = "https://vulnerablecode.com",
-        apiKey = null
-    )
-
-    val nexusIqConfiguration = NexusIqConfiguration(
-        serverUrl = "https://nexusiq.com",
-        browseUrl = "https://nexusiq.com/browse",
-        username = null,
-        password = null
-    )
-
     val advisorConfiguration = AdvisorConfiguration(
-        osv = osvConfiguration,
-        gitHubDefects = githubDefectsConfiguration,
-        vulnerableCode = vulnerableCodeConfiguration,
-        nexusIq = nexusIqConfiguration,
-        options = emptyMap()
+        config = mapOf(
+            "GitHubDefects" to PluginConfiguration(
+                options = mapOf(
+                    "endpointUrl" to "https://github.com/defects",
+                    "labelFilter" to "!any",
+                    "maxNumberOfIssuesPerRepository" to "5",
+                    "parallelRequests" to "2"
+                ),
+                secrets = mapOf("token" to "tokenValue")
+            ),
+            "NexusIQ" to PluginConfiguration(
+                options = mapOf(
+                    "serverUrl" to "https://example.org/nexus",
+                    "browseUrl" to "https://example.org/nexus/browse"
+                ),
+                secrets = mapOf(
+                    "username" to "user",
+                    "password" to "pass"
+                )
+            ),
+            "OSV" to PluginConfiguration(
+                options = mapOf("serverUrl" to "https://google.com/osv"),
+                secrets = emptyMap()
+            ),
+            "VulnerableCode" to PluginConfiguration(
+                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                secrets = mapOf("apiKey" to "key")
+            )
+        )
     )
 
     val advisorRecord = AdvisorRecord(
@@ -437,7 +434,16 @@ object OrtTestData {
         ),
         createMissingArchives = true,
         detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
-        options = mapOf("scanner-1" to mapOf("option-key-1" to "option-value-1")),
+        config = mapOf(
+            "scanner-1" to PluginConfiguration(
+                options = mapOf("option-key-1" to "option-value-1"),
+                secrets = mapOf("secret-key-1" to "secret-value-1")
+            ),
+            "scanner-2" to PluginConfiguration(
+                options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
+                secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
+            )
+        ),
         storages = mapOf(
             "local" to FileBasedStorageConfiguration(
                 backend = fileStorageConfiguration,

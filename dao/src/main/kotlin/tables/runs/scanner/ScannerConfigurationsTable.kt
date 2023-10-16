@@ -24,6 +24,7 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 
 /**
@@ -58,23 +59,39 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var detectedLicenseMappings by DetectedLicenseMappingDao via
             ScannerConfigurationsDetectedLicenseMappingsTable
-    val options by ScannerConfigurationScannerOptionDao referrersOn
-            ScannerConfigurationsScannerOptionsTable.scannerConfigurationId
+    var options by ScannerConfigurationOptionDao via ScannerConfigurationsOptionsTable
+    var secrets by ScannerConfigurationSecretDao via ScannerConfigurationsSecretsTable
     val storages by ScannerConfigurationStorageDao referrersOn
             ScannerConfigurationsStoragesTable.scannerConfigurationId
 
-    fun mapToModel() = ScannerConfiguration(
-        skipConcluded = skipConcluded,
-        archive = fileArchiveConfiguration?.mapToModel(),
-        createMissingArchives = createMissingArchives,
-        detectedLicenseMappings = detectedLicenseMappings.associate { it.license to it.spdxLicense },
-        options = options.associate { scannerOptions ->
-            scannerOptions.scanner to scannerOptions.options.associate { it.key to it.value }
-        },
-        storages = storages.associate { it.storage to it.storages.mapToModel() },
-        storageReaders = storageReaders,
-        storageWriters = storageWriters,
-        ignorePatterns = ignorePatterns.orEmpty(),
-        provenanceStorage = provenanceStorageConfiguration?.mapToModel()
-    )
+    fun mapToModel(): ScannerConfiguration {
+        val optionsByScanner = options.groupBy { it.scanner }
+            .mapValues { (_, value) -> value.associate { it.option to it.value } }
+        val secretsByScanner = secrets.groupBy { it.scanner }
+            .mapValues { (_, value) -> value.associate { it.secret to it.value } }
+
+        val config = buildMap {
+            (optionsByScanner.keys + secretsByScanner.keys).forEach { scanner ->
+                val pluginConfiguration = PluginConfiguration(
+                    options = optionsByScanner[scanner].orEmpty(),
+                    secrets = secretsByScanner[scanner].orEmpty()
+                )
+
+                put(scanner, pluginConfiguration)
+            }
+        }
+
+        return ScannerConfiguration(
+            skipConcluded = skipConcluded,
+            archive = fileArchiveConfiguration?.mapToModel(),
+            createMissingArchives = createMissingArchives,
+            detectedLicenseMappings = detectedLicenseMappings.associate { it.license to it.spdxLicense },
+            config = config,
+            storages = storages.associate { it.storage to it.storages.mapToModel() },
+            storageReaders = storageReaders,
+            storageWriters = storageWriters,
+            ignorePatterns = ignorePatterns.orEmpty(),
+            provenanceStorage = provenanceStorageConfiguration?.mapToModel()
+        )
+    }
 }

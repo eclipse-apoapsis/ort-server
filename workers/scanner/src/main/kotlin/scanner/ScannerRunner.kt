@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.scanner.ScanStorages
@@ -34,7 +35,7 @@ import org.ossreviewtoolkit.scanner.provenance.DefaultPackageProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.DefaultWorkingTreeCache
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.utils.common.Options
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class ScannerRunner(
     private val packageProvenanceStorage: OrtServerPackageProvenanceStorage,
@@ -56,7 +57,7 @@ class ScannerRunner(
             createMissingArchives = config.createMissingArchives ?: false,
             detectedLicenseMapping = config.detectedLicenseMappings ?: emptyMap(),
             ignorePatterns = config.ignorePatterns ?: emptyList(),
-            options = config.options
+            config = config.config?.mapValues { it.value.mapToOrt() }
         )
 
         val downloaderConfig = DownloaderConfiguration()
@@ -71,9 +72,9 @@ class ScannerRunner(
             workingTreeCache
         )
 
-        val packageScannerWrappers = createScanners(config.scanners.orEmpty(), scannerConfig.options)
+        val packageScannerWrappers = createScanners(config.scanners.orEmpty(), scannerConfig.config)
         val projectScannerWrappers =
-            createScanners(config.projectScanners ?: config.scanners.orEmpty(), scannerConfig.options)
+            createScanners(config.projectScanners ?: config.scanners.orEmpty(), scannerConfig.config)
 
         try {
             val scanner = Scanner(
@@ -99,8 +100,11 @@ class ScannerRunner(
     }
 }
 
-private fun createScanners(names: List<String>, options: Map<String, Options>?): List<ScannerWrapper> =
+private fun createScanners(names: List<String>, config: Map<String, PluginConfiguration>?): List<ScannerWrapper> =
     names.map {
         ScannerWrapper.ALL[it]
             ?: throw IllegalArgumentException("Scanner '$it' is not one of ${ScannerWrapper.ALL.keys.joinToString()}")
-    }.map { it.create(options?.get(it.type).orEmpty()) }
+    }.map {
+        val pluginConfig = config?.get(it.type)
+        it.create(pluginConfig?.options.orEmpty(), pluginConfig?.secrets.orEmpty())
+    }
