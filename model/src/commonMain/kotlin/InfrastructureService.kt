@@ -67,7 +67,7 @@ data class InfrastructureService(
 
         if (validationResult is Invalid) {
              throw ValidationException(
-                validationResult.errors.joinToString("; ") { error -> error.message }
+                validationResult.errors.joinToString("; ") { error -> "'$name': ${error.message}" }
             )
         }
     }

@@ -28,6 +28,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldInclude
 
 import java.net.URISyntaxException
 
@@ -198,10 +199,14 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
 
             "throw exception if the entity name is invalid" {
-                val newService = createInfrastructureService(name = " #servicename! ")
-                shouldThrow<ValidationException> {
+                val serviceName = " #servicename! "
+                val newService = createInfrastructureService(name = serviceName)
+
+                val exception = shouldThrow<ValidationException> {
                     infrastructureServicesRepository.getOrCreateForRun(newService, fixtures.ortRun.id)
-                }.message shouldBe "The entity name may only contain letters, numbers, hyphen marks and spaces. Leading and trailing spaces are not allowed."
+                }
+
+                exception.message shouldInclude serviceName
 
                 infrastructureServicesRepository.listForRun(fixtures.ortRun.id) shouldBe emptyList()
             }
