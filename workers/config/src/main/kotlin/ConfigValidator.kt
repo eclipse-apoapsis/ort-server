@@ -30,6 +30,8 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.utils.scripting.ScriptRunner
 
+import org.slf4j.LoggerFactory
+
 /**
  * A class for validating and transforming the parameters of an ORT run using a validation script.
  *
@@ -42,6 +44,8 @@ class ConfigValidator private constructor(private val context: WorkerContext) : 
          * Constant for the source of an issue that is generated if the validation script fails to compile.
          */
         const val INVALID_SCRIPT_SOURCE = "VALIDATION_SCRIPT_ERROR"
+
+        private val logger = LoggerFactory.getLogger(ConfigValidator::class.java)
 
         /**
          * Return a new instance of [ConfigValidator] to validate the parameters of the ORT run stored in the given
@@ -59,16 +63,15 @@ class ConfigValidator private constructor(private val context: WorkerContext) : 
                     OrtIssue(
                         Clock.System.now(),
                         INVALID_SCRIPT_SOURCE,
-                        """
-                            Error:
-                            '${exception.message}'
-                            when executing the parameters validation script:
-                            '$script'
-                        """.trimIndent(),
+                        "Error when executing validation script. This is a problem with the configuration " +
+                                "of ORT Server.",
                         "ERROR"
                     )
                 )
-            )
+            ).also {
+                logger.error("Error when executing validation script.", exception)
+                logger.debug("Content of the script:\n{}", script)
+            }
     }
 
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()

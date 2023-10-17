@@ -94,8 +94,7 @@ class ConfigValidatorTest : StringSpec({
         validationResult.issues shouldHaveSize 1
         with(validationResult.issues[0]) {
             source shouldBe ConfigValidator.INVALID_SCRIPT_SOURCE
-            message shouldContain script
-            message shouldContain "Expecting an element"
+            message shouldContain "executing validation script"
             severity shouldBe "ERROR"
         }
     }
