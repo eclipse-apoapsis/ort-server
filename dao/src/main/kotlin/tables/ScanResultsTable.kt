@@ -95,7 +95,7 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
 
             vcsUrl != null -> RepositoryProvenance(
                 vcsInfo = VcsInfo(
-                    type = RepositoryType.valueOf(vcsType!!),
+                    type = RepositoryType.forName(vcsType!!),
                     url = vcsUrl!!,
                     revision = vcsRevision!!,
                     path = ""

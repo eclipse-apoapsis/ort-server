@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.runs.VcsInfo
  * A table to represent Version Control System information.
  */
 object VcsInfoTable : LongIdTable("vcs_info") {
-    val type = enumerationByName<RepositoryType>("type", 128)
+    val type = text("type")
     val url = text("url")
     val revision = text("revision")
     val path = text("path")
@@ -42,7 +42,7 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<VcsInfoDao>(VcsInfoTable) {
         fun findByVcsInfo(vcsInfo: VcsInfo): VcsInfoDao? =
             find {
-                VcsInfoTable.type eq vcsInfo.type and
+                VcsInfoTable.type eq vcsInfo.type.name and
                         (VcsInfoTable.url eq vcsInfo.url) and
                         (VcsInfoTable.revision eq vcsInfo.revision) and
                         (VcsInfoTable.path eq vcsInfo.path)
@@ -50,7 +50,7 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
 
         fun getOrPut(vcsInfo: VcsInfo): VcsInfoDao =
             findByVcsInfo(vcsInfo) ?: new {
-                type = vcsInfo.type
+                type = vcsInfo.type.name
                 url = vcsInfo.url
                 revision = vcsInfo.revision
                 path = vcsInfo.path
@@ -62,5 +62,5 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
     var revision by VcsInfoTable.revision
     var path by VcsInfoTable.path
 
-    fun mapToModel() = VcsInfo(type = type, url = url, revision = revision, path = path)
+    fun mapToModel() = VcsInfo(type = RepositoryType.forName(type), url = url, revision = revision, path = path)
 }

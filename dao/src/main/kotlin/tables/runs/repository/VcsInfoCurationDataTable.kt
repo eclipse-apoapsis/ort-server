@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
  * A table to represent a VCS info curation data, used within a [PackageCurationData][PackageCurationDataTable].
  */
 object VcsInfoCurationDataTable : LongIdTable("vcs_info_curation_data") {
-    val type = enumerationByName<RepositoryType>("type", 128).nullable()
+    val type = text("type").nullable()
     val url = text("url").nullable()
     val revision = text("revision").nullable()
     val path = text("path").nullable()
@@ -43,7 +43,7 @@ class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByVcsInfoCurationData(vcsCurationData: VcsInfoCurationData): VcsInfoCurationDataDao? =
             find {
                 with(VcsInfoCurationDataTable) {
-                    type eq vcsCurationData.type and
+                    type eq vcsCurationData.type?.name and
                             (url eq vcsCurationData.url) and
                             (revision eq vcsCurationData.revision) and
                             (path eq vcsCurationData.path)
@@ -52,7 +52,7 @@ class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
 
         fun getOrPut(vcsCurationData: VcsInfoCurationData): VcsInfoCurationDataDao =
             findByVcsInfoCurationData(vcsCurationData) ?: new {
-                type = vcsCurationData.type
+                type = vcsCurationData.type?.name
                 url = vcsCurationData.url
                 revision = vcsCurationData.revision
                 path = vcsCurationData.path
@@ -64,5 +64,5 @@ class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var revision by VcsInfoCurationDataTable.revision
     var path by VcsInfoCurationDataTable.path
 
-    fun mapToModel() = VcsInfoCurationData(type, url, revision, path)
+    fun mapToModel() = VcsInfoCurationData(type?.let(RepositoryType::forName), url, revision, path)
 }

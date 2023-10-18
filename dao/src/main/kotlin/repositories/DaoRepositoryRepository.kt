@@ -36,7 +36,7 @@ import org.ossreviewtoolkit.server.model.util.OptionalValue
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun create(type: RepositoryType, url: String, productId: Long) = db.blockingQuery {
         RepositoryDao.new {
-            this.type = type
+            this.type = type.name
             this.url = url
             product = ProductDao[productId]
         }.mapToModel()
@@ -63,7 +63,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = db.blockingQuery {
         val repository = RepositoryDao[id]
 
-        type.ifPresent { repository.type = it }
+        type.ifPresent { repository.type = it.name }
         url.ifPresent { repository.url = it }
 
         RepositoryDao[id].mapToModel()

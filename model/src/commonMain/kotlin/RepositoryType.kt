@@ -19,13 +19,34 @@
 
 package org.ossreviewtoolkit.server.model
 
+import kotlinx.serialization.Serializable
+
 /**
- * An enum of supported repository types.
+ * A class to represent the type of a source code repository.
  */
-enum class RepositoryType {
-    GIT,
-    GIT_REPO,
-    MERCURIAL,
-    SUBVERSION,
-    UNKNOWN
+@Serializable
+data class RepositoryType(val name: String) {
+    companion object {
+        val GIT = RepositoryType("GIT")
+        val GIT_REPO = RepositoryType("GIT_REPO")
+        val MERCURIAL = RepositoryType("MERCURIAL")
+        val SUBVERSION = RepositoryType("SUBVERSION")
+        val UNKNOWN = RepositoryType("UNKNOWN")
+
+        private val STANDARD_TYPES = setOf(GIT, GIT_REPO, MERCURIAL, SUBVERSION)
+
+        /**
+         * Return a [RepositoryType] instance for the given [type][name]. This can be one of the known standard types
+         * or a newly created instance with the given [name].
+         */
+        fun forName(name: String): RepositoryType =
+            if (name.isNotEmpty()) {
+                STANDARD_TYPES.find { it.matches(name) } ?: RepositoryType(name)
+            } else {
+                UNKNOWN
+            }
+    }
+
+    private fun matches(type: String): Boolean =
+        name.replace("_", "").equals(type, ignoreCase = true)
 }

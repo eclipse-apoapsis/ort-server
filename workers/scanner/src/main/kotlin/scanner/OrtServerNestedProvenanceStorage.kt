@@ -55,7 +55,7 @@ class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvena
         val oldEntries = NestedProvenancesTable.innerJoin(VcsInfoTable)
             .slice(NestedProvenancesTable.id)
             .select {
-                VcsInfoTable.type eq resolvedVcs.type and
+                VcsInfoTable.type eq resolvedVcs.type.name and
                         (VcsInfoTable.url eq resolvedVcs.url) and
                         (VcsInfoTable.revision eq resolvedVcs.revision)
             }.withDistinct().map { it[NestedProvenancesTable.id].value }
@@ -96,7 +96,7 @@ class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvena
             NestedProvenancesTable.innerJoin(VcsInfoTable)
                 .slice(NestedProvenancesTable.columns)
                 .select {
-                    VcsInfoTable.type eq resolvedVcs.type and
+                    VcsInfoTable.type eq resolvedVcs.type.name and
                             (VcsInfoTable.url eq resolvedVcs.url) and
                             (VcsInfoTable.revision eq resolvedVcs.revision)
                 }.firstOrNull()?.let {

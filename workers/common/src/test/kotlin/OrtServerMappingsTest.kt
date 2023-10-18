@@ -20,10 +20,12 @@
 package org.ossreviewtoolkit.server.workers.common
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Instant
 
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.JobConfigurations
@@ -574,6 +576,32 @@ class OrtServerMappingsTest : WordSpec({
             )
 
             mappedOrtResult shouldBe OrtTestData.result
+        }
+    }
+
+    "VcsType" should {
+        "be mapped to a known RepositoryType" {
+            val vcsTypes = listOf(VcsType.GIT, VcsType.GIT_REPO, VcsType.MERCURIAL, VcsType.SUBVERSION, VcsType.UNKNOWN)
+            val repositoryTypes = listOf(
+                RepositoryType.GIT,
+                RepositoryType.GIT_REPO,
+                RepositoryType.MERCURIAL,
+                RepositoryType.SUBVERSION,
+                RepositoryType.UNKNOWN
+            )
+
+            vcsTypes.zip(repositoryTypes).forAll { (vcsType, repositoryType) ->
+                vcsType.mapToModel() shouldBe repositoryType
+            }
+        }
+
+        "be mapped to a custom RepositoryType" {
+            val name = "http"
+            val vcsType = VcsType.forName(name)
+
+            val repositoryType = vcsType.mapToModel()
+
+            repositoryType.name shouldBe name
         }
     }
 })

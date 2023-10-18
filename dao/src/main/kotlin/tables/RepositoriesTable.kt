@@ -33,7 +33,7 @@ import org.ossreviewtoolkit.server.model.RepositoryType
 object RepositoriesTable : SortableTable("repositories") {
     val productId = reference("product_id", ProductsTable)
 
-    val type = enumerationByName<RepositoryType>("type", 128).sortable()
+    val type = text("type").sortable()
     val url = text("url").sortable()
 }
 
@@ -49,7 +49,7 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
         id = id.value,
         organizationId = product.organization.id.value,
         productId = product.id.value,
-        type = type,
+        type = RepositoryType.forName(type),
         url = url
     )
 }

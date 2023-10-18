@@ -366,14 +366,7 @@ fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLi
 
 fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
 
-fun VcsType.mapToModel() = when (this) {
-    VcsType.GIT -> RepositoryType.GIT
-    VcsType.GIT_REPO -> RepositoryType.GIT_REPO
-    VcsType.MERCURIAL -> RepositoryType.MERCURIAL
-    VcsType.SUBVERSION -> RepositoryType.SUBVERSION
-    VcsType.UNKNOWN -> RepositoryType.UNKNOWN
-    else -> throw IllegalArgumentException("Unknown VcsType: $this")
-}
+fun VcsType.mapToModel() = RepositoryType.forName(aliases.first())
 
 fun OrtVulnerability.mapToModel() =
     Vulnerability(

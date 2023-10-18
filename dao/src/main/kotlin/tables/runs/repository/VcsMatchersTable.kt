@@ -32,7 +32,7 @@ import org.ossreviewtoolkit.server.model.runs.repository.VcsMatcher
  * A table to represent a VCS matcher, used within a [PackageConfiguration][PackageConfigurationsTable].
  */
 object VcsMatchersTable : LongIdTable("vcs_matchers") {
-    val type = enumerationByName<RepositoryType>("type", 128)
+    val type = text("type")
     val url = text("url")
     val revision = text("revision").nullable()
 }
@@ -42,7 +42,7 @@ class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByVcsMatcher(vcsMatcher: VcsMatcher): VcsMatcherDao? =
             find {
                 with(VcsMatchersTable) {
-                    type eq vcsMatcher.type and
+                    type eq vcsMatcher.type.name and
                             (url eq vcsMatcher.url) and
                             (revision eq vcsMatcher.revision)
                 }
@@ -50,7 +50,7 @@ class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
 
         fun getOrPut(vcsMatcher: VcsMatcher): VcsMatcherDao =
             findByVcsMatcher(vcsMatcher) ?: new {
-                type = vcsMatcher.type
+                type = vcsMatcher.type.name
                 url = vcsMatcher.url
                 revision = vcsMatcher.revision
             }
@@ -60,5 +60,5 @@ class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
     var url by VcsMatchersTable.url
     var revision by VcsMatchersTable.revision
 
-    fun mapToModel() = VcsMatcher(type, url, revision)
+    fun mapToModel() = VcsMatcher(RepositoryType.forName(type), url, revision)
 }

@@ -125,7 +125,7 @@ class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProve
             }
 
             val vcsDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel()) ?: VcsInfoDao.new {
-                type = vcs.type.mapToModel()
+                type = vcs.type.mapToModel().name
                 url = vcs.url
                 revision = vcs.revision
                 path = vcs.path

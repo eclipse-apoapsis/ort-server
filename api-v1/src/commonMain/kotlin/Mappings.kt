@@ -212,7 +212,7 @@ fun Repository.mapToApi() = ApiRepository(id, type.mapToApi(), url)
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
-fun ApiRepositoryType.mapToModel() = RepositoryType.valueOf(name)
+fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
 
 fun OptionalValue<ApiRepositoryType>.mapToModel() = map { it.mapToModel() }
 
