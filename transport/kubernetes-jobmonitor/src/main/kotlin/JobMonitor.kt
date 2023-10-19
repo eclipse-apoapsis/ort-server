@@ -58,7 +58,8 @@ internal class JobMonitor(
             val job = watchHelper.nextEvent().`object`
 
             if (job.isFailed()) {
-                logger.info("Detected failed job: {}.", job)
+                logger.info("Detected a failed job '{}'.", job.metadata?.name)
+                logger.debug("Details of the failed job: {}", job)
 
                 runCatching {
                     notifier.sendFailedJobNotification(job)

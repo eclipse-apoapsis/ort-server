@@ -81,7 +81,7 @@ internal class Reaper(
         logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
 
         handleFailedJobs(jobHandler.findJobsCompletedBefore(time)).forEach { job ->
-            logger.debug("Removing completed job {}.", job)
+            logger.debug("Removing completed job '{}'.", job.metadata?.name)
             jobHandler.deleteJob(job)
         }
     }
@@ -96,11 +96,14 @@ internal class Reaper(
         val (failedJobs, succeededJobs) = completeJobs.partition { it.isFailed() }
 
         val notifiedJobs = failedJobs.map { job ->
-            logger.info("Found a failed job {}.", job)
+            logger.info("Detected a failed job '{}'.", job.metadata?.name)
+            logger.debug("Details of the failed job: {}", job)
 
             job to runCatching {
                 notifier.sendFailedJobNotification(job)
-            }.onFailure { logger.error("Failed to notify about failed job: {}.", job) }
+            }.onFailure { exception ->
+                logger.error("Failed to notify about failed job: '{}'.", job.metadata?.name, exception)
+            }
         }.filterNot { it.second.isFailure }
             .map { it.first }
 

@@ -214,9 +214,10 @@ private fun <T> BlockingQueue<T>.next(): T =
 /**
  * Create a job with the given [failure status][failed].
  */
-private fun createJob(failed: Boolean): V1Job {
-    val job = mockk<V1Job>()
-    every { job.isFailed() } returns failed
-
-    return job
-}
+private fun createJob(failed: Boolean = false): V1Job =
+    mockk<V1Job> {
+        every { isFailed() } returns failed
+        every { metadata } returns mockk {
+            every { name } returns "someJob"
+        }
+    }
