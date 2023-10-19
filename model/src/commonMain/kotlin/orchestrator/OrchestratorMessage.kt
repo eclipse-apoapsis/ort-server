@@ -148,6 +148,7 @@ data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage()
  * fatal crash during job processing which even prevents the affected endpoint from sending a proper error message.
  * Therefore, only limited error information is available.
  */
+@Serializable
 data class WorkerError(
     /** The name of the endpoint where the error has happened. */
     val endpointName: String,
