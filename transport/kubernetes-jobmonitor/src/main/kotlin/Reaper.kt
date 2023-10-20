@@ -69,7 +69,7 @@ internal class Reaper(
     /**
      * Perform a reap run.
      */
-    private fun reap() {
+    private suspend fun reap() {
         val time = Instant.ofEpochSecond(clock.now().minus(maxJobAge).epochSeconds).atOffset(systemZoneOffset)
         logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
 
@@ -77,7 +77,7 @@ internal class Reaper(
 
         logger.debug("Found {} completed jobs.", completeJobs.size)
 
-        completeJobs.forEach(jobHandler::deleteAndNotifyIfFailed)
+        completeJobs.forEach { jobHandler.deleteAndNotifyIfFailed(it) }
     }
 }
 

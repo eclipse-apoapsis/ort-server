@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
 
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -26,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import io.kubernetes.client.openapi.models.V1Job
 import io.kubernetes.client.util.Watch
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -122,7 +124,7 @@ private class MonitorTestHelper : AutoCloseable {
      */
     private fun createHandlerMock(): JobHandler {
         val handler = mockk<JobHandler>()
-        every { handler.deleteAndNotifyIfFailed(any<V1Job>()) } answers {
+        coEvery { handler.deleteAndNotifyIfFailed(any<V1Job>()) } answers {
             jobRemoveQueue.offer(firstArg())
         }
 
@@ -137,7 +139,7 @@ private class MonitorTestHelper : AutoCloseable {
 
         return Thread {
             try {
-                monitor.watch()
+                runBlocking { monitor.watch() }
             } catch (_: InterruptedException) {
                 // The thread is interrupted to gracefully exit the watch loop.
             }

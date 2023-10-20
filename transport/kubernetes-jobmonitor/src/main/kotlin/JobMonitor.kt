@@ -48,7 +48,7 @@ internal class JobMonitor(
     /**
      * Process events about changes in the state of jobs in an endless loop.
      */
-    fun watch() {
+    suspend fun watch() {
         logger.info("Entering watch loop.")
 
         while (true) {

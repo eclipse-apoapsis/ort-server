@@ -25,6 +25,8 @@ import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.models.V1Job
 
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -120,14 +122,16 @@ class ReaperTest : WordSpec({
             val jobHandler = mockk<JobHandler>()
             every { jobHandler.findJobsCompletedBefore(any()) } returns jobs
             jobs.forEach {
-                every { jobHandler.deleteAndNotifyIfFailed(it) } just runs
+                coEvery { jobHandler.deleteAndNotifyIfFailed(it) } just runs
             }
 
             val reaper = Reaper(jobHandler, maxJobAge)
             reaper.run(tickFlow(1))
 
-            verify {
-                jobs.forAll(jobHandler::deleteAndNotifyIfFailed)
+            jobs.forAll { job ->
+                coVerify {
+                    jobHandler.deleteAndNotifyIfFailed(job)
+                }
             }
         }
     }

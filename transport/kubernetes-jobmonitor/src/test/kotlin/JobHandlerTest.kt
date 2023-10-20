@@ -45,6 +45,12 @@ import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
+import kotlinx.coroutines.delay
+
 import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
 import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
@@ -222,6 +228,101 @@ class JobHandlerTest : WordSpec({
                 jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
+
+        "skip jobs that have already been processed recently" {
+            val jobName = "jobToDeleteOnlyOnce"
+            val failedStatus = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
+            }
+            val job = createJob(jobName, failedStatus)
+
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val podList = V1PodList()
+            every {
+                coreApi.listNamespacedPod(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "job-name=$jobName",
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            } returns podList
+            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val notifier = mockk<FailedJobNotifier> {
+                every { sendFailedJobNotification(job) } just runs
+            }
+
+            val handler = createJobHandler(jobApi, coreApi, notifier)
+            handler.deleteAndNotifyIfFailed(job)
+
+            handler.deleteAndNotifyIfFailed(job)
+
+            verify(exactly = 1) {
+                notifier.sendFailedJobNotification(job)
+
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+            }
+        }
+
+        "clean up the recently processed jobs" {
+            val jobName = "jobToDeleteMultipleTimes"
+            val failedStatus = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
+            }
+            val job = createJob(jobName, failedStatus)
+
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val podList = V1PodList()
+            every {
+                coreApi.listNamespacedPod(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    null,
+                    any(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            } returns podList
+            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val notifier = mockk<FailedJobNotifier> {
+                every { sendFailedJobNotification(job) } just runs
+            }
+
+            val handler = createJobHandler(jobApi, coreApi, notifier, 1.milliseconds)
+            handler.deleteAndNotifyIfFailed(job)
+            handler.deleteAndNotifyIfFailed(createJob("anotherJob"))
+            handler.deleteAndNotifyIfFailed(createJob("oneMoreJob"))
+
+            delay(2)
+            handler.deleteAndNotifyIfFailed(job)
+
+            verify(exactly = 2) {
+                notifier.sendFailedJobNotification(job)
+
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+            }
+        }
     }
 
     "findJobsCompletedBefore" should {
@@ -356,9 +457,10 @@ class JobHandlerTest : WordSpec({
 private fun createJobHandler(
     jobApi: BatchV1Api = mockk(),
     api: CoreV1Api = mockk(),
-    notifier: FailedJobNotifier = mockk()
+    notifier: FailedJobNotifier = mockk(),
+    recentlyProcessedInterval: Duration = 30.seconds
 ): JobHandler =
-    JobHandler(jobApi, api, notifier, NAMESPACE)
+    JobHandler(jobApi, api, notifier, NAMESPACE, recentlyProcessedInterval)
 
 /**
  * Create a [V1Job] with the given [name] and [status].

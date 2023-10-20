@@ -25,6 +25,15 @@ import io.kubernetes.client.openapi.models.V1Job
 import io.kubernetes.client.openapi.models.V1Pod
 
 import java.time.OffsetDateTime
+import java.util.TreeMap
+
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -42,7 +51,13 @@ internal class JobHandler(
     private val notifier: FailedJobNotifier,
 
     /** The namespace that contains the objects of interest. */
-    private val namespace: String
+    private val namespace: String,
+
+    /**
+     * A duration that defines an interval in which a job should be considered as recently processed. This component
+     * keeps a list of the jobs that have been deleted during this interval to prevent duplicate processing of jobs.
+     */
+    private val recentlyProcessedInterval: Duration = 60.seconds,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(JobHandler::class.java)
@@ -82,6 +97,15 @@ internal class JobHandler(
         }
     }
 
+    /** A set with the names of the jobs that have been processed recently. */
+    private val recentJobNames = mutableSetOf<String>()
+
+    /** Stores the times when jobs have been processed. */
+    private val processingTimes = TreeMap<Instant, String>()
+
+    /** A mutex for controlling access to the data structures for recent jobs. */
+    private val recentJobsMutex = Mutex()
+
     /**
      * Return a list with all currently existing jobs that have been completed before the given [time].
      */
@@ -95,26 +119,21 @@ internal class JobHandler(
      * using [notifier] and delete the job only if this is successful. This operation is needed by both the reaper
      * and the monitor components when they detect a completed job.
      */
-    fun deleteAndNotifyIfFailed(job: V1Job) {
-        runCatching {
-            if (job.isFailed()) {
-                logger.info("Detected a failed job '{}'.", job.metadata?.name)
-                logger.debug("Details of the failed job: {}", job)
+    suspend fun deleteAndNotifyIfFailed(job: V1Job) {
+        job.metadata?.name?.takeIf { canProcess(it) }?.let { jobName ->
+            runCatching {
+                if (job.isFailed()) {
+                    logger.info("Detected a failed job '{}'.", jobName)
+                    logger.debug("Details of the failed job: {}", job)
 
-                notifier.sendFailedJobNotification(job)
+                    notifier.sendFailedJobNotification(job)
+                }
+            }.onFailure { exception ->
+                logger.error("Failed to notify about failed job: '{}'.", jobName, exception)
+            }.onSuccess {
+                deleteJob(jobName)
             }
-        }.onFailure { exception ->
-            logger.error("Failed to notify about failed job: '{}'.", job.metadata?.name, exception)
-        }.onSuccess {
-            deleteJob(job)
         }
-    }
-
-    /**
-     * Delete the given [job].
-     */
-    private fun deleteJob(job: V1Job) {
-        job.metadata?.name?.let { deleteJob(it) }
     }
 
     /**
@@ -150,6 +169,32 @@ internal class JobHandler(
                 api.deleteNamespacedPod(podName, namespace, null, null, null, null, null, null)
             }.onFailure { e ->
                 logger.error("Could not remove pod '$podName': $e.")
+            }
+        }
+    }
+
+    /**
+     * Check whether the job with the given [jobName] can be processed. Return *false* if this job has already been
+     * processed in the configured time window. Also update the data structures for the recently processed jobs.
+     */
+    private suspend fun canProcess(jobName: String): Boolean {
+        val now = Clock.System.now()
+        val recentThreshold = now - recentlyProcessedInterval
+
+        return recentJobsMutex.withLock {
+            // Remove older entries from the data structures.
+            while (processingTimes.isNotEmpty() && processingTimes.firstKey() < recentThreshold) {
+                val entry = processingTimes.firstEntry()
+                processingTimes -= entry.key
+                recentJobNames -= entry.value
+            }
+
+            if (jobName in recentJobNames) {
+                false
+            } else {
+                recentJobNames += jobName
+                processingTimes[now] = jobName
+                true
             }
         }
     }
