@@ -31,7 +31,6 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 
-import java.io.IOException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -56,15 +55,6 @@ class JobMonitorTest : StringSpec({
         }
     }
 
-    "Notifications for failed jobs are sent" {
-        val job = createJob(failed = true)
-
-        MonitorTestHelper().use { helper ->
-            helper.sendJobEvent(job)
-                .expectJobNotified(job)
-        }
-    }
-
     "Successful jobs are ignored" {
         val successfulJob = createJob(failed = false)
         val failedJob = createJob(failed = true)
@@ -73,19 +63,6 @@ class JobMonitorTest : StringSpec({
             helper.sendJobEvent(successfulJob)
                 .sendJobEvent(failedJob)
                 .expectJobRemoved(failedJob)
-                .expectJobNotified(failedJob)
-        }
-    }
-
-    "Exceptions when sending notifications are handled" {
-        val failedJob1 = createJob(failed = true)
-        val failedJob2 = createJob(failed = true)
-
-        MonitorTestHelper().use { helper ->
-            helper.triggerNotificationError(failedJob1)
-                .sendJobEvent(failedJob1)
-                .sendJobEvent(failedJob2)
-                .expectJobRemoved(failedJob2)
         }
     }
 })
@@ -98,9 +75,6 @@ private class MonitorTestHelper : AutoCloseable {
     /** A queue for passing watch events to the watch helper. */
     private val eventQueue = LinkedBlockingQueue<Watch.Response<V1Job>>()
 
-    /** A queue to retrieve jobs passed to the notifier. */
-    private val jobNotifyQueue = LinkedBlockingQueue<V1Job>()
-
     /** A queue to retrieve jobs removed by the job handler. */
     private val jobRemoveQueue = LinkedBlockingQueue<V1Job>()
 
@@ -109,9 +83,6 @@ private class MonitorTestHelper : AutoCloseable {
 
     /** Mock for manipulating jobs. */
     private val handlerMock = createHandlerMock()
-
-    /** Mock for sending failure notifications. */
-    private val notifierMock = createNotifierMock()
 
     /** The thread running the test loop. */
     private val looper = createTestLoop()
@@ -137,22 +108,6 @@ private class MonitorTestHelper : AutoCloseable {
     }
 
     /**
-     * Expect that the given [job] has been passed to the [FailedJobNotifier].
-     */
-    fun expectJobNotified(job: V1Job): MonitorTestHelper {
-        jobNotifyQueue.next() shouldBe job
-        return this
-    }
-
-    /**
-     * Prepares the mock for the [FailedJobNotifier] to throw an exception for the given [job].
-     */
-    fun triggerNotificationError(job: V1Job): MonitorTestHelper {
-        every { notifierMock.sendFailedJobNotification(job) } throws IOException("Test exception")
-        return this
-    }
-
-    /**
      * Create a mock for the [JobWatchHelper].
      */
     private fun createWatchHelperMock(): JobWatchHelper {
@@ -163,23 +118,11 @@ private class MonitorTestHelper : AutoCloseable {
     }
 
     /**
-     * Create a mock for the [FailedJobNotifier].
-     */
-    private fun createNotifierMock(): FailedJobNotifier {
-        val notifier = mockk<FailedJobNotifier>()
-        every { notifier.sendFailedJobNotification(any()) } answers {
-            jobNotifyQueue.offer(firstArg())
-        }
-
-        return notifier
-    }
-
-    /**
      * Create a mock for the [JobHandler].
      */
     private fun createHandlerMock(): JobHandler {
         val handler = mockk<JobHandler>()
-        every { handler.deleteJob(any<V1Job>()) } answers {
+        every { handler.deleteAndNotifyIfFailed(any<V1Job>()) } answers {
             jobRemoveQueue.offer(firstArg())
         }
 
@@ -190,7 +133,7 @@ private class MonitorTestHelper : AutoCloseable {
      * Create the thread that runs the watch loop with the test object.
      */
     private fun createTestLoop(): Thread {
-        val monitor = JobMonitor(watchHelperMock, handlerMock, notifierMock)
+        val monitor = JobMonitor(watchHelperMock, handlerMock)
 
         return Thread {
             try {

@@ -35,7 +35,9 @@ import io.kubernetes.client.openapi.models.V1Pod
 import io.kubernetes.client.openapi.models.V1PodList
 
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 
 import java.io.IOException
@@ -49,7 +51,7 @@ import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Co
 private const val NAMESPACE = "EventHandlerNamespace"
 
 class JobHandlerTest : WordSpec({
-    "deleteJob" should {
+    "deleteAndNotifyIfFailed" should {
         "delete a job with all its pods" {
             val podNames = listOf("pod1", "pod2", "andAnotherPod")
             val jobName = "jobToDelete"
@@ -77,9 +79,9 @@ class JobHandlerTest : WordSpec({
             every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
             every { jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
 
-            val handler = JobHandler(jobApi, coreApi, NAMESPACE)
+            val handler = createJobHandler(jobApi, coreApi)
 
-            handler.deleteJob(job)
+            handler.deleteAndNotifyIfFailed(job)
 
             verify {
                 podNames.forAll {
@@ -94,9 +96,9 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val handler = JobHandler(jobApi, coreApi, NAMESPACE)
+            val handler = createJobHandler(jobApi, coreApi)
 
-            handler.deleteJob(V1Job())
+            handler.deleteAndNotifyIfFailed(V1Job())
 
             verify(exactly = 0) {
                 jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
@@ -106,6 +108,7 @@ class JobHandlerTest : WordSpec({
         "handle exceptions when deleting elements" {
             val podNames = listOf("pod1", "pod2", "andAnotherPod")
             val jobName = "jobToDelete"
+            val job = createJob(jobName)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -133,9 +136,9 @@ class JobHandlerTest : WordSpec({
                 jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
             } throws IOException("Test exception when deleting job.")
 
-            val handler = JobHandler(jobApi, coreApi, NAMESPACE)
+            val handler = createJobHandler(jobApi, coreApi)
 
-            handler.deleteJob(jobName)
+            handler.deleteAndNotifyIfFailed(job)
 
             verify {
                 podNames.forAll {
@@ -143,6 +146,80 @@ class JobHandlerTest : WordSpec({
                 }
 
                 jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+            }
+        }
+
+        "delete a failed job and trigger a notification" {
+            val podNames = listOf("pod1", "pod2", "andAnotherPod")
+            val jobName = "jobToDelete"
+            val failedStatus = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
+            }
+            val job = createJob(jobName, failedStatus)
+
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val podList = V1PodList().apply { items = podNames.map(::createPod) }
+            every {
+                coreApi.listNamespacedPod(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "job-name=$jobName",
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            } returns podList
+            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+            every { jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val notifier = mockk<FailedJobNotifier> {
+                every { sendFailedJobNotification(job) } just runs
+            }
+
+            val handler = createJobHandler(jobApi, coreApi, notifier)
+
+            handler.deleteAndNotifyIfFailed(job)
+
+            verify {
+                notifier.sendFailedJobNotification(job)
+
+                podNames.forAll {
+                    coreApi.deleteNamespacedPod(it, NAMESPACE, null, null, null, null, null, null)
+                }
+
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+            }
+        }
+
+        "not delete a failed job if sending the notification fails" {
+            val jobName = "failedJobWithNotificationProblem"
+            val failedStatus = V1JobStatus().apply {
+                addConditionsItem(
+                    V1JobCondition().apply { type("Failed") }
+                )
+            }
+            val job = createJob(jobName, failedStatus)
+
+            val notifier = mockk<FailedJobNotifier> {
+                every { sendFailedJobNotification(any()) } throws IllegalStateException("Test exception")
+            }
+
+            val jobApi = mockk<BatchV1Api>()
+            val handler = createJobHandler(jobApi = jobApi, notifier = notifier)
+
+            handler.deleteAndNotifyIfFailed(job)
+
+            verify(exactly = 0) {
+                jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
     }
@@ -190,7 +267,7 @@ class JobHandlerTest : WordSpec({
                 )
             } returns jobList
 
-            val handler = JobHandler(jobApi, coreApi, NAMESPACE)
+            val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
             jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2, matchJob3)
@@ -272,6 +349,16 @@ class JobHandlerTest : WordSpec({
         }
     }
 })
+
+/**
+ * Create a [JobHandler] instance with default dependencies that can be overridden if needed.
+ */
+private fun createJobHandler(
+    jobApi: BatchV1Api = mockk(),
+    api: CoreV1Api = mockk(),
+    notifier: FailedJobNotifier = mockk()
+): JobHandler =
+    JobHandler(jobApi, api, notifier, NAMESPACE)
 
 /**
  * Create a [V1Job] with the given [name] and [status].

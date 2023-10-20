@@ -40,9 +40,6 @@ internal class JobMonitor(
 
     /** The object for manipulating jobs. */
     private val jobHandler: JobHandler,
-
-    /** The notifier. */
-    private val notifier: FailedJobNotifier
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(JobMonitor::class.java)
@@ -58,14 +55,7 @@ internal class JobMonitor(
             val job = watchHelper.nextEvent().`object`
 
             if (job.isFailed()) {
-                logger.info("Detected a failed job '{}'.", job.metadata?.name)
-                logger.debug("Details of the failed job: {}", job)
-
-                runCatching {
-                    notifier.sendFailedJobNotification(job)
-                }.onSuccess {
-                    jobHandler.deleteJob(job)
-                }
+                jobHandler.deleteAndNotifyIfFailed(job)
             }
         }
     }

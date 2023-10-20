@@ -38,6 +38,9 @@ internal class JobHandler(
     /** The core API. */
     private val api: CoreV1Api,
 
+    /** The object to send notifications about failed jobs. */
+    private val notifier: FailedJobNotifier,
+
     /** The namespace that contains the objects of interest. */
     private val namespace: String
 ) {
@@ -88,16 +91,36 @@ internal class JobHandler(
     }
 
     /**
+     * Delete the given [job]. Check whether it is a failed job. If so, try sending a corresponding notification
+     * using [notifier] and delete the job only if this is successful. This operation is needed by both the reaper
+     * and the monitor components when they detect a completed job.
+     */
+    fun deleteAndNotifyIfFailed(job: V1Job) {
+        runCatching {
+            if (job.isFailed()) {
+                logger.info("Detected a failed job '{}'.", job.metadata?.name)
+                logger.debug("Details of the failed job: {}", job)
+
+                notifier.sendFailedJobNotification(job)
+            }
+        }.onFailure { exception ->
+            logger.error("Failed to notify about failed job: '{}'.", job.metadata?.name, exception)
+        }.onSuccess {
+            deleteJob(job)
+        }
+    }
+
+    /**
      * Delete the given [job].
      */
-    fun deleteJob(job: V1Job) {
+    private fun deleteJob(job: V1Job) {
         job.metadata?.name?.let { deleteJob(it) }
     }
 
     /**
      * Delete the job with the given [jobName]. Log occurring exceptions, but ignore them otherwise.
      */
-    fun deleteJob(jobName: String) {
+    private fun deleteJob(jobName: String) {
         runCatching {
             jobApi.deleteNamespacedJob(jobName, namespace, null, null, null, null, null, null)
         }.onFailure { e ->

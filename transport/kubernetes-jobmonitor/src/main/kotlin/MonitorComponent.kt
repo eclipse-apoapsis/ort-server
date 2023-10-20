@@ -111,10 +111,10 @@ internal class MonitorComponent(
             single { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
             single { JobWatchHelper.create(get(), namespace) }
-            single { JobHandler(get(), get(), namespace) }
+            single { JobHandler(get(), get(), get(), namespace) }
             single { FailedJobNotifier(get()) }
             singleOf(::JobMonitor)
-            single { Reaper(get(), get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
+            single { Reaper(get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
         }
     }
 }

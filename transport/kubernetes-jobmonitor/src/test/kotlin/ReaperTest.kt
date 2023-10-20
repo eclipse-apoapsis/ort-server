@@ -33,7 +33,6 @@ import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
 
-import java.io.IOException
 import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -85,7 +84,7 @@ class ReaperTest : WordSpec({
             val jobHandler = mockk<JobHandler>()
             every { jobHandler.findJobsCompletedBefore(any()) } returns emptyList()
 
-            val reaper = Reaper(jobHandler, mockk(), maxJobAge, clock, zoneOffset)
+            val reaper = Reaper(jobHandler, maxJobAge, clock, zoneOffset)
             reaper.run(tickFlow(2))
 
             verify {
@@ -121,62 +120,14 @@ class ReaperTest : WordSpec({
             val jobHandler = mockk<JobHandler>()
             every { jobHandler.findJobsCompletedBefore(any()) } returns jobs
             jobs.forEach {
-                every { jobHandler.deleteJob(it) } just runs
+                every { jobHandler.deleteAndNotifyIfFailed(it) } just runs
             }
 
-            val reaper = Reaper(jobHandler, mockk(), maxJobAge)
+            val reaper = Reaper(jobHandler, maxJobAge)
             reaper.run(tickFlow(1))
 
             verify {
-                jobs.forAll(jobHandler::deleteJob)
-            }
-        }
-
-        "send notifications about failed jobs" {
-            val failedJob = createJob(failed = true)
-            val jobs = listOf(failedJob, createJob())
-            val jobHandler = mockk<JobHandler>()
-            every { jobHandler.findJobsCompletedBefore(any()) } returns jobs
-            jobs.forEach {
-                every { jobHandler.deleteJob(it) } just runs
-            }
-
-            val notifier = mockk<FailedJobNotifier>()
-            every { notifier.sendFailedJobNotification(failedJob) } just runs
-
-            val reaper = Reaper(jobHandler, notifier, maxJobAge)
-            reaper.run(tickFlow(1))
-
-            verify {
-                jobs.forAll(jobHandler::deleteJob)
-
-                notifier.sendFailedJobNotification(failedJob)
-            }
-        }
-
-        "handle failures when sending notifications" {
-            val job1 = createJob()
-            val job2 = createJob()
-            val failedJob = createJob(failed = true)
-            val jobs = listOf(job1, failedJob, job2)
-            val jobHandler = mockk<JobHandler>()
-            every { jobHandler.findJobsCompletedBefore(any()) } returns jobs
-            jobs.forEach {
-                every { jobHandler.deleteJob(it) } just runs
-            }
-
-            val notifier = mockk<FailedJobNotifier>()
-            every { notifier.sendFailedJobNotification(failedJob) } throws IOException("Test exception")
-
-            val reaper = Reaper(jobHandler, notifier, maxJobAge)
-            reaper.run(tickFlow(1))
-
-            verify {
-                jobHandler.deleteJob(job2)
-            }
-
-            verify(exactly = 0) {
-                jobHandler.deleteJob(failedJob)
+                jobs.forAll(jobHandler::deleteAndNotifyIfFailed)
             }
         }
     }
