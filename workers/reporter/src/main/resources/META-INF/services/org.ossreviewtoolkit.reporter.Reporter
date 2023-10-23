@@ -1,1 +1,2 @@
 org.ossreviewtoolkit.server.workers.reporter.OrtResultReporter
+org.ossreviewtoolkit.server.workers.reporter.RunStatisticsReporter
