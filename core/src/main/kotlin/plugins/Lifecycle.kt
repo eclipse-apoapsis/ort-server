@@ -21,7 +21,9 @@ package org.ossreviewtoolkit.server.core.plugins
 
 import io.ktor.server.application.Application
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 import org.koin.ktor.ext.inject
 
@@ -38,15 +40,24 @@ private val logger = LoggerFactory.getLogger(Application::class.java)
 fun Application.configureLifecycle() {
     environment.monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
+        val scope = CoroutineScope(Dispatchers.IO)
+
+        scope.syncRoles(authorizationService)
+    }
+}
+
+/**
+ * Trigger the synchronization of permissions and roles in Keycloak. The synchronization then runs in background.
+ */
+private fun CoroutineScope.syncRoles(authorizationService: AuthorizationService) {
+    launch {
         runCatching {
-            runBlocking {
-                logger.info("Ensuring superuser role and group.")
-                authorizationService.ensureSuperuser()
-                logger.info("Synchronizing Keycloak permissions.")
-                authorizationService.synchronizePermissions()
-                logger.info("Synchronizing Keycloak roles.")
-                authorizationService.synchronizeRoles()
-            }
+            logger.info("Ensuring superuser role and group.")
+            authorizationService.ensureSuperuser()
+            logger.info("Synchronizing Keycloak permissions.")
+            authorizationService.synchronizePermissions()
+            logger.info("Synchronizing Keycloak roles.")
+            authorizationService.synchronizeRoles()
         }.onSuccess {
             logger.info("Synchronized Keycloak permissions and roles.")
         }.onFailure {
