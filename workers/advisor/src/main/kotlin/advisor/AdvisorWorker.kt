@@ -27,6 +27,7 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
@@ -39,7 +40,8 @@ private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 internal class AdvisorWorker(
     private val db: Database,
     private val runner: AdvisorRunner,
-    private val ortRunService: OrtRunService
+    private val ortRunService: OrtRunService,
+    private val contextFactory: WorkerContextFactory
 ) {
     fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
         val advisorJob = getValidAdvisorJob(advisorJobId)
@@ -48,6 +50,7 @@ internal class AdvisorWorker(
         logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
 
         val advisorRun = runner.run(
+            contextFactory.createContext(advisorJob.ortRunId),
             packages = analyzerRun?.packages?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty(),
             config = advisorJob.configuration
         )

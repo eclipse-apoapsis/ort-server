@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 class AdvisorRunnerTest : WordSpec({
     val runner = AdvisorRunner()
@@ -47,9 +48,9 @@ class AdvisorRunnerTest : WordSpec({
             val factory = mockAdviceProviderFactory("VulnerableCode")
             mockAdvisorAll(listOf(factory))
 
-            val run = runner.run(emptySet(), AdvisorJobConfiguration())
+            val run = runner.run(mockContext(), emptySet(), AdvisorJobConfiguration())
 
-            run.config shouldBe AdvisorConfiguration()
+            run.config shouldBe AdvisorConfiguration(emptyMap())
         }
 
         "create the configured advice providers with the correct options and secrets" {
@@ -57,14 +58,18 @@ class AdvisorRunnerTest : WordSpec({
             val vulnerableCodeFactory = mockAdviceProviderFactory("VulnerableCode")
             mockAdvisorAll(listOf(osvFactory, vulnerableCodeFactory))
 
+            val osvSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
+            val osvSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
             val osvConfig = PluginConfiguration(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
-                secrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
+                secrets = osvSecretRefs
             )
 
+            val vulnerableCodeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
+            val vulnerableCodeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
             val vulnerableCodeConfig = PluginConfiguration(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
-                secrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
+                secrets = vulnerableCodeSecretRefs
             )
 
             val jobConfig = AdvisorJobConfiguration(
@@ -75,11 +80,17 @@ class AdvisorRunnerTest : WordSpec({
                 )
             )
 
-            runner.run(setOf(Package.EMPTY), jobConfig)
+            val resolvedPluginConfig = mapOf(
+                "OSV" to osvConfig.copy(secrets = osvSecrets),
+                "VulnerableCode" to vulnerableCodeConfig.copy(secrets = vulnerableCodeSecrets)
+            )
+            val context = mockContext(jobConfig, resolvedPluginConfig)
+
+            runner.run(context, setOf(Package.EMPTY), jobConfig)
 
             verify(exactly = 1) {
-               osvFactory.create(osvConfig.options, osvConfig.secrets)
-               vulnerableCodeFactory.create(vulnerableCodeConfig.options, vulnerableCodeConfig.secrets)
+                osvFactory.create(osvConfig.options, osvSecrets)
+                vulnerableCodeFactory.create(vulnerableCodeConfig.options, vulnerableCodeSecrets)
             }
         }
     }
@@ -101,3 +112,15 @@ private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory<*>>) {
         every { Advisor.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.type }
     }
 }
+
+/**
+ * Create a mock for the [WorkerContext] and prepare it to return the given [resolvedPluginConfig] when called to
+ * resolve the secrets in the plugin configuration of the given [jobConfig].
+ */
+private fun mockContext(
+    jobConfig: AdvisorJobConfiguration = AdvisorJobConfiguration(),
+    resolvedPluginConfig: Map<String, PluginConfiguration> = emptyMap()
+): WorkerContext =
+    mockk {
+        coEvery { resolveConfigSecrets(jobConfig.config) } returns resolvedPluginConfig
+    }

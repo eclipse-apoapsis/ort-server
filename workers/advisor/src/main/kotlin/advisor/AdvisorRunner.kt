@@ -26,15 +26,19 @@ import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 internal class AdvisorRunner {
-    fun run(packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun {
-        val providerFactories = config.advisors.mapNotNull { Advisor.ALL[it] }
-        val advisorConfig = AdvisorConfiguration(config.config?.mapValues { it.value.mapToOrt() })
+    fun run(context: WorkerContext, packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun =
+        runBlocking {
+            val providerFactories = config.advisors.mapNotNull { Advisor.ALL[it] }
 
-        val advisor = Advisor(providerFactories, advisorConfig)
+            val pluginConfigs = context.resolveConfigSecrets(config.config)
+            val advisorConfig = AdvisorConfiguration(pluginConfigs.mapValues { it.value.mapToOrt() })
 
-        return runBlocking { advisor.advise(packages) }
-    }
+            val advisor = Advisor(providerFactories, advisorConfig)
+
+            advisor.advise(packages)
+        }
 }

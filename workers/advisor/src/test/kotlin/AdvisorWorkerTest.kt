@@ -22,10 +22,12 @@ package org.ossreviewtoolkit.server.workers.advisor
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.spyk
 import io.mockk.verify
 
 import kotlin.test.fail
@@ -39,6 +41,8 @@ import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 
 private const val ANALYZER_JOB_ID = 1L
 private const val ADVISOR_JOB_ID = 1L
@@ -72,7 +76,13 @@ class AdvisorWorkerTest : StringSpec({
             every { storeAdvisorRun(any()) } just runs
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
+        val context = mockk<WorkerContext> {
+            coEvery { resolveConfigSecrets(any()) } returns emptyMap()
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val runner = spyk(createRunner())
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -80,6 +90,7 @@ class AdvisorWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
+                runner.run(context, emptySet(), advisorJob.configuration)
                 ortRunService.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
             }
         }
@@ -91,7 +102,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getAdvisorJob(any()) } throws testException
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
+        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService, mockContextFactory())
 
         mockkTransaction {
             when (val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)) {
@@ -107,7 +118,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getAdvisorJob(any()) } returns invalidJob
         }
 
-        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService)
+        val worker = AdvisorWorker(mockk(), createRunner(), ortRunService, mockContextFactory())
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -116,3 +127,11 @@ class AdvisorWorkerTest : StringSpec({
         }
     }
 })
+
+/**
+ * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
+ */
+private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory =
+    mockk {
+        every { createContext(advisorJob.ortRunId) } returns context
+    }
