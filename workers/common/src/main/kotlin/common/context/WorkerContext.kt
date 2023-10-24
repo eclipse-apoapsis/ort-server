@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.Secret
 
 /**
@@ -64,6 +65,14 @@ interface WorkerContext : AutoCloseable {
      * sequence.
      */
     suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String>
+
+    /**
+     * Resolve all the secrets referenced by the given [config]. If [config] is not *null*, obtain the referenced
+     * secrets from the [PluginConfiguration]s and resolve all values using the [configManager] instance. Note that
+     * in contrast to [resolveSecrets], this function deals with secrets from the configuration instead of secrets
+     * managed on behalf of customers.
+     */
+    suspend fun resolveConfigSecrets(config: Map<String, PluginConfiguration>?): Map<String, PluginConfiguration>
 
     /**
      * Download the configuration file at the specified [path] from the resolved configuration context to the given

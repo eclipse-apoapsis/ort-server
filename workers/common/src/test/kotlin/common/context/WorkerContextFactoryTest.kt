@@ -25,8 +25,10 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
@@ -39,6 +41,7 @@ import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -275,12 +278,64 @@ class WorkerContextFactoryTest : WordSpec({
             }
         }
     }
+
+    "resolveConfigFiles" should {
+        "return an empty Map for null input" {
+            val helper = ContextFactoryTestHelper()
+
+            val resolvedConfig = helper.context().resolveConfigSecrets(null)
+
+            resolvedConfig should beEmpty()
+        }
+
+        "return plugin configurations with resolved secrets" {
+            val pluginConfig1 = PluginConfiguration(
+                options = mapOf("plugin1Option1" to "v1", "plugin1Option2" to "v2"),
+                secrets = mapOf("plugin1User" to "dbUser", "plugin1Password" to "dbPassword")
+            )
+            val pluginConfig2 = PluginConfiguration(
+                options = mapOf("plugin2Option" to "v3"),
+                secrets = mapOf(
+                    "plugin2ServiceUser" to "serviceUser",
+                    "plugin2ServicePassword" to "servicePassword",
+                    "plugin2DBAccess" to "dbPassword"
+                )
+            )
+            val config = mapOf("p1" to pluginConfig1, "p2" to pluginConfig2)
+
+            val resolvedConfig1 = pluginConfig1.copy(
+                secrets = mapOf("plugin1User" to "scott", "plugin1Password" to "tiger")
+            )
+            val resolvedConfig2 = pluginConfig2.copy(
+                secrets = mapOf(
+                    "plugin2ServiceUser" to "svcUser",
+                    "plugin2ServicePassword" to "svcPass",
+                    "plugin2DBAccess" to "tiger"
+                )
+            )
+            val expectedConfig = mapOf("p1" to resolvedConfig1, "p2" to resolvedConfig2)
+
+            val helper = ContextFactoryTestHelper()
+
+            val resolvedConfig = helper.context().resolveConfigSecrets(config)
+
+            resolvedConfig shouldBe expectedConfig
+        }
+    }
 })
 
 private const val RUN_ID = 20230607142948L
 
 /** The path under which test configuration files are stored. */
 private const val CONFIG_FILE_DIRECTORY = "src/test/resources/config"
+
+/** A map with secrets to be returned by the test config manager. */
+private val configSecrets = mapOf(
+    "dbUser" to "scott",
+    "dbPassword" to "tiger",
+    "serviceUser" to "svcUser",
+    "servicePassword" to "svcPass"
+)
 
 /** The configuration used by the test factory. */
 private val config = createConfigManager()
@@ -291,6 +346,7 @@ private val config = createConfigManager()
 private fun createConfigManager(): ConfigManager {
     val configManagerProperties = mapOf(
         ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+        ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to configSecrets,
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME
     )
     val properties = mapOf(

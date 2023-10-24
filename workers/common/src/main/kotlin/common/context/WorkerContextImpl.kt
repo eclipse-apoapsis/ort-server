@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path as ConfigPath
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
@@ -65,6 +66,9 @@ internal class WorkerContextImpl(
     /** A cache for the secrets that have already been loaded. */
     private val secretsCache = ConcurrentHashMap<String, Deferred<String>>()
 
+    /** A cache for the configuration secrets that have already been loaded. */
+    private val configSecretsCache = ConcurrentHashMap<String, Deferred<String>>()
+
     /** A cache for configuration files that have been downloaded. */
     private val downloadedFiles = ConcurrentHashMap<String, Deferred<Result<File>>>()
 
@@ -94,6 +98,16 @@ internal class WorkerContextImpl(
     override suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String> {
         return parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
     }
+
+    override suspend fun resolveConfigSecrets(
+        config: Map<String, PluginConfiguration>?
+    ): Map<String, PluginConfiguration> =
+        config?.let { c ->
+            val secrets = c.values.flatMap { it.secrets.values }
+            val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
+
+            c.mapValues { entry -> entry.value.resolveSecrets(resolvedSecrets) }
+        } ?: emptyMap()
 
     override suspend fun downloadConfigurationFile(
         path: ConfigPath,
@@ -184,6 +198,12 @@ internal class WorkerContextImpl(
         secretStorage.getSecret(Path(path)).value
 
     /**
+     * Resolve the given [secret] from the configuration manager.
+     */
+    private fun resolveConfigSecret(secret: String): String =
+        configManager.getSecret(ConfigPath(secret))
+
+    /**
      * Return a function to download configuration files from the current [Context] into the given [directory],
      * optionally using the given [targetName].
      */
@@ -209,4 +229,12 @@ private fun extractSecretKey(secret: Secret): String = secret.path
 private fun extractDownloadFileKey(directory: String, targetName: String?): (ConfigPath) -> String = { path ->
     val name = targetName ?: path.nameComponent
     "${path.path}|$directory|$name"
+}
+
+/**
+ * Return a [PluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
+ */
+private fun PluginConfiguration.resolveSecrets(secretValues: Map<String, String>): PluginConfiguration {
+    val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value) }
+    return copy(secrets = resolvedSecrets)
 }
