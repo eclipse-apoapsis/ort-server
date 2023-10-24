@@ -47,7 +47,7 @@ internal class AdvisorWorker(
         val advisorJob = getValidAdvisorJob(advisorJobId)
         val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(advisorJob.ortRunId)
 
-        logger.debug("Advisor job with id '${advisorJob.id}' started at ${advisorJob.startedAt}.")
+        logger.debug("Advisor job with id '{}' started at {}.", advisorJob.id, advisorJob.startedAt)
 
         val advisorRun = runner.run(
             contextFactory.createContext(advisorJob.ortRunId),
