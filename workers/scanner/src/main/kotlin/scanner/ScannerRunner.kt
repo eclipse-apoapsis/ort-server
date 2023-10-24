@@ -35,6 +35,7 @@ import org.ossreviewtoolkit.scanner.provenance.DefaultPackageProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.DefaultWorkingTreeCache
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class ScannerRunner(
@@ -44,7 +45,9 @@ class ScannerRunner(
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
-    fun run(ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
+    fun run(context: WorkerContext, ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
+        val pluginConfigs = runBlocking { context.resolveConfigSecrets(config.config) }
+
         val scanStorages = ScanStorages(
             readers = listOf(scanResultStorage),
             writers = listOf(scanResultStorage),
@@ -57,7 +60,7 @@ class ScannerRunner(
             createMissingArchives = config.createMissingArchives ?: false,
             detectedLicenseMapping = config.detectedLicenseMappings ?: emptyMap(),
             ignorePatterns = config.ignorePatterns ?: emptyList(),
-            config = config.config?.mapValues { it.value.mapToOrt() }
+            config = pluginConfigs.mapValues { it.value.mapToOrt() }
         )
 
         val downloaderConfig = DownloaderConfiguration()

@@ -92,15 +92,15 @@ class ScannerWorkerTest : StringSpec({
             every { storeScannerRun(any()) } returns mockk()
         }
 
-        val runner = mockk<ScannerRunner> {
-            every { run(any(), any()) } returns mockk {
-                every { scanner } returns ScannerRun.EMPTY
-            }
-        }
-
         val context = mockk<WorkerContext>()
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(ORT_RUN_ID) } returns context
+        }
+
+        val runner = mockk<ScannerRunner> {
+            every { run(context, any(), any()) } returns mockk {
+                every { scanner } returns ScannerRun.EMPTY
+            }
         }
 
         val environmentService = mockk<EnvironmentService> {

@@ -24,6 +24,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -37,6 +38,7 @@ import org.ossreviewtoolkit.scanner.ScannerWrapper
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 
 class ScannerRunnerTest : WordSpec({
@@ -49,7 +51,7 @@ class ScannerRunnerTest : WordSpec({
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
 
-            val result = runner.run(OrtResult.EMPTY, ScannerJobConfiguration())
+            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration())
 
             val scannerRun = result.scanner.shouldNotBeNull()
             scannerRun.provenances shouldBe emptySet()
@@ -79,7 +81,7 @@ class ScannerRunnerTest : WordSpec({
                 ignorePatterns = ignorePatterns
             )
 
-            val result = runner.run(OrtResult.EMPTY, scannerConfig)
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig)
 
             result.scanner shouldNotBe null
 
@@ -88,7 +90,7 @@ class ScannerRunnerTest : WordSpec({
                 createMissingArchives = true,
                 detectedLicenseMapping = detectedLicenseMapping,
                 ignorePatterns = ignorePatterns,
-                config = null
+                config = emptyMap()
             )
         }
 
@@ -97,14 +99,18 @@ class ScannerRunnerTest : WordSpec({
             val licenseeFactory = mockScannerWrapperFactory("Licensee")
             mockScannerWrapperAll(listOf(scanCodeFactory, licenseeFactory))
 
+            val scanCodeSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
+            val scanCodeSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
             val scanCodeConfig = PluginConfiguration(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
-                secrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
+                secrets = scanCodeSecretRefs
             )
 
+            val licenseeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
+            val licenseeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
             val licenseeConfig = PluginConfiguration(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
-                secrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
+                secrets = licenseeSecretRefs
             )
 
             val jobConfig = ScannerJobConfiguration(
@@ -116,11 +122,16 @@ class ScannerRunnerTest : WordSpec({
                 )
             )
 
-            runner.run(OrtResult.EMPTY, jobConfig)
+            val resolvedPluginConfig = mapOf(
+                "ScanCode" to scanCodeConfig.copy(secrets = scanCodeSecrets),
+                "Licensee" to licenseeConfig.copy(secrets = licenseeSecrets)
+            )
+            val context = mockContext(jobConfig, resolvedPluginConfig)
+            runner.run(context, OrtResult.EMPTY, jobConfig)
 
             verify(exactly = 1) {
-                scanCodeFactory.create(scanCodeConfig.options, scanCodeConfig.secrets)
-                licenseeFactory.create(licenseeConfig.options, licenseeConfig.secrets)
+                scanCodeFactory.create(scanCodeConfig.options, scanCodeSecrets)
+                licenseeFactory.create(licenseeConfig.options, licenseeSecrets)
             }
         }
     }
@@ -149,3 +160,15 @@ private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory<*>>) {
         every { ScannerWrapper.ALL } returns scanners.associateByTo(sortedMapOf()) { it.type }
     }
 }
+
+/**
+ * Create a mock for the [WorkerContext] and prepare it to return the given [resolvedPluginConfig] when called to
+ * resolve the secrets in the plugin configuration of the given [jobConfig].
+ */
+private fun mockContext(
+    jobConfig: ScannerJobConfiguration = ScannerJobConfiguration(),
+    resolvedPluginConfig: Map<String, PluginConfiguration> = emptyMap()
+): WorkerContext =
+    mockk {
+        coEvery { resolveConfigSecrets(jobConfig.config) } returns resolvedPluginConfig
+    }

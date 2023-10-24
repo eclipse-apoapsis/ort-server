@@ -69,11 +69,13 @@ class ScannerWorker(
             Pair(scannerJob, ortResult)
         }
 
+        val context = contextFactory.createContext(scannerJob.ortRunId)
+
         runBlocking {
-            environmentService.generateNetRcFileForCurrentRun(contextFactory.createContext(scannerJob.ortRunId))
+            environmentService.generateNetRcFileForCurrentRun(context)
         }
 
-        val scannerRun = runner.run(ortResult, scannerJob.configuration).scanner
+        val scannerRun = runner.run(context, ortResult, scannerJob.configuration).scanner
             ?: throw ScannerException("ORT Scanner failed to create a result.")
 
         db.blockingQuery {
