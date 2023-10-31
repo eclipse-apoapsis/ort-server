@@ -51,16 +51,14 @@ fun ApplicationCall.numberParameter(name: String): Number? =
     }
 
 fun ConfigManager.createKeycloakClientConfiguration() =
-    with(getConfig("keycloak")) {
-        KeycloakClientConfiguration(
-            apiUrl = getString("apiUrl"),
-            clientId = getString("clientId"),
-            accessTokenUrl = getString("accessTokenUrl"),
-            apiUser = getString("apiUser"),
-            apiSecret = getSecret(Path("keycloakApiSecret")),
-            subjectClientId = getString("subjectClientId")
-        )
-    }
+    KeycloakClientConfiguration(
+        apiUrl = getString("keycloak.apiUrl"),
+        clientId = getString("keycloak.clientId"),
+        accessTokenUrl = getString("keycloak.accessTokenUrl"),
+        apiUser = getString("keycloak.apiUser"),
+        apiSecret = getSecret(Path("keycloak.apiSecret")),
+        subjectClientId = getString("keycloak.subjectClientId")
+    )
 
 /**
  * Return a [ListQueryParameters] object with the standard query parameters defined for this [ApplicationCall]. This
