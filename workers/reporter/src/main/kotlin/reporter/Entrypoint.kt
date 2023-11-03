@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.reporter
 
+import org.ossreviewtoolkit.server.workers.common.enableOrtStackTraces
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(::main::class.java)
@@ -26,5 +28,6 @@ private val logger = LoggerFactory.getLogger(::main::class.java)
 fun main() {
     logger.info("Starting ORT-Server Reporter endpoint.")
 
+    enableOrtStackTraces()
     ReporterComponent().start()
 }

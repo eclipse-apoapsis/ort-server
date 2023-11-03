@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import org.ossreviewtoolkit.server.workers.common.enableOrtStackTraces
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ScannerComponent::class.java)
@@ -30,5 +32,6 @@ private val logger = LoggerFactory.getLogger(ScannerComponent::class.java)
 fun main() {
     logger.info("Starting ORT-Server Scanner endpoint.")
 
+    enableOrtStackTraces()
     ScannerComponent().start()
 }

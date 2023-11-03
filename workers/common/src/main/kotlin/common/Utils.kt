@@ -17,21 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.evaluator
+package org.ossreviewtoolkit.server.workers.common
 
-import org.ossreviewtoolkit.server.workers.common.enableOrtStackTraces
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
+import org.ossreviewtoolkit.utils.ort.printStackTrace
 
 /**
- * This is the entry point of the Evaluator worker. It calls the Evaluator from ORT programmatically by
- * interfacing on its APIs.
+ * Set [printStackTrace] to true to enable printing stack traces in ORT code.
  */
-fun main() {
-    logger.info("Starting ORT-Server Evaluator endpoint.")
-
-    enableOrtStackTraces()
-    EvaluatorComponent().start()
+fun enableOrtStackTraces() {
+    printStackTrace = true
 }

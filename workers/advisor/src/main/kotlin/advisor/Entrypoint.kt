@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.advisor
 
+import org.ossreviewtoolkit.server.workers.common.enableOrtStackTraces
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
@@ -30,5 +32,6 @@ private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
 fun main() {
     logger.info("Starting ORT-Server Advisor endpoint.")
 
+    enableOrtStackTraces()
     AdvisorComponent().start()
 }
