@@ -33,11 +33,8 @@ versionCatalogUpdatePlugin = "0.8.0"
 versionsPlugin = "0.47.0"
 
 # Gradle dependencies
-activeMQArtemis = "2.30.0"
-curator = "5.5.0"
 exposed = "0.44.0"
 flyway = "9.22.2"
-hawtio = "2.17.6"
 hikari = "5.0.1"
 jackson = "2.15.2"
 jsonSchemaSerialization = "0.6.6"
@@ -77,15 +74,12 @@ versionCatalogUpdate = { id = "nl.littlerobots.version-catalog-update", version.
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 
 [libraries]
-activeMQArtemis = { module = "org.apache.activemq:apache-artemis", version.ref = "activeMQArtemis" }
-curatorClient = { module = "org.apache.curator:curator-client", version.ref = "curator" }
 exposedCore = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposedDao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposedJson = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 exposedKotlinDatetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 flywayCore = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-hawtio = { module = "io.hawt:hawtio-war", version.ref = "hawtio" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-serialization", version.ref = "jsonSchemaSerialization" }

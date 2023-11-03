@@ -32,12 +32,6 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":transport:transport-spi"))
 
-    implementation(libs.activeMQArtemis)
-    // Force the latest version of curator-client, which fixes multiple security vulnerabilities by using a newer log4j
-    // version.
-    implementation(libs.curatorClient)
-    // Force the latest version of hawtio, which fixes security vulnerabilities in org.json:json.
-    implementation(libs.hawtio)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.qpidJmsClient)
 
