@@ -151,6 +151,7 @@ private fun mockScannerWrapperFactory(scannerName: String) =
                 every { name } returns scannerName
             }
             every { name } returns scannerName
+            every { getVersion(any()) } returns "1.0.0"
         }
     }
 

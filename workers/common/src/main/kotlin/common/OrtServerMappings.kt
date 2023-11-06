@@ -71,8 +71,6 @@ import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData as OrtVcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType as OrtVcsType
-import org.ossreviewtoolkit.model.Vulnerability as OrtVulnerability
-import org.ossreviewtoolkit.model.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.ClearlyDefinedStorageConfiguration as OrtClearlyDefinedStorageConfiguration
@@ -111,6 +109,8 @@ import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360St
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
+import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
+import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.OrtRun
