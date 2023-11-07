@@ -92,6 +92,7 @@ internal class KubernetesMessageSender<T : Any>(
                 .withNewTemplate()
                     .withNewMetadata()
                         .withAnnotations<String, String>(config.annotations)
+                        .withLabels<String, String>(labels)
                     .endMetadata()
                     .withNewSpec()
                         .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(config.userId).build())

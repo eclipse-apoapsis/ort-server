@@ -170,15 +170,28 @@ class KubernetesMessageSenderTest : StringSpec({
         val secrets = volumes.mapNotNull { it.secret?.secretName }
         secrets shouldContainExactly listOf("secretService", "topSecret")
 
-        val labels = job.captured.metadata?.labels.orEmpty()
-        val traceIdFromLabels = (0..3).fold("") { id, idx ->
-            id + labels.getValue("trace-id-$idx")
-        }
-        traceIdFromLabels shouldBe traceId
-
-        labels["run-id"] shouldBe message.header.ortRunId.toString()
+        verifyLabels(
+            actualLabels = job.captured.metadata?.labels.orEmpty(),
+            expectedTraceId = traceId,
+            expectedRunId = message.header.ortRunId
+        )
 
         val jobAnnotations = job.captured.spec?.template?.metadata?.annotations.orEmpty()
         jobAnnotations shouldBe annotations
+
+        verifyLabels(
+            actualLabels = job.captured.spec?.template?.metadata?.labels.orEmpty(),
+            expectedTraceId = traceId,
+            expectedRunId = message.header.ortRunId
+        )
     }
 })
+
+private fun verifyLabels(actualLabels: Map<String, String>, expectedTraceId: String, expectedRunId: Long) {
+    val traceIdFromLabels = (0..3).fold("") { id, idx ->
+        id + actualLabels.getValue("trace-id-$idx")
+    }
+    traceIdFromLabels shouldBe expectedTraceId
+
+    actualLabels["run-id"] shouldBe expectedRunId.toString()
+}
