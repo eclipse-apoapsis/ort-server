@@ -89,9 +89,21 @@ class ScannerRunnerTest : WordSpec({
                 skipConcluded = true,
                 createMissingArchives = true,
                 detectedLicenseMapping = detectedLicenseMapping,
-                ignorePatterns = ignorePatterns,
-                config = emptyMap()
+                ignorePatterns = ignorePatterns
             )
+        }
+
+        "scanner configuration should use default value" {
+            val factory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(factory))
+
+            val scannerConfig = ScannerJobConfiguration()
+
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig)
+
+            result.scanner shouldNotBe null
+
+            result.scanner?.config shouldBe ScannerConfiguration()
         }
 
         "create the configured scanners with the correct options and secrets" {

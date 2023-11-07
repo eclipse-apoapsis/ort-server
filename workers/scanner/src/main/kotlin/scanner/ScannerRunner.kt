@@ -55,12 +55,15 @@ class ScannerRunner(
             nestedProvenanceStorage = nestedProvenanceStorage
         )
 
+        val defaultScannerConfig = ScannerConfiguration()
         val scannerConfig = ScannerConfiguration(
-            skipConcluded = config.skipConcluded ?: false,
-            createMissingArchives = config.createMissingArchives ?: false,
-            detectedLicenseMapping = config.detectedLicenseMappings ?: emptyMap(),
-            ignorePatterns = config.ignorePatterns ?: emptyList(),
-            config = pluginConfigs.mapValues { it.value.mapToOrt() }
+            skipConcluded = config.skipConcluded ?: defaultScannerConfig.skipConcluded,
+            createMissingArchives = config.createMissingArchives ?: defaultScannerConfig.createMissingArchives,
+            detectedLicenseMapping = config.detectedLicenseMappings ?: defaultScannerConfig.detectedLicenseMapping,
+            ignorePatterns = config.ignorePatterns.takeUnless { it.isNullOrEmpty() }
+                ?: defaultScannerConfig.ignorePatterns,
+            config = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isNullOrEmpty() }
+                ?: defaultScannerConfig.config
         )
 
         val downloaderConfig = DownloaderConfiguration()
