@@ -39,6 +39,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.transactionManager
@@ -229,3 +231,11 @@ typealias ConditionBuilder = SqlExpressionBuilder.() -> Op<Boolean>
  */
 fun <T : LongEntity> LongEntityClass<T>.findSingle(condition: ConditionBuilder): T =
     find(condition).singleOrNull() ?: throw EntityNotFoundException(EntityID(0L, table), this)
+
+/**
+ * Map the given [modelObjects] collection to a [SizedIterable] of data objects using the given [mapper] function.
+ * This function should be used to populate intermediate tables used for the implementation of m:n relations. It
+ * makes sure that the result does not contain any duplicates.
+ */
+fun <M, D> mapAndDeduplicate(modelObjects: Collection<M>?, mapper: (M) -> D): SizedIterable<D> =
+    SizedCollection(modelObjects?.mapTo(mutableSetOf(), mapper).orEmpty())

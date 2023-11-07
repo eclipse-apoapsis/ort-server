@@ -23,8 +23,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.SizedCollection
 
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
 import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
@@ -58,9 +58,10 @@ class PackageConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
                 sourceArtifactUrl = packageConfiguration.sourceArtifactUrl
                 identifier = IdentifierDao.getOrPut(packageConfiguration.id)
                 vcsMatcher = packageConfiguration.vcs?.let { VcsMatcherDao.getOrPut(it) }
-                pathExcludes = SizedCollection(packageConfiguration.pathExcludes.map(PathExcludeDao::getOrPut))
-                licenseFindingCurations = SizedCollection(
-                    packageConfiguration.licenseFindingCurations.map(LicenseFindingCurationDao::getOrPut)
+                pathExcludes = mapAndDeduplicate(packageConfiguration.pathExcludes, PathExcludeDao::getOrPut)
+                licenseFindingCurations = mapAndDeduplicate(
+                    packageConfiguration.licenseFindingCurations,
+                    LicenseFindingCurationDao::getOrPut
                 )
             }
     }

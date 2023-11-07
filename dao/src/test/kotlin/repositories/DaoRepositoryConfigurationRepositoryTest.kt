@@ -73,6 +73,34 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
         }
+
+        "handle duplicates in license finding curations" {
+            val packageConfigurationWithDuplicates = packageConfiguration.copy(
+                licenseFindingCurations = listOf(licenseFindingCuration, licenseFindingCuration)
+            )
+            val config = repositoryConfig.copy(packageConfigurations = listOf(packageConfigurationWithDuplicates))
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(ortRunId, config)
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
+        }
+
+        "handle duplicates in path excludes" {
+            val packageConfigurationWithDuplicates = packageConfiguration.copy(
+                pathExcludes = listOf(pathExclude, pathExclude)
+            )
+            val config = repositoryConfig.copy(packageConfigurations = listOf(packageConfigurationWithDuplicates))
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(ortRunId, config)
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
+        }
     }
 
     "get" should {

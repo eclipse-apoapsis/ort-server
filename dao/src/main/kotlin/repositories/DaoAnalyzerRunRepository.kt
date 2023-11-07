@@ -24,11 +24,11 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
@@ -113,7 +113,9 @@ private fun createAnalyzerConfiguration(
     analyzerConfiguration: AnalyzerConfiguration
 ): AnalyzerConfigurationDao {
     val packageManagerConfigurations =
-        analyzerConfiguration.packageManagers?.map { (packageManager, packageManagerConfiguration) ->
+        mapAndDeduplicate(
+            analyzerConfiguration.packageManagers?.entries
+        ) { (packageManager, packageManagerConfiguration) ->
             val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
                 name = packageManager
                 mustRunAfter = packageManagerConfiguration.mustRunAfter
@@ -129,11 +131,11 @@ private fun createAnalyzerConfiguration(
             }
 
             packageManagerConfigurationDao
-        }.orEmpty()
+        }
 
     val analyzerConfigurationDao = AnalyzerConfigurationDao.new {
         this.analyzerRun = analyzerRun
-        this.packageManagerConfigurations = SizedCollection(packageManagerConfigurations)
+        this.packageManagerConfigurations = packageManagerConfigurations
         allowDynamicVersions = analyzerConfiguration.allowDynamicVersions
         enabledPackageManagers = analyzerConfiguration.enabledPackageManagers
         disabledPackageManagers = analyzerConfiguration.disabledPackageManagers

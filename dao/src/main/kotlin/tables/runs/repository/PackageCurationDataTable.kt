@@ -23,9 +23,9 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
@@ -86,13 +86,11 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                 this.binaryArtifact = data.binaryArtifact?.let { RemoteArtifactDao.getOrPut(it) }
                 this.sourceArtifact = data.sourceArtifact?.let { RemoteArtifactDao.getOrPut(it) }
                 this.vcsInfoCurationData = data.vcs?.let { VcsInfoCurationDataDao.getOrPut(it) }
-                this.authors = SizedCollection(data.authors?.map { AuthorDao.getOrPut(it) }.orEmpty())
+                this.authors = mapAndDeduplicate(data.authors, AuthorDao::getOrPut)
                 this.hasAuthors = data.authors != null
-                this.declaredLicenseMappings = SizedCollection(
-                    data.declaredLicenseMapping.map {
-                        DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
-                    }
-                )
+                this.declaredLicenseMappings = mapAndDeduplicate(data.declaredLicenseMapping.entries) {
+                    DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
+                }
             }
     }
 

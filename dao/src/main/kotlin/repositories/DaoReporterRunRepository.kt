@@ -22,10 +22,10 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.ReporterJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.reporter.ReportDao
 import org.ossreviewtoolkit.server.dao.tables.runs.reporter.ReporterRunDao
@@ -44,13 +44,13 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
         endTime: Instant,
         reports: List<Report>
     ): ReporterRun = db.blockingQuery {
-        val reportsList = reports.map { ReportDao.new { filename = it.filename } }
+        val reportsList = mapAndDeduplicate(reports) { ReportDao.new { filename = it.filename } }
 
         ReporterRunDao.new {
             this.reporterJob = ReporterJobDao[reporterJobId]
             this.startTime = startTime
             this.endTime = endTime
-            this.reports = SizedCollection(reportsList)
+            this.reports = reportsList
         }.mapToModel()
     }
 

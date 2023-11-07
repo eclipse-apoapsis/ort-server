@@ -23,9 +23,9 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
 import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
@@ -58,28 +58,29 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         fun getOrPut(config: RepositoryAnalyzerConfiguration): RepositoryAnalyzerConfigurationDao =
             findByRepositoryAnalyzerConfiguration(config) ?: new {
-                val pkgManagerConfig = config.packageManagers?.map { (packageManager, packageManagerConfiguration) ->
-                    val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
-                        name = packageManager
-                        mustRunAfter = packageManagerConfiguration.mustRunAfter
-                        hasOptions = (packageManagerConfiguration.options != null)
-                    }
-
-                    packageManagerConfiguration.options?.forEach { (name, value) ->
-                        PackageManagerConfigurationOptionDao.new {
-                            this.packageManagerConfiguration = packageManagerConfigurationDao
-                            this.name = name
-                            this.value = value
+                val pkgManagerConfig = mapAndDeduplicate(config.packageManagers?.entries) {
+                    (packageManager, packageManagerConfiguration) ->
+                        val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
+                            name = packageManager
+                            mustRunAfter = packageManagerConfiguration.mustRunAfter
+                            hasOptions = (packageManagerConfiguration.options != null)
                         }
-                    }
 
-                    packageManagerConfigurationDao
-                }.orEmpty()
+                        packageManagerConfiguration.options?.forEach { (name, value) ->
+                            PackageManagerConfigurationOptionDao.new {
+                                this.packageManagerConfiguration = packageManagerConfigurationDao
+                                this.name = name
+                                this.value = value
+                            }
+                        }
+
+                        packageManagerConfigurationDao
+                    }
 
                 allowDynamicVersions = config.allowDynamicVersions
                 enabledPackageManagers = config.enabledPackageManagers
                 disabledPackageManagers = config.disabledPackageManagers
-                this.packageManagerConfigurations = SizedCollection(pkgManagerConfig)
+                this.packageManagerConfigurations = pkgManagerConfig
                 skipExcluded = config.skipExcluded
             }
     }

@@ -22,10 +22,10 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.EvaluatorRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.EvaluatorRunsTable
@@ -44,13 +44,13 @@ class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunReposito
         endTime: Instant,
         violations: List<OrtRuleViolation>
     ): EvaluatorRun = db.blockingQuery {
-        val ruleViolations = violations.map(RuleViolationDao::getOrPut)
+        val ruleViolations = mapAndDeduplicate(violations, RuleViolationDao::getOrPut)
 
         EvaluatorRunDao.new {
             this.evaluatorJob = EvaluatorJobDao[evaluatorJobId]
             this.startTime = startTime
             this.endTime = endTime
-            this.violations = SizedCollection(ruleViolations)
+            this.violations = ruleViolations
         }.mapToModel()
     }
 

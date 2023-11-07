@@ -20,10 +20,10 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.IssueResolutionDao
 import org.ossreviewtoolkit.server.dao.tables.runs.repository.LicenseFindingCurationDao
@@ -70,21 +70,21 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
             this.repositoryAnalyzerConfiguration = analyzerConfig?.let {
                 RepositoryAnalyzerConfigurationDao.getOrPut(it)
             }
-            this.pathExcludes = SizedCollection(excludes.paths.map(PathExcludeDao::getOrPut))
-            this.scopeExcludes = SizedCollection(excludes.scopes.map(ScopeExcludeDao::getOrPut))
-            this.issueResolutions = SizedCollection(resolutions.issues.map(IssueResolutionDao::getOrPut))
+            this.pathExcludes = mapAndDeduplicate(excludes.paths, PathExcludeDao::getOrPut)
+            this.scopeExcludes = mapAndDeduplicate(excludes.scopes, ScopeExcludeDao::getOrPut)
+            this.issueResolutions = mapAndDeduplicate(resolutions.issues, IssueResolutionDao::getOrPut)
             this.ruleViolationResolutions =
-                SizedCollection(resolutions.ruleViolations.map(RuleViolationResolutionDao::getOrPut))
+                mapAndDeduplicate(resolutions.ruleViolations, RuleViolationResolutionDao::getOrPut)
             this.vulnerabilityResolutions =
-                SizedCollection(resolutions.vulnerabilities.map(VulnerabilityResolutionDao::getOrPut))
-            this.curations = SizedCollection(curations.packages.map { createPackageCuration(it) })
+                mapAndDeduplicate(resolutions.vulnerabilities, VulnerabilityResolutionDao::getOrPut)
+            this.curations = mapAndDeduplicate(curations.packages, ::createPackageCuration)
             this.licenseFindingCurations =
-                SizedCollection(curations.licenseFindings.map(LicenseFindingCurationDao::getOrPut))
-            this.packageConfigurations = SizedCollection(packageConfigurations.map(PackageConfigurationDao::getOrPut))
+                mapAndDeduplicate(curations.licenseFindings, LicenseFindingCurationDao::getOrPut)
+            this.packageConfigurations = mapAndDeduplicate(packageConfigurations, PackageConfigurationDao::getOrPut)
             this.spdxLicenseChoices =
-                SizedCollection(licenseChoices.repositoryLicenseChoices.map(SpdxLicenseChoiceDao::getOrPut))
+                mapAndDeduplicate(licenseChoices.repositoryLicenseChoices, SpdxLicenseChoiceDao::getOrPut)
             this.packageLicenseChoices =
-                SizedCollection(licenseChoices.packageLicenseChoices.map { createPackageLicenseChoice(it) })
+                mapAndDeduplicate(licenseChoices.packageLicenseChoices, ::createPackageLicenseChoice)
         }.mapToModel()
     }
 
@@ -102,5 +102,5 @@ private fun createPackageCuration(packageCuration: PackageCuration): PackageCura
 private fun createPackageLicenseChoice(choice: PackageLicenseChoice): PackageLicenseChoiceDao =
     PackageLicenseChoiceDao.new {
         identifier = IdentifierDao.getOrPut(choice.identifier)
-        licenseChoices = SizedCollection(choice.licenseChoices.map(SpdxLicenseChoiceDao::getOrPut))
+        licenseChoices = mapAndDeduplicate(choice.licenseChoices, SpdxLicenseChoiceDao::getOrPut)
     }

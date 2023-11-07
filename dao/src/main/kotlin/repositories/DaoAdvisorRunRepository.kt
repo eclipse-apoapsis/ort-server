@@ -22,11 +22,11 @@ package org.ossreviewtoolkit.server.dao.repositories
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorConfigurationOptionDao
@@ -81,18 +81,18 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
             }
 
             results.forEach { result ->
-                val issues = result.issues.mapTo(mutableSetOf(), OrtIssueDao::getOrPut)
-                val defects = result.defects.map(DefectDao::getOrPut)
-                val vulnerabilities = result.vulnerabilities.map(VulnerabilityDao::getOrPut)
+                val issues = mapAndDeduplicate(result.issues, OrtIssueDao::getOrPut)
+                val defects = mapAndDeduplicate(result.defects, DefectDao::getOrPut)
+                val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {
                     this.advisorRunIdentifier = advisorRunIdentifierDao
                     this.advisorName = result.advisorName
                     this.capabilities = result.capabilities
                     this.startTime = result.startTime
                     this.endTime = result.endTime
-                    this.issues = SizedCollection(issues)
-                    this.defects = SizedCollection(defects)
-                    this.vulnerabilities = SizedCollection(vulnerabilities)
+                    this.issues = issues
+                    this.defects = defects
+                    this.vulnerabilities = vulnerabilities
                 }
             }
         }

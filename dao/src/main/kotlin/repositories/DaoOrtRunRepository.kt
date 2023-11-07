@@ -30,6 +30,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.blockingQueryCatching
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.LabelDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
 import org.ossreviewtoolkit.server.dao.tables.OrtRunsLabelsTable
@@ -69,8 +70,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.jobConfigs = jobConfigs
             this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
-            this.labels = SizedCollection(labels.map { LabelDao.getOrPut(it.key, it.value) })
-            this.issues = SizedCollection(issues.map { OrtIssueDao.getOrPut(it) })
+            this.labels = mapAndDeduplicate(labels.entries) { LabelDao.getOrPut(it.key, it.value) }
+            this.issues = mapAndDeduplicate(issues, OrtIssueDao::getOrPut)
         }.mapToModel()
     }
 
@@ -106,7 +107,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
 
         issues.ifPresent { issues ->
-            ortRun.issues = SizedCollection(ortRun.issues + issues.map { OrtIssueDao.getOrPut(it) })
+            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, OrtIssueDao::getOrPut))
         }
 
         OrtRunDao[id].mapToModel()

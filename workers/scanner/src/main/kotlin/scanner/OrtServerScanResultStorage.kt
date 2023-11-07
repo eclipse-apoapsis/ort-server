@@ -23,7 +23,6 @@ import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
@@ -39,6 +38,7 @@ import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.AdditionalScanResultData
 import org.ossreviewtoolkit.server.dao.tables.CopyrightFindingDao
 import org.ossreviewtoolkit.server.dao.tables.LicenseFindingDao
@@ -109,7 +109,10 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                     }
                 }
 
-                val issues = scanResult.summary.issues.map(Issue::mapToModel).map(OrtIssueDao::getOrPut)
+                val issues = mapAndDeduplicate(
+                    scanResult.summary.issues.map(Issue::mapToModel),
+                    OrtIssueDao::getOrPut
+                )
 
                 this.scannerName = scanResult.scanner.name
                 this.scannerVersion = scanResult.scanner.version
@@ -118,7 +121,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                 this.scanSummary = ScanSummaryDao.new {
                     this.startTime = scanResult.summary.startTime.toKotlinInstant()
                     this.endTime = scanResult.summary.endTime.toKotlinInstant()
-                    this.issues = SizedCollection(issues)
+                    this.issues = issues
                 }
 
                 val summary = this.scanSummary

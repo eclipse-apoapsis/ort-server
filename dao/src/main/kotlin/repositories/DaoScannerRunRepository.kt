@@ -23,11 +23,11 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
+import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
@@ -206,7 +206,7 @@ private fun createScannerConfiguration(
     scannerRunDao: ScannerRunDao,
     scannerConfiguration: ScannerConfiguration
 ): ScannerConfigurationDao {
-    val detectedLicenseMappings = scannerConfiguration.detectedLicenseMappings.map {
+    val detectedLicenseMappings = mapAndDeduplicate(scannerConfiguration.detectedLicenseMappings.entries) {
         DetectedLicenseMappingDao.getOrPut(it.toPair())
     }
 
@@ -217,7 +217,7 @@ private fun createScannerConfiguration(
         this.ignorePatterns = scannerConfiguration.ignorePatterns
         this.storageReaders = scannerConfiguration.storageReaders
         this.storageWriters = scannerConfiguration.storageWriters
-        this.detectedLicenseMappings = SizedCollection(detectedLicenseMappings)
+        this.detectedLicenseMappings = detectedLicenseMappings
     }
 
     scannerConfiguration.config.forEach { (scanner, pluginConfig) ->
