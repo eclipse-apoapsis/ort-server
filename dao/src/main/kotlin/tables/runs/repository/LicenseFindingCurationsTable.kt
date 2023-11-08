@@ -27,6 +27,8 @@ import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
 
+import org.slf4j.LoggerFactory
+
 /**
  * A table to represent a license finding curation, which is part of a
  * [PackageConfiguration][PackageConfigurationsTable] and [RepositoryConfiguration][RepositoryConfigurationsTable].
@@ -43,6 +45,8 @@ object LicenseFindingCurationsTable : LongIdTable("license_finding_curations") {
 
 class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<LicenseFindingCurationDao>(LicenseFindingCurationsTable) {
+        private val logger = LoggerFactory.getLogger(LicenseFindingCurationDao::class.java)
+
         fun findByLicenseFindingCuration(licenseFindingCuration: LicenseFindingCuration): LicenseFindingCurationDao? =
             find {
                 with(LicenseFindingCurationsTable) {
@@ -72,7 +76,12 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
          * an array of integers.
          */
         private fun convertStartLines(lines: String?): List<Int>? =
-            lines?.takeUnless { it.isEmpty() }?.split(",")?.map(String::toInt)
+            lines?.takeUnless { it.isEmpty() }?.split(",")?.mapNotNull { line ->
+                runCatching {
+                    line.toInt()
+                }.onFailure { logger.error("Invalid content of 'startLines' column: '$lines'.", it) }
+                    .getOrNull()
+            }
     }
 
     var path by LicenseFindingCurationsTable.path
