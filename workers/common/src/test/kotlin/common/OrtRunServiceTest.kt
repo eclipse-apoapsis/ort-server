@@ -43,6 +43,8 @@ import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
+import org.ossreviewtoolkit.model.config.LicenseFindingCuration
+import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
 import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
@@ -86,6 +88,7 @@ import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.gibibytes
+import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 class OrtRunServiceTest : WordSpec({
@@ -560,11 +563,28 @@ class OrtRunServiceTest : WordSpec({
                 ortRunDao.vcsId = vcsInfo.id
                 ortRunDao.vcsProcessedId = processedVcsInfo.id
 
+                val licenseFindingCuration = LicenseFindingCuration(
+                    path = "a/path",
+                    lineCount = 5,
+                    detectedLicense = SpdxExpression.parse("LicenseRef-scancode-free-unknown"),
+                    concludedLicense = SpdxExpression.parse("BSD-3-Clause"),
+                    reason = LicenseFindingCurationReason.INCORRECT,
+                    comment = "Test license finding curation"
+                )
+                val packageConfiguration = OrtPackageConfiguration(
+                    id = OrtIdentifier("type", "namespace", "name", "version"),
+                    sourceArtifactUrl = "https://example.org/source.artifact.url",
+                    licenseFindingCurations = listOf(licenseFindingCuration)
+                )
+                val repositoryConfig = OrtTestData.repository.config.copy(
+                    packageConfigurations = listOf(packageConfiguration)
+                )
+
                 Repository(
                     vcsInfo.mapToModel().mapToOrt(),
                     processedVcsInfo.mapToModel().mapToOrt(),
                     mapOf(nestedVcsPath to nestedVcsInfo.mapToModel().mapToOrt()),
-                    OrtTestData.repository.config
+                    repositoryConfig
                 )
             }
 

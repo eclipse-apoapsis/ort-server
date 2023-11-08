@@ -66,11 +66,18 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
                 reason = licenseFindingCuration.reason
                 comment = licenseFindingCuration.comment
             }
+
+        /**
+         * Convert the given [lines] string from the database to the logic representation used by the model, which is
+         * an array of integers.
+         */
+        private fun convertStartLines(lines: String?): List<Int>? =
+            lines?.takeUnless { it.isEmpty() }?.split(",")?.map(String::toInt)
     }
 
     var path by LicenseFindingCurationsTable.path
     var startLines: List<Int>? by LicenseFindingCurationsTable.startLines
-        .transform({ it?.joinToString(",") }, { it?.split(",")?.map(String::toInt) })
+        .transform({ it?.joinToString(",") }, ::convertStartLines)
     var lineCount by LicenseFindingCurationsTable.lineCount
     var detectedLicense by LicenseFindingCurationsTable.detectedLicense
     var concludedLicense by LicenseFindingCurationsTable.concludedLicense
