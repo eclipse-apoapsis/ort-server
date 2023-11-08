@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.workers.common.OrtTestData
+import org.ossreviewtoolkit.utils.common.unpack
 
 class OrtResultReporterTest : WordSpec({
     "The OrtResultReporter" should {
@@ -56,11 +57,45 @@ class OrtResultReporterTest : WordSpec({
 
             val input = ReporterInput(ortResult = ortResult)
 
-            val reportFiles = reporter.generateReport(input, tempdir())
+            val reportFiles = reporter.generateReport(
+                input,
+                tempdir(),
+                mapOf(OrtResultReporter.COMPRESSED_PROPERTY to "false")
+            )
             reportFiles should haveSize(1)
 
             val ortResultFile = reportFiles.single()
             ortResultFile.name shouldBe "ort-result.yml"
+            val actualResult = ortResultFile.readValue<OrtResult>()
+            actualResult shouldBe expectedOrtResult
+        }
+
+        "create a compressed ORT result file" {
+            val reporter = OrtResultReporter()
+
+            val advisorRun = OrtTestData.advisorRun.copy(
+                config = OrtTestData.advisorConfiguration.copy(config = null)
+            )
+            val ortResult = OrtTestData.result.copy(advisor = advisorRun)
+
+            // Remove the secrets from the scanner configuration as they will not be serialized.
+            val scannerRun = OrtTestData.scannerRun.copy(
+                config = OrtTestData.scannerConfiguration.copy(
+                    config = OrtTestData.scannerConfiguration.config?.mapValues { it.value.copy(secrets = emptyMap()) }
+                )
+            )
+            val expectedOrtResult = ortResult.copy(scanner = scannerRun)
+
+            val input = ReporterInput(ortResult = ortResult)
+
+            val outputDir = tempdir()
+            val reportFiles = reporter.generateReport(input, outputDir)
+            reportFiles should haveSize(1)
+
+            val archiveFile = reportFiles.single()
+            archiveFile.unpack(outputDir)
+
+            val ortResultFile = outputDir.resolve("ort-result.yml")
             val actualResult = ortResultFile.readValue<OrtResult>()
             actualResult shouldBe expectedOrtResult
         }

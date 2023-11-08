@@ -24,13 +24,41 @@ import java.io.File
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
+import org.ossreviewtoolkit.utils.common.packZip
 
 class OrtResultReporter : Reporter {
+    companion object {
+        /**
+         * Name of the property that enables compression of the generated file. If set to *true* (which is the
+         * default), a Zip archive is generated which contains the ORT result file.
+         */
+        const val COMPRESSED_PROPERTY = "compressed"
+
+        /** The name of the file with the result. */
+        private const val RESULT_FILE_NAME = "ort-result.yml"
+
+        /** The name of the archive file containing the compressed result. */
+        private const val ARCHIVE_FILE_NAME = "ort-result.zip"
+    }
+
     override val type = "OrtResult"
 
     override fun generateReport(input: ReporterInput, outputDir: File, options: Map<String, String>): List<File> {
-        val outputFile = outputDir.resolve("ort-result.yml")
+        val compressed = options.getOrDefault(COMPRESSED_PROPERTY, "true").toBooleanStrict()
+
+        val targetDir = outputDir.resolve("ort-result")
+        targetDir.mkdir()
+        val outputFile = targetDir.resolve(RESULT_FILE_NAME)
         outputFile.writeValue(input.ortResult)
-        return listOf(outputFile)
+
+        val reportFile = if (compressed) {
+            val archiveFile = outputDir.resolve(ARCHIVE_FILE_NAME)
+            targetDir.packZip(archiveFile)
+            archiveFile
+        } else {
+            outputFile
+        }
+
+        return listOf(reportFile)
     }
 }
