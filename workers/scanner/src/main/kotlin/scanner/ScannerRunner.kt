@@ -46,10 +46,15 @@ class ScannerRunner(
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
-    fun run(context: WorkerContext, ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
+    fun run(
+        context: WorkerContext,
+        ortResult: OrtResult,
+        config: ScannerJobConfiguration,
+        scannerRunId: Long
+    ): OrtResult {
         val pluginConfigs = runBlocking { context.resolveConfigSecrets(config.config) }
 
-        val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db)
+        val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId)
         val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db)
 
         val scanStorages = ScanStorages(

@@ -19,11 +19,14 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Identifier
@@ -38,35 +41,62 @@ import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProvenanceStorage {
+/**
+ * An ORT Server specific implementation of the `PackageProvenanceStorage`. Read and put package provenances are
+ * associated to the scanner run with the provided [scannerRunId].
+ */
+class OrtServerPackageProvenanceStorage(private val db: Database, private val scannerRunId: Long) :
+    PackageProvenanceStorage {
     override fun readProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact
     ): PackageProvenanceResolutionResult? = db.blockingQuery {
-        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
-        val sourceArtifactDao = RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel())
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@blockingQuery null
+        val sourceArtifactDao =
+            RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel()) ?: return@blockingQuery null
 
-        PackageProvenanceDao.find(
-            PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
-                    (PackageProvenancesTable.artifactId eq sourceArtifactDao?.id?.value)
-        ).singleOrNull()?.mapToOrt()
+        val provenanceDao = getLatestProvenance(
+            identifierId = identifierDao.id.value,
+            condition = PackageProvenancesTable.artifactId eq sourceArtifactDao.id.value
+        )
+
+        if (isAcceptedResult(provenanceDao)) {
+            associateProvenanceWithScannerRun(provenanceDao)
+        }
+
+        provenanceDao?.mapToOrt()
     }
 
     override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = db.blockingQuery {
-        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
-        val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel())
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@blockingQuery null
+        val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel()) ?: return@blockingQuery null
 
-        PackageProvenanceDao.find(
-            PackageProvenancesTable.identifierId eq identifierDao?.id?.value and
-                    (PackageProvenancesTable.vcsId eq vcsInfoDao?.id?.value)
-        ).singleOrNull()?.mapToOrt()
+        val provenanceDao = getLatestProvenance(
+            identifierId = identifierDao.id.value,
+            condition = PackageProvenancesTable.vcsId eq vcsInfoDao.id.value
+        )
+
+        if (isAcceptedResult(provenanceDao)) {
+            associateProvenanceWithScannerRun(provenanceDao)
+        }
+
+        provenanceDao?.mapToOrt()
     }
+
+    /**
+     * Return the latest [PackageProvenanceDao] that matches the provided [identifierId] and [condition], or nul if
+     * there is no match.
+     */
+    private fun getLatestProvenance(identifierId: Long?, condition: Op<Boolean>) =
+        PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierId and condition)
+            .orderBy(PackageProvenancesTable.id to SortOrder.DESC).limit(1).singleOrNull()
 
     override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = db.blockingQuery {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
@@ -95,19 +125,15 @@ class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProve
                     hashAlgorithm = sourceArtifact.hash.algorithm.toString()
                 }
 
-            PackageProvenancesTable.deleteWhere {
-                identifierId eq identifierDao.id.value and
-                        (artifactId.isNotNull()) and
-                        (artifactId eq artifactDao.id.value)
-            }
-
-            PackageProvenanceDao.new {
+            val provenanceDao = PackageProvenanceDao.new {
                 identifier = identifierDao
                 artifact = artifactDao
                 if (result is UnresolvedPackageProvenance) {
                     errorMessage = result.message
                 }
             }
+
+            associateProvenanceWithScannerRun(provenanceDao)
         }
     }
 
@@ -131,13 +157,7 @@ class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProve
                 path = vcs.path
             }
 
-            PackageProvenancesTable.deleteWhere {
-                identifierId eq identifierDao.id.value and
-                        (vcsId.isNotNull()) and
-                        (vcsId eq vcsDao.id.value)
-            }
-
-            PackageProvenanceDao.new {
+            val provenanceDao = PackageProvenanceDao.new {
                 identifier = identifierDao
                 this.vcs = vcsDao
                 if (result is ResolvedRepositoryProvenance) {
@@ -148,7 +168,16 @@ class OrtServerPackageProvenanceStorage(private val db: Database) : PackageProve
                     this.errorMessage = result.message
                 }
             }
+
+            associateProvenanceWithScannerRun(provenanceDao)
         }
+    }
+
+    private fun associateProvenanceWithScannerRun(provenanceDao: PackageProvenanceDao) {
+        ScannerRunsPackageProvenancesTable.insertIfNotExists(
+            scannerRunId = scannerRunId,
+            packageProvenanceId = provenanceDao.id.value
+        )
     }
 }
 
@@ -175,4 +204,23 @@ fun PackageProvenanceDao.mapToOrt(): PackageProvenanceResolutionResult? = when {
     }
 
     else -> null
+}
+
+/**
+ * Return `true` if ORT would accept the result, return `false` if ORT would re-attempt the provenance
+ * resolution.
+ */
+@OptIn(ExperimentalContracts::class)
+private fun isAcceptedResult(provenanceDao: PackageProvenanceDao?): Boolean {
+    contract {
+        returns(true) implies (provenanceDao != null)
+    }
+
+    val result = provenanceDao?.mapToOrt()
+    return when {
+        result == null -> false
+        result is UnresolvedPackageProvenance -> false
+        result is ResolvedRepositoryProvenance && !result.isFixedRevision -> false
+        else -> true
+    }
 }

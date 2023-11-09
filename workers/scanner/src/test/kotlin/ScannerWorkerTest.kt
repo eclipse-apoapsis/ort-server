@@ -101,7 +101,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val runner = mockk<ScannerRunner> {
-            every { run(context, any(), any()) } returns mockk {
+            every { run(context, any(), any(), any()) } returns mockk {
                 every { scanner } returns ScannerRun.EMPTY
             }
         }

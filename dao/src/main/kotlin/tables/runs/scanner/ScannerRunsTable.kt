@@ -27,6 +27,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobsTable
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
@@ -53,6 +54,8 @@ class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var endTime by ScannerRunsTable.endTime.transform({ it?.toDatabasePrecision() }, { it })
 
     val config by ScannerConfigurationDao optionalBackReferencedOn ScannerConfigurationsTable.scannerRunId
+
+    var packageProvenances by PackageProvenanceDao via ScannerRunsPackageProvenancesTable
 
     fun mapToModel() = ScannerRun(
         id = id.value,

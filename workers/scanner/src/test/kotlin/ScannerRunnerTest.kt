@@ -51,7 +51,7 @@ class ScannerRunnerTest : WordSpec({
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
 
-            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration())
+            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
 
             val scannerRun = result.scanner.shouldNotBeNull()
             scannerRun.provenances shouldBe emptySet()
@@ -81,7 +81,7 @@ class ScannerRunnerTest : WordSpec({
                 ignorePatterns = ignorePatterns
             )
 
-            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig)
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
             result.scanner shouldNotBe null
 
@@ -99,7 +99,7 @@ class ScannerRunnerTest : WordSpec({
 
             val scannerConfig = ScannerJobConfiguration()
 
-            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig)
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
             result.scanner shouldNotBe null
 
@@ -139,7 +139,7 @@ class ScannerRunnerTest : WordSpec({
                 "Licensee" to licenseeConfig.copy(secrets = licenseeSecrets)
             )
             val context = mockContext(jobConfig, resolvedPluginConfig)
-            runner.run(context, OrtResult.EMPTY, jobConfig)
+            runner.run(context, OrtResult.EMPTY, jobConfig, 0L)
 
             verify(exactly = 1) {
                 scanCodeFactory.create(scanCodeConfig.options, scanCodeSecrets)

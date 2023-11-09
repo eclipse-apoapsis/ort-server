@@ -36,6 +36,7 @@ import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -163,11 +164,11 @@ class DaoScannerRunRepositoryTest : StringSpec({
             sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-4-sources.zip")
         )
 
-        createPackageProvenance(id = pkg1.identifier, sourceArtifact = pkg1.sourceArtifact)
-        createPackageProvenance(id = pkg2.identifier, vcsProcessed = pkg2.vcsProcessed)
+        val packageProvenance1 = createPackageProvenance(id = pkg1.identifier, sourceArtifact = pkg1.sourceArtifact)
+        val packageProvenance2 = createPackageProvenance(id = pkg2.identifier, vcsProcessed = pkg2.vcsProcessed)
         createNestedProvenance(pkg2.vcsProcessed, mapOf("sub-repo" to pkg3.vcsProcessed))
 
-        createPackageProvenance(pkg4.identifier, vcsProcessed = pkg4.vcsProcessed)
+        val packageProvenance4 = createPackageProvenance(pkg4.identifier, vcsProcessed = pkg4.vcsProcessed)
         createNestedProvenance(pkg4.vcsProcessed, emptyMap())
 
         val scanResultPkg1 = createScanResult(artifact = pkg1.sourceArtifact)
@@ -175,13 +176,16 @@ class DaoScannerRunRepositoryTest : StringSpec({
         val scanResultPkg3 = createScanResult(vcs = pkg3.vcsProcessed)
 
         analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg1, pkg2)))
-        scannerRunRepository.create(scannerJobId, scannerRun)
+        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)
+        associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance1)
+        associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance2)
 
         val newOrtRun = fixtures.createOrtRun()
         val newAnalyzerJobId = fixtures.createAnalyzerJob(newOrtRun.id).id
         val newScannerJobId = fixtures.createScannerJob(newOrtRun.id).id
         analyzerRunRepository.create(newAnalyzerJobId, analyzerRun.copy(packages = setOf(pkg4)))
-        scannerRunRepository.create(newScannerJobId, scannerRun)
+        val newCreatedScannerRun = scannerRunRepository.create(newScannerJobId, scannerRun)
+        associateScannerRunWithPackageProvenance(newCreatedScannerRun, packageProvenance4)
 
         val scannerRun = scannerRunRepository.get(scannerJobId)
 
@@ -327,6 +331,12 @@ internal val scannerConfiguration = ScannerConfiguration(
         )
     )
 )
+
+private fun associateScannerRunWithPackageProvenance(scannerRun: ScannerRun, packageProvenance: PackageProvenanceDao) {
+    transaction {
+        ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun.id, packageProvenance.id.value)
+    }
+}
 
 internal val scannerRun = ScannerRun(
     id = -1L,

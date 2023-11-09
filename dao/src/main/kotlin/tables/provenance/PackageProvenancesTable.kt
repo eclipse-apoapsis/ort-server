@@ -27,6 +27,8 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
@@ -73,6 +75,8 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     var isFixedRevision by PackageProvenancesTable.isFixedRevision
     var clonedRevision by PackageProvenancesTable.clonedRevision
     var errorMessage by PackageProvenancesTable.errorMessage
+
+    var scannerRuns by ScannerRunDao via ScannerRunsPackageProvenancesTable
 
     fun mapToModel(): Provenance = when {
         errorMessage != null -> UnknownProvenance

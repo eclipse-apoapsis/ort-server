@@ -33,7 +33,6 @@ import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.DetectedLicenseMappingDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileArchiverConfigurationDao
@@ -116,11 +115,10 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
      * provenances can be queried and a [NestedProvenanceScanResult] can be created.
      */
     override fun get(id: Long): ScannerRun? = db.entityQuery {
-        // Get all packages for the scanner run, based on the related analyzer run.
-        val packages = getPackagesForScannerRun(id)
+        val scannerRunDao = ScannerRunDao[id]
 
-        // Get the provenance resolution results for all packages.
-        val provenanceResolutionResults = getProvenanceResolutionResults(packages)
+        // Get the provenance resolution results for the scanned packages.
+        val provenanceResolutionResults = getProvenanceResolutionResults(scannerRunDao.packageProvenances)
 
         // Get the scan results for all provenances.
         val allProvenances = provenanceResolutionResults.flatMapTo(mutableSetOf()) { it.getProvenances() }
@@ -134,32 +132,23 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
     }
 
     /**
-     * Get all packages that are related to the scanner run identified by [id].
-     */
-    private fun getPackagesForScannerRun(id: Long): List<PackageDao> {
-        val scannerRun = ScannerRunDao[id]
-        val analyzerRun = scannerRun.scannerJob.ortRun.analyzerJob?.analyzerRun
-        return analyzerRun?.packages?.toList().orEmpty()
-    }
-
-    /**
-     * Get the [ProvenanceResolutionResult]s for the provided [packages].
+     * Get the [ProvenanceResolutionResult]s for the provided [packageProvenances].
      */
     private fun getProvenanceResolutionResults(
-        packages: List<PackageDao>
+        packageProvenances: Iterable<PackageProvenanceDao>
     ): Set<ProvenanceResolutionResult> = buildSet {
-        packages.forEach { pkg ->
-            val identifier = pkg.identifier.mapToModel()
+        packageProvenances.forEach { packageProvenanceDao ->
+            val identifier = packageProvenanceDao.identifier.mapToModel()
 
-            val packageProvenance = PackageProvenanceDao.findByPackage(pkg)
-            val packageProvenanceModel = packageProvenance?.mapToModel()
-            if (packageProvenance == null || packageProvenanceModel !is KnownProvenance) {
+            val packageProvenance = packageProvenanceDao.mapToModel()
+            if (packageProvenance !is KnownProvenance) {
                 val result = ProvenanceResolutionResult(
                     id = identifier,
                     packageProvenanceResolutionIssue = OrtIssue(
                         timestamp = Clock.System.now(),
                         source = "scanner",
-                        message = "Could not resolve provenance for package '$identifier'.",
+                        message = "Could not resolve provenance for package '$identifier': " +
+                                "${packageProvenanceDao.errorMessage}",
                         severity = "ERROR"
                     )
                 )
@@ -167,16 +156,15 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                 return@forEach
             }
 
-            val nestedProvenance = NestedProvenanceDao.findByRootProvenance(packageProvenance)
-            if (packageProvenance.vcs != null && nestedProvenance == null) {
+            val nestedProvenance = NestedProvenanceDao.findByRootProvenance(packageProvenanceDao)
+            if (packageProvenanceDao.vcs != null && nestedProvenance == null) {
                 val result = ProvenanceResolutionResult(
                     id = identifier,
-                    packageProvenance = packageProvenanceModel,
+                    packageProvenance = packageProvenance,
                     nestedProvenanceResolutionIssue = OrtIssue(
                         timestamp = Clock.System.now(),
                         source = "scanner",
-                        message = "Could not resolve nested provenance for provenance " +
-                                "'${packageProvenance.mapToModel()}'.",
+                        message = "Could not resolve nested provenance for provenance '$packageProvenance'.",
                         severity = "ERROR"
                     )
                 )
@@ -186,7 +174,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
 
             val result = ProvenanceResolutionResult(
                 id = identifier,
-                packageProvenance = packageProvenanceModel,
+                packageProvenance = packageProvenance,
                 subRepositories = nestedProvenance?.subRepositories?.associate {
                     it.path to it.vcs.mapToModel()
                 }.orEmpty()

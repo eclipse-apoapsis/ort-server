@@ -77,7 +77,7 @@ class ScannerWorker(
 
         val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 
-        val scannerRun = runner.run(context, ortResult, scannerJob.configuration).scanner
+        val scannerRun = runner.run(context, ortResult, scannerJob.configuration, scannerRunId).scanner
             ?: throw ScannerException("ORT Scanner failed to create a result.")
 
         db.blockingQuery {
