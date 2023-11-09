@@ -31,7 +31,7 @@ data class RepositoryType(val name: String) {
         val GIT_REPO = RepositoryType("GIT_REPO")
         val MERCURIAL = RepositoryType("MERCURIAL")
         val SUBVERSION = RepositoryType("SUBVERSION")
-        val UNKNOWN = RepositoryType("UNKNOWN")
+        val UNKNOWN = RepositoryType("")
 
         private val STANDARD_TYPES = setOf(GIT, GIT_REPO, MERCURIAL, SUBVERSION)
 
