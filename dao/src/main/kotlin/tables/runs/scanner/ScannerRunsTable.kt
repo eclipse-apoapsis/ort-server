@@ -37,30 +37,30 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
  */
 object ScannerRunsTable : LongIdTable("scanner_runs") {
     val scannerJobId = reference("scanner_job_id", ScannerJobsTable)
-    val environmentId = reference("environment_id", EnvironmentsTable)
+    val environmentId = reference("environment_id", EnvironmentsTable).nullable()
 
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
+    val startTime = timestamp("start_time").nullable()
+    val endTime = timestamp("end_time").nullable()
 }
 
 class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerRunDao>(ScannerRunsTable)
 
     var scannerJob by ScannerJobDao referencedOn ScannerRunsTable.scannerJobId
-    var environment by EnvironmentDao referencedOn ScannerRunsTable.environmentId
+    var environment by EnvironmentDao optionalReferencedOn ScannerRunsTable.environmentId
 
-    var startTime by ScannerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by ScannerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by ScannerRunsTable.startTime.transform({ it?.toDatabasePrecision() }, { it })
+    var endTime by ScannerRunsTable.endTime.transform({ it?.toDatabasePrecision() }, { it })
 
-    val config by ScannerConfigurationDao backReferencedOn ScannerConfigurationsTable.scannerRunId
+    val config by ScannerConfigurationDao optionalBackReferencedOn ScannerConfigurationsTable.scannerRunId
 
     fun mapToModel() = ScannerRun(
         id = id.value,
         scannerJobId = scannerJob.id.value,
         startTime = startTime,
         endTime = endTime,
-        environment = environment.mapToModel(),
-        config = config.mapToModel(),
+        environment = environment?.mapToModel(),
+        config = config?.mapToModel(),
         // TODO: Construct the provenance and scanResults sets as soon as there is a relation between Identifier,
         //       ScanResult and PackageProvenance.
         provenances = emptySet(),

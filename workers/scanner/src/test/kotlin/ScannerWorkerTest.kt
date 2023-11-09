@@ -83,13 +83,16 @@ class ScannerWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
+            every { createScannerRun(any()) } returns mockk {
+                every { id } returns scannerJob.id
+            }
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getOrtRun(any()) } returns ortRun
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerJob(any()) } returns scannerJob
-            every { storeScannerRun(any()) } returns mockk()
+            every { finalizeScannerRun(any()) } returns mockk()
         }
 
         val context = mockk<WorkerContext>()
@@ -114,7 +117,7 @@ class ScannerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) { ortRunService.storeScannerRun(any()) }
+            verify(exactly = 1) { ortRunService.finalizeScannerRun(any()) }
 
             coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
         }

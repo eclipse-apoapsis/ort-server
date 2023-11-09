@@ -78,6 +78,32 @@ class OrtRunService(
     private val scannerRunRepository: ScannerRunRepository
 ) {
     /**
+     * Create an empty [ScannerRun]. This function is supposed to be called before the ORT scanner is invoked, so that
+     * data can be associated to the scanner run while the ORT scanner is running.
+     */
+    fun createScannerRun(scannerJobId: Long) = db.blockingQuery { scannerRunRepository.create(scannerJobId) }
+
+    /**
+     * Finalize the provided scanner run by storing the [ScannerRun.startTime], [ScannerRun.endTime],
+     * [ScannerRun.environment], and [ScannerRun.config]. This function can be called only once for a scanner run and
+     * throws an exception if it is called multiple times for the same scanner run.
+     */
+    fun finalizeScannerRun(scannerRun: ScannerRun) {
+        val startTime = requireNotNull(scannerRun.startTime)
+        val endTime = requireNotNull(scannerRun.endTime)
+        val environment = requireNotNull(scannerRun.environment)
+        val config = requireNotNull(scannerRun.config)
+
+        scannerRunRepository.update(
+            id = scannerRun.id,
+            startTime = startTime,
+            endTime = endTime,
+            environment = environment,
+            config = config
+        )
+    }
+
+    /**
      * Return the [AdvisorJob] with the provided [id] or `null` if the job does not exist.
      */
     fun getAdvisorJob(id: Long) = db.blockingQuery { advisorJobRepository.get(id) }
@@ -338,18 +364,5 @@ class OrtRunService(
         db.blockingQuery {
             resolvedConfigurationRepository.addResolutions(ortRunId, resolutions.mapToModel())
         }
-    }
-
-    /**
-     * Store the provided [scannerRun].
-     */
-    fun storeScannerRun(scannerRun: ScannerRun) {
-        scannerRunRepository.create(
-            scannerJobId = scannerRun.scannerJobId,
-            startTime = scannerRun.startTime,
-            endTime = scannerRun.endTime,
-            environment = scannerRun.environment,
-            config = scannerRun.config
-        )
     }
 }

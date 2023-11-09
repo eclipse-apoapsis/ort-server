@@ -26,10 +26,10 @@ import org.ossreviewtoolkit.server.model.runs.Environment
 data class ScannerRun(
     val id: Long,
     val scannerJobId: Long,
-    val startTime: Instant,
-    val endTime: Instant,
-    val environment: Environment,
-    val config: ScannerConfiguration,
+    val startTime: Instant?,
+    val endTime: Instant?,
+    val environment: Environment?,
+    val config: ScannerConfiguration?,
     val provenances: Set<ProvenanceResolutionResult>,
     val scanResults: Set<ScanResult>
 )

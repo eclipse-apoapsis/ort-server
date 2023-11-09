@@ -23,6 +23,7 @@ package org.ossreviewtoolkit.server.workers.common
 
 import java.io.File
 import java.net.URI
+import java.time.Instant
 
 import kotlinx.datetime.toJavaInstant
 
@@ -259,10 +260,10 @@ fun AdvisorRun.mapToOrt() =
 
 fun ScannerRun.mapToOrt() =
     OrtScannerRun(
-        startTime = startTime.toJavaInstant(),
-        endTime = endTime.toJavaInstant(),
-        environment = environment.mapToOrt(),
-        config = config.mapToOrt(),
+        startTime = startTime?.toJavaInstant() ?: Instant.EPOCH,
+        endTime = endTime?.toJavaInstant() ?: Instant.EPOCH,
+        environment = environment?.mapToOrt() ?: OrtEnvironment(),
+        config = config?.mapToOrt() ?: OrtScannerConfiguration(),
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
         scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
         files = emptySet(),

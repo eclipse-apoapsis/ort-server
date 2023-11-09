@@ -79,21 +79,30 @@ import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
  * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].
  */
 class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
-    override fun create(
-        scannerJobId: Long,
+    override fun create(scannerJobId: Long): ScannerRun = db.blockingQuery {
+        val scannerRunDao = ScannerRunDao.new {
+            this.scannerJob = ScannerJobDao[scannerJobId]
+        }
+
+        scannerRunDao.mapToModel()
+    }
+
+    override fun update(
+        id: Long,
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
         config: ScannerConfiguration
-    ): ScannerRun = db.blockingQuery {
-        val environmentDao = EnvironmentDao.getOrPut(environment)
+    ) = db.blockingQuery {
+        val scannerRunDao = ScannerRunDao[id]
 
-        val scannerRunDao = ScannerRunDao.new {
-            this.scannerJob = ScannerJobDao[scannerJobId]
-            this.startTime = startTime
-            this.endTime = endTime
-            this.environment = environmentDao
+        require(scannerRunDao.startTime == null) {
+            "Called 'update' for scanner run '${scannerRunDao.id}' which already has a start time set."
         }
+
+        scannerRunDao.startTime = startTime
+        scannerRunDao.endTime = endTime
+        scannerRunDao.environment = EnvironmentDao.getOrPut(environment)
 
         createScannerConfiguration(scannerRunDao, config)
 

@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
@@ -78,12 +79,58 @@ class DaoScannerRunRepositoryTest : StringSpec({
     }
 
     "create should create an entry in the database" {
-        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)
+        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+
+        val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry shouldBe scannerRun.copy(
+            id = createdScannerRun.id,
+            scannerJobId = scannerJobId,
+            startTime = null,
+            endTime = null,
+            environment = null,
+            config = null
+        )
+    }
+
+    "update should store the provided values" {
+        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+
+        scannerRunRepository.update(
+            createdScannerRun.id,
+            scannerRun.startTime!!,
+            scannerRun.endTime!!,
+            scannerRun.environment!!,
+            scannerRun.config!!
+        )
 
         val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
         dbEntry.shouldNotBeNull()
         dbEntry shouldBe scannerRun.copy(id = createdScannerRun.id, scannerJobId = scannerJobId)
+    }
+
+    "update should fail if it is called twice" {
+        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+
+        scannerRunRepository.update(
+            createdScannerRun.id,
+            scannerRun.startTime!!,
+            scannerRun.endTime!!,
+            scannerRun.environment!!,
+            scannerRun.config!!
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            scannerRunRepository.update(
+                createdScannerRun.id,
+                scannerRun.startTime!!,
+                scannerRun.endTime!!,
+                scannerRun.environment!!,
+                scannerRun.config!!
+            )
+        }
     }
 
     "get should return null" {
@@ -160,13 +207,16 @@ class DaoScannerRunRepositoryTest : StringSpec({
     }
 })
 
-internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun) = create(
-    scannerJobId = scannerJobId,
-    startTime = scannerRun.startTime,
-    endTime = scannerRun.endTime,
-    environment = scannerRun.environment,
-    config = scannerRun.config
-)
+internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
+    val createdScannerRun = create(scannerJobId = scannerJobId)
+    return update(
+        id = createdScannerRun.id,
+        startTime = scannerRun.startTime!!,
+        endTime = scannerRun.endTime!!,
+        environment = scannerRun.environment!!,
+        config = scannerRun.config!!
+    )
+}
 
 internal fun createPackageProvenance(
     id: Identifier,

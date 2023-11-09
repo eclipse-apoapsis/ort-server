@@ -75,12 +75,14 @@ class ScannerWorker(
             environmentService.generateNetRcFileForCurrentRun(context)
         }
 
+        val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
+
         val scannerRun = runner.run(context, ortResult, scannerJob.configuration).scanner
             ?: throw ScannerException("ORT Scanner failed to create a result.")
 
         db.blockingQuery {
             getValidScannerJob(scannerJob.id)
-            ortRunService.storeScannerRun(scannerRun.mapToModel(scannerJob.id))
+            ortRunService.finalizeScannerRun(scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId))
         }
 
         RunResult.Success

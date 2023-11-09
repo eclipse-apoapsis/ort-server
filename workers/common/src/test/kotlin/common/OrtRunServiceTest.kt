@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.common.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -29,6 +30,7 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
@@ -126,6 +128,66 @@ class OrtRunServiceTest : WordSpec({
             fixtures.scannerJobRepository,
             fixtures.scannerRunRepository
         )
+    }
+
+    "createScannerRun" should {
+        "create an empty scanner run" {
+            fixtures.scannerJob
+            service.createScannerRun(fixtures.scannerJob.id).run {
+                scannerJobId shouldBe fixtures.scannerJob.id
+                startTime should beNull()
+                endTime should beNull()
+                environment should beNull()
+                config should beNull()
+                provenances should beEmpty()
+                scanResults should beEmpty()
+            }
+        }
+
+        "fail if the scanner job does not exist" {
+            shouldThrow<EntityNotFoundException> {
+                service.createScannerRun(-1L)
+            }
+        }
+    }
+
+    "finalizeScannerRun" should {
+        "update the run correctly" {
+            val scannerRun = ScannerRun(
+                id = 1L,
+                scannerJobId = fixtures.scannerJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap(),
+                    toolVersions = emptyMap()
+                ),
+                config = ScannerConfiguration(
+                    skipConcluded = true,
+                    archive = null,
+                    createMissingArchives = true,
+                    detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
+                    config = emptyMap(),
+                    storages = emptyMap(),
+                    storageReaders = listOf("reader-1"),
+                    storageWriters = listOf("writer-1"),
+                    ignorePatterns = listOf("pattern-1"),
+                    provenanceStorage = null
+                ),
+                provenances = emptySet(),
+                scanResults = emptySet()
+            )
+
+            service.createScannerRun(scannerRun.scannerJobId)
+            service.finalizeScannerRun(scannerRun)
+
+            fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun
+        }
     }
 
     "getAdvisorJob" should {
@@ -419,8 +481,8 @@ class OrtRunServiceTest : WordSpec({
 
     "getScannerRunForOrtRun" should {
         "return the scanner run for the ORT run" {
-            val createdScannerRun = dbExtension.fixtures.scannerRunRepository.create(
-                scannerJobId = fixtures.scannerJob.id,
+            val createdScannerRun = fixtures.scannerRunRepository.update(
+                id = fixtures.scannerRunRepository.create(fixtures.scannerJob.id).id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
                 environment = Environment(
@@ -706,44 +768,6 @@ class OrtRunServiceTest : WordSpec({
 
             resolvedConfiguration.shouldNotBeNull()
             resolvedConfiguration.resolutions shouldBe resolutions.mapToModel()
-        }
-    }
-
-    "storeScannerRun" should {
-        "store the run correctly" {
-            val scannerRun = ScannerRun(
-                id = 1L,
-                scannerJobId = fixtures.scannerJob.id,
-                startTime = Clock.System.now().toDatabasePrecision(),
-                endTime = Clock.System.now().toDatabasePrecision(),
-                environment = Environment(
-                    ortVersion = "1.0.0",
-                    javaVersion = "17",
-                    os = "Linux",
-                    processors = 8,
-                    maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
-                ),
-                config = ScannerConfiguration(
-                    skipConcluded = true,
-                    archive = null,
-                    createMissingArchives = true,
-                    detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
-                    config = emptyMap(),
-                    storages = emptyMap(),
-                    storageReaders = listOf("reader-1"),
-                    storageWriters = listOf("writer-1"),
-                    ignorePatterns = listOf("pattern-1"),
-                    provenanceStorage = null
-                ),
-                provenances = emptySet(),
-                scanResults = emptySet()
-            )
-
-            service.storeScannerRun(scannerRun)
-
-            fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun
         }
     }
 })
