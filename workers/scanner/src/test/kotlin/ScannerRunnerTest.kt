@@ -44,7 +44,7 @@ import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 class ScannerRunnerTest : WordSpec({
     afterEach { unmockkAll() }
 
-    val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk(), mockk())
+    val runner = ScannerRunner(mockk(), mockk(), mockk(), mockk())
 
     "run" should {
         "return an OrtResult with a valid ScannerRun" {

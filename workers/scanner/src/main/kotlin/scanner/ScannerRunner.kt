@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.workers.scanner
 
 import kotlinx.coroutines.runBlocking
 
+import org.jetbrains.exposed.sql.Database
+
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
@@ -39,14 +41,16 @@ import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class ScannerRunner(
-    private val packageProvenanceStorage: OrtServerPackageProvenanceStorage,
-    private val nestedProvenanceStorage: OrtServerNestedProvenanceStorage,
+    private val db: Database,
     private val scanResultStorage: OrtServerScanResultStorage,
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
     fun run(context: WorkerContext, ortResult: OrtResult, config: ScannerJobConfiguration): OrtResult {
         val pluginConfigs = runBlocking { context.resolveConfigSecrets(config.config) }
+
+        val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db)
+        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db)
 
         val scanStorages = ScanStorages(
             readers = listOf(scanResultStorage),

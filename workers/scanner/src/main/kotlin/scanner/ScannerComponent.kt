@@ -89,8 +89,6 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
             OrtServerFileListStorage(storage)
         }
 
-        singleOf(::OrtServerNestedProvenanceStorage)
-        singleOf(::OrtServerPackageProvenanceStorage)
         singleOf(::OrtServerScanResultStorage)
         singleOf(::ScannerRunner)
         singleOf(::ScannerWorker)
