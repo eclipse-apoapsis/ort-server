@@ -49,25 +49,33 @@ import org.ossreviewtoolkit.server.workers.common.mapToOrt
 class OrtServerPackageProvenanceStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
+    private lateinit var packageProvenanceCache: PackageProvenanceCache
     private lateinit var packageProvenanceStorage: OrtServerPackageProvenanceStorage
     private lateinit var scannerRun: ScannerRun
 
     init {
         beforeEach {
             scannerRun = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
-            packageProvenanceStorage = OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id)
+            packageProvenanceCache = PackageProvenanceCache()
+            packageProvenanceStorage =
+                OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id, packageProvenanceCache)
         }
 
         /**
          * Verify that the provided [provenance] was associated to the [scannerRun]. Must be called before calling
          * any other functions on [packageProvenanceStorage] which might also create the association.
          */
-        fun verifyAssociatedProvenance(scannerRun: ScannerRun, provenance: Provenance) {
+        fun verifyAssociatedProvenance(scannerRun: ScannerRun, provenance: Provenance, cache: PackageProvenanceCache) {
             dbExtension.db.blockingQuery {
-                val associatedProvenances =
-                    ScannerRunDao[scannerRun.id].packageProvenances.map { it.mapToModel().mapToOrt() }
+                val associatedProvenanceDaos = ScannerRunDao[scannerRun.id].packageProvenances
+
+                val associatedProvenances = associatedProvenanceDaos.map { it.mapToModel().mapToOrt() }
                 associatedProvenances should haveSize(1)
                 associatedProvenances.single() shouldBe provenance
+
+                if (provenance is RepositoryProvenance) {
+                    cache.get(provenance) shouldBe associatedProvenanceDaos.single().id.value
+                }
             }
         }
 
@@ -79,7 +87,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 packageProvenanceStorage.putProvenance(id, sourceArtifact, provenance)
 
-                verifyAssociatedProvenance(scannerRun, provenance.provenance)
+                verifyAssociatedProvenance(scannerRun, provenance.provenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, sourceArtifact) shouldBe provenance
             }
 
@@ -90,7 +98,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
 
-                verifyAssociatedProvenance(scannerRun, provenance.provenance)
+                verifyAssociatedProvenance(scannerRun, provenance.provenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
             }
 
@@ -101,7 +109,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
 
-                verifyAssociatedProvenance(scannerRun, UnknownProvenance)
+                verifyAssociatedProvenance(scannerRun, UnknownProvenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
             }
 
@@ -143,13 +151,14 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 // Create a new scanner run and related storage as the put call above already associated the provenance
                 // with the default scanner run.
                 val newScannerRun = createScannerRun()
-                val newStorage = OrtServerPackageProvenanceStorage(dbExtension.db, newScannerRun.id)
+                val newCache = PackageProvenanceCache()
+                val newStorage = OrtServerPackageProvenanceStorage(dbExtension.db, newScannerRun.id, newCache)
                 val result = newStorage.readProvenance(id, sourceArtifact)
 
                 result.shouldBeInstanceOf<ResolvedArtifactProvenance>()
                 result shouldBe artifactProvenance
 
-                verifyAssociatedProvenance(newScannerRun, artifactProvenance.provenance)
+                verifyAssociatedProvenance(newScannerRun, artifactProvenance.provenance, newCache)
             }
 
             "return null if no result for a repository provenance is stored" {
@@ -169,13 +178,14 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 // Create a new scanner run and related storage as the put call above already associated the provenance
                 // with the default scanner run.
                 val newScannerRun = createScannerRun()
-                val newStorage = OrtServerPackageProvenanceStorage(dbExtension.db, newScannerRun.id)
+                val newCache = PackageProvenanceCache()
+                val newStorage = OrtServerPackageProvenanceStorage(dbExtension.db, newScannerRun.id, newCache)
                 val result = newStorage.readProvenance(id, vcsInfo)
 
                 result.shouldBeInstanceOf<ResolvedRepositoryProvenance>()
                 result shouldBe repositoryProvenance
 
-                verifyAssociatedProvenance(newScannerRun, repositoryProvenance.provenance)
+                verifyAssociatedProvenance(newScannerRun, repositoryProvenance.provenance, newCache)
             }
         }
 

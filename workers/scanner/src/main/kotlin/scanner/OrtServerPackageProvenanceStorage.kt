@@ -52,8 +52,11 @@ import org.ossreviewtoolkit.server.workers.common.mapToOrt
  * An ORT Server specific implementation of the `PackageProvenanceStorage`. Read and put package provenances are
  * associated to the scanner run with the provided [scannerRunId].
  */
-class OrtServerPackageProvenanceStorage(private val db: Database, private val scannerRunId: Long) :
-    PackageProvenanceStorage {
+class OrtServerPackageProvenanceStorage(
+    private val db: Database,
+    private val scannerRunId: Long,
+    private val cache: PackageProvenanceCache
+) : PackageProvenanceStorage {
     override fun readProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact
@@ -178,6 +181,10 @@ class OrtServerPackageProvenanceStorage(private val db: Database, private val sc
             scannerRunId = scannerRunId,
             packageProvenanceId = provenanceDao.id.value
         )
+
+        (provenanceDao.mapToOrt() as? ResolvedRepositoryProvenance)?.provenance?.let {
+            cache.put(it, provenanceDao.id.value)
+        }
     }
 }
 

@@ -54,7 +54,8 @@ class ScannerRunner(
     ): OrtResult {
         val pluginConfigs = runBlocking { context.resolveConfigSecrets(config.config) }
 
-        val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId)
+        val packageProvenanceCache = PackageProvenanceCache()
+        val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
         val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db)
 
         val scanStorages = ScanStorages(
