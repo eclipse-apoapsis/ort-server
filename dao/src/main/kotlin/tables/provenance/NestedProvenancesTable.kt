@@ -38,23 +38,14 @@ object NestedProvenancesTable : LongIdTable("nested_provenances") {
 }
 
 class NestedProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<NestedProvenanceDao>(NestedProvenancesTable) {
-        /**
-         * Return the nested provenance for the provided [packageProvenance] or null if no nested provenance is found.
-         */
-        fun findByRootProvenance(packageProvenance: PackageProvenanceDao): NestedProvenanceDao? =
-            packageProvenance.vcs?.id?.let { vcsId ->
-                NestedProvenanceDao.find {
-                    NestedProvenancesTable.rootVcsId eq vcsId
-                }.firstOrNull()
-            }
-    }
+    companion object : LongEntityClass<NestedProvenanceDao>(NestedProvenancesTable)
 
     var rootVcs by VcsInfoDao referencedOn NestedProvenancesTable.rootVcsId
 
     var rootResolvedRevision by NestedProvenancesTable.rootResolvedRevision
     var hasOnlyFixedRevisions by NestedProvenancesTable.hasOnlyFixedRevisions
 
+    val packageProvenances by PackageProvenanceDao optionalReferrersOn PackageProvenancesTable.nestedProvenanceId
     val subRepositories by NestedProvenanceSubRepositoryDao referrersOn
             NestedProvenanceSubRepositoriesTable.nestedProvenanceId
 }

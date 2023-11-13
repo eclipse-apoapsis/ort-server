@@ -20,9 +20,8 @@
 package org.ossreviewtoolkit.server.workers.scanner
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 
 import org.ossreviewtoolkit.model.RepositoryProvenance
@@ -31,37 +30,26 @@ import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceStorage
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoriesTable
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
 import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvenanceStorage {
+class OrtServerNestedProvenanceStorage(
+    private val db: Database,
+    private val packageProvenanceCache: PackageProvenanceCache
+) : NestedProvenanceStorage {
     override fun putNestedProvenance(
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
     ) = db.blockingQuery {
         val resolvedVcs = root.getResolvedVcs()
 
-        removeOldResults(resolvedVcs)
         storeResult(resolvedVcs, root, result)
-    }
-
-    private fun removeOldResults(resolvedVcs: VcsInfo) {
-        val oldEntries = NestedProvenancesTable.innerJoin(VcsInfoTable)
-            .slice(NestedProvenancesTable.id)
-            .select {
-                VcsInfoTable.type eq resolvedVcs.type.name and
-                        (VcsInfoTable.url eq resolvedVcs.url) and
-                        (VcsInfoTable.revision eq resolvedVcs.revision)
-            }.withDistinct().map { it[NestedProvenancesTable.id].value }
-
-        NestedProvenanceSubRepositoriesTable.deleteWhere { nestedProvenanceId inList oldEntries }
-        NestedProvenancesTable.deleteWhere { id inList oldEntries }
     }
 
     private fun storeResult(
@@ -87,6 +75,8 @@ class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvena
                 this.path = path
             }
         }
+
+        associateWithPackageProvenance(root, nestedProvenanceDao)
     }
 
     override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? =
@@ -99,15 +89,29 @@ class OrtServerNestedProvenanceStorage(private val db: Database) : NestedProvena
                     VcsInfoTable.type eq resolvedVcs.type.name and
                             (VcsInfoTable.url eq resolvedVcs.url) and
                             (VcsInfoTable.revision eq resolvedVcs.revision)
-                }.firstOrNull()?.let {
-                    NestedProvenanceDao.wrapRow(it).mapToOrt()
+                }.orderBy(NestedProvenancesTable.id to SortOrder.DESC)
+                .limit(1)
+                .singleOrNull()
+                ?.let { NestedProvenanceDao.wrapRow(it) }
+                ?.let { nestedProvenanceDao ->
+                    associateWithPackageProvenance(root, nestedProvenanceDao)
+                    nestedProvenanceDao.mapToOrt()
                 }
         }
+
+    private fun associateWithPackageProvenance(
+        provenance: RepositoryProvenance,
+        nestedProvenanceDao: NestedProvenanceDao
+    ) {
+        packageProvenanceCache.get(provenance)?.let { packageProvenanceId ->
+            PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
+        }
+    }
 }
 
 private fun RepositoryProvenance.getResolvedVcs() = vcsInfo.copy(revision = resolvedRevision).mapToModel()
 
-private fun NestedProvenanceDao.mapToOrt(): NestedProvenanceResolutionResult {
+internal fun NestedProvenanceDao.mapToOrt(): NestedProvenanceResolutionResult {
     val nestedProvenance = NestedProvenance(
         root = RepositoryProvenance(
             vcsInfo = rootVcs.mapToModel().mapToOrt(),

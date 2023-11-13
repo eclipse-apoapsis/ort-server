@@ -56,7 +56,7 @@ class ScannerRunner(
 
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
-        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db)
+        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db, packageProvenanceCache)
 
         val scanStorages = ScanStorages(
             readers = listOf(scanResultStorage),

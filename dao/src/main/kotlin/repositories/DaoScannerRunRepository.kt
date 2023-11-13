@@ -30,7 +30,6 @@ import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
@@ -156,7 +155,8 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                 return@forEach
             }
 
-            val nestedProvenance = NestedProvenanceDao.findByRootProvenance(packageProvenanceDao)
+            val nestedProvenance = packageProvenanceDao.nestedProvenance
+
             if (packageProvenanceDao.vcs != null && nestedProvenance == null) {
                 val result = ProvenanceResolutionResult(
                     id = identifier,

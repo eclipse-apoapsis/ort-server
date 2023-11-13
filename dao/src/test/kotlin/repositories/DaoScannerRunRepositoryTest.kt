@@ -166,10 +166,12 @@ class DaoScannerRunRepositoryTest : StringSpec({
 
         val packageProvenance1 = createPackageProvenance(id = pkg1.identifier, sourceArtifact = pkg1.sourceArtifact)
         val packageProvenance2 = createPackageProvenance(id = pkg2.identifier, vcsProcessed = pkg2.vcsProcessed)
-        createNestedProvenance(pkg2.vcsProcessed, mapOf("sub-repo" to pkg3.vcsProcessed))
+        val nestedProvenance2 = createNestedProvenance(pkg2.vcsProcessed, mapOf("sub-repo" to pkg3.vcsProcessed))
+        associatePackageProvenanceWithNestedProvenance(packageProvenance2, nestedProvenance2)
 
         val packageProvenance4 = createPackageProvenance(pkg4.identifier, vcsProcessed = pkg4.vcsProcessed)
-        createNestedProvenance(pkg4.vcsProcessed, emptyMap())
+        val nestedProvenance4 = createNestedProvenance(pkg4.vcsProcessed, emptyMap())
+        associatePackageProvenanceWithNestedProvenance(packageProvenance4, nestedProvenance4)
 
         val scanResultPkg1 = createScanResult(artifact = pkg1.sourceArtifact)
         val scanResultPkg2 = createScanResult(vcs = pkg2.vcsProcessed)
@@ -238,7 +240,7 @@ internal fun createPackageProvenance(
 private fun createNestedProvenance(
     root: VcsInfo,
     subRepositories: Map<String, VcsInfo>
-): List<NestedProvenanceSubRepositoryDao> = transaction {
+): NestedProvenanceDao = transaction {
     val nestedProvenance = NestedProvenanceDao.new {
         this.rootVcs = VcsInfoDao.getOrPut(root)
         this.rootResolvedRevision = root.revision
@@ -253,6 +255,8 @@ private fun createNestedProvenance(
             this.path = path
         }
     }
+
+    nestedProvenance
 }
 
 private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = null): ScanResult = transaction {
@@ -335,6 +339,15 @@ internal val scannerConfiguration = ScannerConfiguration(
 private fun associateScannerRunWithPackageProvenance(scannerRun: ScannerRun, packageProvenance: PackageProvenanceDao) {
     transaction {
         ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun.id, packageProvenance.id.value)
+    }
+}
+
+private fun associatePackageProvenanceWithNestedProvenance(
+    packageProvenance: PackageProvenanceDao,
+    nestedProvenance: NestedProvenanceDao
+) {
+    transaction {
+        packageProvenance.nestedProvenance = nestedProvenance
     }
 }
 

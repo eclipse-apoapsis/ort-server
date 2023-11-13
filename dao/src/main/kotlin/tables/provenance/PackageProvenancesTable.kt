@@ -44,6 +44,7 @@ object PackageProvenancesTable : LongIdTable("package_provenances") {
     val identifierId = reference("identifier_id", IdentifiersTable)
     val artifactId = reference("artifact_id", RemoteArtifactsTable).nullable()
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
+    val nestedProvenanceId = reference("nested_provenance_id", NestedProvenancesTable).nullable()
 
     val resolvedRevision = text("resolved_revision").nullable()
     val clonedRevision = text("cloned_revision").nullable()
@@ -70,6 +71,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     var identifier by IdentifierDao referencedOn PackageProvenancesTable.identifierId
     var artifact by RemoteArtifactDao optionalReferencedOn PackageProvenancesTable.artifactId
     var vcs by VcsInfoDao optionalReferencedOn PackageProvenancesTable.vcsId
+    var nestedProvenance by NestedProvenanceDao optionalReferencedOn PackageProvenancesTable.nestedProvenanceId
 
     var resolvedRevision by PackageProvenancesTable.resolvedRevision
     var isFixedRevision by PackageProvenancesTable.isFixedRevision
