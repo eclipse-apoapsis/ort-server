@@ -23,6 +23,7 @@ import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
@@ -154,6 +155,19 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                         this.path = it.location.path
                         this.startLine = it.location.startLine
                         this.endLine = it.location.endLine
+                    }
+                }
+                scanResult.summary.snippetFindings.forEach { snippetFinding ->
+                    SnippetFindingDao.new {
+                        this.scanSummary = summary
+                        this.path = snippetFinding.sourceLocation.path
+                        this.startLine = snippetFinding.sourceLocation.startLine
+                        this.endLine = snippetFinding.sourceLocation.endLine
+                        this.snippets = SizedCollection(
+                            snippetFinding.snippets.map { snippet ->
+                                SnippetDao.getOrPut(snippet.mapToModel())
+                            }
+                        )
                     }
                 }
             }

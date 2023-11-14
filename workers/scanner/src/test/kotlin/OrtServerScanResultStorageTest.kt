@@ -39,10 +39,13 @@ import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.Snippet
+import org.ossreviewtoolkit.model.SnippetFinding
 import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 private const val TIME_STAMP_SECONDS = 1678119934L
 
@@ -179,7 +182,29 @@ private fun createScanResult(scannerName: String, issue: Issue, provenance: Know
                     TextLocation("/example/path", 1, 50)
                 )
             ),
-            emptySet(),
+            setOf(
+                SnippetFinding(
+                    TextLocation("/example/path", 1, 50),
+                    setOf(
+                        Snippet(
+                            score = 1.0f,
+                            location = TextLocation("/example/path", 1, 50),
+                            provenance = createArtifactProvenance(),
+                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
+                            licenses = "LicenseRef-23".toSpdx(),
+                            additionalData = mapOf("data" to "value")
+                        ),
+                        Snippet(
+                            score = 2.0f,
+                            location = TextLocation("/example/path2", 10, 20),
+                            provenance = createRepositoryProvenance(),
+                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
+                            licenses = "LicenseRef-23".toSpdx(),
+                            additionalData = mapOf("data2" to "value2")
+                        )
+                    )
+                )
+            ),
             listOf(issue)
         ),
         mapOf("additional" to "data", "additional" to "data")
