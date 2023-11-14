@@ -44,6 +44,7 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     var endTime by ScanSummariesTable.endTime.transform({ it.toDatabasePrecision() }, { it })
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
+    val snippetFindings by SnippetFindingDao referrersOn SnippetFindingsTable.scanSummaryId
     var issues by OrtIssueDao via ScanSummariesIssuesTable
 
     fun mapToModel() = ScanSummary(
@@ -51,6 +52,7 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
         endTime = endTime,
         licenseFindings = licenseFindings.map(LicenseFindingDao::mapToModel).toSet(),
         copyrightFindings = copyrightFindings.map(CopyrightFindingDao::mapToModel).toSet(),
+        snippetFindings = snippetFindings.map(SnippetFindingDao::mapToModel).toSet(),
         issues = issues.map(OrtIssueDao::mapToModel)
     )
 }

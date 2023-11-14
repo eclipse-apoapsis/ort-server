@@ -28,5 +28,6 @@ data class ScanSummary(
     val endTime: Instant,
     val licenseFindings: Set<LicenseFinding>,
     val copyrightFindings: Set<CopyrightFinding>,
+    val snippetFindings: Set<SnippetFinding>,
     val issues: List<OrtIssue> = emptyList()
 )

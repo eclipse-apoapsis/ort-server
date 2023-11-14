@@ -52,6 +52,8 @@ import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
+import org.ossreviewtoolkit.model.Snippet as OrtSnippet
+import org.ossreviewtoolkit.model.SnippetFinding as OrtSnippetFinding
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
@@ -154,6 +156,8 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.model.runs.scanner.Snippet
+import org.ossreviewtoolkit.server.model.runs.scanner.SnippetFinding
 import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
@@ -211,6 +215,20 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
     )
 
 fun OrtCopyrightFinding.mapToModel() = CopyrightFinding(statement = statement, location = location.mapToModel())
+
+fun OrtSnippetFinding.mapToModel() = SnippetFinding(
+    location = sourceLocation.mapToModel(),
+    snippets = snippets.mapTo(mutableSetOf(), OrtSnippet::mapToModel)
+)
+
+fun OrtSnippet.mapToModel() = Snippet(
+    purl = purl,
+    provenance = provenance.mapToModel(),
+    location = location.mapToModel(),
+    score = score,
+    spdxLicense = licenses.toString(),
+    additionalData = additionalData
+)
 
 fun OrtDefect.mapToModel() =
     Defect(
@@ -439,6 +457,7 @@ fun OrtScanSummary.mapToModel() =
         endTime = endTime.toKotlinInstant(),
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
+        snippetFindings = snippetFindings.mapTo(mutableSetOf(), OrtSnippetFinding::mapToModel),
         issues = issues.map(OrtOrtIssue::mapToModel)
     )
 

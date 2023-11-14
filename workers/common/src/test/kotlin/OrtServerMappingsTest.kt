@@ -427,6 +427,7 @@ class OrtServerMappingsTest : WordSpec({
                         )
                     ),
                     copyrightFindings = emptySet(),
+                    snippetFindings = emptySet(),
                     issues = listOf(issue)
                 ),
                 additionalData = mapOf("data-1" to "value-1")

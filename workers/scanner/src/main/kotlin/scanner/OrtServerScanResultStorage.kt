@@ -26,15 +26,22 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
+import org.ossreviewtoolkit.model.Hash
+import org.ossreviewtoolkit.model.HashAlgorithm
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.LicenseFinding
+import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.Snippet
+import org.ossreviewtoolkit.model.SnippetFinding
 import org.ossreviewtoolkit.model.TextLocation
+import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -44,9 +51,14 @@ import org.ossreviewtoolkit.server.dao.tables.CopyrightFindingDao
 import org.ossreviewtoolkit.server.dao.tables.LicenseFindingDao
 import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
+import org.ossreviewtoolkit.server.dao.tables.SnippetDao
+import org.ossreviewtoolkit.server.dao.tables.SnippetFindingDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.workers.common.mapToModel
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 /**
  * A class providing access to scan results.
@@ -154,7 +166,7 @@ private fun ScanSummaryDao.mapToOrt() = ScanSummary(
     this.endTime.toJavaInstant(),
     this.licenseFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     this.copyrightFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
-    emptySet(), // TODO: Add snippet findings once implemented.
+    this.snippetFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     this.issues.map {
         Issue(
             it.timestamp.toJavaInstant(),
@@ -175,6 +187,35 @@ private fun CopyrightFindingDao.mapToOrt() = CopyrightFinding(
     this.statement,
     TextLocation(this.path, this.startLine, this.endLine)
 )
+
+private fun SnippetFindingDao.mapToOrt() = SnippetFinding(
+    sourceLocation = TextLocation(path, startLine, endLine),
+    snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
+)
+
+private fun SnippetDao.mapToOrt() = Snippet(
+    purl = purl,
+    provenance = if (artifact != null) {
+        ArtifactProvenance(artifact!!.mapToOrt())
+    } else {
+        val vcs = vcs!!.mapToOrt()
+        RepositoryProvenance(vcs, vcs.revision)
+    },
+    score = score,
+    location = TextLocation(path, startLine, endLine),
+    licenses = license.toSpdx(),
+    additionalData = additionalData?.data.orEmpty()
+)
+
+private fun RemoteArtifactDao.mapToOrt() = RemoteArtifact(
+    url = url,
+    hash = Hash(
+        value = hashValue,
+        algorithm = HashAlgorithm.fromString(hashAlgorithm)
+    )
+)
+
+private fun VcsInfoDao.mapToOrt() = VcsInfo(VcsType.forName(type), url, revision, path)
 
 private fun Issue.mapToModel() = OrtIssue(
     timestamp = this.timestamp.toKotlinInstant(),
