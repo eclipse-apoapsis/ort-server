@@ -26,6 +26,7 @@ include(":config:spi")
 include(":config:github")
 include(":core")
 include(":dao")
+include(":logaccess:spi")
 include(":model")
 include(":orchestrator")
 include(":secrets:file")
@@ -53,6 +54,7 @@ include(":workers:reporter")
 include(":workers:scanner")
 
 project(":config:spi").name = "config-spi"
+project(":logaccess:spi").name = "logaccess-spi"
 project(":secrets:spi").name = "secrets-spi"
 project(":services:authorization").name = "authorization-service"
 project(":services:hierarchy").name = "hierarchy-service"
