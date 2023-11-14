@@ -169,14 +169,14 @@ private fun createScanResult(scannerName: String, issue: Issue, provenance: Know
             setOf(
                 LicenseFinding(
                     "LicenseRef-23",
-                    TextLocation("//example/path", 1, 50),
+                    TextLocation("/example/path", 1, 50),
                     Float.MIN_VALUE
                 )
             ),
             setOf(
                 CopyrightFinding(
                     "Copyright Finding Statement",
-                    TextLocation("//example/path", 1, 50)
+                    TextLocation("/example/path", 1, 50)
                 )
             ),
             emptySet(),
