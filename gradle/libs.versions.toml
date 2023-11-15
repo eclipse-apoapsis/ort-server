@@ -125,6 +125,7 @@ micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graph
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
+ortCommonUtils = { module = "com.github.oss-review-toolkit.ort:common-utils", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }
 ortEvaluator = { module = "com.github.oss-review-toolkit.ort:evaluator", version.ref = "ort" }
 ortModel = { module = "com.github.oss-review-toolkit.ort:model", version.ref = "ort" }

@@ -36,6 +36,9 @@ dependencies {
     api(libs.kotlinxDatetime)
 
     implementation(project(":utils:config"))
+    implementation(libs.kotlinxCoroutines)
+    implementation(libs.ortCommonUtils)
+    implementation(libs.slf4j)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
