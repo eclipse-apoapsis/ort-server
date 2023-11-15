@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import javax.naming.OperationNotSupportedException
+
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
@@ -45,6 +47,7 @@ import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
+import org.ossreviewtoolkit.scanner.ScannerMatcher
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
 import org.ossreviewtoolkit.server.dao.tables.AdditionalScanResultData
@@ -71,7 +74,13 @@ import org.ossreviewtoolkit.utils.spdx.toSpdx
  * Throws a [ScanStorageException] if an error occurs while reading from the storage.
  */
 class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScanStorage {
-    override fun read(provenance: KnownProvenance): List<ScanResult> = db.blockingQuery {
+    override fun read(provenance: KnownProvenance): List<ScanResult> {
+        // This function is never used by ORT itself, it is only used by some helper-cli commands.
+        throw OperationNotSupportedException()
+    }
+
+    override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher): List<ScanResult> =
+        db.blockingQuery {
             when (provenance) {
                 is ArtifactProvenance -> {
                     ScanResultDao.findByRemoteArtifact(provenance.sourceArtifact.mapToModel())
@@ -93,7 +102,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                     summary = it.scanSummary.mapToOrt(),
                     additionalData = it.additionalScanResultData?.data ?: emptyMap()
                 )
-            }
+            }.filter { scannerMatcher.matches(it.scanner) }
         }
 
     override fun write(scanResult: ScanResult) {

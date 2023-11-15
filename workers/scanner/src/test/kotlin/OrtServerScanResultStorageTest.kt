@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
@@ -44,10 +45,22 @@ import org.ossreviewtoolkit.model.SnippetFinding
 import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.scanner.ScannerMatcher
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
+import org.semver4j.Semver
+
+private const val SCANNER_VERSION = "1.0.0"
 private const val TIME_STAMP_SECONDS = 1678119934L
+
+/** A matcher that matches all scanners with the default [SCANNER_VERSION]. */
+private val scannerMatcher = ScannerMatcher(
+    regScannerName = ".*",
+    minVersion = Semver(SCANNER_VERSION),
+    maxVersion = Semver(SCANNER_VERSION).nextMinor(),
+    configuration = null
+)
 
 class OrtServerScanResultStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -65,7 +78,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
 
-                scanResultStorage.read(provenance) shouldBe listOf(scanResult)
+                scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
             }
 
             "create an artifact provenance scan result in the storage" {
@@ -73,7 +86,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
 
-                scanResultStorage.read(provenance) shouldBe listOf(scanResult)
+                scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
             }
         }
 
@@ -90,7 +103,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult2)
                 scanResultStorage.write(scanResult3)
 
-                val readResult = scanResultStorage.read(repositoryProvenance)
+                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
                 readResult shouldNotContain scanResult3
             }
@@ -107,7 +120,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult2)
                 scanResultStorage.write(scanResult3)
 
-                val readResult = scanResultStorage.read(artifactProvenance)
+                val readResult = scanResultStorage.read(artifactProvenance, scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
                 readResult shouldNotContain scanResult3
             }
@@ -120,7 +133,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult)
 
-                val readResult = scanResultStorage.read(repositoryProvenance)
+                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
                 readResult shouldBe emptyList()
             }
 
@@ -132,8 +145,24 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult)
 
-                val readResult = scanResultStorage.read(artifactProvenance)
+                val readResult = scanResultStorage.read(artifactProvenance, scannerMatcher)
                 readResult shouldBe emptyList()
+            }
+
+            "apply the scanner matcher" {
+                val repositoryProvenance = createRepositoryProvenance()
+
+                val matchingScanResult =
+                    createScanResult("ScanCode", createIssue("source"), repositoryProvenance, SCANNER_VERSION)
+                val notMatchingScanResult =
+                    createScanResult("ScanCode", createIssue("source"), repositoryProvenance, "0.0.1")
+
+                scanResultStorage.write(matchingScanResult)
+                scanResultStorage.write(notMatchingScanResult)
+
+                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
+                readResult shouldContain matchingScanResult
+                readResult shouldNotContain notMatchingScanResult
             }
         }
     }
@@ -162,10 +191,15 @@ private fun createArtifactProvenance() = ArtifactProvenance(createRemoteArtifact
 private fun createIssue(source: String) =
     Issue(Instant.ofEpochSecond(TIME_STAMP_SECONDS), source, "message", Severity.ERROR)
 
-private fun createScanResult(scannerName: String, issue: Issue, provenance: KnownProvenance): ScanResult {
+private fun createScanResult(
+    scannerName: String,
+    issue: Issue,
+    provenance: KnownProvenance,
+    scannerVersion: String = SCANNER_VERSION
+): ScanResult {
     return ScanResult(
         provenance = provenance,
-        scanner = ScannerDetails(scannerName, "1.2", "config"),
+        scanner = ScannerDetails(scannerName, scannerVersion, "config"),
         summary = ScanSummary(
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
