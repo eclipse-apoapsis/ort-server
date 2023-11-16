@@ -57,6 +57,7 @@ import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
 import org.ossreviewtoolkit.server.dao.tables.SnippetDao
 import org.ossreviewtoolkit.server.dao.tables.SnippetFindingDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScanResultsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -71,9 +72,14 @@ import org.ossreviewtoolkit.utils.spdx.toSpdx
  * an [ArtifactProvenance], the URL and the hash value must match. If the [KnownProvenance] is a [RepositoryProvenance],
  * the VCS type, URL and the resolved revision must match.
  *
+ * Read and written scan results are associated to the scanner run with the provided [scannerRunId].
+ *
  * Throws a [ScanStorageException] if an error occurs while reading from the storage.
  */
-class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScanStorage {
+class OrtServerScanResultStorage(
+    private val db: Database,
+    private val scannerRunId: Long
+) : ProvenanceBasedScanStorage {
     override fun read(provenance: KnownProvenance): List<ScanResult> {
         // This function is never used by ORT itself, it is only used by some helper-cli commands.
         throw OperationNotSupportedException()
@@ -81,7 +87,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
 
     override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher): List<ScanResult> =
         db.blockingQuery {
-            when (provenance) {
+            val scanResultDaos = when (provenance) {
                 is ArtifactProvenance -> {
                     ScanResultDao.findByRemoteArtifact(provenance.sourceArtifact.mapToModel())
                 }
@@ -91,7 +97,9 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                         provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel()
                     )
                 }
-            }.map {
+            }
+
+            val matchingScanResults = scanResultDaos.associateWith {
                 ScanResult(
                     provenance = provenance,
                     scanner = ScannerDetails(
@@ -102,7 +110,13 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                     summary = it.scanSummary.mapToOrt(),
                     additionalData = it.additionalScanResultData?.data ?: emptyMap()
                 )
-            }.filter { scannerMatcher.matches(it.scanner) }
+            }.filterValues { scannerMatcher.matches(it.scanner) }
+
+            matchingScanResults.forEach { (dao, _) ->
+                associateScanResultWithScannerRun(dao)
+            }
+
+            matchingScanResults.values.toList()
         }
 
     override fun write(scanResult: ScanResult) {
@@ -115,6 +129,7 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
         if (provenance is RepositoryProvenance && provenance.vcsInfo.path.isNotEmpty()) {
             throw ScanStorageException("Repository provenances with a non-empty VCS path are not supported.")
         }
+
         db.blockingQuery {
             ScanResultDao.new {
                 when (provenance) {
@@ -179,8 +194,17 @@ class OrtServerScanResultStorage(private val db: Database) : ProvenanceBasedScan
                         )
                     }
                 }
+            }.also {
+                associateScanResultWithScannerRun(it)
             }
         }
+    }
+
+    private fun associateScanResultWithScannerRun(scanResultDao: ScanResultDao) {
+        ScannerRunsScanResultsTable.insertIfNotExists(
+            scannerRunId = scannerRunId,
+            scanResultId = scanResultDao.id.value
+        )
     }
 }
 

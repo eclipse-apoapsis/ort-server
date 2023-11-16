@@ -27,6 +27,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScanResultsTable
 import org.ossreviewtoolkit.server.dao.utils.jsonb
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
@@ -82,6 +84,8 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
     var scannerVersion by ScanResultsTable.scannerVersion
     var scannerConfiguration by ScanResultsTable.scannerConfiguration
     var additionalScanResultData by ScanResultsTable.additionalScanResultData
+
+    var scannerRuns by ScannerRunDao via ScannerRunsScanResultsTable
 
     fun mapToModel(): ScanResult {
         val provenance = when {

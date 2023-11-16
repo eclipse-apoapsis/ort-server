@@ -25,6 +25,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
+import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobsTable
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
@@ -56,6 +57,7 @@ class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     val config by ScannerConfigurationDao optionalBackReferencedOn ScannerConfigurationsTable.scannerRunId
 
     var packageProvenances by PackageProvenanceDao via ScannerRunsPackageProvenancesTable
+    var scanResults by ScanResultDao via ScannerRunsScanResultsTable
 
     fun mapToModel() = ScannerRun(
         id = id.value,

@@ -42,7 +42,6 @@ import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class ScannerRunner(
     private val db: Database,
-    private val scanResultStorage: OrtServerScanResultStorage,
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
@@ -57,6 +56,7 @@ class ScannerRunner(
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
         val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db, packageProvenanceCache)
+        val scanResultStorage = OrtServerScanResultStorage(db, scannerRunId)
 
         val scanStorages = ScanStorages(
             readers = listOf(scanResultStorage),

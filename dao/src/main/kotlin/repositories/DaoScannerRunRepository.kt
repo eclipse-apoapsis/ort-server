@@ -28,10 +28,8 @@ import org.jetbrains.exposed.sql.insert
 import org.ossreviewtoolkit.server.dao.blockingQuery
 import org.ossreviewtoolkit.server.dao.entityQuery
 import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
 import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.DetectedLicenseMappingDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileArchiverConfigurationDao
@@ -56,18 +54,14 @@ import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.KnownProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.NestedProvenanceScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScanStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
@@ -107,23 +101,16 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    /**
-     * Due to the fact that there are no junction tables storing the scan results for a [ScannerRun], it has to be
-     * queried from the database with JOIN clauses. First, all packages from an [AnalyzerRunsTable] have to be collected
-     * that belong to the same ORT run like the requested [ScannerRun]. With the help of the packages, package
-     * provenances can be queried and a [NestedProvenanceScanResult] can be created.
-     */
     override fun get(id: Long): ScannerRun? = db.entityQuery {
         val scannerRunDao = ScannerRunDao[id]
 
         // Get the provenance resolution results for the scanned packages.
         val provenanceResolutionResults = getProvenanceResolutionResults(scannerRunDao.packageProvenances)
 
-        // Get the scan results for all provenances.
-        val allProvenances = provenanceResolutionResults.flatMapTo(mutableSetOf()) { it.getProvenances() }
-        val scanResults = getScanResults(allProvenances)
+        // Get the scan results for the scanner run.
+        val scanResults = scannerRunDao.scanResults.mapTo(mutableSetOf()) { it.mapToModel() }
 
-        ScannerRunDao[id].mapToModel().copy(provenances = provenanceResolutionResults, scanResults = scanResults)
+        scannerRunDao.mapToModel().copy(provenances = provenanceResolutionResults, scanResults = scanResults)
     }
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
@@ -180,21 +167,6 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                 }.orEmpty()
             )
             add(result)
-        }
-    }
-
-    /**
-     * Return all [ScanResult]s for the provided [provenances].
-     */
-    private fun getScanResults(provenances: MutableSet<KnownProvenance>): Set<ScanResult> = buildSet {
-        provenances.forEach { provenance ->
-            val scanResults = when (provenance) {
-                is ArtifactProvenance -> ScanResultDao.findByRemoteArtifact(provenance.sourceArtifact)
-                is RepositoryProvenance ->
-                    ScanResultDao.findByVcsInfo(provenance.vcsInfo.copy(revision = provenance.resolvedRevision))
-            }
-
-            addAll(scanResults.map { it.mapToModel() })
         }
     }
 }

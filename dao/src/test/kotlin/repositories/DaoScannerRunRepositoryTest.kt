@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScanResultsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
@@ -58,7 +59,6 @@ import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfigurati
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
@@ -179,6 +179,9 @@ class DaoScannerRunRepositoryTest : StringSpec({
 
         analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg1, pkg2)))
         val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)
+        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg1)
+        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg2)
+        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg3)
         associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance1)
         associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance2)
 
@@ -205,11 +208,15 @@ class DaoScannerRunRepositoryTest : StringSpec({
             )
         )
 
-        scannerRun.scanResults should containExactlyInAnyOrder(
-            scanResultPkg1.copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
-            scanResultPkg2.copy(provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)),
-            scanResultPkg3.copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
-        )
+        transaction {
+            scannerRun.scanResults should containExactlyInAnyOrder(
+                scanResultPkg1.mapToModel().copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
+                scanResultPkg2.mapToModel()
+                    .copy(provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)),
+                scanResultPkg3.mapToModel()
+                    .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
+            )
+        }
     }
 })
 
@@ -259,7 +266,7 @@ private fun createNestedProvenance(
     nestedProvenance
 }
 
-private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = null): ScanResult = transaction {
+private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = null): ScanResultDao = transaction {
     val scanSummary = ScanSummaryDao.new {
         this.startTime = Clock.System.now()
         this.endTime = Clock.System.now()
@@ -276,7 +283,7 @@ private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = n
         this.vcsType = vcs?.type?.name
         this.vcsUrl = vcs?.url
         this.vcsRevision = vcs?.revision
-    }.mapToModel()
+    }
 }
 
 internal val fileStorageConfiguration = FileStorageConfiguration(
@@ -348,6 +355,12 @@ private fun associatePackageProvenanceWithNestedProvenance(
 ) {
     transaction {
         packageProvenance.nestedProvenance = nestedProvenance
+    }
+}
+
+private fun associateScannerRunWithScanResult(scannerRun: ScannerRun, scanResult: ScanResultDao) {
+    transaction {
+        ScannerRunsScanResultsTable.insertIfNotExists(scannerRun.id, scanResult.id.value)
     }
 }
 

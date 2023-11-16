@@ -20,9 +20,12 @@
 package org.ossreviewtoolkit.server.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.time.Instant
@@ -46,7 +49,11 @@ import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ScannerMatcher
+import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 import org.semver4j.Semver
@@ -66,32 +73,47 @@ class OrtServerScanResultStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
     private lateinit var scanResultStorage: OrtServerScanResultStorage
+    private lateinit var scannerRun: ScannerRun
 
     init {
         beforeEach {
-            scanResultStorage = OrtServerScanResultStorage(dbExtension.db)
+            scannerRun = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
+            scanResultStorage = OrtServerScanResultStorage(dbExtension.db, scannerRun.id)
+        }
+
+        fun verifyAssociatedScanResults(scannerRun: ScannerRun, vararg scanResults: ScanResult) {
+            dbExtension.db.blockingQuery {
+                val associatedScanResults = ScannerRunDao[scannerRun.id].scanResults.map { it.mapToModel() }
+
+                associatedScanResults should haveSize(scanResults.size)
+                associatedScanResults.map { it.mapToOrt() } should containExactlyInAnyOrder(*scanResults)
+            }
         }
 
         "write" should {
-            "create a repository provenance scan result in the storage" {
+            "create a repository provenance scan result in the storage and associate it to the scanner run" {
                 val provenance = createRepositoryProvenance()
                 val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
 
+                verifyAssociatedScanResults(scannerRun, scanResult)
+
                 scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
             }
 
-            "create an artifact provenance scan result in the storage" {
+            "create an artifact provenance scan result in the storage and associate it to the scanner run" {
                 val provenance = createArtifactProvenance()
                 val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
+
+                verifyAssociatedScanResults(scannerRun, scanResult)
 
                 scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
             }
         }
 
         "read" should {
-            "read scan results by repository provenance in the database" {
+            "read scan results by repository provenance and associate them with the scanner run" {
                 val repositoryProvenance = createRepositoryProvenance()
                 val artifactProvenance = createArtifactProvenance()
 
@@ -103,12 +125,14 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult2)
                 scanResultStorage.write(scanResult3)
 
+                verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
+
                 val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
                 readResult shouldNotContain scanResult3
             }
 
-            "read scan results by artifact provenance in the database" {
+            "read scan results by artifact provenance and associate them with the scanner run" {
                 val artifactProvenance = createArtifactProvenance()
                 val repositoryProvenance = createRepositoryProvenance()
 
@@ -119,6 +143,8 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult1)
                 scanResultStorage.write(scanResult2)
                 scanResultStorage.write(scanResult3)
+
+                verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
                 val readResult = scanResultStorage.read(artifactProvenance, scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)

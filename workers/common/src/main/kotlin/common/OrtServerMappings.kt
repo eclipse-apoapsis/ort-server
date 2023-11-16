@@ -272,8 +272,13 @@ fun ScannerRun.mapToOrt() =
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
         scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
         files = emptySet(),
-        // TODO: Provide the correct set of scanner names once it is possible to use other scanners than ScanCode.
-        scanners = provenances.associate { it.id.mapToOrt() to setOf("ScanCode") }
+        scanners = provenances.associate { provenanceResolutionResult ->
+            val scanners = scanResults
+                .filter { it.provenance == provenanceResolutionResult.packageProvenance }
+                .mapTo(mutableSetOf()) { it.scanner.name }
+
+            provenanceResolutionResult.id.mapToOrt() to scanners
+        }
     )
 
 fun ProvenanceResolutionResult.mapToOrt() =
