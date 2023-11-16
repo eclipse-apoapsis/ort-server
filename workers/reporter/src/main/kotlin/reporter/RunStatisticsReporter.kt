@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.reporter
 
 import java.io.File
 
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
@@ -33,7 +34,7 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 class RunStatisticsReporter : Reporter {
     override val type = "RunStatistics"
 
-    override fun generateReport(input: ReporterInput, outputDir: File, options: Map<String, String>): List<File> {
+    override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
         val outputFile = outputDir.resolve("run-statistics.json")
         val statistics = input.statistics
         outputFile.writeValue(statistics)

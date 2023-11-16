@@ -53,6 +53,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigException
@@ -60,7 +61,6 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.Options
 import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
@@ -167,11 +167,11 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPlainOptions = slot<Options>()
-            val slotTemplateOptions = slot<Options>()
+            val slotPlainPluginConfiguration = slot<PluginConfiguration>()
+            val slotTemplatePluginConfiguration = slot<PluginConfiguration>()
             verify {
-                plainReporter.generateReport(any(), outputDirectory, capture(slotPlainOptions))
-                templateReporter.generateReport(any(), outputDirectory, capture(slotTemplateOptions))
+                plainReporter.generateReport(any(), outputDirectory, capture(slotPlainPluginConfiguration))
+                templateReporter.generateReport(any(), outputDirectory, capture(slotTemplatePluginConfiguration))
 
                 context.close()
             }
@@ -182,8 +182,8 @@ class ReporterRunnerTest : WordSpec({
                 "otherTemplate" to "$resolvedTemplatePrefix$templateFileReference2," +
                         "$resolvedTemplatePrefix$templateFileReference3"
             )
-            slotPlainOptions.captured shouldBe plainOptions
-            slotTemplateOptions.captured shouldBe expectedTemplateOptions
+            slotPlainPluginConfiguration.captured.options shouldBe plainOptions
+            slotTemplatePluginConfiguration.captured.options shouldBe expectedTemplateOptions
         }
 
         "handle template file references and other references" {
@@ -223,9 +223,9 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotOptions = slot<Options>()
+            val slotPluginConfiguration = slot<PluginConfiguration>()
             verify {
-                templateReporter.generateReport(any(), any(), capture(slotOptions))
+                templateReporter.generateReport(any(), any(), capture(slotPluginConfiguration))
 
                 context.close()
             }
@@ -233,7 +233,7 @@ class ReporterRunnerTest : WordSpec({
             val expectedTemplateOptions = mapOf(
                 "templateFile" to "$otherReference1,$resolvedTemplatePrefix$fileReference,$otherReference2"
             )
-            slotOptions.captured shouldBe expectedTemplateOptions
+            slotPluginConfiguration.captured.options shouldBe expectedTemplateOptions
         }
 
         "resolve the placeholder for the current working directory in reporter options" {
@@ -263,15 +263,15 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotOptions = slot<Options>()
+            val slotPluginConfiguration = slot<PluginConfiguration>()
             verify {
-                templateReporter.generateReport(any(), any(), capture(slotOptions))
+                templateReporter.generateReport(any(), any(), capture(slotPluginConfiguration))
             }
 
             val expectedTemplateOptions = mapOf(
                 "currentWorkingDir" to "${configDirectory.absolutePath}/reports"
             )
-            slotOptions.captured shouldBe expectedTemplateOptions
+            slotPluginConfiguration.captured.options shouldBe expectedTemplateOptions
         }
 
         "should throw an exception when a reporter fails" {

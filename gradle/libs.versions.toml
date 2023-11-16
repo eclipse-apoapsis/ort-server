@@ -55,7 +55,7 @@ log4j = "2.20.0"
 logback = "1.4.8"
 micrometer = "1.11.2"
 mockk = "1.13.5"
-ort = "53ea4ceba1"
+ort = "a9594cbde6"
 postgres = "42.6.0"
 qpidJmsClient = "2.3.0"
 slf4j = "2.0.7"
@@ -138,6 +138,7 @@ ortScanner = { module = "com.github.oss-review-toolkit.ort:scanner", version.ref
 ortScanners = { module = "com.github.oss-review-toolkit.ort:scanners", version.ref = "ort" }
 ortScriptingUtils = { module = "com.github.oss-review-toolkit.ort:scripting-utils", version.ref = "ort" }
 ortTestUtils = { module = "com.github.oss-review-toolkit.ort:test-utils", version.ref = "ort" }
+ortVersionControlSystems = { module = "com.github.oss-review-toolkit.ort:version-control-systems", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }

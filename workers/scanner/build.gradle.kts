@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.typesafeConfig)
 
     implementation(platform(libs.ortScanners))
+    implementation(platform(libs.ortVersionControlSystems))
 
     runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))

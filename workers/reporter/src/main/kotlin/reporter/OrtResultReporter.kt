@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.reporter
 
 import java.io.File
 
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
@@ -43,8 +44,8 @@ class OrtResultReporter : Reporter {
 
     override val type = "OrtResult"
 
-    override fun generateReport(input: ReporterInput, outputDir: File, options: Map<String, String>): List<File> {
-        val compressed = options.getOrDefault(COMPRESSED_PROPERTY, "true").toBooleanStrict()
+    override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
+        val compressed = config.options.getOrDefault(COMPRESSED_PROPERTY, "true").toBooleanStrict()
 
         val targetDir = outputDir.resolve("ort-result")
         targetDir.mkdir()

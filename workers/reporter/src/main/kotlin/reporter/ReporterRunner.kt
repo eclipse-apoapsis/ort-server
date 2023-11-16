@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.config.orEmpty
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
@@ -180,9 +181,8 @@ class ReporterRunner(
                         logger.info("Generating the '${reporter.type}' report...")
                         reporter to runCatching {
                             val reporterOptions = transformedOptions[reporter.type].orEmpty()
-                            reporter.generateReport(reporterInput, outputDir, reporterOptions).also {
-                                reportStorage.storeReportFiles(runId, it)
-                            }
+                            reporter.generateReport(reporterInput, outputDir, PluginConfiguration(reporterOptions))
+                                .also { reportStorage.storeReportFiles(runId, it) }
                         }
                     }
                 }.awaitAll()

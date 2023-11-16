@@ -28,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
@@ -60,7 +61,7 @@ class OrtResultReporterTest : WordSpec({
             val reportFiles = reporter.generateReport(
                 input,
                 tempdir(),
-                mapOf(OrtResultReporter.COMPRESSED_PROPERTY to "false")
+                PluginConfiguration(options = mapOf(OrtResultReporter.COMPRESSED_PROPERTY to "false"))
             )
             reportFiles should haveSize(1)
 

@@ -163,6 +163,8 @@ private fun mockScannerWrapperFactory(scannerName: String) =
                 every { name } returns scannerName
             }
             every { name } returns scannerName
+            every { readFromStorage } returns true
+            every { writeToStorage } returns true
             every { getVersion(any()) } returns "1.0.0"
         }
     }

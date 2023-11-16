@@ -60,9 +60,10 @@ dependencies {
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
     implementation(libs.ortAnalyzer)
+    implementation(libs.ortDownloader)
     implementation(platform(libs.ortPackageCurationProviders))
     implementation(platform(libs.ortPackageManagers))
-    implementation(libs.ortDownloader)
+    implementation(platform(libs.ortVersionControlSystems))
 
     runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
