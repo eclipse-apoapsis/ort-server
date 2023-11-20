@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.KnownProvenance as OrtKnownProvenance
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
@@ -67,6 +68,8 @@ import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
+import org.ossreviewtoolkit.model.Snippet as OrtSnippet
+import org.ossreviewtoolkit.model.SnippetFinding as OrtSnippetFinding
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
@@ -185,6 +188,8 @@ import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.model.runs.scanner.Snippet
+import org.ossreviewtoolkit.server.model.runs.scanner.SnippetFinding
 import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
@@ -304,6 +309,7 @@ fun ScanSummary.mapToOrt() =
         endTime = endTime.toJavaInstant(),
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
+        snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFinding::mapToOrt),
         issues = issues.map(OrtServerIssue::mapToOrt)
     )
 
@@ -313,6 +319,20 @@ fun LicenseFinding.mapToOrt() = OrtLicenseFinding(
     license = SpdxExpression.Companion.parse(spdxLicense),
     location = location.mapToOrt(),
     score = score
+)
+
+fun Snippet.mapToOrt() = OrtSnippet(
+    score = score,
+    location = location.mapToOrt(),
+    provenance = provenance.mapToOrt() as OrtKnownProvenance,
+    purl = purl,
+    licenses = spdxLicense.toSpdx(),
+    additionalData = additionalData
+)
+
+fun SnippetFinding.mapToOrt() = OrtSnippetFinding(
+    sourceLocation = location.mapToOrt(),
+    snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
 )
 
 fun TextLocation.mapToOrt() = OrtTextLocation(path, startLine, endLine)
