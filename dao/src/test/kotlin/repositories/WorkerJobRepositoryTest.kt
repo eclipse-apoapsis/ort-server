@@ -44,6 +44,57 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
     abstract fun getJobRepository(): WorkerJobRepository<T>
 
     init {
+        "start should mark a job as running" {
+            val job = createJob()
+
+            val updatedStartedAt = Clock.System.now()
+
+            val updateResult = getJobRepository().start(job.id, updatedStartedAt)
+
+            listOf(updateResult, getJobRepository().get(job.id)).forAll {
+                it.shouldNotBeNull()
+                it.startedAt shouldBe updatedStartedAt.toDatabasePrecision()
+                it.status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "tryStart should mark a job as running" {
+            val job = createJob()
+
+            val updatedStartedAt = Clock.System.now()
+
+            val updateResult = getJobRepository().tryStart(job.id, updatedStartedAt)
+
+            listOf(updateResult, getJobRepository().get(job.id)).forAll {
+                it.shouldNotBeNull()
+                it.startedAt shouldBe updatedStartedAt.toDatabasePrecision()
+                it.status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "tryStart should not change an already started job" {
+            val job = createJob()
+
+            val updatedStartedAt = Clock.System.now()
+            getJobRepository().start(job.id, updatedStartedAt)
+
+            val updateResult = getJobRepository().tryStart(job.id, updatedStartedAt.plus(10.seconds))
+
+            updateResult should beNull()
+
+            with(getJobRepository().get(job.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldBe updatedStartedAt.toDatabasePrecision()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "tryStart should fail for a non-existing job" {
+            shouldThrow<IllegalArgumentException> {
+                getJobRepository().tryStart(-1, Clock.System.now())
+            }
+        }
+
         "complete should mark a job as completed" {
             val job = createJob()
 

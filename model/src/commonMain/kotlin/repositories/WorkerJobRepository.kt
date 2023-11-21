@@ -54,6 +54,20 @@ interface WorkerJobRepository<T : WorkerJob> {
     ): T
 
     /**
+     * Mark a job by [id] as started by updating the given [startedAt] timestamp and setting the status to
+     * [JobStatus.RUNNING].
+     */
+    fun start(id: Long, startedAt: Instant): T =
+        update(id, startedAt = startedAt.asPresent(), status = JobStatus.RUNNING.asPresent())
+
+    /**
+     * Mark a job by [id] as started if it is not yet in a started state. Return the updated job if the update is
+     * possible and `null` otherwise.
+     */
+    fun tryStart(id: Long, startedAt: Instant): T? =
+        if (getStatus(id) in notStartedJobStates) start(id, startedAt) else null
+
+    /**
      * Mark a job by [id] as completed by updating the given [finishedAt] date and setting the given [status].
      */
     fun complete(id: Long, finishedAt: Instant, status: JobStatus): T {
@@ -74,20 +88,20 @@ interface WorkerJobRepository<T : WorkerJob> {
      * way, in case multiple completion messages are received. If the update is possible, return the updated entity;
      * otherwise, return *null*.
      */
-    fun tryComplete(id: Long, finishedAt: Instant, status: JobStatus): T? {
-        val currentStatus = requireNotNull(get(id)?.status) {
-            "${javaClass.simpleName}: Job '$id' not found."
-        }
+    fun tryComplete(id: Long, finishedAt: Instant, status: JobStatus): T? =
+        if (getStatus(id) !in completedJobStates) complete(id, finishedAt, status) else null
 
-        return if (currentStatus !in completedJobStates) {
-            complete(id, finishedAt, status)
-        } else {
-            null
-        }
-    }
+    /** Return the status of a job by [id] or throw an [IllegalArgumentException] if the job is not found. */
+    private fun getStatus(id: Long): JobStatus =
+        requireNotNull(get(id)?.status) { "${javaClass.simpleName}: Job '$id' not found." }
 }
 
 /**
  * A set with the [JobStatus] values that indicate a completed job.
  */
 private val completedJobStates = setOf(JobStatus.FINISHED, JobStatus.FAILED)
+
+/**
+ * A set with the [JobStatus] values that indicate a job that was not started.
+ */
+private val notStartedJobStates = setOf(JobStatus.CREATED, JobStatus.SCHEDULED)
