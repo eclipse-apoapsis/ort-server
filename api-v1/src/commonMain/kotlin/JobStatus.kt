@@ -26,9 +26,18 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class JobStatus {
+    /** The job was created in the database but not yet scheduled for execution. */
     CREATED,
+
+    /** The job was scheduled for execution. */
     SCHEDULED,
+
+    /** The responsible worker started processing the job. */
     RUNNING,
+
+    /** The job failed during execution. */
     FAILED,
+
+    /** The job was processed successfully. */
     FINISHED
 }
