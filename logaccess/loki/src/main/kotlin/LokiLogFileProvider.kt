@@ -28,6 +28,7 @@ import io.ktor.client.plugins.auth.providers.basic
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.url
 import io.ktor.serialization.kotlinx.json.json
@@ -53,6 +54,9 @@ class LokiLogFileProvider(
     private val config: LokiConfig
 ) : LogFileProvider {
     companion object {
+        /** The header to define the tenant ID in multi-tenant mode. */
+        private const val TENANT_HEADER = "X-Scope-OrgID"
+
         private val logger = LoggerFactory.getLogger(LokiLogFileProvider::class.java)
     }
 
@@ -131,6 +135,9 @@ class LokiLogFileProvider(
         HttpClient(OkHttp) {
             defaultRequest {
                 url(config.serverUrl)
+                config.tenantId?.let { tenant ->
+                    header(TENANT_HEADER, tenant)
+                }
             }
 
             install(ContentNegotiation) {

@@ -33,15 +33,17 @@ class LokiConfigTest : StringSpec({
         val limit = 4321
         val username = "lokiUser"
         val password = "lokiPass"
+        val tenant = "testTenant"
         val configMap = mapOf(
             "lokiServerUrl" to SERVER_URL,
             "lokiNamespace" to NAMESPACE,
             "lokiQueryLimit" to limit,
             "lokiUsername" to username,
-            "lokiPassword" to password
+            "lokiPassword" to password,
+            "lokiTenantId" to tenant
         )
         val configManager = createConfigManager(configMap)
-        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, limit, username, password)
+        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, limit, username, password, tenant)
 
         val lokiConfig = LokiConfig.create(configManager)
 

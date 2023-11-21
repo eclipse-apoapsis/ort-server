@@ -57,6 +57,13 @@ data class LokiConfig(
 
     /** An optional password for basic auth. */
     val password: String?,
+
+    /**
+     * An optional tenant ID in case Grafana Loki runs in multi-tenant mode. If defined, requests sent to the server
+     * will contain an additional header `X-Scope-OrgID` with this value.
+     * See https://grafana.com/docs/loki/latest/operations/authentication/.
+     */
+    val tenantId: String? = null
 ) {
     companion object {
         /** The configuration property that defines the root URL of the Loki server. */
@@ -73,6 +80,9 @@ data class LokiConfig(
 
         /** The configuration property that defines a limit for query results. */
         private const val LIMIT_PROPERTY = "lokiQueryLimit"
+
+        /** The configuration property that defines the tenant ID if in multi-tenant mode. */
+        private const val TENANT_PROPERTY = "lokiTenantId"
 
         /** The default limit to be passed to the query endpoint. */
         private const val DEFAULT_LIMIT = 1000
@@ -93,7 +103,8 @@ data class LokiConfig(
                 configManager.getString(NAMESPACE_PROPERTY),
                 configManager.getIntOrDefault(LIMIT_PROPERTY, DEFAULT_LIMIT),
                 username,
-                password
+                password,
+                configManager.getStringOrNull(TENANT_PROPERTY)
             )
         }
     }

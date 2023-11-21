@@ -153,6 +153,24 @@ class LokiLogFileProviderTest : StringSpec() {
             )
         }
 
+        "Multi-tenant mode should be supported" {
+            val logData = generateLogData(16)
+            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+
+            val tenant = "lokiTestTenant"
+            val config = server.lokiConfig().copy(tenantId = tenant)
+            val provider = LokiLogFileProvider(config)
+
+            val logFile = provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+
+            logData.checkLogFile(logFile)
+
+            server.verify(
+                getRequestedFor(urlPathEqualTo("/loki/api/v1/query_range"))
+                    .withHeader("X-Scope-OrgID", equalTo(tenant))
+            )
+        }
+
         "The integration with LogFileService should work" {
             val lokiConfig = server.lokiConfig()
             val providerConfigMap = mapOf(
