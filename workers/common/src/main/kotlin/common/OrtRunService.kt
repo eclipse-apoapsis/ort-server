@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.common
 
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
@@ -243,6 +244,31 @@ class OrtRunService(
     fun getScannerRunForOrtRun(ortRunId: Long) = db.blockingQuery {
         getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
     }
+
+    /**
+     * Start the [AdvisorJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startAdvisorJob(id: Long) = advisorJobRepository.tryStart(id, Clock.System.now())
+
+    /**
+     * Start the [AnalyzerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startAnalyzerJob(id: Long) = analyzerJobRepository.tryStart(id, Clock.System.now())
+
+    /**
+     * Start the [EvaluatorJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startEvaluatorJob(id: Long) = evaluatorJobRepository.tryStart(id, Clock.System.now())
+
+    /**
+     * Start the [ReporterJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startReporterJob(id: Long) = reporterJobRepository.tryStart(id, Clock.System.now())
+
+    /**
+     * Start the [ScannerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startScannerJob(id: Long) = scannerJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Store the provided [advisorRun].

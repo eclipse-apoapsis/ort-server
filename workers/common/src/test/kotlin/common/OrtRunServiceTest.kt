@@ -27,6 +27,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import kotlinx.datetime.Clock
 
@@ -61,6 +62,7 @@ import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.dao.test.Fixtures
 import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
 import org.ossreviewtoolkit.server.model.Hierarchy
+import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.RepositoryType
 import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
 import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
@@ -513,6 +515,116 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if no scanner run for the ORT run exists" {
             service.getScannerRunForOrtRun(-1L) should beNull()
+        }
+    }
+
+    "startAdvisorJob" should {
+        "start the job" {
+            with(service.startAdvisorJob(fixtures.advisorJob.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldNot beNull()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "return null if the job was already started" {
+            service.startAdvisorJob(fixtures.advisorJob.id)
+            
+            service.startAdvisorJob(fixtures.advisorJob.id) should beNull()
+        }
+
+        "fail if the job does not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.startAdvisorJob(-1) should beNull()
+            }
+        }
+    }
+
+    "startAnalyzerJob" should {
+        "start the job" {
+            with(service.startAnalyzerJob(fixtures.analyzerJob.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldNot beNull()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "return null if the job was already started" {
+            service.startAnalyzerJob(fixtures.analyzerJob.id)
+
+            service.startAnalyzerJob(fixtures.analyzerJob.id) should beNull()
+        }
+
+        "fail if the job does not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.startAnalyzerJob(-1) should beNull()
+            }
+        }
+    }
+
+    "startEvaluatorJob" should {
+        "start the job" {
+            with(service.startEvaluatorJob(fixtures.evaluatorJob.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldNot beNull()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "return null if the job was already started" {
+            service.startEvaluatorJob(fixtures.evaluatorJob.id)
+
+            service.startEvaluatorJob(fixtures.evaluatorJob.id) should beNull()
+        }
+
+        "fail if the job does not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.startEvaluatorJob(-1) should beNull()
+            }
+        }
+    }
+
+    "startReporterJob" should {
+        "start the job" {
+            with(service.startReporterJob(fixtures.reporterJob.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldNot beNull()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "return null if the job was already started" {
+            service.startReporterJob(fixtures.reporterJob.id)
+
+            service.startReporterJob(fixtures.reporterJob.id) should beNull()
+        }
+
+        "fail if the job does not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.startReporterJob(-1) should beNull()
+            }
+        }
+    }
+
+    "startScannerJob" should {
+        "start the job" {
+            with(service.startScannerJob(fixtures.scannerJob.id)) {
+                this.shouldNotBeNull()
+                startedAt shouldNot beNull()
+                status shouldBe JobStatus.RUNNING
+            }
+        }
+
+        "return null if the job was already started" {
+            service.startScannerJob(fixtures.scannerJob.id)
+
+            service.startScannerJob(fixtures.scannerJob.id) should beNull()
+        }
+
+        "fail if the job does not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.startScannerJob(-1) should beNull()
+            }
         }
     }
 
