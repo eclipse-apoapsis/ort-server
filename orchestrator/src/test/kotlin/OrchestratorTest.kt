@@ -306,7 +306,6 @@ class OrchestratorTest : WordSpec() {
                     // The database entry was set to SCHEDULED.
                     analyzerJobRepository.update(
                         id = withArg { it shouldBe analyzerJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                 }
@@ -399,12 +398,10 @@ class OrchestratorTest : WordSpec() {
                     )
                     advisorJobRepository.update(
                         id = withArg { it shouldBe advisorJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                     scannerJobRepository.update(
                         id = withArg { it shouldBe scannerJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                 }
@@ -509,7 +506,6 @@ class OrchestratorTest : WordSpec() {
                     )
                     evaluatorJobRepository.update(
                         id = withArg { it shouldBe evaluatorJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                     scannerJobRepository.update(
@@ -569,7 +565,6 @@ class OrchestratorTest : WordSpec() {
                     )
                     evaluatorJobRepository.update(
                         id = withArg { it shouldBe evaluatorJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
                     scannerJobRepository.update(
@@ -714,7 +709,6 @@ class OrchestratorTest : WordSpec() {
                     )
                     evaluatorJobRepository.update(
                         id = withArg { it shouldBe evaluatorJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
 
@@ -775,7 +769,6 @@ class OrchestratorTest : WordSpec() {
                     )
                     evaluatorJobRepository.update(
                         id = withArg { it shouldBe evaluatorJob.id },
-                        startedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
                     )
 

@@ -499,7 +499,6 @@ class Orchestrator(
 
         analyzerJobRepository.update(
             analyzerJob.id,
-            startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
@@ -515,7 +514,6 @@ class Orchestrator(
 
         advisorJobRepository.update(
             advisorJob.id,
-            startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
@@ -531,7 +529,6 @@ class Orchestrator(
 
         scannerJobRepository.update(
             id = scannerJob.id,
-            startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
@@ -547,7 +544,6 @@ class Orchestrator(
 
         evaluatorJobRepository.update(
             id = evaluatorJob.id,
-            startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
@@ -563,7 +559,6 @@ class Orchestrator(
 
         reporterJobRepository.update(
             id = reporterJob.id,
-            startedAt = Clock.System.now().asPresent(),
             status = JobStatus.SCHEDULED.asPresent()
         )
     }
