@@ -43,21 +43,23 @@ internal class AdvisorWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory
 ) {
-    fun run(advisorJobId: Long, traceId: String): RunResult = runCatching {
-        val advisorJob = getValidAdvisorJob(advisorJobId)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(advisorJob.ortRunId)
+    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+        var job = getValidAdvisorJob(jobId)
+        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(job.ortRunId)
 
-        logger.debug("Advisor job with id '{}' started at {}.", advisorJob.id, advisorJob.startedAt)
+        job = ortRunService.startAdvisorJob(job.id)
+            ?: throw IllegalArgumentException("The advisor job with id '$jobId' could not be started.")
+        logger.debug("Advisor job with id '{}' started at {}.", job.id, job.startedAt)
 
         val advisorRun = runner.run(
-            contextFactory.createContext(advisorJob.ortRunId),
+            contextFactory.createContext(job.ortRunId),
             packages = analyzerRun?.packages?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty(),
-            config = advisorJob.configuration
+            config = job.configuration
         )
 
         db.blockingQuery {
-            getValidAdvisorJob(advisorJobId)
-            ortRunService.storeAdvisorRun(advisorRun.mapToModel(advisorJobId))
+            getValidAdvisorJob(jobId)
+            ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
         }
 
         RunResult.Success

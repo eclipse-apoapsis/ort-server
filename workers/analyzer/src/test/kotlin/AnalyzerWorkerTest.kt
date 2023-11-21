@@ -111,6 +111,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
@@ -166,6 +167,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
@@ -224,6 +226,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns job
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns job
             every { storeAnalyzerRun(any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs

@@ -106,6 +106,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerRunForOrtRun(any()) } returns scannerRun
+            every { startEvaluatorJob(any()) } returns evaluatorJob
             every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
             every { storeResolvedResolutions(any(), any()) } just runs

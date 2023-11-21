@@ -49,11 +49,15 @@ class ScannerWorker(
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.blockingQuery {
-            val scannerJob = getValidScannerJob(jobId)
-            val ortRun = ortRunService.getOrtRun(scannerJob.ortRunId)
+            var job = getValidScannerJob(jobId)
+            val ortRun = ortRunService.getOrtRun(job.ortRunId)
             requireNotNull(ortRun) {
-                "ORT run '${scannerJob.ortRunId}' not found."
+                "ORT run '${job.ortRunId}' not found."
             }
+
+            job = ortRunService.startScannerJob(job.id)
+                ?: throw IllegalArgumentException("The scanner job with id '$jobId' could not be started.")
+            logger.debug("Scanner job with id '{}' started at {}.", job.id, job.startedAt)
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
             val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
@@ -66,7 +70,7 @@ class ScannerWorker(
                 resolvedConfiguration = resolvedConfiguration.mapToOrt()
             )
 
-            Pair(scannerJob, ortResult)
+            Pair(job, ortResult)
         }
 
         val context = contextFactory.createContext(scannerJob.ortRunId)

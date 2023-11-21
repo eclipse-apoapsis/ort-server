@@ -124,6 +124,7 @@ class ReporterWorkerTest : StringSpec({
             every { getReporterJob(any()) } returns reporterJob
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerRunForOrtRun(any()) } returns scannerRun
+            every { startReporterJob(any()) } returns reporterJob
             every { storeReporterRun(any()) } just runs
         }
 

@@ -73,6 +73,7 @@ class AdvisorWorkerTest : StringSpec({
         val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } returns advisorJob
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { startAdvisorJob(any()) } returns advisorJob
             every { storeAdvisorRun(any()) } just runs
         }
 

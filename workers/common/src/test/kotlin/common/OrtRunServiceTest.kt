@@ -95,6 +95,7 @@ import org.ossreviewtoolkit.utils.common.gibibytes
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
+@Suppress("LargeClass")
 class OrtRunServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
@@ -529,7 +530,7 @@ class OrtRunServiceTest : WordSpec({
 
         "return null if the job was already started" {
             service.startAdvisorJob(fixtures.advisorJob.id)
-            
+
             service.startAdvisorJob(fixtures.advisorJob.id) should beNull()
         }
 

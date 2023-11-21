@@ -44,9 +44,13 @@ internal class EvaluatorWorker(
     private val workerContextFactory: WorkerContextFactory
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val evaluatorJob = getValidEvaluatorJob(jobId)
-        val workerContext = workerContextFactory.createContext(evaluatorJob.ortRunId)
+        var job = getValidEvaluatorJob(jobId)
+        val workerContext = workerContextFactory.createContext(job.ortRunId)
         val ortRun = workerContext.ortRun
+
+        job = ortRunService.startEvaluatorJob(job.id)
+            ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
+        logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
@@ -62,11 +66,11 @@ internal class EvaluatorWorker(
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
-        val evaluatorRunnerResult = runner.run(ortResult, evaluatorJob.configuration, workerContext)
+        val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
 
         db.blockingQuery {
-            getValidEvaluatorJob(evaluatorJob.id)
-            ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(evaluatorJob.id))
+            getValidEvaluatorJob(job.id)
+            ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
             ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
             ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
         }

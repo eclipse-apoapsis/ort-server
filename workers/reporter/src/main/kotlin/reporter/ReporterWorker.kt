@@ -45,11 +45,15 @@ internal class ReporterWorker(
     private val ortRunService: OrtRunService
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val reporterJob = getValidReporterJob(jobId)
-        val ortRun = ortRunService.getOrtRun(reporterJob.ortRunId)
+        var job = getValidReporterJob(jobId)
+        val ortRun = ortRunService.getOrtRun(job.ortRunId)
         requireNotNull(ortRun) {
-            "ORT run '${reporterJob.ortRunId}' not found."
+            "ORT run '${job.ortRunId}' not found."
         }
+
+        job = ortRunService.startReporterJob(job.id)
+            ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
+        logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
@@ -71,9 +75,9 @@ internal class ReporterWorker(
         val startTime = Clock.System.now()
 
         val reporterRunnerResult = runner.run(
-            reporterJob.ortRunId,
+            job.ortRunId,
             ortResult,
-            reporterJob.configuration,
+            job.configuration,
             evaluatorJob?.configuration
         )
 

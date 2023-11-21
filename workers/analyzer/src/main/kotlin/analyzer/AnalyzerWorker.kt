@@ -46,12 +46,14 @@ internal class AnalyzerWorker(
     private val environmentService: EnvironmentService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val job = getValidAnalyzerJob(jobId)
+        var job = getValidAnalyzerJob(jobId)
         val ortRun = ortRunService.getOrtRun(job.ortRunId)
             ?: throw IllegalArgumentException("The ORT run '${job.ortRunId}' does not exist.")
         val repository = ortRunService.getHierarchyForOrtRun(ortRun.id)?.repository
             ?: throw IllegalArgumentException("The repository '${ortRun.repositoryId}' does not exist.")
 
+        job = ortRunService.startAnalyzerJob(job.id)
+            ?: throw IllegalArgumentException("The analyzer job with id '$jobId' could not be started.")
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
         val context = contextFactory.createContext(job.ortRunId)

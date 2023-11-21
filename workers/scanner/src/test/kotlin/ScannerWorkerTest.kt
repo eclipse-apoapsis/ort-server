@@ -93,6 +93,7 @@ class ScannerWorkerTest : StringSpec({
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerJob(any()) } returns scannerJob
             every { finalizeScannerRun(any()) } returns mockk()
+            every { startScannerJob(any()) } returns scannerJob
         }
 
         val context = mockk<WorkerContext>()

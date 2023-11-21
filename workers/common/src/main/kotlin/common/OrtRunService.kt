@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.common
 
 import kotlinx.datetime.Clock
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
