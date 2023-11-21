@@ -1,0 +1,289 @@
+/*
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.ossreviewtoolkit.server.logaccess.loki
+
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.BasicCredentials
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.anyUrl
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.Spec
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.test.TestCase
+import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.shouldBe
+
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.http.HttpStatusCode
+
+import java.io.File
+import java.util.EnumSet
+
+import kotlin.time.Duration.Companion.milliseconds
+
+import kotlinx.datetime.Instant
+
+import org.ossreviewtoolkit.server.logaccess.LogLevel
+import org.ossreviewtoolkit.server.logaccess.LogSource
+
+class LokiLogFileProviderTest : StringSpec() {
+    private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+
+    override suspend fun beforeSpec(spec: Spec) {
+        server.start()
+    }
+
+    override suspend fun afterSpec(spec: Spec) {
+        server.stop()
+    }
+
+    override suspend fun beforeAny(testCase: TestCase) {
+        server.resetAll()
+    }
+
+    init {
+        "A correct log file should be returned" {
+            val logData = generateLogData(32)
+            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+
+            val logFile = sendTestRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+
+            logData.checkLogFile(logFile)
+        }
+
+        "Log data should be loaded in chunks and de-duplicated" {
+            val logSize = LIMIT + 10
+            val logData1 = generateLogData(LIMIT)
+            val nextStartTimeStr = logData1.last().first
+            val nextStartTime = Instant.fromEpochMilliseconds(nextStartTimeStr.toLong())
+            val logData2 = generateLogData(logSize - LIMIT + 1, nextStartTime)
+
+            server.stubLogRequest(logData1, LogSource.EVALUATOR, """level="ERROR"""")
+            server.stubLogRequest(
+                logData1.takeLast(2) + logData2,
+                LogSource.EVALUATOR,
+                """level="ERROR"""",
+                nextStartTimeStr
+            )
+
+            val logFile = sendTestRequest(LogSource.EVALUATOR, EnumSet.of(LogLevel.ERROR))
+
+            val totalLogData = generateLogData(logSize)
+            totalLogData.checkLogFile(logFile)
+        }
+
+        "Querying log data should terminate if only duplicate statements are returned" {
+            val logData = generateLogData(LIMIT)
+            server.stubLogRequest(logData, LogSource.ANALYZER, """level="ERROR"""")
+            server.stubLogRequest(logData, LogSource.ANALYZER, """level="ERROR"""", logData.last().first)
+
+            val logFile = sendTestRequest(LogSource.ANALYZER, EnumSet.of(LogLevel.ERROR))
+
+            logData.checkLogFile(logFile)
+        }
+
+        "The log level should correctly be evaluated" {
+            val logData = generateLogData(8)
+            val levelCriterion = """level="INFO" or level="WARN""""
+            server.stubLogRequest(logData, LogSource.REPORTER, levelCriterion)
+
+            val logFile = sendTestRequest(LogSource.REPORTER, EnumSet.of(LogLevel.INFO, LogLevel.WARN))
+
+            logData.checkLogFile(logFile)
+        }
+
+        "Failed requests should be handled" {
+            server.stubFor(
+                get(anyUrl())
+                    .willReturn(aResponse().withStatus(HttpStatusCode.InternalServerError.value))
+            )
+
+            val exception = shouldThrow<ServerResponseException> {
+                sendTestRequest(LogSource.SCANNER, EnumSet.of(LogLevel.DEBUG))
+            }
+
+            exception.response.status shouldBe HttpStatusCode.InternalServerError
+        }
+
+        "Basic Auth should be supported" {
+            val logData = generateLogData(16)
+            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+
+            val username = "scott"
+            val password = "tiger"
+            val config = server.lokiConfig().copy(username = username, password = password)
+            val provider = LokiLogFileProvider(config)
+
+            val logFile = provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+
+            logData.checkLogFile(logFile)
+
+            server.verify(
+                getRequestedFor(urlPathEqualTo("/loki/api/v1/query_range"))
+                    .withBasicAuth(BasicCredentials(username, password))
+            )
+        }
+    }
+
+    /**
+     * Send a test request for the given [source] and [levels] and return the resulting log file.
+     */
+    private suspend fun sendTestRequest(source: LogSource, levels: Set<LogLevel>): File =
+        LokiLogFileProvider(server.lokiConfig()).testRequest(source, levels)
+
+    /**
+     * Trigger sending a test request via this [LokiLogFileProvider] for the given [source] and [levels].
+     */
+    private suspend fun LokiLogFileProvider.testRequest(source: LogSource, levels: Set<LogLevel>): File {
+        val folder = tempdir()
+        val logFile = downloadLogFile(RUN_ID, source, levels, startTime, endTime, folder, FILE_NAME)
+
+        logFile.parentFile shouldBe folder
+        logFile.name shouldBe FILE_NAME
+
+        return logFile
+    }
+}
+
+/**
+ * Type definition for log data returned by Loki. This is a list of pairs consisting of a timestamp and a log
+ * statement.
+ */
+private typealias LogData = List<Pair<String, String>>
+
+private val startTime = Instant.parse("2023-11-20T08:28:17.123Z")
+private val endTime = Instant.parse("2023-11-20T08:30:45.987Z")
+private const val NAMESPACE = "ort_server_ns"
+private const val FILE_NAME = "result.log"
+private const val LIMIT = 42
+private const val RUN_ID = 20231120152344L
+
+/**
+ * A template to generate responses of the Loki server. The template contains the overall JSON structure of the
+ * response. The actual log statements can be inserted dynamically.
+ */
+private val responseTemplate = readResponseTemplate()
+
+/**
+ * Return the URL of this mock server to be used in the [LokiConfig].
+ */
+private fun WireMockServer.lokiUrl() = "http://localhost:${port()}"
+
+/**
+ * Return a default [LokiConfig] that references this mock server.
+ */
+private fun WireMockServer.lokiConfig(): LokiConfig =
+    LokiConfig(
+        serverUrl = lokiUrl(),
+        namespace = NAMESPACE,
+        limit = LIMIT,
+        username = null,
+        password = null
+    )
+
+/**
+ * Prepare this server to expect a request for log data for the given [source], [levelCriterion] and
+ * [start time][from]. As response, return the given [data].
+ */
+private fun WireMockServer.stubLogRequest(
+    data: LogData,
+    source: LogSource,
+    levelCriterion: String,
+    from: String = startTime.toEpochMilliseconds().toString()
+) {
+    val response = data.generateResponse()
+
+    stubFor(
+        get(urlPathEqualTo("/loki/api/v1/query_range"))
+            .withQueryParam("end", equalTo(endTime.toEpochMilliseconds().toString()))
+            .withQueryParam("start", equalTo(from))
+            .withQueryParam("limit", equalTo(LIMIT.toString()))
+            .withQueryParam("direction", equalTo("forward"))
+            .withQueryParam("query", equalTo(generateQuery(source, levelCriterion)))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(response)
+            )
+    )
+}
+
+/**
+ * Read the file with the template to generate Loki responses with log statements.
+ */
+private fun readResponseTemplate(): String =
+    requireNotNull(LokiLogFileProviderTest::class.java.getResourceAsStream("/loki-response.json.template"))
+        .use { String(it.readAllBytes()) }
+
+/**
+ * Generate a log line for the given [timestamp].
+ */
+private fun generateLogLine(timestamp: Instant): String =
+    "[$timestamp] Something interesting just happened at this time."
+
+/**
+ * Generate log values for a Loki query response based on the given parameters. Generate [count] values starting at
+ * [from] with a delta of 100ms between two values. The resulting pairs contain the timestamp as string as first
+ * element and the generated log line as second element.
+ */
+private fun generateLogData(count: Int, from: Instant = startTime): LogData =
+    (1..count).map { index ->
+        val timestamp = from.plus(((index - 1) * 100).milliseconds)
+        timestamp.toEpochMilliseconds().toString() to generateLogLine(timestamp)
+    }
+
+/**
+ * Generate a response for the Loki server that contains this [LogData].
+ */
+private fun LogData.generateResponse(): String {
+    val logDataJson = joinToString(",") { data ->
+        """
+            |[
+            |  "${data.first}",
+            |  "${data.second}"
+            |]
+            """.trimMargin()
+    }
+
+    return responseTemplate.replace("<<log_values>>", logDataJson)
+}
+
+/**
+ * Check whether the given [file] contains the log statements represented by this [LogData].
+ */
+private fun LogData.checkLogFile(file: File) {
+    val expectedLogLines = map { it.second }
+    val logLines = file.readLines()
+
+    logLines shouldBe expectedLogLines
+}
+
+/**
+ * Generate a query string for the given [source] and [log level criterion][levelCriterion].
+ */
+private fun generateQuery(source: LogSource, levelCriterion: String): String =
+    """{namespace="$NAMESPACE",container=~"${source.name.lowercase()}.*",run_id="$RUN_ID"} | logfmt level | """ +
+            "$levelCriterion | drop __error__, __error_details__, level"
