@@ -29,6 +29,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
@@ -39,6 +41,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import java.io.File
 import java.util.EnumSet
 
@@ -46,6 +50,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 import kotlinx.datetime.Instant
 
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.logaccess.LogFileService
 import org.ossreviewtoolkit.server.logaccess.LogLevel
 import org.ossreviewtoolkit.server.logaccess.LogSource
 
@@ -145,6 +151,39 @@ class LokiLogFileProviderTest : StringSpec() {
                 getRequestedFor(urlPathEqualTo("/loki/api/v1/query_range"))
                     .withBasicAuth(BasicCredentials(username, password))
             )
+        }
+
+        "The integration with LogFileService should work" {
+            val lokiConfig = server.lokiConfig()
+            val providerConfigMap = mapOf(
+                "name" to "loki",
+                "lokiServerUrl" to lokiConfig.serverUrl,
+                "lokiNamespace" to lokiConfig.namespace,
+                "lokiQueryLimit" to lokiConfig.limit
+            )
+            val configMap = mapOf(LogFileService.LOG_FILE_SERVICE_SECTION to providerConfigMap)
+
+            val configManager = ConfigManager(
+                ConfigFactory.parseMap(configMap),
+                { mockk() },
+                { mockk() },
+                allowSecretsFromConfig = false
+            )
+
+            val logFileService = LogFileService.create(configManager, tempdir().toPath())
+
+            val logData = generateLogData(32)
+            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+
+            logFileService.createLogFilesArchive(
+                RUN_ID,
+                EnumSet.of(LogSource.ADVISOR),
+                LogLevel.ERROR,
+                startTime,
+                endTime
+            )
+
+            server.verify(getRequestedFor(urlPathEqualTo("/loki/api/v1/query_range")))
         }
     }
 
