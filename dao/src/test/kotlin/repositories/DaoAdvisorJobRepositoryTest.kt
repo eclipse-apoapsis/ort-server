@@ -19,15 +19,9 @@
 
 package org.ossreviewtoolkit.server.dao.repositories
 
-import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-
-import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
@@ -39,142 +33,89 @@ import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.JobStatus
 import org.ossreviewtoolkit.server.model.util.asPresent
 
-class DaoAdvisorJobRepositoryTest : StringSpec({
-    val dbExtension = extension(DatabaseTestExtension())
+class DaoAdvisorJobRepositoryTest : WorkerJobRepositoryTest<AdvisorJob>() {
+    private val dbExtension = extension(DatabaseTestExtension())
 
-    lateinit var advisorJobRepository: DaoAdvisorJobRepository
-    lateinit var jobConfigurations: JobConfigurations
-    lateinit var advisorJobConfiguration: AdvisorJobConfiguration
+    private lateinit var advisorJobRepository: DaoAdvisorJobRepository
+    private lateinit var jobConfigurations: JobConfigurations
+    private lateinit var advisorJobConfiguration: AdvisorJobConfiguration
 
-    var ortRunId = -1L
+    private var ortRunId = -1L
 
-    beforeEach {
-        advisorJobRepository = dbExtension.fixtures.advisorJobRepository
-        jobConfigurations = dbExtension.fixtures.jobConfigurations
-        advisorJobConfiguration = jobConfigurations.advisor!!
+    override fun createJob() = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-        ortRunId = dbExtension.fixtures.ortRun.id
-    }
+    override fun getJobRepository() = advisorJobRepository
 
-    "create should create an entry in the database" {
-        val createdAdvisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+    init {
+        beforeEach {
+            advisorJobRepository = dbExtension.fixtures.advisorJobRepository
+            jobConfigurations = dbExtension.fixtures.jobConfigurations
+            advisorJobConfiguration = jobConfigurations.advisor!!
 
-        val dbEntry = advisorJobRepository.get(createdAdvisorJob.id)
+            ortRunId = dbExtension.fixtures.ortRun.id
+        }
 
-        dbEntry.shouldNotBeNull()
-        dbEntry shouldBe AdvisorJob(
-            id = createdAdvisorJob.id,
-            ortRunId = ortRunId,
-            createdAt = createdAdvisorJob.createdAt,
-            startedAt = null,
-            finishedAt = null,
-            configuration = advisorJobConfiguration,
-            status = JobStatus.CREATED,
-        )
-    }
+        "create should create an entry in the database" {
+            val createdAdvisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-    "getForOrtRun should return the job for a run" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+            val dbEntry = advisorJobRepository.get(createdAdvisorJob.id)
 
-        advisorJobRepository.getForOrtRun(ortRunId) shouldBe advisorJob
-    }
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe AdvisorJob(
+                id = createdAdvisorJob.id,
+                ortRunId = ortRunId,
+                createdAt = createdAdvisorJob.createdAt,
+                startedAt = null,
+                finishedAt = null,
+                configuration = advisorJobConfiguration,
+                status = JobStatus.CREATED,
+            )
+        }
 
-    "get should return null" {
-        advisorJobRepository.get(1L).shouldBeNull()
-    }
+        "getForOrtRun should return the job for a run" {
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-    "get should return the job" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+            advisorJobRepository.getForOrtRun(ortRunId) shouldBe advisorJob
+        }
 
-        advisorJobRepository.get(advisorJob.id) shouldBe advisorJob
-    }
+        "get should return null" {
+            advisorJobRepository.get(1L).shouldBeNull()
+        }
 
-    "update should update an entry in the database" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+        "get should return the job" {
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-        val updateStartedAt = Clock.System.now().asPresent()
-        val updatedFinishedAt = Clock.System.now().asPresent()
-        val updateStatus = JobStatus.FINISHED.asPresent()
+            advisorJobRepository.get(advisorJob.id) shouldBe advisorJob
+        }
 
-        val updateResult = advisorJobRepository.update(advisorJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+        "update should update an entry in the database" {
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-        updateResult shouldBe advisorJob.copy(
-            startedAt = updateStartedAt.value.toDatabasePrecision(),
-            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-            status = updateStatus.value
-        )
-        advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
-            startedAt = updateStartedAt.value.toDatabasePrecision(),
-            finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-            status = updateStatus.value
-        )
-    }
+            val updateStartedAt = Clock.System.now().asPresent()
+            val updatedFinishedAt = Clock.System.now().asPresent()
+            val updateStatus = JobStatus.FINISHED.asPresent()
 
-    "delete should delete the database entry" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+            val updateResult =
+                advisorJobRepository.update(advisorJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
 
-        advisorJobRepository.delete(advisorJob.id)
+            updateResult shouldBe advisorJob.copy(
+                startedAt = updateStartedAt.value.toDatabasePrecision(),
+                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+                status = updateStatus.value
+            )
+            advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
+                startedAt = updateStartedAt.value.toDatabasePrecision(),
+                finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
+                status = updateStatus.value
+            )
+        }
 
-        advisorJobRepository.get(advisorJob.id) shouldBe null
-    }
+        "delete should delete the database entry" {
+            val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
-    "complete should mark a job as completed" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+            advisorJobRepository.delete(advisorJob.id)
 
-        val updatedFinishedAt = Clock.System.now()
-        val updateStatus = JobStatus.FINISHED
-
-        val updateResult = advisorJobRepository.complete(advisorJob.id, updatedFinishedAt, updateStatus)
-
-        updateResult shouldBe advisorJob.copy(
-            finishedAt = updatedFinishedAt.toDatabasePrecision(),
-            status = updateStatus
-        )
-        advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
-            finishedAt = updatedFinishedAt.toDatabasePrecision(),
-            status = updateStatus
-        )
-    }
-
-    "tryComplete should mark a job as completed" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
-
-        val updatedFinishedAt = Clock.System.now()
-        val updateStatus = JobStatus.FINISHED
-
-        val updateResult = advisorJobRepository.tryComplete(advisorJob.id, updatedFinishedAt, updateStatus)
-
-        updateResult shouldBe advisorJob.copy(
-            finishedAt = updatedFinishedAt.toDatabasePrecision(),
-            status = updateStatus
-        )
-        advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
-            finishedAt = updatedFinishedAt.toDatabasePrecision(),
-            status = updateStatus
-        )
-    }
-
-    "tryComplete should not change an already completed job" {
-        val advisorJob = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
-
-        val updatedFinishedAt = Clock.System.now()
-        val updateStatus = JobStatus.FAILED
-        advisorJobRepository.complete(advisorJob.id, updatedFinishedAt, updateStatus)
-
-        val updateResult =
-            advisorJobRepository.tryComplete(advisorJob.id, updatedFinishedAt.plus(10.seconds), JobStatus.FINISHED)
-
-        updateResult should beNull()
-
-        advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
-            finishedAt = updatedFinishedAt.toDatabasePrecision(),
-            status = updateStatus
-        )
-    }
-
-    "tryComplete should fail for a non-existing job" {
-        shouldThrow<IllegalArgumentException> {
-            advisorJobRepository.tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
+            advisorJobRepository.get(advisorJob.id) shouldBe null
         }
     }
-})
+}
