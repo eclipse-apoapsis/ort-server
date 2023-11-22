@@ -20,11 +20,17 @@
 package org.ossreviewtoolkit.server.workers.common
 
 import org.ossreviewtoolkit.server.model.Options
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 
 /**
  * Type alias for a map with generic options for a worker job.
  */
 typealias JobOptions = Map<String, Options>
+
+/**
+ * Type alias for a map with [PluginConfiguration] objects for a worker job.
+ */
+typealias JobPluginOptions = Map<String, PluginConfiguration>
 
 /**
  * An interface allowing the transformation of the options of a worker job.
@@ -94,7 +100,25 @@ class OptionsTransformerFactory {
     fun newTransformer(jobOptions: JobOptions): OptionsTransformer {
         return OptionsTransformerImpl(jobOptions)
     }
+
+    /**
+     * Return a new [OptionsTransformer] that operates on the given [JobPluginOptions].
+     */
+    fun newPluginOptionsTransformer(jobPluginOptions: JobPluginOptions): OptionsTransformer {
+        val options = jobPluginOptions.mapValues { entry -> entry.value.options }
+        return newTransformer(options)
+    }
 }
+
+/**
+ * Recombines the [PluginConfiguration] objects in this map with the given transformed [options]. This function can be
+ * used to obtain modified [PluginConfiguration] objects after the options have been transformed by an
+ * [OptionsTransformer]. The resulting configurations have the same secrets, but the options are overridden.
+ */
+fun JobPluginOptions.recombine(options: JobOptions): JobPluginOptions =
+    mapValues { entry ->
+        PluginConfiguration(options[entry.key].orEmpty(), entry.value.secrets)
+    }
 
 /**
  * Extract all the values stored in this [JobOptions] object that match the given [predicate].

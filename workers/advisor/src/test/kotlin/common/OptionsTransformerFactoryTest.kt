@@ -21,7 +21,10 @@ package org.ossreviewtoolkit.server.workers.common
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 
 class OptionsTransformerFactoryTest : StringSpec({
     "The transformation of all options should be possible" {
@@ -72,6 +75,78 @@ class OptionsTransformerFactoryTest : StringSpec({
             .transform { throw IllegalStateException("Unexpected invocation.") }
 
         transformedOptions shouldBe testOptions
+    }
+
+    "JobPluginOptions should be transformed" {
+        val nexusConfig = PluginConfiguration(
+            options = mapOf("url" to "https://nexus.example.org/api"),
+            secrets = mapOf("username" to "nexusUser", "password" to "nexusPassword")
+        )
+        val vcConfig = PluginConfiguration(
+            options = mapOf("url" to "https://vulnerablecode.example.org/api"),
+            secrets = mapOf("apiKey" to "vcKey")
+        )
+        val pluginOptions = mapOf("nexusIQ" to nexusConfig, "vulnerableCode" to vcConfig)
+
+        val factory = OptionsTransformerFactory()
+        val transformer = factory.newPluginOptionsTransformer(pluginOptions)
+
+        val transformedOptions = transformer.transform(::transform)
+
+        transformedOptions.keys shouldContainExactlyInAnyOrder listOf("nexusIQ", "vulnerableCode")
+        transformedOptions.getValue("nexusIQ") shouldBe mapOf(
+            "url" to "https://nexus.example.org/api$TRANSFORMED_SUFFIX"
+        )
+        transformedOptions.getValue("vulnerableCode") shouldBe mapOf(
+            "url" to "https://vulnerablecode.example.org/api$TRANSFORMED_SUFFIX"
+        )
+    }
+
+    "JobPluginOptions should be recombined" {
+        val nexusConfig = PluginConfiguration(
+            options = mapOf("url" to "https://nexus.example.org/api"),
+            secrets = mapOf("username" to "nexusUser", "password" to "nexusPassword")
+        )
+        val vcConfig = PluginConfiguration(
+            options = mapOf("url" to "https://vulnerablecode.example.org/api"),
+            secrets = mapOf("apiKey" to "vcKey")
+        )
+        val otherConfig = PluginConfiguration(
+            options = mapOf("foo" to "bar"),
+            secrets = mapOf("top" to "secret")
+        )
+        val pluginOptions = mapOf(
+            "nexusIQ" to nexusConfig,
+            "vulnerableCode" to vcConfig,
+            "other" to otherConfig
+        )
+
+        val transformedNexusOptions = mapOf("url_transformed" to "https://nexus.example.org/api/transformed")
+        val transformedVcOptions = mapOf("url_modified" to "https://vulnerablecode.example.org/api/modified")
+        val transformedOptions = mapOf(
+            "nexusIQ" to transformedNexusOptions,
+            "vulnerableCode" to transformedVcOptions,
+            "oneMore" to mapOf("x" to "y")
+        )
+
+        val recombined = pluginOptions.recombine(transformedOptions)
+
+        recombined.keys shouldContainExactlyInAnyOrder listOf("nexusIQ", "vulnerableCode", "other")
+
+        with(recombined.getValue("nexusIQ")) {
+            options shouldBe transformedNexusOptions
+            secrets shouldBe nexusConfig.secrets
+        }
+
+        with(recombined.getValue("vulnerableCode")) {
+            options shouldBe transformedVcOptions
+            secrets shouldBe vcConfig.secrets
+        }
+
+        with(recombined.getValue("other")) {
+            options should beEmpty()
+            secrets shouldBe otherConfig.secrets
+        }
     }
 })
 
