@@ -309,7 +309,7 @@ data class ReporterJobConfiguration(
     /**
      * A map of configuration options that are specific to a concrete reporter.
      */
-    val options: Map<String, Options>? = null
+    val config: Map<String, PluginConfiguration>? = null
 )
 
 /**

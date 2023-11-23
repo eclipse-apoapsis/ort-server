@@ -51,12 +51,13 @@ import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.workers.common.JobOptions
+import org.ossreviewtoolkit.server.workers.common.JobPluginOptions
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
+import org.ossreviewtoolkit.server.workers.common.recombine
 import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
@@ -172,7 +173,7 @@ class ReporterRunner(
             )
 
             val results = runBlocking(Dispatchers.IO) {
-                val transformedOptions = downloadInputFiles(context, config)
+                val transformedOptions = processReporterOptions(context, config)
 
                 val outputDir = context.createTempDir()
 
@@ -180,8 +181,10 @@ class ReporterRunner(
                     async {
                         logger.info("Generating the '${reporter.type}' report...")
                         reporter to runCatching {
-                            val reporterOptions = transformedOptions[reporter.type].orEmpty()
-                            reporter.generateReport(reporterInput, outputDir, PluginConfiguration(reporterOptions))
+                            val reporterOptions = transformedOptions[reporter.type]?.let { options ->
+                                PluginConfiguration(options.options, options.secrets)
+                            } ?: PluginConfiguration.EMPTY
+                            reporter.generateReport(reporterInput, outputDir, reporterOptions)
                                 .also { reportStorage.storeReportFiles(runId, it) }
                         }
                     }
@@ -238,18 +241,19 @@ class ReporterRunner(
     }
 
     /**
-     * Handle the download of all files that need to be present for the reporters to execute as specified in the given
-     * [config]. This includes template files and other assets like fonts or images. Use the given [context] for the
-     * download.
+     * Prepare the generation of reports by processing the options passed to the single reporters in the given
+     * [config]. This includes downloading of all files that are referenced by reporters, such as template files and
+     * other assets like fonts or images. Also, the secrets required by reporters need to be resolved. Use the given
+     * [context] for the processing.
      */
-    private suspend fun downloadInputFiles(
+    private suspend fun processReporterOptions(
         context: WorkerContext,
         config: ReporterJobConfiguration
-    ): JobOptions = withContext(Dispatchers.IO) {
+    ): JobPluginOptions = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
         val transformedOptions = async {
             // Handle the placeholder for the working directory.
-            val workDirOptions = transformerFactory.newTransformer(config.options.orEmpty())
+            val workDirOptions = transformerFactory.newPluginOptionsTransformer(config.config.orEmpty())
                 .filter { it.contains(ReporterComponent.WORK_DIR_PLACEHOLDER) }
                 .transform { options ->
                     options.associateWith {
@@ -266,7 +270,8 @@ class ReporterRunner(
         launch { context.downloadAssetFiles(config.assetFiles, templateDir) }
         launch { context.downloadAssetDirectories(config.assetDirectories, templateDir) }
 
-        transformedOptions.await()
+        val transformedPluginOptions = config.config?.recombine(transformedOptions.await())
+        context.resolveConfigSecrets(transformedPluginOptions)
     }
 }
 

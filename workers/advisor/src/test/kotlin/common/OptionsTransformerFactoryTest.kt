@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
 import org.ossreviewtoolkit.server.model.PluginConfiguration
 
 class OptionsTransformerFactoryTest : StringSpec({

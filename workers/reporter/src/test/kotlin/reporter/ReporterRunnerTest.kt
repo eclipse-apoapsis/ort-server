@@ -53,7 +53,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
-import org.ossreviewtoolkit.model.config.PluginConfiguration
+import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigException
@@ -61,6 +61,7 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
@@ -93,6 +94,15 @@ class ReporterRunnerTest : WordSpec({
             every { resolvedConfigurationContext } returns configurationContext
             every { createTempDir() } returnsMany listOf(configDirectory, outputDirectory)
             every { close() } just runs
+            coEvery { resolveConfigSecrets(any()) } answers {
+                val pluginConfigs: Map<String, PluginConfiguration>? = firstArg()
+                pluginConfigs.orEmpty().mapValues { entry ->
+                    val resolvedSecrets = entry.value.secrets.mapValues { secretEntry ->
+                        "${secretEntry.value}_resolved"
+                    }
+                    PluginConfiguration(entry.value.options, resolvedSecrets)
+                }
+            }
         }
         val factory = mockk<WorkerContextFactory> {
             every { createContext(RUN_ID) } returns context
@@ -141,13 +151,16 @@ class ReporterRunnerTest : WordSpec({
             val plainOptions = mapOf("pretty" to "true")
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(plainFormat, templateFormat),
-                options = mapOf(
-                    plainFormat to plainOptions,
-                    templateFormat to mapOf(
-                        "ugly" to "false",
-                        "templateFile" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference1",
-                        "otherTemplate" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference2, " +
-                                "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference3"
+                config = mapOf(
+                    plainFormat to PluginConfiguration(plainOptions, emptyMap()),
+                    templateFormat to PluginConfiguration(
+                        mapOf(
+                            "ugly" to "false",
+                            "templateFile" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference1",
+                            "otherTemplate" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference2, " +
+                                    "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference3"
+                        ),
+                        emptyMap()
                     )
                 )
             )
@@ -167,8 +180,8 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPlainPluginConfiguration = slot<PluginConfiguration>()
-            val slotTemplatePluginConfiguration = slot<PluginConfiguration>()
+            val slotPlainPluginConfiguration = slot<OrtPluginConfiguration>()
+            val slotTemplatePluginConfiguration = slot<OrtPluginConfiguration>()
             verify {
                 plainReporter.generateReport(any(), outputDirectory, capture(slotPlainPluginConfiguration))
                 templateReporter.generateReport(any(), outputDirectory, capture(slotTemplatePluginConfiguration))
@@ -200,10 +213,14 @@ class ReporterRunnerTest : WordSpec({
 
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
-                options = mapOf(
-                    templateFormat to mapOf(
-                        "templateFile" to "$otherReference1,${ReporterComponent.TEMPLATE_REFERENCE}$fileReference," +
-                                otherReference2
+                config = mapOf(
+                    templateFormat to PluginConfiguration(
+                        mapOf(
+                            "templateFile" to
+                                    "$otherReference1,${ReporterComponent.TEMPLATE_REFERENCE}$fileReference," +
+                                    otherReference2
+                        ),
+                        emptyMap()
                     )
                 )
             )
@@ -223,7 +240,7 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPluginConfiguration = slot<PluginConfiguration>()
+            val slotPluginConfiguration = slot<OrtPluginConfiguration>()
             verify {
                 templateReporter.generateReport(any(), any(), capture(slotPluginConfiguration))
 
@@ -245,9 +262,10 @@ class ReporterRunnerTest : WordSpec({
 
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
-                options = mapOf(
-                    templateFormat to mapOf(
-                        "currentWorkingDir" to "${ReporterComponent.WORK_DIR_PLACEHOLDER}/reports"
+                config = mapOf(
+                    templateFormat to PluginConfiguration(
+                        mapOf("currentWorkingDir" to "${ReporterComponent.WORK_DIR_PLACEHOLDER}/reports"),
+                        emptyMap()
                     )
                 )
             )
@@ -263,7 +281,7 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPluginConfiguration = slot<PluginConfiguration>()
+            val slotPluginConfiguration = slot<OrtPluginConfiguration>()
             verify {
                 templateReporter.generateReport(any(), any(), capture(slotPluginConfiguration))
             }
@@ -272,6 +290,41 @@ class ReporterRunnerTest : WordSpec({
                 "currentWorkingDir" to "${configDirectory.absolutePath}/reports"
             )
             slotPluginConfiguration.captured.options shouldBe expectedTemplateOptions
+        }
+
+        "resolve secrets in the plugin configurations" {
+            val templateFormat = "testSecretTemplate"
+            val templateReporter = reporterMock(templateFormat)
+            every { templateReporter.generateReport(any(), any(), any()) } returns listOf(tempfile())
+
+            mockReportersAll(templateFormat to templateReporter)
+
+            val options = mapOf("foo" to "bar")
+            val secrets = mapOf("username" to "secretUsername", "password" to "secretPassword")
+            val resolvedSecrets = secrets.mapValues { e -> e.value + "_resolved" }
+
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(templateFormat),
+                config = mapOf(templateFormat to PluginConfiguration(options, secrets))
+            )
+
+            val (contextFactory, _) = mockContext()
+
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
+
+            val slotPluginConfiguration = slot<OrtPluginConfiguration>()
+            verify {
+                templateReporter.generateReport(any(), any(), capture(slotPluginConfiguration))
+            }
+
+            slotPluginConfiguration.captured shouldBe OrtPluginConfiguration(options, resolvedSecrets)
         }
 
         "should throw an exception when a reporter fails" {

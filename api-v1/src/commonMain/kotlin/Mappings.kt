@@ -236,7 +236,7 @@ fun ReporterJobConfiguration.mapToApi() =
         assetFiles.map { it.mapToApi() },
         assetDirectories.map { it.mapToApi() },
         parameters,
-        options
+        config?.mapValues { it.value.mapToApi() }
     )
 
 fun ApiReporterJobConfiguration.mapToModel() =
@@ -249,7 +249,7 @@ fun ApiReporterJobConfiguration.mapToModel() =
         assetFiles.map { it.mapToModel() },
         assetDirectories.map { it.mapToModel() },
         parameters,
-        options
+        config?.mapValues { it.value.mapToModel() }
     )
 
 fun ScannerJob.mapToApi() =
