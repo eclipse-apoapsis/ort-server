@@ -48,6 +48,7 @@ import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
 import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
+import org.ossreviewtoolkit.server.logaccess.LogFileService
 import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
 import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
 import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
@@ -105,6 +106,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { SecretStorage.createStorage(get()) }
     single { Storage.create("reportStorage", get()) }
     single { ConfigManager.create(get()) }
+    single { LogFileService.create(get()) }
 
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()

@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":clients:keycloak"))
     implementation(project(":config:config-spi"))
     implementation(project(":dao"))
+    implementation(project(":logaccess:logaccess-spi"))
     implementation(project(":model"))
     implementation(project(":secrets:secrets-spi"))
     implementation(project(":services:authorization-service"))
@@ -75,6 +76,7 @@ dependencies {
     implementation(libs.micrometerRegistryGraphite)
 
     runtimeOnly(project(":config:secret-file"))
+    runtimeOnly(project(":logaccess:loki"))
     runtimeOnly(project(":secrets:file"))
     runtimeOnly(project(":secrets:vault"))
     runtimeOnly(project(":storage:database"))
@@ -86,6 +88,7 @@ dependencies {
     testImplementation(testFixtures(project(":clients:keycloak")))
     testImplementation(testFixtures(project(":config:config-spi")))
     testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(project(":logaccess:logaccess-spi")))
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
 
@@ -97,6 +100,7 @@ dependencies {
     testImplementation(libs.ktorServerCommon)
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
+    testImplementation(libs.ortCommonUtils)
 }
 
 jib {

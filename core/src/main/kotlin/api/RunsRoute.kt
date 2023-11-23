@@ -21,18 +21,33 @@ package org.ossreviewtoolkit.server.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.get
 
+import io.ktor.http.ContentDisposition
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.route
+
+import java.util.EnumSet
+
+import kotlinx.datetime.Clock
 
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.core.apiDocs.getReportByRunIdAndFileName
 import org.ossreviewtoolkit.server.core.authorization.requirePermission
 import org.ossreviewtoolkit.server.core.utils.requireParameter
+import org.ossreviewtoolkit.server.dao.QueryParametersException
+import org.ossreviewtoolkit.server.logaccess.LogFileService
+import org.ossreviewtoolkit.server.logaccess.LogLevel
+import org.ossreviewtoolkit.server.logaccess.LogSource
+import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.services.ReportStorageService
@@ -41,26 +56,99 @@ import org.ossreviewtoolkit.server.services.ReportStorageService
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
 fun Route.runs() = route("runs/{runId}") {
+    val ortRunRepository by inject<OrtRunRepository>()
+
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
-        val ortRunRepository by inject<OrtRunRepository>()
 
         get(getReportByRunIdAndFileName) {
-            val runId = call.requireParameter("runId").toLong()
-            val fileName = call.requireParameter("fileName")
+            call.forRun(ortRunRepository) { ortRun ->
+                val fileName = call.requireParameter("fileName")
 
-            val ortRun = ortRunRepository.get(runId)
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-            if (ortRun == null) {
-                call.respond(HttpStatusCode.NotFound)
-                return@get
+                val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
+
+                call.respondOutputStream(downloadData.contentType, producer = downloadData.loader)
             }
-
-            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-            val downloadData = reportStorageService.fetchReport(runId, fileName)
-
-            call.respondOutputStream(downloadData.contentType, producer = downloadData.loader)
         }
     }
+
+    route("logs") {
+        val logFileService by inject<LogFileService>()
+
+        get {
+            call.forRun(ortRunRepository) { ortRun ->
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                val logArchive = logFileService.createLogFilesArchive(
+                    ortRun.id,
+                    call.extractSteps(),
+                    call.extractLevel(),
+                    ortRun.createdAt,
+                    ortRun.finishedAt ?: Clock.System.now()
+                )
+
+                try {
+                    call.response.header(
+                        HttpHeaders.ContentDisposition,
+                        ContentDisposition.Attachment.withParameter(
+                            ContentDisposition.Parameters.FileName,
+                            "${ortRun.id}_logs.zip"
+                        ).toString()
+                    )
+
+                    call.respondFile(logArchive)
+                } finally {
+                    logArchive.delete()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Obtain the [OrtRun] with the ID specified as `runId` parameter in this [ApplicationCall] from the given
+ * [repository] and pass it as parameter to the given [handler] function. Return a 404 response if the run cannot be
+ * resolved.
+ */
+private suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
+    val runId = requireParameter("runId").toLong()
+    val ortRun = repository.get(runId)
+
+    if (ortRun == null) {
+        respond(HttpStatusCode.NotFound)
+    } else {
+        handler(ortRun)
+    }
+}
+
+/**
+ * Extract the parameter for the log level from this [ApplicationCall]. If this parameter is missing, return the
+ * default [LogLevel.INFO]. If an invalid log level name is specified, throw a meaningful exception.
+ */
+private fun ApplicationCall.extractLevel(): LogLevel =
+    parameters["level"]?.let { findByName<LogLevel>(it) } ?: LogLevel.INFO
+
+/**
+ * Extract the parameter for the steps for which logs are to be retrieved from this [ApplicationCall]. If this
+ * parameter is missing, the logs for all workers are retrieved. Otherwise, it is interpreted as a comma-delimited
+ * list of [LogSource] constants. If an invalid worker name is specified, throw a meaningful exception.
+ */
+private fun ApplicationCall.extractSteps(): Set<LogSource> =
+    parameters["steps"]?.split(",")?.map { findByName<LogSource>(it) }?.toSet()
+        ?: EnumSet.allOf(LogSource::class.java)
+
+/**
+ * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
+ * resolved.
+ */
+private inline fun <reified E : Enum<E>> findByName(name: String): E {
+    val nameUpper = name.uppercase()
+    val values = enumValues<E>()
+
+    return values.find { it.name == nameUpper } ?: throw QueryParametersException(
+        "Invalid parameter value: '$name'. Allowed values are: " +
+                values.joinToString(", ") { "'$it'" }
+    )
 }
