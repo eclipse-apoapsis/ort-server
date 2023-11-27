@@ -20,10 +20,13 @@
 package org.ossreviewtoolkit.server.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.longs.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
@@ -85,6 +88,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigContext = jobConfigContext,
             resolvedJobConfigContext = null,
             status = OrtRunStatus.CREATED,
+            finishedAt = null,
             labels = labelsMap,
             vcsId = null,
             vcsProcessedId = null,
@@ -173,6 +177,38 @@ class DaoOrtRunRepositoryTest : StringSpec({
         ortRunRepository.get(ortRun.id) shouldBe expectedResult
     }
 
+    "update should mark a finished run as completed" {
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            jobConfigurations,
+            null,
+            emptyMap(),
+            emptyList()
+        )
+
+        val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FINISHED.asPresent())
+
+        assertCurrentTime(updateResult.finishedAt)
+        ortRunRepository.get(ortRun.id) shouldBe updateResult
+    }
+
+    "update should mark a failed run as completed" {
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            jobConfigurations,
+            null,
+            emptyMap(),
+            emptyList()
+        )
+
+        val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FAILED.asPresent())
+
+        assertCurrentTime(updateResult.finishedAt)
+        ortRunRepository.get(ortRun.id) shouldBe updateResult
+    }
+
     "delete should delete the database entry" {
         val ortRun = ortRunRepository.create(repositoryId, "revision", jobConfigurations, null, labelsMap)
 
@@ -181,3 +217,14 @@ class DaoOrtRunRepositoryTest : StringSpec({
         ortRunRepository.listForRepository(repositoryId) shouldBe emptyList()
     }
 })
+
+/**
+ * Check whether the given [timestamp] is rather close to the current system time.
+ */
+private fun assertCurrentTime(timestamp: Instant?) {
+    val time = timestamp.shouldNotBeNull()
+
+    val delta = Clock.System.now() - time
+    delta.inWholeMilliseconds shouldBeGreaterThan 0
+    delta.inWholeMilliseconds shouldBeLessThan 3000
+}

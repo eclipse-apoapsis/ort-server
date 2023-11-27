@@ -95,6 +95,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     repositoryId = 120,
                     revision = "main",
                     createdAt = Instant.fromEpochSeconds(0),
+                    finishedAt = null,
                     jobConfigs = JobConfigurations(),
                     resolvedJobConfigs = JobConfigurations(),
                     status = OrtRunStatus.CREATED,

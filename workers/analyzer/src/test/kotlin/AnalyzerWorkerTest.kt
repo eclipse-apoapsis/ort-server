@@ -80,6 +80,7 @@ private val ortRun = OrtRun(
     jobConfigs = JobConfigurations(),
     resolvedJobConfigs = JobConfigurations(),
     status = OrtRunStatus.ACTIVE,
+    finishedAt = null,
     labels = emptyMap(),
     vcsId = 1L,
     vcsProcessedId = 1L,

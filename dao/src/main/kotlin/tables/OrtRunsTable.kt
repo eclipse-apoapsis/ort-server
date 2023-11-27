@@ -54,6 +54,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
+    val finishedAt = timestamp("finished_at").nullable()
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -69,6 +70,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var jobConfigContext by OrtRunsTable.jobConfigContext
     var resolvedJobConfigContext by OrtRunsTable.resolvedJobConfigContext
     var status by OrtRunsTable.status
+    var finishedAt by OrtRunsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
     var issues by OrtIssueDao via OrtRunsIssuesTable
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
@@ -91,6 +93,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         jobConfigs = jobConfigs,
         resolvedJobConfigs = resolvedJobConfigs,
         status = status,
+        finishedAt = finishedAt,
         labels = labels.associate { it.mapToModel() },
         vcsId = vcsId?.value,
         vcsProcessedId = vcsProcessedId?.value,

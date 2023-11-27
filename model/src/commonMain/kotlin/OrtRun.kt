@@ -52,6 +52,11 @@ data class OrtRun(
     val createdAt: Instant,
 
     /**
+     * The time when this run was finished or *null* if it is not yet finished.
+     */
+    val finishedAt: Instant?,
+
+    /**
      * The job configurations for this run.
      */
     val jobConfigs: JobConfigurations,
@@ -114,9 +119,12 @@ data class OrtRun(
     val resolvedJobConfigContext: String?
 )
 
-enum class OrtRunStatus {
-    CREATED,
-    ACTIVE,
-    FINISHED,
-    FAILED
+enum class OrtRunStatus(
+    /** A flag that indicates whether the run is already completed. */
+    val completed: Boolean
+) {
+    CREATED(false),
+    ACTIVE(false),
+    FINISHED(true),
+    FAILED(true)
 }

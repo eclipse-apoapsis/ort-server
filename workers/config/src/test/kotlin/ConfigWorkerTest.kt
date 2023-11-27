@@ -227,6 +227,7 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         jobConfigs = JobConfigurations(),
         resolvedJobConfigs = null,
         status = OrtRunStatus.ACTIVE,
+        finishedAt = null,
         labels = emptyMap(),
         vcsId = null,
         vcsProcessedId = null,

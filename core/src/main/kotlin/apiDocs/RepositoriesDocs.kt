@@ -23,6 +23,8 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import kotlin.time.Duration.Companion.minutes
+
 import kotlinx.datetime.Clock
 
 import org.ossreviewtoolkit.server.api.v1.AdvisorJob
@@ -254,11 +256,12 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                             index = 1,
                             repositoryId = 1,
                             revision = "main",
-                            createdAt = Clock.System.now(),
+                            createdAt = Clock.System.now() - 4.minutes,
                             jobConfigs = jobConfigurations,
                             resolvedJobConfigs = jobConfigurations,
                             jobs = jobs,
                             status = OrtRunStatus.FINISHED,
+                            finishedAt = Clock.System.now(),
                             labels = mapOf("label key" to "label value"),
                             issues = emptyList(),
                             jobConfigContext = null,
@@ -274,6 +277,7 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                             resolvedJobConfigs = jobConfigurations,
                             jobs = jobs,
                             status = OrtRunStatus.ACTIVE,
+                            finishedAt = null,
                             labels = mapOf("label key" to "label value"),
                             issues = emptyList(),
                             jobConfigContext = null,
@@ -324,6 +328,7 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
                         resolvedJobConfigs = jobConfigurations,
                         jobs = jobs,
                         status = OrtRunStatus.CREATED,
+                        finishedAt = null,
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,
@@ -366,6 +371,7 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
                         resolvedJobConfigs = jobConfigurations,
                         jobs = jobs,
                         status = OrtRunStatus.ACTIVE,
+                        finishedAt = null,
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,

@@ -101,7 +101,13 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]
 
-        status.ifPresent { ortRun.status = it }
+        status.ifPresent {
+            ortRun.status = it
+
+            if (it.completed) {
+                ortRun.finishedAt = Clock.System.now().toDatabasePrecision()
+            }
+        }
 
         resolvedJobConfigs.ifPresent { ortRun.resolvedJobConfigs = it }
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }

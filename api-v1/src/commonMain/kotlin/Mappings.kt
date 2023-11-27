@@ -194,6 +194,7 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         repositoryId,
         revision,
         createdAt,
+        finishedAt,
         jobConfigs.mapToApi(),
         resolvedJobConfigs?.mapToApi(),
         jobs,

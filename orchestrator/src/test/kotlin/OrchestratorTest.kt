@@ -168,6 +168,7 @@ class OrchestratorTest : WordSpec() {
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
+        finishedAt = null,
         jobConfigs = JobConfigurations(
             analyzerJob.configuration,
             advisorJob.configuration,
@@ -193,6 +194,7 @@ class OrchestratorTest : WordSpec() {
         repositoryId = repository.id,
         revision = "main",
         createdAt = Instant.fromEpochSeconds(0),
+        finishedAt = null,
         jobConfigs = JobConfigurations(
             analyzerJob.configuration,
             null,

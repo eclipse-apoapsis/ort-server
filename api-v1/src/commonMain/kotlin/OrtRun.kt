@@ -51,6 +51,11 @@ data class OrtRun(
     val createdAt: Instant,
 
     /**
+     * The time when this run was finished or *null* if it is not yet finished.
+     */
+    val finishedAt: Instant? = null,
+
+    /**
      * The job configurations for this run.
      */
     val jobConfigs: JobConfigurations,
