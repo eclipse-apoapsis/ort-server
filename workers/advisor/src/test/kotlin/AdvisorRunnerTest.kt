@@ -31,7 +31,6 @@ import io.mockk.verify
 
 import org.ossreviewtoolkit.advisor.AdviceProvider
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
-import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
@@ -107,10 +106,8 @@ private fun mockAdviceProviderFactory(adviceProviderName: String) =
     }
 
 private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory<*>>) {
-    mockkObject(Advisor)
-    mockk<Advisor> {
-        every { Advisor.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.type }
-    }
+    mockkObject(AdviceProviderFactory)
+    every { AdviceProviderFactory.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.type }
 }
 
 /**

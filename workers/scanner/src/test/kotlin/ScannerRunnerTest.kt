@@ -34,7 +34,6 @@ import io.mockk.verify
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
-import org.ossreviewtoolkit.scanner.ScannerWrapper
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.server.model.PluginConfiguration
 import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
@@ -170,10 +169,8 @@ private fun mockScannerWrapperFactory(scannerName: String) =
     }
 
 private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory<*>>) {
-    mockkObject(ScannerWrapper)
-    mockk<ScannerWrapper> {
-        every { ScannerWrapper.ALL } returns scanners.associateByTo(sortedMapOf()) { it.type }
-    }
+    mockkObject(ScannerWrapperFactory)
+    every { ScannerWrapperFactory.ALL } returns scanners.associateByTo(sortedMapOf()) { it.type }
 }
 
 /**

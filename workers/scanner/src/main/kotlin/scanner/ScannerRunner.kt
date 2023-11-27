@@ -32,6 +32,7 @@ import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.scanner.ScanStorages
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapper
+import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.scanner.provenance.DefaultNestedProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultPackageProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
@@ -118,8 +119,9 @@ class ScannerRunner(
 
 private fun createScanners(names: List<String>, config: Map<String, PluginConfiguration>?): List<ScannerWrapper> =
     names.map {
-        ScannerWrapper.ALL[it]
-            ?: throw IllegalArgumentException("Scanner '$it' is not one of ${ScannerWrapper.ALL.keys.joinToString()}")
+        ScannerWrapperFactory.ALL[it] ?: throw IllegalArgumentException(
+            "Scanner '$it' is not one of ${ScannerWrapperFactory.ALL.keys.joinToString()}"
+        )
     }.map {
         val pluginConfig = config?.get(it.type)
         it.create(pluginConfig?.options.orEmpty(), pluginConfig?.secrets.orEmpty())

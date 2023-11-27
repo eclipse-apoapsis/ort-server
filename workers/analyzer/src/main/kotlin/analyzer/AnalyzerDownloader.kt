@@ -23,6 +23,7 @@ import java.io.File
 
 import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -39,7 +40,7 @@ class AnalyzerDownloader {
         requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
         val vcsInfo = VcsInfo(
-            type = vcs.type,
+            type = VcsType.forName(vcs.type),
             url = repositoryUrl,
             revision = revision
         )
