@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.logaccess
 
 import java.io.File
+import java.util.Collections
 import java.util.EnumSet
 
 import kotlinx.datetime.Instant
@@ -30,7 +31,7 @@ import org.ossreviewtoolkit.server.config.ConfigManager
  * An implementation of [LogFileProviderFactory] that can be used to test interactions with log file providers.
  *
  * Via the companion object, static log files can be specified to be returned for specific ORT runs, sources, and
- * parameters.
+ * parameters. All requests handled by this provider are recorded and can be queried.
  */
 class LogFileProviderFactoryForTesting : LogFileProviderFactory {
     companion object {
@@ -40,12 +41,30 @@ class LogFileProviderFactoryForTesting : LogFileProviderFactory {
         /** A map with log files and their properties that can be served by this test implementation. */
         private val logFiles = mutableMapOf<LogFileCriteria, File>()
 
+        /** A list for tracking the requests handled by this provider. */
+        private val recordedRequests = Collections.synchronizedList(mutableListOf<LogFileCriteria>())
+
         /**
          * Register a [log file][file] to be returned by this implementation for the given [criteria].
          */
         fun addLogFile(criteria: LogFileCriteria, file: File) {
             logFiles[criteria] = file
         }
+
+        /**
+         * Reset the data in this provider implementation. This includes the configured log files and the recorded
+         * requests.
+         */
+        fun reset() {
+            logFiles.clear()
+            recordedRequests.clear()
+        }
+
+        /**
+         * Return a list with all the requests for log files that have been handled by this provider implementation.
+         * The requests are stored in the order they have been processed. The [reset] function clears this list.
+         */
+        fun requests(): List<LogFileCriteria> = recordedRequests
     }
 
     override val name: String
@@ -66,6 +85,7 @@ class LogFileProviderFactoryForTesting : LogFileProviderFactory {
                     "Invalid configuration passed to LogFileProviderFactory."
                 }
 
+                recordedRequests += LogFileCriteria(ortRunId, source, levels, startTime, endTime)
                 val logFile = requireNotNull(
                     logFiles.entries.find { e -> e.key.matches(ortRunId, source, levels, startTime, endTime) }
                 ).value
