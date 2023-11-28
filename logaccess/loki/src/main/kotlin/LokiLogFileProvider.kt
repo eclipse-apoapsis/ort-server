@@ -87,7 +87,7 @@ class LokiLogFileProvider(
 
                 val httpResponse = lokiClient.get {
                     parameter("start", from)
-                    parameter("end", endTime.toEpochMilliseconds())
+                    parameter("end", endTime.epochSeconds + 1)
                     parameter("limit", config.limit)
                     parameter("direction", "forward")
                     parameter("query", queryStr)
@@ -108,7 +108,7 @@ class LokiLogFileProvider(
                 }
             }
 
-            downloadChunk(startTime.toEpochMilliseconds().toString(), emptyList())
+            downloadChunk(startTime.epochSeconds.toString(), emptyList())
         }
 
         return logFile

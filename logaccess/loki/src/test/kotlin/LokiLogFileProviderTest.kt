@@ -45,6 +45,7 @@ import io.mockk.mockk
 
 import java.io.File
 import java.util.EnumSet
+import java.util.Locale
 
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -84,7 +85,7 @@ class LokiLogFileProviderTest : StringSpec() {
             val logSize = LIMIT + 10
             val logData1 = generateLogData(LIMIT)
             val nextStartTimeStr = logData1.last().first
-            val nextStartTime = Instant.fromEpochMilliseconds(nextStartTimeStr.toLong())
+            val nextStartTime = logDataTimestamp(startTime, LIMIT)
             val logData2 = generateLogData(logSize - LIMIT + 1, nextStartTime)
 
             server.stubLogRequest(logData1, LogSource.EVALUATOR, """level="ERROR"""")
@@ -233,6 +234,8 @@ private typealias LogData = List<Pair<String, String>>
 
 private val startTime = Instant.parse("2023-11-20T08:28:17.123Z")
 private val endTime = Instant.parse("2023-11-20T08:30:45.987Z")
+private const val START_TIME_STR = "1700468897"
+private const val END_TIME_STR = "1700469046"
 private const val NAMESPACE = "ort_server_ns"
 private const val FILE_NAME = "result.log"
 private const val LIMIT = 42
@@ -269,13 +272,13 @@ private fun WireMockServer.stubLogRequest(
     data: LogData,
     source: LogSource,
     levelCriterion: String,
-    from: String = startTime.toEpochMilliseconds().toString()
+    from: String = START_TIME_STR
 ) {
     val response = data.generateResponse()
 
     stubFor(
         get(urlPathEqualTo("/loki/api/v1/query_range"))
-            .withQueryParam("end", equalTo(endTime.toEpochMilliseconds().toString()))
+            .withQueryParam("end", equalTo(END_TIME_STR))
             .withQueryParam("start", equalTo(from))
             .withQueryParam("limit", equalTo(LIMIT.toString()))
             .withQueryParam("direction", equalTo("forward"))
@@ -308,9 +311,20 @@ private fun generateLogLine(timestamp: Instant): String =
  */
 private fun generateLogData(count: Int, from: Instant = startTime): LogData =
     (1..count).map { index ->
-        val timestamp = from.plus(((index - 1) * 100).milliseconds)
-        timestamp.toEpochMilliseconds().toString() to generateLogLine(timestamp)
+        val timestamp = logDataTimestamp(from, index)
+        timestamp.toNanoStr() to generateLogLine(timestamp)
     }
+
+/**
+ * Generate the timestamp of a test log entry starting at [from] with the given [index].
+ */
+private fun logDataTimestamp(from: Instant, index: Int): Instant = from.plus(((index - 1) * 100).milliseconds)
+
+/**
+ * Convert this [Instant] to a string with epoch nanoseconds. This format is used by Loki.
+ */
+private fun Instant.toNanoStr(): String =
+    String.format(Locale.ROOT, "%d%09d", epochSeconds, nanosecondsOfSecond)
 
 /**
  * Generate a response for the Loki server that contains this [LogData].
