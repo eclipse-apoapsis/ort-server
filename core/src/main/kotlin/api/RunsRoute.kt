@@ -31,7 +31,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 
 import java.util.EnumSet
@@ -40,6 +39,7 @@ import kotlinx.datetime.Clock
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.core.apiDocs.getLogsByRunId
 import org.ossreviewtoolkit.server.core.apiDocs.getReportByRunIdAndFileName
 import org.ossreviewtoolkit.server.core.authorization.requirePermission
 import org.ossreviewtoolkit.server.core.utils.requireParameter
@@ -77,7 +77,7 @@ fun Route.runs() = route("runs/{runId}") {
     route("logs") {
         val logFileService by inject<LogFileService>()
 
-        get {
+        get(getLogsByRunId) {
             call.forRun(ortRunRepository) { ortRun ->
                 requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 

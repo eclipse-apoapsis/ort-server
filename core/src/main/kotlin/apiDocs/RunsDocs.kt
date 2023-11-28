@@ -23,6 +23,9 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import org.ossreviewtoolkit.server.logaccess.LogLevel
+import org.ossreviewtoolkit.server.logaccess.LogSource
+
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
     summary = "Download a report of an ORT run."
@@ -47,6 +50,44 @@ val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The requested report file or the ORT run could not be resolved."
+        }
+    }
+}
+
+val getLogsByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetLogsByRunId"
+    summary = "Download an archive with selected logs of an ORT run."
+    tags = listOf("Logs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+
+        queryParameter<String>("level") {
+            description = "The log level; can be one of " +
+                    LogLevel.values().joinToString { "'$it'" } + " (ignoring case)." +
+                    "Only logs of this level or higher are retrieved. Defaults to 'INFO' if missing."
+        }
+
+        queryParameter<String>("steps") {
+            description = "Defines the run steps for which logs are to be retrieved. This is a comma-separated " +
+                    "string with the following allowed steps: " + LogSource.values().joinToString { "'$it'" } +
+                    " (ignoring case). If missing, the logs for all steps are retrieved."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success. The response body contains a Zip archive with the selected log files."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "Invalid values have been provided for the log level or steps parameters."
         }
     }
 }
