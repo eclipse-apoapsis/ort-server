@@ -35,7 +35,7 @@ versionsPlugin = "0.47.0"
 # Gradle dependencies
 exposed = "0.45.0"
 flyway = "9.22.2"
-hikari = "5.0.1"
+hikari = "5.1.0"
 jackson = "2.15.2"
 jsonSchemaSerialization = "0.6.6"
 kaml = "0.55.0"
