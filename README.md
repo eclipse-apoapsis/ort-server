@@ -24,10 +24,14 @@ cd workers/scanner/docker
 DOCKER_BUILDKIT=1 docker build . -f Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```
 
-Then build all Docker images with [Jib](https://github.com/GoogleContainerTools/jib):
+Then the Docker images can be built with [Jib](https://github.com/GoogleContainerTools/jib):
 
 ```shell
+# Build all images at once:
 ./gradlew jibDockerBuild
+
+# Build once specific image, for example for the `core` module:
+./gradlew :core:jibDockerBuild
 ```
 
 The `jibDockerBuild` task occasionally gets stuck while pulling the Eclipse Temurin base image. In this case it usually
@@ -36,6 +40,12 @@ helps to clean the project and stop the Gradle Daemon:
 ```shell
 ./gradlew clean
 ./gradlew --stop
+```
+
+When building multiple images at once it can also help to disable parallel builds:
+
+```shell
+./gradlew --no-parallel jibDockerBuild
 ```
 
 Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to
@@ -86,17 +96,18 @@ docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 
 To publish the Docker images to a registry, first build the worker base images as described in
 [Local Setup](#local-setup). Then you can use the `jib` task to publish the images by setting the correct prefix for the
-registry. You can also configure the tag which defaults to `latest`.
+registry. You can also configure the tag which defaults to `latest`. When publishing multiple images at once it is
+recommended to disable parallel builds.
 
 ```shell
 # Publish all Docker images.
-./gradlew -PdockerImagePrefix=my.registry/ jib
+./gradlew --no-parallel -PdockerImagePrefix=my.registry/ jib
 
 # Publish one specific image.
 ./gradlew -PdockerImagePrefix=my.registry/ :core:jib
 
 # Publish using a custom tag.
-./gradlew -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
+./gradlew --no-parallel -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
 ```
 
 ## License
