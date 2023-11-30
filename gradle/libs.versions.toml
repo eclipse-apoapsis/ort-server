@@ -30,7 +30,7 @@ kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.6.1"
 rabbitMq = "5.20.0"
 versionCatalogUpdatePlugin = "0.8.1"
-versionsPlugin = "0.47.0"
+versionsPlugin = "0.50.0"
 
 # Gradle dependencies
 exposed = "0.45.0"
