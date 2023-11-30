@@ -71,7 +71,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries) { LabelDao.getOrPut(it.key, it.value) }
-            this.issues = mapAndDeduplicate(issues, OrtIssueDao::getOrPut)
+            this.issues = mapAndDeduplicate(issues, OrtIssueDao::createByIssue)
         }.mapToModel()
     }
 
@@ -113,7 +113,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
 
         issues.ifPresent { issues ->
-            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, OrtIssueDao::getOrPut))
+            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, OrtIssueDao::createByIssue))
         }
 
         OrtRunDao[id].mapToModel()

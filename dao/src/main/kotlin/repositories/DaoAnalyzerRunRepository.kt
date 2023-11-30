@@ -236,7 +236,7 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
 }
 
 private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: OrtIssue): OrtIssueDao {
-    val issueDao = OrtIssueDao.getOrPut(issue)
+    val issueDao = OrtIssueDao.createByIssue(issue)
 
     val identifiersOrtIssueDao = IdentifierOrtIssueDao.getOrPut(identifier, issueDao)
 

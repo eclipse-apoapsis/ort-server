@@ -148,7 +148,7 @@ class OrtServerScanResultStorage(
 
                 val issues = mapAndDeduplicate(
                     scanResult.summary.issues.map(Issue::mapToModel),
-                    OrtIssueDao::getOrPut
+                    OrtIssueDao::createByIssue
                 )
 
                 this.scannerName = scanResult.scanner.name
