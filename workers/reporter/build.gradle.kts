@@ -43,6 +43,8 @@ dependencies {
     implementation(project(":workers:common"))
 
     implementation(platform(libs.ortPackageConfigurationProviders))
+    implementation(platform(libs.ortVersionControlSystems))
+    implementation(libs.ortDownloader)
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 

@@ -1,2 +1,3 @@
 org.ossreviewtoolkit.server.workers.reporter.OrtResultReporter
 org.ossreviewtoolkit.server.workers.reporter.RunStatisticsReporter
+org.ossreviewtoolkit.server.workers.reporter.SourceCodeBundleReporter
