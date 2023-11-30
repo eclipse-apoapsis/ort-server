@@ -60,7 +60,7 @@ postgres = "42.6.0"
 qpidJmsClient = "2.3.0"
 slf4j = "2.0.7"
 testContainers = "1.19.3"
-typesafeConfig = "1.4.2"
+typesafeConfig = "1.4.3"
 wiremock = "2.35.0"
 
 [plugins]
