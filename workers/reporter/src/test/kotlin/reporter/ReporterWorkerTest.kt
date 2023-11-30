@@ -24,6 +24,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
@@ -54,6 +55,7 @@ import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
@@ -128,12 +130,23 @@ class ReporterWorkerTest : StringSpec({
             every { storeReporterRun(any()) } just runs
         }
 
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
+
         val configManager = mockk<ConfigManager> {
             every { getFile(any(), any()) } throws ConfigException("", null)
         }
 
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+        }
+
         val worker = ReporterWorker(
+            contextFactory,
             mockk(),
+            environmentService,
             ReporterRunner(
                 mockk(relaxed = true),
                 mockContextFactory(),
@@ -153,6 +166,7 @@ class ReporterWorkerTest : StringSpec({
         coVerify {
             ortRunService.storeReporterRun(any())
             ortRunService.getOrtRepositoryInformation(ortRun)
+            environmentService.generateNetRcFileForCurrentRun(context)
         }
     }
 
@@ -163,6 +177,8 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val worker = ReporterWorker(
+            mockContextFactory(),
+            mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
             ortRunService
@@ -183,6 +199,8 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val worker = ReporterWorker(
+            mockContextFactory(),
+            mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
             ortRunService

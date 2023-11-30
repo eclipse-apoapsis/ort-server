@@ -41,6 +41,7 @@ import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 import org.ossreviewtoolkit.server.workers.common.OrtServerFileArchiveStorage
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
+import org.ossreviewtoolkit.server.workers.common.env.buildEnvironmentModule
 import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
 
 import org.slf4j.LoggerFactory
@@ -88,7 +89,13 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
     }
 
     override fun customModules(): List<Module> =
-        listOf(reporterModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
+        listOf(
+            reporterModule(),
+            databaseModule(),
+            ortRunServiceModule(),
+            workerContextModule(),
+            buildEnvironmentModule()
+        )
 
     private fun reporterModule(): Module = module {
         single { ConfigManager.create(get()) }

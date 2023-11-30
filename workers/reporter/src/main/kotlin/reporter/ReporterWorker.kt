@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.reporter
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.Database
@@ -31,6 +32,8 @@ import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 import org.slf4j.LoggerFactory
@@ -40,7 +43,9 @@ private val logger = LoggerFactory.getLogger(ReporterWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class ReporterWorker(
+    private val contextFactory: WorkerContextFactory,
     private val db: Database,
+    private val environmentService: EnvironmentService,
     private val runner: ReporterRunner,
     private val ortRunService: OrtRunService
 ) {
@@ -54,6 +59,13 @@ internal class ReporterWorker(
         job = ortRunService.startReporterJob(job.id)
             ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
         logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
+
+        /**
+         * The setup of environment is only needed by a reporter that creates source code bundles.
+         * TODO: Find a better solution which would allow to set up environment only for a specific reporter if needed.
+         */
+        val context = contextFactory.createContext(job.ortRunId)
+        runBlocking { environmentService.generateNetRcFileForCurrentRun(context) }
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
