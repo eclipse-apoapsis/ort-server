@@ -25,6 +25,7 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
+import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
@@ -77,7 +78,11 @@ class ScannerRunner(
                 ?: defaultScannerConfig.config
         )
 
-        val downloaderConfig = DownloaderConfiguration()
+        val downloaderConfig = DownloaderConfiguration(
+            // TODO: Make the source code origin priority configurable via the ScannerJobConfiguration.
+            sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+        )
+
         val workingTreeCache = DefaultWorkingTreeCache()
         val provenanceDownloader = DefaultProvenanceDownloader(downloaderConfig, workingTreeCache)
         val packageProvenanceResolver = DefaultPackageProvenanceResolver(
