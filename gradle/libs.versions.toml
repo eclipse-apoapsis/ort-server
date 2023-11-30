@@ -29,7 +29,7 @@ kotlinxCoroutines = "1.7.3"
 kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.6.1"
 rabbitMq = "5.20.0"
-versionCatalogUpdatePlugin = "0.8.0"
+versionCatalogUpdatePlugin = "0.8.1"
 versionsPlugin = "0.47.0"
 
 # Gradle dependencies
