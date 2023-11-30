@@ -55,14 +55,14 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
                         (DefectsTable.title eq defect.title) and
                         (DefectsTable.state eq defect.state) and
                         (DefectsTable.severity eq defect.severity) and
-                        (DefectsTable.description eq defect.description) and
                         (DefectsTable.creationTime eq defect.creationTime) and
                         (DefectsTable.modificationTime eq defect.modificationTime) and
                         (DefectsTable.closingTime eq defect.closingTime) and
                         (DefectsTable.fixReleaseVersion eq defect.fixReleaseVersion) and
                         (DefectsTable.fixReleaseUrl eq defect.fixReleaseUrl)
             }.singleOrNull {
-                it.labels.associate { it.key to it.value } == defect.labels
+                it.description == defect.description &&
+                        it.labels.associate { it.key to it.value } == defect.labels
             }
 
         fun getOrPut(defect: Defect): DefectDao =

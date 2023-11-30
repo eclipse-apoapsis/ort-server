@@ -63,10 +63,8 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                         (RuleViolationsTable.packageIdentifierId eq identifierDao?.id) and
                         (RuleViolationsTable.license eq ruleViolation.license) and
                         (RuleViolationsTable.licenseSource eq ruleViolation.licenseSource) and
-                        (RuleViolationsTable.severity eq ruleViolation.severity) and
-                        (RuleViolationsTable.message eq ruleViolation.message) and
-                        (RuleViolationsTable.howToFix eq ruleViolation.howToFix)
-            }.singleOrNull()
+                        (RuleViolationsTable.severity eq ruleViolation.severity)
+            }.find { it.message == ruleViolation.message && it.howToFix == ruleViolation.howToFix }
         }
 
         private fun getPackageIdentifierDaoOrNull(ruleViolation: OrtRuleViolation): IdentifierDao? {

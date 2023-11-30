@@ -708,6 +708,31 @@ class OrtRunServiceTest : WordSpec({
 
             fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
         }
+
+        "store a run with a huge howToFix hint" {
+            val howToFix = "how to fix info".repeat(25000)
+            val evaluatorRun = EvaluatorRun(
+                id = 1L,
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                violations = listOf(
+                    OrtRuleViolation(
+                        rule = "rule",
+                        fixtures.identifier,
+                        license = "license",
+                        licenseSource = "license source",
+                        severity = "ERROR",
+                        message = "the rule is violated",
+                        howToFix = howToFix
+                    )
+                )
+            )
+
+            service.storeEvaluatorRun(evaluatorRun)
+
+            fixtures.evaluatorRunRepository.getByJobId(fixtures.evaluatorJob.id) shouldBe evaluatorRun
+        }
     }
 
     "storeReporterRun" should {
