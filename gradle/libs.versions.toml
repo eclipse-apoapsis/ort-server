@@ -28,7 +28,7 @@ kotlinPlugin = "1.9.21"
 kotlinxCoroutines = "1.7.3"
 kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.6.1"
-rabbitMq = "5.18.0"
+rabbitMq = "5.20.0"
 versionCatalogUpdatePlugin = "0.8.0"
 versionsPlugin = "0.47.0"
 
