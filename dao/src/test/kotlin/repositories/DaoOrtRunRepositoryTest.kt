@@ -147,6 +147,9 @@ class DaoOrtRunRepositoryTest : StringSpec({
         val issue2 = OrtIssue(Instant.parse("2023-08-02T06:17:16Z"), "new1", "An new issue", "HINT")
         val issue3 = OrtIssue(Instant.parse("2023-08-02T06:17:36Z"), "new2", "Another new issue", "ERROR")
 
+        val label2Value = "new value for label2"
+        val label3Value = "a newly added label"
+
         val ortRun = ortRunRepository.create(
             repositoryId,
             "revision",
@@ -164,14 +167,16 @@ class DaoOrtRunRepositoryTest : StringSpec({
             updateStatus,
             resolvedJobConfigurations.asPresent(),
             resolvedContext.asPresent(),
-            listOf(issue2, issue3).asPresent()
+            listOf(issue2, issue3).asPresent(),
+            mapOf("label2" to label2Value, "label3" to label3Value).asPresent()
         )
 
         val expectedResult = ortRun.copy(
             status = updateStatus.value,
             resolvedJobConfigs = resolvedJobConfigurations,
             resolvedJobConfigContext = resolvedContext,
-            issues = listOf(issue1, issue2, issue3)
+            issues = listOf(issue1, issue2, issue3),
+            labels = mapOf("label1" to labelsMap.getValue("label1"), "label2" to label2Value, "label3" to label3Value)
         )
         updateResult shouldBe expectedResult
         ortRunRepository.get(ortRun.id) shouldBe expectedResult

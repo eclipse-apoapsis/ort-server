@@ -61,15 +61,16 @@ interface OrtRunRepository {
     ): List<OrtRun>
 
     /**
-     * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] are provided, they are
-     * added to the already existing ones.
+     * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are
+     * provided, they are added to the already existing ones.
      */
     fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus> = OptionalValue.Absent,
         resolvedJobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
         resolvedJobConfigContext: OptionalValue<String?> = OptionalValue.Absent,
-        issues: OptionalValue<Collection<OrtIssue>> = OptionalValue.Absent
+        issues: OptionalValue<Collection<OrtIssue>> = OptionalValue.Absent,
+        labels: OptionalValue<Map<String, String>> = OptionalValue.Absent
     ): OrtRun
 
     /**

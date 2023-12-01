@@ -70,7 +70,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.jobConfigs = jobConfigs
             this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
-            this.labels = mapAndDeduplicate(labels.entries) { LabelDao.getOrPut(it.key, it.value) }
+            this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
             this.issues = mapAndDeduplicate(issues, OrtIssueDao::createByIssue)
         }.mapToModel()
     }
@@ -97,7 +97,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         status: OptionalValue<OrtRunStatus>,
         resolvedJobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigContext: OptionalValue<String?>,
-        issues: OptionalValue<Collection<OrtIssue>>
+        issues: OptionalValue<Collection<OrtIssue>>,
+        labels: OptionalValue<Map<String, String>>
     ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]
 
@@ -116,6 +117,13 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, OrtIssueDao::createByIssue))
         }
 
+        labels.ifPresent { labels ->
+            val newLabels = mutableSetOf<LabelDao>()
+            newLabels += ortRun.labels
+            newLabels += labels.map(::getLabelDao)
+            ortRun.labels = SizedCollection(newLabels)
+        }
+
         OrtRunDao[id].mapToModel()
     }
 
@@ -124,3 +132,9 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao[id].delete()
     }
 }
+
+/**
+ * Obtain a [LabelDao] for the given [entry].
+ */
+private fun getLabelDao(entry: Map.Entry<String, String>): LabelDao =
+    LabelDao.getOrPut(entry.key, entry.value)
