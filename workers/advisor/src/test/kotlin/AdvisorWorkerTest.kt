@@ -26,26 +26,37 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import kotlin.test.fail
 
 import kotlinx.datetime.Clock
 
+import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
 import org.ossreviewtoolkit.server.model.AdvisorJob
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.JobStatus
+import org.ossreviewtoolkit.server.model.OrtRun
+import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
 import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
 import org.ossreviewtoolkit.server.workers.common.OrtRunService
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
+import org.ossreviewtoolkit.server.workers.common.mapToOrt
+
+private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
 
 private const val ANALYZER_JOB_ID = 1L
 private const val ADVISOR_JOB_ID = 1L
+private const val REPOSITORY_ID = 1L
+private const val ORT_RUN_ID = 12L
 private const val TRACE_ID = "42"
 
 private val advisorJob = AdvisorJob(
@@ -64,23 +75,45 @@ private val advisorJob = AdvisorJob(
 private fun createRunner(): AdvisorRunner = AdvisorRunner()
 
 class AdvisorWorkerTest : StringSpec({
+    afterSpec {
+        unmockkAll()
+    }
+
     "A project should be advised successfully" {
         val analyzerRun = mockk<AnalyzerRun> {
             every { analyzerJobId } returns ANALYZER_JOB_ID
             every { packages } returns emptySet()
         }
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { resolvedJobConfigContext } returns null
+        }
+        val ortResult = OrtResult.EMPTY.copy(
+            analyzer = OrtAnalyzerRun.EMPTY
+        )
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
 
         val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } returns advisorJob
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { startAdvisorJob(any()) } returns advisorJob
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { storeAdvisorRun(any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
             coEvery { resolveConfigSecrets(any()) } returns emptyMap()
         }
-        val contextFactory = mockContextFactory(context)
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
 
         val runner = spyk(createRunner())
         val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
@@ -91,7 +124,7 @@ class AdvisorWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
-                runner.run(context, emptySet(), advisorJob.configuration)
+                runner.run(context, ortResult, advisorJob.configuration)
                 ortRunService.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
             }
         }

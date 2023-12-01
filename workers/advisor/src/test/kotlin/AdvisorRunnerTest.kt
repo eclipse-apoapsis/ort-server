@@ -20,6 +20,7 @@
 package org.ossreviewtoolkit.server.workers.advisor
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -31,6 +32,9 @@ import io.mockk.verify
 
 import org.ossreviewtoolkit.advisor.AdviceProvider
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
+import org.ossreviewtoolkit.model.AnalyzerResult
+import org.ossreviewtoolkit.model.AnalyzerRun
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
@@ -43,12 +47,17 @@ class AdvisorRunnerTest : WordSpec({
     afterEach { unmockkAll() }
 
     "run" should {
-        "return a valid AdvisorRun" {
+        "return an OrtResult with a valid AdvisorRun" {
             val factory = mockAdviceProviderFactory("VulnerableCode")
             mockAdvisorAll(listOf(factory))
 
-            val run = runner.run(mockContext(), emptySet(), AdvisorJobConfiguration())
+            val result = runner.run(
+                mockContext(),
+                OrtResult.EMPTY.copy(analyzer = AnalyzerRun.EMPTY),
+                AdvisorJobConfiguration()
+            )
 
+            val run = result.advisor.shouldNotBeNull()
             run.config shouldBe AdvisorConfiguration(emptyMap())
         }
 
@@ -85,7 +94,17 @@ class AdvisorRunnerTest : WordSpec({
             )
             val context = mockContext(jobConfig, resolvedPluginConfig)
 
-            runner.run(context, setOf(Package.EMPTY), jobConfig)
+            runner.run(
+                context,
+                OrtResult.EMPTY.copy(
+                    analyzer = AnalyzerRun.EMPTY.copy(
+                        result = AnalyzerResult.EMPTY.copy(
+                            packages = setOf(Package.EMPTY)
+                        )
+                    )
+                ),
+                jobConfig
+            )
 
             verify(exactly = 1) {
                 osvFactory.create(osvConfig.options, osvSecrets)

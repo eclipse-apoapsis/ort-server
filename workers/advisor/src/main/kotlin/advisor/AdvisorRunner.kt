@@ -23,15 +23,14 @@ import kotlinx.coroutines.runBlocking
 
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.advisor.Advisor
-import org.ossreviewtoolkit.model.AdvisorRun
-import org.ossreviewtoolkit.model.Package
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 internal class AdvisorRunner {
-    fun run(context: WorkerContext, packages: Set<Package>, config: AdvisorJobConfiguration): AdvisorRun =
+    fun run(context: WorkerContext, ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult =
         runBlocking {
             val providerFactories = config.advisors.mapNotNull { AdviceProviderFactory.ALL[it] }
 
@@ -40,6 +39,6 @@ internal class AdvisorRunner {
 
             val advisor = Advisor(providerFactories, advisorConfig)
 
-            advisor.advise(packages)
+            advisor.advise(ortResult)
         }
 }
