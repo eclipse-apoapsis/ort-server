@@ -98,7 +98,10 @@ private val jobConfigurations = JobConfigurations(
         ),
         skipExcluded = true
     ),
-    advisor = AdvisorJobConfiguration(advisors = listOf("VulnerableCode")),
+    advisor = AdvisorJobConfiguration(
+        advisors = listOf("VulnerableCode"),
+        skipExcluded = true
+    ),
     scanner = ScannerJobConfiguration(
         createMissingArchives = true,
         detectedLicenseMappings = mapOf("LicenseRef-scancode-generic-cla" to "NOASSERTION"),

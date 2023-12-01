@@ -103,6 +103,11 @@ data class AdvisorJobConfiguration(
     val advisors: List<String> = emptyList(),
 
     /**
+     * Do not advise excluded packages.
+     */
+    val skipExcluded: Boolean = false,
+
+    /**
      * High-level parameters of the advisor job.
      */
     val parameters: Parameters? = null,

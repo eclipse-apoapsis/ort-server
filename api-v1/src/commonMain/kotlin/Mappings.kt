@@ -89,10 +89,10 @@ fun AdvisorJob.mapToApi() =
     )
 
 fun AdvisorJobConfiguration.mapToApi() =
-    ApiAdvisorJobConfiguration(advisors, parameters, config?.mapValues { it.value.mapToApi() })
+    ApiAdvisorJobConfiguration(advisors, skipExcluded, parameters, config?.mapValues { it.value.mapToApi() })
 
 fun ApiAdvisorJobConfiguration.mapToModel() =
-    AdvisorJobConfiguration(advisors, parameters, config?.mapValues { it.value.mapToModel() })
+    AdvisorJobConfiguration(advisors, skipExcluded, parameters, config?.mapValues { it.value.mapToModel() })
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
