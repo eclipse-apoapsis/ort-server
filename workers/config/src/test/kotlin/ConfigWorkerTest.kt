@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.server.model.OrtRun
 import org.ossreviewtoolkit.server.model.OrtRunStatus
 import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.ossreviewtoolkit.server.model.util.OptionalValue
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
@@ -64,11 +65,11 @@ class ConfigWorkerTest : StringSpec({
         val configManager = mockConfigManager()
 
         val resolvedConfig = mockk<JobConfigurations>()
-        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -83,7 +84,8 @@ class ConfigWorkerTest : StringSpec({
                     id = RUN_ID,
                     resolvedJobConfigs = resolvedConfig.asPresent(),
                     resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
-                    issues = validationIssues.asPresent()
+                    issues = validationIssues.asPresent(),
+                    labels = validationLabels.asPresent()
                 )
             }
         }
@@ -98,7 +100,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -113,7 +115,8 @@ class ConfigWorkerTest : StringSpec({
                     id = RUN_ID,
                     resolvedJobConfigs = resolvedConfig.asPresent(),
                     resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
-                    issues = validationIssues.asPresent()
+                    issues = validationIssues.asPresent(),
+                    labels = OptionalValue.Absent
                 )
             }
         }
@@ -212,6 +215,9 @@ private const val PARAMETERS_SCRIPT = "Script to validate parameters"
 private val validationIssues = listOf(
     OrtIssue(Clock.System.now(), "ConfigWorkerTest", "Test message", "TEST")
 )
+
+/** A map with labels to be returned by the mock validator. */
+private val validationLabels = mapOf("validated" to "yes", "test" to "true")
 
 /**
  * Create a mock context factory together with a mock context that is returned by the factory. Prepare the mocks to

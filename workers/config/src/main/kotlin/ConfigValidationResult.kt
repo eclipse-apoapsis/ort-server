@@ -42,7 +42,10 @@ data class ConfigValidationResultSuccess(
     val resolvedConfigurations: JobConfigurations,
 
     /** A list with issues that have been detected during validation. */
-    override val issues: List<OrtIssue> = emptyList()
+    override val issues: List<OrtIssue> = emptyList(),
+
+    /** A map with labels to be added to the ORT run. */
+    val labels: Map<String, String> = emptyMap()
 ) : ConfigValidationResult
 
 /**

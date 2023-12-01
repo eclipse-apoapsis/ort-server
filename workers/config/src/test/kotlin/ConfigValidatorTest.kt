@@ -23,6 +23,7 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -65,6 +66,9 @@ class ConfigValidatorTest : StringSpec({
         )
         validationResult.issues shouldHaveSize 1
         checkIssue(expectedIssue, validationResult.issues[0])
+
+        validationResult.labels shouldHaveSize 1
+        validationResult.labels["test"] shouldBe "success"
     }
 
     "A failed validation should be handled" {

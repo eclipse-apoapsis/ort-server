@@ -56,6 +56,13 @@ class ConfigWorker(
         val VALIDATION_SCRIPT_PATH = Path("ort-server.params.kts")
 
         private val logger = LoggerFactory.getLogger(ConfigWorker::class.java)
+
+        /**
+         * Extract an [OptionalValue] with the labels to update for this result. If there are no new labels to add,
+         * return an [OptionalValue.Absent] result.
+         */
+        private fun ConfigValidationResultSuccess.labelsToUpdate(): OptionalValue<Map<String, String>> =
+            labels.takeUnless { it.isEmpty() }?.asPresent() ?: OptionalValue.Absent
     }
 
     /**
@@ -81,19 +88,22 @@ class ConfigWorker(
 
         logger.debug("Issues returned by validation script: {}.", validationResult.issues)
 
-        val (result, resolvedJobConfigs) = when (validationResult) {
+        val (result, updates) = when (validationResult) {
             is ConfigValidationResultSuccess ->
-                RunResult.Success to validationResult.resolvedConfigurations.asPresent()
+                RunResult.Success to
+                        (validationResult.resolvedConfigurations.asPresent() to validationResult.labelsToUpdate())
 
             is ConfigValidationResultFailure ->
-                RunResult.Failed(IllegalArgumentException("Parameter validation failed.")) to OptionalValue.Absent
+                RunResult.Failed(IllegalArgumentException("Parameter validation failed.")) to
+                        (OptionalValue.Absent to OptionalValue.Absent)
         }
 
         db.dbQuery {
             ortRunRepository.update(
                 ortRunId,
-                resolvedJobConfigs = resolvedJobConfigs,
+                resolvedJobConfigs = updates.first,
                 issues = validationResult.issues.asPresent(),
+                labels = updates.second,
                 resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent()
             )
         }
