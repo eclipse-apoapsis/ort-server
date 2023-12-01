@@ -39,6 +39,6 @@ internal class AdvisorRunner {
 
             val advisor = Advisor(providerFactories, advisorConfig)
 
-            advisor.advise(ortResult)
+            advisor.advise(ortResult, config.skipExcluded)
         }
 }
