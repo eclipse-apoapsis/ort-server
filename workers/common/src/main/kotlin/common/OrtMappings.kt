@@ -344,6 +344,7 @@ fun OrtProject.mapToModel() =
         definitionFilePath = definitionFilePath,
         authors = authors,
         declaredLicenses = declaredLicenses,
+        processedDeclaredLicense = declaredLicensesProcessed.mapToModel(),
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
         homepageUrl = homepageUrl,

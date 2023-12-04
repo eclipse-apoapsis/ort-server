@@ -109,7 +109,21 @@ val project = Project(
     cpe = "cpe",
     definitionFilePath = "definitionFilePath",
     authors = setOf("author1", "author2"),
-    declaredLicenses = setOf("license1", "license2"),
+    declaredLicenses = setOf(
+        "LicenseRef-declared",
+        "LicenseRef-toBeMapped1",
+        "LicenseRef-toBeMapped2",
+        "LicenseRef-unmapped1",
+        "LicenseRef-unmapped2"
+    ),
+    processedDeclaredLicense = ProcessedDeclaredLicense(
+        spdxExpression = "LicenseRef-declared OR LicenseRef-mapped1 OR LicenseRef-mapped2",
+        mappedLicenses = mapOf(
+            "LicenseRef-toBeMapped1" to "LicenseRef-mapped1",
+            "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
+        ),
+        unmappedLicenses = setOf("LicenseRef-unmapped1", "LicenseRef-unmapped2")
+    ),
     vcs = VcsInfo(
         type = RepositoryType.GIT,
         url = "https://example.com/project.git",

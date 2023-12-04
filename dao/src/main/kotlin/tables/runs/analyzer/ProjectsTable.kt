@@ -57,6 +57,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
                 it.identifier.mapToModel() == project.identifier &&
                         it.authors == project.authors &&
                         it.declaredLicenses == project.declaredLicenses &&
+                        it.processedDeclaredLicense.mapToModel() == project.processedDeclaredLicense &&
                         it.vcs.mapToModel() == project.vcs &&
                         it.vcsProcessed.mapToModel() == project.vcsProcessed
             }
@@ -75,12 +76,16 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     var declaredLicenses by DeclaredLicenseDao via ProjectsDeclaredLicensesTable
     val scopeNames by ProjectScopeDao referrersOn ProjectScopesTable.projectId
 
+    val processedDeclaredLicense by ProcessedDeclaredLicenseDao backReferencedOn
+            ProcessedDeclaredLicensesTable.projectId
+
     fun mapToModel() = Project(
         identifier = identifier.mapToModel(),
         cpe = cpe,
         definitionFilePath = definitionFilePath,
         authors = authors.mapTo(mutableSetOf()) { it.name },
         declaredLicenses = declaredLicenses.mapTo(mutableSetOf()) { it.name },
+        processedDeclaredLicense = processedDeclaredLicense.mapToModel(),
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
         homepageUrl = homepageUrl,

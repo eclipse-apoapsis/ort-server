@@ -562,6 +562,7 @@ fun Project.mapToOrt() =
         definitionFilePath = definitionFilePath,
         authors = authors,
         declaredLicenses = declaredLicenses,
+        declaredLicensesProcessed = processedDeclaredLicense.mapToOrt(),
         vcs = vcs.mapToOrt(),
         vcsProcessed = vcsProcessed.mapToOrt(),
         homepageUrl = homepageUrl,

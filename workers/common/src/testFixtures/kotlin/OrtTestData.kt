@@ -286,7 +286,21 @@ object OrtTestData {
         cpe = "cpe:example",
         definitionFilePath = "pom.xml",
         authors = setOf("Author One", "Author Two"),
-        declaredLicenses = setOf("The MIT License", "Eclipse Public License 1.0"),
+        declaredLicenses = setOf(
+            "LicenseRef-declared",
+            "LicenseRef-toBeMapped1",
+            "LicenseRef-toBeMapped2",
+            "LicenseRef-unmapped1",
+            "LicenseRef-unmapped2"
+        ),
+        declaredLicensesProcessed = ProcessedDeclaredLicense(
+            spdxExpression = "LicenseRef-declared OR LicenseRef-mapped1 OR LicenseRef-mapped2".toSpdx(),
+            mapped = mapOf(
+                "LicenseRef-toBeMapped1" to "LicenseRef-mapped1".toSpdx(),
+                "LicenseRef-toBeMapped2" to "LicenseRef-mapped2".toSpdx()
+            ),
+            unmapped = setOf("LicenseRef-unmapped1", "LicenseRef-unmapped2")
+        ),
         vcs = VcsInfo(
             type = VcsType.GIT,
             url = projectRepositoryUrl,

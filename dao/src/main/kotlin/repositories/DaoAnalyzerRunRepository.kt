@@ -66,6 +66,7 @@ import org.ossreviewtoolkit.server.model.runs.Environment
 import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.Package
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.server.model.runs.Project
 
 /**
@@ -189,6 +190,8 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
         }
     }
 
+    createProcessedDeclaredLicense(project.processedDeclaredLicense, projectDao = projectDao)
+
     return projectDao
 }
 
@@ -237,12 +240,27 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
         }
     }
 
-    val processedDeclaredLicenseDao = ProcessedDeclaredLicenseDao.new {
-        this.pkg = pkgDao
-        spdxExpression = pkg.processedDeclaredLicense.spdxExpression
+    createProcessedDeclaredLicense(pkg.processedDeclaredLicense, pkgDao = pkgDao)
+
+    return pkgDao
+}
+
+private fun createProcessedDeclaredLicense(
+    processedDeclaredLicense: ProcessedDeclaredLicense,
+    pkgDao: PackageDao? = null,
+    projectDao: ProjectDao? = null
+) {
+    require(listOfNotNull(pkgDao, projectDao).size == 1) {
+        "Exactly one of 'pkgDao' and 'projectDao' must be not null."
     }
 
-    pkg.processedDeclaredLicense.mappedLicenses.forEach { (declaredLicense, mappedLicense) ->
+    val processedDeclaredLicenseDao = ProcessedDeclaredLicenseDao.new {
+        pkgDao?.also { this.pkg = pkgDao }
+        projectDao?.also { this.project = projectDao }
+        spdxExpression = processedDeclaredLicense.spdxExpression
+    }
+
+    processedDeclaredLicense.mappedLicenses.forEach { (declaredLicense, mappedLicense) ->
         val mappedDeclaredLicenseDao = MappedDeclaredLicenseDao.getOrPut(declaredLicense, mappedLicense)
 
         ProcessedDeclaredLicensesMappedDeclaredLicensesTable.insert {
@@ -251,7 +269,7 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
         }
     }
 
-    pkg.processedDeclaredLicense.unmappedLicenses.forEach { unmappedLicense ->
+    processedDeclaredLicense.unmappedLicenses.forEach { unmappedLicense ->
         val unmappedDeclaredLicenseDao = UnmappedDeclaredLicenseDao.getOrPut(unmappedLicense)
 
         ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable.insert {
@@ -259,8 +277,6 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
             it[unmappedDeclaredLicenseId] = unmappedDeclaredLicenseDao.id
         }
     }
-
-    return pkgDao
 }
 
 private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: OrtIssue): OrtIssueDao {

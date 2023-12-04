@@ -25,6 +25,7 @@ data class Project(
     val definitionFilePath: String,
     val authors: Set<String>,
     val declaredLicenses: Set<String>,
+    val processedDeclaredLicense: ProcessedDeclaredLicense,
     val vcs: VcsInfo,
     val vcsProcessed: VcsInfo,
     val homepageUrl: String,
