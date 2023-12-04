@@ -35,16 +35,21 @@ import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersOrtIssuesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.MappedDeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicenseDao
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicensesMappedDeclaredLicensesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectScopeDao
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
+import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.UnmappedDeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
@@ -229,6 +234,29 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
         PackagesDeclaredLicensesTable.insert {
             it[declaredLicenseId] = declaredLicenseDao.id
             it[packageId] = pkgDao.id
+        }
+    }
+
+    val processedDeclaredLicenseDao = ProcessedDeclaredLicenseDao.new {
+        this.pkg = pkgDao
+        spdxExpression = pkg.processedDeclaredLicense.spdxExpression
+    }
+
+    pkg.processedDeclaredLicense.mappedLicenses.forEach { (declaredLicense, mappedLicense) ->
+        val mappedDeclaredLicenseDao = MappedDeclaredLicenseDao.getOrPut(declaredLicense, mappedLicense)
+
+        ProcessedDeclaredLicensesMappedDeclaredLicensesTable.insert {
+            it[processedDeclaredLicenseId] = processedDeclaredLicenseDao.id
+            it[mappedDeclaredLicenseId] = mappedDeclaredLicenseDao.id
+        }
+    }
+
+    pkg.processedDeclaredLicense.unmappedLicenses.forEach { unmappedLicense ->
+        val unmappedDeclaredLicenseDao = UnmappedDeclaredLicenseDao.getOrPut(unmappedLicense)
+
+        ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable.insert {
+            it[processedDeclaredLicenseId] = processedDeclaredLicenseDao.id
+            it[unmappedDeclaredLicenseId] = unmappedDeclaredLicenseDao.id
         }
     }
 

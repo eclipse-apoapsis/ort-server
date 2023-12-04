@@ -67,6 +67,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                 it.identifier.mapToModel() == pkg.identifier &&
                         it.authors == pkg.authors &&
                         it.declaredLicenses == pkg.declaredLicenses &&
+                        it.processedDeclaredLicense.mapToModel() == pkg.processedDeclaredLicense &&
                         it.vcs.mapToModel() == pkg.vcs &&
                         it.vcsProcessed.mapToModel() == pkg.vcsProcessed &&
                         it.binaryArtifact.mapToModel() == pkg.binaryArtifact &&
@@ -91,12 +92,16 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var declaredLicenses by DeclaredLicenseDao via PackagesDeclaredLicensesTable
     var analyzerRuns by AnalyzerRunDao via PackagesAnalyzerRunsTable
 
+    val processedDeclaredLicense by ProcessedDeclaredLicenseDao backReferencedOn
+            ProcessedDeclaredLicensesTable.packageId
+
     fun mapToModel() = Package(
         identifier = identifier.mapToModel(),
         purl = purl,
         cpe = cpe,
         authors = authors.mapTo(mutableSetOf()) { it.name },
         declaredLicenses = declaredLicenses.mapTo(mutableSetOf()) { it.name },
+        processedDeclaredLicense = processedDeclaredLicense.mapToModel(),
         description = description,
         homepageUrl = homepageUrl,
         binaryArtifact = binaryArtifact.mapToModel(),

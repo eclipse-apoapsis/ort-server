@@ -96,6 +96,7 @@ import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
+import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
@@ -165,7 +166,10 @@ object OrtTestData {
             ),
             isMetadataOnly = false,
             isModified = false,
-            declaredLicenseMapping = mapOf("LicenseRef-unknown" to "LicenseRef-curated".toSpdx())
+            declaredLicenseMapping = mapOf(
+                "LicenseRef-toBeMapped1" to "LicenseRef-mapped1".toSpdx(),
+                "LicenseRef-toBeMapped2" to "LicenseRef-mapped2".toSpdx()
+            )
         )
     )
 
@@ -304,7 +308,21 @@ object OrtTestData {
         purl = "Maven:com.example:package:1.0",
         cpe = "cpe:example",
         authors = setOf("Author One", "Author Two"),
-        declaredLicenses = setOf("LicenseRef-declared", "LicenseRef-unknown"),
+        declaredLicenses = setOf(
+            "LicenseRef-declared",
+            "LicenseRef-toBeMapped1",
+            "LicenseRef-toBeMapped2",
+            "LicenseRef-unmapped1",
+            "LicenseRef-unmapped2"
+        ),
+        declaredLicensesProcessed = ProcessedDeclaredLicense(
+            spdxExpression = "LicenseRef-declared OR LicenseRef-mapped1 OR LicenseRef-mapped2".toSpdx(),
+            mapped = mapOf(
+                "LicenseRef-toBeMapped1" to "LicenseRef-mapped1".toSpdx(),
+                "LicenseRef-toBeMapped2" to "LicenseRef-mapped2".toSpdx()
+            ),
+            unmapped = setOf("LicenseRef-unmapped1", "LicenseRef-unmapped2")
+        ),
         description = "Example description",
         homepageUrl = "https://example.org/package",
         binaryArtifact = RemoteArtifact(

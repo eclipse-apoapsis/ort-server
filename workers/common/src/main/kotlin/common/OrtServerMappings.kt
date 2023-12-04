@@ -137,6 +137,7 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue as OrtServerIssue
 import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation as RuleViolation
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -195,6 +196,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense as OrtProcessedDeclaredLicense
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice as OrtSpdxLicenseChoice
@@ -575,6 +577,7 @@ fun Package.mapToOrt() =
         cpe = cpe,
         authors = authors,
         declaredLicenses = declaredLicenses,
+        declaredLicensesProcessed = processedDeclaredLicense.mapToOrt(),
         description = description,
         homepageUrl = homepageUrl,
         binaryArtifact = binaryArtifact.mapToOrt(),
@@ -583,6 +586,13 @@ fun Package.mapToOrt() =
         vcsProcessed = vcsProcessed.mapToOrt(),
         isMetadataOnly = isMetadataOnly,
         isModified = isModified
+    )
+
+fun ProcessedDeclaredLicense.mapToOrt() =
+    OrtProcessedDeclaredLicense(
+        spdxExpression = spdxExpression.toSpdx(),
+        mapped = mappedLicenses.mapValues { it.value.toSpdx() },
+        unmapped = unmappedLicenses
     )
 
 fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)

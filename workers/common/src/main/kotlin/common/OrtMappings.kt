@@ -108,6 +108,7 @@ import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation as RuleViolation
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -162,6 +163,7 @@ import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
+import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense as OrtProcessedDeclaredLicense
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice as OrtSpdxLicenseChoice
 
 fun OrtAdvisorConfiguration.mapToModel() =
@@ -309,6 +311,7 @@ fun OrtPackage.mapToModel() =
         cpe = cpe,
         authors = authors,
         declaredLicenses = declaredLicenses,
+        processedDeclaredLicense = declaredLicensesProcessed.mapToModel(),
         description = description,
         homepageUrl = homepageUrl,
         binaryArtifact = binaryArtifact.mapToModel(),
@@ -325,6 +328,13 @@ fun OrtPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(
         mustRunAfter = mustRunAfter,
         options = options
+    )
+
+fun OrtProcessedDeclaredLicense.mapToModel() =
+    ProcessedDeclaredLicense(
+        spdxExpression = spdxExpression.toString(),
+        mappedLicenses = mapped.mapValues { it.toString() },
+        unmappedLicenses = unmapped
     )
 
 fun OrtProject.mapToModel() =

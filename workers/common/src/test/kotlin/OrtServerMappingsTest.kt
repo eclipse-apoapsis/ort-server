@@ -48,6 +48,7 @@ import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue as OrtServerIssue
 import org.ossreviewtoolkit.server.model.runs.Package
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.server.model.runs.Project
 import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 import org.ossreviewtoolkit.server.model.runs.VcsInfo
@@ -200,7 +201,21 @@ class OrtServerMappingsTest : WordSpec({
                 purl = "Maven:com.example:package:1.0",
                 cpe = "cpe:example",
                 authors = setOf("Author One", "Author Two"),
-                declaredLicenses = setOf("LicenseRef-declared", "LicenseRef-unknown"),
+                declaredLicenses = setOf(
+                    "LicenseRef-declared",
+                    "LicenseRef-toBeMapped1",
+                    "LicenseRef-toBeMapped2",
+                    "LicenseRef-unmapped1",
+                    "LicenseRef-unmapped2"
+                ),
+                processedDeclaredLicense = ProcessedDeclaredLicense(
+                    spdxExpression = "LicenseRef-declared OR LicenseRef-mapped1 OR LicenseRef-mapped2",
+                    mappedLicenses = mapOf(
+                        "LicenseRef-toBeMapped1" to "LicenseRef-mapped1",
+                        "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
+                    ),
+                    unmappedLicenses = setOf("LicenseRef-unmapped1", "LicenseRef-unmapped2")
+                ),
                 description = "Example description",
                 homepageUrl = "https://example.org/package",
                 binaryArtifact = RemoteArtifact(
@@ -388,7 +403,10 @@ class OrtServerMappingsTest : WordSpec({
                     ),
                     isMetadataOnly = false,
                     isModified = false,
-                    declaredLicenseMapping = mapOf("LicenseRef-unknown" to "LicenseRef-curated")
+                    declaredLicenseMapping = mapOf(
+                        "LicenseRef-toBeMapped1" to "LicenseRef-mapped1",
+                        "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
+                    )
                 )
             )
 

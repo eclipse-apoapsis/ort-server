@@ -24,6 +24,8 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
+import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
+
 /**
  * A table to store the results of processing declared licenses.
  */
@@ -44,4 +46,10 @@ class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
 
     val mappedLicenses by MappedDeclaredLicenseDao via ProcessedDeclaredLicensesMappedDeclaredLicensesTable
     val unmappedLicenses by UnmappedDeclaredLicenseDao via ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
+
+    fun mapToModel(): ProcessedDeclaredLicense = ProcessedDeclaredLicense(
+        spdxExpression = spdxExpression,
+        mappedLicenses = mappedLicenses.associate { it.declaredLicense to it.mappedLicense },
+        unmappedLicenses = unmappedLicenses.mapTo(mutableSetOf()) { it.unmappedLicense }
+    )
 }

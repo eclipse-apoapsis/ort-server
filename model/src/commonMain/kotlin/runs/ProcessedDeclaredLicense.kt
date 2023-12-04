@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,8 @@
 
 package org.ossreviewtoolkit.server.model.runs
 
-data class Package(
-    val identifier: Identifier,
-    val purl: String,
-    val cpe: String? = null,
-    val authors: Set<String>,
-    val declaredLicenses: Set<String>,
-    val processedDeclaredLicense: ProcessedDeclaredLicense,
-    val description: String,
-    val homepageUrl: String,
-    val binaryArtifact: RemoteArtifact,
-    val sourceArtifact: RemoteArtifact,
-    val vcs: VcsInfo,
-    val vcsProcessed: VcsInfo,
-    val isMetadataOnly: Boolean = false,
-    val isModified: Boolean = false
+data class ProcessedDeclaredLicense(
+    val spdxExpression: String,
+    val mappedLicenses: Map<String, String>,
+    val unmappedLicenses: Set<String>
 )
