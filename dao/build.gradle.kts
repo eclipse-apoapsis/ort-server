@@ -39,10 +39,10 @@ dependencies {
     api(libs.exposedDao)
     api(libs.koinCore)
 
+    implementation(libs.bundles.flyway)
     implementation(libs.exposedCore)
     implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
-    implementation(libs.flywayCore)
     implementation(libs.hikari)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.postgres)

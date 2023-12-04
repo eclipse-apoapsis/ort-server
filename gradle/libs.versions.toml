@@ -34,7 +34,7 @@ versionsPlugin = "0.50.0"
 
 # Gradle dependencies
 exposed = "0.45.0"
-flyway = "9.22.2"
+flyway = "10.1.0"
 hikari = "5.1.0"
 jackson = "2.16.0"
 jsonSchemaSerialization = "0.6.6"
@@ -80,6 +80,7 @@ exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "ex
 exposedJson = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 exposedKotlinDatetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 flywayCore = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flywayPostgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-serialization", version.ref = "jsonSchemaSerialization" }
@@ -150,3 +151,6 @@ testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref =
 testContainersVault = { module = "org.testcontainers:vault", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
 wiremockStandalone = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
+
+[bundles]
+flyway = ["flywayCore", "flywayPostgresql"]
