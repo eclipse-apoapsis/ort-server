@@ -125,6 +125,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ortAdvisor = { module = "com.github.oss-review-toolkit.ort:advisor", version.ref = "ort" }
+ortAdvisors = { module = "com.github.oss-review-toolkit.ort:advisors", version.ref = "ort" }
 ortAnalyzer = { module = "com.github.oss-review-toolkit.ort:analyzer", version.ref = "ort" }
 ortCommonUtils = { module = "com.github.oss-review-toolkit.ort:common-utils", version.ref = "ort" }
 ortDownloader = { module = "com.github.oss-review-toolkit.ort:downloader", version.ref = "ort" }

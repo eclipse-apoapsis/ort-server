@@ -44,6 +44,7 @@ dependencies {
 
     implementation(libs.ortAdvisor)
     implementation(libs.typesafeConfig)
+    implementation(platform(libs.ortAdvisors))
 
     runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
