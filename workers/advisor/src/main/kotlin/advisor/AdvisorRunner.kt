@@ -29,10 +29,22 @@ import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
+import org.slf4j.LoggerFactory
+
 internal class AdvisorRunner {
+    companion object {
+        private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
+    }
+
     fun run(context: WorkerContext, ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult =
         runBlocking {
+            logger.info("Advisor run with these advisors: '{}'.", config.advisors)
+
             val providerFactories = config.advisors.mapNotNull { AdviceProviderFactory.ALL[it] }
+            if (providerFactories.size < config.advisors.size) {
+                val invalidAdvisors = config.advisors.filter { it !in AdviceProviderFactory.ALL }
+                logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
+            }
 
             val pluginConfigs = context.resolveConfigSecrets(config.config)
             val advisorConfig = AdvisorConfiguration(pluginConfigs.mapValues { it.value.mapToOrt() })
