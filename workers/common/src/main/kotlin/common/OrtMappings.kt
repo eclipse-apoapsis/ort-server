@@ -333,7 +333,7 @@ fun OrtPackageManagerConfiguration.mapToModel() =
 fun OrtProcessedDeclaredLicense.mapToModel() =
     ProcessedDeclaredLicense(
         spdxExpression = spdxExpression.toString(),
-        mappedLicenses = mapped.mapValues { it.toString() },
+        mappedLicenses = mapped.mapValues { it.value.toString() },
         unmappedLicenses = unmapped
     )
 
