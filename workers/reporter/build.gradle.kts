@@ -50,6 +50,8 @@ dependencies {
 
     runtimeOnly(project(":config:github"))
     runtimeOnly(project(":config:secret-file"))
+    runtimeOnly(project(":secrets:file"))
+    runtimeOnly(project(":secrets:vault"))
     runtimeOnly(project(":storage:database"))
     runtimeOnly(project(":transport:activemqartemis"))
     runtimeOnly(project(":transport:kubernetes"))
