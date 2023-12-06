@@ -75,6 +75,8 @@ class AnalyzerRunner {
             logger.info("Found $count definition file(s) from ${filesPerManager.size} package manager(s) in total.")
         }
 
+        logger.info("Creating package curation providers...")
+
         val packageCurationProviders = buildList {
             add(
                 ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID to SimplePackageCurationProvider(
@@ -85,6 +87,8 @@ class AnalyzerRunner {
             val packageCurationProviderConfigs = config.packageCurationProviders.map { it.mapToOrt() }
             addAll(PackageCurationProviderFactory.create(packageCurationProviderConfigs))
         }
+
+        logger.info("Starting analysis of definition file(s)...")
 
         val ortResult = analyzer.analyze(info, packageCurationProviders)
 
