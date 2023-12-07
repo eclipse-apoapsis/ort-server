@@ -21,6 +21,11 @@ package org.ossreviewtoolkit.server.workers.analyzer
 
 import java.io.File
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
@@ -56,14 +61,22 @@ class DirPackageCurationProvider(
     /** The root path of the folder structure with curation files. */
     private val root: File
 ) : PackageCurationProvider {
-    override fun getCurationsFor(packages: Collection<Package>): Set<PackageCuration> {
-        return packages.flatMapTo(mutableSetOf()) { pkg ->
-            val curationFile = root.resolve(pkg.id.toCurationPath())
-            logger.debug("Looking up curation file '{}'.", curationFile.absolutePath)
+    override fun getCurationsFor(packages: Collection<Package>): Set<PackageCuration> =
+        runBlocking(Dispatchers.IO) {
+            packages.map { pkg ->
+                async { lookupCurations(pkg) }
+            }.awaitAll().flatten().toSet()
+        }
 
-            curationFile.takeIf { it.isFile }?.readValue<List<PackageCuration>>().orEmpty().filter {
-                it.isApplicable(pkg.id)
-            }
+    /**
+     * Lookup the curations file for the given [pkg]. If it exists, load it and return the applicable curations.
+     */
+    private fun lookupCurations(pkg: Package): List<PackageCuration> {
+        val curationFile = root.resolve(pkg.id.toCurationPath())
+        logger.debug("Looking up curation file '{}'.", curationFile.absolutePath)
+
+        return curationFile.takeIf { it.isFile }?.readValue<List<PackageCuration>>().orEmpty().filter {
+            it.isApplicable(pkg.id)
         }
     }
 }
