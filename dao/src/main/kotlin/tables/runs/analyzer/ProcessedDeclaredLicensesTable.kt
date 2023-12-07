@@ -33,7 +33,7 @@ object ProcessedDeclaredLicensesTable : LongIdTable("processed_declared_licenses
     val packageId = reference("package_id", PackagesTable).nullable()
     val projectId = reference("project_id", ProjectsTable).nullable()
 
-    val spdxExpression = text("spdx_expression")
+    val spdxExpression = text("spdx_expression").nullable()
 }
 
 class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {

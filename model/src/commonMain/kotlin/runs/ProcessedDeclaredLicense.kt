@@ -20,7 +20,7 @@
 package org.ossreviewtoolkit.server.model.runs
 
 data class ProcessedDeclaredLicense(
-    val spdxExpression: String,
+    val spdxExpression: String?,
     val mappedLicenses: Map<String, String>,
     val unmappedLicenses: Set<String>
 )

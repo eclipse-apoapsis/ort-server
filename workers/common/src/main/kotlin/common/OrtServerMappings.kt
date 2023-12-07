@@ -591,7 +591,7 @@ fun Package.mapToOrt() =
 
 fun ProcessedDeclaredLicense.mapToOrt() =
     OrtProcessedDeclaredLicense(
-        spdxExpression = spdxExpression.toSpdx(),
+        spdxExpression = spdxExpression?.toSpdx(),
         mapped = mappedLicenses.mapValues { it.value.toSpdx() },
         unmapped = unmappedLicenses
     )
