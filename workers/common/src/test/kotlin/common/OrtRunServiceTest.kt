@@ -184,7 +184,10 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 provenances = emptySet(),
                 scanResults = emptySet(),
-                scanners = emptyMap()
+                scanners = mapOf(
+                    Identifier("type-1", "namespace-1", "name-1", "version-1") to setOf("scanner-1"),
+                    Identifier("type-2", "namespace-2", "name-2", "version-2") to setOf("scanner-2")
+                )
             )
 
             service.createScannerRun(scannerRun.scannerJobId)

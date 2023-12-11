@@ -540,7 +540,7 @@ object OrtTestData {
         provenances = setOf(provenanceResolutionResult),
         scanResults = setOf(scanResult),
         files = emptySet(),
-        scanners = mapOf(provenanceResolutionResult.id to setOf(scanResult.scanner.name))
+        scanners = mapOf(provenanceResolutionResult.id to setOf(scanResult.scanner.name, "TestScanner"))
     )
 
     val resolvedConfiguration = ResolvedConfiguration(

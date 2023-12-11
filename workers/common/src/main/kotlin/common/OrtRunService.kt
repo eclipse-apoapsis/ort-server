@@ -102,7 +102,7 @@ class OrtRunService(
             endTime = endTime,
             environment = environment,
             config = config,
-            scanners = emptyMap()
+            scanners = scannerRun.scanners
         )
     }
 

@@ -274,13 +274,7 @@ fun ScannerRun.mapToOrt() =
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
         scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
         files = emptySet(),
-        scanners = provenances.associate { provenanceResolutionResult ->
-            val scanners = scanResults
-                .filter { it.provenance == provenanceResolutionResult.packageProvenance }
-                .mapTo(mutableSetOf()) { it.scanner.name }
-
-            provenanceResolutionResult.id.mapToOrt() to scanners
-        }
+        scanners = scanners.mapKeys { it.key.mapToOrt() }
     )
 
 fun ProvenanceResolutionResult.mapToOrt() =

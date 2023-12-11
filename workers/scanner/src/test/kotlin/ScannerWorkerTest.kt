@@ -30,10 +30,12 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
+import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.server.dao.test.mockkTransaction
@@ -101,9 +103,20 @@ class ScannerWorkerTest : StringSpec({
             every { createContext(ORT_RUN_ID) } returns context
         }
 
+        val ortIdentifier = Identifier("type", "namespace", "name", "version")
+        val mappedIdentifier = org.ossreviewtoolkit.server.model.runs.Identifier(
+            ortIdentifier.type,
+            ortIdentifier.namespace,
+            ortIdentifier.name,
+            ortIdentifier.version
+        )
+        val ortScannerRun = ScannerRun.EMPTY.copy(
+            scanners = mapOf(ortIdentifier to setOf("scanner1", "scanner2"))
+        )
+
         val runner = mockk<ScannerRunner> {
             every { run(context, any(), any(), any()) } returns mockk {
-                every { scanner } returns ScannerRun.EMPTY
+                every { scanner } returns ortScannerRun
             }
         }
 
@@ -118,7 +131,9 @@ class ScannerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) { ortRunService.finalizeScannerRun(any()) }
+            val slotScannerRun = slot<org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun>()
+            verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun)) }
+            slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
 
             coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
         }

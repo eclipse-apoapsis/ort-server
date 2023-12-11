@@ -475,7 +475,7 @@ class OrtServerMappingsTest : WordSpec({
                 config = scannerConfiguration,
                 provenances = setOf(provenanceResolutionResult),
                 scanResults = setOf(scanResult),
-                scanners = emptyMap()
+                scanners = mapOf(pkgIdentifier to setOf(scanResult.scanner.name, "TestScanner"))
             )
 
             val pathExclude = PathExclude(
