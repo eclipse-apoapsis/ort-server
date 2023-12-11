@@ -474,7 +474,8 @@ class OrtServerMappingsTest : WordSpec({
                 environment = environment,
                 config = scannerConfiguration,
                 provenances = setOf(provenanceResolutionResult),
-                scanResults = setOf(scanResult)
+                scanResults = setOf(scanResult),
+                scanners = emptyMap()
             )
 
             val pathExclude = PathExclude(

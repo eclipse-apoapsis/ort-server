@@ -69,6 +69,7 @@ class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
         // TODO: Construct the provenance and scanResults sets as soon as there is a relation between Identifier,
         //       ScanResult and PackageProvenance.
         provenances = emptySet(),
-        scanResults = emptySet()
+        scanResults = emptySet(),
+        scanners = emptyMap()
     )
 }

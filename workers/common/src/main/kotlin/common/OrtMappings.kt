@@ -430,7 +430,8 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
         environment = environment.mapToModel(),
         config = config.mapToModel(),
         provenances = provenances.mapTo(mutableSetOf(), OrtProvenanceResolutionResult::mapToModel),
-        scanResults = scanResults.mapTo(mutableSetOf(), OrtScanResult::mapToModel)
+        scanResults = scanResults.mapTo(mutableSetOf(), OrtScanResult::mapToModel),
+        scanners = emptyMap()
     )
 
 fun OrtScannerConfiguration.mapToModel() =

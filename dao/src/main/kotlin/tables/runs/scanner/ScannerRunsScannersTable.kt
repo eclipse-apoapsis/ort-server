@@ -26,6 +26,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
+import org.ossreviewtoolkit.server.model.runs.Identifier
 
 /**
  * A table to track which packages have been scanned by which scanners in an ORT run.
@@ -38,7 +39,19 @@ object ScannerRunsScannersTable : LongIdTable("scanner_runs_scanners") {
 }
 
 class ScannerRunsScannersDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ScannerRunsScannersDao>(ScannerRunsScannersTable)
+    companion object : LongEntityClass<ScannerRunsScannersDao>(ScannerRunsScannersTable) {
+        /**
+         * Add an entry to record that in the given [run] the package with the given [identifier] was scanned by the
+         * scanner with th given [scannerName].
+         */
+        fun addScanner(run: ScannerRunDao, identifier: Identifier, scannerName: String) {
+            ScannerRunsScannersDao.new {
+                scannerRun = run
+                this.identifier = IdentifierDao.getOrPut(identifier)
+                this.scannerName = scannerName
+            }
+        }
+    }
 
     var scannerRun by ScannerRunDao referencedOn ScannerRunsScannersTable.scannerRunId
     var identifier by IdentifierDao referencedOn ScannerRunsScannersTable.identifierId

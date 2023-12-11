@@ -101,7 +101,8 @@ class OrtRunService(
             startTime = startTime,
             endTime = endTime,
             environment = environment,
-            config = config
+            config = config,
+            scanners = emptyMap()
         )
     }
 

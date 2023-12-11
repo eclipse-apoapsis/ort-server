@@ -47,12 +47,15 @@ import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationS
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsOptionsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsSecretsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScannersDao
+import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScannersTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsTable
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.StorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.Sw360StorageConfigurationDao
 import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
 import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.OrtIssue
 import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
@@ -84,7 +87,8 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
-        config: ScannerConfiguration
+        config: ScannerConfiguration,
+        scanners: Map<Identifier, Set<String>>
     ) = db.blockingQuery {
         val scannerRunDao = ScannerRunDao[id]
 
@@ -97,6 +101,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.environment = EnvironmentDao.getOrPut(environment)
 
         createScannerConfiguration(scannerRunDao, config)
+        createScanners(scannerRunDao, scanners)
 
         scannerRunDao.mapToModel()
     }
@@ -110,7 +115,13 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         // Get the scan results for the scanner run.
         val scanResults = scannerRunDao.scanResults.mapTo(mutableSetOf()) { it.mapToModel() }
 
-        scannerRunDao.mapToModel().copy(provenances = provenanceResolutionResults, scanResults = scanResults)
+        val scanners = mutableMapOf<Identifier, MutableSet<String>>()
+        ScannerRunsScannersDao.find { ScannerRunsScannersTable.scannerRunId eq id }.forEach { dao ->
+            scanners.getOrPut(dao.identifier.mapToModel()) { mutableSetOf() }.add(dao.scannerName)
+        }
+
+        scannerRunDao.mapToModel()
+            .copy(provenances = provenanceResolutionResults, scanResults = scanResults, scanners = scanners)
     }
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
@@ -314,3 +325,11 @@ private fun createFileBasedStorageConfiguration(
         this.fileStorageConfiguration = createFileStorageConfiguration(fileBasedStorageConfiguration.backend)
         this.type = fileBasedStorageConfiguration.type
     }
+
+private fun createScanners(run: ScannerRunDao, scanners: Map<Identifier, Set<String>>) {
+    scanners.entries.forEach { (id, scannerNames) ->
+        scannerNames.forEach { scanner ->
+            ScannerRunsScannersDao.addScanner(run, id, scanner)
+        }
+    }
+}

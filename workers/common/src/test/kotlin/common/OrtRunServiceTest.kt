@@ -183,7 +183,8 @@ class OrtRunServiceTest : WordSpec({
                     provenanceStorage = null
                 ),
                 provenances = emptySet(),
-                scanResults = emptySet()
+                scanResults = emptySet(),
+                scanners = emptyMap()
             )
 
             service.createScannerRun(scannerRun.scannerJobId)
@@ -508,7 +509,8 @@ class OrtRunServiceTest : WordSpec({
                     storageWriters = null,
                     ignorePatterns = emptyList(),
                     provenanceStorage = null
-                )
+                ),
+                scanners = emptyMap()
             )
 
             service.getScannerRunForOrtRun(fixtures.ortRun.id) shouldBe createdScannerRun

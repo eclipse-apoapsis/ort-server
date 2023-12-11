@@ -22,6 +22,7 @@ package org.ossreviewtoolkit.server.model.repositories
 import kotlinx.datetime.Instant
 
 import org.ossreviewtoolkit.server.model.runs.Environment
+import org.ossreviewtoolkit.server.model.runs.Identifier
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
@@ -36,16 +37,17 @@ interface ScannerRunRepository {
     fun create(scannerJobId: Long): ScannerRun
 
     /**
-     * Update the scanner run identified by [id] with the provided [startTime], [endTime], [environment], and [config].
-     * This function can be called only once to finalize a scanner run and throws an exception if it is called multiple
-     * times for the same scanner run.
+     * Update the scanner run identified by [id] with the provided [startTime], [endTime], [environment], [config],
+     * and [scanners]. This function can be called only once to finalize a scanner run and throws an exception if it
+     * is called multiple times for the same scanner run.
      */
     fun update(
         id: Long,
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
-        config: ScannerConfiguration
+        config: ScannerConfiguration,
+        scanners: Map<Identifier, Set<String>>
     ): ScannerRun
 
     /**

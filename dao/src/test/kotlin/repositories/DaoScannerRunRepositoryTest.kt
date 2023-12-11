@@ -96,6 +96,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
     }
 
     "update should store the provided values" {
+        val scanners = mapOf(pkg.identifier to setOf(SCANNER_NAME))
+
         val createdScannerRun = scannerRunRepository.create(scannerJobId)
 
         scannerRunRepository.update(
@@ -103,13 +105,14 @@ class DaoScannerRunRepositoryTest : StringSpec({
             scannerRun.startTime!!,
             scannerRun.endTime!!,
             scannerRun.environment!!,
-            scannerRun.config!!
+            scannerRun.config!!,
+            scanners
         )
 
         val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe scannerRun.copy(id = createdScannerRun.id, scannerJobId = scannerJobId)
+        dbEntry shouldBe scannerRun.copy(id = createdScannerRun.id, scannerJobId = scannerJobId, scanners = scanners)
     }
 
     "update should fail if it is called twice" {
@@ -120,7 +123,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
             scannerRun.startTime!!,
             scannerRun.endTime!!,
             scannerRun.environment!!,
-            scannerRun.config!!
+            scannerRun.config!!,
+            scannerRun.scanners
         )
 
         shouldThrow<IllegalArgumentException> {
@@ -129,7 +133,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
                 scannerRun.startTime!!,
                 scannerRun.endTime!!,
                 scannerRun.environment!!,
-                scannerRun.config!!
+                scannerRun.config!!,
+                scannerRun.scanners
             )
         }
     }
@@ -173,12 +178,18 @@ class DaoScannerRunRepositoryTest : StringSpec({
         val nestedProvenance4 = createNestedProvenance(pkg4.vcsProcessed, emptyMap())
         associatePackageProvenanceWithNestedProvenance(packageProvenance4, nestedProvenance4)
 
+        val otherScanner = "SomeOtherScanner"
         val scanResultPkg1 = createScanResult(artifact = pkg1.sourceArtifact)
         val scanResultPkg2 = createScanResult(vcs = pkg2.vcsProcessed)
-        val scanResultPkg3 = createScanResult(vcs = pkg3.vcsProcessed)
+        val scanResultPkg3 = createScanResult(vcs = pkg3.vcsProcessed, scanner = otherScanner)
+        val scanners = mapOf(
+            pkg1.identifier to setOf(SCANNER_NAME),
+            pkg2.identifier to setOf(SCANNER_NAME, otherScanner),
+            pkg3.identifier to setOf(otherScanner)
+        )
 
         analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg1, pkg2)))
-        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun)
+        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun.copy(scanners = scanners))
         associateScannerRunWithScanResult(createdScannerRun, scanResultPkg1)
         associateScannerRunWithScanResult(createdScannerRun, scanResultPkg2)
         associateScannerRunWithScanResult(createdScannerRun, scanResultPkg3)
@@ -208,6 +219,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
             )
         )
 
+        scannerRun.scanners shouldBe scanners
+
         transaction {
             scannerRun.scanResults should containExactlyInAnyOrder(
                 scanResultPkg1.mapToModel().copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
@@ -220,6 +233,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
     }
 })
 
+private const val SCANNER_NAME = "TestScanner"
+
 internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
     val createdScannerRun = create(scannerJobId = scannerJobId)
     return update(
@@ -227,7 +242,8 @@ internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: Scan
         startTime = scannerRun.startTime!!,
         endTime = scannerRun.endTime!!,
         environment = scannerRun.environment!!,
-        config = scannerRun.config!!
+        config = scannerRun.config!!,
+        scanners = scannerRun.scanners
     )
 }
 
@@ -266,7 +282,11 @@ private fun createNestedProvenance(
     nestedProvenance
 }
 
-private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = null): ScanResultDao = transaction {
+private fun createScanResult(
+    vcs: VcsInfo? = null,
+    artifact: RemoteArtifact? = null,
+    scanner: String = SCANNER_NAME
+): ScanResultDao = transaction {
     val scanSummary = ScanSummaryDao.new {
         this.startTime = Clock.System.now()
         this.endTime = Clock.System.now()
@@ -274,7 +294,7 @@ private fun createScanResult(vcs: VcsInfo? = null, artifact: RemoteArtifact? = n
 
     ScanResultDao.new {
         this.scanSummary = scanSummary
-        this.scannerName = "scanner-name"
+        this.scannerName = scanner
         this.scannerVersion = "scanner-version"
         this.scannerConfiguration = "scanner-configuration"
         this.artifactUrl = artifact?.url
@@ -372,5 +392,6 @@ internal val scannerRun = ScannerRun(
     environment = environment,
     config = scannerConfiguration,
     provenances = emptySet(),
-    scanResults = emptySet()
+    scanResults = emptySet(),
+    scanners = emptyMap()
 )
