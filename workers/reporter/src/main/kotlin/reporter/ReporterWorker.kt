@@ -97,7 +97,7 @@ internal class ReporterWorker(
 
         val reports = reporterRunnerResult.reports.values
             .flatMap { it.toList() }
-            .map { file -> Report(file.name) }
+            .map { file -> Report(file) }
             .toList()
 
         val reporterRun = ReporterRun(

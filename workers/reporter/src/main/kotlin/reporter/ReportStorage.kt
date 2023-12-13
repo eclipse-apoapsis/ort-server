@@ -50,18 +50,19 @@ class ReportStorage(
             runCatching { Files.probeContentType(file.toPath()) }.getOrNull() ?: DEFAULT_CONTENT_TYPE
 
         /**
-         * Generate the storage [Key] for the given report [file] generated for the specified [runId].
+         * Generate the storage [Key] for the report with the given [name] generated for the specified [runId].
          */
-        private fun generateKey(runId: Long, file: File): Key =
-            Key("$runId|${file.name}")
+        private fun generateKey(runId: Long, name: String): Key =
+            Key("$runId|$name")
     }
 
     /**
-     * Store the given [files] in the associated [Storage] for the given [ORT run ID][runId].
+     * Store the given [files] in the associated [Storage] for the given [ORT run ID][runId]. The map with files has
+     * the names to be used as keys and the corresponding report files as values.
      */
-    fun storeReportFiles(runId: Long, files: List<File>) {
-        files.forEach { file ->
-            val key = generateKey(runId, file)
+    fun storeReportFiles(runId: Long, files: Map<String, File>) {
+        files.forEach { (name, file) ->
+            val key = generateKey(runId, name)
             logger.info("Storing '{}' under key '{}'.", file.name, key.key)
 
             file.inputStream().use { stream ->

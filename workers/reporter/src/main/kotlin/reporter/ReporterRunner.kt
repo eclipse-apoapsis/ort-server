@@ -184,8 +184,11 @@ class ReporterRunner(
                             val reporterOptions = transformedOptions[reporter.type]?.let { options ->
                                 PluginConfiguration(options.options, options.secrets)
                             } ?: PluginConfiguration.EMPTY
-                            reporter.generateReport(reporterInput, outputDir, reporterOptions)
-                                .also { reportStorage.storeReportFiles(runId, it) }
+                            val nameMapper = ReportNameMapper.create(config, reporter.type)
+
+                            nameMapper.mapReportNames(
+                                reporter.generateReport(reporterInput, outputDir, reporterOptions)
+                            ).also { reportStorage.storeReportFiles(runId, it) }
                         }
                     }
                 }.awaitAll()
@@ -212,7 +215,7 @@ class ReporterRunner(
 
             val reports = results.first.associate {
                 logger.info("Successfully created '${it.first.type}' report.")
-                it.first.type to it.second.getOrDefault(emptyList())
+                it.first.type to it.second.getOrDefault(emptyMap()).keys.toList()
             }
 
             val packageConfigurations = if (evaluatorConfig != null) {
@@ -276,7 +279,7 @@ class ReporterRunner(
 }
 
 data class ReporterRunnerResult(
-    val reports: Map<String, List<File>>,
+    val reports: Map<String, List<String>>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
     val resolvedResolutions: Resolutions?
 )

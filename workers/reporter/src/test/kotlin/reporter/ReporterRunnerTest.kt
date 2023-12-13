@@ -24,9 +24,9 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.maps.shouldMatchAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -62,6 +62,7 @@ import org.ossreviewtoolkit.server.config.Context
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.ossreviewtoolkit.server.model.ReportNameMapping
 import org.ossreviewtoolkit.server.model.ReporterAsset
 import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
 import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
@@ -112,21 +113,29 @@ class ReporterRunnerTest : WordSpec({
     }
 
     "run" should {
-        "return a map with report format and directory" {
+        "return a result with report format and report names" {
             val storage = mockk<ReportStorage>()
             every { storage.storeReportFiles(any(), any()) } just runs
             val (contextFactory, _) = mockContext()
             val runner = ReporterRunner(storage, contextFactory, OptionsTransformerFactory(), configManager, mockk())
 
-            val result = runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(formats = listOf("WebApp")), null)
-
-            result.reports.shouldMatchAll(
-                "WebApp" to { it.size shouldBe 1 }
+            val reportType = "WebApp"
+            val mapping = ReportNameMapping("testReport")
+            val config = ReporterJobConfiguration(
+                formats = listOf(reportType),
+                nameMappings = mapOf(reportType to mapping)
             )
+            val result = runner.run(RUN_ID, OrtResult.EMPTY, config, null)
 
+            result.reports shouldBe mapOf(reportType to listOf("testReport.html"))
+
+            val slotReports = slot<Map<String, File>>()
             verify {
-                storage.storeReportFiles(RUN_ID, result.reports.getValue("WebApp"))
+                storage.storeReportFiles(RUN_ID, capture(slotReports))
             }
+
+            val storedReports = slotReports.captured
+            storedReports.keys shouldContainExactly listOf("testReport.html")
         }
 
         "resolve template file references" {

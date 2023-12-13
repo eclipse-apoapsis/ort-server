@@ -39,17 +39,17 @@ class ReportStorageTest : StringSpec({
             "Content of another report",
             "A more complex content of a sophisticated report."
         )
-        val reportFiles = reportData.map { content ->
+        val reportFiles = reportData.mapIndexed { index, content ->
             val file = tempfile()
             file.writeText(content)
-            file
-        }
+            "report-$index.txt" to file
+        }.toMap()
 
         val reportStorage = ReportStorage(createStorage())
         reportStorage.storeReportFiles(RUN_ID, reportFiles)
 
-        reportData.zip(reportFiles).forAll { (data, file) ->
-            val key = Key("$RUN_ID|${file.name}")
+        reportData.zip(reportFiles.entries).forAll { (data, file) ->
+            val key = Key("$RUN_ID|${file.key}")
             val entry = StorageProviderFactoryForTesting.getEntry(key)
             entry.data shouldBe data.toByteArray()
             entry.length shouldBe data.length
@@ -58,13 +58,14 @@ class ReportStorageTest : StringSpec({
     }
 
     "The content type should be detected" {
+        val key = "testReport"
         val reportFile = tempfile(suffix = ".json")
         reportFile.writeText("""{ "test": true }""")
 
         val reportStorage = ReportStorage(createStorage())
-        reportStorage.storeReportFiles(RUN_ID, listOf(reportFile))
+        reportStorage.storeReportFiles(RUN_ID, mapOf(key to reportFile))
 
-        val entry = StorageProviderFactoryForTesting.getEntry(Key("$RUN_ID|${reportFile.name}"))
+        val entry = StorageProviderFactoryForTesting.getEntry(Key("$RUN_ID|$key"))
         entry.contentType shouldBe "application/json"
     }
 
