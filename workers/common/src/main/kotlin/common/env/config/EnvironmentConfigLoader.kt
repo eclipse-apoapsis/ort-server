@@ -150,7 +150,8 @@ class EnvironmentConfigLoader(
                         usernameSecret,
                         passwordSecret,
                         null,
-                        null
+                        null,
+                        service.excludeFromNetrc
                     )
                 }
             }
@@ -308,4 +309,4 @@ private fun Collection<InfrastructureService>.associateByName(): Map<String, Inf
  * Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService].
  */
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
-    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret)
+    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)

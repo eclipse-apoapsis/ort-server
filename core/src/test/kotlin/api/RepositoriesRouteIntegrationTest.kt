@@ -379,7 +379,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     url = "https://repo.example.org/test",
                     description = "a private repository used by this repository",
                     usernameSecretRef = "repositoryUsername",
-                    passwordSecretRef = "repositoryPassword"
+                    passwordSecretRef = "repositoryPassword",
+                    excludeFromNetrc = true
                 )
                 val environmentDefinitions = mapOf(
                     "maven" to listOf(mapOf("id" to "repositoryServer"))
@@ -400,7 +401,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     url = service.url,
                     description = service.description,
                     usernameSecret = service.usernameSecretRef,
-                    passwordSecret = service.passwordSecretRef
+                    passwordSecret = service.passwordSecretRef,
+                    excludeFromNetrc = true
                 )
 
                 val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {

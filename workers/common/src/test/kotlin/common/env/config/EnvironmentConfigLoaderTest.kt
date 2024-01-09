@@ -212,7 +212,8 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     serviceUrl(2),
                     serviceDescription(2),
                     userSecret.name,
-                    pass2Secret.name
+                    pass2Secret.name,
+                    excludeFromNetrc = true
                 )
             )
             val envDefinitions = mapOf(
@@ -249,7 +250,8 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     serviceUrl(2),
                     serviceDescription(2),
                     userSecret.name,
-                    pass2Secret.name
+                    pass2Secret.name,
+                    excludeFromNetrc = true
                 )
             )
             val envConfig = EnvironmentConfig(declarations, strict = false)
@@ -414,7 +416,8 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         usernameSecret = userSecret,
         passwordSecret = passSecret,
         organization = null,
-        product = null
+        product = null,
+        excludeFromNetrc = index % 2 == 0
     )
 
 /**

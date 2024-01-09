@@ -46,4 +46,7 @@ internal data class RepositoryInfrastructureService(
 
     /** The reference to the secret that contains the password of the credentials for this infrastructure service. */
     val passwordSecret: String,
+
+    /** A flag whether this service should be ignored when generating the _.netrc_ file. */
+    val excludeFromNetrc: Boolean = false
 )

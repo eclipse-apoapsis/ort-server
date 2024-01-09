@@ -48,5 +48,8 @@ data class InfrastructureServiceDeclaration(
     val usernameSecret: String,
 
     /** The name of the [Secret] that contains the password of the credentials for this infrastructure service. */
-    val passwordSecret: String
+    val passwordSecret: String,
+
+    /** A flag whether this service should be ignored when generating the _.netrc_ file. */
+    val excludeFromNetrc: Boolean = false
 )

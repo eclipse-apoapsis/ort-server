@@ -293,10 +293,10 @@ fun InfrastructureService.mapToApi() =
     ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name, excludeFromNetrc)
 
 fun ApiInfrastructureService.mapToModel() =
-    InfrastructureServiceDeclaration(name, url, description, usernameSecretRef, passwordSecretRef)
+    InfrastructureServiceDeclaration(name, url, description, usernameSecretRef, passwordSecretRef, excludeFromNetrc)
 
 fun InfrastructureServiceDeclaration.mapToApi() =
-    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret)
+    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)
 
 fun EnvironmentConfig.mapToApi() =
     ApiEnvironmentConfig(
