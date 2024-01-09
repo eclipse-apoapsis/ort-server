@@ -59,7 +59,8 @@ class MockConfigFileBuilder {
         fun createInfrastructureService(
             url: String = REPOSITORY_URL,
             userSecret: Secret = mockk(),
-            passwordSecret: Secret = mockk()
+            passwordSecret: Secret = mockk(),
+            excludeFromNetrc: Boolean = false
         ): InfrastructureService =
             InfrastructureService(
                 name = url,
@@ -67,7 +68,8 @@ class MockConfigFileBuilder {
                 usernameSecret = userSecret,
                 passwordSecret = passwordSecret,
                 organization = null,
-                product = null
+                product = null,
+                excludeFromNetrc = excludeFromNetrc
             )
 
         /**

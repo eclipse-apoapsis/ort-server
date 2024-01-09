@@ -54,6 +54,8 @@ class NetRcGeneratorTest : StringSpec({
             val service1 = createInfrastructureService("https://repo1.example.org", secUser1, secPass1)
             val service2 = createInfrastructureService("https://repo2.example.org", secUser2, secPass2)
             val service3 = createInfrastructureService("https://repo3.example.org", secUser2, secPass2)
+            val serviceIgnored =
+                createInfrastructureService("https://repo1.example.org", secUser2, secPass2, excludeFromNetrc = true)
 
             val mockBuilder = MockConfigFileBuilder()
 
@@ -64,7 +66,7 @@ class NetRcGeneratorTest : StringSpec({
             )
 
             val generator = NetRcGenerator()
-            generator.generate(mockBuilder.builder, definitions(service1, service2, service3))
+            generator.generate(mockBuilder.builder, definitions(serviceIgnored, service1, service2, service3))
 
             mockBuilder.generatedLines() shouldContainExactly expectedLines
         }

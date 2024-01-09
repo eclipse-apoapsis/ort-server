@@ -63,7 +63,8 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
         get() = EnvironmentServiceDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<EnvironmentServiceDefinition>) {
-        val serviceHosts = definitions.map { it.service to it.service.host() }
+        val serviceHosts = definitions.filterNot { it.service.excludeFromNetrc }
+            .map { it.service to it.service.host() }
             .filter { it.second != null }
             .toMap()
         val deDuplicatedServices = serviceHosts.keys.groupBy { serviceHosts.getValue(it) }
