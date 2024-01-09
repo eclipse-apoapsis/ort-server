@@ -81,7 +81,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
 
             "create an infrastructure service for a product" {
-                val expectedService = createInfrastructureService(product = fixtures.product)
+                val expectedService = createInfrastructureService(product = fixtures.product, excludeFromNetrc = true)
 
                 val service = infrastructureServicesRepository.create(expectedService)
 
@@ -299,7 +299,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     description = null,
                     usernameSecret = newUser,
                     passwordSecret = newPassword,
-                    organization = fixtures.organization
+                    organization = fixtures.organization,
+                    excludeFromNetrc = true
                 )
 
                 infrastructureServicesRepository.create(service)
@@ -310,7 +311,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
                     updatedService.usernameSecret.asPresent(),
-                    updatedService.passwordSecret.asPresent()
+                    updatedService.passwordSecret.asPresent(),
+                    excludeFromNetrc = updatedService.excludeFromNetrc.asPresent()
                 )
 
                 result shouldBe updatedService
@@ -344,7 +346,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     description = null,
                     usernameSecret = newUser,
                     passwordSecret = newPassword,
-                    product = fixtures.product
+                    product = fixtures.product,
+                    excludeFromNetrc = true
                 )
 
                 infrastructureServicesRepository.create(service)
@@ -355,7 +358,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
                     updatedService.usernameSecret.asPresent(),
-                    updatedService.passwordSecret.asPresent()
+                    updatedService.passwordSecret.asPresent(),
+                    updatedService.excludeFromNetrc.asPresent()
                 )
 
                 result shouldBe updatedService
@@ -490,9 +494,19 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
         usernameSecret: Secret = this.usernameSecret,
         passwordSecret: Secret = this.passwordSecret,
         organization: Organization? = null,
-        product: Product? = null
+        product: Product? = null,
+        excludeFromNetrc: Boolean = false
     ): InfrastructureService =
-        InfrastructureService(name, url, description, usernameSecret, passwordSecret, organization, product)
+        InfrastructureService(
+            name,
+            url,
+            description,
+            usernameSecret,
+            passwordSecret,
+            organization,
+            product,
+            excludeFromNetrc
+        )
 }
 
 private const val SERVICE_NAME = "MyRepositoryService"
@@ -509,6 +523,7 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.description,
         service.usernameSecret,
         service.passwordSecret,
+        service.excludeFromNetrc,
         service.organization?.id,
         service.product?.id
     )

@@ -246,7 +246,8 @@ fun Route.organizations() = route("organizations") {
                     createService.url,
                     createService.description,
                     createService.usernameSecretRef,
-                    createService.passwordSecretRef
+                    createService.passwordSecretRef,
+                    createService.excludeFromNetrc
                 )
 
                 call.respond(HttpStatusCode.Created, newService.mapToApi())
@@ -266,7 +267,8 @@ fun Route.organizations() = route("organizations") {
                         updateService.url,
                         updateService.description,
                         updateService.usernameSecretRef,
-                        updateService.passwordSecretRef
+                        updateService.passwordSecretRef,
+                        updateService.excludeFromNetrc
                     )
 
                     call.respond(HttpStatusCode.OK, updatedService.mapToApi())

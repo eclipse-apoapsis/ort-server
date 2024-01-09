@@ -51,6 +51,12 @@ data class InfrastructureService(
 
     /** The reference to the secret that contains the password of the credentials for this infrastructure service. */
     val passwordSecretRef: String,
+
+    /**
+     * A flag whether this service should be ignored when generating the _.netrc_ file in the runtime environment of
+     * a worker.
+     */
+    val excludeFromNetrc: Boolean = false
 )
 
 /**
@@ -63,6 +69,7 @@ data class CreateInfrastructureService(
     val description: String? = null,
     val usernameSecretRef: String,
     val passwordSecretRef: String,
+    val excludeFromNetrc: Boolean = false
 ) {
     companion object {
         val validate: ValidatorFunc<CreateInfrastructureService> = { obj ->
@@ -83,5 +90,6 @@ data class UpdateInfrastructureService(
     val url: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent,
     val usernameSecretRef: OptionalValue<String> = OptionalValue.Absent,
-    val passwordSecretRef: OptionalValue<String> = OptionalValue.Absent
+    val passwordSecretRef: OptionalValue<String> = OptionalValue.Absent,
+    val excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
 )

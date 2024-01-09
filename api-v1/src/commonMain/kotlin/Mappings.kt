@@ -290,7 +290,7 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun InfrastructureService.mapToApi() =
-    ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name)
+    ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name, excludeFromNetrc)
 
 fun ApiInfrastructureService.mapToModel() =
     InfrastructureServiceDeclaration(name, url, description, usernameSecretRef, passwordSecretRef)

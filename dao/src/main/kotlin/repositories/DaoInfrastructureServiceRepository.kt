@@ -76,6 +76,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description: String?,
         usernameSecret: Secret,
         passwordSecret: Secret,
+        excludeFromNetrc: Boolean,
         organizationId: Long?,
         productId: Long?
     ): InfrastructureService = db.blockingQuery {
@@ -85,6 +86,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.description = description
             this.usernameSecret = SecretDao[usernameSecret.id]
             this.passwordSecret = SecretDao[passwordSecret.id]
+            this.excludeFromNetrc = excludeFromNetrc
             this.organization = organizationId?.let { OrganizationDao[it] }
             this.product = productId?.let { ProductDao[it] }
         }.mapToModel()
@@ -118,9 +120,17 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>
+        passwordSecret: OptionalValue<Secret>,
+        excludeFromNetrc: OptionalValue<Boolean>
     ): InfrastructureService =
-        update(selectByOrganizationAndName(organizationId, name), url, description, usernameSecret, passwordSecret)
+        update(
+            selectByOrganizationAndName(organizationId, name),
+            url,
+            description,
+            usernameSecret,
+            passwordSecret,
+            excludeFromNetrc
+        )
 
     override fun deleteForOrganizationAndName(organizationId: Long, name: String) {
         delete(selectByOrganizationAndName(organizationId, name))
@@ -138,9 +148,17 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>
+        passwordSecret: OptionalValue<Secret>,
+        excludeFromNetrc: OptionalValue<Boolean>
     ): InfrastructureService =
-        update(selectByProductAndName(productId, name), url, description, usernameSecret, passwordSecret)
+        update(
+            selectByProductAndName(productId, name),
+            url,
+            description,
+            usernameSecret,
+            passwordSecret,
+            excludeFromNetrc
+        )
 
     override fun deleteForProductAndName(productId: Long, name: String) {
         delete(selectByProductAndName(productId, name))
@@ -200,7 +218,8 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>
+        passwordSecret: OptionalValue<Secret>,
+        excludeFromNetrc: OptionalValue<Boolean>
     ): InfrastructureService = db.blockingQuery {
         val service = InfrastructureServicesDao.findSingle(op)
 
@@ -208,6 +227,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description.ifPresent { service.description = it }
         usernameSecret.ifPresent { service.usernameSecret = SecretDao[it.id] }
         passwordSecret.ifPresent { service.passwordSecret = SecretDao[it.id] }
+        excludeFromNetrc.ifPresent { service.excludeFromNetrc = it }
 
         service.mapToModel()
     }

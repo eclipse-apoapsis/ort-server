@@ -34,6 +34,7 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val name = text("name").sortable()
     val url = text("url")
     val description = text("description").nullable()
+    val excludeFromNetrc = bool("exclude_from_netrc")
 
     val usernameSecretId = reference("username_secret_id", SecretsTable)
     val passwordSecretId = reference("password_secret_id", SecretsTable)
@@ -54,6 +55,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
                         (InfrastructureServicesTable.description eq service.description) and
                         (InfrastructureServicesTable.usernameSecretId eq service.usernameSecret.id) and
                         (InfrastructureServicesTable.passwordSecretId eq service.passwordSecret.id) and
+                        (InfrastructureServicesTable.excludeFromNetrc eq service.excludeFromNetrc) and
                         (InfrastructureServicesTable.organizationId eq service.organization?.id) and
                         (InfrastructureServicesTable.productId eq service.product?.id)
             }.singleOrNull()
@@ -67,6 +69,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
                 name = service.name
                 url = service.url
                 description = service.description
+                excludeFromNetrc = service.excludeFromNetrc
                 usernameSecret = SecretDao[service.usernameSecret.id]
                 passwordSecret = SecretDao[service.passwordSecret.id]
             }
@@ -75,6 +78,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     var name by InfrastructureServicesTable.name
     var url by InfrastructureServicesTable.url
     var description by InfrastructureServicesTable.description
+    var excludeFromNetrc by InfrastructureServicesTable.excludeFromNetrc
 
     var usernameSecret by SecretDao referencedOn InfrastructureServicesTable.usernameSecretId
     var passwordSecret by SecretDao referencedOn InfrastructureServicesTable.passwordSecretId
@@ -89,6 +93,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         usernameSecret.mapToModel(),
         passwordSecret.mapToModel(),
         organization?.mapToModel(),
-        product?.mapToModel()
+        product?.mapToModel(),
+        excludeFromNetrc
     )
 }

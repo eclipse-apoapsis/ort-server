@@ -72,6 +72,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         SERVICE_DESC,
                         userSecret,
                         passSecret,
+                        false,
                         ORGANIZATION_ID,
                         null
                     )
@@ -83,7 +84,8 @@ class InfrastructureServiceServiceTest : WordSpec({
                     SERVICE_URL,
                     SERVICE_DESC,
                     USERNAME_SECRET,
-                    PASSWORD_SECRET
+                    PASSWORD_SECRET,
+                    false
                 )
 
                 createResult shouldBe infrastructureService
@@ -104,7 +106,8 @@ class InfrastructureServiceServiceTest : WordSpec({
                         SERVICE_URL,
                         SERVICE_DESC,
                         USERNAME_SECRET,
-                        PASSWORD_SECRET
+                        PASSWORD_SECRET,
+                        false
                     )
                 }
 
@@ -127,6 +130,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         any(),
                         any(),
                         any(),
+                        any(),
                         any()
                     )
                 } returns infrastructureService
@@ -137,7 +141,8 @@ class InfrastructureServiceServiceTest : WordSpec({
                     SERVICE_URL.asPresent(),
                     SERVICE_DESC.asPresent(),
                     USERNAME_SECRET.asPresent(),
-                    PASSWORD_SECRET.asPresent()
+                    PASSWORD_SECRET.asPresent(),
+                    true.asPresent()
                 )
 
                 updateResult shouldBe infrastructureService
@@ -146,6 +151,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                 val slotDescription = slot<OptionalValue<String?>>()
                 val slotUsernameSecret = slot<OptionalValue<Secret>>()
                 val slotPasswordSecret = slot<OptionalValue<Secret>>()
+                val slotExcludeNetrc = slot<OptionalValue<Boolean>>()
                 verify {
                     repository.updateForOrganizationAndName(
                         ORGANIZATION_ID,
@@ -153,7 +159,8 @@ class InfrastructureServiceServiceTest : WordSpec({
                         capture(slotUrl),
                         capture(slotDescription),
                         capture(slotUsernameSecret),
-                        capture(slotPasswordSecret)
+                        capture(slotPasswordSecret),
+                        capture(slotExcludeNetrc)
                     )
                 }
 
@@ -161,6 +168,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                 equalsOptionalValues(SERVICE_DESC.asPresent(), slotDescription.captured) shouldBe true
                 equalsOptionalValues(userSecret.asPresent(), slotUsernameSecret.captured) shouldBe true
                 equalsOptionalValues(passSecret.asPresent(), slotPasswordSecret.captured) shouldBe true
+                equalsOptionalValues(true.asPresent(), slotExcludeNetrc.captured) shouldBe true
             }
         }
 
@@ -175,6 +183,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         OptionalValue.Absent,
                         SERVICE_DESC.asPresent(),
                         "someNonExistingSecret".asPresent(),
+                        OptionalValue.Absent,
                         OptionalValue.Absent
                     )
                 }

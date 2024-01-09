@@ -39,6 +39,7 @@ interface InfrastructureServiceRepository {
         description: String?,
         usernameSecret: Secret,
         passwordSecret: Secret,
+        excludeFromNetrc: Boolean,
         organizationId: Long?,
         productId: Long?
     ): InfrastructureService
@@ -76,7 +77,8 @@ interface InfrastructureServiceRepository {
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>
+        passwordSecret: OptionalValue<Secret>,
+        excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
     ): InfrastructureService
 
     /**
@@ -110,7 +112,8 @@ interface InfrastructureServiceRepository {
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>
+        passwordSecret: OptionalValue<Secret>,
+        excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
     ): InfrastructureService
 
     /**

@@ -55,7 +55,8 @@ class InfrastructureServiceService(
         url: String,
         description: String?,
         usernameSecretRef: String,
-        passwordSecretRef: String
+        passwordSecretRef: String,
+        excludeFromNetrc: Boolean
     ): InfrastructureService {
         val usernameSecret = resolveOrganizationSecret(organizationId, usernameSecretRef)
         val passwordSecret = resolveOrganizationSecret(organizationId, passwordSecretRef)
@@ -67,6 +68,7 @@ class InfrastructureServiceService(
                 description,
                 usernameSecret,
                 passwordSecret,
+                excludeFromNetrc,
                 organizationId,
                 null
             )
@@ -83,7 +85,8 @@ class InfrastructureServiceService(
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
         usernameSecretRef: OptionalValue<String>,
-        passwordSecretRef: OptionalValue<String>
+        passwordSecretRef: OptionalValue<String>,
+        excludeFromNetrc: OptionalValue<Boolean>
     ): InfrastructureService {
         val usernameSecret = resolveOrganizationSecretOptional(organizationId, usernameSecretRef)
         val passwordSecret = resolveOrganizationSecretOptional(organizationId, passwordSecretRef)
@@ -95,7 +98,8 @@ class InfrastructureServiceService(
                 url,
                 description,
                 usernameSecret,
-                passwordSecret
+                passwordSecret,
+                excludeFromNetrc
             )
         }
     }

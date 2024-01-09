@@ -55,7 +55,17 @@ data class InfrastructureService(
     val organization: Organization?,
 
     /** The [Product] this infrastructure service belongs to if any. */
-    val product: Product?
+    val product: Product?,
+
+    /**
+     * A flag whether this service should be ignored when generating the _.netrc_ file in the runtime environment of
+     * a worker. Per default, all the infrastructure services referenced from a repository are taken into account when
+     * generating the _.netrc_ file. This is typically desired, so that all external tools invoked from a worker can
+     * access the credentials they represent. In some constellations, however, there could be conflicting services;
+     * for instance, if multiple repositories with different credentials are defined on the same repository server.
+     * Then this flag can be used to resolve such conflicts manually.
+     */
+    val excludeFromNetrc: Boolean = false
 ) {
 
     fun validate() {

@@ -761,6 +761,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "description$index",
                         userSecret,
                         passSecret,
+                        index % 2 == 0,
                         orgId,
                         null
                     )
@@ -772,7 +773,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         service.url,
                         service.description,
                         service.usernameSecret.name,
-                        service.passwordSecret.name
+                        service.passwordSecret.name,
+                        service.excludeFromNetrc
                     )
                 }
 
@@ -797,6 +799,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "description$index",
                         userSecret,
                         passSecret,
+                        false,
                         orgId,
                         null
                     )
@@ -841,7 +844,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "https://repo.example.org/test",
                     "test description",
                     userSecret.name,
-                    passSecret.name
+                    passSecret.name,
+                    excludeFromNetrc = true
                 )
                 val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
                     setBody(createInfrastructureService)
@@ -852,7 +856,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     createInfrastructureService.url,
                     createInfrastructureService.description,
                     userSecret.name,
-                    passSecret.name
+                    passSecret.name,
+                    excludeFromNetrc = true
                 )
 
                 response shouldHaveStatus HttpStatusCode.Created
@@ -952,6 +957,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "test description",
                     userSecret,
                     passSecret,
+                    false,
                     orgId,
                     null
                 )
@@ -959,7 +965,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val newUrl = "https://repo2.example.org/test2"
                 val updateService = UpdateInfrastructureService(
                     description = null.asPresent(),
-                    url = newUrl.asPresent()
+                    url = newUrl.asPresent(),
+                    excludeFromNetrc = true.asPresent()
                 )
                 val response =
                     superuserClient.patch("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
@@ -971,7 +978,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     newUrl,
                     null,
                     userSecret.name,
-                    passSecret.name
+                    passSecret.name,
+                    true
                 )
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -995,6 +1003,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 "test description",
                 userSecret,
                 passSecret,
+                false,
                 organizationId = createdOrg.id,
                 productId = null
             )
@@ -1026,6 +1035,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "good bye, cruel world",
                     userSecret,
                     passSecret,
+                    false,
                     orgId,
                     null
                 )
@@ -1049,6 +1059,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 "test description",
                 userSecret,
                 passSecret,
+                false,
                 organizationId = createdOrg.id,
                 productId = null
             )
