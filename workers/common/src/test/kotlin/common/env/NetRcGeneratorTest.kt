@@ -115,6 +115,31 @@ class NetRcGeneratorTest : StringSpec({
 
             mockBuilder.generatedLines() shouldContainExactly expectedLines
         }
+
+        "The excludeFromNetrc flag should be overridden in the environment definition" {
+            val secUser = createSecret("user1Secret")
+            val secPass = createSecret("pass1Secret")
+
+            val service1 =
+                createInfrastructureService("https://repo1.example.org", secUser, secPass, excludeFromNetrc = true)
+            val service2 = createInfrastructureService("https://repo2.example.org", secUser, secPass)
+
+            val definitions = listOf(
+                EnvironmentServiceDefinition(service1, excludeServiceFromNetrc = false),
+                EnvironmentServiceDefinition(service2, excludeServiceFromNetrc = true)
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            val expectedLines = listOf(
+                "machine repo1.example.org login ${testSecretRef(secUser)} password ${testSecretRef(secPass)}"
+            )
+
+            val generator = NetRcGenerator()
+            generator.generate(mockBuilder.builder, definitions)
+
+            mockBuilder.generatedLines() shouldContainExactly expectedLines
+        }
 })
 
 /**

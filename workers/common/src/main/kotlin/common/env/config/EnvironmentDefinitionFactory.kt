@@ -53,6 +53,12 @@ class EnvironmentDefinitionFactory {
 
         /** The name of the property that defines the infrastructure service for a definition. */
         const val SERVICE_PROPERTY = "service"
+
+        /** The name of the property allowing to override the service's _excludeFromNetrc_ flag. */
+        const val EXCLUDE_NETRC_PROPERTY = "excludeFromNetrc"
+
+        /** A set with the standard properties supported by all definition types. */
+        internal val standardProperties = setOf(SERVICE_PROPERTY, EXCLUDE_NETRC_PROPERTY)
     }
 
     /**
@@ -83,6 +89,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties("name", "url") {
             ConanDefinition(
                 service = service,
+                excludeFromNetrc = excludeFromNetrc(),
                 name = getProperty("name"),
                 url = getProperty("url"),
                 verifySsl = getBooleanProperty("verifySsl", true)
@@ -96,7 +103,9 @@ class EnvironmentDefinitionFactory {
         service: InfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
-        properties.withRequiredProperties("id") { MavenDefinition(service, getProperty("id")) }
+        properties.withRequiredProperties("id") {
+            MavenDefinition(service, excludeFromNetrc(), getProperty("id"))
+        }
 
     /**
      * Create a definition for the _.npmrc_ configuration file of NPM with the given [service] and [properties].
@@ -108,6 +117,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties {
             NpmDefinition(
                 service = service,
+                excludeFromNetrc = excludeFromNetrc(),
                 scope = getOptionalProperty("scope"),
                 email = getOptionalProperty("email"),
                 authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD),
@@ -125,6 +135,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties("sourceName", "sourcePath") {
             NuGetDefinition(
                 service = service,
+                excludeFromNetrc = excludeFromNetrc(),
                 sourceName = getProperty("sourceName"),
                 sourcePath = getProperty("sourcePath"),
                 sourceProtocolVersion = getOptionalProperty("sourceProtocolVersion"),
@@ -142,6 +153,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties {
             YarnDefinition(
                 service = service,
+                excludeFromNetrc = excludeFromNetrc(),
                 authMode = getEnumProperty("authMode", YarnAuthMode.AUTH_TOKEN),
                 alwaysAuth = getBooleanProperty("alwaysAuth", true)
             )
@@ -154,7 +166,7 @@ class EnvironmentDefinitionFactory {
  */
 private class DefinitionProperties(val properties: Map<String, String>) {
     /** A set to check whether unsupported properties are present. */
-    private val consumedProperties = (properties.keys - EnvironmentDefinitionFactory.SERVICE_PROPERTY).toMutableSet()
+    private val consumedProperties = (properties.keys - EnvironmentDefinitionFactory.standardProperties).toMutableSet()
 
     /**
      * Check whether all the given [names] are contained in this object and execute the given [block].
@@ -170,6 +182,15 @@ private class DefinitionProperties(val properties: Map<String, String>) {
             fail("Missing required properties: ${namesList.joinToString { "'$it'" }}", properties)
         }
     }
+
+    /**
+     * Return the value of the special property whether the associated service should be excluded from the _.netrc_
+     * file.
+     */
+    fun excludeFromNetrc(): Boolean? =
+        properties.takeIf { EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY in it }?.let {
+            getBooleanProperty(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY, false)
+        }
 
     /**
      * Return the value of the required property with the given [name].

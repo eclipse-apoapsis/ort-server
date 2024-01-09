@@ -189,6 +189,31 @@ class EnvironmentServiceTest : WordSpec({
             assignedServices shouldContainExactlyInAnyOrder services
         }
 
+        "set an overridden excludeFromNetRc flag when assigning infrastructure services to the current ORT run" {
+            val service = InfrastructureService(
+                name = "aTestService",
+                url = "https://test.example.org/test/service.git",
+                usernameSecret = mockk(),
+                passwordSecret = mockk(),
+                organization = null,
+                product = null
+            )
+            val definition = EnvironmentServiceDefinition(service, excludeServiceFromNetrc = true)
+
+            val context = mockContext()
+            val config = ResolvedEnvironmentConfig(listOf(service), listOf(definition))
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val assignedServices = serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, repositoryFolder, null)
+
+            val expectedAssignedService = service.copy(excludeFromNetrc = true)
+            assignedServices shouldContainExactlyInAnyOrder listOf(expectedAssignedService)
+        }
+
         "remove duplicates before assigning services to the current ORT run" {
             val repositoryService = mockk<InfrastructureService>()
             val referencedService = mockk<InfrastructureService>()

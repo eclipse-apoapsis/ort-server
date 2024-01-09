@@ -33,6 +33,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 
 import io.mockk.coEvery
 import io.mockk.every
@@ -133,6 +134,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
                 content shouldContain "machine repo.example.org"
                 content shouldContain "login $USERNAME"
+
+                content shouldNotContain "repo2.example.org"
             }
         }
 

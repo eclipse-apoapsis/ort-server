@@ -30,10 +30,12 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 class MavenDefinition(
     service: InfrastructureService,
 
+    excludeFromNetrc: Boolean?,
+
     /**
      * The ID of the represented service. This ID is used in _pom.xml_ files to refer to the represented repository.
      * In the generated _settings.xml_ file, the ID appears as the _id_ property for the corresponding server in the
      * _servers_ section. See https://maven.apache.org/settings.html#servers.
      */
     val id: String
-) : EnvironmentServiceDefinition(service)
+) : EnvironmentServiceDefinition(service, excludeFromNetrc)

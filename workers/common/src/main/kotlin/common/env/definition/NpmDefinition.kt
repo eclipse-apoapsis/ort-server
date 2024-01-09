@@ -69,6 +69,8 @@ enum class NpmAuthMode {
 class NpmDefinition(
     service: InfrastructureService,
 
+    excludeFromNetrc: Boolean?,
+
     /**
      * An optional scope of the registry. If defined, the generated _npmrc_ file will contain an entry that assigns
      * this scope to the registry, and NPM definition files can reference this scope.
@@ -90,4 +92,4 @@ class NpmDefinition(
      * instructed to always send authentication information.
      */
     val alwaysAuth: Boolean = true
-) : EnvironmentServiceDefinition(service)
+) : EnvironmentServiceDefinition(service, excludeFromNetrc)

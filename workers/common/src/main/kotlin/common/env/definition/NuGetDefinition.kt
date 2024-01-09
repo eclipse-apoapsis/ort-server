@@ -30,6 +30,8 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 class NuGetDefinition(
     service: InfrastructureService,
 
+    excludeFromNetrc: Boolean?,
+
     /**
      * The name to assign to the package source.
      */
@@ -54,7 +56,7 @@ class NuGetDefinition(
      * Defines the authentication type for this package source.
      */
     val authMode: NuGetAuthMode = NuGetAuthMode.API_KEY
-) : EnvironmentServiceDefinition(service)
+) : EnvironmentServiceDefinition(service, excludeFromNetrc)
 
 enum class NuGetAuthMode {
     /**

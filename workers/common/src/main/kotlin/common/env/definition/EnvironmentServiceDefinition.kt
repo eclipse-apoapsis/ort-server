@@ -37,5 +37,18 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
  */
 open class EnvironmentServiceDefinition(
     /** The [InfrastructureService] referenced by this environment definition. */
-    val service: InfrastructureService
-)
+    val service: InfrastructureService,
+
+    /**
+     * A flag to indicate whether the associated [InfrastructureService] should be excluded from the _.netrc_ file.
+     * If this flag is defined, it overrides the corresponding flag from the service.
+     */
+    val excludeServiceFromNetrc: Boolean? = null
+) {
+    /**
+     * Return a flag whether the [InfrastructureService] associated with this [EnvironmentServiceDefinition] should be
+     * excluded when generating the _.netrc_ file. Per default, this is a property of the [InfrastructureService]
+     * itself, but it is possible to override this flag in the [EnvironmentServiceDefinition].
+     */
+    fun excludeServiceFromNetrc(): Boolean = excludeServiceFromNetrc ?: service.excludeFromNetrc
+}

@@ -40,7 +40,7 @@ class NpmRcGeneratorTest : WordSpec({
 
     "generate" should {
         "generate the file at the correct location" {
-            val definition = NpmDefinition(MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI))
+            val definition = NpmDefinition(MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI), false)
 
             val mockBuilder = MockConfigFileBuilder()
 
@@ -53,7 +53,8 @@ class NpmRcGeneratorTest : WordSpec({
             val usernameSecret = MockConfigFileBuilder.createSecret("registryUser")
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret)
+                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                false
             )
 
             val mockBuilder = MockConfigFileBuilder()
@@ -77,14 +78,16 @@ class NpmRcGeneratorTest : WordSpec({
 
             val definitions = listOf(
                 NpmDefinition(
-                    MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret1)
+                    MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret1),
+                    false
                 ),
                 NpmDefinition(
                     MockConfigFileBuilder.createInfrastructureService(
                         "$REGISTRY_PROTOCOL$otherRegistryFragment",
                         usernameSecret,
                         passwordSecret2
-                    )
+                    ),
+                    false
                 )
             )
 
@@ -110,6 +113,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_BASE64
             )
 
@@ -130,6 +134,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, passwordSecret = passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH
             )
 
@@ -149,6 +154,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, passwordSecret = passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH_TOKEN
             )
 
@@ -169,6 +175,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                false,
                 authMode = NpmAuthMode.USERNAME_PASSWORD_AUTH
             )
 
@@ -194,6 +201,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, passwordSecret = passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH,
                 alwaysAuth = false
             )
@@ -212,6 +220,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, passwordSecret = passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH,
                 email = email
             )
@@ -234,6 +243,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = NpmDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, passwordSecret = passwordSecret),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH,
                 scope = scope
             )
@@ -259,6 +269,7 @@ class NpmRcGeneratorTest : WordSpec({
                     REGISTRY_URI.dropLast(1),
                     passwordSecret = passwordSecret
                 ),
+                false,
                 authMode = NpmAuthMode.PASSWORD_AUTH,
                 scope = scope
             )

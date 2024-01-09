@@ -30,6 +30,8 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 class ConanDefinition(
     service: InfrastructureService,
 
+    excludeFromNetrc: Boolean?,
+
     /**
      * Name of the remote. This name will be used in commands like `conan list`.
      */
@@ -44,4 +46,4 @@ class ConanDefinition(
      * Verify SSL certificate of the specified url.
      */
     val verifySsl: Boolean
-) : EnvironmentServiceDefinition(service)
+) : EnvironmentServiceDefinition(service, excludeFromNetrc)

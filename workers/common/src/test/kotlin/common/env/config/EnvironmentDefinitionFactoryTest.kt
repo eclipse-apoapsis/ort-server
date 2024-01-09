@@ -95,6 +95,14 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
                 createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
             }
+
+            "allow overriding the excludeFromNetrc flag" {
+                val properties = mapOf("id" to "someId", EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
+
+                definition.excludeServiceFromNetrc() shouldBe true
+            }
         }
 
         "A ConanDefinition" should {
@@ -136,6 +144,18 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
                 exception.message shouldContain "'$unsupportedProperty1'"
                 exception.message shouldContain "'$unsupportedProperty2'"
+            }
+
+            "allow overriding the excludeFromNetrc flag" {
+                val properties = mapOf(
+                    "name" to REMOTE_NAME,
+                    "url" to REMOTE_URL,
+                    EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.CONAN_TYPE, properties)
+
+                definition.excludeServiceFromNetrc() shouldBe true
             }
         }
 
@@ -210,6 +230,22 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain properties.getValue("alwaysAuth")
                 exception.message shouldContain "TRUE"
                 exception.message shouldContain "FALSE"
+            }
+
+            "allow overriding the excludeFromNetrc flag" {
+                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                definition.excludeServiceFromNetrc() shouldBe true
+            }
+
+            "fail for an unsupported value of the excludeFromNetrc flag" {
+                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "maybe")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
+
+                exception.message shouldContain properties.getValue(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY)
             }
         }
 
@@ -293,6 +329,18 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain NuGetAuthMode.API_KEY.name
                 exception.message shouldContain NuGetAuthMode.PASSWORD.name
             }
+
+            "allow overriding the excludeFromNetrc flag" {
+                val properties = mapOf(
+                    "sourceName" to "someSource",
+                    "sourcePath" to "somePath",
+                    EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
+
+                definition.excludeServiceFromNetrc() shouldBe true
+            }
         }
 
         "A Yarn definition" should {
@@ -361,6 +409,14 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain properties.getValue("alwaysAuth")
                 exception.message shouldContain "TRUE"
                 exception.message shouldContain "FALSE"
+            }
+
+            "allow overriding the excludeFromNetrc flag" {
+                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                definition.excludeServiceFromNetrc() shouldBe true
             }
         }
     }

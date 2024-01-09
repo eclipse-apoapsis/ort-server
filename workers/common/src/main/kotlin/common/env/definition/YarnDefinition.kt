@@ -30,6 +30,8 @@ import org.ossreviewtoolkit.server.model.InfrastructureService
 class YarnDefinition(
     service: InfrastructureService,
 
+    excludeFromNetrc: Boolean?,
+
     /**
      * A flag to control the generation of the `mpmAlwaysAuth` property for this registry. Via this flag, Yarn can be
      * instructed to always send authentication information.
@@ -40,7 +42,7 @@ class YarnDefinition(
      * Defines the way authentication should be handled for this private registry.
      */
     val authMode: YarnAuthMode = YarnAuthMode.AUTH_TOKEN
-) : EnvironmentServiceDefinition(service)
+) : EnvironmentServiceDefinition(service, excludeFromNetrc)
 
 enum class YarnAuthMode {
     /**
