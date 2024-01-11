@@ -25,7 +25,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.select
 
 import org.ossreviewtoolkit.server.dao.ConditionBuilder
 import org.ossreviewtoolkit.server.dao.blockingQuery
@@ -166,9 +165,9 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
 
     override fun listForRun(runId: Long, parameters: ListQueryParameters): List<InfrastructureService> =
         db.blockingQuery {
-            val subQuery = InfrastructureServicesRunsTable.slice(
+            val subQuery = InfrastructureServicesRunsTable.select(
                 InfrastructureServicesRunsTable.infrastructureServiceId
-            ).select { InfrastructureServicesRunsTable.ortRunId eq runId }
+            ).where { InfrastructureServicesRunsTable.ortRunId eq runId }
 
             list(parameters) { InfrastructureServicesTable.id inSubQuery subQuery }
         }

@@ -33,7 +33,7 @@ versionCatalogUpdatePlugin = "0.8.1"
 versionsPlugin = "0.50.0"
 
 # Gradle dependencies
-exposed = "0.45.0"
+exposed = "0.46.0"
 flyway = "10.1.0"
 hikari = "5.1.0"
 jackson = "2.16.0"

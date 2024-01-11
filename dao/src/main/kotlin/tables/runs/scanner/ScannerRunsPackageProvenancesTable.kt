@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.dao.tables.runs.scanner
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
 
@@ -37,7 +37,7 @@ object ScannerRunsPackageProvenancesTable : Table("scanner_runs_package_provenan
         get() = PrimaryKey(scannerRunId, packageProvenanceId, name = "${tableName}_pkey")
 
     fun insertIfNotExists(scannerRunId: Long, packageProvenanceId: Long) {
-        val exists = select {
+        val exists = selectAll().where {
             ScannerRunsPackageProvenancesTable.scannerRunId eq scannerRunId and
                     (ScannerRunsPackageProvenancesTable.packageProvenanceId eq packageProvenanceId)
         }.count() > 0

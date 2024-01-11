@@ -22,7 +22,6 @@ package org.ossreviewtoolkit.server.workers.scanner
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
@@ -84,8 +83,8 @@ class OrtServerNestedProvenanceStorage(
             val resolvedVcs = root.getResolvedVcs()
 
             NestedProvenancesTable.innerJoin(VcsInfoTable)
-                .slice(NestedProvenancesTable.columns)
-                .select {
+                .select(NestedProvenancesTable.columns)
+                .where {
                     VcsInfoTable.type eq resolvedVcs.type.name and
                             (VcsInfoTable.url eq resolvedVcs.url) and
                             (VcsInfoTable.revision eq resolvedVcs.revision)

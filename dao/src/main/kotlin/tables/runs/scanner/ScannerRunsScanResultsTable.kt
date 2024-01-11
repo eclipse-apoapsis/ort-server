@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.dao.tables.runs.scanner
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 
 import org.ossreviewtoolkit.server.dao.tables.ScanResultsTable
 
@@ -37,7 +37,7 @@ object ScannerRunsScanResultsTable : Table("scanner_runs_scan_results") {
         get() = PrimaryKey(scannerRunId, scanResultId, name = "${tableName}_pkey")
 
     fun insertIfNotExists(scannerRunId: Long, scanResultId: Long) {
-        val exists = select {
+        val exists = selectAll().where {
             ScannerRunsScanResultsTable.scannerRunId eq scannerRunId and
                     (ScannerRunsScanResultsTable.scanResultId eq scanResultId)
         }.count() > 0

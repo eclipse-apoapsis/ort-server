@@ -34,7 +34,7 @@ import kotlin.math.abs
 import kotlinx.datetime.Clock
 
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
@@ -59,7 +59,7 @@ class DatabaseStorageTest : WordSpec({
             storage.write(key, data, contentType)
 
             transaction {
-                val result = StorageTable.select {
+                val result = StorageTable.selectAll().where {
                     (StorageTable.key eq key.key) and (StorageTable.namespace eq NAMESPACE)
                 }.first()
 
@@ -176,7 +176,7 @@ class DatabaseStorageTest : WordSpec({
             storage.write(key, "This is data to be stored in a large object and will then be deleted.")
 
             val oid = transaction {
-                val result = StorageTable.select {
+                val result = StorageTable.selectAll().where {
                     (StorageTable.key eq key.key) and (StorageTable.namespace eq NAMESPACE)
                 }.first()
                 result[StorageTable.data]
