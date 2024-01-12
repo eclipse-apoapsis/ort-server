@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.haveSize
@@ -74,7 +75,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 associatedProvenances.single() shouldBe provenance
 
                 if (provenance is RepositoryProvenance) {
-                    cache.get(provenance) shouldBe associatedProvenanceDaos.single().id.value
+                    runBlocking { cache.get(provenance) } shouldBe associatedProvenanceDaos.single().id.value
                 }
             }
         }

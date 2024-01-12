@@ -19,11 +19,16 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
+
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(PackageProvenanceCache::class.java)
 
 /**
  * A class to store the package [RepositoryProvenance]s and their database IDs that were resolved by the ORT scanner.
@@ -34,18 +39,94 @@ class PackageProvenanceCache {
      * A map of [RepositoryProvenance]s associated with the [Long] database id of the corresponding
      * [PackageProvenanceDao].
      */
-    private val packageProvenances = ConcurrentHashMap<RepositoryProvenance, Long>()
+    private val packageProvenances = mutableMapOf<RepositoryProvenance, Long>()
+
+    /**
+     * A map with root [RepositoryProvenance]s and the [Long] database ID of the [NestedProvenanceDao] that has been
+     * resolved for this provenance.
+     */
+    private val nestedProvenances = mutableMapOf<RepositoryProvenance, Long>()
+
+    /**
+     * A map for storing [RepositoryProvenance]s that still need to be assigned to a nested provenance. The assignment
+     * can only happen after the nested provenance becomes available.
+     */
+    private val pendingNestedAssignments = mutableMapOf<RepositoryProvenance, MutableList<Long>>()
+
+    /** A mutex to guard the state of the cache against concurrent access. */
+    private val mutex = Mutex()
 
     /**
      * Return the [Long] database ID of the [PackageProvenanceDao] that belongs to the provided [provenance].
      */
-    fun get(provenance: RepositoryProvenance) = packageProvenances[provenance]
+    suspend fun get(provenance: RepositoryProvenance): Long? = mutex.withLock {
+        logger.debug("Querying provenance {}, result is {}.", provenance, packageProvenances[provenance])
+        return packageProvenances[provenance]
+    }
 
     /**
      * Put the provided [provenance] and [Long] database ID of the [PackageProvenanceDao] that belongs to it into the
      * cache.
      */
-    fun put(provenance: RepositoryProvenance, id: Long) {
+    suspend fun put(provenance: RepositoryProvenance, id: Long) {
+        mutex.withLock {
+            storeProvenance(provenance, id)
+        }
+    }
+
+    /**
+     * Put the provided [provenance] and [Long] database ID of the [PackageProvenanceDao] that belongs to it into the
+     * cache and return the ID of a [NestedProvenanceDao] that should be assigned to this [PackageProvenanceDao]. If
+     * there is no nested provenance, return *null* instead.
+     */
+    suspend fun putAndGetNestedProvenance(provenance: RepositoryProvenance, id: Long): Long? = mutex.withLock {
+        storeProvenance(provenance, id)
+        if (!provenance.isRootProvenance()) {
+            pendingNestedAssignments.getOrPut(provenance.rootProvenance()) { mutableListOf() } += id
+        }
+
+        nestedProvenances[provenance.rootProvenance()]
+    }
+
+    /**
+     * Put the provided [provenance] and [Long] database ID of the [NestedProvenanceDao] assigned to it into the cache
+     * and return a collection with IDs of [PackageProvenanceDao]s that need to be associated with this nested
+     * provenance. This is needed in case the nested provenance is resolved after the provenances have been added to
+     * the cache.
+     */
+    suspend fun putNestedProvenance(provenance: RepositoryProvenance, id: Long): List<Long> = mutex.withLock {
+        require(provenance.vcsInfo.path.isEmpty()) {
+            "A nested provenance can only be assigned to the repository root."
+        }
+
+        logger.debug(
+            "Storing nested provenance ID {} for {}. Pending assignments: {}",
+            id,
+            provenance,
+            pendingNestedAssignments[provenance]
+        )
+
+        nestedProvenances[provenance] = id
+        pendingNestedAssignments.getOrDefault(provenance, emptyList())
+    }
+
+    /**
+     * Add the given association of a [provenance] to its [id].
+     */
+    private fun storeProvenance(provenance: RepositoryProvenance, id: Long) {
+        logger.debug("Storing provenance {} for ID {}.", provenance, id)
         packageProvenances[provenance] = id
     }
 }
+
+/**
+ * Return a flag whether this [RepositoryProvenance] is a root provenance. This means that it does not reference a
+ * submodule in the VCS repository.
+ */
+private fun RepositoryProvenance.isRootProvenance(): Boolean = vcsInfo.path.isEmpty()
+
+/**
+ * Return a [RepositoryProvenance] that points to the root VCS of this provenance.
+ */
+private fun RepositoryProvenance.rootProvenance(): RepositoryProvenance =
+    takeIf { isRootProvenance() } ?: copy(vcsInfo = vcsInfo.copy(path = ""))

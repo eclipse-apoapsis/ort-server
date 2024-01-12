@@ -22,6 +22,8 @@ package org.ossreviewtoolkit.server.workers.scanner
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
+import kotlinx.coroutines.runBlocking
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SortOrder
@@ -182,8 +184,10 @@ class OrtServerPackageProvenanceStorage(
             packageProvenanceId = provenanceDao.id.value
         )
 
-        (provenanceDao.mapToOrt() as? ResolvedRepositoryProvenance)?.provenance?.let {
-            cache.put(it, provenanceDao.id.value)
+        runBlocking {
+            (provenanceDao.mapToOrt() as? ResolvedRepositoryProvenance)?.provenance?.let {
+                cache.put(it, provenanceDao.id.value)
+            }
         }
     }
 }

@@ -19,6 +19,7 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
@@ -68,7 +69,10 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
          */
         fun verifyAssociatedProvenance(result: NestedProvenanceResolutionResult) {
             transaction {
-                val packageProvenanceId = packageProvenanceCache.get(packageProvenance.provenance)!!
+                val packageProvenanceId = runBlocking {
+                    packageProvenanceCache.get(packageProvenance.provenance)!!
+                }
+
                 val associatedResult = PackageProvenanceDao[packageProvenanceId].nestedProvenance?.mapToOrt()
 
                 associatedResult shouldBe result

@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.scanner
 
+import kotlinx.coroutines.runBlocking
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -102,8 +104,10 @@ class OrtServerNestedProvenanceStorage(
         provenance: RepositoryProvenance,
         nestedProvenanceDao: NestedProvenanceDao
     ) {
-        packageProvenanceCache.get(provenance)?.let { packageProvenanceId ->
-            PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
+        runBlocking {
+            packageProvenanceCache.get(provenance)?.let { packageProvenanceId ->
+                PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
+            }
         }
     }
 }
