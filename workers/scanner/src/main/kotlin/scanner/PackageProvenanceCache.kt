@@ -66,21 +66,13 @@ class PackageProvenanceCache {
 
     /**
      * Put the provided [provenance] and [Long] database ID of the [PackageProvenanceDao] that belongs to it into the
-     * cache.
-     */
-    suspend fun put(provenance: RepositoryProvenance, id: Long) {
-        mutex.withLock {
-            storeProvenance(provenance, id)
-        }
-    }
-
-    /**
-     * Put the provided [provenance] and [Long] database ID of the [PackageProvenanceDao] that belongs to it into the
      * cache and return the ID of a [NestedProvenanceDao] that should be assigned to this [PackageProvenanceDao]. If
      * there is no nested provenance, return *null* instead.
      */
     suspend fun putAndGetNestedProvenance(provenance: RepositoryProvenance, id: Long): Long? = mutex.withLock {
-        storeProvenance(provenance, id)
+        logger.debug("Storing provenance {} for ID {}.", provenance, id)
+        packageProvenances[provenance] = id
+
         if (!provenance.isRootProvenance()) {
             pendingNestedAssignments.getOrPut(provenance.rootProvenance()) { mutableListOf() } += id
         }
@@ -108,14 +100,6 @@ class PackageProvenanceCache {
 
         nestedProvenances[provenance] = id
         pendingNestedAssignments.getOrDefault(provenance, emptyList())
-    }
-
-    /**
-     * Add the given association of a [provenance] to its [id].
-     */
-    private fun storeProvenance(provenance: RepositoryProvenance, id: Long) {
-        logger.debug("Storing provenance {} for ID {}.", provenance, id)
-        packageProvenances[provenance] = id
     }
 }
 
