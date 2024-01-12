@@ -109,6 +109,27 @@ class OrtServerNestedProvenanceStorage(
                 PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
             }
         }
+
+        associateWithPendingSubProvenances(provenance, nestedProvenanceDao)
+    }
+
+    /**
+     * Check whether there are package provenances for sub paths of the given [root] provenance that need to be
+     * associated with the newly created [nestedProvenanceDao]. If so, do the association now. This function handles
+     * the corner case that package provenances have already been added to the [PackageProvenanceCache] before the
+     * nested provenance resolution result becomes available.
+     */
+    private fun associateWithPendingSubProvenances(
+        root: RepositoryProvenance,
+        nestedProvenanceDao: NestedProvenanceDao
+    ) {
+        val pendingProvenanceIds = runBlocking {
+            packageProvenanceCache.putNestedProvenance(root, nestedProvenanceDao.id.value)
+        }
+
+        pendingProvenanceIds.forEach { provenanceId ->
+            PackageProvenanceDao[provenanceId].nestedProvenance = nestedProvenanceDao
+        }
     }
 }
 

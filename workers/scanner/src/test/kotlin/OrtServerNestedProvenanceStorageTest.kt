@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.scanner
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -65,12 +66,15 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
         }
 
         /**
-         * Verify that the provided [result] was associated to the [packageProvenance].
+         * Verify that the provided [result] was associated to the given [provenance].
          */
-        fun verifyAssociatedProvenance(result: NestedProvenanceResolutionResult) {
+        fun verifyAssociatedProvenance(
+            result: NestedProvenanceResolutionResult,
+            provenance: RepositoryProvenance = packageProvenance.provenance
+        ) {
             transaction {
                 val packageProvenanceId = runBlocking {
-                    packageProvenanceCache.get(packageProvenance.provenance)!!
+                    packageProvenanceCache.get(provenance)!!
                 }
 
                 val associatedResult = PackageProvenanceDao[packageProvenanceId].nestedProvenance?.mapToOrt()
@@ -110,6 +114,35 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                     NestedProvenancesTable.selectAll().count() shouldBe 2
                 }
             }
+
+            "associate a nested provenance with pending package provenances" {
+                val subInfo1 = vcsInfo.copy(path = "sub1")
+                val subProvenance1 = RepositoryProvenance(subInfo1, subInfo1.revision)
+                val subInfo2 = vcsInfo.copy(path = "sub2")
+                val subProvenance2 = RepositoryProvenance(subInfo2, subInfo2.revision)
+
+                packageProvenanceStorage.putProvenance(
+                    id.copy(name = "sub1"),
+                    subInfo1,
+                    ResolvedRepositoryProvenance(subProvenance1, subInfo1.revision, true)
+                )
+                packageProvenanceStorage.putProvenance(
+                    id.copy(name = "sub2"),
+                    subInfo2,
+                    ResolvedRepositoryProvenance(subProvenance2, subInfo2.revision, true)
+                )
+
+                val result = NestedProvenanceResolutionResult(
+                    nestedProvenance = createNestedProvenance(rootProvenance),
+                    hasOnlyFixedRevisions = true
+                )
+
+                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result)
+
+                listOf(subProvenance1, subProvenance2).forAll { provenance ->
+                    verifyAssociatedProvenance(result, provenance)
+                }
+            }
         }
 
         "read nested provenance" should {
@@ -131,6 +164,42 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                 nestedProvenanceStorage.putNestedProvenance(rootProvenance, result2)
 
                 nestedProvenanceStorage.readNestedProvenance(rootProvenance) shouldBe result2
+            }
+
+            "read the latest nested provenance and associate it with pending package provenances" {
+                val resolutionResult = NestedProvenanceResolutionResult(
+                    nestedProvenance = createNestedProvenance(rootProvenance),
+                    hasOnlyFixedRevisions = true
+                )
+                nestedProvenanceStorage.putNestedProvenance(rootProvenance, resolutionResult)
+
+                // Recreate the test storage instances with a clean cache.
+                packageProvenanceCache = PackageProvenanceCache()
+                packageProvenanceStorage =
+                    OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id, packageProvenanceCache)
+                nestedProvenanceStorage = OrtServerNestedProvenanceStorage(dbExtension.db, packageProvenanceCache)
+
+                val subInfo1 = vcsInfo.copy(path = "sub1")
+                val subProvenance1 = RepositoryProvenance(subInfo1, subInfo1.revision)
+                val subInfo2 = vcsInfo.copy(path = "sub2")
+                val subProvenance2 = RepositoryProvenance(subInfo2, subInfo2.revision)
+
+                packageProvenanceStorage.putProvenance(
+                    id.copy(name = "sub1"),
+                    subInfo1,
+                    ResolvedRepositoryProvenance(subProvenance1, subInfo1.revision, true)
+                )
+                packageProvenanceStorage.putProvenance(
+                    id.copy(name = "sub2"),
+                    subInfo2,
+                    ResolvedRepositoryProvenance(subProvenance2, subInfo2.revision, true)
+                )
+
+                nestedProvenanceStorage.readNestedProvenance(rootProvenance) shouldBe resolutionResult
+
+                listOf(subProvenance1, subProvenance2).forAll { provenance ->
+                    verifyAssociatedProvenance(resolutionResult, provenance)
+                }
             }
         }
     }
