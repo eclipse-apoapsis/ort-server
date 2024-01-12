@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.scanner
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.nulls.beNull
@@ -42,9 +43,12 @@ import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
 import org.ossreviewtoolkit.server.dao.blockingQuery
+import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
 import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
+import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtServerPackageProvenanceStorageTest : WordSpec() {
@@ -101,6 +105,32 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 verifyAssociatedProvenance(scannerRun, provenance.provenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
+            }
+
+            "assign a nested provenance to a repository provenance if available" {
+                val id = createIdentifier()
+                val vcsInfo = createVcsInfo()
+                val provenance = createRepositoryProvenance(vcsInfo)
+                val rootVcsInfo = vcsInfo.copy(path = "")
+                val rootProvenance = RepositoryProvenance(rootVcsInfo, rootVcsInfo.revision)
+
+                val nestedProvenanceId = dbExtension.db.blockingQuery {
+                    val vcsInfoDao = VcsInfoDao.getOrPut(rootVcsInfo.mapToModel())
+                    NestedProvenanceDao.new {
+                        rootVcs = vcsInfoDao
+                        rootResolvedRevision = vcsInfo.revision
+                        hasOnlyFixedRevisions = true
+                    }
+                }.id.value
+                packageProvenanceCache.putNestedProvenance(rootProvenance, nestedProvenanceId)
+
+                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
+
+                dbExtension.db.blockingQuery {
+                    ScannerRunDao[scannerRun.id].packageProvenances.toList().forAll { provenanceDao ->
+                        provenanceDao.nestedProvenance?.id?.value shouldBe nestedProvenanceId
+                    }
+                }
             }
 
             "create an unresolved provenance in the database and associate it to the scanner run" {
