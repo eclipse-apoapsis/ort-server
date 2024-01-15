@@ -44,7 +44,7 @@ jobs:
     - name: Run tests
       uses: burrunan/gradle-cache-action@v1
       with:
-        arguments:  -x :core:test test
+        arguments:  test -Dkotest.tags='!Integration'
   integration-test:
     needs: build
     runs-on: ubuntu-latest
@@ -60,4 +60,4 @@ jobs:
       - name: Run tests
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: :core:test
+          arguments: test -Dkotest.tags='Integration'
