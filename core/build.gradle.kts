@@ -91,6 +91,7 @@ dependencies {
     testImplementation(testFixtures(project(":logaccess:logaccess-spi")))
     testImplementation(testFixtures(project(":secrets:secrets-spi")))
     testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(project(":utils:test"))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

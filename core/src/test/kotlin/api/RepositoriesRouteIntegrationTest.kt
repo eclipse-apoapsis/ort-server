@@ -68,8 +68,11 @@ import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
 import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
+    tags(Integration)
+
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var secretRepository: SecretRepository

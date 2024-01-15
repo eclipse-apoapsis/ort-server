@@ -64,10 +64,13 @@ import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
+import org.ossreviewtoolkit.server.utils.test.Integration
 import org.ossreviewtoolkit.utils.common.ArchiveType
 import org.ossreviewtoolkit.utils.common.unpack
 
 class RunsRouteIntegrationTest : AbstractIntegrationTest({
+    tags(Integration)
+
     var repositoryId = -1L
 
     // val logFileDownloadDir = tempdir()

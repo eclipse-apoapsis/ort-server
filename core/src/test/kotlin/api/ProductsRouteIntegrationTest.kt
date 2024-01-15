@@ -59,9 +59,12 @@ import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
 import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.ProductService
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 @Suppress("MaxLineLength")
 class ProductsRouteIntegrationTest : AbstractIntegrationTest({
+    tags(Integration)
+
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
     lateinit var secretRepository: SecretRepository

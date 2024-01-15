@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 /**
  * Integration test class testing some error conditions during API requests and how they are handled.
@@ -71,6 +72,8 @@ class ErrorsIntegrationTest : StringSpec() {
     private val json = Json { ignoreUnknownKeys = true }
 
     init {
+        tags(Integration)
+
         "An unauthorized call yields the correct status code" {
             ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
                 val client = createJsonClient()

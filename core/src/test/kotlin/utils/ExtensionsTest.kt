@@ -36,8 +36,11 @@ import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 class ExtensionsTest : WordSpec({
+    tags(Integration)
+
     "ApplicationCall.listQueryParameters" should {
         "handle a request without parameters" {
             testParameterExtraction(null) {

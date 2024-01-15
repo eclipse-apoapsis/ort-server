@@ -56,8 +56,11 @@ import org.ossreviewtoolkit.server.core.setUpUser
 import org.ossreviewtoolkit.server.core.setUpUserRoles
 import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 class AuthenticationIntegrationTest : StringSpec({
+    tags(Integration)
+
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
     }

@@ -28,8 +28,11 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.shouldHaveBody
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
+import org.ossreviewtoolkit.server.utils.test.Integration
 
 class HealthIntegrationTest : WordSpec({
+    tags(Integration)
+
     "/liveness" should {
         "respond with 200 if the server is running" {
             ortServerTestApplication(config = noDbConfig) {
