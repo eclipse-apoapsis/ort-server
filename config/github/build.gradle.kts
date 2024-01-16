@@ -31,16 +31,16 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(libs.typesafeConfig)
 
-    implementation(project(":config:config-spi"))
-    implementation(project(":utils:config"))
+    implementation(projects.config.configSpi)
+    implementation(projects.utils.config)
 
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
+
+    testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.wiremockStandalone)
-
-    testImplementation(testFixtures(project(":config:config-spi")))
 }

@@ -30,17 +30,17 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":dao"))
-    implementation(project(":storage:storage-spi"))
+    implementation(projects.dao)
+    implementation(projects.storage.storageSpi)
 
     implementation(libs.exposedDao)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.postgres)
 
+    testImplementation(testFixtures(projects.dao))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-
-    testImplementation(testFixtures(project(":dao")))
 }

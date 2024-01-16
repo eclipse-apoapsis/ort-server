@@ -29,16 +29,16 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":model"))
-    api(project(":services:authorization-service"))
+    api(projects.model)
+    api(projects.services.authorizationService)
 
     api(libs.exposedCore)
 
-    implementation(project(":dao"))
+    implementation(projects.dao)
 
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)

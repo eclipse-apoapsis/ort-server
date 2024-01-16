@@ -33,12 +33,12 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(libs.typesafeConfig)
 
-    implementation(project(":utils:config"))
+    implementation(projects.utils.config)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(project(":utils:config"))
+    testFixturesImplementation(projects.utils.config)
 }

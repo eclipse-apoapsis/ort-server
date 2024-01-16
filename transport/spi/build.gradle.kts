@@ -32,11 +32,13 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":model"))
+    implementation(projects.model)
 
-    api(project(":config:config-spi"))
-    api(libs.koinCore)
     implementation(libs.ktorKotlinxSerialization)
+
+    api(projects.config.configSpi)
+
+    api(libs.koinCore)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

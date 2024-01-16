@@ -31,7 +31,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":model"))
+                implementation(projects.model)
 
                 api(libs.kotlinxDatetime)
 

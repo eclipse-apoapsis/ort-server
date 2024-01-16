@@ -33,19 +33,20 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":config:config-spi"))
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":transport:transport-spi"))
+    implementation(projects.config.configSpi)
+    implementation(projects.dao)
+    implementation(projects.model)
+    implementation(projects.transport.transportSpi)
 
-    runtimeOnly(project(":config:secret-file"))
-    runtimeOnly(project(":transport:activemqartemis"))
-    runtimeOnly(project(":transport:kubernetes"))
-    runtimeOnly(project(":transport:rabbitmq"))
+    runtimeOnly(projects.config.secretFile)
+    runtimeOnly(projects.transport.activemqartemis)
+    runtimeOnly(projects.transport.kubernetes)
+    runtimeOnly(projects.transport.rabbitmq)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.transport.transportSpi))
+
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKotlinxDatetime)

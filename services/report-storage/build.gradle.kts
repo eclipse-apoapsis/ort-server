@@ -29,7 +29,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":storage:storage-spi"))
+    api(projects.storage.storageSpi)
 
     implementation(libs.ktorHttp)
 

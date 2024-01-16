@@ -36,13 +36,9 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":model"))
-    implementation(project(":transport:transport-spi"))
-    implementation(project(":utils:config"))
-
-    runtimeOnly(project(":transport:activemqartemis"))
-    runtimeOnly(project(":transport:kubernetes"))
-    runtimeOnly(project(":transport:rabbitmq"))
+    implementation(projects.model)
+    implementation(projects.transport.transportSpi)
+    implementation(projects.utils.config)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
@@ -51,10 +47,15 @@ dependencies {
     implementation(libs.kubernetesClientExtended)
     implementation(libs.typesafeConfig)
 
-    runtimeOnly(project(":config:secret-file"))
+    runtimeOnly(projects.transport.activemqartemis)
+    runtimeOnly(projects.transport.kubernetes)
+    runtimeOnly(projects.transport.rabbitmq)
+
+    runtimeOnly(projects.config.secretFile)
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(projects.transport.transportSpi))
+
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

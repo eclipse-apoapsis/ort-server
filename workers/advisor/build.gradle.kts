@@ -35,29 +35,30 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":config:config-spi"))
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":transport:transport-spi"))
-    implementation(project(":utils:config"))
-    implementation(project(":workers:common"))
+    implementation(projects.config.configSpi)
+    implementation(projects.dao)
+    implementation(projects.model)
+    implementation(projects.transport.transportSpi)
+    implementation(projects.utils.config)
+    implementation(projects.workers.common)
 
     implementation(libs.ortAdvisor)
     implementation(libs.typesafeConfig)
     implementation(platform(libs.ortAdvisors))
 
-    runtimeOnly(project(":config:github"))
-    runtimeOnly(project(":config:secret-file"))
-    runtimeOnly(project(":transport:activemqartemis"))
-    runtimeOnly(project(":transport:kubernetes"))
-    runtimeOnly(project(":transport:rabbitmq"))
+    runtimeOnly(projects.config.github)
+    runtimeOnly(projects.config.secretFile)
+    runtimeOnly(projects.transport.activemqartemis)
+    runtimeOnly(projects.transport.kubernetes)
+    runtimeOnly(projects.transport.rabbitmq)
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.transport.transportSpi))
+
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

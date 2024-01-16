@@ -31,11 +31,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":config:config-spi"))
+    api(projects.config.configSpi)
 
     api(libs.kotlinxDatetime)
 
-    implementation(project(":utils:config"))
+    implementation(projects.utils.config)
+
     implementation(libs.kotlinxCoroutines)
     implementation(libs.ortCommonUtils)
     implementation(libs.slf4j)
@@ -45,5 +46,5 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(project(":utils:config"))
+    testFixturesImplementation(projects.utils.config)
 }

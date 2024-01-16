@@ -48,11 +48,11 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":api-v1"))
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":transport:transport-spi"))
-    implementation(project(":workers:common"))
+    implementation(projects.apiV1)
+    implementation(projects.dao)
+    implementation(projects.model)
+    implementation(projects.transport.transportSpi)
+    implementation(projects.workers.common)
 
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientContentNegotiation)
@@ -65,20 +65,21 @@ dependencies {
     implementation(platform(libs.ortPackageManagers))
     implementation(platform(libs.ortVersionControlSystems))
 
-    runtimeOnly(project(":config:github"))
-    runtimeOnly(project(":config:secret-file"))
-    runtimeOnly(project(":secrets:file"))
-    runtimeOnly(project(":secrets:vault"))
-    runtimeOnly(project(":transport:activemqartemis"))
-    runtimeOnly(project(":transport:kubernetes"))
-    runtimeOnly(project(":transport:rabbitmq"))
+    runtimeOnly(projects.config.github)
+    runtimeOnly(projects.config.secretFile)
+    runtimeOnly(projects.secrets.file)
+    runtimeOnly(projects.secrets.vault)
+    runtimeOnly(projects.transport.activemqartemis)
+    runtimeOnly(projects.transport.kubernetes)
+    runtimeOnly(projects.transport.rabbitmq)
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.transport.transportSpi))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsKotlinxDatetime)

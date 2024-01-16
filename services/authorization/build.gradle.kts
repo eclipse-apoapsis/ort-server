@@ -29,17 +29,17 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":clients:keycloak"))
-    api(project(":model"))
+    api(projects.clients.keycloak)
+    api(projects.model)
 
     api(libs.exposedCore)
 
-    implementation(project(":dao"))
+    implementation(projects.dao)
 
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":clients:keycloak")))
-    testImplementation(testFixtures(project(":dao")))
+    testImplementation(testFixtures(projects.clients.keycloak))
+    testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

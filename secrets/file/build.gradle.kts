@@ -30,8 +30,8 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":secrets:secrets-spi"))
-    implementation(project(":utils:config"))
+    implementation(projects.secrets.secretsSpi)
+    implementation(projects.utils.config)
 
     implementation(libs.ktorKotlinxSerialization)
 

@@ -35,12 +35,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":config:config-spi"))
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":storage:storage-spi"))
-    implementation(project(":transport:transport-spi"))
-    implementation(project(":workers:common"))
+    implementation(projects.config.configSpi)
+    implementation(projects.dao)
+    implementation(projects.model)
+    implementation(projects.storage.storageSpi)
+    implementation(projects.transport.transportSpi)
+    implementation(projects.workers.common)
 
     implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
@@ -48,22 +48,22 @@ dependencies {
     implementation(platform(libs.ortScanners))
     implementation(platform(libs.ortVersionControlSystems))
 
-    runtimeOnly(project(":config:github"))
-    runtimeOnly(project(":config:secret-file"))
-    runtimeOnly(project(":secrets:file"))
-    runtimeOnly(project(":secrets:vault"))
-    runtimeOnly(project(":storage:database"))
-    runtimeOnly(project(":transport:activemqartemis"))
-    runtimeOnly(project(":transport:kubernetes"))
-    runtimeOnly(project(":transport:rabbitmq"))
+    runtimeOnly(projects.config.github)
+    runtimeOnly(projects.config.secretFile)
+    runtimeOnly(projects.secrets.file)
+    runtimeOnly(projects.secrets.vault)
+    runtimeOnly(projects.storage.database)
+    runtimeOnly(projects.transport.activemqartemis)
+    runtimeOnly(projects.transport.kubernetes)
+    runtimeOnly(projects.transport.rabbitmq)
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":storage:storage-spi")))
-    testImplementation(testFixtures(project(":transport:transport-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.storage.storageSpi))
+    testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.koinTest)

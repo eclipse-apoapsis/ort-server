@@ -30,14 +30,14 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":transport:transport-spi"))
+    implementation(projects.transport.transportSpi)
 
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.qpidJmsClient)
 
     runtimeOnly(libs.logback)
 
-    testImplementation(project(":model"))
+    testImplementation(projects.model)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

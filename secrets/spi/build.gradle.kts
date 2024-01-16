@@ -32,12 +32,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":config:config-spi"))
+    api(projects.config.configSpi)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(project(":utils:config"))
+    testFixturesImplementation(projects.utils.config)
 }

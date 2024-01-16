@@ -30,14 +30,14 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":transport:transport-spi"))
+    implementation(projects.transport.transportSpi)
 
     implementation(libs.rabbitMqAmqpClient)
 
     runtimeOnly(libs.logback)
 
-    testImplementation(project(":model"))
-    testImplementation(testFixtures(project(":config:config-spi")))
+    testImplementation(projects.model)
+    testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

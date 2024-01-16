@@ -32,8 +32,8 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(libs.typesafeConfig)
 
-    implementation(project(":logaccess:logaccess-spi"))
-    implementation(project(":utils:config"))
+    implementation(projects.logaccess.logaccessSpi)
+    implementation(projects.utils.config)
 
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientCore)
@@ -41,10 +41,10 @@ dependencies {
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
+    testImplementation(testFixtures(projects.logaccess.logaccessSpi))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.wiremockStandalone)
-
-    testImplementation(testFixtures(project(":logaccess:logaccess-spi")))
 }

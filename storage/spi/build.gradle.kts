@@ -39,5 +39,5 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(project(":utils:config"))
+    testFixturesImplementation(projects.utils.config)
 }

@@ -29,12 +29,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":model"))
-    api(project(":secrets:secrets-spi"))
+    api(projects.model)
+    api(projects.secrets.secretsSpi)
 
     api(libs.exposedCore)
 
-    implementation(project(":dao"))
+    implementation(projects.dao)
 
     runtimeOnly(libs.logback)
 

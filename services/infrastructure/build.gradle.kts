@@ -29,12 +29,12 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(project(":model"))
-    api(project(":services:secret-service"))
+    api(projects.model)
+    api(projects.services.secretService)
 
     api(libs.exposedCore)
 
-    implementation(project(":dao"))
+    implementation(projects.dao)
 
     runtimeOnly(libs.logback)
 

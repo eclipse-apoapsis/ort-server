@@ -30,15 +30,16 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":secrets:secrets-spi"))
-    implementation(project(":utils:config"))
+    implementation(projects.secrets.secretsSpi)
+    implementation(projects.utils.config)
 
     implementation(libs.ktorClientCore)
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)

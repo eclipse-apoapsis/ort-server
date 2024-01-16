@@ -32,9 +32,9 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":config:config-spi"))
-    implementation(project(":model"))
-    implementation(project(":utils:config"))
+    implementation(projects.config.configSpi)
+    implementation(projects.model)
+    implementation(projects.utils.config)
 
     api(libs.exposedDao)
     api(libs.koinCore)
@@ -51,15 +51,16 @@ dependencies {
     runtimeOnly(libs.exposedJdbc)
     runtimeOnly(libs.logback)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesApi(project(":model"))
+    testFixturesApi(projects.model)
 
-    testFixturesImplementation(project(":config:config-spi"))
+    testFixturesImplementation(projects.config.configSpi)
 
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.koinTest)

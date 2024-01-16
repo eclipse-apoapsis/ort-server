@@ -37,24 +37,26 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":dao"))
-    implementation(project(":model"))
-    implementation(project(":secrets:secrets-spi"))
+    implementation(projects.dao)
+    implementation(projects.model)
+    implementation(projects.secrets.secretsSpi)
+
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
 
-    api(project(":config:config-spi"))
-    api(project(":storage:storage-spi"))
+    api(projects.config.configSpi)
+    api(projects.storage.storageSpi)
+
     api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
     api(libs.ortModel)
     api(libs.ortScanner)
     api(libs.typesafeConfig)
 
-    testImplementation(testFixtures(project(":config:config-spi")))
-    testImplementation(testFixtures(project(":dao")))
-    testImplementation(testFixtures(project(":secrets:secrets-spi")))
-    testImplementation(testFixtures(project(":storage:storage-spi")))
+    testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
+    testImplementation(testFixtures(projects.storage.storageSpi))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
