@@ -40,7 +40,16 @@ data class MessageHeader(
      * The ID of the ORT run this message relates to. Via this property, a direct association to an ORT run can be
      * established.
      */
-    val ortRunId: Long
+    val ortRunId: Long,
+
+    /**
+     * A map with arbitrary key-value pairs that can be evaluated by a concrete transport implementation. The intended
+     * use case is to customize the behavior of the underlying transport implementation for a specific message.
+     * Concrete transport implementations can have specific properties they support. The property keys need to start
+     * with a prefix that corresponds to the name of the transport; that way they are matched by the transport
+     * implementation.
+     */
+    val transportProperties: Map<String, String> = emptyMap()
 )
 
 /**
