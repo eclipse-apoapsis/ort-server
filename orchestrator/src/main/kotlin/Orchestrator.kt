@@ -67,12 +67,14 @@ import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.transport.AdvisorEndpoint
 import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
 import org.ossreviewtoolkit.server.transport.ConfigEndpoint
+import org.ossreviewtoolkit.server.transport.Endpoint
 import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
 import org.ossreviewtoolkit.server.transport.Message
 import org.ossreviewtoolkit.server.transport.MessageHeader
 import org.ossreviewtoolkit.server.transport.MessagePublisher
 import org.ossreviewtoolkit.server.transport.ReporterEndpoint
 import org.ossreviewtoolkit.server.transport.ScannerEndpoint
+import org.ossreviewtoolkit.server.transport.selectByPrefix
 
 import org.slf4j.LoggerFactory
 
@@ -117,7 +119,7 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            ortRun.id to listOf { scheduleConfigWorkerJob(ortRun.id, header) }
+            ortRun.id to listOf { scheduleConfigWorkerJob(ortRun, header) }
         }.onSuccess { (runId, createdJobs) ->
             scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
@@ -134,7 +136,7 @@ class Orchestrator(
                 "ORT run '${configWorkerResult.ortRunId}' not found."
             }
 
-            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(it, header) } })
+            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(ortRun, it, header) } })
         }.onSuccess { (runId, createdJobs) ->
             scheduleCreatedJobs(runId, createdJobs)
         }.onFailure {
@@ -178,8 +180,8 @@ class Orchestrator(
             }
 
             val createdJobs = listOfNotNull(
-                createAdvisorJob(ortRun)?.let { { scheduleAdvisorJob(it, header) } },
-                createScannerJob(ortRun)?.let { { scheduleScannerJob(it, header) } }
+                createAdvisorJob(ortRun)?.let { { scheduleAdvisorJob(ortRun, it, header) } },
+                createScannerJob(ortRun)?.let { { scheduleScannerJob(ortRun, it, header) } }
             ).toMutableList()
 
             // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
@@ -187,12 +189,12 @@ class Orchestrator(
                 if (getConfig(ortRun).evaluator != null) {
                     // Create an evaluator job if no advisor or scanner job is configured.
                     createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
                     }
                 } else {
                     // Create a reporter job if no advisor, scanner or evaluator job is configured.
                     createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(job, header) }
+                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
                     }
                 }
             }
@@ -245,11 +247,11 @@ class Orchestrator(
             if (scannerJobStatus == JobStatus.FINISHED) {
                 if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
                     }
                 } else {
                     createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(job, header) }
+                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
                     }
                 }
             } else {
@@ -304,11 +306,11 @@ class Orchestrator(
             if (advisorJobStatus == JobStatus.FINISHED) {
                 if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(job, header) }
+                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
                     }
                 } else {
                     createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(job, header) }
+                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
                     }
                 }
             } else {
@@ -356,7 +358,7 @@ class Orchestrator(
             }
 
             evaluatorJob.ortRunId to listOfNotNull(
-                createReporterJob(ortRun)?.let { { scheduleReporterJob(it, header) } }
+                createReporterJob(ortRun)?.let { { scheduleReporterJob(ortRun, it, header) } }
             )
         }.onSuccess { (runId, createdJobs) ->
             scheduleCreatedJobs(runId, createdJobs)
@@ -479,23 +481,17 @@ class Orchestrator(
     /**
      * Publish a message to the [ConfigEndpoint] and update the current ORT run to the active state.
      */
-    private fun scheduleConfigWorkerJob(runId: Long, header: MessageHeader) {
-        publisher.publish(ConfigEndpoint, Message(header = header, payload = ConfigRequest(runId)))
+    private fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader) {
+        publish(ConfigEndpoint, run, header, ConfigRequest(run.id))
 
-        ortRunRepository.update(runId, OrtRunStatus.ACTIVE.asPresent())
+        ortRunRepository.update(run.id, OrtRunStatus.ACTIVE.asPresent())
     }
 
     /**
      * Publish a message to the [AnalyzerEndpoint] and update the [analyzerJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleAnalyzerJob(analyzerJob: AnalyzerJob, header: MessageHeader) {
-        publisher.publish(
-            AnalyzerEndpoint,
-            Message(
-                header = header,
-                payload = AnalyzerRequest(analyzerJob.id)
-            )
-        )
+    private fun scheduleAnalyzerJob(run: OrtRun, analyzerJob: AnalyzerJob, header: MessageHeader) {
+        publish(AnalyzerEndpoint, run, header, AnalyzerRequest(analyzerJob.id))
 
         analyzerJobRepository.update(
             analyzerJob.id,
@@ -506,11 +502,8 @@ class Orchestrator(
     /**
      * Publish a message to the [AdvisorEndpoint] and update the [advisorJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleAdvisorJob(advisorJob: AdvisorJob, header: MessageHeader) {
-        publisher.publish(
-            to = AdvisorEndpoint,
-            message = Message(header = header, payload = AdvisorRequest(advisorJob.id))
-        )
+    private fun scheduleAdvisorJob(run: OrtRun, advisorJob: AdvisorJob, header: MessageHeader) {
+        publish(AdvisorEndpoint, run, header, AdvisorRequest(advisorJob.id))
 
         advisorJobRepository.update(
             advisorJob.id,
@@ -521,11 +514,8 @@ class Orchestrator(
     /**
      * Publish a message to the [ScannerEndpoint] and update the [scannerJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleScannerJob(scannerJob: ScannerJob, header: MessageHeader) {
-        publisher.publish(
-            to = ScannerEndpoint,
-            message = Message(header = header, payload = ScannerRequest(scannerJob.id))
-        )
+    private fun scheduleScannerJob(run: OrtRun, scannerJob: ScannerJob, header: MessageHeader) {
+        publish(ScannerEndpoint, run, header, ScannerRequest(scannerJob.id))
 
         scannerJobRepository.update(
             id = scannerJob.id,
@@ -536,11 +526,8 @@ class Orchestrator(
     /**
      * Publish a message to the [EvaluatorEndpoint] and update the [evaluatorJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleEvaluatorJob(evaluatorJob: EvaluatorJob, header: MessageHeader) {
-        publisher.publish(
-            to = EvaluatorEndpoint,
-            message = Message(header = header, payload = EvaluatorRequest(evaluatorJob.id))
-        )
+    private fun scheduleEvaluatorJob(run: OrtRun, evaluatorJob: EvaluatorJob, header: MessageHeader) {
+        publish(EvaluatorEndpoint, run, header, EvaluatorRequest(evaluatorJob.id))
 
         evaluatorJobRepository.update(
             id = evaluatorJob.id,
@@ -551,16 +538,24 @@ class Orchestrator(
     /**
      * Publish a message to the [ReporterEndpoint] and update the [reporterJob] status to [JobStatus.SCHEDULED].
      */
-    private fun scheduleReporterJob(reporterJob: ReporterJob, header: MessageHeader) {
-        publisher.publish(
-            to = ReporterEndpoint,
-            message = Message(header = header, payload = ReporterRequest(reporterJob.id))
-        )
+    private fun scheduleReporterJob(run: OrtRun, reporterJob: ReporterJob, header: MessageHeader) {
+        publish(ReporterEndpoint, run, header, ReporterRequest(reporterJob.id))
 
         reporterJobRepository.update(
             id = reporterJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
+    }
+
+    /**
+     * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
+     * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
+     * current ORT run.
+     */
+    private fun <T : Any> publish(endpoint: Endpoint<T>, run: OrtRun, header: MessageHeader, payload: T) {
+        val headerWithProperties = header.copy(transportProperties = run.labels.selectByPrefix("transport"))
+
+        publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
 
     /**

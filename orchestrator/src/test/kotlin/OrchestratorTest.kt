@@ -91,7 +91,11 @@ class OrchestratorTest : WordSpec() {
     private val msgHeader = MessageHeader(
         token = "token",
         traceId = "traceId",
-        ortRunId = 18
+        ortRunId = 18,
+    )
+
+    private val msgHeaderWithProperties = msgHeader.copy(
+        transportProperties = mapOf("kubernetes.kubeprop" to "kubeval", "rabbitmq.rabbitprop" to "rabbitval")
     )
 
     private val repository = Repository(
@@ -178,7 +182,11 @@ class OrchestratorTest : WordSpec() {
         ),
         resolvedJobConfigs = null,
         status = OrtRunStatus.CREATED,
-        labels = mapOf("label key" to "label value"),
+        labels = mapOf(
+            "label key" to "label value",
+            "transport.kubernetes.kubeprop" to "kubeval",
+            "transport.rabbitmq.rabbitprop" to "rabbitval"
+        ),
         null,
         null,
         emptyMap(),
@@ -204,7 +212,7 @@ class OrchestratorTest : WordSpec() {
         ),
         resolvedJobConfigs = null,
         status = OrtRunStatus.CREATED,
-        labels = mapOf("label key" to "label value"),
+        labels = ortRun.labels,
         null,
         null,
         emptyMap(),
@@ -250,7 +258,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg { it shouldBe ConfigEndpoint },
                         message = withArg<Message<ConfigRequest>> {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload shouldBe ConfigRequest(ortRun.id)
                         }
                     )
@@ -300,7 +308,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg { it shouldBe AnalyzerEndpoint },
                         message = withArg<Message<AnalyzerRequest>> {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload shouldBe AnalyzerRequest(analyzerJob.id)
                         }
                     )
@@ -394,7 +402,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<AdvisorEndpoint> { it shouldBe AdvisorEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.advisorJobId shouldBe advisorJob.id
                         }
                     )
@@ -450,7 +458,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<ReporterEndpoint> { it shouldBe ReporterEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.reporterJobId shouldBe reporterJob.id
                         }
                     )
@@ -502,7 +510,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.evaluatorJobId shouldBe evaluatorJob.id
                         }
                     )
@@ -561,7 +569,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.evaluatorJobId shouldBe evaluatorJob.id
                         }
                     )
@@ -705,7 +713,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.evaluatorJobId shouldBe evaluatorJob.id
                         }
                     )
@@ -765,7 +773,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.evaluatorJobId shouldBe evaluatorJob.id
                         }
                     )
@@ -897,7 +905,7 @@ class OrchestratorTest : WordSpec() {
                     publisher.publish(
                         to = withArg<ReporterEndpoint> { it shouldBe ReporterEndpoint },
                         message = withArg {
-                            it.header shouldBe msgHeader
+                            it.header shouldBe msgHeaderWithProperties
                             it.payload.reporterJobId shouldBe reporterJob.id
                         }
                     )
