@@ -397,7 +397,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     allowDynamicVersions = true,
                     environmentConfig = envConfig
                 )
-                val createRun = CreateOrtRun("main", ApiJobConfigurations(analyzerJob), labelsMap)
+                val parameters = mapOf("p1" to "v1", "p2" to "v2")
+                val createRun = CreateOrtRun(
+                    "main",
+                    ApiJobConfigurations(analyzerJob, parameters = parameters),
+                    labelsMap
+                )
 
                 val serviceDeclaration = InfrastructureServiceDeclaration(
                     name = service.name,
@@ -413,7 +418,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response.body<OrtRun>().jobConfigs.analyzer.environmentConfig shouldBe envConfig
+                val runResponse = response.body<OrtRun>()
+                runResponse.jobConfigs.analyzer.environmentConfig shouldBe envConfig
+                runResponse.jobConfigs.parameters shouldBe parameters
 
                 val run = ortRunRepository.listForRepository(createdRepository.id).single()
 
@@ -427,6 +434,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfig.environmentDefinitions shouldBe environmentDefinitions
                     jobConfig.infrastructureServices shouldContainExactly listOf(serviceDeclaration)
                 }
+
+                run.jobConfigs.parameters shouldBe parameters
             }
         }
 

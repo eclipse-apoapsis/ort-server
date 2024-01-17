@@ -89,10 +89,10 @@ fun AdvisorJob.mapToApi() =
     )
 
 fun AdvisorJobConfiguration.mapToApi() =
-    ApiAdvisorJobConfiguration(advisors, skipExcluded, parameters, config?.mapValues { it.value.mapToApi() })
+    ApiAdvisorJobConfiguration(advisors, skipExcluded, config?.mapValues { it.value.mapToApi() })
 
 fun ApiAdvisorJobConfiguration.mapToModel() =
-    AdvisorJobConfiguration(advisors, skipExcluded, parameters, config?.mapValues { it.value.mapToModel() })
+    AdvisorJobConfiguration(advisors, skipExcluded, config?.mapValues { it.value.mapToModel() })
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
@@ -112,8 +112,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         environmentConfig?.mapToApi(),
         packageCurationProviders.map { it.mapToApi() },
         packageManagerOptions?.mapValues { it.value.mapToApi() },
-        skipExcluded,
-        parameters
+        skipExcluded
     )
 
 fun ApiAnalyzerJobConfiguration.mapToModel() =
@@ -124,8 +123,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         environmentConfig?.mapToModel(),
         packageCurationProviders.map { it.mapToModel() },
         packageManagerOptions?.mapValues { it.value.mapToModel() },
-        skipExcluded,
-        parameters
+        skipExcluded
     )
 
 fun EvaluatorJob.mapToApi() =
@@ -144,8 +142,7 @@ fun EvaluatorJobConfiguration.mapToApi() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         resolutionsFile,
-        ruleSet,
-        parameters
+        ruleSet
     )
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
@@ -154,8 +151,7 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToModel() },
         resolutionsFile,
-        ruleSet,
-        parameters
+        ruleSet
     )
 
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
@@ -168,7 +164,8 @@ fun JobConfigurations.mapToApi() =
         advisor?.mapToApi(),
         scanner?.mapToApi(),
         evaluator?.mapToApi(),
-        reporter?.mapToApi()
+        reporter?.mapToApi(),
+        parameters
     )
 
 fun ApiJobConfigurations.mapToModel() =
@@ -177,7 +174,8 @@ fun ApiJobConfigurations.mapToModel() =
         advisor?.mapToModel(),
         scanner?.mapToModel(),
         evaluator?.mapToModel(),
-        reporter?.mapToModel()
+        reporter?.mapToModel(),
+        parameters
     )
 
 fun Jobs.mapToApi() =
@@ -236,7 +234,6 @@ fun ReporterJobConfiguration.mapToApi() =
         resolutionsFile,
         assetFiles.map { it.mapToApi() },
         assetDirectories.map { it.mapToApi() },
-        parameters,
         config?.mapValues { it.value.mapToApi() }
     )
 
@@ -249,7 +246,6 @@ fun ApiReporterJobConfiguration.mapToModel() =
         resolutionsFile,
         assetFiles.map { it.mapToModel() },
         assetDirectories.map { it.mapToModel() },
-        parameters,
         config?.mapValues { it.value.mapToModel() }
     )
 
@@ -271,7 +267,6 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     scanners,
     skipConcluded,
     skipExcluded,
-    parameters,
     config?.mapValues { it.value.mapToApi() }
 )
 
@@ -283,7 +278,6 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     scanners,
     skipConcluded,
     skipExcluded,
-    parameters,
     config?.mapValues { it.value.mapToModel() }
 )
 

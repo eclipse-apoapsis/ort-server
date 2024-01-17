@@ -37,7 +37,14 @@ data class JobConfigurations(
     val advisor: AdvisorJobConfiguration? = null,
     val scanner: ScannerJobConfiguration? = null,
     val evaluator: EvaluatorJobConfiguration? = null,
-    val reporter: ReporterJobConfiguration? = null
+    val reporter: ReporterJobConfiguration? = null,
+
+    /**
+     * A map with custom parameters for the whole ORT run. The parameters can be evaluated by the validation script
+     * executed by the Config worker. The script can convert these parameters to specific job configurations
+     * understood by ORT Server.
+     */
+    val parameters: Parameters = emptyMap()
 )
 
 /**
@@ -83,12 +90,7 @@ data class AnalyzerJobConfiguration(
     /**
      * A flag to control whether excluded scopes and paths should be skipped during the analysis.
      */
-    val skipExcluded: Boolean? = null,
-
-    /**
-     * Additional parameters of the job.
-     */
-    val parameters: Parameters? = null
+    val skipExcluded: Boolean? = null
 )
 
 /**
@@ -105,11 +107,6 @@ data class AdvisorJobConfiguration(
      * Do not advise excluded packages.
      */
     val skipExcluded: Boolean = false,
-
-    /**
-     * High-level parameters of the advisor job.
-     */
-    val parameters: Parameters? = null,
 
     /**
      * A map of plugin configurations that are specific to a concrete advisor.
@@ -161,11 +158,6 @@ data class ScannerJobConfiguration(
     val skipExcluded: Boolean = false,
 
     /**
-     * High-level parameters of the scanner job.
-     */
-    val parameters: Parameters? = null,
-
-    /**
      * A map of plugin configurations that are specific to a concrete scanner.
      */
     val config: Map<String, PluginConfiguration>? = null
@@ -202,12 +194,7 @@ data class EvaluatorJobConfiguration(
     /**
      * The id of the rule set to use for the evaluation.
      */
-    val ruleSet: String? = null,
-
-    /**
-     * Additional parameters of the job.
-     */
-    val parameters: Parameters? = null
+    val ruleSet: String? = null
 )
 
 /**
@@ -320,11 +307,6 @@ data class ReporterJobConfiguration(
      * downloaded.
      */
     val assetDirectories: List<ReporterAsset> = emptyList(),
-
-    /**
-     * High-level parameters of a reporter job.
-     */
-    val parameters: Parameters? = null,
 
     /**
      * A map of configuration options that are specific to a concrete reporter.
