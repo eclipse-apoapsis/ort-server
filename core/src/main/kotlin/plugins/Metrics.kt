@@ -35,6 +35,8 @@ import io.micrometer.graphite.GraphiteMeterRegistry
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.core.utils.JobMetrics
+
 fun Application.configureMetrics() {
     val config: ApplicationConfig by inject()
     val metricsPrefix = config.property("micrometer.graphite.tagsAsPrefix").getString()
@@ -51,7 +53,8 @@ fun Application.configureMetrics() {
             JvmMemoryMetrics(),
             JvmGcMetrics(),
             JvmThreadMetrics(),
-            ProcessorMetrics()
+            ProcessorMetrics(),
+            JobMetrics(this@configureMetrics)
         )
         registry = graphiteRegistry
     }
