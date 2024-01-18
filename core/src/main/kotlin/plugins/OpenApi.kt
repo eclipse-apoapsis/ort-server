@@ -22,7 +22,7 @@ package org.ossreviewtoolkit.server.core.plugins
 import com.github.ricky12awesome.jss.encodeToSchema
 
 import io.github.smiley4.ktorswaggerui.SwaggerUI
-import io.github.smiley4.ktorswaggerui.dsl.AuthType
+import io.github.smiley4.ktorswaggerui.data.AuthType
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
