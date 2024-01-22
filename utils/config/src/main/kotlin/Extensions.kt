@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.ossreviewtoolkit.server.utils.config
 
 import com.typesafe.config.Config
@@ -72,3 +74,39 @@ fun Config.getStringOrNull(path: String): String? = withPath(path)?.getString(pa
  * Return this [Config] if it contains the given [path] or null if not.
  */
 fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
+
+/** The prefix to indicate a variable. */
+private const val VARIABLE_PREFIX = "\${"
+
+/** The suffix of a variable. */
+private const val VARIABLE_SUFFIX = "}"
+
+/**
+ * Return the string value at the given [path] applying variable interpolation using the given map of [variables].
+ * The value in the configuration can contain placeholders using the typical `${variable}` syntax. This function
+ * replaces such placeholders by the corresponding values in the map. If a variable cannot be resolved, the placeholder
+ * remains unchanged.
+ */
+fun Config.getInterpolatedString(path: String, variables: Map<String, String>): String {
+    val str = getString(path)
+
+    return str.takeIf { VARIABLE_PREFIX !in it } ?: substituteVariables(str, variables)
+}
+
+/**
+ * Return the string value at the given [path] applying variable interpolation using the given map of [variables] or
+ * *null* if the path cannot be resolved. This is like [getInterpolatedString], but with optional configuration
+ * properties.
+ */
+fun Config.getInterpolatedStringOrNull(path: String, variables: Map<String, String>): String? =
+    withPath(path)?.getInterpolatedString(path, variables)
+
+/**
+ * Return a new string based on [string] with all variable references replaced by their current values in the given
+ * [variables] map.
+ */
+private fun substituteVariables(string: String, variables: Map<String, String>): String =
+    variables.filter { it.key in string }.entries.fold(string) { str, (key, value) ->
+        val placeholder = "$VARIABLE_PREFIX${key}$VARIABLE_SUFFIX"
+        str.replace(placeholder, value)
+    }

@@ -30,4 +30,8 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(libs.typesafeConfig)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestRunnerJunit5)
 }
