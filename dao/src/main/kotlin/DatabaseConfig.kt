@@ -71,23 +71,25 @@ data class DatabaseConfig(
      * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBQ-SSL-CERTIFICATES).
      */
     val sslRootCert: String?,
-)
+) {
+    companion object {
+        /**
+         * Create a [DatabaseConfig] object from the provided [config].
+         */
+        fun create(config: ConfigManager) = DatabaseConfig(
+            host = config.getString("database.host"),
+            port = config.getInt("database.port"),
+            name = config.getString("database.name"),
+            schema = config.getString("database.schema"),
+            username = config.getSecret(Path("database.username")),
+            password = config.getSecret(Path("database.password")),
 
-/**
- * Create a [DatabaseConfig] object for the *database* configuration, given in [config].
- */
-fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
-    host = config.getString("database.host"),
-    port = config.getInt("database.port"),
-    name = config.getString("database.name"),
-    schema = config.getString("database.schema"),
-    username = config.getSecret(Path("database.username")),
-    password = config.getSecret(Path("database.password")),
+            maximumPoolSize = config.getInt("database.maximumPoolSize"),
 
-    maximumPoolSize = config.getInt("database.maximumPoolSize"),
-
-    sslMode = config.getString("database.sslMode"),
-    sslCert = config.getStringOrNull("database.sslCert"),
-    sslKey = config.getStringOrNull("database.sslKey"),
-    sslRootCert = config.getStringOrNull("database.sslRootCert")
-)
+            sslMode = config.getString("database.sslMode"),
+            sslCert = config.getStringOrNull("database.sslCert"),
+            sslKey = config.getStringOrNull("database.sslKey"),
+            sslRootCert = config.getStringOrNull("database.sslRootCert")
+        )
+    }
+}

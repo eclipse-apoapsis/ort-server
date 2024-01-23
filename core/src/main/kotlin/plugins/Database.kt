@@ -31,9 +31,9 @@ import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
 import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.dao.DatabaseConfig
 import org.ossreviewtoolkit.server.dao.connect
 import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.createDatabaseConfig
 import org.ossreviewtoolkit.server.dao.migrate
 
 val DatabaseReady: EventDefinition<Database> = EventDefinition()
@@ -56,7 +56,7 @@ fun Application.configureDatabase() {
 private fun Application.createDataSource(): DataSource {
     val configManager: ConfigManager by inject()
 
-    val dataSourceConfig = createDatabaseConfig(configManager)
+    val dataSourceConfig = DatabaseConfig.create(configManager)
 
     return createDataSource(dataSourceConfig)
 }

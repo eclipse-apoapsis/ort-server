@@ -92,7 +92,7 @@ fun createDataSource(config: DatabaseConfig): DataSource {
  * Return a Koin [Module] that sets up a database connection based on the current application configuration.
  */
 fun databaseModule(): Module = module {
-    single { createDatabaseConfig(get()) }
+    single { DatabaseConfig.create(get()) }
 
     single(createdAtStart = true) { createDataSource(get()).connect() }
 }
