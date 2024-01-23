@@ -31,12 +31,17 @@ endpoint {
         mountSecrets = "server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
         annotationVariables = "ANNOTATION_VAR1, ANNOTATION_VAR2"
         serviceAccount = "my_service_account"
+        cpuRequest = 250m
+        cpuLimit = 500m
+        memoryRequest = 64Mi
+        memoryLimit = 128Mi
     }
 }
 ----
 
 The properties have the following meaning:
 
+[#tab_kubernetes_config]
 .Supported configuration properties
 [cols="1,3,1",options=header]
 |===
@@ -47,7 +52,7 @@ The properties have the following meaning:
 |none
 
 |imageName
-|The full name of the container image from which the pod is created, including the tag name.
+|The full name of the container image from which the pod is created, including the tag name. The value can contain variables that are resolved based on message properties.
 |none
 
 |imagePullPolicy
@@ -130,7 +135,45 @@ If variables are referenced that do not exist or do not contain an equals ('=') 
 |serviceAccount
 |Allows specifying the name of a service account that is assigned to newly created pods. Service accounts can be used to grant specific permissions to pods.
 |null
+
+|cpuRequest
+|Allows setting the request for the CPU resource. The value can contain variables that are resolved based on message properties.
+|undefined
+
+|cpuLimit
+|Allows setting the limit for the CPU resource. The value can contain variables that are resolved based on message properties.
+|undefined
+
+|memoryRequest
+|Allows setting the request for the memory resource. The value can contain variables that are resolved based on message properties.
+|undefined
+
+|memoryLimit
+|Allows setting the limit for the memory resource. The value can contain variables that are resolved based on message properties.
+|undefined
+
 |===
+
+While the configuration is static for a deployment of ORT Server, there are use cases that require changing some of the settings dynamically for a specific ORT run. For instance, if the run processes a large repository, the memory limits might need to be increased. To make this possible, the values of some properties can contain variables that are resolved from the properties of the current message. Table <<tab_kubernetes_config>> indicates, which properties support this mechanism. Variables follow the popular syntax `$+{variable}+`.
+
+To give an example, an excerpt from the configuration could look as follows:
+
+[source]
+----
+endpoint {
+    sender {
+        type = "kubernetes"
+        memoryLimit = ${memory}
+        ...
+    }
+}
+----
+
+If the message now has the following set in its `transportProperties`:
+
+ kubernetes.memory = 768M
+
+Then the memory limit of the pod to be created will be set to 768 megabytes.
 
 NOTE: The receiver part does not need any specific configuration settings except for the transport type itself.
 
