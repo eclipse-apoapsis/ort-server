@@ -84,7 +84,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-postgresql
                   key: postgres-password
-            - name: DB_SSLMODE
+            - name: DB_SSL_MODE
               value: disable
             {{- if .Values.ort_server.artemis.enabled }}
             - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE

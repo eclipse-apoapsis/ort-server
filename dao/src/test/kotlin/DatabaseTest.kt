@@ -75,11 +75,11 @@ class DatabaseTest : WordSpec({
                     "database.port" to dbConfig.port,
                     "database.name" to dbConfig.name,
                     "database.schema" to dbConfig.schema,
-                    "database.poolsize" to dbConfig.maximumPoolSize,
-                    "database.sslmode" to dbConfig.sslMode,
-                    "database.sslcert" to dbConfig.sslCert,
-                    "database.sslkey" to dbConfig.sslKey,
-                    "database.sslrootcert" to dbConfig.sslRootCert,
+                    "database.maximumPoolSize" to dbConfig.maximumPoolSize,
+                    "database.sslMode" to dbConfig.sslMode,
+                    "database.sslCert" to dbConfig.sslCert,
+                    "database.sslKey" to dbConfig.sslKey,
+                    "database.sslRootCert" to dbConfig.sslRootCert,
                     ConfigManager.CONFIG_MANAGER_SECTION to secretConfigMap
                 )
             )

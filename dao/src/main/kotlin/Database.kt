@@ -115,12 +115,12 @@ fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
     schema = config.getString("database.schema"),
     username = config.getSecret(Path("database.username")),
     password = config.getSecret(Path("database.password")),
-    maximumPoolSize = config.getInt("database.poolsize"),
-    sslMode = config.getString("database.sslmode"),
+    maximumPoolSize = config.getInt("database.maximumPoolSize"),
+    sslMode = config.getString("database.sslMode"),
 
-    sslCert = config.getStringOrNull("database.sslcert"),
-    sslKey = config.getStringOrNull("database.sslkey"),
-    sslRootCert = config.getStringOrNull("database.sslrootcert")
+    sslCert = config.getStringOrNull("database.sslCert"),
+    sslKey = config.getStringOrNull("database.sslKey"),
+    sslRootCert = config.getStringOrNull("database.sslRootCert")
 )
 
 /**

@@ -159,7 +159,7 @@ services:
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       JWT_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"

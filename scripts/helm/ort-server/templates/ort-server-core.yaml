@@ -50,7 +50,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-postgresql
                   key: postgres-password
-            - name: DB_SSLMODE
+            - name: DB_SSL_MODE
               value: disable
             - name: JWT_URI
               value: http://{{ .Release.Name }}-keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master/protocol/openid-connect/certs
