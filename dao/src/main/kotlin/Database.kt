@@ -93,16 +93,52 @@ fun createDataSource(config: DatabaseConfig): DataSource {
 }
 
 data class DatabaseConfig(
+    /** The host of the database, for example 'localhost'. */
     val host: String,
+
+    /** The port of the database, for example '5432'. */
     val port: Int,
+
+    /** The name of the database, for example 'postgres'. */
     val name: String,
+
+    /** The schema to use, for example 'public'. */
     val schema: String,
+
+    /** The username used for connecting to the database. */
     val username: String,
+
+    /** The password used for connecting to the database. */
     val password: String,
+
+    /**
+     * The maximum size of the connection pool. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
     val maximumPoolSize: Int,
+
+    /**
+     * The SSL mode to use. For available modes see the
+     * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBPQ-SSL-PROTECTION).
+     */
     val sslMode: String,
+
+    /**
+     * The location of the file containing the SSL certificates. For details see the
+     * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBPQ-SSL-CLIENTCERT).
+     */
     val sslCert: String?,
+
+    /**
+     * The location of the file containing the SSL keys. For details see the
+     * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBPQ-SSL-CLIENTCERT).
+     */
     val sslKey: String?,
+
+    /**
+     * The location of the root certificate file. For details see the
+     * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBQ-SSL-CERTIFICATES).
+     */
     val sslRootCert: String?,
 )
 
