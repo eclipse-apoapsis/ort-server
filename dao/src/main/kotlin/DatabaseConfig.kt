@@ -43,10 +43,42 @@ data class DatabaseConfig(
     val password: String,
 
     /**
+     * The maximum number of milliseconds to wait for connections from the pool. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
+    val connectionTimeout: Long,
+
+    /**
+     * The maximum number of milliseconds a connection is allowed to sit idle in the pool. This requires that
+     * [minimumIdle] is set to a value lower than [maximumPoolSize]. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
+    val idleTimeout: Long,
+
+    /**
+     * The frequency in milliseconds that the pool will attempt to keep an idle connection alive. Must be set to a value
+     * lower than [maxLifetime]. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
+    val keepaliveTime: Long,
+
+    /**
+     * The maximum lifetime of a connection in milliseconds. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
+    val maxLifetime: Long,
+
+    /**
      * The maximum size of the connection pool. For details see the
      * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
      */
     val maximumPoolSize: Int,
+
+    /**
+     * The minimum number of idle connections that the pool tries to maintain. For details see the
+     * [Hikari documentation](https://github.com/brettwooldridge/HikariCP#frequently-used).
+     */
+    val minimumIdle: Int,
 
     /**
      * The SSL mode to use. For available modes see the
@@ -84,7 +116,12 @@ data class DatabaseConfig(
             username = config.getSecret(Path("database.username")),
             password = config.getSecret(Path("database.password")),
 
+            connectionTimeout = config.getLong("database.connectionTimeout"),
+            idleTimeout = config.getLong("database.idleTimeout"),
+            keepaliveTime = config.getLong("database.keepaliveTime"),
+            maxLifetime = config.getLong("database.maxLifetime"),
             maximumPoolSize = config.getInt("database.maximumPoolSize"),
+            minimumIdle = config.getInt("database.minimumIdle"),
 
             sslMode = config.getString("database.sslMode"),
             sslCert = config.getStringOrNull("database.sslCert"),

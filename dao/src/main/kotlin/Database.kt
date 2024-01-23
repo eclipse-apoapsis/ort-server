@@ -74,7 +74,12 @@ fun createDataSource(config: DatabaseConfig): DataSource {
         username = config.username
         password = config.password
 
+        connectionTimeout = config.connectionTimeout
+        idleTimeout = config.idleTimeout
+        keepaliveTime = config.keepaliveTime
+        maxLifetime = config.maxLifetime
         maximumPoolSize = config.maximumPoolSize
+        minimumIdle = config.minimumIdle
 
         addDataSourceProperty("ApplicationName", "ort_server")
         addDataSourceProperty("sslmode", config.sslMode)
