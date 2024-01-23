@@ -19,12 +19,14 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes
 
+import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaimVolumeSource
 import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
+import io.kubernetes.client.openapi.models.V1ResourceRequirements
 import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
@@ -48,6 +50,12 @@ private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
 /** A prefix for generating names for PVC volumes. */
 private const val PVC_VOLUME_PREFIX = "pvc-volume-"
+
+/** The name of the CPU resource. */
+private const val CPU_RESOURCE = "cpu"
+
+/** The name of the memory resource. */
+private const val MEMORY_RESOURCE = "memory"
 
 /**
  * A set with the names of environment variables that should not be passed to the environment of newly created jobs.
@@ -112,6 +120,7 @@ internal class KubernetesMessageSender<T : Any>(
                                (envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() }
                            )
                            .withVolumeMounts(createVolumeMounts(msgConfig))
+                           .withResources(createResources(msgConfig))
                        .endContainer()
                        .withVolumes(createVolumes(msgConfig))
                     .endSpec()
@@ -177,4 +186,19 @@ internal class KubernetesMessageSender<T : Any>(
         traceId.chunked(TRACE_LABEL_LENGTH).withIndex().fold(mapOf()) { map, value ->
             map + ("$TRACE_LABEL_PREFIX${value.index}" to value.value)
         }
+
+    /**
+     * Create a [V1ResourceRequirements] object based on the given [msgConfig]. If no resource requirements are
+     * specified, return *null*.
+     */
+    private fun createResources(msgConfig: KubernetesSenderConfig): V1ResourceRequirements? {
+        val requirements = V1ResourceRequirements()
+
+        msgConfig.cpuLimit?.let { requirements.putLimitsItem(CPU_RESOURCE, Quantity(it)) }
+        msgConfig.memoryLimit?.let { requirements.putLimitsItem(MEMORY_RESOURCE, Quantity(it)) }
+        msgConfig.cpuRequest?.let { requirements.putRequestsItem(CPU_RESOURCE, Quantity(it)) }
+        msgConfig.memoryRequest?.let { requirements.putRequestsItem(MEMORY_RESOURCE, Quantity(it)) }
+
+        return requirements.takeUnless { it.limits.isNullOrEmpty() && it.requests.isNullOrEmpty() }
+    }
 }

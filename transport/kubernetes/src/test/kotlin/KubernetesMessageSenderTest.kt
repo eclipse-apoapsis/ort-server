@@ -29,8 +29,11 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContainAll
 import io.kotest.matchers.maps.shouldContainAll
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1Job
 
@@ -60,6 +63,7 @@ class KubernetesMessageSenderTest : StringSpec({
             imagePullPolicy shouldBe senderConfig.imagePullPolicy
             command shouldBe senderConfig.commands
             args shouldBe senderConfig.args
+            resources should beNull()
             val jobEnvironment = env!!.associate { it.name to it.value }
             jobEnvironment shouldContainAll expectedEnvVars
             jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
@@ -128,6 +132,37 @@ class KubernetesMessageSenderTest : StringSpec({
         val job = createJob(config, msg)
 
         job.spec?.template?.spec?.containers?.single()?.image shouldBe "analyzer-18"
+    }
+
+    "Resource definitions should be supported that are customizable based on message properties" {
+        val config = createConfig(
+            "cpuLimit" to "\${cpuLimitVar}",
+            "cpuRequest" to "\${cpuRequestVar}",
+            "memoryLimit" to "\${memoryLimitVar}",
+            "memoryRequest" to "\${memoryRequestVar}"
+        )
+        val msg = messageWithProperties(
+            "kubernetes.cpuLimitVar" to "500m",
+            "kubernetes.cpuRequestVar" to "250m",
+            "kubernetes.memoryLimitVar" to "1000Mi",
+            "kubernetes.memoryRequestVar" to "512Mi"
+        )
+
+        val job = createJob(config, msg)
+
+        job.spec?.template?.spec?.containers?.single()?.resources.shouldNotBeNull {
+            val expectedLimits = mapOf(
+                "cpu" to Quantity("500m"),
+                "memory" to Quantity("1000Mi")
+            )
+            limits shouldBe expectedLimits
+
+            val expectedRequests = mapOf(
+                "cpu" to Quantity("250m"),
+                "memory" to Quantity("512Mi")
+            )
+            requests shouldBe expectedRequests
+        }
     }
 })
 

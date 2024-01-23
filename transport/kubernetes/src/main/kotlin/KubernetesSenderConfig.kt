@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.transport.selectByPrefix
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
 import org.ossreviewtoolkit.server.utils.config.getInterpolatedString
+import org.ossreviewtoolkit.server.utils.config.getInterpolatedStringOrNull
 import org.ossreviewtoolkit.server.utils.config.getLongOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
@@ -188,6 +189,30 @@ data class KubernetesSenderConfig(
         /** The name of the configuration property defining the name of the service account for pods. */
         private const val SERVICE_ACCOUNT_PROPERTY = "serviceAccount"
 
+        /**
+         * The name of the configuration property defining the limit for the CPU resource. The property value is
+         * subject to variable substitution.
+         */
+        private const val CPU_LIMIT_PROPERTY = "cpuLimit"
+
+        /**
+         * The name of the configuration property defining the limit for the memory resource. The property value is
+         * subject to variable substitution.
+         */
+        private const val MEMORY_LIMIT_PROPERTY = "memoryLimit"
+
+        /**
+         * The name of the configuration property defining the request for the CPU resource. The property value is
+         * subject to variable substitution.
+         */
+        private const val CPU_REQUEST_PROPERTY = "cpuRequest"
+
+        /**
+         * The name of the configuration property defining the request for the memory resource. The property value is
+         * subject to variable substitution.
+         */
+        private const val MEMORY_REQUEST_PROPERTY = "memoryRequest"
+
         /** The default value for the user id. */
         private const val DEFAULT_USER_ID = 1000L
 
@@ -331,10 +356,33 @@ data class KubernetesSenderConfig(
     val imageName: String
         get() = endpointConfig.getInterpolatedString(IMAGE_NAME_PROPERTY, variables)
 
+    /** An optional limit for the CPU resource. */
+    val cpuLimit: String?
+        get() = interpolatedProperty(CPU_LIMIT_PROPERTY)
+
+    /** An optional request for the CPU resource. */
+    val cpuRequest: String?
+        get() = interpolatedProperty(CPU_REQUEST_PROPERTY)
+
+    /** An optional limit for the memory resource. */
+    val memoryLimit: String?
+        get() = interpolatedProperty(MEMORY_LIMIT_PROPERTY)
+
+    /** An optional request for the memory resource. */
+    val memoryRequest: String?
+        get() = interpolatedProperty(MEMORY_REQUEST_PROPERTY)
+
     /**
      * Return a [KubernetesSenderConfig] with settings updated for the given [message]. This function  enables variable
      * interpolation based on the properties of the given [message].
      */
     fun forMessage(message: Message<*>): KubernetesSenderConfig =
         copy(variables = message.header.transportProperties.selectByPrefix(TRANSPORT_NAME))
+
+    /**
+     * Return the value of an optional property obtained from the underlying configuration applying variable
+     * interpolation.
+     */
+    private fun interpolatedProperty(name: String): String? =
+        endpointConfig.getInterpolatedStringOrNull(name, variables)
 }
