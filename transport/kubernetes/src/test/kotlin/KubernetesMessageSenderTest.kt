@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.transport.kubernetes
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
@@ -45,85 +47,19 @@ import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageSenderTest : StringSpec({
     "Kubernetes jobs are created via the sender" {
-        val client = mockk<BatchV1Api> {
-            every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
-        }
-
-        val traceId = "0123456789".repeat(20)
-        val payload = AnalyzerRequest(1)
-        val header = MessageHeader(token = "testToken", traceId = traceId, 9)
-        val message = Message(header, payload)
-
-        val commands = listOf("/bin/sh")
-        val arguments = listOf("-c", "exec java -cp @/app/jib-classpath-file @/app/jib-main-class-file")
-        val envVars = mapOf(
-            "SPECIFIC_PROPERTY" to "bar",
-            "SHELL" to "/bin/bash",
-            "token" to header.token,
-            "traceId" to header.traceId,
-            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}",
-            "ANALYZER_SPECIFIC_PROPERTY" to "foo"
-        )
-
         val expectedEnvVars = envVars.toMutableMap()
         expectedEnvVars["SPECIFIC_PROPERTY"] = "foo"
         expectedEnvVars["runId"] = message.header.ortRunId.toString()
         expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
+        val senderConfig = createConfig()
 
-        val annotations = mapOf(
-            "test.annotation1" to "a test annotation",
-            "test.annotation2" to "anotherTestAnnotation"
-        )
+        val job = createJob(senderConfig)
 
-        val config = KubernetesSenderConfig(
-            namespace = "test-namespace",
-            imageName = "busybox",
-            commands = commands,
-            args = arguments,
-            imagePullPolicy = "Always",
-            userId = 1111L,
-            restartPolicy = "Never",
-            backoffLimit = 11,
-            imagePullSecret = "image_pull_secret",
-            secretVolumes = listOf(
-                SecretVolumeMount("secretService", "/mnt/secret"),
-                SecretVolumeMount("topSecret", "/mnt/top/secret")
-            ),
-            pvcVolumes = listOf(
-                PvcVolumeMount("pvc1", "/mnt/readOnly", readOnly = true),
-                PvcVolumeMount("pvc2", "/mnt/data", readOnly = false)
-            ),
-            annotations = annotations,
-            serviceAccountName = "test_service_account"
-        )
-
-        val sender = KubernetesMessageSender(
-            api = client,
-            config = config,
-            endpoint = AnalyzerEndpoint
-        )
-
-        withEnvironment(envVars, OverrideMode.SetOrOverride) {
-            sender.send(message)
-        }
-
-        val job = slot<V1Job>()
-        verify(exactly = 1) {
-            client.createNamespacedJob(
-                "test-namespace",
-                capture(job),
-                null,
-                null,
-                null,
-                null
-            )
-        }
-
-        job.captured.spec?.template?.spec?.containers?.single().shouldNotBeNull {
-            image shouldBe config.imageName
-            imagePullPolicy shouldBe config.imagePullPolicy
-            command shouldBe config.commands
-            args shouldBe config.args
+        job.spec?.template?.spec?.containers?.single().shouldNotBeNull {
+            image shouldBe senderConfig.imageName
+            imagePullPolicy shouldBe senderConfig.imagePullPolicy
+            command shouldBe senderConfig.commands
+            args shouldBe senderConfig.args
             val jobEnvironment = env!!.associate { it.name to it.value }
             jobEnvironment shouldContainAll expectedEnvVars
             jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
@@ -152,14 +88,14 @@ class KubernetesMessageSenderTest : StringSpec({
             }
         }
 
-        job.captured.spec?.backoffLimit shouldBe config.backoffLimit
-        job.captured.spec?.template?.spec?.securityContext?.runAsUser shouldBe config.userId
-        job.captured.spec?.template?.spec?.restartPolicy shouldBe config.restartPolicy
-        job.captured.spec?.template?.spec?.serviceAccountName shouldBe config.serviceAccountName
-        job.captured.spec?.template?.spec?.imagePullSecrets.orEmpty()
-            .map { it.name } shouldContainOnly listOf(config.imagePullSecret)
+        job.spec?.backoffLimit shouldBe senderConfig.backoffLimit
+        job.spec?.template?.spec?.securityContext?.runAsUser shouldBe senderConfig.userId
+        job.spec?.template?.spec?.restartPolicy shouldBe senderConfig.restartPolicy
+        job.spec?.template?.spec?.serviceAccountName shouldBe senderConfig.serviceAccountName
+        job.spec?.template?.spec?.imagePullSecrets.orEmpty()
+            .map { it.name } shouldContainOnly listOf(senderConfig.imagePullSecret)
 
-        val volumes = job.captured.spec?.template?.spec?.volumes.orEmpty()
+        val volumes = job.spec?.template?.spec?.volumes.orEmpty()
         volumes shouldHaveSize 4
         volumes.map { it.name } shouldContainExactly listOf(
             "secret-volume-1",
@@ -171,27 +107,130 @@ class KubernetesMessageSenderTest : StringSpec({
         secrets shouldContainExactly listOf("secretService", "topSecret")
 
         verifyLabels(
-            actualLabels = job.captured.metadata?.labels.orEmpty(),
-            expectedTraceId = traceId,
+            actualLabels = job.metadata?.labels.orEmpty(),
             expectedRunId = message.header.ortRunId
         )
 
-        val jobAnnotations = job.captured.spec?.template?.metadata?.annotations.orEmpty()
+        val jobAnnotations = job.spec?.template?.metadata?.annotations.orEmpty()
         jobAnnotations shouldBe annotations
 
         verifyLabels(
-            actualLabels = job.captured.spec?.template?.metadata?.labels.orEmpty(),
-            expectedTraceId = traceId,
+            actualLabels = job.spec?.template?.metadata?.labels.orEmpty(),
             expectedRunId = message.header.ortRunId
         )
     }
+
+    "The container image should be customizable based on message properties" {
+        val jdkVariable = "javaVersion"
+        val config = createConfig("imageName" to "analyzer-\${$jdkVariable}")
+        val msg = messageWithProperties("kubernetes.$jdkVariable" to "18")
+
+        val job = createJob(config, msg)
+
+        job.spec?.template?.spec?.containers?.single()?.image shouldBe "analyzer-18"
+    }
 })
 
-private fun verifyLabels(actualLabels: Map<String, String>, expectedTraceId: String, expectedRunId: Long) {
+private val annotations = mapOf(
+    "test.annotation1" to "a test annotation",
+    "test.annotation2" to "anotherTestAnnotation"
+)
+
+private val annotationVariables = mapOf(
+    "v1" to "test.annotation1=a test annotation",
+    "v2" to "test.annotation2=anotherTestAnnotation"
+)
+
+private val traceId = "0123456789".repeat(20)
+private val payload = AnalyzerRequest(1)
+private val header = MessageHeader(token = "testToken", traceId = traceId, 9)
+private val message = Message(header, payload)
+
+private val envVars = mapOf(
+    "SPECIFIC_PROPERTY" to "bar",
+    "SHELL" to "/bin/bash",
+    "token" to header.token,
+    "traceId" to header.traceId,
+    "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}",
+    "ANALYZER_SPECIFIC_PROPERTY" to "foo"
+)
+
+/**
+ * Invoke a [KubernetesMessageSender] test instance to create a job based on the given [config] and [msg]. Return
+ * the resulting [V1Job].
+ */
+private fun createJob(
+    config: KubernetesSenderConfig,
+    msg: Message<AnalyzerRequest> = message
+): V1Job {
+    val client = mockk<BatchV1Api> {
+        every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+    }
+
+    val sender = KubernetesMessageSender(
+        api = client,
+        config = config,
+        endpoint = AnalyzerEndpoint
+    )
+
+    withEnvironment(envVars, OverrideMode.SetOrOverride) {
+        sender.send(msg)
+    }
+
+    val job = slot<V1Job>()
+    verify(exactly = 1) {
+        client.createNamespacedJob(
+            "test-namespace",
+            capture(job),
+            null,
+            null,
+            null,
+            null
+        )
+    }
+
+    return job.captured
+}
+
+/**
+ * Create a [KubernetesSenderConfig] with default properties that can be overridden with the given [overrides].
+ */
+private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSenderConfig {
+    val defaultProperties = mapOf(
+        "namespace" to "test-namespace",
+        "imageName" to "busybox",
+        "commands" to "/bin/sh",
+        "args" to "-c exec java -cp @/app/jib-classpath-file @/app/jib-main-class-file",
+        "imagePullPolicy" to "Always",
+        "userId" to 1111L,
+        "restartPolicy" to "Never",
+        "backoffLimit" to 11,
+        "imagePullSecret" to "image_pull_secret",
+        "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret",
+        "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data,W",
+        "annotationVariables" to "v1,v2",
+        "serviceAccountName" to "test_service_account"
+    )
+    val overrideProperties = mapOf(*overrides)
+
+    return withEnvironment(annotationVariables) {
+        val config = ConfigFactory.parseMap(overrideProperties).withFallback(ConfigFactory.parseMap(defaultProperties))
+
+        KubernetesSenderConfig.createConfig(config)
+    }
+}
+
+/**
+ * Return a copy of the test message that contains the given [properties].
+ */
+private fun messageWithProperties(vararg properties: Pair<String, String>): Message<AnalyzerRequest> =
+    message.copy(header = header.copy(transportProperties = mapOf(*properties)))
+
+private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long) {
     val traceIdFromLabels = (0..3).fold("") { id, idx ->
         id + actualLabels.getValue("trace-id-$idx")
     }
-    traceIdFromLabels shouldBe expectedTraceId
+    traceIdFromLabels shouldBe traceId
 
     actualLabels["run-id"] shouldBe expectedRunId.toString()
 }

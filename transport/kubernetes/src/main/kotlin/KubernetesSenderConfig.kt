@@ -21,8 +21,11 @@ package org.ossreviewtoolkit.server.transport.kubernetes
 
 import com.typesafe.config.Config
 
+import org.ossreviewtoolkit.server.transport.Message
+import org.ossreviewtoolkit.server.transport.selectByPrefix
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
 import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
+import org.ossreviewtoolkit.server.utils.config.getInterpolatedString
 import org.ossreviewtoolkit.server.utils.config.getLongOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
@@ -66,9 +69,6 @@ data class KubernetesSenderConfig(
     /** The namespace inside the Kubernetes Cluster. */
     val namespace: String,
 
-    /** The image name for the container that will run in the Pod. */
-    val imageName: String,
-
     /** The policy when pulling images. */
     val imagePullPolicy: String = DEFAULT_IMAGE_PULL_POLICY,
 
@@ -107,7 +107,13 @@ data class KubernetesSenderConfig(
     val serviceAccountName: String? = null,
 
     /** Allows enabling debug logs when interacting with the Kubernetes API. */
-    val enableDebugLogging: Boolean = false
+    val enableDebugLogging: Boolean = false,
+
+    /** Stores the underlying configuration of the endpoint. */
+    private val endpointConfig: Config,
+
+    /** A map with the variable values for interpolation. */
+    private val variables: Map<String, String> = emptyMap()
 ) {
     companion object {
         /**
@@ -118,7 +124,10 @@ data class KubernetesSenderConfig(
         /** The name of the configuration property for the Kubernetes namespace. */
         private const val NAMESPACE_PROPERTY = "namespace"
 
-        /** The name of the configuration property for the container image name. */
+        /**
+         * The name of the configuration property for the container image name. The property value is subject to
+         * variable substitution.
+         */
         private const val IMAGE_NAME_PROPERTY = "imageName"
 
         /** The name of the configuration property for the user id. */
@@ -223,7 +232,6 @@ data class KubernetesSenderConfig(
         fun createConfig(config: Config) =
             KubernetesSenderConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
-                imageName = config.getString(IMAGE_NAME_PROPERTY),
                 imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
                 imagePullSecret = config.getStringOrNull(IMAGE_PULL_SECRET_PROPERTY),
                 userId = config.getLongOrDefault(USER_ID_PROPERTY, DEFAULT_USER_ID),
@@ -235,7 +243,8 @@ data class KubernetesSenderConfig(
                 pvcVolumes = config.parsePvcVolumeMounts(),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
-                enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false)
+                enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false),
+                config
             )
 
         /**
@@ -317,4 +326,15 @@ data class KubernetesSenderConfig(
             }
         }
     }
+
+    /** The name of the container image for the job to be started. */
+    val imageName: String
+        get() = endpointConfig.getInterpolatedString(IMAGE_NAME_PROPERTY, variables)
+
+    /**
+     * Return a [KubernetesSenderConfig] with settings updated for the given [message]. This function  enables variable
+     * interpolation based on the properties of the given [message].
+     */
+    fun forMessage(message: Message<*>): KubernetesSenderConfig =
+        copy(variables = message.header.transportProperties.selectByPrefix(TRANSPORT_NAME))
 }

@@ -79,6 +79,7 @@ internal class KubernetesMessageSender<T : Any>(
             "payload" to serializer.toJson(message.payload)
         )
 
+        val msgConfig = config.forMessage(message)
         val envVars = createEnvironment()
         val labels = createTraceIdLabels(message.header.traceId) + (RUN_ID_LABEL to message.header.ortRunId.toString())
 
@@ -88,37 +89,37 @@ internal class KubernetesMessageSender<T : Any>(
                 .withLabels<String, String>(labels)
             .endMetadata()
             .withNewSpec()
-                .withBackoffLimit(config.backoffLimit)
+                .withBackoffLimit(msgConfig.backoffLimit)
                 .withNewTemplate()
                     .withNewMetadata()
-                        .withAnnotations<String, String>(config.annotations)
+                        .withAnnotations<String, String>(msgConfig.annotations)
                         .withLabels<String, String>(labels)
                     .endMetadata()
                     .withNewSpec()
-                        .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(config.userId).build())
-                        .withRestartPolicy(config.restartPolicy)
+                        .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(msgConfig.userId).build())
+                        .withRestartPolicy(msgConfig.restartPolicy)
                         .withImagePullSecrets(
-                            listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }
+                            listOfNotNull(msgConfig.imagePullSecret).map { V1LocalObjectReference().name(it) }
                         )
-                       .withServiceAccountName(config.serviceAccountName)
+                       .withServiceAccountName(msgConfig.serviceAccountName)
                        .addNewContainer()
                            .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
-                           .withImage(config.imageName)
-                           .withCommand(config.commands)
-                           .withArgs(config.args)
-                           .withImagePullPolicy(config.imagePullPolicy)
+                           .withImage(msgConfig.imageName)
+                           .withCommand(msgConfig.commands)
+                           .withArgs(msgConfig.args)
+                           .withImagePullPolicy(msgConfig.imagePullPolicy)
                            .withEnv(
                                (envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() }
                            )
-                           .withVolumeMounts(createVolumeMounts())
+                           .withVolumeMounts(createVolumeMounts(msgConfig))
                        .endContainer()
-                       .withVolumes(createVolumes())
+                       .withVolumes(createVolumes(msgConfig))
                     .endSpec()
                 .endTemplate()
             .endSpec()
             .build()
 
-        api.createNamespacedJob(config.namespace, jobBody, null, null, null, null)
+        api.createNamespacedJob(msgConfig.namespace, jobBody, null, null, null, null)
     }
 
     /**
@@ -135,14 +136,14 @@ internal class KubernetesMessageSender<T : Any>(
     }
 
     /**
-     * Return a list with volumes declared in the sender configuration.
+     * Return a list with volumes declared in the given [msgConfig].
      */
-    private fun createVolumes(): List<V1Volume> =
-        config.secretVolumes.mapIndexed { index, volumeMount ->
+    private fun createVolumes(msgConfig: KubernetesSenderConfig): List<V1Volume> =
+        msgConfig.secretVolumes.mapIndexed { index, volumeMount ->
             V1Volume()
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .secret(V1SecretVolumeSource().secretName(volumeMount.secretName))
-        } + config.pvcVolumes.mapIndexed { index, volumeMount ->
+        } + msgConfig.pvcVolumes.mapIndexed { index, volumeMount ->
             V1Volume()
                 .name("$PVC_VOLUME_PREFIX${index + 1}")
                 .persistentVolumeClaim(
@@ -153,15 +154,15 @@ internal class KubernetesMessageSender<T : Any>(
         }
 
     /**
-     * Return a list with volume mounts for the volume mount declarations contained in the sender configuration.
+     * Return a list with volume mounts for the volume mount declarations contained in the given [msgConfig].
      */
-    private fun createVolumeMounts(): List<V1VolumeMount> =
-        config.secretVolumes.mapIndexed { index, volumeMount ->
+    private fun createVolumeMounts(msgConfig: KubernetesSenderConfig): List<V1VolumeMount> =
+        msgConfig.secretVolumes.mapIndexed { index, volumeMount ->
             V1VolumeMount()
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
                 .readOnly(true)
-        } + config.pvcVolumes.mapIndexed { index, volumeMount ->
+        } + msgConfig.pvcVolumes.mapIndexed { index, volumeMount ->
             V1VolumeMount()
                 .name("$PVC_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
