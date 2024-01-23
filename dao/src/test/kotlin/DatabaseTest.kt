@@ -54,7 +54,6 @@ class DatabaseTest : WordSpec({
                 username = "scott",
                 password = "tiger",
                 maximumPoolSize = 12,
-                driverClassName = "org.postgresql.Driver",
                 sslMode = "myTestSSLMode",
                 sslCert = "myTestSSLCert",
                 sslKey = "myTestSSLKey",

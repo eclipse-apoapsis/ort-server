@@ -98,7 +98,6 @@ data class DatabaseConfig(
     val username: String,
     val password: String,
     val maximumPoolSize: Int,
-    val driverClassName: String,
     val sslMode: String,
     val sslCert: String?,
     val sslKey: String?,
@@ -115,7 +114,6 @@ fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
     username = config.getSecret(Path("database.username")),
     password = config.getSecret(Path("database.password")),
     maximumPoolSize = config.getInt("database.poolsize"),
-    driverClassName = "org.postgresql.Driver",
     sslMode = config.getString("database.sslmode"),
 
     sslCert = config.getStringOrNull("database.sslcert"),
