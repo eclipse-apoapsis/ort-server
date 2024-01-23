@@ -48,7 +48,8 @@ class DatabaseTest : WordSpec({
     "databaseModule" should {
         "return a module that connects to the database" {
             val dbConfig = DatabaseConfig(
-                jdbcUrl = "jdbc:test:db",
+                host = "host",
+                port = 5432,
                 name = "myTestDataSource",
                 schema = "myTestSchema",
                 username = "scott",
@@ -70,7 +71,8 @@ class DatabaseTest : WordSpec({
             )
             val config = ConfigFactory.parseMap(
                 mapOf(
-                    "database.url" to dbConfig.jdbcUrl,
+                    "database.host" to dbConfig.host,
+                    "database.port" to dbConfig.port,
                     "database.name" to dbConfig.name,
                     "database.schema" to dbConfig.schema,
                     "database.poolsize" to dbConfig.maximumPoolSize,

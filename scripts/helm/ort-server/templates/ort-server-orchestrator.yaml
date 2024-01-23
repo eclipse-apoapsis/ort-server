@@ -69,6 +69,10 @@ spec:
         {{- end }}
       containers:
         - env:
+            - name: DB_HOST
+              value: "{{ .Release.Name }}-postgresql-hl"
+            - name: DB_PORT
+              value: "{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
             - name: DB_NAME
               value: "{{ .Values.ort_server.postgres.databaseSchema }}"
             - name: DB_SCHEMA
@@ -82,8 +86,6 @@ spec:
                   key: postgres-password
             - name: DB_SSLMODE
               value: disable
-            - name: DB_URL
-              value: "jdbc:postgresql://{{ .Release.Name }}-postgresql-hl:{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
             {{- if .Values.ort_server.artemis.enabled }}
             - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
               value: "activeMQ"

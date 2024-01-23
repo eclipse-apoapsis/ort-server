@@ -153,7 +153,8 @@ services:
       - "8080:8080"
     environment:
       PORT: 8080
-      DB_URL: "jdbc:postgresql://postgres:5432"
+      DB_HOST: postgres
+      DB_PORT: 5432
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres

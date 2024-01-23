@@ -72,7 +72,7 @@ private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()
 
 fun createDataSource(config: DatabaseConfig): DataSource {
     val dataSourceConfig = HikariConfig().apply {
-        jdbcUrl = "${config.jdbcUrl}/${config.name}"
+        jdbcUrl = "jdbc:postgresql://${config.host}:${config.port}/${config.name}"
         schema = config.schema
         username = config.username
         password = config.password
@@ -92,7 +92,8 @@ fun createDataSource(config: DatabaseConfig): DataSource {
 }
 
 data class DatabaseConfig(
-    val jdbcUrl: String,
+    val host: String,
+    val port: Int,
     val name: String,
     val schema: String,
     val username: String,
@@ -108,7 +109,8 @@ data class DatabaseConfig(
  * Create a [DatabaseConfig] object for the *database* configuration, given in [config].
  */
 fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
-    jdbcUrl = config.getString("database.url"),
+    host = config.getString("database.host"),
+    port = config.getInt("database.port"),
     name = config.getString("database.name"),
     schema = config.getString("database.schema"),
     username = config.getSecret(Path("database.username")),

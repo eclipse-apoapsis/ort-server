@@ -35,6 +35,10 @@ spec:
         {{- end }}
       containers:
         - env:
+            - name: DB_HOST
+              value: "{{ .Release.Name }}-postgresql-hl"
+            - name: DB_PORT
+              value: "{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
             - name: DB_NAME
               value: "{{ .Values.ort_server.postgres.databaseSchema }}"
             - name: DB_SCHEMA
@@ -48,8 +52,6 @@ spec:
                   key: postgres-password
             - name: DB_SSLMODE
               value: disable
-            - name: DB_URL
-              value: "jdbc:postgresql://{{ .Release.Name }}-postgresql-hl:{{ .Values.keycloak.postgresql.primary.service.ports.postgresql }}"
             - name: JWT_URI
               value: http://{{ .Release.Name }}-keycloak:{{ .Values.keycloak.service.ports.http }}/realms/master/protocol/openid-connect/certs
             - name: JWT_ISSUER
