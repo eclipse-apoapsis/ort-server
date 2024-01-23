@@ -72,12 +72,13 @@ private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()
 
 fun createDataSource(config: DatabaseConfig): DataSource {
     val dataSourceConfig = HikariConfig().apply {
+        driverClassName = "org.postgresql.Driver"
         jdbcUrl = "jdbc:postgresql://${config.host}:${config.port}/${config.name}"
         schema = config.schema
         username = config.username
         password = config.password
+
         maximumPoolSize = config.maximumPoolSize
-        driverClassName = "org.postgresql.Driver"
 
         addDataSourceProperty("ApplicationName", "ort_server")
         addDataSourceProperty("sslmode", config.sslMode)
@@ -115,9 +116,10 @@ fun createDatabaseConfig(config: ConfigManager) = DatabaseConfig(
     schema = config.getString("database.schema"),
     username = config.getSecret(Path("database.username")),
     password = config.getSecret(Path("database.password")),
-    maximumPoolSize = config.getInt("database.maximumPoolSize"),
-    sslMode = config.getString("database.sslMode"),
 
+    maximumPoolSize = config.getInt("database.maximumPoolSize"),
+
+    sslMode = config.getString("database.sslMode"),
     sslCert = config.getStringOrNull("database.sslCert"),
     sslKey = config.getStringOrNull("database.sslKey"),
     sslRootCert = config.getStringOrNull("database.sslRootCert")
