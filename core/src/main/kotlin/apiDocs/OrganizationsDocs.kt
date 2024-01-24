@@ -29,11 +29,15 @@ import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.Organization
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
@@ -72,12 +76,19 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Organization>> {
+            jsonBody<PagedResponse<Organization>> {
                 example(
                     name = "List all organizations",
-                    value = listOf(
-                        Organization(id = 1, name = "First Organization", description = "Description"),
-                        Organization(id = 2, name = "Second Organization")
+                    value = PagedResponse(
+                        listOf(
+                            Organization(id = 1, name = "First Organization", description = "Description"),
+                            Organization(id = 2, name = "Second Organization")
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }
@@ -180,12 +191,19 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Product>> {
+            jsonBody<PagedResponse<Product>> {
                 example(
                     name = "Get products of an organization",
-                    value = listOf(
-                        Product(id = 1, name = "My first product", description = "Description"),
-                        Product(id = 2, name = "My second product")
+                    value = PagedResponse(
+                        listOf(
+                            Product(id = 1, name = "My first product", description = "Description"),
+                            Product(id = 2, name = "My second product")
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }
@@ -238,12 +256,19 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "Get all secrets of an organization",
-                    value = listOf(
-                        Secret(name = "rsa", description = "rsa certificate"),
-                        Secret(name = "secret", description = "another secret")
+                    value = PagedResponse(
+                        listOf(
+                            Secret(name = "rsa", description = "rsa certificate"),
+                            Secret(name = "secret", description = "another secret")
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }
@@ -383,23 +408,30 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<InfrastructureService>> {
+            jsonBody<PagedResponse<InfrastructureService>> {
                 example(
                     name = "List all infrastructure services for an organization",
-                    value = listOf(
-                        InfrastructureService(
-                            name = "Artifactory",
-                            url = "https://artifactory.example.org/releases",
-                            description = "Artifactory repository",
-                            usernameSecretRef = "artifactoryUsername",
-                            passwordSecretRef = "artifactoryPassword"
+                    value = PagedResponse(
+                        listOf(
+                            InfrastructureService(
+                                name = "Artifactory",
+                                url = "https://artifactory.example.org/releases",
+                                description = "Artifactory repository",
+                                usernameSecretRef = "artifactoryUsername",
+                                passwordSecretRef = "artifactoryPassword"
+                            ),
+                            InfrastructureService(
+                                name = "GitHub",
+                                url = "https://github.com",
+                                description = "GitHub server",
+                                usernameSecretRef = "gitHubUsername",
+                                passwordSecretRef = "gitHubPassword"
+                            )
                         ),
-                        InfrastructureService(
-                            name = "GitHub",
-                            url = "https://github.com",
-                            description = "GitHub server",
-                            usernameSecretRef = "gitHubUsername",
-                            passwordSecretRef = "gitHubPassword"
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
                         )
                     )
                 )

@@ -36,6 +36,7 @@ import org.koin.ktor.ext.inject
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.Jobs
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
@@ -56,6 +57,8 @@ import org.ossreviewtoolkit.server.core.services.OrchestratorService
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.services.RepositoryService
 import org.ossreviewtoolkit.server.services.SecretService
 
@@ -100,12 +103,17 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
+            val paginationParameters =
+                call.listQueryParameters(OrderField("createdAt", OrderDirection.DESCENDING))
 
-            val ortRuns = repositoryService.getOrtRuns(repositoryId, call.listQueryParameters())
-            call.respond(
-                HttpStatusCode.OK,
-                ortRuns.map { it.mapToApi(repositoryService.getJobs(repositoryId, it.index)!!.mapToApi()) }
+            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, paginationParameters)
+                .map { it.mapToApi(repositoryService.getJobs(repositoryId, it.index)!!.mapToApi()) }
+            val pagedResponse = PagedResponse(
+                jobsForOrtRuns,
+                paginationParameters
             )
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
         post(postOrtRun) {
@@ -150,11 +158,15 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             requirePermission(RepositoryPermission.READ)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
+            val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-            call.respond(
-                HttpStatusCode.OK,
-                secretService.listForRepository(repositoryId, call.listQueryParameters()).map { it.mapToApi() }
+            val secretsForRepository = secretService.listForRepository(repositoryId, paginationParameters)
+            val pagedResponse = PagedResponse(
+                secretsForRepository.map { it.mapToApi() },
+                paginationParameters
             )
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
         route("{secretName}") {

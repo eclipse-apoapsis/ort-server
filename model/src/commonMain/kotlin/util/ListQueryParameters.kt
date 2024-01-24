@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.model.util
 
+import kotlinx.serialization.Serializable
+
 /**
  * An enum class defining constants for the direction in which fields are sorted.
  */
@@ -33,6 +35,7 @@ enum class OrderDirection {
 /**
  * A data class defining a field by which a query result should be ordered.
  */
+@Serializable
 data class OrderField(
     /** The name of the field. */
     val name: String,
@@ -47,6 +50,7 @@ data class OrderField(
  * Via the properties defined here, query results can be customized, e.g. by applying ordering or paging. This is a
  * generic mechanism supported by all query functions returning lists.
  */
+@Serializable
 data class ListQueryParameters(
     /**
      * A list with fields by which the query result should be sorted. Here multiple [OrderField] objects can be
@@ -73,5 +77,10 @@ data class ListQueryParameters(
          * affect the result of a query.
          */
         val DEFAULT = ListQueryParameters()
+
+        /**
+         * Constant for [limit] used as default if no limit is given as request parameter.
+         */
+        const val DEFAULT_LIMIT = 20
     }
 }

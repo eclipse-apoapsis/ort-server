@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.server.core.createJsonClient
 import org.ossreviewtoolkit.server.core.testutils.noDbConfig
 import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.utils.test.Integration
@@ -44,7 +45,9 @@ class ExtensionsTest : WordSpec({
     "ApplicationCall.listQueryParameters" should {
         "handle a request without parameters" {
             testParameterExtraction(null) {
-                it shouldBe ListQueryParameters.DEFAULT
+                it.limit shouldBe DEFAULT_LIMIT
+                it.offset shouldBe 0
+                it.sortFields shouldBe listOf(OrderField("name", OrderDirection.ASCENDING))
             }
         }
 
@@ -52,12 +55,14 @@ class ExtensionsTest : WordSpec({
             val limit = 42
             testParameterExtraction("?limit=$limit") { params ->
                 params.limit shouldBe limit
+                params.offset shouldBe 0
             }
         }
 
         "handle a request with an offset parameter" {
             val offset = 128
             testParameterExtraction("?offset=$offset") { params ->
+                params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe offset
             }
         }
@@ -66,6 +71,8 @@ class ExtensionsTest : WordSpec({
             val field = "name"
             testParameterExtraction("?sort=name") { params ->
                 params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.ASCENDING))
+                params.limit shouldBe DEFAULT_LIMIT
+                params.offset shouldBe 0
             }
         }
 
@@ -76,6 +83,8 @@ class ExtensionsTest : WordSpec({
 
             testParameterExtraction(query) { params ->
                 params.sortFields shouldContainExactly expectedOrderFields
+                params.limit shouldBe DEFAULT_LIMIT
+                params.offset shouldBe 0
             }
         }
 
@@ -83,6 +92,8 @@ class ExtensionsTest : WordSpec({
             val field = "fieldToSort"
             testParameterExtraction("?sort=%2B$field") { params ->
                 params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.ASCENDING))
+                params.limit shouldBe DEFAULT_LIMIT
+                params.offset shouldBe 0
             }
         }
 
@@ -90,6 +101,8 @@ class ExtensionsTest : WordSpec({
             val field = "creationDate"
             testParameterExtraction("?sort=-$field") { params ->
                 params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.DESCENDING))
+                params.limit shouldBe DEFAULT_LIMIT
+                params.offset shouldBe 0
             }
         }
     }
@@ -102,7 +115,7 @@ private fun testParameterExtraction(query: String?, check: (ListQueryParameters)
     ortServerTestApplication(config = noDbConfig) {
         routing {
             get("/test") {
-                val parameters = call.listQueryParameters()
+                val parameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
                 check(parameters)
 

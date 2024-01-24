@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.dao.QueryParametersException
 import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.ossreviewtoolkit.server.model.util.OrderDirection
 import org.ossreviewtoolkit.server.model.util.OrderField
 
@@ -63,13 +64,20 @@ fun ConfigManager.createKeycloakClientConfiguration() =
 /**
  * Return a [ListQueryParameters] object with the standard query parameters defined for this [ApplicationCall]. This
  * can then be used when calling services.
+ *
+ *  Whenever a lists of results is returned, in order to grant reproducible results, there has
+ *  to be a sort order, and it needs to be specified as [defaultOrderField].
+ *  Additionally, to avoid that large numbers of results are returned, there
+ *  is a default limit of results (if no other limit is given).
  */
-fun ApplicationCall.listQueryParameters(): ListQueryParameters =
-    ListQueryParameters(
-        limit = numberParameter("limit")?.toInt(),
-        offset = numberParameter("offset")?.toLong(),
-        sortFields = parameters["sort"]?.let(::processSortParameter).orEmpty()
-    )
+fun ApplicationCall.listQueryParameters(defaultOrderField: OrderField): ListQueryParameters {
+    val sortFields = parameters["sort"]?.let(::processSortParameter).orEmpty().takeIf { it.isNotEmpty() }
+        ?: listOf(defaultOrderField)
+    val limit = numberParameter("limit")?.toInt()?.takeIf { it > 0 } ?: DEFAULT_LIMIT
+    val offset = numberParameter("offset")?.toLong()?.takeIf { it >= 0 } ?: 0
+
+    return ListQueryParameters(sortFields, limit, offset)
+}
 
 /**
  * Converts the given [sort] parameter with the fields to sort query results to a list of [OrderField] objects. The

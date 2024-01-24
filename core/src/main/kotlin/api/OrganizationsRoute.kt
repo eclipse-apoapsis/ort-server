@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.CreateOrganization
 import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
@@ -62,6 +63,8 @@ import org.ossreviewtoolkit.server.core.authorization.requireSuperuser
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.services.InfrastructureServiceService
 import org.ossreviewtoolkit.server.services.OrganizationService
 import org.ossreviewtoolkit.server.services.SecretService
@@ -75,9 +78,15 @@ fun Route.organizations() = route("organizations") {
     get(getOrganizations) {
         requireSuperuser()
 
-        val organizations = organizationService.listOrganizations(call.listQueryParameters())
+        val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-        call.respond(HttpStatusCode.OK, organizations.map { it.mapToApi() })
+        val organizations = organizationService.listOrganizations(paginationParameters)
+        val pagedResponse = PagedResponse(
+            organizations.map { it.mapToApi() },
+            paginationParameters
+        )
+
+        call.respond(HttpStatusCode.OK, pagedResponse)
     }
 
     post(postOrganizations) {
@@ -128,12 +137,16 @@ fun Route.organizations() = route("organizations") {
             requirePermission(OrganizationPermission.READ_PRODUCTS)
 
             val orgId = call.requireParameter("organizationId").toLong()
+            val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-            call.respond(
-                HttpStatusCode.OK,
-                organizationService.listProductsForOrganization(orgId, call.listQueryParameters())
-                    .map { it.mapToApi() }
+            val productsForOrganization =
+                organizationService.listProductsForOrganization(orgId, paginationParameters)
+            val pagedResponse = PagedResponse(
+                productsForOrganization.map { it.mapToApi() },
+                paginationParameters
             )
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
         post("products", postProduct) {
@@ -151,12 +164,16 @@ fun Route.organizations() = route("organizations") {
             get(getSecretsByOrganizationId) {
                 requirePermission(OrganizationPermission.READ)
 
-                val id = call.requireParameter("organizationId").toLong()
+                val orgId = call.requireParameter("organizationId").toLong()
+                val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-                call.respond(
-                    HttpStatusCode.OK,
-                    secretService.listForOrganization(id, call.listQueryParameters()).map { it.mapToApi() }
+                val secretsForOrganization = secretService.listForOrganization(orgId, paginationParameters)
+                val pagedResponse = PagedResponse(
+                    secretsForOrganization.map { it.mapToApi() },
+                    paginationParameters
                 )
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
             }
 
             route("{secretName}") {
@@ -225,13 +242,17 @@ fun Route.organizations() = route("organizations") {
             get(getInfrastructureServicesByOrganizationId) {
                 requirePermission(OrganizationPermission.READ)
 
-                val organizationId = call.requireParameter("organizationId").toLong()
+                val orgId = call.requireParameter("organizationId").toLong()
+                val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-                call.respond(
-                    HttpStatusCode.OK,
-                    infrastructureServiceService.listForOrganization(organizationId, call.listQueryParameters())
-                        .map { it.mapToApi() }
+                val infrastructureServicesForOrganization =
+                    infrastructureServiceService.listForOrganization(orgId, paginationParameters)
+                val pagedResponse = PagedResponse(
+                    infrastructureServicesForOrganization.map { it.mapToApi() },
+                    paginationParameters
                 )
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
             }
 
             post(postInfrastructureServiceForOrganization) {

@@ -42,7 +42,7 @@ inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiSimpleBod
  */
 fun OpenApiRequest.standardListQueryParameters() {
     queryParameter<Int>("limit") {
-        description = "The maximum number of items to retrieve."
+        description = "The maximum number of items to retrieve. If not specified at most 20 items are retrieved."
     }
     queryParameter<Long>("offset") {
         description = "The offset of the first item in the result. Together with 'limit', this can be used to " +
@@ -51,6 +51,6 @@ fun OpenApiRequest.standardListQueryParameters() {
     queryParameter<String>("sort") {
         description = "Comma-separated list of fields by which the result is sorted. The listed fields must be " +
                 "supported by the endpoint. Putting a minus ('-') before a field name, reverts the sort order " +
-                "for this field."
+                "for this field. If not specified, a default sort field and sort order is used."
     }
 }

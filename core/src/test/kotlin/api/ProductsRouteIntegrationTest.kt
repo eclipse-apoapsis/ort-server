@@ -39,6 +39,7 @@ import io.ktor.http.HttpStatusCode
 
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
@@ -53,6 +54,11 @@ import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
 import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
+import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.secrets.Path
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
@@ -245,9 +251,16 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(
-                    Repository(createdRepository1.id, type.mapToApi(), url1),
-                    Repository(createdRepository2.id, type.mapToApi(), url2)
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Repository(createdRepository1.id, type.mapToApi(), url1),
+                        Repository(createdRepository2.id, type.mapToApi(), url2)
+                    ),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("url", ASCENDING)),
+                        limit = DEFAULT_LIMIT,
+                        offset = 0
+                    )
                 )
             }
         }
@@ -268,7 +281,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(Repository(createdRepository2.id, type.mapToApi(), url2))
+                response shouldHaveBody PagedResponse(
+                    listOf(Repository(createdRepository2.id, type.mapToApi(), url2)),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("url", DESCENDING)),
+                        limit = 1,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -338,7 +358,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(secret1.mapToApi(), secret2.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(secret1.mapToApi(), secret2.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", ASCENDING)),
+                        limit = 20,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -352,7 +379,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(secret.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(secret.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", DESCENDING)),
+                        limit = 1,
+                        offset = 0
+                    )
+                )
             }
         }
 

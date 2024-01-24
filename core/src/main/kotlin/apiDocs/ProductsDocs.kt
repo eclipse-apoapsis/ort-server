@@ -25,12 +25,18 @@ import io.ktor.http.HttpStatusCode
 
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Repository
 import org.ossreviewtoolkit.server.api.v1.RepositoryType
+import org.ossreviewtoolkit.server.api.v1.RepositoryType.GIT
+import org.ossreviewtoolkit.server.api.v1.RepositoryType.SUBVERSION
 import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
@@ -122,12 +128,21 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Repository>> {
+            jsonBody<PagedResponse<Repository>> {
                 example(
                     name = "Get repositories of a product",
-                    value = listOf(
-                        Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/first/repo.git"),
-                        Repository(id = 2, type = RepositoryType.SUBVERSION, url = "https://example.com/second/repo")
+                    value = PagedResponse(
+                        listOf(
+                            Repository(id = 1, type = GIT, url = "https://example.com/first/repo.git"),
+                            Repository(
+                                id = 2, type = SUBVERSION, url = "https://example.com/second/repo"
+                            )
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("url", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }
@@ -183,12 +198,19 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "List all secrets of a product",
-                    value = listOf(
-                        Secret(name = "rsa", description = "ssh rsa certificate"),
-                        Secret(name = "secret", description = "another secret")
+                    value = PagedResponse(
+                        listOf(
+                            Secret(name = "rsa", description = "ssh rsa certificate"),
+                            Secret(name = "secret", description = "another secret")
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }

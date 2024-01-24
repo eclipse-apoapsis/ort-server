@@ -46,6 +46,7 @@ import org.ossreviewtoolkit.server.api.v1.CreateProduct
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
 import org.ossreviewtoolkit.server.api.v1.Organization
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.Product
 import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
@@ -60,7 +61,12 @@ import org.ossreviewtoolkit.server.model.authorization.ProductRole
 import org.ossreviewtoolkit.server.model.authorization.Superuser
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
+import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 import org.ossreviewtoolkit.server.secrets.Path
 import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
@@ -133,7 +139,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(org1.mapToApi(), org2.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(org1.mapToApi(), org2.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", ASCENDING)),
+                        limit = DEFAULT_LIMIT,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -145,7 +158,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(org2.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(org2.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", DESCENDING)),
+                        limit = 1,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -470,9 +490,16 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(
-                    Product(createdProduct1.id, name1, description),
-                    Product(createdProduct2.id, name2, description)
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Product(createdProduct1.id, name1, description),
+                        Product(createdProduct2.id, name2, description)
+                    ),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", ASCENDING)),
+                        limit = DEFAULT_LIMIT,
+                        offset = 0
+                    )
                 )
             }
         }
@@ -492,7 +519,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(Product(createdProduct2.id, name2, description))
+                response shouldHaveBody PagedResponse(
+                    listOf(Product(createdProduct2.id, name2, description)),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", DESCENDING)),
+                        limit = 1,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -515,7 +549,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(secret1.mapToApi(), secret2.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(secret1.mapToApi(), secret2.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", ASCENDING)),
+                        limit = DEFAULT_LIMIT,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -529,7 +570,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody listOf(secret.mapToApi())
+                response shouldHaveBody PagedResponse(
+                    listOf(secret.mapToApi()),
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", DESCENDING)),
+                        limit = 1,
+                        offset = 0
+                    )
+                )
             }
         }
 
@@ -784,7 +832,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
+                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
 
@@ -822,7 +870,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<List<ApiInfrastructureService>>() shouldContainExactlyInAnyOrder apiServices
+                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
 

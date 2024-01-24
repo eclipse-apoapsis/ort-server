@@ -35,6 +35,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.server.api.v1.CreateRepository
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.UpdateProduct
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
@@ -53,6 +54,8 @@ import org.ossreviewtoolkit.server.core.authorization.requirePermission
 import org.ossreviewtoolkit.server.core.utils.listQueryParameters
 import org.ossreviewtoolkit.server.core.utils.requireParameter
 import org.ossreviewtoolkit.server.model.authorization.ProductPermission
+import org.ossreviewtoolkit.server.model.util.OrderDirection
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.services.ProductService
 import org.ossreviewtoolkit.server.services.SecretService
 
@@ -100,12 +103,17 @@ fun Route.products() = route("products/{productId}") {
         get(getRepositoriesByProductId) {
             requirePermission(ProductPermission.READ_REPOSITORIES)
 
-            val id = call.requireParameter("productId").toLong()
+            val productId = call.requireParameter("productId").toLong()
+            val paginationParameters = call.listQueryParameters(OrderField("url", OrderDirection.ASCENDING))
 
-            call.respond(
-                HttpStatusCode.OK,
-                productService.listRepositoriesForProduct(id, call.listQueryParameters()).map { it.mapToApi() }
+            val repositoriesForProduct =
+                productService.listRepositoriesForProduct(productId, paginationParameters)
+            val pagedResponse = PagedResponse(
+                repositoriesForProduct.map { it.mapToApi() },
+                paginationParameters
             )
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
         post(postRepository) {
@@ -127,11 +135,15 @@ fun Route.products() = route("products/{productId}") {
             requirePermission(ProductPermission.READ)
 
             val productId = call.requireParameter("productId").toLong()
+            val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
 
-            call.respond(
-                HttpStatusCode.OK,
-                secretService.listForProduct(productId, call.listQueryParameters()).map { it.mapToApi() }
+            val secretsForProduct = secretService.listForProduct(productId, paginationParameters)
+            val pagedResponse = PagedResponse(
+                secretsForProduct.map { it.mapToApi() },
+                paginationParameters
             )
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
         route("{secretName}") {

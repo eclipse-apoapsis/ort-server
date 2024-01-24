@@ -26,6 +26,7 @@ import io.ktor.http.HttpStatusCode
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
 
 import org.ossreviewtoolkit.server.api.v1.AdvisorJob
 import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
@@ -42,7 +43,10 @@ import org.ossreviewtoolkit.server.api.v1.JobStatus
 import org.ossreviewtoolkit.server.api.v1.Jobs
 import org.ossreviewtoolkit.server.api.v1.OrtRun
 import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
+import org.ossreviewtoolkit.server.api.v1.OrtRunStatus.ACTIVE
+import org.ossreviewtoolkit.server.api.v1.OrtRunStatus.FINISHED
 import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.api.v1.PagedResponse
 import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.api.v1.ReporterJob
 import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
@@ -53,6 +57,10 @@ import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.Secret
 import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
+import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
+import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
+import org.ossreviewtoolkit.server.model.util.OrderField
 import org.ossreviewtoolkit.server.model.util.asPresent
 
 private val jobConfigurations = JobConfigurations(
@@ -250,41 +258,48 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<OrtRun>> {
+            jsonBody<PagedResponse<OrtRun>> {
                 example(
                     name = "Get ORT runs",
-                    value = listOf(
-                        OrtRun(
-                            id = 2,
-                            index = 1,
-                            repositoryId = 1,
-                            revision = "main",
-                            createdAt = Clock.System.now() - 4.minutes,
-                            jobConfigs = jobConfigurations,
-                            resolvedJobConfigs = jobConfigurations,
-                            jobs = jobs,
-                            status = OrtRunStatus.FINISHED,
-                            finishedAt = Clock.System.now(),
-                            labels = mapOf("label key" to "label value"),
-                            issues = emptyList(),
-                            jobConfigContext = null,
-                            resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
+                    value = PagedResponse(
+                        listOf(
+                            OrtRun(
+                                id = 2,
+                                index = 1,
+                                repositoryId = 1,
+                                revision = "main",
+                                createdAt = System.now() - 4.minutes,
+                                jobConfigs = jobConfigurations,
+                                resolvedJobConfigs = jobConfigurations,
+                                jobs = jobs,
+                                status = FINISHED,
+                                finishedAt = System.now(),
+                                labels = mapOf("label key" to "label value"),
+                                issues = emptyList(),
+                                jobConfigContext = null,
+                                resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
+                            ),
+                            OrtRun(
+                                id = 3,
+                                index = 2,
+                                repositoryId = 1,
+                                revision = "main",
+                                createdAt = System.now(),
+                                jobConfigs = jobConfigurations,
+                                resolvedJobConfigs = jobConfigurations,
+                                jobs = jobs,
+                                status = ACTIVE,
+                                finishedAt = null,
+                                labels = mapOf("label key" to "label value"),
+                                issues = emptyList(),
+                                jobConfigContext = null,
+                                resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                            )
                         ),
-                        OrtRun(
-                            id = 3,
-                            index = 2,
-                            repositoryId = 1,
-                            revision = "main",
-                            createdAt = Clock.System.now(),
-                            jobConfigs = jobConfigurations,
-                            resolvedJobConfigs = jobConfigurations,
-                            jobs = jobs,
-                            status = OrtRunStatus.ACTIVE,
-                            finishedAt = null,
-                            labels = mapOf("label key" to "label value"),
-                            issues = emptyList(),
-                            jobConfigContext = null,
-                            resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("createdAt", DESCENDING)),
+                            limit = 20,
+                            offset = 0
                         )
                     )
                 )
@@ -401,12 +416,19 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<List<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "Get all secrets of a repository",
-                    value = listOf(
-                        Secret(name = "rsa", description = "ssh rsa certificate"),
-                        Secret(name = "secret", description = "another secret")
+                    value = PagedResponse(
+                        listOf(
+                            Secret(name = "rsa", description = "ssh rsa certificate"),
+                            Secret(name = "secret", description = "another secret")
+                        ),
+                        ListQueryParameters(
+                            sortFields = listOf(OrderField("name", ASCENDING)),
+                            limit = 20,
+                            offset = 0
+                        )
                     )
                 )
             }
