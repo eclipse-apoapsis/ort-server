@@ -27,6 +27,18 @@ cd workers/scanner/docker
 DOCKER_BUILDKIT=1 docker build . -f Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```
 
+For analyzing Java projects, it must be ensured that the Java version used by the Analyzer worker is compatible with
+the JDK used by the project. If the project requires a newer Java version, you might see `UnsupportedClassVersionError`
+exceptions; projects running on an old Java version can cause problems as well. To deal with such problems, it is
+possible to customize the Java version in the container image for the Analyzer worker. This is done via the
+`TEMURIN_VERSION` build argument. Per default, the version is set to a JDK 17. To change this, pass a build argument
+with the desired target version, for instance for targeting Java 11:
+
+```shell
+DOCKER_BUILDKIT=1 docker build --build-arg="TEMURIN_VERSION=11" . -f Analyzer.Dockerfile \
+  -t ort-server-analyzer-worker-base-image:11-latest
+```
+
 Then the Docker images can be built with [Jib](https://github.com/GoogleContainerTools/jib):
 
 ```shell
