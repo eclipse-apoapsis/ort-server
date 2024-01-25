@@ -28,7 +28,7 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 
-import java.net.URL
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 import org.koin.ktor.ext.inject
@@ -49,7 +49,7 @@ fun Application.configureAuthentication() {
     val keycloakClient by inject<KeycloakClient>()
 
     val issuer = config.property("jwt.issuer").getString()
-    val jwksUri = URL(config.property("jwt.jwksUri").getString())
+    val jwksUri = URI(config.property("jwt.jwksUri").getString()).toURL()
     val configuredRealm = config.property("jwt.realm").getString()
     val jwkProvider = JwkProviderBuilder(jwksUri)
         .cached(10, 24, TimeUnit.HOURS)
