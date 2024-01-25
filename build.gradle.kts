@@ -19,6 +19,7 @@
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 @Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
@@ -81,10 +82,23 @@ subprojects {
         source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
     }
 
+    val javaVersion = JavaVersion.current()
+    val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaVersion.majorVersion) }
+        .getOrDefault(enumValues<JvmTarget>().max())
+
+    tasks.withType<JavaCompile>().configureEach {
+        // Align this with Kotlin to avoid errors, see https://youtrack.jetbrains.com/issue/KT-48745.
+        sourceCompatibility = maxKotlinJvmTarget.target
+        targetCompatibility = maxKotlinJvmTarget.target
+    }
+
     tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget = maxKotlinJvmTarget
+        }
+
         kotlinOptions {
             allWarningsAsErrors = true
-            jvmTarget = JavaVersion.VERSION_17.majorVersion
             apiVersion = "1.8"
         }
     }
