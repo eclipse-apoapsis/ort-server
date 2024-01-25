@@ -77,7 +77,7 @@ subprojects {
     detekt {
         // Only configure differences to the default.
         buildUponDefaultConfig = true
-        config = files("$rootDir/.detekt.yml")
+        config.setFrom(files("$rootDir/.detekt.yml"))
         basePath = rootProject.projectDir.path
         source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
     }
@@ -109,7 +109,7 @@ subprojects {
             jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")
         }
 
-        val testSystemProperties = mutableListOf("gradle.build.dir" to project.buildDir.path)
+        val testSystemProperties = mutableListOf("gradle.build.dir" to project.layout.buildDirectory.get().toString())
 
         listOf(
             "kotest.assertions.multi-line-diff",
