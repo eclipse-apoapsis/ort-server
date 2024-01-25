@@ -23,6 +23,10 @@ import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.config.Path
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
+/**
+ * A holder for the database configuration, used to set up the
+ * [Hikari connection pool](https://github.com/brettwooldridge/HikariCP).
+ */
 data class DatabaseConfig(
     /** The host of the database, for example 'localhost'. */
     val host: String,
