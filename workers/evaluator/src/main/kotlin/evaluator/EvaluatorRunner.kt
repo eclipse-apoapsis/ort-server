@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.model.utils.ConfigurationResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.model.utils.setPackageConfigurations
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.server.config.Path
@@ -92,7 +93,9 @@ class EvaluatorRunner(
             addAll(PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second })
         }.let { CompositePackageConfigurationProvider(it) }
 
-        val resolutionsFromOrtResult = ortResult.getResolutions()
+        val resolvedOrtResult = ortResult.setPackageConfigurations(packageConfigurationProvider)
+
+        val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
         val resolutionsFromFile = workerContext.configManager.readConfigFileWithDefault(
             path = config.resolutionsFile,
@@ -105,7 +108,7 @@ class EvaluatorRunner(
 
         // TODO: Make the hardcoded values below configurable.
         val licenseInfoResolver = LicenseInfoResolver(
-            provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
+            provider = DefaultLicenseInfoProvider(resolvedOrtResult),
             copyrightGarbage = copyrightGarbage,
             addAuthorsToCopyrights = true,
             archiver = fileArchiver,
@@ -113,7 +116,7 @@ class EvaluatorRunner(
         )
 
         val evaluator = Evaluator(
-            ortResult = ortResult,
+            ortResult = resolvedOrtResult,
             licenseClassifications = licenseClassifications,
             licenseInfoResolver = licenseInfoResolver,
             resolutionProvider = resolutionProvider
@@ -121,20 +124,18 @@ class EvaluatorRunner(
 
         val evaluatorRun = evaluator.run(script)
 
-        val packageConfigurations = ConfigurationResolver.resolvePackageConfigurations(
-            identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
-            scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
-            packageConfigurationProvider = packageConfigurationProvider
-        )
-
         val resolutions = ConfigurationResolver.resolveResolutions(
-            issues = ortResult.getIssues().values.flatten(),
+            issues = resolvedOrtResult.getIssues().values.flatten(),
             ruleViolations = evaluatorRun.violations,
-            vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
+            vulnerabilities = resolvedOrtResult.getVulnerabilities().values.flatten(),
             resolutionProvider = resolutionProvider
         )
 
-        return EvaluatorRunnerResult(evaluatorRun, packageConfigurations, resolutions)
+        return EvaluatorRunnerResult(
+            evaluatorRun,
+            resolvedOrtResult.resolvedConfiguration.packageConfigurations.orEmpty(),
+            resolutions
+        )
     }
 }
 

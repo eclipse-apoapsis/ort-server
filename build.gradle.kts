@@ -70,7 +70,7 @@ subprojects {
     dependencies {
         "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
 
-        "detektPlugins"("com.github.oss-review-toolkit.ort:detekt-rules:${rootProject.libs.versions.ort.get()}")
+        "detektPlugins"("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
     }
 
     detekt {

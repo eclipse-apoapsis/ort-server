@@ -47,7 +47,10 @@ internal class AdvisorRunner {
             }
 
             val pluginConfigs = context.resolveConfigSecrets(config.config)
-            val advisorConfig = AdvisorConfiguration(pluginConfigs.mapValues { it.value.mapToOrt() })
+            val advisorConfig = AdvisorConfiguration(
+                config.skipExcluded,
+                pluginConfigs.mapValues { it.value.mapToOrt() }
+            )
 
             val advisor = Advisor(providerFactories, advisorConfig)
 

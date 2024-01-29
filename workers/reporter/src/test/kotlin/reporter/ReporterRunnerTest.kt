@@ -54,6 +54,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
+import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.server.config.ConfigException
@@ -485,9 +486,11 @@ class ReporterRunnerTest : WordSpec({
             result.resolvedResolutions should beNull()
 
             reporterInputSlot.isCaptured shouldBe true
-            reporterInputSlot.captured.resolutionProvider.isResolved(OrtTestData.issue) shouldBe true
-            reporterInputSlot.captured.resolutionProvider.isResolved(ruleViolation) shouldBe true
-            reporterInputSlot.captured.resolutionProvider.isResolved(OrtTestData.vulnerability) shouldBe true
+            DefaultResolutionProvider(reporterInputSlot.captured.ortResult.repository.config.resolutions).apply {
+                isResolved(OrtTestData.issue) shouldBe true
+                isResolved(ruleViolation) shouldBe true
+                isResolved(OrtTestData.vulnerability) shouldBe true
+            }
         }
 
         "resolve resolutions if no evaluator job is configured" {

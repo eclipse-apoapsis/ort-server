@@ -34,14 +34,14 @@ import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
-import org.ossreviewtoolkit.model.config.orEmpty
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
-import org.ossreviewtoolkit.model.utils.ConfigurationResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.model.utils.setPackageConfigurations
+import org.ossreviewtoolkit.model.utils.setResolutions
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.Reporter
@@ -119,14 +119,12 @@ class ReporterRunner(
                 context = context.resolvedConfigurationContext
             )
 
-            val packageConfigurationProvider = buildList {
-                if (evaluatorConfig != null) {
-                    // Use only the resolved package configurations if they were already resolved by the evaluator.
-                    val resolvedPackageConfigurations = ortResult.resolvedConfiguration.packageConfigurations.orEmpty()
-                    add(SimplePackageConfigurationProvider(resolvedPackageConfigurations))
-                } else {
-                    // Resolve package configurations from the configured providers.
-                    val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
+            var resolvedOrtResult = ortResult
+
+            if (evaluatorConfig == null) {
+                // Resolve package configurations if not already done by the evaluator.
+                val packageConfigurationProvider = buildList {
+                    val repositoryPackageConfigurations = resolvedOrtResult.repository.config.packageConfigurations
                     add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
 
                     val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
@@ -134,15 +132,12 @@ class ReporterRunner(
                         PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
                             .map { it.second }
                     )
-                }
-            }.let { CompositePackageConfigurationProvider(it) }
+                }.let { CompositePackageConfigurationProvider(it) }
 
-            val resolutionProvider = if (evaluatorConfig != null) {
-                // Use only the resolved resolutions if they were already resolved by the evaluator.
-                DefaultResolutionProvider(ortResult.resolvedConfiguration.resolutions.orEmpty())
-            } else {
-                // Resolve resolutions from the repository configuration and resolutions file.
-                val resolutionsFromOrtResult = ortResult.getResolutions()
+                resolvedOrtResult = resolvedOrtResult.setPackageConfigurations(packageConfigurationProvider)
+
+                // Resolve resolutions if not already done by the evaluator.
+                val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
                 val resolutionsFromFile = configManager.readConfigFileWithDefault(
                     path = config.resolutionsFile,
@@ -151,25 +146,25 @@ class ReporterRunner(
                     context = context.resolvedConfigurationContext
                 )
 
-                DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+                val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+
+                resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
             }
 
             // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
             //       default values. This should be changed as soon as other parameters can be configured in the
             //       reporter worker.
             val reporterInput = ReporterInput(
-                ortResult = ortResult,
+                ortResult = resolvedOrtResult,
                 licenseInfoResolver = LicenseInfoResolver(
-                    provider = DefaultLicenseInfoProvider(ortResult, packageConfigurationProvider),
+                    provider = DefaultLicenseInfoProvider(resolvedOrtResult),
                     copyrightGarbage = copyrightGarbage,
                     addAuthorsToCopyrights = true,
                     archiver = fileArchiver,
                     licenseFilePatterns = LicenseFilePatterns.DEFAULT
                 ),
                 copyrightGarbage = copyrightGarbage,
-                licenseClassifications = licenseClassifications,
-                packageConfigurationProvider = packageConfigurationProvider,
-                resolutionProvider = resolutionProvider
+                licenseClassifications = licenseClassifications
             )
 
             val results = runBlocking(Dispatchers.IO) {
@@ -218,28 +213,13 @@ class ReporterRunner(
                 it.first.type to it.second.getOrDefault(emptyMap()).keys.toList()
             }
 
-            val packageConfigurations = if (evaluatorConfig != null) {
-                null
-            } else {
-                ConfigurationResolver.resolvePackageConfigurations(
-                    identifiers = ortResult.getUncuratedPackages().mapTo(mutableSetOf()) { it.id },
-                    scanResultProvider = { id -> ortResult.getScanResultsForId(id) },
-                    packageConfigurationProvider = packageConfigurationProvider
-                )
-            }
-
-            val resolutions = if (evaluatorConfig != null) {
-                null
-            } else {
-                ConfigurationResolver.resolveResolutions(
-                    issues = ortResult.getIssues().values.flatten(),
-                    ruleViolations = ortResult.getRuleViolations(),
-                    vulnerabilities = ortResult.getVulnerabilities().values.flatten(),
-                    resolutionProvider = resolutionProvider
-                )
-            }
-
-            ReporterRunnerResult(reports, packageConfigurations, resolutions)
+            // Only return the package configurations and resolutions if they were not already resolved by the
+            // evaluator.
+            ReporterRunnerResult(
+                reports,
+                resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
+                resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null }
+            )
         }
     }
 
