@@ -19,6 +19,7 @@
 
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
+val dockerBaseImageTag: String by project
 
 plugins {
     application
@@ -85,7 +86,7 @@ repositories {
 }
 
 jib {
-    from.image = "docker://ort-server-scanner-worker-base-image:latest"
+    from.image = "docker://ort-server-scanner-worker-base-image:$dockerBaseImageTag"
     to.image = "${dockerImagePrefix}ort-server-scanner-worker:$dockerImageTag"
 
     container {

@@ -45,7 +45,7 @@ Then the Docker images can be built with [Jib](https://github.com/GoogleContaine
 # Build all images at once:
 ./gradlew jibDockerBuild
 
-# Build once specific image, for example for the `core` module:
+# Build one specific image, for example for the `core` module:
 ./gradlew :core:jibDockerBuild
 ```
 
@@ -62,6 +62,27 @@ When building multiple images at once it can also help to disable parallel build
 ```shell
 ./gradlew --no-parallel jibDockerBuild
 ```
+
+In case multiple base images have been created for the Analyzer supporting different Java versions, the tag of the base
+image to be used can be specified as a property. Note that the JDK on which the build is executed determines the JVM
+target of the resulting artifacts. So, if a specialized Analyzer image for Java 11 is to be created, the build must be
+done on a JDK 11 as well:
+
+```shell
+$ java -version
+openjdk version "11.0.22" 2024-01-16
+OpenJDK Runtime Environment Temurin-11.0.22+7 (build 11.0.22+7)
+OpenJDK 64-Bit Server VM Temurin-11.0.22+7 (build 11.0.22+7, mixed mode)
+
+$ ./gradlew -PdockerBaseImageTag=11-latest \
+    -PdockerImageTag=11-latest \
+    :workers:analyzer:jibDockerBuild
+```
+
+Here, the `dockerBaseImageTag` parameter specifies the tag of the Analyzer base image to be used. The
+`dockerImageTag` parameter controls the tag assigned to the newly created Analyzer image. It is _latest_ by default.
+This example sets the same tag for both the base image and the final Analyzer image, which is certainly a reasonable
+convention.
 
 Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to
 choose the one to activate with a [profile](https://docs.docker.com/compose/profiles/):
