@@ -62,7 +62,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                         (PackagesTable.description eq pkg.description) and
                         (PackagesTable.homepageUrl eq pkg.homepageUrl) and
                         (PackagesTable.isMetadataOnly eq pkg.isMetadataOnly) and
-                        (PackagesTable.isModified eq pkg.isMetadataOnly)
+                        (PackagesTable.isModified eq pkg.isModified)
             }.singleOrNull {
                 it.identifier.mapToModel() == pkg.identifier &&
                         it.authors == pkg.authors &&
