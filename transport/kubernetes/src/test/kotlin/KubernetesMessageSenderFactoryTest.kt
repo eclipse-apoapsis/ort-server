@@ -45,7 +45,8 @@ private const val IMAGE_PULL_SECRET = "image_pull_secret"
 private const val BACKOFF_LIMIT = 42
 private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
-private const val SECRET_MOUNTS = "secret1->/mnt/sec1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other\""
+private const val SECRET_MOUNTS =
+    "secret1->/mnt/sec1|sub1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other | sub2\""
 private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space,W\" \"pvc3 -> /mnt/other,r\""
 private const val SERVICE_ACCOUNT = "test_service_account"
 
@@ -93,9 +94,9 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
             secretVolumes shouldContainInOrder listOf(
-                SecretVolumeMount("secret1", "/mnt/sec1"),
+                SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
                 SecretVolumeMount("secret2", "/path/with/white space"),
-                SecretVolumeMount("secret3", "/mnt/other")
+                SecretVolumeMount("secret3", "/mnt/other", "sub2")
             )
             pvcVolumes shouldContainInOrder listOf(
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
@@ -159,9 +160,9 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         sender.config.secretVolumes shouldContainInOrder listOf(
-            SecretVolumeMount("secret1", "/mnt/sec1"),
+            SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
             SecretVolumeMount("secret2", "/path/with/white space"),
-            SecretVolumeMount("secret3", "/mnt/other")
+            SecretVolumeMount("secret3", "/mnt/other", "sub2")
         )
     }
 

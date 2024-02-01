@@ -42,7 +42,10 @@ data class SecretVolumeMount(
     val secretName: String,
 
     /** The path where the secret is to be mounted. */
-    val mountPath: String
+    val mountPath: String,
+
+    /** The optional sub path to mount from the volume. */
+    val subPath: String? = null
 )
 
 /**
@@ -160,10 +163,11 @@ data class KubernetesSenderConfig(
          * created. Using this mechanism, external data stored as Kubernetes secrets can be made available to pods.
          * The value of the property consists of a number of mount declarations separated by whitespace. (If a
          * mount declaration contains whitespace itself, it must be surrounded by quotes.) A single mount declaration
-         * has the form _secret->path_, where _secret_ is the name of the Kubernetes secret, and _path_ is the path
-         * in the filesystem of the pod where the content of the secret is to be mounted. For each mount declaration,
-         * the Kubernetes Transport implementation will create one entry under _volumes_ and one entry under
-         * _volumeMounts_ in the container specification.
+         * has the form _secret->path|subPath_, where _secret_ is the name of the Kubernetes secret, _path_ is the
+         * path in the filesystem of the pod where the content of the secret is to be mounted, and _subPath_ defines
+         * a sub path of the secret to be mounted. The _subPath_ component is optional; it defaults to an empty string
+         * (corresponding to the volume root). For each mount declaration, the Kubernetes Transport implementation will
+         * create one entry under _volumes_ and one entry under _volumeMounts_ in the container specification.
          */
         private const val MOUNT_SECRETS_PROPERTY = "mountSecrets"
 
@@ -240,7 +244,7 @@ data class KubernetesSenderConfig(
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
         /** A regular expression to parse a secret volume mount declaration. */
-        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*(.+)""")
+        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)((\s*)\|\s*(.+))?""")
 
         /** A regular expression to parse a PVC-based volume mount declaration. */
         private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
@@ -312,7 +316,7 @@ data class KubernetesSenderConfig(
          */
         private fun Config.parseSecretVolumeMounts(): List<SecretVolumeMount> =
             toVolumeMounts(MOUNT_SECRETS_PROPERTY, mountSecretDeclarationRegex) { match ->
-                SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!)
+                SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!.trim(), match.groups[5]?.value)
             }
 
         /**
