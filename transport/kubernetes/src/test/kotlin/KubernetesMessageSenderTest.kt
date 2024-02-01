@@ -74,11 +74,13 @@ class KubernetesMessageSenderTest : StringSpec({
                 readOnly shouldBe true
                 name shouldBe "secret-volume-1"
                 mountPath shouldBe "/mnt/secret"
+                subPath should beNull()
             }
             with(mounts[1]) {
                 readOnly shouldBe true
                 name shouldBe "secret-volume-2"
                 mountPath shouldBe "/mnt/top/secret"
+                subPath shouldBe "sub-secret"
             }
             with(mounts[2]) {
                 readOnly shouldBe true
@@ -241,7 +243,7 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
         "restartPolicy" to "Never",
         "backoffLimit" to 11,
         "imagePullSecret" to "image_pull_secret",
-        "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret",
+        "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret|sub-secret",
         "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data,W",
         "annotationVariables" to "v1,v2",
         "serviceAccountName" to "test_service_account"

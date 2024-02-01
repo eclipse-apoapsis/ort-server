@@ -170,6 +170,7 @@ internal class KubernetesMessageSender<T : Any>(
             V1VolumeMount()
                 .name("$SECRET_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
+                .subPath(volumeMount.subPath)
                 .readOnly(true)
         } + msgConfig.pvcVolumes.mapIndexed { index, volumeMount ->
             V1VolumeMount()
