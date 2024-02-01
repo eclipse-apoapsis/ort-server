@@ -75,6 +75,35 @@ fun Application.configureOpenApi() {
             description = "Local ORT server"
         }
 
+        // OpenAPI provides tags not only on operation level, but also on root level.
+        // This allows to provide additional information to the tags, and actually the order
+        // of the tags on root level also defines the order of appearance of the operations
+        // (belonging to these tags) in the Swagger UI.
+        // See https://swagger.io/docs/specification/grouping-operations-with-tags/ for details.
+        tag("Health") {
+        }
+
+        tag("Organizations") {
+        }
+
+        tag("Products") {
+        }
+
+        tag("Repositories") {
+        }
+
+        tag("Secrets") {
+        }
+
+        tag("Infrastructure services") {
+        }
+
+        tag("Reports") {
+        }
+
+        tag("Logs") {
+        }
+
         encoding {
             schemaEncoder { type ->
                 json.encodeToSchema(serializer(type), generateDefinitions = false)
