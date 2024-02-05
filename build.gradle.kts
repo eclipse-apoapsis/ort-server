@@ -26,11 +26,24 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.gitSemver)
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.versionCatalogUpdate)
     alias(libs.plugins.versions)
 }
+
+semver {
+    // Do not create an empty release commit when running the "releaseVersion" task.
+    createReleaseCommit = false
+
+    // Do not let untracked files bump the version or add a "-SNAPSHOT" suffix.
+    noDirtyCheck = true
+}
+
+version = semver.semVersion
+
+logger.lifecycle("Building ORT Server version $version.")
 
 versionCatalogUpdate {
     // Keep the custom sorting / grouping.
