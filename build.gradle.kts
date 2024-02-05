@@ -75,6 +75,10 @@ allprojects {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
+
+        manifest {
+            attributes["Implementation-Version"] = version
+        }
     }
 }
 
