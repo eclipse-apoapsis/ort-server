@@ -73,6 +73,8 @@ allprojects {
 
     tasks.withType<Jar> {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
     }
 }
 
