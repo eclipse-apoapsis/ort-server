@@ -33,6 +33,8 @@ import kotlinx.serialization.serializer
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.server.model.ORT_SERVER_VERSION
+
 fun Application.configureOpenApi() {
     val config: ApplicationConfig by inject()
     val json: Json by inject()
@@ -63,7 +65,7 @@ fun Application.configureOpenApi() {
 
         info {
             title = "ORT Server API"
-            version = "0.0.1-SNAPSHOT"
+            version = ORT_SERVER_VERSION
             license {
                 name = "Apache-2.0"
                 url = "https://www.apache.org/licenses/LICENSE-2.0"
