@@ -24,10 +24,10 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-        cache: gradle
     - name: Build all classes
-      uses: burrunan/gradle-cache-action@v1
+      uses: gradle/gradle-build-action@v3
       with:
+        gradle-home-cache-cleanup: true
         arguments: --stacktrace classes
   test:
     needs: build
@@ -40,10 +40,10 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-        cache: gradle
     - name: Run tests
-      uses: burrunan/gradle-cache-action@v1
+      uses: gradle/gradle-build-action@v3
       with:
+        gradle-home-cache-cleanup: true
         arguments:  test -Dkotest.tags='!Integration'
   integration-test:
     needs: build
@@ -56,8 +56,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
       - name: Run tests
-        uses: burrunan/gradle-cache-action@v1
+        uses: gradle/gradle-build-action@v3
         with:
+          gradle-home-cache-cleanup: true
           arguments: test -Dkotest.tags='Integration'
