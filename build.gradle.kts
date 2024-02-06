@@ -29,6 +29,7 @@ plugins {
     alias(libs.plugins.gitSemver)
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.mavenPublish)
     alias(libs.plugins.versionCatalogUpdate)
     alias(libs.plugins.versions)
 }
@@ -57,6 +58,8 @@ allprojects {
         }
     }
 
+    apply(plugin = rootProject.libs.plugins.mavenPublish.get().pluginId)
+
     repositories {
         mavenCentral()
 
@@ -78,6 +81,28 @@ allprojects {
 
         manifest {
             attributes["Implementation-Version"] = version
+        }
+    }
+
+    mavenPublishing {
+        pom {
+            name = project.name
+            version = rootProject.semver.version // Use only the plain version without any suffixes for publishing.
+            description = "Part of the ORT Server, the reference implementation of Eclipse Apoapsis."
+            url = "https://projects.eclipse.org/projects/technology.apoapsis"
+
+            developers {
+                developer {
+                    name = "The ORT Server Project Authors"
+                }
+            }
+
+            licenses {
+                license {
+                    name = "Apache-2.0"
+                    url = "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            }
         }
     }
 }
