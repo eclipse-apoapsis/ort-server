@@ -21,7 +21,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.ossreviewtoolkit.server.services"
 version = "0.0.1"
 
 tasks.withType<Test>().configureEach {

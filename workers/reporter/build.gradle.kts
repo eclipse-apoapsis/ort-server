@@ -32,7 +32,7 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
-group = "ort.ossreviewtoolkit.server.workers"
+group = "org.ossreviewtoolkit.server.workers"
 version = "0.0.1"
 
 dependencies {

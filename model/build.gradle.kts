@@ -24,6 +24,8 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+group = "org.ossreviewtoolkit.server"
+
 kotlin {
     jvm()
 

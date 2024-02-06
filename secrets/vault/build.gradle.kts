@@ -22,7 +22,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.ossreviewtoolkit.server.secrets"
 version = "0.0.1"
 
 tasks.withType<Test>().configureEach {

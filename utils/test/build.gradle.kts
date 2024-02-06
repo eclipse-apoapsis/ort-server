@@ -21,6 +21,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
+group = "org.ossreviewtoolkit.server.utils"
+
 kotlin {
     jvm()
 
