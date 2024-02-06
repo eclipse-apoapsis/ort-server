@@ -14,7 +14,8 @@ jobs:
   commit-lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v5
