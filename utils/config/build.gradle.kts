@@ -22,7 +22,6 @@ plugins {
 }
 
 group = "org.ossreviewtoolkit.server.utils"
-version = "0.0.1"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

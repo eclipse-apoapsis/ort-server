@@ -29,7 +29,6 @@ plugins {
 }
 
 group = "org.ossreviewtoolkit.server"
-version = "0.0.1"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

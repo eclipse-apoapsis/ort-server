@@ -23,7 +23,6 @@ plugins {
 }
 
 group = "org.ossreviewtoolkit.server.logaccess"
-version = "0.0.1"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

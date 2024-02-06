@@ -32,7 +32,6 @@ tasks.withType<Test>().configureEach {
 }
 
 group = "org.ossreviewtoolkit.server.workers"
-version = "0.0.1"
 
 dependencies {
     implementation(projects.config.configSpi)
