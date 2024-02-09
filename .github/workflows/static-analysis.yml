@@ -33,11 +33,12 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-    - name: Check for Detekt Issues
-      uses: gradle/gradle-build-action@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
       with:
         gradle-home-cache-cleanup: true
-        arguments: --stacktrace detekt
+    - name: Check for Detekt Issues
+      run: ./gradlew --stacktrace detekt
   reuse-tool:
     runs-on: ubuntu-latest
     steps:

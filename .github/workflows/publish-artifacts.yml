@@ -23,11 +23,12 @@ jobs:
         distribution: temurin
         java-version: 17
         cache: gradle
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-home-cache-cleanup: true
     - name: Publish Artifacts to GitHub Packages
-      uses: gradle/gradle-build-action@v3
       env:
         ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ env.GITHUB_ACTOR }}
         ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        gradle-home-cache-cleanup: true
-        arguments: publishAllPublicationsToGithubPackagesRepository
+      run: ./gradlew publishAllPublicationsToGithubPackagesRepository

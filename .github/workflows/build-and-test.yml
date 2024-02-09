@@ -24,11 +24,12 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-    - name: Build all classes
-      uses: gradle/gradle-build-action@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
       with:
         gradle-home-cache-cleanup: true
-        arguments: --stacktrace classes
+    - name: Build all classes
+      run: ./gradlew --stacktrace classes
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -40,11 +41,12 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-    - name: Run tests
-      uses: gradle/gradle-build-action@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
       with:
         gradle-home-cache-cleanup: true
-        arguments: test -Dkotest.tags='!Integration'
+    - name: Run tests
+      run: ./gradlew test -Dkotest.tags='!Integration'
   integration-test:
     needs: build
     runs-on: ubuntu-latest
@@ -56,8 +58,9 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-    - name: Run tests
-      uses: gradle/gradle-build-action@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
       with:
         gradle-home-cache-cleanup: true
-        arguments: test -Dkotest.tags='Integration'
+    - name: Run tests
+      run: ./gradlew test -Dkotest.tags='Integration'
