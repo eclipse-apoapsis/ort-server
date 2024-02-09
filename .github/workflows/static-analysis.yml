@@ -5,22 +5,22 @@ on:
     types: [ checks_requested ]
   pull_request:
     branches:
-      - main
+    - main
   push:
     branches:
-      - main
+    - main
 
 jobs:
   commit-lint:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5
-        with:
-          configFile: .commitlintrc.yml
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: wagoid/commitlint-github-action@v5
+      with:
+        configFile: .commitlintrc.yml
   detekt-issues:
     runs-on: ubuntu-latest
     env:

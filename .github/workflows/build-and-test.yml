@@ -44,20 +44,20 @@ jobs:
       uses: gradle/gradle-build-action@v3
       with:
         gradle-home-cache-cleanup: true
-        arguments:  test -Dkotest.tags='!Integration'
+        arguments: test -Dkotest.tags='!Integration'
   integration-test:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: Run tests
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-home-cache-cleanup: true
-          arguments: test -Dkotest.tags='Integration'
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Run tests
+      uses: gradle/gradle-build-action@v3
+      with:
+        gradle-home-cache-cleanup: true
+        arguments: test -Dkotest.tags='Integration'
