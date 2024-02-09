@@ -17,16 +17,19 @@ jobs:
       with:
         ref: ${{ env.ORT_VERSION }}
         fetch-depth: 0
+
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version: 17
         cache: gradle
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-home-cache-cleanup: true
+
     - name: Publish Artifacts to GitHub Packages
       env:
         ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ env.GITHUB_ACTOR }}
