@@ -161,6 +161,29 @@ FROM scratch AS python
 COPY --from=pythonbuild /opt/python /opt/python
 
 #------------------------------------------------------------------------
+# NODEJS - Build NodeJS as a separate component with nvm
+FROM ort-base-image AS nodebuild
+
+ARG BOWER_VERSION=1.8.12
+ARG NODEJS_VERSION=20.9.0
+ARG NPM_VERSION=10.1.0
+ARG PNPM_VERSION=8.10.3
+ARG YARN_VERSION=1.22.19
+
+ENV NVM_DIR=/opt/nvm
+ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
+
+RUN git clone --depth 1 https://github.com/nvm-sh/nvm.git $NVM_DIR
+RUN . $NVM_DIR/nvm.sh \
+    && nvm install "$NODEJS_VERSION" \
+    && nvm alias default "$NODEJS_VERSION" \
+    && nvm use default \
+    && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION pnpm@$PNPM_VERSION yarn@$YARN_VERSION
+
+FROM scratch AS node
+COPY --from=nodebuild ${NVM_DIR} ${NVM_DIR}
+
+#------------------------------------------------------------------------
 # RUBY - Build Ruby as a separate component with rbenv
 FROM ort-base-image AS rubybuild
 
@@ -193,29 +216,6 @@ RUN rbenv install ${RUBY_VERSION} -v \
 
 FROM scratch AS ruby
 COPY --from=rubybuild ${RBENV_ROOT} ${RBENV_ROOT}
-
-#------------------------------------------------------------------------
-# NODEJS - Build NodeJS as a separate component with nvm
-FROM ort-base-image AS nodebuild
-
-ARG BOWER_VERSION=1.8.12
-ARG NODEJS_VERSION=20.9.0
-ARG NPM_VERSION=10.1.0
-ARG PNPM_VERSION=8.10.3
-ARG YARN_VERSION=1.22.19
-
-ENV NVM_DIR=/opt/nvm
-ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
-
-RUN git clone --depth 1 https://github.com/nvm-sh/nvm.git $NVM_DIR
-RUN . $NVM_DIR/nvm.sh \
-    && nvm install "${NODEJS_VERSION}" \
-    && nvm alias default "${NODEJS_VERSION}" \
-    && nvm use default \
-    && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION pnpm@$PNPM_VERSION yarn@$YARN_VERSION
-
-FROM scratch AS node
-COPY --from=nodebuild ${NVM_DIR} ${NVM_DIR}
 
 #------------------------------------------------------------------------
 # RUST - Build as a separate component
