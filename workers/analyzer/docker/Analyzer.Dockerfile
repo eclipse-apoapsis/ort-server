@@ -40,17 +40,19 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
     coreutils \
-    cvs \
     curl \
     dirmngr \
+    file \
     gcc \
     git \
+    git-lfs \
     g++ \
     gnupg2 \
     iproute2 \
     libarchive-tools \
     libffi-dev \
     libgmp-dev \
+    libmagic1 \
     libz-dev \
     locales \
     lzma \
@@ -66,7 +68,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     unzip \
     wget \
     xz-utils \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && git lfs install
 
 RUN echo $LANG > /etc/locale.gen \
     && locale-gen $LANG \
