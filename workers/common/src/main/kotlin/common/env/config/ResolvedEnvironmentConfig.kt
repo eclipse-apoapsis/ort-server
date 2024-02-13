@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.server.workers.common.env.config
 
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
 
 /**
  * A data class to represent the whole environment configuration for a repository after all references to
@@ -37,5 +38,8 @@ data class ResolvedEnvironmentConfig(
     val infrastructureServices: List<InfrastructureService>,
 
     /** A list with environment definitions needed for this repository. */
-    val environmentDefinitions: List<EnvironmentServiceDefinition> = emptyList()
+    val environmentDefinitions: List<EnvironmentServiceDefinition> = emptyList(),
+
+    /** A set defining the environment variables that need to be present when analyzing this repository. */
+    val environmentVariables: Set<EnvironmentVariableDefinition> = emptySet()
 )
