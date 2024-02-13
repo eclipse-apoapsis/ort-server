@@ -74,7 +74,7 @@ class ScannerRunner(
             detectedLicenseMapping = config.detectedLicenseMappings ?: defaultScannerConfig.detectedLicenseMapping,
             ignorePatterns = config.ignorePatterns.takeUnless { it.isNullOrEmpty() }
                 ?: defaultScannerConfig.ignorePatterns,
-            config = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isNullOrEmpty() }
+            config = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isEmpty() }
                 ?: defaultScannerConfig.config
         )
 
