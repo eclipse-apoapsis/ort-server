@@ -129,8 +129,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     tk-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG PYTHON_VERSION=3.10.8
-ARG PYENV_GIT_TAG=v2.3.7
+ARG PYTHON_VERSION=3.11.5
+ARG PYENV_GIT_TAG=v2.3.25
 
 ENV PYENV_ROOT=/opt/python
 ENV PATH=$PATH:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin
@@ -138,11 +138,11 @@ RUN curl -kSs https://pyenv.run | bash \
     && pyenv install -v ${PYTHON_VERSION} \
     && pyenv global ${PYTHON_VERSION}
 
-ARG CONAN_VERSION=1.55.0
-ARG PYTHON_INSPECTOR_VERSION=0.9.6
-ARG PYTHON_PIPENV_VERSION=2022.9.24
-ARG PYTHON_POETRY_VERSION=1.2.2
-ARG PIPTOOL_VERSION=22.2.2
+ARG CONAN_VERSION=1.61.0
+ARG PYTHON_INSPECTOR_VERSION=0.11.0
+ARG PYTHON_PIPENV_VERSION=2023.10.24
+ARG PYTHON_POETRY_VERSION=1.7.0
+ARG PIPTOOL_VERSION=23.3.1
 
 RUN pip install --no-cache-dir -U \
     pip=="${PIPTOOL_VERSION}" \
@@ -174,7 +174,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     zlib1g-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG COCOAPODS_VERSION=1.11.2
+ARG COCOAPODS_VERSION=1.14.2
 ARG RUBY_VERSION=3.1.2
 ENV RBENV_ROOT=/opt/rbenv
 ENV PATH=${RBENV_ROOT}/bin:${RBENV_ROOT}/shims/:${RBENV_ROOT}/plugins/ruby-build/bin:$PATH
@@ -196,10 +196,10 @@ COPY --from=rubybuild ${RBENV_ROOT} ${RBENV_ROOT}
 FROM ort-base-image AS nodebuild
 
 ARG BOWER_VERSION=1.8.12
-ARG NODEJS_VERSION=18.14.2
-ARG NPM_VERSION=8.15.1
-ARG PNPM_VERSION=7.8.0
-ARG YARN_VERSION=1.22.17
+ARG NODEJS_VERSION=20.9.0
+ARG NPM_VERSION=10.1.0
+ARG PNPM_VERSION=8.10.3
+ARG YARN_VERSION=1.22.19
 
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
@@ -221,7 +221,7 @@ FROM ort-base-image AS rustbuild
 ARG RUST_HOME=/opt/rust
 ARG CARGO_HOME=${RUST_HOME}/cargo
 ARG RUSTUP_HOME=${RUST_HOME}/rustup
-ARG RUST_VERSION=1.64.0
+ARG RUST_VERSION=1.72.0
 RUN curl -ksSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
 
 FROM scratch AS rust
@@ -232,7 +232,7 @@ COPY --from=rustbuild /opt/rust /opt/rust
 FROM ort-base-image AS gobuild
 
 ARG GO_DEP_VERSION=0.5.4
-ARG GO_VERSION=1.20
+ARG GO_VERSION=1.21.6
 ENV GOBIN=/opt/go/bin
 ENV PATH=$PATH:/opt/go/bin
 
@@ -255,7 +255,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     zlib1g-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG HASKELL_STACK_VERSION=2.7.5
+ARG HASKELL_STACK_VERSION=2.13.1
 
 ENV HASKELL_HOME=/opt/haskell
 ENV PATH=$PATH:${HASKELL_HOME}/bin
@@ -276,7 +276,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     unzip \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG ANDROID_CMD_VERSION=8512546
+ARG ANDROID_CMD_VERSION=11076708
 ENV ANDROID_HOME=/opt/android-sdk
 
 RUN --mount=type=tmpfs,target=/android \
@@ -321,7 +321,7 @@ COPY --from=dartbuild ${DART_SDK} ${DART_SDK}
 # SBT
 FROM ort-base-image AS sbtbuild
 
-ARG SBT_VERSION=1.6.1
+ARG SBT_VERSION=1.9.7
 
 ENV SBT_HOME=/opt/sbt
 ENV PATH=$PATH:${SBT_HOME}/bin
@@ -359,7 +359,7 @@ ENV PATH=$PATH:${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:${RBENV_ROOT}/plugins/ruby-
 COPY --from=ruby --chown=$USER:$USER ${RBENV_ROOT} ${RBENV_ROOT}
 
 # NodeJS
-ARG NODEJS_VERSION=18.14.2
+ARG NODEJS_VERSION=20.9.0
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
 COPY --from=node --chown=$USER:$USER ${NVM_DIR} ${NVM_DIR}
