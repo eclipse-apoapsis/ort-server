@@ -35,7 +35,7 @@ import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVari
  */
 data class ResolvedEnvironmentConfig(
     /** A list with [InfrastructureService]s required by the repository. */
-    val infrastructureServices: List<InfrastructureService>,
+    val infrastructureServices: List<InfrastructureService> = emptyList(),
 
     /** A list with environment definitions needed for this repository. */
     val environmentDefinitions: List<EnvironmentServiceDefinition> = emptyList(),

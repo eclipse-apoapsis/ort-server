@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
@@ -60,6 +61,14 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val config = helper.loader().parse(tempDir, hierarchy)
 
             config.infrastructureServices should beEmpty()
+        }
+
+        "A configuration file can be handled that does not contain any services" {
+            val helper = TestHelper()
+
+            val config = loadConfig(".ort.env.no-services.yml", helper)
+
+            config shouldBe ResolvedEnvironmentConfig(emptyList())
         }
 
         "A configuration file can be read" {

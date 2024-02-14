@@ -37,7 +37,7 @@ typealias RepositoryEnvironmentDefinitions = Map<String, List<Map<String, String
 @Serializable
 internal data class RepositoryEnvironmentConfig(
     /** The list of infrastructure services declared for this repository. */
-    val infrastructureServices: List<RepositoryInfrastructureService>,
+    val infrastructureServices: List<RepositoryInfrastructureService> = emptyList(),
 
     /** A map with environment definitions of different types. */
     val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
