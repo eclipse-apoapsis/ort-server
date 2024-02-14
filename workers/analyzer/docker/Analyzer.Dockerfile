@@ -136,10 +136,10 @@ ARG PYTHON_VERSION=3.11.5
 ARG PYENV_GIT_TAG=v2.3.25
 
 ENV PYENV_ROOT=/opt/python
-ENV PATH=$PATH:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin
+ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin
 RUN curl -kSs https://pyenv.run | bash \
-    && pyenv install -v ${PYTHON_VERSION} \
-    && pyenv global ${PYTHON_VERSION}
+    && pyenv install -v $PYTHON_VERSION \
+    && pyenv global $PYTHON_VERSION
 
 ARG CONAN_VERSION=1.61.0
 ARG PYTHON_INSPECTOR_VERSION=0.11.0
@@ -148,14 +148,14 @@ ARG PYTHON_POETRY_VERSION=1.7.0
 ARG PIPTOOL_VERSION=23.3.1
 
 RUN pip install --no-cache-dir -U \
-    pip=="${PIPTOOL_VERSION}" \
+    pip=="$PIPTOOL_VERSION" \
     wheel \
     && pip install --no-cache-dir -U \
     Mercurial \
-    conan=="${CONAN_VERSION}" \
-    pipenv=="${PYTHON_PIPENV_VERSION}" \
-    poetry=="${PYTHON_POETRY_VERSION}" \
-    python-inspector=="${PYTHON_INSPECTOR_VERSION}"
+    conan=="$CONAN_VERSION" \
+    pipenv=="$PYTHON_PIPENV_VERSION" \
+    poetry=="$PYTHON_POETRY_VERSION" \
+    python-inspector=="$PYTHON_INSPECTOR_VERSION"
 
 FROM scratch AS python
 COPY --from=pythonbuild /opt/python /opt/python
@@ -181,7 +181,7 @@ RUN . $NVM_DIR/nvm.sh \
     && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION pnpm@$PNPM_VERSION yarn@$YARN_VERSION
 
 FROM scratch AS node
-COPY --from=nodebuild ${NVM_DIR} ${NVM_DIR}
+COPY --from=nodebuild $NVM_DIR $NVM_DIR
 
 #------------------------------------------------------------------------
 # RUBY - Build Ruby as a separate component with rbenv
@@ -203,29 +203,29 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG COCOAPODS_VERSION=1.14.2
 ARG RUBY_VERSION=3.1.2
 ENV RBENV_ROOT=/opt/rbenv
-ENV PATH=${RBENV_ROOT}/bin:${RBENV_ROOT}/shims/:${RBENV_ROOT}/plugins/ruby-build/bin:$PATH
+ENV PATH=$RBENV_ROOT/bin:$RBENV_ROOT/shims/:$RBENV_ROOT/plugins/ruby-build/bin:$PATH
 
-RUN git clone --depth 1 https://github.com/rbenv/rbenv.git ${RBENV_ROOT}
+RUN git clone --depth 1 https://github.com/rbenv/rbenv.git $RBENV_ROOT
 RUN git clone --depth 1 https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
-WORKDIR ${RBENV_ROOT}
+WORKDIR $RBENV_ROOT
 RUN src/configure \
     && make -C src
-RUN rbenv install ${RUBY_VERSION} -v \
-    && rbenv global ${RUBY_VERSION} \
-    && gem install bundler cocoapods:${COCOAPODS_VERSION}
+RUN rbenv install $RUBY_VERSION -v \
+    && rbenv global $RUBY_VERSION \
+    && gem install bundler cocoapods:$COCOAPODS_VERSION
 
 FROM scratch AS ruby
-COPY --from=rubybuild ${RBENV_ROOT} ${RBENV_ROOT}
+COPY --from=rubybuild $RBENV_ROOT $RBENV_ROOT
 
 #------------------------------------------------------------------------
 # RUST - Build as a separate component
 FROM ort-base-image AS rustbuild
 
 ARG RUST_HOME=/opt/rust
-ARG CARGO_HOME=${RUST_HOME}/cargo
-ARG RUSTUP_HOME=${RUST_HOME}/rustup
+ARG CARGO_HOME=$RUST_HOME/cargo
+ARG RUSTUP_HOME=$RUST_HOME/rustup
 ARG RUST_VERSION=1.72.0
-RUN curl -ksSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
+RUN curl -ksSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION
 
 FROM scratch AS rust
 COPY --from=rustbuild /opt/rust /opt/rust
@@ -261,12 +261,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG HASKELL_STACK_VERSION=2.13.1
 
 ENV HASKELL_HOME=/opt/haskell
-ENV PATH=$PATH:${HASKELL_HOME}/bin
+ENV PATH=$PATH:$HASKELL_HOME/bin
 
-RUN curl -sSL https://get.haskellstack.org/ | bash -s -- -d ${HASKELL_HOME}/bin
+RUN curl -sSL https://get.haskellstack.org/ | bash -s -- -d $HASKELL_HOME/bin
 
 FROM scratch AS haskell
-COPY --from=haskellbuild ${HASKELL_HOME} ${HASKELL_HOME}
+COPY --from=haskellbuild $HASKELL_HOME $HASKELL_HOME
 
 #------------------------------------------------------------------------
 # REPO / ANDROID SDK
@@ -298,7 +298,7 @@ RUN curl -ksS https://storage.googleapis.com/git-repo-downloads/repo | tee $ANDR
     && sudo chmod a+x $ANDROID_HOME/cmdline-tools/bin/repo
 
 FROM scratch AS android
-COPY --from=androidbuild ${ANDROID_HOME} ${ANDROID_HOME}
+COPY --from=androidbuild $ANDROID_HOME $ANDROID_HOME
 
 #------------------------------------------------------------------------
 #  Dart
@@ -308,7 +308,7 @@ ARG DART_VERSION=2.18.4
 WORKDIR /opt/
 
 ENV DART_SDK=/opt/dart-sdk
-ENV PATH=$PATH:${DART_SDK}/bin
+ENV PATH=$PATH:$DART_SDK/bin
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -318,7 +318,7 @@ RUN --mount=type=tmpfs,target=/dart \
     && unzip /dart/dart.zip
 
 FROM scratch AS dart
-COPY --from=dartbuild ${DART_SDK} ${DART_SDK}
+COPY --from=dartbuild $DART_SDK $DART_SDK
 
 #------------------------------------------------------------------------
 # SBT
@@ -327,12 +327,12 @@ FROM ort-base-image AS sbtbuild
 ARG SBT_VERSION=1.9.7
 
 ENV SBT_HOME=/opt/sbt
-ENV PATH=$PATH:${SBT_HOME}/bin
+ENV PATH=$PATH:$SBT_HOME/bin
 
-RUN curl -L https://github.com/sbt/sbt/releases/download/v${SBT_VERSION}/sbt-${SBT_VERSION}.tgz | tar -C /opt -xz
+RUN curl -L https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar -C /opt -xz
 
 FROM scratch AS sbt
-COPY --from=sbtbuild ${DART_SDK} ${DART_SDK}
+COPY --from=sbtbuild $DART_SDK $DART_SDK
 
 #------------------------------------------------------------------------
 # Components container
@@ -352,28 +352,28 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Python
 ENV PYENV_ROOT=/opt/python
-ENV PATH=$PATH:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin
-COPY --from=python --chown=$USER:$USER ${PYENV_ROOT} ${PYENV_ROOT}
+ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin
+COPY --from=python --chown=$USER:$USER $PYENV_ROOT $PYENV_ROOT
 
 # Ruby
 ENV RBENV_ROOT=/opt/rbenv/
 ENV GEM_HOME=/var/tmp/gem
-ENV PATH=$PATH:${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:${RBENV_ROOT}/plugins/ruby-install/bin
-COPY --from=ruby --chown=$USER:$USER ${RBENV_ROOT} ${RBENV_ROOT}
+ENV PATH=$PATH:$RBENV_ROOT/bin:$RBENV_ROOT/shims:$RBENV_ROOT/plugins/ruby-install/bin
+COPY --from=ruby --chown=$USER:$USER $RBENV_ROOT $RBENV_ROOT
 
 # NodeJS
 ARG NODEJS_VERSION=20.9.0
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
-COPY --from=node --chown=$USER:$USER ${NVM_DIR} ${NVM_DIR}
+COPY --from=node --chown=$USER:$USER $NVM_DIR $NVM_DIR
 
 # Rust
 ENV RUST_HOME=/opt/rust
-ENV CARGO_HOME=${RUST_HOME}/cargo
-ENV RUSTUP_HOME=${RUST_HOME}/rustup
-ENV PATH=$PATH:${CARGO_HOME}/bin:${RUSTUP_HOME}/bin
+ENV CARGO_HOME=$RUST_HOME/cargo
+ENV RUSTUP_HOME=$RUST_HOME/rustup
+ENV PATH=$PATH:$CARGO_HOME/bin:$RUSTUP_HOME/bin
 COPY --from=rust --chown=$USER:$USER /opt/rust /opt/rust
-RUN chmod o+rwx ${CARGO_HOME}
+RUN chmod o+rwx $CARGO_HOME
 
 # Golang
 ENV PATH=$PATH:/opt/go/bin
@@ -381,26 +381,26 @@ COPY --from=golang --chown=$USER:$USER /opt/go /opt/go
 
 # Haskell
 ENV HASKELL_HOME=/opt/haskell
-ENV PATH=$PATH:${HASKELL_HOME}/bin
-COPY --from=haskell --chown=$USER:$USER ${HASKELL_HOME} ${HASKELL_HOME}
+ENV PATH=$PATH:$HASKELL_HOME/bin
+COPY --from=haskell --chown=$USER:$USER $HASKELL_HOME $HASKELL_HOME
 
 # Repo and Android
 ENV ANDROID_HOME=/opt/android-sdk
-ENV ANDROID_USER_HOME=${HOME}/.android
-ENV PATH=$PATH:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdline-tools/bin
-ENV PATH=$PATH:${ANDROID_HOME}/platform-tools
-COPY --from=android --chown=$USER:$USER ${ANDROID_HOME} ${ANDROID_HOME}
-RUN chmod -R o+rw ${ANDROID_HOME}
+ENV ANDROID_USER_HOME=$HOME/.android
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/cmdline-tools/bin
+ENV PATH=$PATH:$ANDROID_HOME/platform-tools
+COPY --from=android --chown=$USER:$USER $ANDROID_HOME $ANDROID_HOME
+RUN chmod -R o+rw $ANDROID_HOME
 
 # Dart
 ENV DART_SDK=/opt/dart-sdk
-ENV PATH=$PATH:${DART_SDK}/bin
-COPY --from=dart --chown=$USER:$USER ${DART_SDK} ${DART_SDK}
+ENV PATH=$PATH:$DART_SDK/bin
+COPY --from=dart --chown=$USER:$USER $DART_SDK $DART_SDK
 
 # SBT
 ENV SBT_HOME=/opt/sbt
-ENV PATH=$PATH:${SBT_HOME}/bin
-COPY --from=sbt --chown=$USER:$USER ${SBT_HOME} ${SBT_HOME}
+ENV PATH=$PATH:$SBT_HOME/bin
+COPY --from=sbt --chown=$USER:$USER $SBT_HOME $SBT_HOME
 
 # PHP composer
 ARG COMPOSER_VERSION=2.2
