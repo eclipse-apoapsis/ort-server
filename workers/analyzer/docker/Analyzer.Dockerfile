@@ -335,6 +335,28 @@ FROM scratch AS sbt
 COPY --from=sbtbuild $DART_SDK $DART_SDK
 
 #------------------------------------------------------------------------
+# SWIFT
+FROM ort-base-image AS swiftbuild
+
+ARG SWIFT_VERSION=5.9.2
+
+ENV SWIFT_HOME=/opt/swift
+ENV PATH=$PATH:$SWIFT_HOME/bin
+
+RUN mkdir -p $SWIFT_HOME \
+    && echo $SWIFT_VERSION \
+    && if [ "$(arch)" = "aarch64" ]; then \
+    SWIFT_PACKAGE="ubuntu2204-aarch64/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu22.04-aarch64.tar.gz"; \
+    else \
+    SWIFT_PACKAGE="ubuntu2204/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu22.04.tar.gz"; \
+    fi \
+    && curl -L https://download.swift.org/swift-$SWIFT_VERSION-release/$SWIFT_PACKAGE \
+    | tar -xz -C $SWIFT_HOME --strip-components=2
+
+FROM scratch AS swift
+COPY --from=swiftbuild $SWIFT_HOME $SWIFT_HOME
+
+#------------------------------------------------------------------------
 # Components container
 FROM ort-base-image as components
 
@@ -386,6 +408,11 @@ ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/cmdline-tool
 ENV PATH=$PATH:$ANDROID_HOME/platform-tools
 COPY --from=android --chown=$USER:$USER $ANDROID_HOME $ANDROID_HOME
 RUN chmod -R o+rw $ANDROID_HOME
+
+# Swift
+ENV SWIFT_HOME=/opt/swift
+ENV PATH=$PATH:$SWIFT_HOME/bin
+COPY --from=swift --chown=$USER:$USER $SWIFT_HOME $SWIFT_HOME
 
 # SBT
 ENV SBT_HOME=/opt/sbt
