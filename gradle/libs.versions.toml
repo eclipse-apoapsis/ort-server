@@ -35,6 +35,7 @@ versionCatalogUpdatePlugin = "0.8.4"
 versionsPlugin = "0.51.0"
 
 # Gradle dependencies
+awsSdk = "1.0.54"
 exposed = "0.47.0"
 flyway = "10.8.1"
 hikari = "5.1.0"
@@ -148,6 +149,7 @@ ortVersionControlSystems = { module = "org.ossreviewtoolkit.plugins:version-cont
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
+s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }

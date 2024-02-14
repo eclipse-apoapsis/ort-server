@@ -30,6 +30,10 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    api(projects.storage.storageSpi)
+
+    implementation(libs.s3)
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
 }
