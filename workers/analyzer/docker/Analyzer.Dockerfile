@@ -355,12 +355,6 @@ ENV PYENV_ROOT=/opt/python
 ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin
 COPY --from=python --chown=$USER:$USER $PYENV_ROOT $PYENV_ROOT
 
-# Ruby
-ENV RBENV_ROOT=/opt/rbenv/
-ENV GEM_HOME=/var/tmp/gem
-ENV PATH=$PATH:$RBENV_ROOT/bin:$RBENV_ROOT/shims:$RBENV_ROOT/plugins/ruby-install/bin
-COPY --from=ruby --chown=$USER:$USER $RBENV_ROOT $RBENV_ROOT
-
 # NodeJS
 ARG NODEJS_VERSION=20.9.0
 ENV NVM_DIR=/opt/nvm
@@ -379,10 +373,11 @@ RUN chmod o+rwx $CARGO_HOME
 ENV PATH=$PATH:/opt/go/bin
 COPY --from=golang --chown=$USER:$USER /opt/go /opt/go
 
-# Haskell
-ENV HASKELL_HOME=/opt/haskell
-ENV PATH=$PATH:$HASKELL_HOME/bin
-COPY --from=haskell --chown=$USER:$USER $HASKELL_HOME $HASKELL_HOME
+# Ruby
+ENV RBENV_ROOT=/opt/rbenv/
+ENV GEM_HOME=/var/tmp/gem
+ENV PATH=$PATH:$RBENV_ROOT/bin:$RBENV_ROOT/shims:$RBENV_ROOT/plugins/ruby-install/bin
+COPY --from=ruby --chown=$USER:$USER $RBENV_ROOT $RBENV_ROOT
 
 # Repo and Android
 ENV ANDROID_HOME=/opt/android-sdk
@@ -392,15 +387,15 @@ ENV PATH=$PATH:$ANDROID_HOME/platform-tools
 COPY --from=android --chown=$USER:$USER $ANDROID_HOME $ANDROID_HOME
 RUN chmod -R o+rw $ANDROID_HOME
 
-# Dart
-ENV DART_SDK=/opt/dart-sdk
-ENV PATH=$PATH:$DART_SDK/bin
-COPY --from=dart --chown=$USER:$USER $DART_SDK $DART_SDK
-
 # SBT
 ENV SBT_HOME=/opt/sbt
 ENV PATH=$PATH:$SBT_HOME/bin
 COPY --from=sbt --chown=$USER:$USER $SBT_HOME $SBT_HOME
+
+# Dart
+ENV DART_SDK=/opt/dart-sdk
+ENV PATH=$PATH:$DART_SDK/bin
+COPY --from=dart --chown=$USER:$USER $DART_SDK $DART_SDK
 
 # PHP composer
 ARG COMPOSER_VERSION=2.2
@@ -408,6 +403,11 @@ ARG COMPOSER_VERSION=2.2
 ENV PATH=$PATH:/opt/php/bin
 RUN mkdir -p /opt/php/bin \
     && curl -ksS https://getcomposer.org/installer | php -- --install-dir=/opt/php/bin --filename=composer --$COMPOSER_VERSION
+
+# Haskell
+ENV HASKELL_HOME=/opt/haskell
+ENV PATH=$PATH:$HASKELL_HOME/bin
+COPY --from=haskell --chown=$USER:$USER $HASKELL_HOME $HASKELL_HOME
 
 # Make sure the user executing the container has access rights in the home directory.
 RUN sudo chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
