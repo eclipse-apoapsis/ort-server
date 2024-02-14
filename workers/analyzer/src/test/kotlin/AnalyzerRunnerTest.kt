@@ -20,16 +20,19 @@
 package org.ossreviewtoolkit.server.workers.analyzer
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 
 import java.io.File
 
 import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageCuration
 import org.ossreviewtoolkit.model.PackageCurationData
 import org.ossreviewtoolkit.model.VcsInfo
@@ -56,6 +59,8 @@ import org.ossreviewtoolkit.model.config.ScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
+import org.ossreviewtoolkit.model.readValue
+import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
@@ -212,6 +217,50 @@ class AnalyzerRunnerTest : WordSpec({
 
             result.shouldNotBeNull()
             result.projects.map { it.id } should containExactly(Identifier("Unmanaged::project"))
+        }
+    }
+
+    "main" should {
+        "produce a correct ORT result" {
+            val exchangeDir = tempdir()
+
+            val enabledPackageManagers = listOf("conan", "npm")
+            val disabledPackageManagers = listOf("maven")
+            val packageManagerOptions = mapOf("conan" to PackageManagerConfiguration(listOf("npm")))
+            val config = AnalyzerJobConfiguration(
+                allowDynamicVersions = true,
+                enabledPackageManagers = enabledPackageManagers,
+                disabledPackageManagers = disabledPackageManagers,
+                packageCurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
+                packageManagerOptions = packageManagerOptions,
+                skipExcluded = true
+            )
+
+            val configFile = exchangeDir.resolve("analyzer-config.json")
+            configFile.writeValue(config)
+
+            AnalyzerRunner.main(arrayOf(exchangeDir.absolutePath, projectDir.absolutePath))
+
+            val ortResult = exchangeDir.resolve("analyzer-result.yml").readValue<OrtResult>()
+            val analyzerResult = ortResult.analyzer.shouldNotBeNull()
+
+            analyzerResult.config shouldBe AnalyzerConfiguration(
+                true,
+                enabledPackageManagers,
+                disabledPackageManagers,
+                packageManagerOptions.map { entry -> entry.key to entry.value.mapToOrt() }.toMap(),
+                true
+            )
+        }
+
+        "produce a failure result in case of an error" {
+            val exchangeDir = tempdir()
+            exchangeDir.resolve("analyzer-config.json").writeValue(AnalyzerJobConfiguration())
+
+            AnalyzerRunner.main(arrayOf(exchangeDir.absolutePath, "non-existing-directory"))
+
+            val errorResult = exchangeDir.resolve("analyzer-error.txt").readText()
+            errorResult shouldContain "java.lang.IllegalArgumentException"
         }
     }
 })

@@ -27,7 +27,9 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
+import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.readValueOrNull
+import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.SimplePackageCurationProvider
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
@@ -39,6 +41,47 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(AnalyzerRunner::class.java)
 
 class AnalyzerRunner {
+    companion object {
+        /** The name of the file from which the Analyzer job configuration is read. */
+        private const val ANALYZER_CONFIG_FILE = "analyzer-config.json"
+
+        /** The name of the file to which the Analyzer result is written. */
+        private const val ANALYZER_RESULT_FILE = "analyzer-result.yml"
+
+        /** The name of the file to which an error is written in case the run fails. */
+        private const val ANALYZER_ERROR_FILE = "analyzer-error.txt"
+
+        /**
+         * An alternative function for calling the [AnalyzerRunner]. This function is used when the JVM needs to be
+         * forked in order to make newly set environment variables effective. In this case, parameters are passed via
+         * command line arguments. The first argument is a temporary directory to be used for exchanging data between
+         * the parent and the forked process. Here, the serialized [AnalyzerJobConfiguration] is expected, and the
+         * resulting [OrtResult] will be stored in this directory, too. The second argument is the path to the project
+         * to be analyzed.
+         */
+        @JvmStatic
+        fun main(args: Array<String>) {
+            logger.info("Executing forked AnalyzerRunner with arguments: ${args.joinToString()}")
+
+            val exchangeDir = File(args[0])
+
+            runCatching {
+                val projectDir = File(args[1])
+                val configFile = exchangeDir.resolve(ANALYZER_CONFIG_FILE)
+                val resultFile = exchangeDir.resolve(ANALYZER_RESULT_FILE)
+
+                val config = configFile.readValue<AnalyzerJobConfiguration>()
+                val runner = AnalyzerRunner()
+                val result = runner.run(projectDir, config)
+
+                resultFile.writeValue(result)
+            }.onFailure { exception ->
+                logger.error("Analyzer run failed.", exception)
+                exchangeDir.resolve(ANALYZER_ERROR_FILE).writeText(exception.toString())
+            }
+        }
+    }
+
     fun run(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
         val ortPackageManagerOptions =
             config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
