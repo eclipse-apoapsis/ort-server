@@ -31,6 +31,8 @@ import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
 import org.ossreviewtoolkit.server.model.repositories.SecretRepository
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
 
 import org.slf4j.LoggerFactory
 
@@ -52,6 +54,8 @@ import org.slf4j.LoggerFactory
  *   this configuration file or assigned to the owning product or organization) and specify the context in which
  *   those are used (e.g. in a Maven `settings.xml` file, in a `npmrc` file, etc.). It is also possible to declare
  *   environment variables and their values.
+ * - A list with environment variables. These are environment variables that must be set when analyzing the repository.
+ *   The values of these variables are obtained from secrets.
  *
  * An example configuration file could look as follows:
  *
@@ -67,6 +71,9 @@ import org.slf4j.LoggerFactory
  *   maven:
  *   - service: "JFrog"
  *     id: "releasesRepo"
+ * environmentVariables:
+ * - name: "REPOSITORY_PASSWORD"
+ *   secretName: "frogPassword"
  * ```
  */
 class EnvironmentConfigLoader(
@@ -127,20 +134,23 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         hierarchy: Hierarchy
     ): ResolvedEnvironmentConfig {
-        val services = parseServices(config, hierarchy)
+        val secrets = resolveSecrets(config, hierarchy)
+        val services = parseServices(config, secrets)
         val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
+        val variables = parseEnvironmentVariables(config, secrets)
 
-        return ResolvedEnvironmentConfig(services, definitions)
+        return ResolvedEnvironmentConfig(services, definitions, variables)
     }
 
     /**
      * Parse the infrastructure services defined in the given [config] and return a list with data objects for them.
-     * Use the given [hierarchy] to resolve references.
+     * Use the given map with [secrets] to resolve references to secrets.
      */
-    private fun parseServices(config: RepositoryEnvironmentConfig, hierarchy: Hierarchy): List<InfrastructureService> {
-        val secrets = resolveSecrets(config, hierarchy)
-
-        return config.infrastructureServices.mapNotNull { service ->
+    private fun parseServices(
+        config: RepositoryEnvironmentConfig,
+        secrets: Map<String, Secret>
+    ): List<InfrastructureService> =
+        config.infrastructureServices.mapNotNull { service ->
             secrets[service.usernameSecret]?.let { usernameSecret ->
                 secrets[service.passwordSecret]?.let { passwordSecret ->
                     InfrastructureService(
@@ -156,15 +166,15 @@ class EnvironmentConfigLoader(
                 }
             }
         }
-    }
 
     /**
-     * Resolve all the secrets referenced from infrastructure services in the given [config] in the given
-     * [hierarchy] of the current repository. Return a [Map] with the resolved secrets keyed by their names.
-     * Depending on the strict flag, fail if secrets cannot be resolved.
+     * Resolve all the secrets referenced from elements in the given [config] in the given [hierarchy] of the current
+     * repository. Return a [Map] with the resolved secrets keyed by their names. Depending on the strict flag, fail
+     * if secrets cannot be resolved.
      */
     private fun resolveSecrets(config: RepositoryEnvironmentConfig, hierarchy: Hierarchy): Map<String, Secret> {
         val allSecretsNames = mutableSetOf<String>()
+        allSecretsNames += config.environmentVariables.map { it.secretName }
         config.infrastructureServices.forEach { service ->
             allSecretsNames += service.usernameSecret
             allSecretsNames += service.passwordSecret
@@ -242,6 +252,49 @@ class EnvironmentConfigLoader(
                 }.forEach {
                     append(it)
                     append(System.lineSeparator())
+                }
+            }
+
+            if (config.strict) {
+                throw EnvironmentConfigException(message)
+            } else {
+                logger.warn(message)
+            }
+        }
+    }
+
+    /**
+     * Parse the environment variables defined in the given [config] and return a set with data objects for them. Use
+     * the given map with [secrets] to resolve references to secrets.
+     */
+    private fun parseEnvironmentVariables(
+        config: RepositoryEnvironmentConfig,
+        secrets: Map<String, Secret>
+    ): Set<EnvironmentVariableDefinition> {
+        val (validVariables, invalidVariables) = config.environmentVariables.partition { it.secretName in secrets }
+
+        handleInvalidVariables(config, invalidVariables)
+
+        return validVariables.map { definition ->
+            EnvironmentVariableDefinition(definition.name, secrets.getValue(definition.secretName))
+        }.toSet()
+    }
+
+    /**
+     * Check whether there are invalid environment variable definitions in the given [config] based on the given
+     * [failures] list. If so, generate a meaningful message and either throw an exception (in strict mode) or log a
+     * warning.
+     */
+    private fun handleInvalidVariables(
+        config: RepositoryEnvironmentConfig,
+        failures: List<RepositoryEnvironmentVariableDefinition>
+    ) {
+        if (failures.isNotEmpty()) {
+            val message = buildString {
+                appendLine("Found invalid environment variable definitions:")
+
+                failures.forEach {
+                    appendLine(it)
                 }
             }
 

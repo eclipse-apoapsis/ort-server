@@ -50,6 +50,7 @@ import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLo
 import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
 import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
 import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
 import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
 
 class EnvironmentConfigLoaderTest : StringSpec() {
@@ -200,6 +201,41 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
             config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
+        }
+
+        "Environment variable definitions are processed" {
+            val helper = TestHelper()
+            val secret1 = helper.createSecret("testSecret1", repository = repository)
+            val secret2 = helper.createSecret("testSecret2", repository = repository)
+
+            val config = loadConfig(".ort.env.variables.yml", helper)
+
+            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+                EnvironmentVariableDefinition("variable1", secret1),
+                EnvironmentVariableDefinition("variable2", secret2)
+            )
+        }
+
+        "Environment variable definitions with missing secrets cause exceptions" {
+            val helper = TestHelper()
+            helper.createSecret("testSecret1", repository = repository)
+
+            val exception = shouldThrow<EnvironmentConfigException> {
+                loadConfig(".ort.env.variables.yml", helper)
+            }
+
+            exception.message shouldContain "testSecret2"
+        }
+
+        "Environment variable definitions with missing secrets are ignored in non-strict mode" {
+            val helper = TestHelper()
+            val secret1 = helper.createSecret("testSecret1", repository = repository)
+
+            val config = loadConfig(".ort.env.variables-non-strict.yml", helper)
+
+            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+                EnvironmentVariableDefinition("variable1", secret1),
+            )
         }
 
         "A configuration can be resolved" {

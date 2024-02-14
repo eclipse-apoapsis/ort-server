@@ -21,6 +21,8 @@ package org.ossreviewtoolkit.server.workers.common.env.config
 
 import kotlinx.serialization.Serializable
 
+import org.ossreviewtoolkit.server.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
+
 /**
  * Type definition to describe the generic section of the environment configuration that lists the environment
  * definitions. The section contains different types of definitions with different properties and is therefore
@@ -41,6 +43,9 @@ internal data class RepositoryEnvironmentConfig(
 
     /** A map with environment definitions of different types. */
     val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
+
+    /** A list with definitions for environment variables for this repository. */
+    val environmentVariables: List<RepositoryEnvironmentVariableDefinition> = emptyList(),
 
     /** A flag that determines how semantic errors in the configuration file should be treated. */
     val strict: Boolean = true
