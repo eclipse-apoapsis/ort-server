@@ -357,6 +357,35 @@ FROM scratch AS swift
 COPY --from=swiftbuild $SWIFT_HOME $SWIFT_HOME
 
 #------------------------------------------------------------------------
+# DOTNET
+FROM ort-base-image AS dotnetbuild
+
+ARG DOTNET_VERSION=6.0
+ARG NUGET_INSPECTOR_VERSION=0.9.12
+
+ENV DOTNET_HOME=/opt/dotnet
+ENV NUGET_INSPECTOR_HOME=$DOTNET_HOME
+ENV PATH=$PATH:$DOTNET_HOME:$DOTNET_HOME/tools:$DOTNET_HOME/bin
+
+# Note: We are not installing a dotnet package directly because
+# debian packages from Ubuntu and Microsoft are incomplete
+
+RUN mkdir -p $DOTNET_HOME \
+    && echo $SWIFT_VERSION \
+    && if [ "$(arch)" = "aarch64" ]; then \
+    curl -L https://aka.ms/dotnet/$DOTNET_VERSION/dotnet-sdk-linux-arm64.tar.gz | tar -C $DOTNET_HOME -xz; \
+    else \
+    curl -L https://aka.ms/dotnet/$DOTNET_VERSION/dotnet-sdk-linux-x64.tar.gz | tar -C $DOTNET_HOME -xz; \
+    fi
+
+RUN mkdir -p $DOTNET_HOME/bin \
+    && curl -L https://github.com/nexB/nuget-inspector/releases/download/v$NUGET_INSPECTOR_VERSION/nuget-inspector-v$NUGET_INSPECTOR_VERSION-linux-x64.tar.gz \
+    | tar --strip-components=1 -C $DOTNET_HOME/bin -xz
+
+FROM scratch AS dotnet
+COPY --from=dotnetbuild /opt/dotnet /opt/dotnet
+
+#------------------------------------------------------------------------
 # Components container
 FROM ort-base-image as components
 
@@ -423,6 +452,13 @@ COPY --from=sbt --chown=$USER:$USER $SBT_HOME $SBT_HOME
 ENV DART_SDK=/opt/dart-sdk
 ENV PATH=$PATH:$DART_SDK/bin
 COPY --from=dart --chown=$USER:$USER $DART_SDK $DART_SDK
+
+# Dotnet
+ENV DOTNET_HOME=/opt/dotnet
+ENV NUGET_INSPECTOR_HOME=$DOTNET_HOME
+ENV PATH=$PATH:$DOTNET_HOME:$DOTNET_HOME/tools:$DOTNET_HOME/bin
+
+COPY --from=dotnet --chown=$USER:$USER $DOTNET_HOME $DOTNET_HOME
 
 # PHP composer
 ARG COMPOSER_VERSION=2.2
