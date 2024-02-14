@@ -26,6 +26,7 @@ import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration as ApiAdvisorJ
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
 import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig as ApiEnvironmentConfig
+import org.ossreviewtoolkit.server.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJob as ApiEvaluatorJob
 import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
@@ -53,6 +54,7 @@ import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
 import org.ossreviewtoolkit.server.model.AnalyzerJob
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.EnvironmentConfig
+import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.model.EvaluatorJob
 import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
 import org.ossreviewtoolkit.server.model.InfrastructureService
@@ -292,10 +294,15 @@ fun ApiInfrastructureService.mapToModel() =
 fun InfrastructureServiceDeclaration.mapToApi() =
     ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)
 
+fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(name, secretName)
+
+fun EnvironmentVariableDeclaration.mapToApi() = ApiEnvironmentVariableDeclaration(name, secretName)
+
 fun EnvironmentConfig.mapToApi() =
     ApiEnvironmentConfig(
         infrastructureServices = infrastructureServices.map { it.mapToApi() },
         environmentDefinitions = environmentDefinitions,
+        environmentVariables = environmentVariables.map { it.mapToApi() },
         strict = strict
     )
 
@@ -303,6 +310,7 @@ fun ApiEnvironmentConfig.mapToModel() =
     EnvironmentConfig(
         infrastructureServices = infrastructureServices.map { it.mapToModel() },
         environmentDefinitions = environmentDefinitions,
+        environmentVariables = environmentVariables.map { it.mapToModel() },
         strict = strict
     )
 

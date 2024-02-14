@@ -37,6 +37,9 @@ data class EnvironmentConfig(
     /** A map with environment definitions of different types. */
     val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
 
+    /** A list with declarations for environment variables for this repository. */
+    val environmentVariables: List<EnvironmentVariableDeclaration> = emptyList(),
+
     /** A flag that determines how semantic errors in the configuration file should be treated. */
     val strict: Boolean = true
 )

@@ -35,6 +35,7 @@ import io.mockk.mockk
 import io.mockk.verify
 
 import org.ossreviewtoolkit.server.model.EnvironmentConfig
+import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
@@ -264,17 +265,26 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val envDefinitions = mapOf(
                 "maven" to listOf(mapOf("service" to serviceName(1), "id" to "repo1"))
             )
-            val envConfig = EnvironmentConfig(declarations, envDefinitions, strict = false)
+            val variables = listOf(
+                EnvironmentVariableDeclaration("USERNAME", userSecret.name),
+                EnvironmentVariableDeclaration("PASSWORD", pass1Secret.name)
+            )
+            val envConfig = EnvironmentConfig(declarations, envDefinitions, variables, strict = false)
 
             val expectedServices = listOf(
                 createTestService(1, userSecret, pass1Secret),
                 createTestService(2, userSecret, pass2Secret)
+            )
+            val expectedVariables = listOf(
+                EnvironmentVariableDefinition("USERNAME", userSecret),
+                EnvironmentVariableDefinition("PASSWORD", pass1Secret)
             )
 
             val config = helper.loader().resolve(envConfig, hierarchy)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
             config.shouldContainDefinition<MavenDefinition>(expectedServices[0]) { it.id == "repo1" }
+            config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
         }
 
         "Resolving of a configuration works correctly if `strict` is false" {
@@ -282,7 +292,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val userSecret = helper.createSecret("testUser", repository = repository)
             val pass2Secret = helper.createSecret("testPassword2", repository = repository)
 
-            val declarations = listOf(
+            val serviceDeclarations = listOf(
                 InfrastructureServiceDeclaration(
                     serviceName(1),
                     serviceUrl(1),
@@ -299,16 +309,23 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     excludeFromNetrc = true
                 )
             )
-            val envConfig = EnvironmentConfig(declarations, strict = false)
+            val variableDeclarations = listOf(
+                EnvironmentVariableDeclaration("USERNAME", userSecret.name),
+                EnvironmentVariableDeclaration("PASSWORD", "someOtherUnknownSecret")
+            )
+            val envConfig =
+                EnvironmentConfig(serviceDeclarations, environmentVariables = variableDeclarations, strict = false)
 
             val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
+            val expectedVariables = listOf(EnvironmentVariableDefinition("USERNAME", userSecret))
 
             val config = helper.loader().resolve(envConfig, hierarchy)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+            config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
         }
 
-        "Resolving a configuration works correctly if `strict` is true" {
+        "Resolving a configuration works correctly if `strict` is true and there are invalid service declarations" {
             val helper = TestHelper()
 
             val declarations = listOf(
@@ -321,6 +338,19 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 )
             )
             val envConfig = EnvironmentConfig(declarations, strict = true)
+
+            shouldThrow<EnvironmentConfigException> {
+                helper.loader().resolve(envConfig, hierarchy)
+            }
+        }
+
+        "Resolving a configuration works correctly if `strict` is true and there are invalid variable declarations" {
+            val helper = TestHelper()
+
+            val variableDeclarations = listOf(
+                EnvironmentVariableDeclaration("USERNAME", "unknownSecret")
+            )
+            val envConfig = EnvironmentConfig(environmentVariables = variableDeclarations, strict = true)
 
             shouldThrow<EnvironmentConfigException> {
                 helper.loader().resolve(envConfig, hierarchy)

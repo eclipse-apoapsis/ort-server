@@ -24,6 +24,7 @@ import com.charleskorn.kaml.Yaml
 import java.io.File
 
 import org.ossreviewtoolkit.server.model.EnvironmentConfig
+import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.model.Hierarchy
 import org.ossreviewtoolkit.server.model.InfrastructureService
 import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
@@ -120,6 +121,7 @@ class EnvironmentConfigLoader(
         val repositoryConfig = RepositoryEnvironmentConfig(
             infrastructureServices = config.infrastructureServices.map { it.toRepositoryService() },
             environmentDefinitions = config.environmentDefinitions,
+            environmentVariables = config.environmentVariables.map { it.toRepositoryVariable() },
             strict = config.strict
         )
 
@@ -363,3 +365,9 @@ private fun Collection<InfrastructureService>.associateByName(): Map<String, Inf
  */
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
     RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)
+
+/**
+ * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].
+ */
+private fun EnvironmentVariableDeclaration.toRepositoryVariable(): RepositoryEnvironmentVariableDefinition =
+    RepositoryEnvironmentVariableDefinition(name, secretName)

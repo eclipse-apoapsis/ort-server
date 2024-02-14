@@ -42,6 +42,7 @@ import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
 import org.ossreviewtoolkit.server.api.v1.CreateSecret
 import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
+import org.ossreviewtoolkit.server.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.api.v1.InfrastructureService
 import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
 import org.ossreviewtoolkit.server.api.v1.Jobs
@@ -54,6 +55,7 @@ import org.ossreviewtoolkit.server.api.v1.UpdateRepository
 import org.ossreviewtoolkit.server.api.v1.UpdateSecret
 import org.ossreviewtoolkit.server.api.v1.mapToApi
 import org.ossreviewtoolkit.server.core.shouldHaveBody
+import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
 import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
 import org.ossreviewtoolkit.server.model.JobConfigurations
 import org.ossreviewtoolkit.server.model.RepositoryType
@@ -418,9 +420,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val environmentDefinitions = mapOf(
                     "maven" to listOf(mapOf("id" to "repositoryServer"))
                 )
+                val environmentVariables = listOf(
+                    ApiEnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                )
                 val envConfig = EnvironmentConfig(
                     infrastructureServices = listOf(service),
                     environmentDefinitions = environmentDefinitions,
+                    environmentVariables = environmentVariables,
                     strict = false
                 )
                 val analyzerJob = AnalyzerJobConfiguration(
@@ -463,6 +469,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfig.strict shouldBe false
                     jobConfig.environmentDefinitions shouldBe environmentDefinitions
                     jobConfig.infrastructureServices shouldContainExactly listOf(serviceDeclaration)
+                    jobConfig.environmentVariables shouldContainExactly listOf(
+                        EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                    )
                 }
 
                 run.jobConfigs.parameters shouldBe parameters
