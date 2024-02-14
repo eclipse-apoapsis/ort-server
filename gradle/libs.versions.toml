@@ -153,6 +153,7 @@ s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
+testContainersLocalStack = { module = "org.testcontainers:localstack", version.ref = "testContainers" }
 testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
 testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref = "testContainers" }
 testContainersVault = { module = "org.testcontainers:vault", version.ref = "testContainers" }

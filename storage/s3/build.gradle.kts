@@ -18,6 +18,8 @@
  */
 
 plugins {
+    `java-test-fixtures`
+
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
@@ -32,10 +34,15 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(projects.storage.storageSpi)
 
+    implementation(projects.utils.config)
+
     implementation(libs.s3)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.testContainersLocalStack)
+
+    testFixturesRuntimeOnly(libs.testContainers)
 }
 
 tasks.getByName<Test>("test") {
