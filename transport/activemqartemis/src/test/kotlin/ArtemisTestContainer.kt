@@ -56,8 +56,7 @@ fun Spec.startArtemisContainer(transportType: String): ConfigManager {
     val configMap = mapOf(
         "$keyPrefix.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
         "$keyPrefix.queueName" to "testQueue",
-        "$keyPrefix.type" to "activeMQ",
-        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+        "$keyPrefix.type" to "activeMQ"
     )
     return ConfigManager.create(ConfigFactory.parseMap(configMap))
 }

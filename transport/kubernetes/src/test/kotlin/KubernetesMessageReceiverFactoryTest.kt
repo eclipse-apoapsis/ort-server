@@ -64,8 +64,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             val configMap = mapOf(
                 "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
-                "imageName" to "busybox",
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "imageName" to "busybox"
             )
 
             val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
@@ -103,8 +102,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             val configMap = mapOf(
                 "type" to KubernetesSenderConfig.TRANSPORT_NAME,
                 "namespace" to "test-namespace",
-                "imageName" to "busybox",
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "imageName" to "busybox"
             )
             val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 

@@ -74,7 +74,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
@@ -121,7 +121,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.namespace" to NAMESPACE,
             "$keyPrefix.imageName" to IMAGE_NAME
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
@@ -154,7 +154,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.mountSecrets" to "$SECRET_MOUNTS plus invalid secret mounts->"
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
@@ -174,7 +174,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.mountPvcs" to "$PVC_MOUNTS p->/foo,X plus invalid secret mounts->"
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
@@ -197,7 +197,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.annotationVariables" to "$invalidVariable,$validVariable"
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val environment = mapOf(
             validVariable to "foo=bar",
@@ -221,7 +221,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME,
             "$keyPrefix.annotationVariables" to "$nonExistingVariable,$validVariable"
         )
-        val configManager = createConfigManager(configMap)
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 
         val environment = mapOf(
             validVariable to "foo=bar"
@@ -234,15 +234,3 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         }
     }
 })
-
-/**
- * Create a [ConfigManager] that wraps the given [configuration][configMap]. Add dummy properties as required.
- */
-private fun createConfigManager(configMap: Map<String, Any>): ConfigManager {
-    val configManagerMap = configMap + mapOf(
-        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
-    )
-    val config = ConfigFactory.parseMap(configManagerMap)
-
-    return ConfigManager.create(config)
-}

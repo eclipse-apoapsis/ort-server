@@ -45,8 +45,7 @@ class MessageReceiverFactoryTest : StringSpec({
         val handler = mockk<EndpointHandler<OrchestratorMessage>>()
         val config = ConfigFactory.parseMap(
             mapOf(
-                "${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME,
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME
             )
         )
         val configManager = ConfigManager.create(config)
@@ -64,8 +63,7 @@ class MessageReceiverFactoryTest : StringSpec({
         val invalidFactoryName = "a non existing message receiver factory"
         val config = ConfigFactory.parseMap(
             mapOf(
-                "${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName,
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName
             )
         )
         val configManager = ConfigManager.create(config)

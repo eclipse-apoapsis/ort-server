@@ -121,9 +121,6 @@ private val HEADER = MessageHeader("testToken", "testTraceId", 17)
  * Create a [ConfigManager] that selects the test transport for the sender to the given [endpoint].
  */
 private fun createTestSenderConfig(endpoint: Endpoint<*>): ConfigManager {
-    val properties = mapOf(
-        "${endpoint.configPrefix}.sender.type" to TEST_TRANSPORT_NAME,
-        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
-    )
+    val properties = mapOf("${endpoint.configPrefix}.sender.type" to TEST_TRANSPORT_NAME)
     return ConfigManager.create(ConfigFactory.parseMap(properties))
 }

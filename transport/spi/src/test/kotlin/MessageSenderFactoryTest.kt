@@ -39,8 +39,7 @@ class MessageSenderFactoryTest : StringSpec({
     "A correct MessageSender should be created" {
         val config = ConfigFactory.parseMap(
             mapOf(
-                "${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME,
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "${AnalyzerEndpoint.configPrefix}.$typePropertyPath" to TEST_TRANSPORT_NAME
             )
         )
         val configManager = ConfigManager.create(config)
@@ -58,8 +57,7 @@ class MessageSenderFactoryTest : StringSpec({
         val invalidFactoryName = "a non existing message sender factory"
         val config = ConfigFactory.parseMap(
             mapOf(
-                "${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName,
-                ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
+                "${OrchestratorEndpoint.configPrefix}.$typePropertyPath" to invalidFactoryName
             )
         )
         val configManager = ConfigManager.create(config)

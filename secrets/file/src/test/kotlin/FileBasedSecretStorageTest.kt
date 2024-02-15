@@ -135,8 +135,7 @@ class FileBasedSecretStorageTest : WordSpec() {
 private fun getStorage(storageFile: File): SecretStorage {
     val properties = mapOf(
         "$CONFIG_PREFIX.$NAME_PROPERTY" to FileBasedSecretsProvider.NAME,
-        "$CONFIG_PREFIX.$PATH_PROPERTY" to storageFile.canonicalPath,
-        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someKey" to "someValue")
+        "$CONFIG_PREFIX.$PATH_PROPERTY" to storageFile.canonicalPath
     )
     return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)))
 }

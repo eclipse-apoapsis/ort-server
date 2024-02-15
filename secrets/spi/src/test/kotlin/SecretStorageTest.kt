@@ -40,7 +40,7 @@ import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting.Comp
 class SecretStorageTest : WordSpec({
     "createStorage" should {
         "fail if the name property is not provided in the configuration" {
-            val configManager = createConfigManager(emptyMap())
+            val configManager = ConfigManager.create(ConfigFactory.empty())
 
             val exception = shouldThrow<SecretStorageException> {
                 SecretStorage.createStorage(configManager)
@@ -51,8 +51,10 @@ class SecretStorageTest : WordSpec({
 
         "fail if the configured SecretsProvider cannot be resolved" {
             val providerName = "nonExistingProvider"
-            val configManager = createConfigManager(
-                mapOf("${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to providerName)
+            val configManager = ConfigManager.create(
+                ConfigFactory.parseMap(
+                    mapOf("${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to providerName)
+                )
             )
 
             val exception = shouldThrow<SecretStorageException> {
@@ -252,18 +254,7 @@ private fun createStorage(): SecretStorage {
         "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
         "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to ERROR_PATH.path
     )
-    val configManager = createConfigManager(properties)
+    val configManager = ConfigManager.create(ConfigFactory.parseMap(properties))
 
     return SecretStorage.createStorage(configManager)
-}
-
-/**
- * Return a [ConfigManager] instance that is initialized with the given [configuration][properties].
- */
-private fun createConfigManager(properties: Map<String, Any>): ConfigManager {
-    val configManagerProperties = properties + mapOf(
-        ConfigManager.CONFIG_MANAGER_SECTION to mapOf("someProperty" to "someValue")
-    )
-
-    return ConfigManager.create(ConfigFactory.parseMap(configManagerProperties))
 }
