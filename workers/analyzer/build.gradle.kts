@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.config)
     implementation(projects.workers.common)
 
     implementation(libs.ktorClientAuth)

@@ -81,7 +81,7 @@ internal class AnalyzerWorker(
             environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
         }
 
-        val ortResult = runner.run(sourcesDir, job.configuration)
+        val ortResult = runner.runInProcess(sourcesDir, job.configuration)
 
         ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
         ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)

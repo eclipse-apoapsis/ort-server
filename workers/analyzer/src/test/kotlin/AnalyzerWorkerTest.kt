@@ -19,6 +19,8 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -139,7 +141,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(
             mockk(),
             downloader,
-            AnalyzerRunner(),
+            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService
@@ -193,7 +195,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(
             mockk(),
             downloader,
-            AnalyzerRunner(),
+            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService
@@ -249,7 +251,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(
             mockk(),
             downloader,
-            AnalyzerRunner(),
+            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService
@@ -279,7 +281,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(
             mockk(),
             mockk(),
-            AnalyzerRunner(),
+            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
             mockk()
@@ -302,7 +304,7 @@ class AnalyzerWorkerTest : StringSpec({
         val worker = AnalyzerWorker(
             mockk(),
             mockk(),
-            AnalyzerRunner(),
+            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
             mockk()

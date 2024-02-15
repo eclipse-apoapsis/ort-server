@@ -19,22 +19,40 @@
 
 package org.ossreviewtoolkit.server.workers.analyzer
 
+import com.typesafe.config.ConfigFactory
+
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 
-import java.io.File
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 
+import java.io.File
+import java.io.IOException
+import java.time.Instant
+
+import org.ossreviewtoolkit.model.AnalyzerResult
+import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
 import org.ossreviewtoolkit.model.PackageCurationData
+import org.ossreviewtoolkit.model.Project
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
@@ -63,9 +81,14 @@ import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
 import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
+import org.ossreviewtoolkit.server.model.Secret
 import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
+import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
 import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.safeMkdirs
+import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
 import org.ossreviewtoolkit.utils.spdx.toSpdx
@@ -73,11 +96,18 @@ import org.ossreviewtoolkit.utils.spdx.toSpdx
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
 class AnalyzerRunnerTest : WordSpec({
-    val runner = AnalyzerRunner()
+    suspend fun run(
+        context: WorkerContext = mockk(),
+        inputDir: File = projectDir,
+        config: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
+        environmentConfig: ResolvedEnvironmentConfig = ResolvedEnvironmentConfig(),
+        runner: AnalyzerRunner = AnalyzerRunner(ConfigFactory.empty())
+    ): OrtResult =
+        runner.run(context, inputDir, config, environmentConfig)
 
     "run" should {
         "return the correct repository information" {
-            val result = runner.run(projectDir, AnalyzerJobConfiguration()).repository
+            val result = run().repository
 
             result.config shouldBe RepositoryConfiguration(
                 analyzer = RepositoryAnalyzerConfiguration(
@@ -194,7 +224,7 @@ class AnalyzerRunnerTest : WordSpec({
                 skipExcluded = true
             )
 
-            val result = runner.run(projectDir, config)
+            val result = run(config = config)
             val analyzerResult = result.analyzer.shouldNotBeNull()
 
             analyzerResult.config shouldBe AnalyzerConfiguration(
@@ -213,10 +243,221 @@ class AnalyzerRunnerTest : WordSpec({
             val inputDir = createOrtTempDir().resolve("project")
             inputDir.resolve("subdirectory").safeMkdirs()
 
-            val result = runner.run(inputDir, AnalyzerJobConfiguration()).analyzer?.result
+            val result = run(inputDir = inputDir).analyzer?.result
 
             result.shouldNotBeNull()
             result.projects.map { it.id } should containExactly(Identifier("Unmanaged::project"))
+        }
+
+        "start a forked process if custom environment variables are provided" {
+            val exchangeDir = tempdir()
+            val inputDir = File("some/folder/to/analyze")
+
+            val secret1 = mockk<Secret>()
+            val secret2 = mockk<Secret>()
+            val environmentConfig = ResolvedEnvironmentConfig(
+                environmentVariables = setOf(
+                    EnvironmentVariableDefinition("MY_ENV_VAR", secret1),
+                    EnvironmentVariableDefinition("ANOTHER_ENV_VAR", secret2)
+                )
+            )
+
+            val context = mockk<WorkerContext> {
+                every { createTempDir() } returns exchangeDir
+            }
+
+            val process = mockk<Process> {
+                every { waitFor() } returns 0
+            }
+
+            val processBuilder = mockk<ProcessBuilder> {
+                every { start() } returns process
+                every { command() } returns listOf("some", "command")
+            }
+
+            val analyzerResult = AnalyzerResult(
+                projects = setOf(
+                    Project.EMPTY.copy(id = Identifier("Maven:org.example:name:1.0.0"))
+                ),
+                packages = setOf(
+                    Package.EMPTY.copy(id = Identifier("Maven:org.example2:name2:2.0.0"))
+                )
+            )
+            val analyzerRun = AnalyzerRun(
+                startTime = Instant.now(),
+                endTime = Instant.now(),
+                environment = Environment(),
+                config = AnalyzerConfiguration(),
+                result = analyzerResult
+            )
+            val ortResult = OrtResult.EMPTY.copy(analyzer = analyzerRun)
+            exchangeDir.resolve("analyzer-result.yml").writeValue(ortResult)
+
+            val jobConfig = AnalyzerJobConfiguration(skipExcluded = true)
+
+            val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
+            coEvery {
+                runner.createProcessBuilder(context, exchangeDir, inputDir, environmentConfig)
+            } returns processBuilder
+
+            val result = run(
+                context,
+                config = jobConfig,
+                environmentConfig = environmentConfig,
+                inputDir = inputDir,
+                runner = runner
+            )
+
+            result shouldBe ortResult
+            val persistedConfig = exchangeDir.resolve("analyzer-config.json").readValue<AnalyzerJobConfiguration>()
+            persistedConfig shouldBe jobConfig
+
+            verify {
+                processBuilder.start()
+                process.waitFor()
+            }
+        }
+
+        "handle errors from the forked process" {
+            val exchangeDir = tempdir()
+            val inputDir = File("analyze/this/folder")
+
+            val context = mockk<WorkerContext> {
+                every { createTempDir() } returns exchangeDir
+            }
+
+            val process = mockk<Process> {
+                every { waitFor() } returns 0
+            }
+
+            val processBuilder = mockk<ProcessBuilder> {
+                every { start() } returns process
+                every { command() } returns listOf("some", "command")
+            }
+
+            val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
+            coEvery {
+                runner.createProcessBuilder(any(), any(), any(), any())
+            } returns processBuilder
+
+            val environmentConfig = ResolvedEnvironmentConfig(
+                environmentVariables = setOf(EnvironmentVariableDefinition("MY_ENV_VAR", mockk()))
+            )
+
+            val forkError = "test.ForkException: Something went terribly wrong."
+            exchangeDir.resolve("analyzer-error.txt").writeText(forkError)
+
+            val exception = shouldThrow<IOException> {
+                run(context, inputDir = inputDir, environmentConfig = environmentConfig, runner = runner)
+            }
+
+            exception.message shouldContain forkError
+        }
+
+        "handle errors from the forked process when the error file does not exist" {
+            val exchangeDir = tempdir()
+            val inputDir = File("analyze/this/folder")
+
+            val context = mockk<WorkerContext> {
+                every { createTempDir() } returns exchangeDir
+            }
+
+            val process = mockk<Process> {
+                every { waitFor() } returns 1
+            }
+
+            val processBuilder = mockk<ProcessBuilder> {
+                every { start() } returns process
+                every { command() } returns listOf("some", "command")
+            }
+
+            val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
+            coEvery {
+                runner.createProcessBuilder(any(), any(), any(), any())
+            } returns processBuilder
+
+            val environmentConfig = ResolvedEnvironmentConfig(
+                environmentVariables = setOf(EnvironmentVariableDefinition("MY_ENV_VAR", mockk()))
+            )
+
+            val exception = shouldThrow<IOException> {
+                run(context, inputDir = inputDir, environmentConfig = environmentConfig, runner = runner)
+            }
+
+            exception.message shouldContain "The forked process died"
+        }
+    }
+
+    "createProcessBuilder" should {
+        "create a process builder with the correct environment" {
+            val secret1 = mockk<Secret>()
+            val secret2 = mockk<Secret>()
+            val environmentConfig = ResolvedEnvironmentConfig(
+                environmentVariables = setOf(
+                    EnvironmentVariableDefinition("MY_ENV_VAR", secret1),
+                    EnvironmentVariableDefinition("ANOTHER_ENV_VAR", secret2)
+                )
+            )
+
+            val secretsToResolve = mutableListOf<Secret>()
+            val context = mockk<WorkerContext> {
+                coEvery { resolveSecrets(*varargAll { secretsToResolve.add(it) }) } answers {
+                    mapOf(
+                        secret1 to "mySecret",
+                        secret2 to "anotherSecret"
+                    )
+                }
+            }
+
+            val exchangeDir = File("exchangeDir")
+            val inputDir = File("inputDir")
+            val expectedCommands = listOf(
+                "/bin/sh",
+                "-c",
+                "exec java -cp ${System.getProperty("java.class.path")} " +
+                        "org.ossreviewtoolkit.server.workers.analyzer.AnalyzerRunner " +
+                        "${exchangeDir.absolutePath} ${inputDir.absolutePath}"
+            )
+            val runner = AnalyzerRunner(ConfigFactory.empty())
+            val processBuilder = runner.createProcessBuilder(context, exchangeDir, inputDir, environmentConfig)
+
+            secretsToResolve should containExactlyInAnyOrder(secret1, secret2)
+
+            processBuilder.environment() shouldContainAll mapOf(
+                "MY_ENV_VAR" to "mySecret",
+                "ANOTHER_ENV_VAR" to "anotherSecret"
+            )
+
+            processBuilder.command() shouldContainExactly expectedCommands
+        }
+
+        "support a custom command to fork the process" {
+            val configMap = mapOf(
+                "analyzer.forkCommands" to "myLauncher*run on*\${CLASSPATH}*this: \${LAUNCH}*--fast",
+                "analyzer.forkCommandSeparator" to "*"
+            )
+            val config = ConfigFactory.parseMap(configMap)
+
+            val context = mockk<WorkerContext> {
+                coEvery { resolveSecrets(*anyVararg()) } returns emptyMap()
+            }
+
+            val exchangeDir = File("exchangeDir")
+            val inputDir = File("inputDir")
+            val expectedCommands = listOf(
+                "myLauncher",
+                "run on",
+                System.getProperty("java.class.path"),
+                "this: org.ossreviewtoolkit.server.workers.analyzer.AnalyzerRunner ${exchangeDir.absolutePath} " +
+                        inputDir.absolutePath,
+                "--fast"
+            )
+
+            val runner = AnalyzerRunner(config)
+            val processBuilder =
+                runner.createProcessBuilder(context, exchangeDir, inputDir, ResolvedEnvironmentConfig())
+
+            processBuilder.command() shouldContainExactly expectedCommands
         }
     }
 
