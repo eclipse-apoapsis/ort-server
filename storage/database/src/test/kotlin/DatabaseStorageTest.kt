@@ -37,6 +37,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
 import org.ossreviewtoolkit.server.storage.Key
 import org.ossreviewtoolkit.server.storage.Storage
@@ -208,5 +209,5 @@ private fun createStorage(namespace: String = NAMESPACE): Storage {
         )
     )
 
-    return Storage.create(namespace, config)
+    return Storage.create(namespace, ConfigManager.create(config))
 }

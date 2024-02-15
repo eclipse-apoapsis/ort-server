@@ -31,7 +31,9 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    api(libs.typesafeConfig)
+    api(projects.config.configSpi)
+
+    implementation(projects.utils.config)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

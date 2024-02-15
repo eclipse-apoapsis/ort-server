@@ -19,8 +19,7 @@
 
 package org.ossreviewtoolkit.server.storage.database
 
-import com.typesafe.config.Config
-
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.storage.StorageProvider
 import org.ossreviewtoolkit.server.storage.StorageProviderFactory
 
@@ -62,6 +61,6 @@ class DatabaseStorageProviderFactory : StorageProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(config: Config): StorageProvider =
+    override fun createProvider(config: ConfigManager): StorageProvider =
         DatabaseStorageProvider(config.getString(NAMESPACE_PROPERTY), config.getInt(MEMORY_LIMIT_PROPERTY))
 }

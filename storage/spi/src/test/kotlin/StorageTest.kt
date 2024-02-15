@@ -30,6 +30,7 @@ import io.kotest.matchers.string.shouldContain
 
 import java.io.ByteArrayInputStream
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.storage.Storage.Companion.dataArray
 import org.ossreviewtoolkit.server.storage.Storage.Companion.dataString
 
@@ -39,7 +40,7 @@ class StorageTest : WordSpec({
             val config = ConfigFactory.empty()
 
             shouldThrow<StorageException> {
-                Storage.create(STORAGE_TYPE, config)
+                Storage.create(STORAGE_TYPE, ConfigManager.create(config))
             }
         }
 
@@ -49,7 +50,7 @@ class StorageTest : WordSpec({
             )
 
             shouldThrow<StorageException> {
-                Storage.create(STORAGE_TYPE, config)
+                Storage.create(STORAGE_TYPE, ConfigManager.create(config))
             }
         }
 
@@ -60,7 +61,7 @@ class StorageTest : WordSpec({
             )
 
             val exception = shouldThrow<StorageException> {
-                Storage.create(STORAGE_TYPE, config)
+                Storage.create(STORAGE_TYPE, ConfigManager.create(config))
             }
 
             exception.localizedMessage shouldContain providerName
@@ -243,4 +244,4 @@ private fun createStorageConfig(): Config =
 /**
  * Return a [Storage] instance that can be used for testing. It is obtained via the default mechanism.
  */
-private fun createStorage(): Storage = Storage.create(STORAGE_TYPE, createStorageConfig())
+private fun createStorage(): Storage = Storage.create(STORAGE_TYPE, ConfigManager.create(createStorageConfig()))

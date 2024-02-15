@@ -19,12 +19,13 @@
 
 package org.ossreviewtoolkit.server.storage
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigException
-
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.ServiceLoader
+
+import org.ossreviewtoolkit.server.config.ConfigManager
+import org.ossreviewtoolkit.server.config.Path
+import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
  * A class allowing convenient access to a concrete [StorageProvider] implementation.
@@ -51,16 +52,20 @@ class Storage(
          * the underlying [StorageProvider] by looking up the factory that has been configured in the given [config]
          * for the given [storageType].
          */
-        fun create(storageType: String, config: Config): Storage = try {
-            val storageConfig = config.getConfig(storageType)
-            val factoryName = storageConfig.getString(FACTORY_NAME_PROPERTY)
+        fun create(storageType: String, config: ConfigManager): Storage {
+            val storageConfig = runCatching {
+                config.subConfig(Path(storageType))
+            }.getOrElse { e ->
+                throw StorageException("No storage configuration found for storage type '$storageType'.", e)
+            }
+
+            val factoryName = storageConfig.getStringOrNull(FACTORY_NAME_PROPERTY)
+                ?: throw StorageException("Missing '$FACTORY_NAME_PROPERTY' property in the '$storageType' section.")
 
             val factory = LOADER.find { it.name == factoryName }
                 ?: throw StorageException("StorageProviderFactory '$factoryName' not found on classpath.")
 
-            Storage(factory.createProvider(storageConfig))
-        } catch (e: ConfigException.Missing) {
-            throw StorageException("No storage configuration found for storage type '$storageType'.", e)
+            return Storage(factory.createProvider(storageConfig))
         }
 
         /**

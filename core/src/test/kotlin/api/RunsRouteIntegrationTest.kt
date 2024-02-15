@@ -50,6 +50,7 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Clock
 
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.logaccess.LogFileCriteria
 import org.ossreviewtoolkit.server.logaccess.LogFileProviderFactoryForTesting
 import org.ossreviewtoolkit.server.logaccess.LogLevel
@@ -121,7 +122,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         val run = dbExtension.fixtures.createOrtRun(repositoryId)
         val key = Key("${run.id}|$reportFile")
 
-        val storage = Storage.create("reportStorage", ConfigFactory.load("application-test.conf"))
+        val storage = Storage.create("reportStorage", ConfigManager.create(ConfigFactory.load("application-test.conf")))
         storage.write(key, reportData, "application/pdf")
 
         return run

@@ -19,11 +19,11 @@
 
 package org.ossreviewtoolkit.server.storage
 
-import com.typesafe.config.Config
-
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
+
+import org.ossreviewtoolkit.server.config.ConfigManager
 
 /**
  * A simple implementation of the [StorageProviderFactory] interface for testing purposes that stores data in memory.
@@ -89,7 +89,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(config: Config): StorageProvider {
+    override fun createProvider(config: ConfigManager): StorageProvider {
         val storage = mutableMapOf<Key, Entry>()
         val errorKey = if (config.hasPath(ERROR_KEY_PROPERTY)) config.getString(ERROR_KEY_PROPERTY) else "<undefined>"
 

@@ -19,7 +19,7 @@
 
 package org.ossreviewtoolkit.server.storage
 
-import com.typesafe.config.Config
+import org.ossreviewtoolkit.server.config.ConfigManager
 
 /**
  * Definition of a factory interface for creating a concrete [StorageProvider] instance.
@@ -35,5 +35,5 @@ interface StorageProviderFactory {
     /**
      * Return an initialized [StorageProvider] using the given [config].
      */
-    fun createProvider(config: Config): StorageProvider
+    fun createProvider(config: ConfigManager): StorageProvider
 }

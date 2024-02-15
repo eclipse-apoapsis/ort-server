@@ -38,6 +38,7 @@ import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.toYaml
 import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.server.config.ConfigManager
 import org.ossreviewtoolkit.server.storage.Storage
 import org.ossreviewtoolkit.server.storage.StorageProviderFactoryForTesting
 
@@ -130,5 +131,5 @@ private fun createStorage(): Storage {
     val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))
     val config = ConfigFactory.parseMap(configMap)
 
-    return Storage.create(storageType, config)
+    return Storage.create(storageType, ConfigManager.create(config))
 }
