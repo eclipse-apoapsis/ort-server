@@ -70,4 +70,23 @@ class ExtensionsTest : WordSpec({
             value shouldBe "fooValue-barValue"
         }
     }
+
+    "getInterpolatedStringOrDefault" should {
+        "return the default value if the property is not contained in the configuration" {
+            val config = ConfigFactory.empty()
+
+            val value = config.getInterpolatedStringOrDefault("property", "default-\${foo}", mapOf("foo" to "bar"))
+
+            value shouldBe "default-bar"
+        }
+
+        "return a value with substituted variables" {
+            val variables = mapOf("foo" to "fooValue", "bar" to "barValue")
+            val config = ConfigFactory.parseMap(mapOf("property" to "\${foo}-\${bar}"))
+
+            val value = config.getInterpolatedStringOrDefault("property", "defaultValue", variables)
+
+            value shouldBe "fooValue-barValue"
+        }
+    }
 })

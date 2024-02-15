@@ -102,6 +102,15 @@ fun Config.getInterpolatedStringOrNull(path: String, variables: Map<String, Stri
     withPath(path)?.getInterpolatedString(path, variables)
 
 /**
+ * Return the string value at the given [path] applying variable interpolation using the given map of [variables] or
+ * [default] if the path cannot be resolved. [default] can contain variables as well that are replaced. This function
+ * is like [getInterpolatedString], but with optional configuration properties for which defaults can be provided that
+ * are also subject of variable substitution.
+ */
+fun Config.getInterpolatedStringOrDefault(path: String, default: String, variables: Map<String, String>): String =
+    substituteVariables(getStringOrDefault(path, default), variables)
+
+/**
  * Return a new string based on [string] with all variable references replaced by their current values in the given
  * [variables] map.
  */
