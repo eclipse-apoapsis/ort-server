@@ -26,6 +26,7 @@ import java.io.InputStream
 import java.util.ServiceLoader
 
 import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
+import org.ossreviewtoolkit.server.utils.config.getConfigOrEmpty
 import org.ossreviewtoolkit.server.utils.config.getStringOrNull
 
 /**
@@ -98,11 +99,7 @@ class ConfigManager(
          * relevant providers only.
          */
         fun create(config: Config): ConfigManager {
-            if (!config.hasPath(CONFIG_MANAGER_SECTION)) {
-                throw ConfigException("Missing '$CONFIG_MANAGER_SECTION' section.", null)
-            }
-
-            val managerConfig = config.getConfig(CONFIG_MANAGER_SECTION)
+            val managerConfig = config.getConfigOrEmpty(CONFIG_MANAGER_SECTION)
 
             val secretProviderSupplier: () -> ConfigSecretProvider = {
                 SECRET_PROVIDER_LOADER.findProviderFactory(

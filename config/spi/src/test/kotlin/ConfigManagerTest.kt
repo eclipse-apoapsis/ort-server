@@ -79,17 +79,6 @@ class ConfigManagerTest : WordSpec({
             exception.message shouldContain ConfigManager.SECRET_PROVIDER_NAME_PROPERTY
         }
 
-        "throw an exception if no section for the config manager is present" {
-            val configMap = mapOf("foo" to "bar")
-            val config = ConfigFactory.parseMap(configMap)
-
-            val exception = shouldThrow<ConfigException> {
-                ConfigManager.create(config)
-            }
-
-            exception.message shouldContain ConfigManager.CONFIG_MANAGER_SECTION
-        }
-
         "throw an exception if the file provider cannot be found on the classpath" {
             val providerName = "unknownFileProvider"
             val managerMap = mapOf(
@@ -140,6 +129,10 @@ class ConfigManagerTest : WordSpec({
             val config = ConfigFactory.parseMap(configMap)
 
             ConfigManager.create(config)
+        }
+
+        "not throw an exception if the configManager section is missing" {
+            ConfigManager.create(ConfigFactory.empty())
         }
     }
 
@@ -426,6 +419,17 @@ class ConfigManagerTest : WordSpec({
 
             configManager.getString(testKey) shouldBe testValue
             configManager.getStringOrNull("foo") should beNull()
+        }
+
+        "be accessible without a configManager section" {
+            val testKey = "test.key"
+            val testValue = "Success"
+            val configMap = mapOf(testKey to testValue)
+            val config = ConfigFactory.parseMap(configMap)
+
+            val configManager = ConfigManager.create(config)
+
+            configManager.getString(testKey) shouldBe testValue
         }
     }
 
