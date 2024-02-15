@@ -230,7 +230,7 @@ class AnalyzerRunner(
      * This function is used if no custom environment variables need to be set, and therefore, the Analyzer can be
      * invoked directly.
      */
-    fun runInProcess(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
+    private fun runInProcess(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
         val ortPackageManagerOptions =
             config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
 

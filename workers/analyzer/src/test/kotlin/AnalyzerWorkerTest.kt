@@ -57,6 +57,7 @@ import org.ossreviewtoolkit.server.workers.common.RunResult
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
 import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
+import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -135,7 +136,9 @@ class AnalyzerWorkerTest : StringSpec({
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns infrastructureService
             coEvery { generateNetRcFile(context, listOf(infrastructureService)) } just runs
-            coEvery { setUpEnvironment(context, projectDir, infrastructureService) } returns mockk()
+            coEvery {
+                setUpEnvironment(context, projectDir, infrastructureService)
+            } returns ResolvedEnvironmentConfig()
         }
 
         val worker = AnalyzerWorker(
@@ -189,7 +192,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
-            coEvery { setUpEnvironment(context, projectDir, null) } returns mockk()
+            coEvery { setUpEnvironment(context, projectDir, null) } returns ResolvedEnvironmentConfig()
         }
 
         val worker = AnalyzerWorker(
@@ -245,7 +248,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val envService = mockk<EnvironmentService> {
-            coEvery { setUpEnvironment(context, envConfig) } returns mockk()
+            coEvery { setUpEnvironment(context, envConfig) } returns ResolvedEnvironmentConfig()
         }
 
         val worker = AnalyzerWorker(
@@ -268,6 +271,105 @@ class AnalyzerWorkerTest : StringSpec({
 
             coVerify {
                 envService.setUpEnvironment(context, envConfig)
+            }
+        }
+    }
+
+    "AnalyzerRunner should be invoked correctly with an environment config from the job configuration" {
+        val envConfig = mockk<EnvironmentConfig>()
+        val jobConfig = AnalyzerJobConfiguration(environmentConfig = envConfig)
+        val job = analyzerJob.copy(configuration = jobConfig)
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns job
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns job
+            every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
+        val envService = mockk<EnvironmentService> {
+            coEvery { setUpEnvironment(context, envConfig) } returns resolvedEnvConfig
+        }
+
+        val testException = IllegalStateException("AnalyzerRunner test exception")
+        val runner = mockk<AnalyzerRunner> {
+            coEvery { run(context, any(), jobConfig, resolvedEnvConfig) } throws testException
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runner,
+            ortRunService,
+            contextFactory,
+            envService
+        )
+
+        mockkTransaction {
+            when (val result = worker.testRun()) {
+                is RunResult.Failed -> result.error shouldBe testException
+                else -> fail("Unexpected result: $result")
+            }
+        }
+    }
+
+    "AnalyzerRunner should be invoked correctly with an environment configuration from the repository" {
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServiceForRepository(context) } returns null
+            coEvery { setUpEnvironment(context, projectDir, null) } returns resolvedEnvConfig
+        }
+
+        val testException = IllegalStateException("AnalyzerRunner test exception")
+        val runner = mockk<AnalyzerRunner> {
+            coEvery { run(context, any(), analyzerJob.configuration, resolvedEnvConfig) } throws testException
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runner,
+            ortRunService,
+            contextFactory,
+            envService
+        )
+
+        mockkTransaction {
+            when (val result = worker.testRun()) {
+                is RunResult.Failed -> result.error shouldBe testException
+                else -> fail("Unexpected result: $result")
             }
         }
     }
