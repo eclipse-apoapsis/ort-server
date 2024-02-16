@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapToModel
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
@@ -107,7 +108,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 call.listQueryParameters(OrderField("index", OrderDirection.ASCENDING))
 
             val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, paginationParameters)
-                .map { it.mapToApi(repositoryService.getJobs(repositoryId, it.index)!!.mapToApi()) }
+                .map { it.mapToApiSummary(repositoryService.getJobs(repositoryId, it.index)!!.mapToApiSummary()) }
             val pagedResponse = PagedResponse(
                 jobsForOrtRuns,
                 paginationParameters

@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
@@ -54,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
@@ -130,13 +132,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         prodId: Long = productId
     ) = productService.createRepository(type, url, prodId)
 
-    fun createJobs(ortRunId: Long): Jobs {
-        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId).mapToApi()
-        val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId).mapToApi()
-        val scannerJob = dbExtension.fixtures.createScannerJob(ortRunId).mapToApi()
-        val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(ortRunId).mapToApi()
-        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId).mapToApi()
-        return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
+    fun createJobSummaries(ortRunId: Long): JobSummaries {
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId).mapToApiSummary()
+        val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId).mapToApiSummary()
+        val scannerJob = dbExtension.fixtures.createScannerJob(ortRunId).mapToApiSummary()
+        val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(ortRunId).mapToApiSummary()
+        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId).mapToApiSummary()
+        return JobSummaries(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
     }
 
     val secretPath = "path"
@@ -269,7 +271,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(run1.mapToApi(Jobs()), run2.mapToApi(Jobs())),
+                    listOf(run1.mapToApiSummary(JobSummaries()), run2.mapToApiSummary(JobSummaries())),
                     ListQueryParameters(
                         sortFields = listOf(OrderField("index", ASCENDING)),
                         limit = DEFAULT_LIMIT,
@@ -299,14 +301,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     labelsMap
                 )
 
-                val jobs1 = createJobs(run1.id)
-                val jobs2 = createJobs(run2.id)
+                val jobs1 = createJobSummaries(run1.id)
+                val jobs2 = createJobSummaries(run2.id)
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(run1.mapToApi(jobs1), run2.mapToApi(jobs2)),
+                    listOf(run1.mapToApiSummary(jobs1), run2.mapToApiSummary(jobs2)),
                     ListQueryParameters(
                         sortFields = listOf(OrderField("index", ASCENDING)),
                         limit = DEFAULT_LIMIT,
@@ -334,7 +336,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(run2.mapToApi(Jobs())),
+                    listOf(run2.mapToApiSummary(JobSummaries())),
                     ListQueryParameters(
                         sortFields = listOf(
                             OrderField("revision", DESCENDING),

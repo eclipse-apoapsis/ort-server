@@ -32,11 +32,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJobConfiguration as ApiEva
 import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.JobStatus as ApiJobStatus
+import org.eclipse.apoapsis.ortserver.api.v1.JobSummaries as ApiJobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.Jobs as ApiJobs
 import org.eclipse.apoapsis.ortserver.api.v1.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.OrtIssue as ApiOrtIssue
 import org.eclipse.apoapsis.ortserver.api.v1.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus as ApiOrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.PluginConfiguration as ApiPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.Product as ApiProduct
@@ -90,6 +93,15 @@ fun AdvisorJob.mapToApi() =
         status.mapToApi()
     )
 
+fun AdvisorJob.mapToApiSummary() =
+    ApiJobSummary(
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status.mapToApi()
+    )
+
 fun AdvisorJobConfiguration.mapToApi() =
     ApiAdvisorJobConfiguration(advisors, skipExcluded, config?.mapValues { it.value.mapToApi() })
 
@@ -104,6 +116,15 @@ fun AnalyzerJob.mapToApi() =
         finishedAt,
         configuration.mapToApi(),
         status.mapToApi()
+    )
+
+fun AnalyzerJob.mapToApiSummary() =
+    ApiJobSummary(
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status.mapToApi()
     )
 
 fun AnalyzerJobConfiguration.mapToApi() =
@@ -136,6 +157,15 @@ fun EvaluatorJob.mapToApi() =
         finishedAt,
         configuration.mapToApi(),
         status.mapToApi()
+    )
+
+fun EvaluatorJob.mapToApiSummary() =
+    ApiJobSummary(
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status.mapToApi()
     )
 
 fun EvaluatorJobConfiguration.mapToApi() =
@@ -183,6 +213,15 @@ fun ApiJobConfigurations.mapToModel() =
 fun Jobs.mapToApi() =
     ApiJobs(analyzer?.mapToApi(), advisor?.mapToApi(), scanner?.mapToApi(), evaluator?.mapToApi(), reporter?.mapToApi())
 
+fun Jobs.mapToApiSummary() =
+    ApiJobSummaries(
+        analyzer?.mapToApiSummary(),
+        advisor?.mapToApiSummary(),
+        scanner?.mapToApiSummary(),
+        evaluator?.mapToApiSummary(),
+        reporter?.mapToApiSummary()
+    )
+
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
 fun OrtIssue.mapToApi() = ApiOrtIssue(timestamp, source, message, severity)
@@ -205,6 +244,21 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         resolvedJobConfigContext
     )
 
+fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
+    ApiOrtRunSummary(
+        id = id,
+        index = index,
+        repositoryId = repositoryId,
+        revision = revision,
+        createdAt = createdAt,
+        finishedAt = finishedAt,
+        jobs = jobs,
+        status = status.mapToApi(),
+        labels = labels,
+        jobConfigContext = jobConfigContext,
+        resolvedJobConfigContext = resolvedJobConfigContext
+    )
+
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
 fun Product.mapToApi() = ApiProduct(id, name, description)
@@ -225,6 +279,15 @@ fun ReporterJob.mapToApi() =
         finishedAt,
         configuration.mapToApi(),
         status.mapToApi()
+    )
+
+fun ReporterJob.mapToApiSummary() =
+    ApiJobSummary(
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status.mapToApi()
     )
 
 fun ReporterJobConfiguration.mapToApi() =
@@ -259,6 +322,15 @@ fun ScannerJob.mapToApi() =
         finishedAt,
         configuration.mapToApi(),
         status.mapToApi()
+    )
+
+fun ScannerJob.mapToApiSummary() =
+    ApiJobSummary(
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status.mapToApi()
     )
 
 fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(

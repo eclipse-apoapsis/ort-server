@@ -23,10 +23,10 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Clock.System
 
 import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJobConfiguration
@@ -40,11 +40,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.JobStatus
+import org.eclipse.apoapsis.ortserver.api.v1.JobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.JobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus.ACTIVE
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus.FINISHED
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.ProviderPluginConfiguration
@@ -162,6 +163,20 @@ val jobs = Jobs(
     )
 )
 
+/**
+ * Create a [JobSummary] for a job that was created the provided [offset] duration ago.
+ */
+private fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): JobSummary {
+    val createdAt = Clock.System.now() - offset
+    return JobSummary(
+        id = 1L,
+        createdAt = createdAt,
+        startedAt = createdAt + 1.minutes,
+        finishedAt = (createdAt + 2.minutes).takeIf { status == JobStatus.FINISHED },
+        status = status
+    )
+}
+
 val getRepositoryById: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoryById"
     summary = "Get details of a repository."
@@ -263,35 +278,40 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                     name = "Get ORT runs",
                     value = PagedResponse(
                         listOf(
-                            OrtRun(
+                            OrtRunSummary(
                                 id = 2,
                                 index = 1,
                                 repositoryId = 1,
                                 revision = "main",
-                                createdAt = System.now() - 4.minutes,
-                                jobConfigs = jobConfigurations,
-                                resolvedJobConfigs = jobConfigurations,
-                                jobs = jobs,
-                                status = FINISHED,
-                                finishedAt = System.now(),
+                                createdAt = Clock.System.now() - 15.minutes,
+                                finishedAt = Clock.System.now(),
+                                jobs = JobSummaries(
+                                    analyzer = createJobSummary(10.minutes),
+                                    advisor = createJobSummary(8.minutes),
+                                    scanner = createJobSummary(8.minutes),
+                                    evaluator = createJobSummary(6.minutes),
+                                    reporter = createJobSummary(4.minutes)
+                                ),
+                                status = OrtRunStatus.FINISHED,
                                 labels = mapOf("label key" to "label value"),
-                                issues = emptyList(),
                                 jobConfigContext = null,
                                 resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
                             ),
-                            OrtRun(
+                            OrtRunSummary(
                                 id = 3,
                                 index = 2,
                                 repositoryId = 1,
                                 revision = "main",
-                                createdAt = System.now(),
-                                jobConfigs = jobConfigurations,
-                                resolvedJobConfigs = jobConfigurations,
-                                jobs = jobs,
-                                status = ACTIVE,
-                                finishedAt = null,
+                                createdAt = Clock.System.now() - 15.minutes,
+                                finishedAt = Clock.System.now(),
+                                jobs = JobSummaries(
+                                    analyzer = createJobSummary(5.minutes),
+                                    advisor = createJobSummary(3.minutes),
+                                    scanner = createJobSummary(3.minutes),
+                                    evaluator = createJobSummary(1.minutes, JobStatus.RUNNING)
+                                ),
+                                status = OrtRunStatus.ACTIVE,
                                 labels = mapOf("label key" to "label value"),
-                                issues = emptyList(),
                                 jobConfigContext = null,
                                 resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                             )
