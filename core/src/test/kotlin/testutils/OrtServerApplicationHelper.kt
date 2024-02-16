@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.testutils
+package org.eclipse.apoapsis.ortserver.core.testutils
 
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.config.ApplicationConfig

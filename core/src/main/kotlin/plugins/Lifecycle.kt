@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 
@@ -25,9 +25,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 
-import org.ossreviewtoolkit.server.services.AuthorizationService
+import org.koin.ktor.ext.inject
 
 import org.slf4j.LoggerFactory
 

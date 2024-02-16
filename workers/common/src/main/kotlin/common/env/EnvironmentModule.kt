@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
+
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoInfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
 
 /**
  * Return a [Module] with bean definitions that provide an [EnvironmentService] instance and its dependencies. This

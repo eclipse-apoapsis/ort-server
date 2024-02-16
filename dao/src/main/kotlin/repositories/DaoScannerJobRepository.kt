@@ -17,23 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.jetbrains.exposed.sql.Database
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
-import org.ossreviewtoolkit.server.dao.tables.ScannerJobsTable
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.jetbrains.exposed.sql.Database
 
 class DaoScannerJobRepository(private val db: Database) : ScannerJobRepository {
     override fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob = db.blockingQuery {

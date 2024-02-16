@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.advisor
+package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 data class AdvisorConfiguration(
     val config: Map<String, PluginConfiguration>

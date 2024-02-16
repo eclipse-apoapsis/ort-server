@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.resolvedconfiguration
+package org.eclipse.apoapsis.ortserver.model.resolvedconfiguration
 
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 /**
  * The resolved configuration for an ORT run. This contains configuration resolved during a job, for example the

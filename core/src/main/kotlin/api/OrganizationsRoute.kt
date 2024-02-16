@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.delete
 import io.github.smiley4.ktorswaggerui.dsl.get
@@ -31,43 +31,43 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByOrganizationIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByOrganizationId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByOrganizationIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForOrganization
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
+import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.core.utils.listQueryParameters
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.SecretService
 
-import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.CreateOrganization
-import org.ossreviewtoolkit.server.api.v1.CreateProduct
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.deleteOrganizationById
-import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByOrganizationIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getInfrastructureServicesByOrganizationId
-import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationById
-import org.ossreviewtoolkit.server.core.apiDocs.getOrganizationProducts
-import org.ossreviewtoolkit.server.core.apiDocs.getOrganizations
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretByOrganizationIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByOrganizationId
-import org.ossreviewtoolkit.server.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.patchOrganizationById
-import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByOrganizationIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.postInfrastructureServiceForOrganization
-import org.ossreviewtoolkit.server.core.apiDocs.postOrganizations
-import org.ossreviewtoolkit.server.core.apiDocs.postProduct
-import org.ossreviewtoolkit.server.core.apiDocs.postSecretForOrganization
-import org.ossreviewtoolkit.server.core.authorization.requirePermission
-import org.ossreviewtoolkit.server.core.authorization.requireSuperuser
-import org.ossreviewtoolkit.server.core.utils.listQueryParameters
-import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.services.InfrastructureServiceService
-import org.ossreviewtoolkit.server.services.OrganizationService
-import org.ossreviewtoolkit.server.services.SecretService
+import org.koin.ktor.ext.inject
 
 @Suppress("LongMethod")
 fun Route.organizations() = route("organizations") {

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess.loki
+package org.eclipse.apoapsis.ortserver.logaccess.loki
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.BasicCredentials
@@ -51,10 +51,10 @@ import kotlin.time.Duration.Companion.milliseconds
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.logaccess.LogFileService
-import org.ossreviewtoolkit.server.logaccess.LogLevel
-import org.ossreviewtoolkit.server.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
+import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
+import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 
 class LokiLogFileProviderTest : StringSpec() {
     private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())

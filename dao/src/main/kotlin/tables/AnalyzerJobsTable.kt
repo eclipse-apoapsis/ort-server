@@ -17,21 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
-import org.ossreviewtoolkit.server.dao.utils.jsonb
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.JobStatus
 
 /**
  * A table to represent an analyzer job.

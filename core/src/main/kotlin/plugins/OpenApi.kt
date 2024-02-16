@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import com.github.ricky12awesome.jss.encodeToSchema
 
@@ -31,9 +31,9 @@ import io.ktor.server.config.ApplicationConfig
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
-import org.ossreviewtoolkit.server.model.ORT_SERVER_VERSION
+import org.koin.ktor.ext.inject
 
 fun Application.configureOpenApi() {
     val config: ApplicationConfig by inject()

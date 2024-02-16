@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import com.typesafe.config.ConfigFactory
 
@@ -33,9 +33,9 @@ import io.kotest.matchers.types.shouldBeTypeOf
 
 import java.nio.file.Paths
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
 private const val NAMESPACE = "test-namespace"
 private const val IMAGE_NAME = "busybox"

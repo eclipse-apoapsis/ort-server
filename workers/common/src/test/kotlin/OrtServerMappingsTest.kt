@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
@@ -25,70 +25,71 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphNode
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue as OrtServerIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.LicenseFinding
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.LocalFileStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
+
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
-import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.DependencyGraph
-import org.ossreviewtoolkit.server.model.runs.DependencyGraphNode
-import org.ossreviewtoolkit.server.model.runs.DependencyGraphRoot
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue as OrtServerIssue
-import org.ossreviewtoolkit.server.model.runs.Package
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
-import org.ossreviewtoolkit.server.model.runs.Project
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.advisor.Vulnerability
-import org.ossreviewtoolkit.server.model.runs.advisor.VulnerabilityReference
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
-import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
-import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
-import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
-import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
-import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.LicenseFinding
-import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanResult
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanSummary
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerDetail
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 
 private const val TIME_STAMP_SECONDS = 1678119934L
 

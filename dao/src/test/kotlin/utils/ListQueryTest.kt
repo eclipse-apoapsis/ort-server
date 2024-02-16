@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.utils
+package org.eclipse.apoapsis.ortserver.dao.utils
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -28,21 +28,21 @@ import io.kotest.matchers.string.shouldContain
 
 import java.util.Locale
 
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
-import org.ossreviewtoolkit.server.dao.QueryParametersException
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
+import org.jetbrains.exposed.sql.transactions.transaction
 
 private const val COUNT = 32
 private const val ORGANIZATION_NAME = "TestOrganization"

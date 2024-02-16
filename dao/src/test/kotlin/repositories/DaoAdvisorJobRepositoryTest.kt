@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -25,13 +25,13 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.AdvisorJob
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 class DaoAdvisorJobRepositoryTest : WorkerJobRepositoryTest<AdvisorJob>() {
     private val dbExtension = extension(DatabaseTestExtension())

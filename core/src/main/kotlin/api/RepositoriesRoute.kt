@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.delete
 import io.github.smiley4.ktorswaggerui.dsl.get
@@ -31,36 +31,36 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapToModel
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByRepositoryId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
+import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.listQueryParameters
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.services.SecretService
 
-import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.Jobs
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.UpdateRepository
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.api.v1.mapToModel
-import org.ossreviewtoolkit.server.core.apiDocs.deleteRepositoryById
-import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByRepositoryIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getOrtRunByIndex
-import org.ossreviewtoolkit.server.core.apiDocs.getOrtRuns
-import org.ossreviewtoolkit.server.core.apiDocs.getRepositoryById
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretByRepositoryIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByRepositoryId
-import org.ossreviewtoolkit.server.core.apiDocs.patchRepositoryById
-import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByRepositoryIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.postOrtRun
-import org.ossreviewtoolkit.server.core.apiDocs.postSecretForRepository
-import org.ossreviewtoolkit.server.core.authorization.requirePermission
-import org.ossreviewtoolkit.server.core.services.OrchestratorService
-import org.ossreviewtoolkit.server.core.utils.listQueryParameters
-import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.services.RepositoryService
-import org.ossreviewtoolkit.server.services.SecretService
+import org.koin.ktor.ext.inject
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()

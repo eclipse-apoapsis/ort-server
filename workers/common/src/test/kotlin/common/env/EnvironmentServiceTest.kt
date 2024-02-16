@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -37,21 +37,21 @@ import io.mockk.slot
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.model.EnvironmentConfig
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
-import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
-import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
+import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentServiceTest : WordSpec({
     "findInfrastructureServiceForRepository" should {

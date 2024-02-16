@@ -17,16 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import com.fasterxml.jackson.module.kotlin.readValue
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+
 import org.ossreviewtoolkit.model.yamlMapper
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 import org.slf4j.LoggerFactory
 

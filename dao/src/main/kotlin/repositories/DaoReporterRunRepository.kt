@@ -17,22 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Instant
 
-import org.jetbrains.exposed.sql.Database
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReportDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunsTable
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.ReporterJobDao
-import org.ossreviewtoolkit.server.dao.tables.runs.reporter.ReportDao
-import org.ossreviewtoolkit.server.dao.tables.runs.reporter.ReporterRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.reporter.ReporterRunsTable
-import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
-import org.ossreviewtoolkit.server.model.runs.reporter.Report
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
+import org.jetbrains.exposed.sql.Database
 
 /**
  * An implementation of [ReporterRunRepository] that stores reporter runs in [ReporterRunsTable].

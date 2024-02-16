@@ -17,7 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.evaluator
+package org.eclipse.apoapsis.ortserver.workers.evaluator
+
+import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
+import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
 import org.koin.core.module.Module
@@ -26,21 +42,6 @@ import org.koin.dsl.module
 
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
-import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.transport.EndpointComponent
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.EvaluatorEndpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessagePublisher
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.workers.common.OrtServerFileArchiveStorage
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
-import org.ossreviewtoolkit.server.workers.common.ortRunServiceModule
 
 import org.slf4j.LoggerFactory
 

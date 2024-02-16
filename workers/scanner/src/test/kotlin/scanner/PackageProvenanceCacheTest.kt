@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner.scanner
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -27,10 +27,11 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import org.eclipse.apoapsis.ortserver.workers.scanner.PackageProvenanceCache
+
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.server.workers.scanner.PackageProvenanceCache
 
 class PackageProvenanceCacheTest : WordSpec({
     "get" should {

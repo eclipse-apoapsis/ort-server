@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.selectByPrefix
-import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
-import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
-import org.ossreviewtoolkit.server.utils.config.getInterpolatedString
-import org.ossreviewtoolkit.server.utils.config.getInterpolatedStringOrNull
-import org.ossreviewtoolkit.server.utils.config.getLongOrDefault
-import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
+import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedString
+import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrNull
+import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 import org.slf4j.LoggerFactory
 

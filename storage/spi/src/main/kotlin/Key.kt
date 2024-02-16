@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage
+package org.eclipse.apoapsis.ortserver.storage
 
 /**
  * A class representing a key for an entry to be stored in a storage.

@@ -17,14 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+
 import org.ossreviewtoolkit.model.RepositoryProvenance
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
 
 import org.slf4j.LoggerFactory
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.evaluator
+package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import com.fasterxml.jackson.module.kotlin.readValue
 
@@ -33,6 +33,16 @@ import io.mockk.mockk
 
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
+
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
@@ -40,15 +50,6 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.yamlMapper
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
-import org.ossreviewtoolkit.server.workers.common.OrtTestData
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME

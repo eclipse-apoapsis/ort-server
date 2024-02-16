@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 /**
  * A product represent a group of [repositories][Repository] that belong together.

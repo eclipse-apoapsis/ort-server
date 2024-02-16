@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -32,9 +32,9 @@ import io.mockk.mockk
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 
 class ReportStorageServiceTest : WordSpec({
     "fetchReport" should {

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe

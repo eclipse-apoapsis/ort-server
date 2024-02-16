@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestClient
-import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealmAdmin
 
 class KeycloakTestClientTest : AbstractKeycloakClientTest() {
     override val client = KeycloakTestClient(

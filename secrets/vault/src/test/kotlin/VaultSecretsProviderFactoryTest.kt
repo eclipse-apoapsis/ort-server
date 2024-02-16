@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.Secret
-import org.ossreviewtoolkit.server.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 
 class VaultSecretsProviderFactoryTest : StringSpec() {
     private val vault = installVaultTestContainer()

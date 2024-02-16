@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
-import org.ossreviewtoolkit.server.model.AdvisorJob
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 
 /**
  * A repository of [advisor jobs][AdvisorJob].

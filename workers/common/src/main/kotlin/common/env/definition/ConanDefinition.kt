@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.definition
+package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the Conan _remotes.json_ file with configuration

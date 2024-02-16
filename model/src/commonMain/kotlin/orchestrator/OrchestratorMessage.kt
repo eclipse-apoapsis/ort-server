@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.orchestrator
+package org.eclipse.apoapsis.ortserver.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRun
 
 /**
  * Base class for the hierarchy of messages that can be processed by the Orchestrator component.

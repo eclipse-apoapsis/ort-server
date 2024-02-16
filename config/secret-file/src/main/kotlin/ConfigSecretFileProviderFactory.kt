@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.secret.file
+package org.eclipse.apoapsis.ortserver.config.secret.file
 
 import com.typesafe.config.Config
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.config.ConfigSecretProvider
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactory
 
 import org.slf4j.LoggerFactory
 

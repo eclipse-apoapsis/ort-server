@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.artemis
+package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import com.typesafe.config.ConfigFactory
 
@@ -25,7 +25,7 @@ import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.ContainerExtension
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.slf4j.LoggerFactory
 

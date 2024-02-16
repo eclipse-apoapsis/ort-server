@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.apiDocs
+package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
@@ -28,40 +28,40 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Clock.System
 
-import org.ossreviewtoolkit.server.api.v1.AdvisorJob
-import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJob
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
-import org.ossreviewtoolkit.server.api.v1.EvaluatorJob
-import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.InfrastructureService
-import org.ossreviewtoolkit.server.api.v1.JobConfigurations
-import org.ossreviewtoolkit.server.api.v1.JobStatus
-import org.ossreviewtoolkit.server.api.v1.Jobs
-import org.ossreviewtoolkit.server.api.v1.OrtRun
-import org.ossreviewtoolkit.server.api.v1.OrtRunStatus
-import org.ossreviewtoolkit.server.api.v1.OrtRunStatus.ACTIVE
-import org.ossreviewtoolkit.server.api.v1.OrtRunStatus.FINISHED
-import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration
-import org.ossreviewtoolkit.server.api.v1.ReporterJob
-import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.Repository
-import org.ossreviewtoolkit.server.api.v1.RepositoryType
-import org.ossreviewtoolkit.server.api.v1.ScannerJob
-import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.Secret
-import org.ossreviewtoolkit.server.api.v1.UpdateRepository
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
-import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJob
+import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.JobStatus
+import org.eclipse.apoapsis.ortserver.api.v1.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus.ACTIVE
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus.FINISHED
+import org.eclipse.apoapsis.ortserver.api.v1.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.ReporterJob
+import org.eclipse.apoapsis.ortserver.api.v1.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.ScannerJob
+import org.eclipse.apoapsis.ortserver.api.v1.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 private val jobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(

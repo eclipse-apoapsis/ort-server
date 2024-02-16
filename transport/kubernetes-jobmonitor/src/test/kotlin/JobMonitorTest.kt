@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
@@ -37,7 +37,7 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
 class JobMonitorTest : StringSpec({
     beforeSpec {

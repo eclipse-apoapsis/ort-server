@@ -28,7 +28,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.transport"
+group = "org.eclipse.apoapsis.ortserver.transport"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
@@ -67,7 +67,7 @@ jib {
     to.image = "${dockerImagePrefix}ort-server-kubernetes-jobmonitor:$dockerImageTag"
 
     container {
-        mainClass = "org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.EntrypointKt"
+        mainClass = "org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.EntrypointKt"
         creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }

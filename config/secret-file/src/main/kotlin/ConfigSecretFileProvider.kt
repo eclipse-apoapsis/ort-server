@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.secret.file
+package org.eclipse.apoapsis.ortserver.config.secret.file
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.config.ConfigSecretProvider
-import org.ossreviewtoolkit.server.config.Path
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
+import org.eclipse.apoapsis.ortserver.config.Path
 
 /**
  * An implementation of the [ConfigSecretProvider] interface that reads secrets from files.

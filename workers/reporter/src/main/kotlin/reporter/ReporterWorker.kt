@@ -17,24 +17,24 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 
-import org.jetbrains.exposed.sql.Database
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.ReporterJob
-import org.ossreviewtoolkit.server.model.runs.reporter.Report
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
-import org.ossreviewtoolkit.server.workers.common.JobIgnoredException
-import org.ossreviewtoolkit.server.workers.common.OrtRunService
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
+import org.jetbrains.exposed.sql.Database
 
 import org.slf4j.LoggerFactory
 

@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.utils
+package org.eclipse.apoapsis.ortserver.dao.utils
+
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Column
-
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
 
 /**
  * A specialized base class for database tables that provides functionality to mark single columns as sortable.

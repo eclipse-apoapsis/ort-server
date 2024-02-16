@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.evaluator
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator
+
+import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
-import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobsTable
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
 
 /**
  * A table to represent a summary of an evaluator run.

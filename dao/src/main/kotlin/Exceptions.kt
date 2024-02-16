@@ -19,7 +19,7 @@
 
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
-package org.ossreviewtoolkit.server.dao
+package org.eclipse.apoapsis.ortserver.dao
 
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi

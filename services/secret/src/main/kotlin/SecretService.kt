@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
+
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.Secret as SecretValue
-import org.ossreviewtoolkit.server.secrets.SecretStorage
 
 /**
  * A service providing functions for working with [secrets][Secret].

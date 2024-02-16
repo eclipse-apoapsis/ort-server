@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
  * Response object for the repository endpoint.

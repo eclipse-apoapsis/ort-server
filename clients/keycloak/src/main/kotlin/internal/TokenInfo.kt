@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.internal
+package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -29,6 +29,12 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.time.Instant
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
@@ -49,11 +55,6 @@ import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ScannerMatcher
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 import org.semver4j.Semver

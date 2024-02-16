@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.authorization
+package org.eclipse.apoapsis.ortserver.model.authorization
 
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.Product
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.Product
 
 /**
  * This enum contains the available roles for [organizations][Organization]. These roles are used to create composite

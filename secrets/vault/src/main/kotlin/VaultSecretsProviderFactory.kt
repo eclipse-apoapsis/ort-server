@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.secrets.SecretsProvider
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 
 import org.slf4j.LoggerFactory
 

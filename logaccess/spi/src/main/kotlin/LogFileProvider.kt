@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess
+package org.eclipse.apoapsis.ortserver.logaccess
 
 import java.io.File
 

@@ -17,17 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
+
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.dao.dbQueryCatching
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 import org.slf4j.LoggerFactory
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
@@ -30,27 +30,27 @@ import io.kotest.matchers.shouldNot
 import io.mockk.every
 import io.mockk.mockkClass
 
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
+import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.dao.test.mockkTransaction
-import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
-import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.ScannerEndpoint
-import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
-import org.ossreviewtoolkit.server.workers.common.RunResult
 
 private const val SCANNER_JOB_ID = 1L
 private const val TOKEN = "token"

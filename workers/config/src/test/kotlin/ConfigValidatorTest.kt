@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
@@ -35,13 +35,13 @@ import kotlin.math.abs
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ConfigValidatorTest : StringSpec({
     "A successful validation should be handled" {

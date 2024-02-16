@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.reporter
+package org.eclipse.apoapsis.ortserver.model.runs.reporter
 
 import kotlinx.datetime.Instant
 

@@ -87,7 +87,7 @@ style:
   WildcardImport:
     excludes: ''
     excludeImports:
-      - org.ossreviewtoolkit.server.core.plugins.*
+      - org.eclipse.apoapsis.ortserver.core.plugins.*
 
 ORT:
   OrtImportOrder:

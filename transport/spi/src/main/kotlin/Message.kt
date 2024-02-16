@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 /**
  * A data class representing the header of messages passed between internal ORT server endpoints. Via the properties

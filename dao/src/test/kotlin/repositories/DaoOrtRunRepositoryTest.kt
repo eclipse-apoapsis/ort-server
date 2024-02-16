@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.longs.shouldBeGreaterThan
@@ -29,16 +29,16 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 class DaoOrtRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

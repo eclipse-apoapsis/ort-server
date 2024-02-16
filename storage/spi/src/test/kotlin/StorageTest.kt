@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage
+package org.eclipse.apoapsis.ortserver.storage
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -30,9 +30,9 @@ import io.kotest.matchers.string.shouldContain
 
 import java.io.ByteArrayInputStream
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.storage.Storage.Companion.dataArray
-import org.ossreviewtoolkit.server.storage.Storage.Companion.dataString
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataArray
+import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 
 class StorageTest : WordSpec({
     "create" should {

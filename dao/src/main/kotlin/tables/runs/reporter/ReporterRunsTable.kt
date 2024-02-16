@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.reporter
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter
+
+import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.ReporterJobDao
-import org.ossreviewtoolkit.server.dao.tables.ReporterJobsTable
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
 
 /**
  * A table to represent a summary of a reporter run.

@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
  * A repository of [repositories][Repository].

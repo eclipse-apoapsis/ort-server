@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
 import io.kotest.common.runBlocking
@@ -34,22 +34,22 @@ import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.dao.test.mockkTransaction
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.model.util.asPresent
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 class ConfigWorkerTest : StringSpec({
     beforeSpec {

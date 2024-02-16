@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorResult
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 
 /**
  * A repository of [advisor runs][AdvisorRun].

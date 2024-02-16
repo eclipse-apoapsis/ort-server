@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets
+package org.eclipse.apoapsis.ortserver.secrets
 
 import com.typesafe.config.ConfigFactory
 
@@ -33,9 +33,9 @@ import io.kotest.matchers.types.beInstanceOf
 
 import kotlin.IllegalArgumentException
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_PATH
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_SECRET
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_PATH
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting.Companion.PASSWORD_SECRET
 
 class SecretStorageTest : WordSpec({
     "createStorage" should {

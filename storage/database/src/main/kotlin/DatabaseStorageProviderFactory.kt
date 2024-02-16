@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage.database
+package org.eclipse.apoapsis.ortserver.storage.database
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.storage.StorageProvider
-import org.ossreviewtoolkit.server.storage.StorageProviderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.storage.StorageProvider
+import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
 
 /**
  * [StorageProviderFactory] implementation for the database storage implementation. This factory creates a

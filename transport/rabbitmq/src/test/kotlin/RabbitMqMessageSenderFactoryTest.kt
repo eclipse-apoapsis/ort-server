@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.rabbitmq
+package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
@@ -43,16 +43,16 @@ import java.lang.IllegalStateException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.testcontainers.containers.RabbitMQContainer
 

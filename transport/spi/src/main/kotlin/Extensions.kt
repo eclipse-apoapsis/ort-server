@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 /** The separator used for complex keys in message properties. */
 private const val PROPERTY_SEPARATOR = "."

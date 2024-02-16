@@ -12,8 +12,8 @@
       <env name="JWT_REALM" value="master" />
       <env name="JWT_URI" value="http://keycloak:8081/realms/master/protocol/openid-connect/certs" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.ossreviewtoolkit.server.core.ApplicationKt" />
-    <module name="org.ossreviewtoolkit.server.ort-server.core.main" />
+    <option name="MAIN_CLASS_NAME" value="org.eclipse.apoapsis.ortserver.core.ApplicationKt" />
+    <module name="org.eclipse.apoapsis.ortserver.ort-server.core.main" />
     <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />

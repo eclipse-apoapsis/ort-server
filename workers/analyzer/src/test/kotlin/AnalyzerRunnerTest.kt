@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.analyzer
+package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import com.typesafe.config.ConfigFactory
 
@@ -44,6 +44,15 @@ import io.mockk.verify
 import java.io.File
 import java.io.IOException
 import java.time.Instant
+
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun
@@ -79,14 +88,6 @@ import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
@@ -415,7 +416,7 @@ class AnalyzerRunnerTest : WordSpec({
                 "/bin/sh",
                 "-c",
                 "exec java -cp ${System.getProperty("java.class.path")} " +
-                        "org.ossreviewtoolkit.server.workers.analyzer.AnalyzerRunner " +
+                        "org.eclipse.apoapsis.ortserver.workers.analyzer.AnalyzerRunner " +
                         "${exchangeDir.absolutePath} ${inputDir.absolutePath}"
             )
             val runner = AnalyzerRunner(ConfigFactory.empty())
@@ -448,7 +449,7 @@ class AnalyzerRunnerTest : WordSpec({
                 "myLauncher",
                 "run on",
                 System.getProperty("java.class.path"),
-                "this: org.ossreviewtoolkit.server.workers.analyzer.AnalyzerRunner ${exchangeDir.absolutePath} " +
+                "this: org.eclipse.apoapsis.ortserver.workers.analyzer.AnalyzerRunner ${exchangeDir.absolutePath} " +
                         inputDir.absolutePath,
                 "--fast"
             )

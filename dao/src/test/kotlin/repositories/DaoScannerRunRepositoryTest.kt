@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -29,38 +29,38 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceSubRepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.LocalFileStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresConnection
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
-import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
-import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScanResultsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.LocalFileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.PostgresConnection
-import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class DaoScannerRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

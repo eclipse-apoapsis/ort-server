@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.workers.common.env.MockConfigFileBuilder
-import org.ossreviewtoolkit.server.workers.common.env.NuGetGenerator
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder
+import org.eclipse.apoapsis.ortserver.workers.common.env.NuGetGenerator
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinition
 
 class NuGetGeneratorTest : WordSpec({
     "environmentDefinitionType" should {

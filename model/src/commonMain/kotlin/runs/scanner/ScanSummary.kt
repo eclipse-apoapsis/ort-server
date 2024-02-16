@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 
 data class ScanSummary(
     val startTime: Instant,

@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.util.Base64
 
-import org.ossreviewtoolkit.server.workers.common.env.ConfigFileBuilder.Companion.printLines
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
 
 /**
  * A specialized generator class for NPM's _.npmrc_ configuration files.

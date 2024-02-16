@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import java.io.File
 import java.net.URI

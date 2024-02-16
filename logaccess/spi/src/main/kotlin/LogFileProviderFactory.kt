@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess
+package org.eclipse.apoapsis.ortserver.logaccess
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /**
  * A factory interface for creating [LogFileProvider] instances.

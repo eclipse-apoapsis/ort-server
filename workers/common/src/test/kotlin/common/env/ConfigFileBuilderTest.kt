@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
@@ -32,9 +32,9 @@ import io.mockk.mockk
 
 import java.util.Properties
 
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.env.ConfigFileBuilder.Companion.printLines
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 
 class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {

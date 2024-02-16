@@ -17,58 +17,58 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.DetectedLicenseMappingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileArchiverConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileBasedStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.HttpFileStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.LocalFileStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.PostgresConnectionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.PostgresStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ProvenanceStorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationOptionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationSecretDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationStorageDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationsOptionsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationsSecretsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScannersDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScannersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.StorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.Sw360StorageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.KnownProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanStorageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.Sw360StorageConfiguration
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.DetectedLicenseMappingDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileArchiverConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileBasedStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.FileStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.HttpFileStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.LocalFileStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.PostgresConnectionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.PostgresStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ProvenanceStorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationOptionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationSecretDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationStorageDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsOptionsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerConfigurationsSecretsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScannersDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScannersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.StorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.Sw360StorageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
-import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.scanner.ClearlyDefinedStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileArchiveConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.FileStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.KnownProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.PostgresStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceResolutionResult
-import org.ossreviewtoolkit.server.model.runs.scanner.ProvenanceStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScanStorageConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.model.runs.scanner.Sw360StorageConfiguration
 
 /**
  * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].

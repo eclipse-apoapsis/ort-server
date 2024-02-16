@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -28,19 +28,19 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
-import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
 class DaoRepositoryRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

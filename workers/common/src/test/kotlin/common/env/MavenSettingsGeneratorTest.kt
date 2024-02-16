@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 class MavenSettingsGeneratorTest : WordSpec({
     "environmentDefinitionType" should {

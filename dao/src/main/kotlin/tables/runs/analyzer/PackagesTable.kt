@@ -17,22 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.model.runs.Package
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
-
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
-import org.ossreviewtoolkit.server.model.runs.Package
 
 /**
  * A table to represent all metadata for a software package.

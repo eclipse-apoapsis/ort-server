@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.internal
+package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.submitForm
 import io.ktor.http.Parameters
 
-import org.ossreviewtoolkit.server.clients.keycloak.Group
-import org.ossreviewtoolkit.server.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 
 /**
  * Recursively search for a group with the provided [name].

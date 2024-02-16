@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.artemis
+package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
 /**
  * Implementation of the [MessageSenderFactory] interface for Apache ActiveMQ Artemis.

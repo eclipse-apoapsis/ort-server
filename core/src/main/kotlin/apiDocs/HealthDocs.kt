@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.apiDocs
+package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.core.api.Liveness
+import org.eclipse.apoapsis.ortserver.core.api.Liveness
 
 val getLiveness: OpenApiRoute.() -> Unit = {
     operationId = "GetLiveness"

@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess.loki
+package org.eclipse.apoapsis.ortserver.logaccess.loki
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.logaccess.LogFileProvider
-import org.ossreviewtoolkit.server.logaccess.LogFileProviderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactory
 
 import org.slf4j.LoggerFactory
 

@@ -17,28 +17,28 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.apiDocs
+package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.CreateOrganization
-import org.ossreviewtoolkit.server.api.v1.CreateProduct
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.InfrastructureService
-import org.ossreviewtoolkit.server.api.v1.Organization
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.Product
-import org.ossreviewtoolkit.server.api.v1.Secret
-import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.Product
+import org.eclipse.apoapsis.ortserver.api.v1.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizationById"

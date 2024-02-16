@@ -17,23 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import com.charleskorn.kaml.Yaml
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.model.EnvironmentConfig
-import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
 
 import org.slf4j.LoggerFactory
 

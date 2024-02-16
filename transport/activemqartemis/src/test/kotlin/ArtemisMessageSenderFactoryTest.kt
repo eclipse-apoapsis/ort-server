@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.artemis
+package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -35,14 +35,14 @@ import jakarta.jms.TextMessage
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.common
+package org.eclipse.apoapsis.ortserver.workers.common.common
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 
@@ -30,15 +30,15 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.readConfigFile
-import org.ossreviewtoolkit.server.workers.common.readConfigFileWithDefault
-import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFile
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 class ExtensionsTest : WordSpec({
     data class ConfigClass(val name: String, val value: String)

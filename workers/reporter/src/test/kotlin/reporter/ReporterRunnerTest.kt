@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -49,6 +49,21 @@ import java.io.FileNotFoundException
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.model.ReporterAsset
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
+
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
@@ -57,20 +72,6 @@ import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfigu
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.model.ReportNameMapping
-import org.ossreviewtoolkit.server.model.ReporterAsset
-import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.workers.common.OptionsTransformerFactory
-import org.ossreviewtoolkit.server.workers.common.OrtTestData
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.resolvedConfigurationContext
 
 private const val RUN_ID = 20230522093727L
 private val configurationContext = Context("theConfigContext")

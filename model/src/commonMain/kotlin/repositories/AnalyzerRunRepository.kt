@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.DependencyGraph
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.Package
-import org.ossreviewtoolkit.server.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 
 /**
  * A repository of [analyzer runs][AnalyzerRun].

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
@@ -25,8 +25,9 @@ import kotlin.script.experimental.api.defaultImports
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+
 import org.ossreviewtoolkit.utils.scripting.OrtScriptCompilationConfiguration
 
 /**
@@ -53,9 +54,9 @@ class ValidationScriptCompilationConfiguration : ScriptCompilationConfiguration(
     OrtScriptCompilationConfiguration(),
     body = {
         defaultImports(
-            "org.ossreviewtoolkit.server.model.*",
-            "org.ossreviewtoolkit.server.model.runs.*",
-            "org.ossreviewtoolkit.server.workers.config.*"
+            "org.eclipse.apoapsis.ortserver.model.*",
+            "org.eclipse.apoapsis.ortserver.model.runs.*",
+            "org.eclipse.apoapsis.ortserver.workers.config.*"
         )
     }
 )

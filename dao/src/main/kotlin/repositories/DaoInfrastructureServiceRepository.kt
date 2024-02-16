@@ -17,30 +17,30 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import java.net.URI
+
+import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.tables.InfrastructureServicesDao
+import org.eclipse.apoapsis.ortserver.dao.tables.InfrastructureServicesRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.InfrastructureServicesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
+import org.eclipse.apoapsis.ortserver.dao.tables.SecretDao
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
-
-import org.ossreviewtoolkit.server.dao.ConditionBuilder
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.findSingle
-import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesDao
-import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesRunsTable
-import org.ossreviewtoolkit.server.dao.tables.InfrastructureServicesTable
-import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
-import org.ossreviewtoolkit.server.dao.tables.ProductDao
-import org.ossreviewtoolkit.server.dao.tables.SecretDao
-import org.ossreviewtoolkit.server.dao.utils.apply
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoInfrastructureServiceRepository(private val db: Database) : InfrastructureServiceRepository {
     companion object {

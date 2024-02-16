@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.definition
+package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
  * An enumeration class defining the supported ways to declare the authentication against an NPM registry.

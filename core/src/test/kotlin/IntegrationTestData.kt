@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.eclipse.apoapsis.ortserver.core
 
-import org.ossreviewtoolkit.server.clients.keycloak.User
-import org.ossreviewtoolkit.server.clients.keycloak.UserId
-import org.ossreviewtoolkit.server.clients.keycloak.UserName
-import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 
 /**
  * A Keycloak [User] to be used when testing authorization in integration tests. The user is supposed to have the

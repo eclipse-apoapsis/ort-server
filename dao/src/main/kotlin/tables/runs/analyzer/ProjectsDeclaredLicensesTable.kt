@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicensesTable
 
 import org.jetbrains.exposed.sql.Table
-
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicensesTable
 
 /**
  * An intermediate table to store references from [ProjectsTable] and [DeclaredLicensesTable].

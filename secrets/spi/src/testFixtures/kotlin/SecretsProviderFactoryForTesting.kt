@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets
+package org.eclipse.apoapsis.ortserver.secrets
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
 /**
  * A simple implementation of the [SecretsProviderFactory] interface for testing purposes that uses an in-memory

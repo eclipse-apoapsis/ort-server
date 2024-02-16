@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess
+package org.eclipse.apoapsis.ortserver.logaccess
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -38,7 +38,8 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+
 import org.ossreviewtoolkit.utils.common.unpack
 
 class LogFileServiceTest : WordSpec({

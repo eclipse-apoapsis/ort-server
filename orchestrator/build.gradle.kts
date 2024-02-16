@@ -25,7 +25,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.eclipse.apoapsis.ortserver"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
@@ -58,7 +58,7 @@ jib {
     to.image = "${dockerImagePrefix}ort-server-orchestrator:$dockerImageTag"
 
     container {
-        mainClass = "org.ossreviewtoolkit.server.orchestrator.EntrypointKt"
+        mainClass = "org.eclipse.apoapsis.ortserver.orchestrator.EntrypointKt"
         creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }

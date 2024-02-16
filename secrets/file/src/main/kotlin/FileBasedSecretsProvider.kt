@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.file
+package org.eclipse.apoapsis.ortserver.secrets.file
 
 import com.typesafe.config.Config
 
@@ -26,11 +26,11 @@ import java.util.Base64
 
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.Secret
-import org.ossreviewtoolkit.server.secrets.SecretsProvider
-import org.ossreviewtoolkit.server.secrets.file.model.FileBasedSecretsStorage
-import org.ossreviewtoolkit.server.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.secrets.file.model.FileBasedSecretsStorage
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
 import org.slf4j.LoggerFactory
 

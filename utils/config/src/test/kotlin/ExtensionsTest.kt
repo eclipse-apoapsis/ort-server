@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.utils.config
+package org.eclipse.apoapsis.ortserver.utils.config
 
 import com.typesafe.config.ConfigFactory
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactly
@@ -26,8 +26,8 @@ import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
 
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
 
 class NpmRcGeneratorTest : WordSpec({
     "environmentDefinitionType" should {

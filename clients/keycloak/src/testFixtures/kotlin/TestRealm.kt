@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.test
+package org.eclipse.apoapsis.ortserver.clients.keycloak.test
+
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 
 import org.keycloak.representations.idm.ClientRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
-
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.RoleName
-import org.ossreviewtoolkit.server.clients.keycloak.User
-import org.ossreviewtoolkit.server.clients.keycloak.UserId
-import org.ossreviewtoolkit.server.clients.keycloak.UserName
 
 /** The name of the test realm. */
 const val TEST_REALM = "test-realm"

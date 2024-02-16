@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 /**
  * This exception is thrown if a worker ignored a job, for example because it was already done.

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess.loki
+package org.eclipse.apoapsis.ortserver.logaccess.loki
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -38,9 +38,9 @@ import java.io.File
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.logaccess.LogFileProvider
-import org.ossreviewtoolkit.server.logaccess.LogLevel
-import org.ossreviewtoolkit.server.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
+import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
+import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 
 import org.slf4j.LoggerFactory
 

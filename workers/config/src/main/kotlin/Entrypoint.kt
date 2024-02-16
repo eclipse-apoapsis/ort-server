@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.slf4j.LoggerFactory
 

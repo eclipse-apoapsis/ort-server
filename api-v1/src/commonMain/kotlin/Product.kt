@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1
 
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.api.v1.validation.Constraints.namePatternMessage
-import org.ossreviewtoolkit.server.api.v1.validation.Constraints.namePatternRegex
-import org.ossreviewtoolkit.server.api.v1.validation.ValidatorFunc
-import org.ossreviewtoolkit.server.api.v1.validation.optionalPattern
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.api.v1.validation.Constraints.namePatternMessage
+import org.eclipse.apoapsis.ortserver.api.v1.validation.Constraints.namePatternRegex
+import org.eclipse.apoapsis.ortserver.api.v1.validation.ValidatorFunc
+import org.eclipse.apoapsis.ortserver.api.v1.validation.optionalPattern
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
  * Response object for the products endpoints. Used to group multiple repositories into products.

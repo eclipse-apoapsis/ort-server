@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
+
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
 
 /**
  * A table to represent a package manager configuration.

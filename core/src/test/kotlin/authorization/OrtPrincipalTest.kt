@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.authorization
+package org.eclipse.apoapsis.ortserver.core.authorization
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 
 class OrtPrincipalTest : WordSpec({
     val role1 = "role1"

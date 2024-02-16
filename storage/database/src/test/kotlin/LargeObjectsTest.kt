@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage.database
+package org.eclipse.apoapsis.ortserver.storage.database
 
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec

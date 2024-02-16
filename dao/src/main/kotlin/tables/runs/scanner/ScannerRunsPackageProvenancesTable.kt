@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.scanner
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner
+
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenancesTable
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
-
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
 
 /**
  * A junction table to link [ScannerRunsTable] with [PackageProvenancesTable].

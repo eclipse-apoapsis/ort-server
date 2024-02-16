@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.rabbitmq
+package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.AMQP.BasicProperties
 import com.rabbitmq.client.Delivery
 
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 internal object RabbitMqMessageConverter {
     /** Name of the message property that stores the access token. */

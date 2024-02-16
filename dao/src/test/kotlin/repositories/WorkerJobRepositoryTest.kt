@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -31,10 +31,10 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.WorkerJob
-import org.ossreviewtoolkit.server.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
+import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
 
 /**
  * An abstract test class that contains common tests for all [WorkerJobRepository] implementations.

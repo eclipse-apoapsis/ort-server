@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.slf4j.LoggerFactory
 

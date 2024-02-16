@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -27,11 +27,12 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.reporter.Statistics
-import org.ossreviewtoolkit.server.workers.common.OrtTestData
 
 class RunStatisticsReporterTest : WordSpec({
     "The RunStatisticsReporter" should {

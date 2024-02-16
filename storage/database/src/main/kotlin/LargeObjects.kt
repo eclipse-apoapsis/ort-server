@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage.database
+package org.eclipse.apoapsis.ortserver.storage.database
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream

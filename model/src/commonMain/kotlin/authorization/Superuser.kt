@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.authorization
+package org.eclipse.apoapsis.ortserver.model.authorization
 
 /**
  * Constants related to the superuser role that grants all permissions.

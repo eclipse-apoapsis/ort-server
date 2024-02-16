@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.api.v1.validation
+package org.eclipse.apoapsis.ortserver.api.v1.validation
 
 /**
  * An object containing constraints for validation.

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.common.env.config
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -34,25 +34,25 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
-import org.ossreviewtoolkit.server.model.EnvironmentConfig
-import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigException
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentDefinitionFactory
-import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 class EnvironmentConfigLoaderTest : StringSpec() {
     init {

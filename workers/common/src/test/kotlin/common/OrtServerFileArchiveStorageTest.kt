@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import com.typesafe.config.ConfigFactory
 
@@ -29,13 +29,14 @@ import io.kotest.matchers.shouldBe
 
 import java.io.ByteArrayInputStream
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactoryForTesting
+
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.storage.StorageProviderFactoryForTesting
 
 class OrtServerFileArchiveStorageTest : WordSpec({
     lateinit var fileArchiveStorage: OrtServerFileArchiveStorage

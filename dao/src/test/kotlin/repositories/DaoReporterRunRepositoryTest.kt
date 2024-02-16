@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -25,11 +25,11 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.ReporterJob
-import org.ossreviewtoolkit.server.model.runs.reporter.Report
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 
 class DaoReporterRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

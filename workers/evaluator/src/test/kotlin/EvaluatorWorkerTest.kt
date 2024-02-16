@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.evaluator
+package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
@@ -35,30 +35,31 @@ import java.io.File
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.server.config.ConfigException
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.dao.test.mockkTransaction
-import org.ossreviewtoolkit.server.model.EvaluatorJob
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.workers.common.OrtRunService
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
-private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
+private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
 
 private const val EVALUATOR_JOB_ID = 1L
 private const val REPOSITORY_ID = 1L

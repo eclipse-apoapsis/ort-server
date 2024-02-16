@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
 
 import io.ktor.client.request.get
 
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.shouldHaveBody
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.core.createJsonClient
+import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class HealthIntegrationTest : WordSpec({
     tags(Integration)

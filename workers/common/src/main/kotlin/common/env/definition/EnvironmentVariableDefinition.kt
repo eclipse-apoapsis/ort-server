@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.definition
+package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
-import org.ossreviewtoolkit.server.model.Secret
+import org.eclipse.apoapsis.ortserver.model.Secret
 
 /**
  * A class defining an environment variable which needs to be present when analyzing a repository.

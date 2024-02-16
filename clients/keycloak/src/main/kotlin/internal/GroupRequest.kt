@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.internal
+package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 
 @Serializable
 internal data class GroupRequest(

@@ -17,23 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.analyzer
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
+
+import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierOrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
-import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
-import org.ossreviewtoolkit.server.dao.utils.jsonb
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
 
 /**
  * A table to represent an analyzer run.

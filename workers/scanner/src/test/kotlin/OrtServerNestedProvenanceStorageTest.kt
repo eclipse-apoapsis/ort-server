@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
@@ -25,6 +25,11 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -37,10 +42,6 @@ import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
 class OrtServerNestedProvenanceStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())

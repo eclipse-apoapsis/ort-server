@@ -19,55 +19,55 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersOrtIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AuthorDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.MappedDeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageManagerConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesAuthorsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProcessedDeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProcessedDeclaredLicensesMappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectScopeDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsAuthorsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.UnmappedDeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierOrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersOrtIssuesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AnalyzerRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.MappedDeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesAuthorsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackagesDeclaredLicensesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicensesMappedDeclaredLicensesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectScopeDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsAuthorsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.UnmappedDeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.DeclaredLicenseDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierOrtIssueDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.DependencyGraph
-import org.ossreviewtoolkit.server.model.runs.DependencyGraphsWrapper
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.Package
-import org.ossreviewtoolkit.server.model.runs.ProcessedDeclaredLicense
-import org.ossreviewtoolkit.server.model.runs.Project
 
 /**
  * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].

@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.advisor
+package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 
 data class AdvisorRun(
     val id: Long,

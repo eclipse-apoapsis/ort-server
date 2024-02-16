@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import com.typesafe.config.ConfigFactory
 
@@ -39,9 +39,9 @@ import io.ktor.client.request.setBody
 
 import java.util.regex.Pattern
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
 
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.vault.VaultContainer

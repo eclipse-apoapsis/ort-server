@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess
+package org.eclipse.apoapsis.ortserver.logaccess
 
 import java.io.File
 import java.util.Collections
@@ -25,7 +25,7 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /**
  * An implementation of [LogFileProviderFactory] that can be used to test interactions with log file providers.

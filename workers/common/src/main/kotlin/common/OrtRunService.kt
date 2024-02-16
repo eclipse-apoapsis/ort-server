@@ -17,9 +17,41 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -29,37 +61,6 @@ import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.model.AdvisorJob
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.EvaluatorJob
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.ReporterJob
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
 
 @Suppress("LongParameterList", "TooManyFunctions")
 class OrtRunService(

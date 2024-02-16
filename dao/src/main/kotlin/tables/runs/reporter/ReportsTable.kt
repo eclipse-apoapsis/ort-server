@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.reporter
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter
+
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.model.runs.reporter.Report
 
 /**
  * A table to represent a report.

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.common.runBlocking
 
@@ -30,9 +30,9 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.

@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
  * A data class storing the supported configuration options for the HashiVault secrets provider implementation.

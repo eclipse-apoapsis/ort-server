@@ -24,7 +24,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.storage"
+group = "org.eclipse.apoapsis.ortserver.storage"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

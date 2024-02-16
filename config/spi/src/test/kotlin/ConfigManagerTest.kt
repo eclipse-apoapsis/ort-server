@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.ConfigFactory
 
@@ -43,7 +43,7 @@ import java.io.IOException
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.toPath
 
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 class ConfigManagerTest : WordSpec({
     "create" should {

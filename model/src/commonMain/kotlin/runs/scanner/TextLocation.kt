@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
 data class TextLocation(
     val path: String,

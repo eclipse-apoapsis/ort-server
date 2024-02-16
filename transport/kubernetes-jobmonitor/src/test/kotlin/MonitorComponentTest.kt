@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import com.typesafe.config.ConfigFactory
 
@@ -49,15 +49,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.launch
 
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
+
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 private const val NAMESPACE = "test-namespace"
 private const val REAPER_INTERVAL = 654321

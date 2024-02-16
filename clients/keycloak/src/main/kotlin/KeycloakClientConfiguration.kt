@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 /**
  * A data class representing the configuration of the Keycloak client.

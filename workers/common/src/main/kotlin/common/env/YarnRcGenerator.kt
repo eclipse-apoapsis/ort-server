@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
 
 /**
  * A specialized generator class for Yarn's _.yarnrc.yml_ configuration files.

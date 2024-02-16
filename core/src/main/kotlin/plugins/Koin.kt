@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 
-import org.koin.ktor.plugin.Koin
+import org.eclipse.apoapsis.ortserver.core.di.ortServerModule
 
-import org.ossreviewtoolkit.server.core.di.ortServerModule
+import org.koin.ktor.plugin.Koin
 
 fun Application.configureKoin() {
     install(Koin) {

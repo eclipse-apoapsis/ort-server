@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.tables.OrganizationDao
-import org.ossreviewtoolkit.server.dao.tables.ProductDao
-import org.ossreviewtoolkit.server.dao.tables.ProductsTable
-import org.ossreviewtoolkit.server.dao.utils.apply
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 class DaoProductRepository(private val db: Database) : ProductRepository {
     override fun create(name: String, description: String?, organizationId: Long) = db.blockingQuery {

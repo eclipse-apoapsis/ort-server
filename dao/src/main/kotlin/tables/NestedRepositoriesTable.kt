@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
 
 /**
  * A table to represent a relation between nested repositories and ORT runs.

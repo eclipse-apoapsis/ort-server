@@ -23,7 +23,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server.config"
+group = "org.eclipse.apoapsis.ortserver.config"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

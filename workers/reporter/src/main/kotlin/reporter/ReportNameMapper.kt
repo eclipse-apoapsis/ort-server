@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.model.ReportNameMapping
-import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 
 /**
  * An interface for renaming report files. An implementation of this interface is used by the reporter runner to

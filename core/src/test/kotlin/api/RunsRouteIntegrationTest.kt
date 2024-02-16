@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import com.typesafe.config.ConfigFactory
 
@@ -50,22 +50,23 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.logaccess.LogFileCriteria
-import org.ossreviewtoolkit.server.logaccess.LogFileProviderFactoryForTesting
-import org.ossreviewtoolkit.server.logaccess.LogLevel
-import org.ossreviewtoolkit.server.logaccess.LogSource
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.util.asPresent
-import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
-import org.ossreviewtoolkit.server.services.OrganizationService
-import org.ossreviewtoolkit.server.services.ProductService
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
+import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
+
 import org.ossreviewtoolkit.utils.common.ArchiveType
 import org.ossreviewtoolkit.utils.common.unpack
 

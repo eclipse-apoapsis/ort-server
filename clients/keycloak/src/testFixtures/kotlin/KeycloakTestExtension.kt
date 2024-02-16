@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.test
+package org.eclipse.apoapsis.ortserver.clients.keycloak.test
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.beEmpty
@@ -40,40 +40,40 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.CreateOrganization
-import org.ossreviewtoolkit.server.api.v1.CreateProduct
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.Organization
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.Product
-import org.ossreviewtoolkit.server.api.v1.Secret
-import org.ossreviewtoolkit.server.api.v1.UpdateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.core.shouldHaveBody
-import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
-import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
-import org.ossreviewtoolkit.server.model.authorization.ProductPermission
-import org.ossreviewtoolkit.server.model.authorization.ProductRole
-import org.ossreviewtoolkit.server.model.authorization.Superuser
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
-import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
-import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
-import org.ossreviewtoolkit.server.services.OrganizationService
-import org.ossreviewtoolkit.server.services.ProductService
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService as ApiInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.Product
+import org.eclipse.apoapsis.ortserver.api.v1.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 @Suppress("LargeClass", "MaxLineLength")
 class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({

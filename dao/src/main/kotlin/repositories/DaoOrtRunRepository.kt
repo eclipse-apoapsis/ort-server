@@ -17,35 +17,35 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.LabelDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.blockingQueryCatching
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.LabelDao
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.OrtRunsLabelsTable
-import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
-import org.ossreviewtoolkit.server.dao.tables.RepositoryDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
-import org.ossreviewtoolkit.server.dao.utils.apply
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 import org.slf4j.LoggerFactory
 

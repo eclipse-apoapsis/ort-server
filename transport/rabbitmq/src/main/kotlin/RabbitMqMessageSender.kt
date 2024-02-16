@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.rabbitmq
+package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.Channel
 
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
-import org.ossreviewtoolkit.server.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
 
 /**
  * Implementation of the [MessageSender] interface for RabbitMQ.

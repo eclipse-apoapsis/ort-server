@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import com.typesafe.config.ConfigFactory
 
@@ -26,9 +26,9 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultCredentials
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
 
 private const val VAULT_URI = "https://vault.example.org:8765"
 private const val ROLE_ID = "test-role"

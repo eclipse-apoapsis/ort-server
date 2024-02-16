@@ -17,53 +17,53 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.orchestrator
+package org.eclipse.apoapsis.ortserver.orchestrator
 
 import com.typesafe.config.ConfigFactory
+
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ReporterWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.transport.EndpointComponent
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger("org.ossreviewtoolkit.server.orchestrator.EntrypointKt")
+private val log = LoggerFactory.getLogger("org.eclipse.apoapsis.ortserver.orchestrator.EntrypointKt")
 
 fun main() {
     log.info("Starting ORT-Server Orchestrator.")

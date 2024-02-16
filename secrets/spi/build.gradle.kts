@@ -24,7 +24,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.secrets"
+group = "org.eclipse.apoapsis.ortserver.secrets"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

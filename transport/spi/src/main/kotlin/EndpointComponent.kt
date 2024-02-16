@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.config.ConfigManager
 
 /**
  * An abstract base class providing functionality useful for components implementing endpoints in the ORT server.

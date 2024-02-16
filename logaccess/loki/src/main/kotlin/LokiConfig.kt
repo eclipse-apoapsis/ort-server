@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess.loki
+package org.eclipse.apoapsis.ortserver.logaccess.loki
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.utils.config.getIntOrDefault
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
  * A data class storing configuration options for accessing a Grafana Loki instance.

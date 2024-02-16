@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.test
+package org.eclipse.apoapsis.ortserver.dao.test
 
 import io.kotest.core.extensions.install
 import io.kotest.core.listeners.AfterEachListener
@@ -35,13 +35,13 @@ import javax.sql.DataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.dao.connect
+import org.eclipse.apoapsis.ortserver.dao.migrate
+
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.migrate
 
 import org.testcontainers.containers.PostgreSQLContainer
 

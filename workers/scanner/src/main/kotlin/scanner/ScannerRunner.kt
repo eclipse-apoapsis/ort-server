@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import kotlinx.coroutines.runBlocking
+
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
@@ -38,9 +42,6 @@ import org.ossreviewtoolkit.scanner.provenance.DefaultNestedProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultPackageProvenanceResolver
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.DefaultWorkingTreeCache
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class ScannerRunner(
     private val db: Database,

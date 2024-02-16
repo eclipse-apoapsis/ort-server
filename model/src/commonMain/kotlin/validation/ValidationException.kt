@@ -17,6 +17,6 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.validation
+package org.eclipse.apoapsis.ortserver.model.validation
 
 class ValidationException(message: String) : Exception(message)

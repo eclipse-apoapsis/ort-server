@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import com.fasterxml.jackson.module.kotlin.readValue
 
@@ -31,6 +31,10 @@ import io.kotest.matchers.shouldBe
 
 import java.io.ByteArrayInputStream
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactoryForTesting
+
 import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
@@ -38,9 +42,6 @@ import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.toYaml
 import org.ossreviewtoolkit.model.yamlMapper
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.storage.StorageProviderFactoryForTesting
 
 class OrtServerFileListStorageTest : WordSpec({
     lateinit var fileListStorage: OrtServerFileListStorage

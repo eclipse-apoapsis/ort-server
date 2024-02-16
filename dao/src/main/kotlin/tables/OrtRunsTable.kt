@@ -17,23 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
-import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
-import org.ossreviewtoolkit.server.dao.utils.SortableTable
-import org.ossreviewtoolkit.server.dao.utils.jsonb
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
 
 /**
  * A table to represent an ORT run.

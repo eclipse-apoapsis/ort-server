@@ -1,3 +1,3 @@
-org.ossreviewtoolkit.server.workers.reporter.OrtResultReporter
-org.ossreviewtoolkit.server.workers.reporter.RunStatisticsReporter
-org.ossreviewtoolkit.server.workers.reporter.SourceCodeBundleReporter
+org.eclipse.apoapsis.ortserver.workers.reporter.OrtResultReporter
+org.eclipse.apoapsis.ortserver.workers.reporter.RunStatisticsReporter
+org.eclipse.apoapsis.ortserver.workers.reporter.SourceCodeBundleReporter

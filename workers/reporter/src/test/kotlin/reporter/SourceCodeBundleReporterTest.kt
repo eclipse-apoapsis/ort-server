@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -37,6 +37,8 @@ import io.mockk.slot
 import java.io.File
 import java.nio.file.Files
 
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+
 import org.ossreviewtoolkit.downloader.DownloadException
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.model.AnalyzerResult
@@ -47,7 +49,6 @@ import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
-import org.ossreviewtoolkit.server.workers.common.OrtTestData
 import org.ossreviewtoolkit.utils.common.unpackZip
 
 private const val PACKAGE_ID_FILENAME = "Maven-com.vdurmont-semver4j-2.0.1.zip"

@@ -17,34 +17,34 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.PackageCurationProviderConfigDao
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationsIssueResolutionsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationsPackageConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationsRuleViolationResolutionsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationsVulnerabilityResolutionsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedPackageCurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedPackageCurationProviderDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.IssueResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationDataDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RuleViolationResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.VulnerabilityResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.PackageCurationProviderConfigDao
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationsIssueResolutionsTable
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationsPackageConfigurationsTable
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationsRuleViolationResolutionsTable
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationsTable
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedConfigurationsVulnerabilityResolutionsTable
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedPackageCurationDao
-import org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration.ResolvedPackageCurationProviderDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.IssueResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationDataDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RuleViolationResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.VulnerabilityResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedConfigurationRepository {
     override fun get(id: Long): ResolvedConfiguration? = db.entityQuery { ResolvedConfigurationDao[id].mapToModel() }

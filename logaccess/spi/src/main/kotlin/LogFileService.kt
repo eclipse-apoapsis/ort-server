@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess
+package org.eclipse.apoapsis.ortserver.logaccess
 
 import java.io.File
 import java.nio.file.Path
@@ -30,9 +30,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path as ConfigPath
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
+
 import org.ossreviewtoolkit.utils.common.packZip
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 

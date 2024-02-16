@@ -17,38 +17,38 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.test
+package org.eclipse.apoapsis.ortserver.dao.test
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoInfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
 
 /**
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom

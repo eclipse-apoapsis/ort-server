@@ -17,21 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration
+package org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration
+
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.IssueResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RuleViolationResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.VulnerabilityResolutionDao
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.IssueResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RuleViolationResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.VulnerabilityResolutionDao
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 /**
  * A table to represent a [ResolvedConfiguration].

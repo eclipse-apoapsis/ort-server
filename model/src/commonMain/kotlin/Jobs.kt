@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 /**
  * The jobs of an [OrtRun].

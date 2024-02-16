@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.repository
+package org.eclipse.apoapsis.ortserver.model.runs.repository
 
 data class Resolutions(
     val issues: List<IssueResolution> = emptyList(),

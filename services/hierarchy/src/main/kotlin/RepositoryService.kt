@@ -17,25 +17,25 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
+
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.model.Jobs
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.dao.dbQueryCatching
-import org.ossreviewtoolkit.server.model.Jobs
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
 
 import org.slf4j.LoggerFactory
 

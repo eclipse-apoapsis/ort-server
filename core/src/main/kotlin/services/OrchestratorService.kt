@@ -17,22 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.services
+package org.eclipse.apoapsis.ortserver.core.services
 
 import java.util.UUID
 
-import org.jetbrains.exposed.sql.Database
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
+import org.jetbrains.exposed.sql.Database
 
 /**
  * A service responsible for the communication with the Orchestrator.

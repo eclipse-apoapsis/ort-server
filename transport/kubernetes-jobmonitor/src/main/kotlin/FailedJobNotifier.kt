@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import io.kubernetes.client.openapi.models.V1Job
 
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
 
 /** A prefix for the name of a label storing a part of the trace ID. */
 private const val TRACE_LABEL_PREFIX = "trace-id-"

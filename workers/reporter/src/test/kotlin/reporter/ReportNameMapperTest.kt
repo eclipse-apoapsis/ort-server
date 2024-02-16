@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.model.ReportNameMapping
-import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 
 class ReportNameMapperTest : StringSpec({
     "Default file names should be used if no configuration is defined" {

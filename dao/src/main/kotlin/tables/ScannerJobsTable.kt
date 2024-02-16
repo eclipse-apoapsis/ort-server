@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.utils.jsonb
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
 
 /**
  * A table to represent a scanner job.

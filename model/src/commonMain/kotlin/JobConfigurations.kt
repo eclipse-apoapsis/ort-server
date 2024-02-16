@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
 /**
  * A typealias for key-value pairs.

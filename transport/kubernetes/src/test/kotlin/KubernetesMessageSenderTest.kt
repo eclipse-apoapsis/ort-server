@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import com.typesafe.config.ConfigFactory
 
@@ -42,10 +42,11 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.transport.AnalyzerEndpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+
 import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageSenderTest : StringSpec({

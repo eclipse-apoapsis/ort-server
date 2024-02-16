@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.delete
 import io.github.smiley4.ktorswaggerui.dsl.get
@@ -31,33 +31,33 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.api.v1.CreateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapToModel
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByProductIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByProductIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByProductId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByProductIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
+import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.utils.listQueryParameters
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.SecretService
 
-import org.ossreviewtoolkit.server.api.v1.CreateRepository
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.UpdateProduct
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.api.v1.mapToModel
-import org.ossreviewtoolkit.server.core.apiDocs.deleteProductById
-import org.ossreviewtoolkit.server.core.apiDocs.deleteSecretByProductIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getProductById
-import org.ossreviewtoolkit.server.core.apiDocs.getRepositoriesByProductId
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretByProductIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.getSecretsByProductId
-import org.ossreviewtoolkit.server.core.apiDocs.patchProductById
-import org.ossreviewtoolkit.server.core.apiDocs.patchSecretByProductIdAndName
-import org.ossreviewtoolkit.server.core.apiDocs.postRepository
-import org.ossreviewtoolkit.server.core.apiDocs.postSecretForProduct
-import org.ossreviewtoolkit.server.core.authorization.requirePermission
-import org.ossreviewtoolkit.server.core.utils.listQueryParameters
-import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.authorization.ProductPermission
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.services.ProductService
-import org.ossreviewtoolkit.server.services.SecretService
+import org.koin.ktor.ext.inject
 
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()

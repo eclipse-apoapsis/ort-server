@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage
+package org.eclipse.apoapsis.ortserver.storage
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /**
  * Definition of a factory interface for creating a concrete [StorageProvider] instance.

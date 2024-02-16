@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.serialization
@@ -28,10 +28,10 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValueSerializer
 
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.model.util.OptionalValueSerializer
+import org.koin.ktor.ext.inject
 
 fun Application.configureSerialization() {
     val json: Json by inject()

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.Config
 
@@ -25,9 +25,9 @@ import java.io.File
 import java.io.InputStream
 import java.util.ServiceLoader
 
-import org.ossreviewtoolkit.server.utils.config.getBooleanOrDefault
-import org.ossreviewtoolkit.server.utils.config.getConfigOrEmpty
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
  * A class wrapping different configuration service provider implementations simplifying the interaction with them.

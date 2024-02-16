@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage
+package org.eclipse.apoapsis.ortserver.storage
 
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /**
  * A simple implementation of the [StorageProviderFactory] interface for testing purposes that stores data in memory.

@@ -17,12 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 import kotlinx.coroutines.runBlocking
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
@@ -40,16 +51,6 @@ import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceStorage
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.workers.common.mapToModel
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 /**
  * An ORT Server specific implementation of the `PackageProvenanceStorage`. Read and put package provenances are

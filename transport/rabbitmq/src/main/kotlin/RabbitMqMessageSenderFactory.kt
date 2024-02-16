@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.rabbitmq
+package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
 import org.slf4j.LoggerFactory
 

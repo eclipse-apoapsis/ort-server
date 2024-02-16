@@ -17,24 +17,24 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.test
+package org.eclipse.apoapsis.ortserver.clients.keycloak.test
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
-
-import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.Group
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientConfiguration
-import org.ossreviewtoolkit.server.clients.keycloak.Role
-import org.ossreviewtoolkit.server.clients.keycloak.RoleName
-import org.ossreviewtoolkit.server.clients.keycloak.User
 
 /**
  * Create a [GroupRepresentation] from this [Group]. [Client roles][clientRoles] can be provided as a map from client

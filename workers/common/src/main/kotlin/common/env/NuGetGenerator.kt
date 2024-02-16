@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinition
 
 /**
  * A specialized generator class for NuGet's _NuGet.Config_ configuration files.

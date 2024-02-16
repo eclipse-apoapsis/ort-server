@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.common
+package org.eclipse.apoapsis.ortserver.workers.common.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -30,6 +30,44 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.sql.Database
@@ -54,43 +92,6 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.NestedRepositoriesTable
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.PackageCurationProviderConfig
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedPackageCurations
-import org.ossreviewtoolkit.server.model.runs.AnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
-import org.ossreviewtoolkit.server.model.runs.reporter.Report
-import org.ossreviewtoolkit.server.model.runs.reporter.ReporterRun
-import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.workers.common.OrtRunService
-import org.ossreviewtoolkit.server.workers.common.OrtTestData
-import org.ossreviewtoolkit.server.workers.common.mapToModel
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 import org.ossreviewtoolkit.utils.common.gibibytes
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx

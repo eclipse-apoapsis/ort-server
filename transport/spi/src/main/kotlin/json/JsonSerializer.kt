@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.json
+package org.eclipse.apoapsis.ortserver.transport.json
 
 import kotlin.reflect.KClass
 

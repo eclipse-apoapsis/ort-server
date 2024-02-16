@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 /**
  * An organization is at the top of the hierarchy of the ORT Server content. It represents an organizational entity that

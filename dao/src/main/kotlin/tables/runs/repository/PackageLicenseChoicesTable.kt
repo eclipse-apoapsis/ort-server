@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
 
 /**
  * A table to represent a package license choice.

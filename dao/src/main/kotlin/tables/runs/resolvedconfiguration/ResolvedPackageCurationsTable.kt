@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.resolvedconfiguration
+package org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationsTable
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationsTable
 
 /**
  * A table to represent a [PackageCurationProvider].

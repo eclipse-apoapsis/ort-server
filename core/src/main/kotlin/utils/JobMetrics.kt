@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.utils
+package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.application.Application
 
@@ -25,24 +25,24 @@ import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.MeterBinder
 
+import org.eclipse.apoapsis.ortserver.core.plugins.DatabaseReady
+import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-
-import org.ossreviewtoolkit.server.core.plugins.DatabaseReady
-import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
-import org.ossreviewtoolkit.server.dao.tables.AdvisorJobsTable
-import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobDao
-import org.ossreviewtoolkit.server.dao.tables.AnalyzerJobsTable
-import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
-import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobsTable
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
-import org.ossreviewtoolkit.server.dao.tables.ReporterJobDao
-import org.ossreviewtoolkit.server.dao.tables.ReporterJobsTable
-import org.ossreviewtoolkit.server.dao.tables.ScannerJobDao
-import org.ossreviewtoolkit.server.dao.tables.ScannerJobsTable
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.OrtRunStatus
 
 /**
  * A micrometer [MeterBinder] that provides metrics for ORT runs and jobs.

@@ -17,40 +17,40 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
+
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AdvisorRunRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerRunRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ResolvedConfigurationRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerRunRepository
 
 /**
  * Return a module with bean definitions for the [OrtRunService] and the repositories it depends on.

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.github
+package org.eclipse.apoapsis.ortserver.config.github
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -33,10 +33,10 @@ import io.mockk.unmockkAll
 
 import java.io.ByteArrayInputStream
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.config.Context
-import org.ossreviewtoolkit.server.config.Path
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
 
 class GitHubConfigFileProviderFactoryTest : WordSpec() {
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {

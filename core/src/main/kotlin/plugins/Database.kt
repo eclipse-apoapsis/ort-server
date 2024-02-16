@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.Application
@@ -25,16 +25,16 @@ import io.ktor.server.application.ApplicationStarted
 
 import javax.sql.DataSource
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.DatabaseConfig
+import org.eclipse.apoapsis.ortserver.dao.connect
+import org.eclipse.apoapsis.ortserver.dao.createDataSource
+import org.eclipse.apoapsis.ortserver.dao.migrate
+
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
-
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.dao.DatabaseConfig
-import org.ossreviewtoolkit.server.dao.connect
-import org.ossreviewtoolkit.server.dao.createDataSource
-import org.ossreviewtoolkit.server.dao.migrate
 
 val DatabaseReady: EventDefinition<Database> = EventDefinition()
 

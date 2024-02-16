@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.di
+package org.eclipse.apoapsis.ortserver.core.di
 
 import com.typesafe.config.ConfigFactory
 
@@ -27,50 +27,50 @@ import io.ktor.server.config.tryGetString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
+import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.createKeycloakClientConfiguration
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoInfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
+import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.ReportStorageService
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.storage.Storage
+
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.core.plugins.customSerializersModule
-import org.ossreviewtoolkit.server.core.services.OrchestratorService
-import org.ossreviewtoolkit.server.core.utils.createKeycloakClientConfiguration
-import org.ossreviewtoolkit.server.dao.repositories.DaoAdvisorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoAnalyzerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoEvaluatorJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoInfrastructureServiceRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrganizationRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoOrtRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoProductRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoReporterRunRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoRepositoryRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoScannerJobRepository
-import org.ossreviewtoolkit.server.dao.repositories.DaoSecretRepository
-import org.ossreviewtoolkit.server.logaccess.LogFileService
-import org.ossreviewtoolkit.server.model.repositories.AdvisorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.AnalyzerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorJobRepository
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterJobRepository
-import org.ossreviewtoolkit.server.model.repositories.ReporterRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.model.repositories.ScannerJobRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.secrets.SecretStorage
-import org.ossreviewtoolkit.server.services.AuthorizationService
-import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
-import org.ossreviewtoolkit.server.services.InfrastructureServiceService
-import org.ossreviewtoolkit.server.services.OrganizationService
-import org.ossreviewtoolkit.server.services.ProductService
-import org.ossreviewtoolkit.server.services.ReportStorageService
-import org.ossreviewtoolkit.server.services.RepositoryService
-import org.ossreviewtoolkit.server.services.SecretService
-import org.ossreviewtoolkit.server.storage.Storage
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.utils
+package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
@@ -30,14 +30,14 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.testutils.noDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.ossreviewtoolkit.server.model.util.OrderDirection
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.core.createJsonClient
+import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class ExtensionsTest : WordSpec({
     tags(Integration)

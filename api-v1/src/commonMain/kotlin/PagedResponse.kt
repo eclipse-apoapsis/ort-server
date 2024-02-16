@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 
 /**
  * Response object for returning paged lists of entities.

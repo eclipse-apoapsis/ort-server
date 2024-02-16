@@ -17,27 +17,27 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.apiDocs
+package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.api.v1.CreateRepository
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.Product
-import org.ossreviewtoolkit.server.api.v1.Repository
-import org.ossreviewtoolkit.server.api.v1.RepositoryType
-import org.ossreviewtoolkit.server.api.v1.RepositoryType.GIT
-import org.ossreviewtoolkit.server.api.v1.RepositoryType.SUBVERSION
-import org.ossreviewtoolkit.server.api.v1.Secret
-import org.ossreviewtoolkit.server.api.v1.UpdateProduct
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.api.v1.CreateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.Product
+import org.eclipse.apoapsis.ortserver.api.v1.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType.GIT
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType.SUBVERSION
+import org.eclipse.apoapsis.ortserver.api.v1.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
     operationId = "GetProductById"

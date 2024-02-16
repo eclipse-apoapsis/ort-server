@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.util.ClientBuilder.defaultClient
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
 class KubernetesMessageSenderFactory : MessageSenderFactory {
     override val name: String = KubernetesSenderConfig.TRANSPORT_NAME

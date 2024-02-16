@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import java.lang.Exception
 
 import kotlin.system.exitProcess
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.slf4j.LoggerFactory
 

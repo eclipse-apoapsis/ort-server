@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets
+package org.eclipse.apoapsis.ortserver.secrets
 
 import java.util.ServiceLoader
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path as ConfigPath
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].

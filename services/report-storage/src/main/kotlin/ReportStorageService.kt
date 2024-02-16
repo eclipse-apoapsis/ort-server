@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
 
 import io.ktor.http.ContentType
 
 import java.io.OutputStream
 
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage
 
 /**
  * A service providing functionality related to accessing report files from a storage, so that they can be downloaded

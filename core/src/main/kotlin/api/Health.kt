@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.get
 
@@ -25,7 +25,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.ossreviewtoolkit.server.core.apiDocs.getLiveness
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getLiveness
 
 fun Route.healthChecks() = get("liveness", getLiveness) {
     call.respond(Liveness(message = "ORT Server running"))

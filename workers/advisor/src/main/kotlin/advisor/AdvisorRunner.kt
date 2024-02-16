@@ -17,17 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.advisor
+package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import kotlinx.coroutines.runBlocking
+
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.advisor.Advisor
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 import org.slf4j.LoggerFactory
 

@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-import org.ossreviewtoolkit.server.core.api.healthChecks
-import org.ossreviewtoolkit.server.core.api.organizations
-import org.ossreviewtoolkit.server.core.api.products
-import org.ossreviewtoolkit.server.core.api.repositories
-import org.ossreviewtoolkit.server.core.api.runs
+import org.eclipse.apoapsis.ortserver.core.api.healthChecks
+import org.eclipse.apoapsis.ortserver.core.api.organizations
+import org.eclipse.apoapsis.ortserver.core.api.products
+import org.eclipse.apoapsis.ortserver.core.api.repositories
+import org.eclipse.apoapsis.ortserver.core.api.runs
 
 fun Application.configureRouting() {
     routing {

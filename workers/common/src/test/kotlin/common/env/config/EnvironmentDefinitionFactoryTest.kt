@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.beNull
@@ -30,19 +30,19 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.workers.common.common.env.REGISTRY_URI
-import org.ossreviewtoolkit.server.workers.common.common.env.REMOTE_NAME
-import org.ossreviewtoolkit.server.workers.common.common.env.REMOTE_URL
-import org.ossreviewtoolkit.server.workers.common.env.definition.ConanDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.common.env.REGISTRY_URI
+import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
+import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_URL
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
 
 class EnvironmentDefinitionFactoryTest : WordSpec() {
     /** A mock for an infrastructure service to be used by tests. */

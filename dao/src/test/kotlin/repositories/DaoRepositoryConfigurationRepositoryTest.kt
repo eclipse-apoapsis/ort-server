@@ -17,37 +17,37 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.dao.test.Fixtures
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
-import org.ossreviewtoolkit.server.model.runs.repository.IssueResolution
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseFindingCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.PathExclude
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
-import org.ossreviewtoolkit.server.model.runs.repository.RuleViolationResolution
-import org.ossreviewtoolkit.server.model.runs.repository.ScopeExclude
-import org.ossreviewtoolkit.server.model.runs.repository.SpdxLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
-import org.ossreviewtoolkit.server.model.runs.repository.VcsMatcher
-import org.ossreviewtoolkit.server.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 
 class DaoRepositoryConfigurationRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 /** Used when the user does not have a valid authentication. */
 class AuthenticationException : RuntimeException()

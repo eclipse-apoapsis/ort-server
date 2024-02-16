@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.authorization
+package org.eclipse.apoapsis.ortserver.model.authorization
 
-import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.Repository
+import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.Repository
 
 /**
  * This enum contains the available roles for [products][Product]. These roles are used to create composite Keycloak

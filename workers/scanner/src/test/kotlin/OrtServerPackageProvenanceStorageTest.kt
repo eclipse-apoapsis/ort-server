@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
@@ -28,6 +28,15 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Hash
@@ -42,14 +51,6 @@ import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
-import org.ossreviewtoolkit.server.workers.common.mapToModel
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtServerPackageProvenanceStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())

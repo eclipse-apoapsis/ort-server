@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -35,21 +35,21 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transactionManager
-
-import org.ossreviewtoolkit.server.dao.dbQuery
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.OptionalValue
-import org.ossreviewtoolkit.server.model.util.asPresent
 
 class InfrastructureServiceServiceTest : WordSpec({
     beforeSpec {
         mockkStatic(
-            "org.ossreviewtoolkit.server.dao.DatabaseKt",
+            "org.eclipse.apoapsis.ortserver.dao.DatabaseKt",
             "org.jetbrains.exposed.sql.transactions.TransactionApiKt"
         )
     }

@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.internal
+package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
 
 @Serializable
 data class RoleRequest(

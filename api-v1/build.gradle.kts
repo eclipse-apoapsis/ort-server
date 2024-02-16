@@ -24,7 +24,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.eclipse.apoapsis.ortserver"
 
 kotlin {
     jvm()

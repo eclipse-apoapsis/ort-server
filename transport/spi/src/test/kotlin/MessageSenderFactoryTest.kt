@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import com.typesafe.config.ConfigFactory
 
@@ -28,10 +28,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderForTesting
-import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
 class MessageSenderFactoryTest : StringSpec({
     val typePropertyPath = "${MessageSenderFactory.CONFIG_PREFIX}.${MessageSenderFactory.TYPE_PROPERTY}"

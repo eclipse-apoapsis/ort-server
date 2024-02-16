@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.authorization
+package org.eclipse.apoapsis.ortserver.core.authorization
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.principal
 import io.ktor.util.pipeline.PipelineContext
 
-import org.ossreviewtoolkit.server.core.api.AuthorizationException
-import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
-import org.ossreviewtoolkit.server.model.authorization.ProductPermission
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 
 /**
  * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]

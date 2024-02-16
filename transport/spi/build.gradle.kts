@@ -24,7 +24,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.transport"
+group = "org.eclipse.apoapsis.ortserver.transport"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

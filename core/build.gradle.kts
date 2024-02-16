@@ -28,7 +28,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server"
+group = "org.eclipse.apoapsis.ortserver"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

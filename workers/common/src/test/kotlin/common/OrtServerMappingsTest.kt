@@ -17,15 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.common
+package org.eclipse.apoapsis.ortserver.workers.common.common
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtServerMappingsTest : StringSpec({
     "An undefined VcsInfo should be mapped to ORT's VcsInfo.EMPTY" {

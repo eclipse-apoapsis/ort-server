@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage.database
+package org.eclipse.apoapsis.ortserver.storage.database
 
 import com.typesafe.config.ConfigFactory
 
@@ -33,17 +33,17 @@ import kotlin.math.abs
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataArray
+import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
+import org.eclipse.apoapsis.ortserver.storage.StorageException
+
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.storage.Storage.Companion.dataArray
-import org.ossreviewtoolkit.server.storage.Storage.Companion.dataString
-import org.ossreviewtoolkit.server.storage.StorageException
 
 import org.postgresql.PGConnection
 

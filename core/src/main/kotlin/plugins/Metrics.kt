@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -33,9 +33,9 @@ import io.micrometer.core.instrument.util.HierarchicalNameMapper
 import io.micrometer.graphite.GraphiteConfig
 import io.micrometer.graphite.GraphiteMeterRegistry
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.core.utils.JobMetrics
 
-import org.ossreviewtoolkit.server.core.utils.JobMetrics
+import org.koin.ktor.ext.inject
 
 fun Application.configureMetrics() {
     val config: ApplicationConfig by inject()

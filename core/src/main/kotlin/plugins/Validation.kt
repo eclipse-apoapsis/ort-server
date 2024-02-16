@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.konform.validation.Invalid
 import io.konform.validation.ValidationResult as KonformValidationResult
@@ -27,12 +27,12 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
-import org.ossreviewtoolkit.server.api.v1.CreateInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.CreateOrganization
-import org.ossreviewtoolkit.server.api.v1.CreateProduct
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.UpdateOrganization
-import org.ossreviewtoolkit.server.api.v1.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
 
 fun Application.configureValidation() {
     install(RequestValidation) {

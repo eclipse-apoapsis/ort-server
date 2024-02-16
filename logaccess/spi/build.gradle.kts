@@ -23,7 +23,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server.logaccess"
+group = "org.eclipse.apoapsis.ortserver.logaccess"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import com.typesafe.config.Config
 
@@ -25,18 +25,18 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+
 import org.koin.core.component.inject
 import org.koin.core.context.stopKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
 
 class EndpointComponentTest : StringSpec({
     afterAny {

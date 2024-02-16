@@ -17,20 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
+
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.OrtRunsTable
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 /**
  * A table to represent a repository configuration.

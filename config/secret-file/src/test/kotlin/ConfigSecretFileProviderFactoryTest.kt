@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.secret.file
+package org.eclipse.apoapsis.ortserver.config.secret.file
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -28,9 +28,9 @@ import io.kotest.matchers.shouldBe
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.config.ConfigFileProviderFactoryForTesting
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.Path
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
 
 class ConfigSecretFileProviderFactoryTest : StringSpec({
     fun createSecretFile(key: String, value: String): File =

@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.advisor
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssuesTable
 
 import org.jetbrains.exposed.sql.Table
-
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssuesTable
 
 /**
  * An intermediate table to store references from [AdvisorResultsTable] and [OrtIssuesTable].

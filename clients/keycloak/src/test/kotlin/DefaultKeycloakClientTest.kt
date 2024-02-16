@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
@@ -29,13 +29,13 @@ import io.kotest.matchers.string.shouldStartWith
 
 import kotlinx.serialization.json.Json
 
-import org.keycloak.admin.client.Keycloak
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT_SECRET
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CONFIDENTIAL_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT_SECRET
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CONFIDENTIAL_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.keycloak.admin.client.Keycloak
 
 class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
     // For performance reasons the test realm is created only once per spec. Therefore, all tests that modify data must

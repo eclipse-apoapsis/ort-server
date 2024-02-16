@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets
+package org.eclipse.apoapsis.ortserver.secrets
 
 /**
  * Definition of an interface for accessing secrets stored in a specific storage implementation.

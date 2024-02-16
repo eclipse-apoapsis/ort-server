@@ -17,22 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import kotlinx.datetime.Instant
 
-import org.jetbrains.exposed.sql.Database
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationDao
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.EvaluatorJobDao
-import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.EvaluatorRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.EvaluatorRunsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.evaluator.RuleViolationDao
-import org.ossreviewtoolkit.server.model.repositories.EvaluatorRunRepository
-import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
-import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
+import org.jetbrains.exposed.sql.Database
 
 /**
  * An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable].

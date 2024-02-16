@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault.model
+package org.eclipse.apoapsis.ortserver.secrets.vault.model
 
 import kotlinx.serialization.Serializable
 

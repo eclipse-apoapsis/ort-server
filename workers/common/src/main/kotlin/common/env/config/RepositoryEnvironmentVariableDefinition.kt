@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.definition
+package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import kotlinx.serialization.Serializable
 

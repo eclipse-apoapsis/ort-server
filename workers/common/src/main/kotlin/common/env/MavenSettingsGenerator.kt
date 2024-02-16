@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.PrintWriter
 
-import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 /**
  * A specialized generator class for Maven's _settings.xml_ configuration file.

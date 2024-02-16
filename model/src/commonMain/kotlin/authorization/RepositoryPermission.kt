@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.authorization
+package org.eclipse.apoapsis.ortserver.model.authorization
 
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.Repository
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.Repository
 
 /**
  * This enum contains the available permissions for [repositories][Repository]. These permissions are used by the API to

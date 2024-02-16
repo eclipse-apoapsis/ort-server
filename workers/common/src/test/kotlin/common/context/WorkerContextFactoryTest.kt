@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.context
+package org.eclipse.apoapsis.ortserver.workers.common.context
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -35,18 +35,18 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.config.ConfigFileProviderFactoryForTesting
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.config.Path
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
-import org.ossreviewtoolkit.server.secrets.SecretStorage
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
 class WorkerContextFactoryTest : WordSpec({
     "ortRun" should {
@@ -139,7 +139,7 @@ class WorkerContextFactoryTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.ossreviewtoolkit.server.secrets.Secret("changedValue")
+                org.eclipse.apoapsis.ortserver.secrets.Secret("changedValue")
             )
 
             context.resolveSecret(secret) shouldBe SecretsProviderFactoryForTesting.SERVICE_SECRET.value
@@ -176,7 +176,7 @@ class WorkerContextFactoryTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.ossreviewtoolkit.server.secrets.Secret("changedValue")
+                org.eclipse.apoapsis.ortserver.secrets.Secret("changedValue")
             )
 
             context.resolveSecret(secret1) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value

@@ -32,7 +32,7 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
-group = "org.ossreviewtoolkit.server.workers"
+group = "org.eclipse.apoapsis.ortserver.workers"
 
 dependencies {
     implementation(projects.config.configSpi)
@@ -78,7 +78,7 @@ jib {
     to.image = "${dockerImagePrefix}ort-server-reporter-worker:$dockerImageTag"
 
     container {
-        mainClass = "org.ossreviewtoolkit.server.workers.reporter.EntrypointKt"
+        mainClass = "org.eclipse.apoapsis.ortserver.workers.reporter.EntrypointKt"
         creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }

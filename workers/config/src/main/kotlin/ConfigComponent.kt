@@ -17,27 +17,27 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import kotlinx.coroutines.runBlocking
+
+import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
+import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.ossreviewtoolkit.server.dao.databaseModule
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
-import org.ossreviewtoolkit.server.transport.ConfigEndpoint
-import org.ossreviewtoolkit.server.transport.EndpointComponent
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessagePublisher
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.workerContextModule
 
 import org.slf4j.LoggerFactory
 

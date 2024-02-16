@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.advisor
+package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -30,6 +30,10 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+
 import org.ossreviewtoolkit.advisor.AdviceProvider
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.model.AnalyzerResult
@@ -37,9 +41,6 @@ import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
 
 class AdvisorRunnerTest : WordSpec({
     val runner = AdvisorRunner()

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets
+package org.eclipse.apoapsis.ortserver.secrets
 
 import com.typesafe.config.ConfigFactory
 
@@ -30,12 +30,12 @@ import java.util.Base64
 
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.secrets.SecretStorage.Companion.CONFIG_PREFIX
-import org.ossreviewtoolkit.server.secrets.SecretStorage.Companion.NAME_PROPERTY
-import org.ossreviewtoolkit.server.secrets.file.FileBasedSecretsProvider
-import org.ossreviewtoolkit.server.secrets.file.FileBasedSecretsProvider.Companion.PATH_PROPERTY
-import org.ossreviewtoolkit.server.secrets.file.model.FileBasedSecretsStorage
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage.Companion.CONFIG_PREFIX
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage.Companion.NAME_PROPERTY
+import org.eclipse.apoapsis.ortserver.secrets.file.FileBasedSecretsProvider
+import org.eclipse.apoapsis.ortserver.secrets.file.FileBasedSecretsProvider.Companion.PATH_PROPERTY
+import org.eclipse.apoapsis.ortserver.secrets.file.model.FileBasedSecretsStorage
 
 class FileBasedSecretStorageTest : WordSpec() {
     private val storageFile = tempfile()

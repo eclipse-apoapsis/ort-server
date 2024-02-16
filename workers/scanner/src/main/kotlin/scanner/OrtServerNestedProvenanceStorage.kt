@@ -17,9 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import kotlinx.coroutines.runBlocking
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceSubRepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
@@ -29,16 +40,6 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceStorage
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenanceSubRepositoryDao
-import org.ossreviewtoolkit.server.dao.tables.provenance.NestedProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.provenance.PackageProvenanceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
-import org.ossreviewtoolkit.server.workers.common.mapToModel
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
 class OrtServerNestedProvenanceStorage(
     private val db: Database,

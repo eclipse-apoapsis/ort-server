@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Payload
@@ -31,11 +31,11 @@ import io.ktor.server.config.ApplicationConfig
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
 
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.UserId
-import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
+import org.koin.ktor.ext.inject
 
 import org.slf4j.LoggerFactory
 

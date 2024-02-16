@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
-import org.ossreviewtoolkit.server.model.validation.Constraints.namePatternMessage
-import org.ossreviewtoolkit.server.model.validation.Constraints.namePatternRegex
-import org.ossreviewtoolkit.server.model.validation.ValidationException
+import org.eclipse.apoapsis.ortserver.model.validation.Constraints.namePatternMessage
+import org.eclipse.apoapsis.ortserver.model.validation.Constraints.namePatternRegex
+import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
  * A data class describing an infrastructure service that is referenced during an ORT run.

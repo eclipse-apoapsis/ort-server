@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.evaluator
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator
 
 import org.jetbrains.exposed.sql.Table
 

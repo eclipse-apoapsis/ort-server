@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.eclipse.apoapsis.ortserver.core
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
@@ -43,18 +43,18 @@ import io.ktor.util.appendIfNameAbsent
 
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.toUserRepresentation
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.ClientScopeRepresentation
 import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
-
-import org.ossreviewtoolkit.server.clients.keycloak.User
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_REALM
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
 
 /**
  * Create a client with [JSON ContentNegotiation][json] installed and default content type set to `application/json`.

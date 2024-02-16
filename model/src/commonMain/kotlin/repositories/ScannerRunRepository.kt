@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.Environment
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerConfiguration
-import org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 /**
  * A repository of [scanner runs][ScannerRun].

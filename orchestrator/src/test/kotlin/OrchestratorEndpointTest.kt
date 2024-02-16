@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.orchestrator
+package org.eclipse.apoapsis.ortserver.orchestrator
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
@@ -32,6 +32,26 @@ import io.mockk.verify
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
+import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
+
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.stopKoin
@@ -39,26 +59,6 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.server.config.ConfigSecretProviderFactoryForTesting
-import org.ossreviewtoolkit.server.dao.test.verifyDatabaseModuleIncluded
-import org.ossreviewtoolkit.server.dao.test.withMockDatabaseModule
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerError
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.CreateOrtRun
-import org.ossreviewtoolkit.server.model.orchestrator.WorkerError
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.testing.MessageReceiverFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
 
 class OrchestratorEndpointTest : KoinTest, StringSpec() {
     private val msgHeader = MessageHeader(

@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.workers.common.env.definition.ConanDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.MavenDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NpmDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.NuGetDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnAuthMode
-import org.ossreviewtoolkit.server.workers.common.env.definition.YarnDefinition
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
 
 /**
  * A helper class for creating concrete [EnvironmentServiceDefinition] instances from the properties declared in an

@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 sealed interface Provenance
 

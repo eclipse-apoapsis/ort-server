@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 
 /**
  * A repository of [scanner jobs][ScannerJob].

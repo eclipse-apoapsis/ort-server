@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.shared
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
+
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
-
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
 
 /**
  * A table to represent bundle information about a remote artifact.

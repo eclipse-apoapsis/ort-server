@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.scanner
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner
+
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.model.runs.scanner.FileBasedStorageConfiguration
 
 /**
  * A table to represent a configuration of a file-based storage.

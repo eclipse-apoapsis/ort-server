@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.auth
+package org.eclipse.apoapsis.ortserver.core.auth
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
@@ -40,23 +40,23 @@ import io.ktor.util.pipeline.PipelineContext
 
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.TEST_USER
-import org.ossreviewtoolkit.server.core.TEST_USER_PASSWORD
-import org.ossreviewtoolkit.server.core.authorization.OrtPrincipal
-import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
-import org.ossreviewtoolkit.server.core.setUpClientScope
-import org.ossreviewtoolkit.server.core.setUpUser
-import org.ossreviewtoolkit.server.core.setUpUserRoles
-import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
+import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.core.createJwtConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.core.setUpClientScope
+import org.eclipse.apoapsis.ortserver.core.setUpUser
+import org.eclipse.apoapsis.ortserver.core.setUpUserRoles
+import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AuthenticationIntegrationTest : StringSpec({
     tags(Integration)

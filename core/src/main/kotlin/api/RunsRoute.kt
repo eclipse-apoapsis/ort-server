@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.get
 
@@ -37,20 +37,20 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Clock
 
-import org.koin.ktor.ext.inject
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
+import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
+import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
+import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 
-import org.ossreviewtoolkit.server.core.apiDocs.getLogsByRunId
-import org.ossreviewtoolkit.server.core.apiDocs.getReportByRunIdAndFileName
-import org.ossreviewtoolkit.server.core.authorization.requirePermission
-import org.ossreviewtoolkit.server.core.utils.requireParameter
-import org.ossreviewtoolkit.server.dao.QueryParametersException
-import org.ossreviewtoolkit.server.logaccess.LogFileService
-import org.ossreviewtoolkit.server.logaccess.LogLevel
-import org.ossreviewtoolkit.server.logaccess.LogSource
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.services.ReportStorageService
+import org.koin.ktor.ext.inject
 
 /**
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.

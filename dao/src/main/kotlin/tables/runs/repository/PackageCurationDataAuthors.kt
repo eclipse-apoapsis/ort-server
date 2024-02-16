@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AuthorsTable
 
 import org.jetbrains.exposed.sql.Table
-
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.AuthorsTable
 
 /**
  * An intermediate table to store references from [PackageCurationDataTable] and [AuthorsTable].

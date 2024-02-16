@@ -17,21 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorRunsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.advisor.AdvisorRunsTable
-import org.ossreviewtoolkit.server.dao.utils.jsonb
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.AdvisorJob
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.JobStatus
 
 /**
  * A table to represent an advisor job.

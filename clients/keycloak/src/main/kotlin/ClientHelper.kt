@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig

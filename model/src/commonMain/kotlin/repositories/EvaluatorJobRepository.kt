@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
-import org.ossreviewtoolkit.server.model.EvaluatorJob
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 
 /**
  * A repository of [evaluator jobs][EvaluatorJob].

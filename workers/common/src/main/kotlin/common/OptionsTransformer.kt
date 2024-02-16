@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
-import org.ossreviewtoolkit.server.model.Options
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Options
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 /**
  * Type alias for a map with generic options for a worker job.

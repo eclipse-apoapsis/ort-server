@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.artemis
+package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import jakarta.jms.MessageConsumer
 import jakarta.jms.TextMessage
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.EndpointHandler
-import org.ossreviewtoolkit.server.transport.MessageReceiverFactory
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.slf4j.LoggerFactory
 

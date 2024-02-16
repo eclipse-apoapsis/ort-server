@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
+
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
-
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.runs.repository.VcsInfoCurationData
 
 /**
  * A table to represent a VCS info curation data, used within a [PackageCurationData][PackageCurationDataTable].

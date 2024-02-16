@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.logaccess.loki
+package org.eclipse.apoapsis.ortserver.logaccess.loki
 
 import com.typesafe.config.ConfigFactory
 
@@ -26,7 +26,7 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 class LokiConfigTest : StringSpec({
     "An instance should be created from a ConfigManager" {

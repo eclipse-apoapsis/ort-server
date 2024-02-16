@@ -17,17 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import kotlin.reflect.KClass
 
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.OrchestratorMessage
-import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 
 /**
  * A type describing the different endpoints supported by the ORT server.

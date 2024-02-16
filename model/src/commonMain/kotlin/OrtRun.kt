@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model
+package org.eclipse.apoapsis.ortserver.model
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 
 @Serializable
 data class OrtRun(

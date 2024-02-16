@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.test
+package org.eclipse.apoapsis.ortserver.dao.test
 
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
@@ -28,14 +28,14 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.databaseModule
+
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
-
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.dao.databaseModule
 
 /**
  * A data class to simulate a connection object in the mock database module.

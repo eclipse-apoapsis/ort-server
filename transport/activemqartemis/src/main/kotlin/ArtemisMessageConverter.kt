@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.artemis
+package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import jakarta.jms.Session
 import jakarta.jms.TextMessage
 
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageHeader
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 /**
  * A helper object implementing functionality to convert between JMS messages and messages of the messaging layer.

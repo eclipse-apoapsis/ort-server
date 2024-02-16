@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage
+package org.eclipse.apoapsis.ortserver.storage
 
 import io.kotest.core.spec.style.StringSpec
 

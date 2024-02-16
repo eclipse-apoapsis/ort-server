@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
+
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageManagerConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
-
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageManagerConfigurationOptionDao
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
 
 /**
  * A table to store a repository analyzer configuration, used within a

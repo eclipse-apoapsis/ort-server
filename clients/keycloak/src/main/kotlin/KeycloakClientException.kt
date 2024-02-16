@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 class KeycloakClientException : RuntimeException {
     constructor(msg: String, cause: Throwable) : super(msg, cause)

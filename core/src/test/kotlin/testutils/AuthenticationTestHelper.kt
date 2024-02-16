@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.testutils
+package org.eclipse.apoapsis.ortserver.core.testutils
 
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
@@ -31,7 +31,7 @@ import io.ktor.server.auth.basic
 
 import java.util.Base64
 
-import org.ossreviewtoolkit.server.core.plugins.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
 
 /** Credentials of a test user. */
 const val TEST_USER = "user"

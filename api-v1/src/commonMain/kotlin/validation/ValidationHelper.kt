@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.api.v1.validation
+package org.eclipse.apoapsis.ortserver.api.v1.validation
 
 import io.konform.validation.ValidationBuilder
 import io.konform.validation.ValidationResult
 
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
  * A typealias containing an argument and a return type for a validation function that should be implemented in entity

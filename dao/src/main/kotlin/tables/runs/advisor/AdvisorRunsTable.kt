@@ -17,20 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.advisor
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
+
+import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-
-import org.ossreviewtoolkit.server.dao.tables.AdvisorJobDao
-import org.ossreviewtoolkit.server.dao.tables.AdvisorJobsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.EnvironmentsTable
-import org.ossreviewtoolkit.server.dao.utils.toDatabasePrecision
-import org.ossreviewtoolkit.server.model.runs.advisor.AdvisorRun
 
 /**
  * A table to represent a summary of an advisor run.

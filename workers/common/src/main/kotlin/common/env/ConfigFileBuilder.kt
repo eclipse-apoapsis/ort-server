@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.File
 import java.io.PrintWriter
@@ -25,8 +25,8 @@ import java.io.StringWriter
 
 import kotlin.random.Random
 
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 /**
  * A helper class supporting the generation of configuration files.

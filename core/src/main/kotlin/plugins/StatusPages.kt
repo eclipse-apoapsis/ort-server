@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.plugins
+package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -26,15 +26,15 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
+import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
+import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
+import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
+import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 
-import org.ossreviewtoolkit.server.core.api.AuthenticationException
-import org.ossreviewtoolkit.server.core.api.AuthorizationException
-import org.ossreviewtoolkit.server.core.api.ErrorResponse
-import org.ossreviewtoolkit.server.dao.QueryParametersException
-import org.ossreviewtoolkit.server.dao.UniqueConstraintException
-import org.ossreviewtoolkit.server.services.InvalidSecretReferenceException
-import org.ossreviewtoolkit.server.services.ReportNotFoundException
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
 import org.slf4j.LoggerFactory
 

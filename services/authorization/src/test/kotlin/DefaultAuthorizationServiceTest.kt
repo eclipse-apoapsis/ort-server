@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
@@ -34,25 +34,25 @@ import io.kotest.matchers.shouldNot
 import io.mockk.every
 import io.mockk.mockk
 
-import org.ossreviewtoolkit.server.clients.keycloak.GroupName
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.RoleName
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestClient
-import org.ossreviewtoolkit.server.dao.test.mockkTransaction
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
-import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
-import org.ossreviewtoolkit.server.model.authorization.ProductPermission
-import org.ossreviewtoolkit.server.model.authorization.ProductRole
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
-import org.ossreviewtoolkit.server.model.authorization.Superuser
-import org.ossreviewtoolkit.server.model.repositories.OrganizationRepository
-import org.ossreviewtoolkit.server.model.repositories.ProductRepository
-import org.ossreviewtoolkit.server.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
 class DefaultAuthorizationServiceTest : WordSpec({
     val keycloakGroupPrefix = "PREFIX_"

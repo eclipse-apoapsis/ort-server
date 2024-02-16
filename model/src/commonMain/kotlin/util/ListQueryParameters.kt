@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.util
+package org.eclipse.apoapsis.ortserver.model.util
 
 import kotlinx.serialization.Serializable
 

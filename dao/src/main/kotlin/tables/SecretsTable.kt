@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.model.Secret
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
-
-import org.ossreviewtoolkit.server.dao.utils.SortableEntityClass
-import org.ossreviewtoolkit.server.dao.utils.SortableTable
-import org.ossreviewtoolkit.server.model.Secret
 
 object SecretsTable : SortableTable("secrets") {
     val organizationId = reference("organization_id", OrganizationsTable).nullable()

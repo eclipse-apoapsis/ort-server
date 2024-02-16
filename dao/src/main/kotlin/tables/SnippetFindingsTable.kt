@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.tables
+
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-
-import org.ossreviewtoolkit.server.model.runs.scanner.SnippetFinding
-import org.ossreviewtoolkit.server.model.runs.scanner.TextLocation
 
 /**
  * A table to represent a snippet finding.

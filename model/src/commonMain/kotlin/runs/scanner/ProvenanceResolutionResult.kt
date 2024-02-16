@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
-import org.ossreviewtoolkit.server.model.runs.Identifier
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 /**
  * This class holds the results of the provenance resolution for the package denoted by [id]. The provenance resolution

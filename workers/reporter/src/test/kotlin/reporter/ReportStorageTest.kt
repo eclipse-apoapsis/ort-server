@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.reporter
+package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import com.typesafe.config.ConfigFactory
 
@@ -28,10 +28,10 @@ import io.kotest.matchers.shouldBe
 
 import java.io.File
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.Storage
-import org.ossreviewtoolkit.server.storage.StorageProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactoryForTesting
 
 class ReportStorageTest : StringSpec({
     "Report files should be written to the storage" {

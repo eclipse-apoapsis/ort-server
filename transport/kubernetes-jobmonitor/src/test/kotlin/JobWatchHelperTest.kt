@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe

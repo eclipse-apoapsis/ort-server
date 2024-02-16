@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 /**
  * A class representing a context for querying the application configuration.

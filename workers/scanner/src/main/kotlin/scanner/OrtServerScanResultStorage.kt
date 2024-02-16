@@ -17,12 +17,28 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import javax.naming.OperationNotSupportedException
 
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
+import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
@@ -48,21 +64,6 @@ import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.scanner.ScannerMatcher
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.AdditionalScanResultData
-import org.ossreviewtoolkit.server.dao.tables.CopyrightFindingDao
-import org.ossreviewtoolkit.server.dao.tables.LicenseFindingDao
-import org.ossreviewtoolkit.server.dao.tables.ScanResultDao
-import org.ossreviewtoolkit.server.dao.tables.ScanSummaryDao
-import org.ossreviewtoolkit.server.dao.tables.SnippetDao
-import org.ossreviewtoolkit.server.dao.tables.SnippetFindingDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsScanResultsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.OrtIssueDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.workers.common.mapToModel
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 /**

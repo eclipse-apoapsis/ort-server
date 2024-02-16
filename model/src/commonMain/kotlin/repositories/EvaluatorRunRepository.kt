@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
 import kotlinx.datetime.Instant
 
-import org.ossreviewtoolkit.server.model.runs.EvaluatorRun
-import org.ossreviewtoolkit.server.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 /**
  * A repository of [evaluator runs][EvaluatorRun].

@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs
+package org.eclipse.apoapsis.ortserver.model.runs
 
-import org.ossreviewtoolkit.server.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 
 data class VcsInfo(
     val type: RepositoryType,

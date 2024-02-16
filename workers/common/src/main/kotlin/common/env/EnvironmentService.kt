@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.File
 
@@ -26,13 +26,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-import org.ossreviewtoolkit.server.model.EnvironmentConfig
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.repositories.InfrastructureServiceRepository
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.env.config.EnvironmentConfigLoader
-import org.ossreviewtoolkit.server.workers.common.env.config.ResolvedEnvironmentConfig
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
  * A service class providing functionality for setting up the build environment when running a worker.

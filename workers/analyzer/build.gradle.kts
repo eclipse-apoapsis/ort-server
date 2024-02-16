@@ -29,7 +29,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.workers"
+group = "org.eclipse.apoapsis.ortserver.workers"
 
 repositories {
     exclusiveContent {
@@ -93,7 +93,7 @@ jib {
     to.image = "${dockerImagePrefix}ort-server-analyzer-worker:$dockerImageTag"
 
     container {
-        mainClass = "org.ossreviewtoolkit.server.workers.analyzer.EntrypointKt"
+        mainClass = "org.eclipse.apoapsis.ortserver.workers.analyzer.EntrypointKt"
         creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }

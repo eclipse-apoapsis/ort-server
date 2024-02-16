@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentServiceDefinition
-import org.ossreviewtoolkit.server.workers.common.env.definition.EnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 
 /**
  * A data class to represent the whole environment configuration for a repository after all references to

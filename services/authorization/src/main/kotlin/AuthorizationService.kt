@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.services
+package org.eclipse.apoapsis.ortserver.services
 
-import org.ossreviewtoolkit.server.model.authorization.OrganizationPermission
-import org.ossreviewtoolkit.server.model.authorization.OrganizationRole
-import org.ossreviewtoolkit.server.model.authorization.ProductPermission
-import org.ossreviewtoolkit.server.model.authorization.ProductRole
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
-import org.ossreviewtoolkit.server.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 
 /**
  * A service to manage roles and permissions in Keycloak.

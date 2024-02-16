@@ -19,66 +19,66 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.ossreviewtoolkit.server.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1
 
-import org.ossreviewtoolkit.server.api.v1.AdvisorJob as ApiAdvisorJob
-import org.ossreviewtoolkit.server.api.v1.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJob as ApiAnalyzerJob
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig as ApiEnvironmentConfig
-import org.ossreviewtoolkit.server.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.api.v1.EvaluatorJob as ApiEvaluatorJob
-import org.ossreviewtoolkit.server.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.InfrastructureService as ApiInfrastructureService
-import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
-import org.ossreviewtoolkit.server.api.v1.JobStatus as ApiJobStatus
-import org.ossreviewtoolkit.server.api.v1.Jobs as ApiJobs
-import org.ossreviewtoolkit.server.api.v1.Organization as ApiOrganization
-import org.ossreviewtoolkit.server.api.v1.OrtIssue as ApiOrtIssue
-import org.ossreviewtoolkit.server.api.v1.OrtRun as ApiOrtRun
-import org.ossreviewtoolkit.server.api.v1.OrtRunStatus as ApiOrtRunStatus
-import org.ossreviewtoolkit.server.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
-import org.ossreviewtoolkit.server.api.v1.PluginConfiguration as ApiPluginConfiguration
-import org.ossreviewtoolkit.server.api.v1.Product as ApiProduct
-import org.ossreviewtoolkit.server.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
-import org.ossreviewtoolkit.server.api.v1.ReporterAsset as ApiReporterAsset
-import org.ossreviewtoolkit.server.api.v1.ReporterJob as ApiReporterJob
-import org.ossreviewtoolkit.server.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.Repository as ApiRepository
-import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
-import org.ossreviewtoolkit.server.api.v1.ScannerJob as ApiScannerJob
-import org.ossreviewtoolkit.server.api.v1.ScannerJobConfiguration as ApiScannerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.Secret as ApiSecret
-import org.ossreviewtoolkit.server.model.AdvisorJob
-import org.ossreviewtoolkit.server.model.AdvisorJobConfiguration
-import org.ossreviewtoolkit.server.model.AnalyzerJob
-import org.ossreviewtoolkit.server.model.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.model.EnvironmentConfig
-import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.model.EvaluatorJob
-import org.ossreviewtoolkit.server.model.EvaluatorJobConfiguration
-import org.ossreviewtoolkit.server.model.InfrastructureService
-import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.Jobs
-import org.ossreviewtoolkit.server.model.Organization
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.OrtRunStatus
-import org.ossreviewtoolkit.server.model.PluginConfiguration
-import org.ossreviewtoolkit.server.model.Product
-import org.ossreviewtoolkit.server.model.ProviderPluginConfiguration
-import org.ossreviewtoolkit.server.model.ReporterAsset
-import org.ossreviewtoolkit.server.model.ReporterJob
-import org.ossreviewtoolkit.server.model.ReporterJobConfiguration
-import org.ossreviewtoolkit.server.model.Repository
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.model.Secret
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.model.runs.PackageManagerConfiguration
-import org.ossreviewtoolkit.server.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJob as ApiAdvisorJob
+import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJob as ApiAnalyzerJob
+import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig as ApiEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJob as ApiEvaluatorJob
+import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService as ApiInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.JobStatus as ApiJobStatus
+import org.eclipse.apoapsis.ortserver.api.v1.Jobs as ApiJobs
+import org.eclipse.apoapsis.ortserver.api.v1.Organization as ApiOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.OrtIssue as ApiOrtIssue
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRun as ApiOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus as ApiOrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.PluginConfiguration as ApiPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.Product as ApiProduct
+import org.eclipse.apoapsis.ortserver.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.ReporterAsset as ApiReporterAsset
+import org.eclipse.apoapsis.ortserver.api.v1.ReporterJob as ApiReporterJob
+import org.eclipse.apoapsis.ortserver.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.Repository as ApiRepository
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.ScannerJob as ApiScannerJob
+import org.eclipse.apoapsis.ortserver.api.v1.ScannerJobConfiguration as ApiScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.Secret as ApiSecret
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.Jobs
+import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ReporterAsset
+import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(

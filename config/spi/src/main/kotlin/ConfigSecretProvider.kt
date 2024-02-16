@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 /**
  * A service provider interface for reading secrets from the configuration.

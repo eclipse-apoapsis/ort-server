@@ -17,39 +17,39 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.repositories
+package org.eclipse.apoapsis.ortserver.dao.repositories
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.IssueResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.LicenseFindingCurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageCurationDataDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PackageLicenseChoiceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.PathExcludeDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryAnalyzerConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RuleViolationResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.ScopeExcludeDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.SpdxLicenseChoiceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.VulnerabilityResolutionDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.entityQuery
-import org.ossreviewtoolkit.server.dao.mapAndDeduplicate
-import org.ossreviewtoolkit.server.dao.tables.OrtRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.IssueResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.LicenseFindingCurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageCurationDataDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PackageLicenseChoiceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.PathExcludeDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryAnalyzerConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RepositoryConfigurationsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.RuleViolationResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.ScopeExcludeDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.SpdxLicenseChoiceDao
-import org.ossreviewtoolkit.server.dao.tables.runs.repository.VulnerabilityResolutionDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.model.repositories.RepositoryConfigurationRepository
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
-import org.ossreviewtoolkit.server.model.runs.repository.PackageLicenseChoice
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
 
 /**
  * An implementation of [RepositoryConfigurationRepository] that stores repository configurations in

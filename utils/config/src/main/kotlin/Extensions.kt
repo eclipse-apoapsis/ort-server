@@ -19,7 +19,7 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.ossreviewtoolkit.server.utils.config
+package org.eclipse.apoapsis.ortserver.utils.config
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.Config
 
@@ -26,7 +26,7 @@ import java.io.InputStream
 
 import kotlin.IllegalArgumentException
 
-import org.ossreviewtoolkit.server.utils.config.getStringOrNull
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
  * A test implementation of the [ConfigFileProvider] interface. This implementation interprets the context as an

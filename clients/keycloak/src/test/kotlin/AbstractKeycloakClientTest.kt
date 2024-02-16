@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
@@ -28,7 +28,7 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.clients.keycloak.test.testRealmAdmin
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealmAdmin
 
 abstract class AbstractKeycloakClientTest : WordSpec() {
     abstract val client: KeycloakClient

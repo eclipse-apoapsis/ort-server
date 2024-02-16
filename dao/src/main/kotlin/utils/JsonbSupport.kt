@@ -19,7 +19,7 @@
 
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package org.ossreviewtoolkit.server.dao.utils
+package org.eclipse.apoapsis.ortserver.dao.utils
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json

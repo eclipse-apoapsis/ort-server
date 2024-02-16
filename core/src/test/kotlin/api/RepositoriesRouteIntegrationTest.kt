@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.containAnyOf
@@ -38,45 +38,45 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.api.v1.AnalyzerJobConfiguration
-import org.ossreviewtoolkit.server.api.v1.CreateOrtRun
-import org.ossreviewtoolkit.server.api.v1.CreateSecret
-import org.ossreviewtoolkit.server.api.v1.EnvironmentConfig
-import org.ossreviewtoolkit.server.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.api.v1.InfrastructureService
-import org.ossreviewtoolkit.server.api.v1.JobConfigurations as ApiJobConfigurations
-import org.ossreviewtoolkit.server.api.v1.Jobs
-import org.ossreviewtoolkit.server.api.v1.OrtRun
-import org.ossreviewtoolkit.server.api.v1.PagedResponse
-import org.ossreviewtoolkit.server.api.v1.Repository
-import org.ossreviewtoolkit.server.api.v1.RepositoryType as ApiRepositoryType
-import org.ossreviewtoolkit.server.api.v1.Secret
-import org.ossreviewtoolkit.server.api.v1.UpdateRepository
-import org.ossreviewtoolkit.server.api.v1.UpdateSecret
-import org.ossreviewtoolkit.server.api.v1.mapToApi
-import org.ossreviewtoolkit.server.core.shouldHaveBody
-import org.ossreviewtoolkit.server.model.EnvironmentVariableDeclaration
-import org.ossreviewtoolkit.server.model.InfrastructureServiceDeclaration
-import org.ossreviewtoolkit.server.model.JobConfigurations
-import org.ossreviewtoolkit.server.model.RepositoryType
-import org.ossreviewtoolkit.server.model.authorization.RepositoryPermission
-import org.ossreviewtoolkit.server.model.authorization.RepositoryRole
-import org.ossreviewtoolkit.server.model.repositories.OrtRunRepository
-import org.ossreviewtoolkit.server.model.repositories.SecretRepository
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters
-import org.ossreviewtoolkit.server.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.ossreviewtoolkit.server.model.util.OrderDirection.ASCENDING
-import org.ossreviewtoolkit.server.model.util.OrderDirection.DESCENDING
-import org.ossreviewtoolkit.server.model.util.OrderField
-import org.ossreviewtoolkit.server.model.util.asPresent
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
-import org.ossreviewtoolkit.server.services.DefaultAuthorizationService
-import org.ossreviewtoolkit.server.services.OrganizationService
-import org.ossreviewtoolkit.server.services.ProductService
-import org.ossreviewtoolkit.server.transport.OrchestratorEndpoint
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)

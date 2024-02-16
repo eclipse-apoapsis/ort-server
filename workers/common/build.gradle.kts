@@ -25,7 +25,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.workers"
+group = "org.eclipse.apoapsis.ortserver.workers"
 
 repositories {
     mavenCentral()

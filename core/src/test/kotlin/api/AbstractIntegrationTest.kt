@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
@@ -30,28 +30,28 @@ import io.ktor.server.testing.ApplicationTestBuilder
 
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientForTestRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.SUPERUSER
-import org.ossreviewtoolkit.server.core.SUPERUSER_PASSWORD
-import org.ossreviewtoolkit.server.core.TEST_USER
-import org.ossreviewtoolkit.server.core.TEST_USER_PASSWORD
-import org.ossreviewtoolkit.server.core.addUserRole
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.setUpClientScope
-import org.ossreviewtoolkit.server.core.setUpUser
-import org.ossreviewtoolkit.server.core.setUpUserRoles
-import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.authorization.Superuser
-import org.ossreviewtoolkit.server.secrets.SecretStorage
-import org.ossreviewtoolkit.server.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
+import org.eclipse.apoapsis.ortserver.core.addUserRole
+import org.eclipse.apoapsis.ortserver.core.createJsonClient
+import org.eclipse.apoapsis.ortserver.core.createJwtConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.setUpClientScope
+import org.eclipse.apoapsis.ortserver.core.setUpUser
+import org.eclipse.apoapsis.ortserver.core.setUpUserRoles
+import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
 abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
     val dbExtension = extension(DatabaseTestExtension())

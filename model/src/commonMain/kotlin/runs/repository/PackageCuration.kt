@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.repository
+package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-import org.ossreviewtoolkit.server.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 
 data class PackageCuration(
     val id: Identifier,

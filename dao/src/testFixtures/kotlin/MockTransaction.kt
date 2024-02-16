@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.test
+package org.eclipse.apoapsis.ortserver.dao.test
 
 import io.mockk.every
 import io.mockk.invoke

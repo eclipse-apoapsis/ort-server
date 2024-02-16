@@ -17,19 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak.test
+package org.eclipse.apoapsis.ortserver.clients.keycloak.test
 
-import org.ossreviewtoolkit.server.clients.keycloak.Group
-import org.ossreviewtoolkit.server.clients.keycloak.GroupId
-import org.ossreviewtoolkit.server.clients.keycloak.GroupName
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClient
-import org.ossreviewtoolkit.server.clients.keycloak.KeycloakClientException
-import org.ossreviewtoolkit.server.clients.keycloak.Role
-import org.ossreviewtoolkit.server.clients.keycloak.RoleId
-import org.ossreviewtoolkit.server.clients.keycloak.RoleName
-import org.ossreviewtoolkit.server.clients.keycloak.User
-import org.ossreviewtoolkit.server.clients.keycloak.UserId
-import org.ossreviewtoolkit.server.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupId
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientException
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 
 /**
  * An implementation of [KeycloakClient] that can be used for testing, for example when using the Keycloak testcontainer

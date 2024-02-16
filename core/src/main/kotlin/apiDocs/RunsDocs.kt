@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.apiDocs
+package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import org.ossreviewtoolkit.server.logaccess.LogLevel
-import org.ossreviewtoolkit.server.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
+import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"

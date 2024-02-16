@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.config
+package org.eclipse.apoapsis.ortserver.workers.config
 
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.constructorArgs
@@ -26,8 +26,9 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 import kotlinx.datetime.Clock
 
-import org.ossreviewtoolkit.server.model.runs.OrtIssue
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+
 import org.ossreviewtoolkit.utils.scripting.ScriptRunner
 
 import org.slf4j.LoggerFactory

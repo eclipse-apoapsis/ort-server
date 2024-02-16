@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core
+package org.eclipse.apoapsis.ortserver.core
 
 import io.ktor.server.application.Application
 
-import org.ossreviewtoolkit.server.core.plugins.*
-import org.ossreviewtoolkit.server.core.testutils.configureTestAuthentication
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.core.plugins.*
+import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 

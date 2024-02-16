@@ -17,17 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.clients.keycloak
+package org.eclipse.apoapsis.ortserver.clients.keycloak
+
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.toGroupRepresentation
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.toRoleRepresentation
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.toUserRepresentation
 
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RolesRepresentation
-
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.testRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.toGroupRepresentation
-import org.ossreviewtoolkit.server.clients.keycloak.test.toRoleRepresentation
-import org.ossreviewtoolkit.server.clients.keycloak.test.toUserRepresentation
 
 internal val groupOrgA = Group(
     id = GroupId("e6a8bf53-32e1-43d9-9962-ece3863fe4ce"),

@@ -17,7 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.shared
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
+
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -25,8 +27,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-
-import org.ossreviewtoolkit.server.model.runs.Environment
 
 /**
  * A table to represent the environment settings.

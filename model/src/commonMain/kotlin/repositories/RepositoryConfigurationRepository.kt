@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.repositories
+package org.eclipse.apoapsis.ortserver.model.repositories
 
-import org.ossreviewtoolkit.server.model.runs.repository.Curations
-import org.ossreviewtoolkit.server.model.runs.repository.Excludes
-import org.ossreviewtoolkit.server.model.runs.repository.LicenseChoices
-import org.ossreviewtoolkit.server.model.runs.repository.PackageConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryAnalyzerConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.RepositoryConfiguration
-import org.ossreviewtoolkit.server.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 /**
  * A repository of [repository configurations][RepositoryConfiguration].

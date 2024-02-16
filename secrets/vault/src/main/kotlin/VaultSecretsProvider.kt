@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.secrets.vault
+package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -46,12 +46,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.secrets.Path
-import org.ossreviewtoolkit.server.secrets.Secret
-import org.ossreviewtoolkit.server.secrets.SecretsProvider
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultLoginResponse
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultSecretData
-import org.ossreviewtoolkit.server.secrets.vault.model.VaultSecretResponse
+import org.eclipse.apoapsis.ortserver.secrets.Path
+import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultLoginResponse
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
+import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretResponse
 
 import org.slf4j.LoggerFactory
 

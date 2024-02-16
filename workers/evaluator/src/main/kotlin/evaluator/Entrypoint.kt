@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.evaluator
+package org.eclipse.apoapsis.ortserver.workers.evaluator
 
-import org.ossreviewtoolkit.server.workers.common.enableOrtStackTraces
+import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.slf4j.LoggerFactory
 

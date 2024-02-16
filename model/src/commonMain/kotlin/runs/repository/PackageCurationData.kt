@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.repository
+package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-import org.ossreviewtoolkit.server.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 
 data class PackageCurationData(
     val comment: String? = null,

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.utils.test
+package org.eclipse.apoapsis.ortserver.utils.test
 
 import io.kotest.core.Tag
 

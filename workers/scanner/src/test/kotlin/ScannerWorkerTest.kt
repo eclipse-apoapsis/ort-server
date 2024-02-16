@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
@@ -35,25 +35,26 @@ import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.ScannerRun
-import org.ossreviewtoolkit.server.dao.test.mockkTransaction
-import org.ossreviewtoolkit.server.model.Hierarchy
-import org.ossreviewtoolkit.server.model.JobStatus
-import org.ossreviewtoolkit.server.model.OrtRun
-import org.ossreviewtoolkit.server.model.ScannerJob
-import org.ossreviewtoolkit.server.model.ScannerJobConfiguration
-import org.ossreviewtoolkit.server.model.resolvedconfiguration.ResolvedConfiguration
-import org.ossreviewtoolkit.server.model.runs.AnalyzerRun
-import org.ossreviewtoolkit.server.workers.common.OrtRunService
-import org.ossreviewtoolkit.server.workers.common.RunResult
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContext
-import org.ossreviewtoolkit.server.workers.common.context.WorkerContextFactory
-import org.ossreviewtoolkit.server.workers.common.env.EnvironmentService
-import org.ossreviewtoolkit.server.workers.common.mapToOrt
 
-private const val ORT_SERVER_MAPPINGS_FILE = "org.ossreviewtoolkit.server.workers.common.OrtServerMappingsKt"
+private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
 
 private const val SCANNER_JOB_ID = 1L
 private const val REPOSITORY_ID = 1L
@@ -104,7 +105,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val ortIdentifier = Identifier("type", "namespace", "name", "version")
-        val mappedIdentifier = org.ossreviewtoolkit.server.model.runs.Identifier(
+        val mappedIdentifier = org.eclipse.apoapsis.ortserver.model.runs.Identifier(
             ortIdentifier.type,
             ortIdentifier.namespace,
             ortIdentifier.name,
@@ -131,7 +132,7 @@ class ScannerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            val slotScannerRun = slot<org.ossreviewtoolkit.server.model.runs.scanner.ScannerRun>()
+            val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
             verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun)) }
             slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
 

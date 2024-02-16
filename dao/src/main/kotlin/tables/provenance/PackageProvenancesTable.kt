@@ -17,7 +17,21 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.provenance
+package org.eclipse.apoapsis.ortserver.dao.tables.provenance
+
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.Provenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -25,20 +39,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
-
-import org.ossreviewtoolkit.server.dao.tables.runs.analyzer.PackageDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunDao
-import org.ossreviewtoolkit.server.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifierDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.IdentifiersTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.RemoteArtifactsTable
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoDao
-import org.ossreviewtoolkit.server.dao.tables.runs.shared.VcsInfoTable
-import org.ossreviewtoolkit.server.model.runs.scanner.ArtifactProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.Provenance
-import org.ossreviewtoolkit.server.model.runs.scanner.RepositoryProvenance
-import org.ossreviewtoolkit.server.model.runs.scanner.UnknownProvenance
 
 object PackageProvenancesTable : LongIdTable("package_provenances") {
     val identifierId = reference("identifier_id", IdentifiersTable)

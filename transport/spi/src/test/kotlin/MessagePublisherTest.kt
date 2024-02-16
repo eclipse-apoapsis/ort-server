@@ -17,23 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport
+package org.eclipse.apoapsis.ortserver.transport
 
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.config.ConfigManager
-import org.ossreviewtoolkit.server.model.orchestrator.AdvisorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerRequest
-import org.ossreviewtoolkit.server.model.orchestrator.AnalyzerWorkerResult
-import org.ossreviewtoolkit.server.model.orchestrator.ConfigRequest
-import org.ossreviewtoolkit.server.model.orchestrator.EvaluatorRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ReporterRequest
-import org.ossreviewtoolkit.server.model.orchestrator.ScannerRequest
-import org.ossreviewtoolkit.server.transport.testing.MessageSenderFactoryForTesting
-import org.ossreviewtoolkit.server.transport.testing.TEST_TRANSPORT_NAME
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
+import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
 class MessagePublisherTest : StringSpec({
     "Messages to the Orchestrator can be published" {

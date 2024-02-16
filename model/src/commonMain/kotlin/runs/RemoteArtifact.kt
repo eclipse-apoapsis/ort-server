@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs
+package org.eclipse.apoapsis.ortserver.model.runs
 
 data class RemoteArtifact(
     val url: String,

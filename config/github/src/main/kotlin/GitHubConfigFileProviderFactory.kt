@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.github
+package org.eclipse.apoapsis.ortserver.config.github
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.config.ConfigFileProvider
-import org.ossreviewtoolkit.server.config.ConfigFileProviderFactory
-import org.ossreviewtoolkit.server.config.ConfigSecretProvider
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactory
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 
 /**
  * Factory implementation for [GitHubConfigFileProvider].

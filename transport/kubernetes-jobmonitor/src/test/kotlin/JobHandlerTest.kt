@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
@@ -51,8 +51,8 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
 
-import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
-import org.ossreviewtoolkit.server.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
 private const val NAMESPACE = "EventHandlerNamespace"
 

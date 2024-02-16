@@ -22,7 +22,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.ossreviewtoolkit.server.logaccess"
+group = "org.eclipse.apoapsis.ortserver.logaccess"
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import kotlinx.serialization.Serializable
 
-import org.ossreviewtoolkit.server.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
 
 /**
  * Type definition to describe the generic section of the environment configuration that lists the environment

@@ -21,7 +21,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
-group = "org.ossreviewtoolkit.server.utils"
+group = "org.eclipse.apoapsis.ortserver.utils"
 
 kotlin {
     jvm()

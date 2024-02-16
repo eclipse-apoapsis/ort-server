@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.dao.tables.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.tables.runs.repository
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 
-import org.jetbrains.exposed.sql.insertAndGetId
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
-import org.ossreviewtoolkit.server.dao.blockingQuery
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
+import org.jetbrains.exposed.sql.insertAndGetId
 
 class LicenseFindingCurationsTableTest : StringSpec({
     val extension = extension(DatabaseTestExtension())

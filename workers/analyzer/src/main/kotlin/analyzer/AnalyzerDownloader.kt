@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.analyzer
+package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import java.io.File
 

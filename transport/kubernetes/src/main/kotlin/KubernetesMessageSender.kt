@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.transport.kubernetes
+package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -31,10 +31,10 @@ import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
-import org.ossreviewtoolkit.server.transport.Endpoint
-import org.ossreviewtoolkit.server.transport.Message
-import org.ossreviewtoolkit.server.transport.MessageSender
-import org.ossreviewtoolkit.server.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.Message
+import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 /** A prefix for the name of a label storing a part of the trace ID. */
 private const val TRACE_LABEL_PREFIX = "trace-id-"

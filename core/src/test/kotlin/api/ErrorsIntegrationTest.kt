@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.core.api
+package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
@@ -30,23 +30,23 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.serialization.json.Json
 
-import org.ossreviewtoolkit.server.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
-import org.ossreviewtoolkit.server.clients.keycloak.test.KeycloakTestExtension
-import org.ossreviewtoolkit.server.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.ossreviewtoolkit.server.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.SUPERUSER
-import org.ossreviewtoolkit.server.core.SUPERUSER_PASSWORD
-import org.ossreviewtoolkit.server.core.createJsonClient
-import org.ossreviewtoolkit.server.core.createJwtConfigMapForTestRealm
-import org.ossreviewtoolkit.server.core.setUpClientScope
-import org.ossreviewtoolkit.server.core.setUpUser
-import org.ossreviewtoolkit.server.core.setUpUserRoles
-import org.ossreviewtoolkit.server.core.testutils.authNoDbConfig
-import org.ossreviewtoolkit.server.core.testutils.ortServerTestApplication
-import org.ossreviewtoolkit.server.dao.test.DatabaseTestExtension
-import org.ossreviewtoolkit.server.model.authorization.Superuser
-import org.ossreviewtoolkit.server.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
+import org.eclipse.apoapsis.ortserver.core.createJsonClient
+import org.eclipse.apoapsis.ortserver.core.createJwtConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.core.setUpClientScope
+import org.eclipse.apoapsis.ortserver.core.setUpUser
+import org.eclipse.apoapsis.ortserver.core.setUpUserRoles
+import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 /**
  * Integration test class testing some error conditions during API requests and how they are handled.

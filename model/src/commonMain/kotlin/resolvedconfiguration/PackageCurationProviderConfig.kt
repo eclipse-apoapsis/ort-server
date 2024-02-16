@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.resolvedconfiguration
+package org.eclipse.apoapsis.ortserver.model.resolvedconfiguration
 
-import org.ossreviewtoolkit.server.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
 /**
  * A provider for [PackageCuration]s.

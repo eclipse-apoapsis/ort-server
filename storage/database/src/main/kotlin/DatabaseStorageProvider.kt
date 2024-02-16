@@ -17,20 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.storage.database
+package org.eclipse.apoapsis.ortserver.storage.database
 
 import java.io.InputStream
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.StorageProvider
+
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
-
-import org.ossreviewtoolkit.server.storage.Key
-import org.ossreviewtoolkit.server.storage.StorageEntry
-import org.ossreviewtoolkit.server.storage.StorageProvider
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by a database table using PostgreSQL's large

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config.secret.file
+package org.eclipse.apoapsis.ortserver.config.secret.file
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -28,7 +28,7 @@ import io.kotest.matchers.string.shouldContain
 import java.io.File
 import java.io.IOException
 
-import org.ossreviewtoolkit.server.config.Path
+import org.eclipse.apoapsis.ortserver.config.Path
 
 class ConfigSecretFileProviderTest : StringSpec({
     fun createSecretsFile(content: String): File =

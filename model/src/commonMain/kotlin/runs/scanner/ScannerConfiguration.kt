@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.model.runs.scanner
+package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 data class ScannerConfiguration(
     val skipConcluded: Boolean,

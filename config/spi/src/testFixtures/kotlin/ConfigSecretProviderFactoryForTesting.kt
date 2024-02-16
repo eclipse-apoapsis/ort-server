@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.config
+package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.Config
 
-import org.ossreviewtoolkit.server.utils.config.getConfigOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
 
 /**
  * A test implementation of the [ConfigSecretProvider] interface. This implementation reads the known secrets from

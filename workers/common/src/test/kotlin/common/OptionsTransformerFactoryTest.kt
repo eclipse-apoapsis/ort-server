@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.ossreviewtoolkit.server.workers.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -25,7 +25,7 @@ import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import org.ossreviewtoolkit.server.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 class OptionsTransformerFactoryTest : StringSpec({
     "The transformation of all options should be possible" {
