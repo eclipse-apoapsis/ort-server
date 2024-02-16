@@ -5,7 +5,7 @@ Source: https://github.com/oss-review-toolkit/ort-server
 # If multiple globs match the same files, the last match wins.
 
 Files: *
-Copyright: The ORT Project Authors (See <https://github.com/oss-review-toolkit/ort-server/blob/main/NOTICE>)
+Copyright: The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
 
 Files: gradlew*
