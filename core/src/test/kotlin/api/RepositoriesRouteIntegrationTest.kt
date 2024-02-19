@@ -271,7 +271,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApi(Jobs()), run2.mapToApi(Jobs())),
                     ListQueryParameters(
-                        sortFields = listOf(OrderField("createdAt", DESCENDING)),
+                        sortFields = listOf(OrderField("index", ASCENDING)),
                         limit = DEFAULT_LIMIT,
                         offset = 0
                     )
@@ -308,7 +308,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApi(jobs1), run2.mapToApi(jobs2)),
                     ListQueryParameters(
-                        sortFields = listOf(OrderField("createdAt", DESCENDING)),
+                        sortFields = listOf(OrderField("index", ASCENDING)),
                         limit = DEFAULT_LIMIT,
                         offset = 0
                     )

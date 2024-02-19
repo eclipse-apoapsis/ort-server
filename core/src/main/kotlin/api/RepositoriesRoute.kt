@@ -104,7 +104,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
             val paginationParameters =
-                call.listQueryParameters(OrderField("createdAt", OrderDirection.DESCENDING))
+                call.listQueryParameters(OrderField("index", OrderDirection.ASCENDING))
 
             val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, paginationParameters)
                 .map { it.mapToApi(repositoryService.getJobs(repositoryId, it.index)!!.mapToApi()) }
