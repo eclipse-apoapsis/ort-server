@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
@@ -381,8 +380,17 @@ class ReporterRunnerTest : WordSpec({
             }
         }
 
-        "should throw an exception when requesting an unknown report format" {
+        "handle an unknown report format" {
+            val unsupportedReportFormat = "UnknownFormat"
+            val supportedReportFormat = "supportedFormat"
+            val generatedReport = tempfile()
+            val supportedReporter = reporterMock(supportedReportFormat)
+            every { supportedReporter.generateReport(any(), any(), any()) } returns listOf(generatedReport)
+
+            mockReportersAll(supportedReportFormat to supportedReporter)
+
             val (contextFactory, _) = mockContext()
+
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
@@ -391,8 +399,19 @@ class ReporterRunnerTest : WordSpec({
                 mockk()
             )
 
-            shouldThrow<IllegalArgumentException> {
-                runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(formats = listOf("UnknownFormat")), null)
+            val result = runner.run(
+                RUN_ID,
+                OrtResult.EMPTY,
+                ReporterJobConfiguration(formats = listOf(unsupportedReportFormat, supportedReportFormat)),
+                null
+            )
+
+            result.reports shouldBe mapOf(supportedReportFormat to listOf(generatedReport.name))
+            with(result.issues.single()) {
+                message shouldContain "No reporter found"
+                message shouldContain unsupportedReportFormat
+                source shouldBe "Reporter"
+                severity shouldBe "ERROR"
             }
         }
 

@@ -95,12 +95,6 @@ class ReporterRunner(
         evaluatorConfig: EvaluatorJobConfiguration?
     ): ReporterRunnerResult {
         return contextFactory.createContext(runId).use { context ->
-            val reporters = config.formats.map { format ->
-                requireNotNull(Reporter.ALL[format]) {
-                    "No reporter found for the configured format '$format'."
-                }
-            }
-
             val copyrightGarbageFile =
                 if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
             val copyrightGarbage = configManager.readConfigFileWithDefault(
@@ -175,10 +169,14 @@ class ReporterRunner(
 
                 val outputDir = context.createTempDir()
 
-                reporters.map { reporter ->
+                config.formats.map { format ->
                     async {
-                        logger.info("Generating the '${reporter.type}' report...")
-                        reporter to runCatching {
+                        logger.info("Generating the '$format' report...")
+                        format to runCatching {
+                            val reporter = requireNotNull(Reporter.ALL[format]) {
+                                "No reporter found for the configured format '$format'."
+                            }
+
                             val reporterOptions = transformedOptions[reporter.type]?.let { options ->
                                 PluginConfiguration(options.options, options.secrets)
                             } ?: PluginConfiguration.EMPTY
@@ -192,8 +190,8 @@ class ReporterRunner(
                 }.awaitAll()
             }.partition { it.second.isSuccess }
 
-            val failures = results.second.associate { (reporter, failure) ->
-                reporter.type to failure.exceptionOrNull()!!
+            val failures = results.second.associate { (format, failure) ->
+                format to failure.exceptionOrNull()!!
             }
 
             failures.forEach { (reporter, e) ->
@@ -212,8 +210,8 @@ class ReporterRunner(
             }
 
             val reports = results.first.associate {
-                logger.info("Successfully created '${it.first.type}' report.")
-                it.first.type to it.second.getOrDefault(emptyMap()).keys.toList()
+                logger.info("Successfully created '${it.first}' report.")
+                it.first to it.second.getOrDefault(emptyMap()).keys.toList()
             }
 
             // Only return the package configurations and resolutions if they were not already resolved by the
