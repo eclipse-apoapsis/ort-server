@@ -116,6 +116,9 @@ internal class ReporterWorker(
             reporterRunnerResult.resolvedResolutions?.let {
                 ortRunService.storeResolvedResolutions(ortRun.id, it)
             }
+            reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
+                ortRunService.storeIssues(ortRun.id, it)
+            }
         }
 
         RunResult.Success

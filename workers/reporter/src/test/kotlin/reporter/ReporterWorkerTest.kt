@@ -141,6 +141,7 @@ class ReporterWorkerTest : StringSpec({
             every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
+            every { storeIssues(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext>()
@@ -182,6 +183,7 @@ class ReporterWorkerTest : StringSpec({
         coVerify {
             ortRunService.storeReporterRun(capture(slotReporterRun))
             ortRunService.getOrtRepositoryInformation(ortRun)
+            ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
             environmentService.generateNetRcFileForCurrentRun(context)
         }
 
