@@ -79,6 +79,7 @@ dependencies {
     runtimeOnly(projects.secrets.file)
     runtimeOnly(projects.secrets.vault)
     runtimeOnly(projects.storage.database)
+    runtimeOnly(projects.storage.s3)
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.rabbitmq)
 
