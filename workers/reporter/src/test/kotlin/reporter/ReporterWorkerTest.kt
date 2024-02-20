@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -31,11 +32,11 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.slot
+import io.mockk.unmockkAll
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.config.ConfigException
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
@@ -47,7 +48,10 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
@@ -93,8 +97,16 @@ class ReporterWorkerTest : StringSpec({
         }
 
         return mockk {
-            every { createContext(any()) } returns context
+            every { createContext(ORT_RUN_ID) } returns context
         }
+    }
+
+    beforeSpec {
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+    }
+
+    afterSpec {
+        unmockkAll()
     }
 
     "Reports for a project should be created successfully" {
@@ -109,25 +121,25 @@ class ReporterWorkerTest : StringSpec({
             every { revision } returns "main"
         }
 
-        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        val ortResult = mockk<OrtResult>()
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
         every { scannerRun.mapToOrt() } returns mockk()
-        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAdvisorRunForOrtRun(any()) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getEvaluatorJobForOrtRun(any()) } returns evaluatorJob
-            every { getEvaluatorRunForOrtRun(any()) } returns evaluatorRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getReporterJob(any()) } returns reporterJob
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(any()) } returns scannerRun
-            every { startReporterJob(any()) } returns reporterJob
+            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            every { getOrtRepositoryInformation(ortRun) } returns mockk()
+            every { getOrtRun(ORT_RUN_ID) } returns ortRun
+            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
         }
 
@@ -136,25 +148,27 @@ class ReporterWorkerTest : StringSpec({
             every { createContext(ORT_RUN_ID) } returns context
         }
 
-        val configManager = mockk<ConfigManager> {
-            every { getFile(any(), any()) } throws ConfigException("", null)
-        }
-
         val environmentService = mockk<EnvironmentService> {
             coEvery { generateNetRcFileForCurrentRun(context) } just runs
+        }
+
+        val runnerResult = ReporterRunnerResult(
+            reports = mapOf("WebApp" to listOf("report.html")),
+            resolvedPackageConfigurations = null,
+            resolvedResolutions = null,
+            issues = listOf(OrtIssue(Clock.System.now(), "Test issue", "Test message", "Test severity"))
+        )
+        val runner = mockk<ReporterRunner> {
+            every {
+                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration)
+            } returns runnerResult
         }
 
         val worker = ReporterWorker(
             contextFactory,
             mockk(),
             environmentService,
-            ReporterRunner(
-                mockk(relaxed = true),
-                mockContextFactory(),
-                OptionsTransformerFactory(),
-                configManager,
-                mockk()
-            ),
+            runner,
             ortRunService
         )
 
@@ -164,11 +178,14 @@ class ReporterWorkerTest : StringSpec({
             result shouldBe RunResult.Success
         }
 
+        val slotReporterRun = slot<ReporterRun>()
         coVerify {
-            ortRunService.storeReporterRun(any())
+            ortRunService.storeReporterRun(capture(slotReporterRun))
             ortRunService.getOrtRepositoryInformation(ortRun)
             environmentService.generateNetRcFileForCurrentRun(context)
         }
+
+        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(Report("report.html"))
     }
 
     "A failure result should be returned in case of an error" {
