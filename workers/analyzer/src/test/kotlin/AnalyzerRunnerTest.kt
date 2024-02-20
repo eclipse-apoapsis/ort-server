@@ -91,7 +91,7 @@ import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
-import org.ossreviewtoolkit.utils.spdx.model.SpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
