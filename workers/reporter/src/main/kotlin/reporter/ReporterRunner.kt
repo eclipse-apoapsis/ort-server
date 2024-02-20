@@ -27,12 +27,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.workers.common.JobPluginOptions
 import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -190,23 +192,23 @@ class ReporterRunner(
                 }.awaitAll()
             }.partition { it.second.isSuccess }
 
-            require(results.second.isEmpty()) {
-                val failures = results.second.associate { (reporter, failure) ->
-                    reporter.type to failure.exceptionOrNull()!!
-                }
+            val failures = results.second.associate { (reporter, failure) ->
+                reporter.type to failure.exceptionOrNull()!!
+            }
 
-                failures.forEach { (reporter, e) ->
-                    e.showStackTrace()
+            failures.forEach { (reporter, e) ->
+                e.showStackTrace()
 
-                    logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
-                }
+                logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
+            }
 
-                "There was an error creating the report(s) for ${
-                    failures.entries
-                        .joinToString(separator = "\n", prefix = "\n") {
-                            "${it.key}: ${it.value.javaClass.name} = ${it.value.message}"
-                        }
-                }"
+            val issues = failures.map { (reporter, e) ->
+                OrtIssue(
+                    timestamp = Clock.System.now(),
+                    source = "Reporter",
+                    message = "Could not create report for '$reporter': '${e.message}'",
+                    severity = "ERROR",
+                )
             }
 
             val reports = results.first.associate {
@@ -219,7 +221,8 @@ class ReporterRunner(
             ReporterRunnerResult(
                 reports,
                 resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
-                resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null }
+                resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
+                issues = issues
             )
         }
     }
@@ -262,7 +265,8 @@ class ReporterRunner(
 data class ReporterRunnerResult(
     val reports: Map<String, List<String>>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
-    val resolvedResolutions: Resolutions?
+    val resolvedResolutions: Resolutions?,
+    val issues: List<OrtIssue> = emptyList()
 )
 
 /** Regular expression to split multiple template paths. */

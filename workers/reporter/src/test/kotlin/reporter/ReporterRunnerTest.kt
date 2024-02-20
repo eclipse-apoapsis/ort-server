@@ -23,6 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -130,6 +131,7 @@ class ReporterRunnerTest : WordSpec({
             val result = runner.run(RUN_ID, OrtResult.EMPTY, config, null)
 
             result.reports shouldBe mapOf(reportType to listOf("testReport.html"))
+            result.issues should beEmpty()
 
             val slotReports = slot<Map<String, File>>()
             verify {
@@ -338,31 +340,45 @@ class ReporterRunnerTest : WordSpec({
             slotPluginConfiguration.captured shouldBe OrtPluginConfiguration(options, resolvedSecrets)
         }
 
-        "should throw an exception when a reporter fails" {
-            val reportFormat = "TestFormat"
+        "handle a failed reporter" {
+            val failureReportFormat = "IWillFail:-("
+            val successReportFormat = "IWillSucceed:-)"
 
-            val reporter = mockk<Reporter> {
-                every { type } returns reportFormat
-                every { generateReport(any(), any(), any()) } throws
-                        FileNotFoundException("Something went wrong...")
-            }
-            mockReportersAll(reportFormat to reporter)
+            val failureReporter = reporterMock(failureReportFormat)
+            every {
+                failureReporter.generateReport(any(), any(), any())
+            } throws FileNotFoundException("Something went wrong...")
+
+            val successReport = tempfile()
+            val successReporter = reporterMock(successReportFormat)
+            every { successReporter.generateReport(any(), any(), any()) } returns listOf(successReport)
+
+            mockReportersAll(failureReportFormat to failureReporter, successReportFormat to successReporter)
 
             val (contextFactory, _) = mockContext()
 
-            val exception = shouldThrow<IllegalArgumentException> {
-                val runner = ReporterRunner(
-                    mockk(relaxed = true),
-                    contextFactory,
-                    OptionsTransformerFactory(),
-                    configManager,
-                    mockk()
-                )
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
 
-                runner.run(RUN_ID, OrtResult.EMPTY, ReporterJobConfiguration(formats = listOf(reportFormat)), null)
+            val result = runner.run(
+                RUN_ID,
+                OrtResult.EMPTY,
+                ReporterJobConfiguration(formats = listOf(failureReportFormat, successReportFormat)),
+                null
+            )
+
+            result.reports shouldBe mapOf(successReportFormat to listOf(successReport.name))
+            with(result.issues.single()) {
+                message shouldContain "Something went wrong"
+                message shouldContain failureReportFormat
+                source shouldBe "Reporter"
+                severity shouldBe "ERROR"
             }
-
-            exception.message shouldContain "TestFormat: .*FileNotFoundException = Something went wrong".toRegex()
         }
 
         "should throw an exception when requesting an unknown report format" {
