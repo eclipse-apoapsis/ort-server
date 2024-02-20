@@ -30,6 +30,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
@@ -51,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
@@ -912,6 +914,31 @@ class OrtRunServiceTest : WordSpec({
 
             resolvedConfiguration.shouldNotBeNull()
             resolvedConfiguration.resolutions shouldBe resolutions.mapToModel()
+        }
+    }
+
+    "storeIssues" should {
+        "store the issues" {
+            val issues = listOf(
+                OrtIssue(
+                    Instant.parse("2024-02-20T13:51:00Z"),
+                    "issueSource",
+                    "Some test issue",
+                    "HINT"
+                ),
+                OrtIssue(
+                    Instant.parse("2024-02-20T13:52:00Z"),
+                    "differentIssueSource",
+                    "Some problematic issue",
+                    "WARN"
+                )
+            )
+
+            service.storeIssues(fixtures.ortRun.id, issues)
+
+            val storedIssues = fixtures.ortRunRepository.get(fixtures.ortRun.id)?.issues
+
+            storedIssues shouldBe issues
         }
     }
 })

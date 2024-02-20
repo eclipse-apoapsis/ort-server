@@ -49,9 +49,11 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -392,6 +394,16 @@ class OrtRunService(
     fun storeResolvedResolutions(ortRunId: Long, resolutions: Resolutions) {
         db.blockingQuery {
             resolvedConfigurationRepository.addResolutions(ortRunId, resolutions.mapToModel())
+        }
+    }
+
+    /**
+     * Store the provided [issues] for the ORT run with the given [ortRunId]. This can be used for issues associated
+     * with the run itself, not with any specific job.
+     */
+    fun storeIssues(ortRunId: Long, issues: List<OrtIssue>) {
+        db.blockingQuery {
+            ortRunRepository.update(ortRunId, issues = issues.asPresent())
         }
     }
 }
