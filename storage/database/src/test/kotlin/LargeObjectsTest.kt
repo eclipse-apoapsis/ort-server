@@ -34,6 +34,8 @@ import io.mockk.verify
 import java.io.ByteArrayInputStream
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.storage.TempFileInputStream
+
 import org.postgresql.largeobject.LargeObject
 import org.postgresql.largeobject.LargeObjectManager
 

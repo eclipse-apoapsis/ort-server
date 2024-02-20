@@ -21,12 +21,13 @@ package org.eclipse.apoapsis.ortserver.storage.database
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.sql.Connection
 
 import kotlin.io.path.outputStream
+
+import org.eclipse.apoapsis.ortserver.storage.TempFileInputStream
 
 import org.jetbrains.exposed.sql.Transaction
 
@@ -96,36 +97,6 @@ internal fun getStreamForLargeObject(
             TempFileInputStream(tempFile.toFile())
         }
     }
-}
-
-/**
- * A specialized [InputStream] implementation that operates on a temporary file. The read functions are implemented
- * to access the input stream from this file. When the stream is closed the file is deleted.
- *
- * This class is used to work around the limitation that PostgreSQL large objects can only be accessed during a
- * transaction. Most use cases, however, require reading the stream after the transaction. Therefore, to avoid that the
- * whole data needs to be read in memory, the storage provider implementation creates a temporary file first and then
- * exposes the stream from this file.
- *
- * Note: This would be good use case for delegation, but unfortunately, this only works for interfaces.
- */
-internal class TempFileInputStream(
-    /** The temporary file to wrap. */
-    private val tempFile: File
-) : InputStream() {
-    /** The stream to the temporary file to which all read operations are delegated. */
-    private val tempStream = tempFile.inputStream()
-
-    override fun close() {
-        tempStream.close()
-        tempFile.delete()
-    }
-
-    override fun read(): Int = tempStream.read()
-
-    override fun read(b: ByteArray): Int = tempStream.read(b)
-
-    override fun read(b: ByteArray, off: Int, len: Int): Int = tempStream.read(b, off, len)
 }
 
 /**
