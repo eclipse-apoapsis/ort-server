@@ -58,6 +58,7 @@ include(":workers:analyzer")
 include(":workers:common")
 include(":workers:config")
 include(":workers:evaluator")
+include(":workers:notifier")
 include(":workers:reporter")
 include(":workers:scanner")
 

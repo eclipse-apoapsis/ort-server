@@ -14,6 +14,7 @@ First, build the base images for the workers which contain the external tools an
 DOCKER_BUILDKIT=1 docker build workers/analyzer/docker -f workers/analyzer/docker/Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
 DOCKER_BUILDKIT=1 docker build workers/config/docker -f workers/config/docker/Config.Dockerfile -t ort-server-config-worker-base-image:latest
 DOCKER_BUILDKIT=1 docker build workers/evaluator/docker -f workers/evaluator/docker/Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/notifier/docker -f workers/notifier/docker/Notifier.Dockerfile -t ort-server-notifier-worker-base-image:latest
 DOCKER_BUILDKIT=1 docker build workers/reporter/docker -f workers/reporter/docker/Reporter.Dockerfile -t ort-server-reporter-worker-base-image:latest
 DOCKER_BUILDKIT=1 docker build workers/scanner/docker -f workers/scanner/docker/Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```

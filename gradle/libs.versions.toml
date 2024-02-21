@@ -136,6 +136,7 @@ ortCommonUtils = { module = "org.ossreviewtoolkit.utils:common-utils", version.r
 ortDownloader = { module = "org.ossreviewtoolkit:downloader", version.ref = "ort" }
 ortEvaluator = { module = "org.ossreviewtoolkit:evaluator", version.ref = "ort" }
 ortModel = { module = "org.ossreviewtoolkit:model", version.ref = "ort" }
+ortNotifier = { module = "org.ossreviewtoolkit:notifier", version.ref = "ort" }
 ortPackageConfigurationProviders = { module = "org.ossreviewtoolkit.plugins:package-configuration-providers", version.ref = "ort" }
 ortPackageCurationProviders = { module = "org.ossreviewtoolkit.plugins:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "org.ossreviewtoolkit.plugins:package-managers", version.ref = "ort" }

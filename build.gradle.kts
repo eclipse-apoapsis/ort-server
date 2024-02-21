@@ -72,6 +72,17 @@ allprojects {
                 includeModule("com.github.Ricky12Awesome", "json-schema-serialization")
             }
         }
+
+        exclusiveContent {
+            forRepository {
+                maven("https://packages.atlassian.com/maven-external")
+            }
+
+            filter {
+                includeGroupByRegex("com\\.atlassian\\..*")
+                includeVersionByRegex("log4j", "log4j", ".*-atlassian-.*")
+            }
+        }
     }
 
     tasks.withType<Jar> {
