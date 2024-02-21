@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.storage
 
+import java.io.File
 import java.io.InputStream
 
 /**
@@ -40,6 +41,21 @@ data class StorageEntry(
     /** The content type associated with this entry if any. */
     val contentType: String?
 ) : AutoCloseable {
+    companion object {
+        /**
+         * Create a [StorageEntry] instance from the provided [data] and [contentType].
+         */
+        fun create(data: InputStream, contentType: String?) =
+            StorageEntry(data, contentType)
+
+        /**
+         * Create a [StorageEntry] instance using a [TempFileInputStream] initialized with the provided [file] and
+         * the [contentType].
+         */
+        fun create(file: File, contentType: String?) =
+            StorageEntry(TempFileInputStream(file), contentType)
+    }
+
     override fun close() {
         data.close()
     }

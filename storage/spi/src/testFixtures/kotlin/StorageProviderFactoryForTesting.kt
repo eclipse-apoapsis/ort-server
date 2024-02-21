@@ -96,7 +96,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
         return object : StorageProvider {
             override fun read(key: Key): StorageEntry =
                 getEntry(key)?.let { entry ->
-                    StorageEntry(data = ByteArrayInputStream(entry.data), contentType = entry.contentType)
+                    StorageEntry.create(data = ByteArrayInputStream(entry.data), contentType = entry.contentType)
                 } ?: throw IOException("Could not resolve key '${key.key}'.")
 
             override fun write(key: Key, data: InputStream, length: Long, contentType: String?) {

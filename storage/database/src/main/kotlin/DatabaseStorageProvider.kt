@@ -47,7 +47,7 @@ class DatabaseStorageProvider(
         val entry = findByKey(key).single()
 
         val inputStream = readLargeObject(entry.data, entry.size, inMemoryLimit)
-        StorageEntry(inputStream, entry.contentType)
+        StorageEntry.create(inputStream, entry.contentType)
     }
 
     override fun write(key: Key, data: InputStream, length: Long, contentType: String?) {

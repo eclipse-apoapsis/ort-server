@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.storage
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.just
@@ -29,17 +31,34 @@ import io.mockk.verify
 
 import java.io.InputStream
 
+import kotlin.io.path.createTempFile
+import kotlin.io.path.exists
+
 class StorageEntryTest : StringSpec({
-    "The InputStream with data should be closed" {
-        val stream = mockk<InputStream>()
-        every { stream.close() } just runs
+    "create" should {
+        "create an object with a file" {
+            val tempFile = createTempFile()
 
-        val entry = StorageEntry(stream, "some-content")
+            val entry = StorageEntry.create(tempFile.toFile(), "some-content")
 
-        entry.close()
+            tempFile.exists() shouldBe true
 
-        verify {
-            stream.close()
+            entry.close()
+
+            tempFile.exists() shouldBe false
+        }
+
+        "create an object with an input stream" {
+            val stream = mockk<InputStream>()
+            every { stream.close() } just runs
+
+            val entry = StorageEntry.create(stream, "some-content")
+
+            entry.close()
+
+            verify {
+                stream.close()
+            }
         }
     }
 })

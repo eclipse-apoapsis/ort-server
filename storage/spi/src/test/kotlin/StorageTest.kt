@@ -151,7 +151,7 @@ class StorageTest : WordSpec({
         "return data as an array" {
             val data = "Data to be read from the entry".repeat(8).toByteArray()
 
-            StorageEntry(ByteArrayInputStream(data), CONTENT_TYPE).use { entry ->
+            StorageEntry.create(ByteArrayInputStream(data), CONTENT_TYPE).use { entry ->
                 entry.dataArray shouldBe data
             }
         }
@@ -161,7 +161,7 @@ class StorageTest : WordSpec({
         "return data as a String" {
             val data = "This is the data as string."
 
-            StorageEntry(ByteArrayInputStream(data.toByteArray()), CONTENT_TYPE).use { entry ->
+            StorageEntry.create(ByteArrayInputStream(data.toByteArray()), CONTENT_TYPE).use { entry ->
                 entry.dataString shouldBe data
             }
         }
