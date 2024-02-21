@@ -11,20 +11,11 @@ To start the ORT server with the required 3rd party services, you can use
 First, build the base images for the workers which contain the external tools and required configuration:
 
 ```shell
-cd workers/analyzer/docker
-DOCKER_BUILDKIT=1 docker build . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
-
-cd workers/config/docker
-DOCKER_BUILDKIT=1 docker build . -f Config.Dockerfile -t ort-server-config-worker-base-image:latest
-
-cd workers/evaluator/docker
-DOCKER_BUILDKIT=1 docker build . -f Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image:latest
-
-cd workers/reporter/docker
-DOCKER_BUILDKIT=1 docker build . -f Reporter.Dockerfile -t ort-server-reporter-worker-base-image:latest
-
-cd workers/scanner/docker
-DOCKER_BUILDKIT=1 docker build . -f Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/analyzer/docker -f workers/analyzer/docker/Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/config/docker -f workers/config/docker/Config.Dockerfile -t ort-server-config-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/evaluator/docker -f workers/evaluator/docker/Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/reporter/docker -f workers/reporter/docker/Reporter.Dockerfile -t ort-server-reporter-worker-base-image:latest
+DOCKER_BUILDKIT=1 docker build workers/scanner/docker -f workers/scanner/docker/Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```
 
 For analyzing Java projects, it must be ensured that the Java version used by the Analyzer worker is compatible with
