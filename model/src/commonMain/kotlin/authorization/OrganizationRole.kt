@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available roles for [organizations][Organization]. These roles are used to create composite
@@ -61,6 +62,9 @@ enum class OrganizationRole(
     );
 
     companion object {
+        /** The prefix for the roles used by organizations. */
+        private const val ROLE_PREFIX = "role_organization_"
+
         /** Get all group names for the provided [organizationId]. */
         fun getGroupsForOrganization(organizationId: Long) =
             enumValues<OrganizationRole>().map { it.groupName(organizationId) }
@@ -73,7 +77,14 @@ enum class OrganizationRole(
         fun groupPrefix(organizationId: Long) = "ORGANIZATION_${organizationId}_"
 
         /** A unique prefix for the roles for the provided [organizationId]. */
-        fun rolePrefix(organizationId: Long) = "role_organization_${organizationId}_"
+        fun rolePrefix(organizationId: Long) = "${ROLE_PREFIX}${organizationId}_"
+
+        /**
+         * Return the ID of the organization this [roleName] belongs to or *null* if [roleName] does not reference an
+         * organization role.
+         */
+        fun extractOrganizationIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

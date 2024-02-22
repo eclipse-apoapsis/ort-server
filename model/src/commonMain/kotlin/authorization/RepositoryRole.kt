@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available roles for [repositories][Repository]. These roles are used to create composite
@@ -54,6 +55,9 @@ enum class RepositoryRole(
     );
 
     companion object {
+        /** The prefix for the roles used for repositories. */
+        private const val ROLE_PREFIX = "role_repository_"
+
         /** Get all group names for the provided [repositoryId]. */
         fun getGroupsForRepository(repositoryId: Long) =
             enumValues<RepositoryRole>().map { it.groupName(repositoryId) }
@@ -66,7 +70,14 @@ enum class RepositoryRole(
         fun groupPrefix(repositoryId: Long) = "REPOSITORY_${repositoryId}_"
 
         /** A unique prefix for the roles for the provided [repositoryId]. */
-        fun rolePrefix(repositoryId: Long) = "role_repository_${repositoryId}_"
+        fun rolePrefix(repositoryId: Long) = "$ROLE_PREFIX${repositoryId}_"
+
+        /**
+         * Return the ID of the repository this [roleName] belongs to or *null* if [roleName] does not reference a
+         * repository role.
+         */
+        fun extractRepositoryIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

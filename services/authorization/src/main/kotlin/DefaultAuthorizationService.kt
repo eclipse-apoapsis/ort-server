@@ -283,18 +283,20 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for organization roles.")
 
         runCatching {
-            db.dbQuery { organizationRepository.list() }.forEach { organization ->
+            val organizationIds = db.dbQuery { organizationRepository.list().mapTo(mutableSetOf()) { it.id } }
+
+            organizationIds.forEach { organizationId ->
                 // Make sure that all roles exist.
-                val requiredRoles = OrganizationRole.getRolesForOrganization(organization.id)
-                val rolePrefix = OrganizationRole.rolePrefix(organization.id)
+                val requiredRoles = OrganizationRole.getRolesForOrganization(organizationId)
+                val rolePrefix = OrganizationRole.rolePrefix(organizationId)
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
 
                 // Make sure that roles have the correct composite roles.
                 OrganizationRole.values().forEach { role ->
-                    val roleName = RoleName(role.roleName(organization.id))
-                    val requiredCompositeRoles = role.permissions.map { it.roleName(organization.id) }
+                    val roleName = RoleName(role.roleName(organizationId))
+                    val requiredCompositeRoles = role.permissions.map { it.roleName(organizationId) }
                     val actualCompositeRoles = keycloakClient.getCompositeRoles(roleName).map { it.name.value }
-                    val compositeRolePrefix = OrganizationPermission.rolePrefix(organization.id)
+                    val compositeRolePrefix = OrganizationPermission.rolePrefix(organizationId)
                     synchronizeKeycloakCompositeRoles(
                         roleName,
                         requiredCompositeRoles,
@@ -303,6 +305,14 @@ class DefaultAuthorizationService(
                     )
                 }
             }
+
+            // Make sure that roles for non-existing organizations are removed.
+            removeRoles(
+                roles.filter {
+                    val roleOrganizationId = OrganizationRole.extractOrganizationIdFromRole(it)
+                    roleOrganizationId != null && roleOrganizationId !in organizationIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for organization roles.", it)
         }.getOrThrow()
@@ -319,7 +329,9 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for product roles.")
 
         runCatching {
-            db.dbQuery { productRepository.list() }.forEach { product ->
+            val products = db.dbQuery { productRepository.list() }
+
+            products.forEach { product ->
                 // Make sure that all roles exist.
                 val requiredRoles = ProductRole.getRolesForProduct(product.id)
                 val rolePrefix = ProductRole.rolePrefix(product.id)
@@ -356,6 +368,15 @@ class DefaultAuthorizationService(
                         }
                 }
             }
+
+            // Make sure that roles for non-existing products are removed.
+            val productIds = products.mapTo(mutableSetOf()) { it.id }
+            removeRoles(
+                roles.filter {
+                    val roleProductId = ProductRole.extractProductIdFromRole(it)
+                    roleProductId != null && roleProductId !in productIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for product roles.", it)
         }.getOrThrow()
@@ -372,7 +393,9 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for repository roles.")
 
         runCatching {
-            db.dbQuery { repositoryRepository.list() }.forEach { repository ->
+            val repositories = db.dbQuery { repositoryRepository.list() }
+
+            repositories.forEach { repository ->
                 // Make sure that all roles exist.
                 val requiredRoles = RepositoryRole.getRolesForRepository(repository.id)
                 val rolePrefix = RepositoryRole.rolePrefix(repository.id)
@@ -408,6 +431,15 @@ class DefaultAuthorizationService(
                         }
                 }
             }
+
+            // Make sure that roles for non-existing repositories are removed.
+            val repositoryIds = repositories.mapTo(mutableSetOf()) { it.id }
+            removeRoles(
+                roles.filter {
+                    val roleRepositoryId = RepositoryRole.extractRepositoryIdFromRole(it)
+                    roleRepositoryId != null && roleRepositoryId !in repositoryIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for repository roles.", it)
         }.getOrThrow()
@@ -517,7 +549,13 @@ class DefaultAuthorizationService(
             keycloakClient.createRole(RoleName(role), ROLE_DESCRIPTION)
         }
 
-        val unneededRoles = roles.filter { it.startsWith(rolePrefix) }.filter { it !in requiredRoles }
+        removeRoles(roles.filter { it.startsWith(rolePrefix) }.filter { it !in requiredRoles })
+    }
+
+    /**
+     * Remove the given [unneededRoles] from Keycloak.
+     */
+    private suspend fun removeRoles(unneededRoles: Collection<String>) {
         if (unneededRoles.isNotEmpty()) {
             logger.info("Removing unneeded roles: ${unneededRoles.joinToString()}")
         }

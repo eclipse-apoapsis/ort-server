@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available roles for [products][Product]. These roles are used to create composite Keycloak
@@ -61,6 +62,9 @@ enum class ProductRole(
     );
 
     companion object {
+        /** The prefix for the roles used by products. */
+        private const val ROLE_PREFIX = "role_product_"
+
         /** Get all group names for the provided [productId]. */
         fun getGroupsForProduct(productId: Long) =
             enumValues<ProductRole>().map { it.groupName(productId) }
@@ -73,7 +77,14 @@ enum class ProductRole(
         fun groupPrefix(productId: Long) = "PRODUCT_${productId}_"
 
         /** A unique prefix for the roles for the provided [productId]. */
-        fun rolePrefix(productId: Long) = "role_product_${productId}_"
+        fun rolePrefix(productId: Long) = "$ROLE_PREFIX${productId}_"
+
+        /**
+         * Return the ID of the product this [roleName] belongs to or *null* if [roleName] does not reference a
+         * product role.
+         */
+        fun extractProductIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
@@ -54,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
+@Suppress("LargeClass")
 class DefaultAuthorizationServiceTest : WordSpec({
     val keycloakGroupPrefix = "PREFIX_"
 
@@ -496,6 +498,24 @@ class DefaultAuthorizationServiceTest : WordSpec({
             keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
 
+        "remove roles for non-existing organizations" {
+            val unneededRole = "${OrganizationRole.rolePrefix(42)}reader"
+            val unaffectedRole = "superuser"
+            val keycloakClient = KeycloakTestClient().apply {
+                createRole(RoleName(unneededRole))
+                createRole(RoleName(unaffectedRole))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+            service.createOrganizationRoles(organizationId)
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingRoles = keycloakClient.getRoles().map { it.name.value }
+            remainingRoles shouldNot contain(unneededRole)
+            remainingRoles shouldContain unaffectedRole
+        }
+
         "remove unneeded product roles" {
             val unneededRole = "${ProductRole.rolePrefix(productId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
@@ -507,6 +527,25 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
+        }
+
+        "remove roles for non-existing products" {
+            val unneededRole = "${ProductRole.rolePrefix(42)}writer"
+            val unaffectedRole = "superuser"
+            val keycloakClient = KeycloakTestClient().apply {
+                createRole(RoleName(unneededRole))
+                createRole(RoleName(unaffectedRole))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+            service.createOrganizationRoles(organizationId)
+            service.createProductRoles(productId)
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingRoles = keycloakClient.getRoles().map { it.name.value }
+            remainingRoles shouldNot contain(unneededRole)
+            remainingRoles shouldContain unaffectedRole
         }
 
         "remove unneeded repository roles" {
@@ -521,6 +560,26 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
+        }
+
+        "remove roles for non-existing repositories" {
+            val unneededRole = "${RepositoryRole.rolePrefix(42)}admin"
+            val unaffectedRole = "superuser"
+            val keycloakClient = KeycloakTestClient().apply {
+                createRole(RoleName(unneededRole))
+                createRole(RoleName(unaffectedRole))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+            service.createOrganizationRoles(organizationId)
+            service.createProductRoles(productId)
+            service.createRepositoryRoles(repositoryId)
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingRoles = keycloakClient.getRoles().map { it.name.value }
+            remainingRoles shouldNot contain(unneededRole)
+            remainingRoles shouldContain unaffectedRole
         }
 
         "add missing organization composite roles" {
