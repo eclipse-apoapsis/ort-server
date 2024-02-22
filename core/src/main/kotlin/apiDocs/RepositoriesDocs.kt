@@ -273,7 +273,7 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<OrtRun>> {
+            jsonBody<PagedResponse<OrtRunSummary>> {
                 example(
                     name = "Get ORT runs",
                     value = PagedResponse(
