@@ -64,7 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
-private val jobConfigurations = JobConfigurations(
+private val fullJobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(
         allowDynamicVersions = true,
         disabledPackageManagers = listOf("NPM", "SBT"),
@@ -130,35 +130,44 @@ private val jobConfigurations = JobConfigurations(
     reporter = ReporterJobConfiguration(formats = listOf("WebApp"))
 )
 
+private val minimalJobConfigurations = JobConfigurations(
+    analyzer = AnalyzerJobConfiguration(
+        skipExcluded = true
+    ),
+    advisor = AdvisorJobConfiguration(
+        skipExcluded = true
+    )
+)
+
 val jobs = Jobs(
     analyzer = AnalyzerJob(
         id = 1L,
         createdAt = Clock.System.now(),
-        configuration = jobConfigurations.analyzer,
+        configuration = fullJobConfigurations.analyzer,
         status = JobStatus.CREATED
     ),
     advisor = AdvisorJob(
         id = 1L,
         createdAt = Clock.System.now(),
-        configuration = jobConfigurations.advisor!!,
+        configuration = fullJobConfigurations.advisor!!,
         status = JobStatus.CREATED
     ),
     scanner = ScannerJob(
         id = 1L,
         createdAt = Clock.System.now(),
-        configuration = jobConfigurations.scanner!!,
+        configuration = fullJobConfigurations.scanner!!,
         status = JobStatus.CREATED
     ),
     evaluator = EvaluatorJob(
         id = 1L,
         createdAt = Clock.System.now(),
-        configuration = jobConfigurations.evaluator!!,
+        configuration = fullJobConfigurations.evaluator!!,
         status = JobStatus.CREATED
     ),
     reporter = ReporterJob(
         id = 1L,
         createdAt = Clock.System.now(),
-        configuration = jobConfigurations.reporter!!,
+        configuration = fullJobConfigurations.reporter!!,
         status = JobStatus.CREATED,
         reportFilenames = listOf(
             "AsciiDoc_disclosure_document.pdf",
@@ -345,10 +354,18 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
 
         jsonBody<CreateOrtRun> {
             example(
-                name = "Create ORT run",
+                name = "Create ORT run using minimal job configurations (defaults)",
                 value = CreateOrtRun(
                     revision = "main",
-                    jobConfigs = jobConfigurations,
+                    jobConfigs = minimalJobConfigurations
+                )
+            )
+
+            example(
+                name = "Create ORT run using full job configurations",
+                value = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = fullJobConfigurations,
                     labels = mapOf("label key" to "label value")
                 )
             )
@@ -367,8 +384,8 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
                         repositoryId = 1,
                         revision = "main",
                         createdAt = Clock.System.now(),
-                        jobConfigs = jobConfigurations,
-                        resolvedJobConfigs = jobConfigurations,
+                        jobConfigs = fullJobConfigurations,
+                        resolvedJobConfigs = fullJobConfigurations,
                         jobs = jobs,
                         status = OrtRunStatus.CREATED,
                         finishedAt = null,
@@ -410,8 +427,8 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
                         repositoryId = 1,
                         revision = "main",
                         createdAt = Clock.System.now(),
-                        jobConfigs = jobConfigurations,
-                        resolvedJobConfigs = jobConfigurations,
+                        jobConfigs = fullJobConfigurations,
+                        resolvedJobConfigs = fullJobConfigurations,
                         jobs = jobs,
                         status = OrtRunStatus.ACTIVE,
                         finishedAt = null,

@@ -119,7 +119,7 @@ data class CreateOrtRun(
     /**
      * The labels for this run.
      */
-    val labels: Map<String, String>?,
+    val labels: Map<String, String>? = emptyMap(),
 
     /**
      * The optional context for obtaining the configuration of this run.
