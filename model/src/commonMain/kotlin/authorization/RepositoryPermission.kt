@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available permissions for [repositories][Repository]. These permissions are used by the API to
@@ -46,6 +47,9 @@ enum class RepositoryPermission {
     DELETE;
 
     companion object {
+        /** The prefix for the permission-related roles used for repositories. */
+        private const val ROLE_PREFIX = "permission_repository_"
+
         /**
          * Get all [role names][roleName] for the provided [repositoryId].
          */
@@ -55,7 +59,14 @@ enum class RepositoryPermission {
         /**
          * A unique prefix for the roles for the provided [repositoryId].
          */
-        fun rolePrefix(repositoryId: Long) = "permission_repository_${repositoryId}_"
+        fun rolePrefix(repositoryId: Long) = "$ROLE_PREFIX${repositoryId}_"
+
+        /**
+         * Return the ID of the repository this [roleName] belongs to or *null* if this role does not represent a
+         * permission for a repository.
+         */
+        fun extractRepositoryIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */

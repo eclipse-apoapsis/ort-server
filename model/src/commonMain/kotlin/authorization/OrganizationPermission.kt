@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available permissions for [organizations][Organization]. These permissions are used by the API
@@ -47,6 +48,9 @@ enum class OrganizationPermission {
     DELETE;
 
     companion object {
+        /** The prefix for the permission-related roles used for organizations. */
+        private const val ROLE_PREFIX = "permission_organization_"
+
         /**
          * Get all [role names][roleName] for the provided [organizationId].
          */
@@ -56,7 +60,14 @@ enum class OrganizationPermission {
         /**
          * A unique prefix for the roles for the provided [organizationId].
          */
-        fun rolePrefix(organizationId: Long) = "permission_organization_${organizationId}_"
+        fun rolePrefix(organizationId: Long) = "$ROLE_PREFIX${organizationId}_"
+
+        /**
+         * Return the ID of the organization this [roleName] belongs to or *null* if this role does not represent a
+         * permission for an organization.
+         */
+        fun extractOrganizationIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */

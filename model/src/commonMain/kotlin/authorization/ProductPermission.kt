@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.authorization
 
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
  * This enum contains the available permissions for [products][Product]. These permissions are used by the API to
@@ -46,6 +47,9 @@ enum class ProductPermission {
     DELETE;
 
     companion object {
+        /** The prefix for the permission-related roles used for products. */
+        private const val ROLE_PREFIX = "permission_product_"
+
         /**
          * Get all [role names][roleName] for the provided [productId].
          */
@@ -55,7 +59,14 @@ enum class ProductPermission {
         /**
          * A unique prefix for the roles for the provided [productId].
          */
-        fun rolePrefix(productId: Long) = "permission_product_${productId}_"
+        fun rolePrefix(productId: Long) = "$ROLE_PREFIX${productId}_"
+
+        /**
+         * Return the ID of the product this [roleName] belongs to or *null* if this role does not represent a
+         * permission for a product.
+         */
+        fun extractProductIdFromRole(roleName: String): Long? =
+            roleName.extractIdAfterPrefix(ROLE_PREFIX)
     }
 
     /** A unique name for this permission to be used to represent the permission as a role in Keycloak. */

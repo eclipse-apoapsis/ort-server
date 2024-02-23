@@ -209,11 +209,20 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for organization permissions.")
 
         runCatching {
-            db.dbQuery { organizationRepository.list() }.forEach { organization ->
-                val requiredRoles = OrganizationPermission.getRolesForOrganization(organization.id)
-                val rolePrefix = OrganizationPermission.rolePrefix(organization.id)
+            val organizationIds = db.dbQuery { organizationRepository.list() }.mapTo(mutableSetOf()) { it.id }
+
+            organizationIds.forEach { organizationId ->
+                val requiredRoles = OrganizationPermission.getRolesForOrganization(organizationId)
+                val rolePrefix = OrganizationPermission.rolePrefix(organizationId)
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
+
+            removeRoles(
+                roles.filter {
+                    val roleOrganizationId = OrganizationPermission.extractOrganizationIdFromRole(it)
+                    roleOrganizationId != null && roleOrganizationId !in organizationIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for organization permissions.", it)
         }.getOrThrow()
@@ -229,11 +238,20 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for product permissions.")
 
         runCatching {
-            db.dbQuery { productRepository.list() }.forEach { product ->
-                val requiredRoles = ProductPermission.getRolesForProduct(product.id)
-                val rolePrefix = ProductPermission.rolePrefix(product.id)
+            val productIds = db.dbQuery { productRepository.list() }.mapTo(mutableSetOf()) { it.id }
+
+            productIds.forEach { productId ->
+                val requiredRoles = ProductPermission.getRolesForProduct(productId)
+                val rolePrefix = ProductPermission.rolePrefix(productId)
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
+
+            removeRoles(
+                roles.filter {
+                    val roleProductId = ProductPermission.extractProductIdFromRole(it)
+                    roleProductId != null && roleProductId !in productIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for product permissions.", it)
         }.getOrThrow()
@@ -249,11 +267,20 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak roles for repository permissions.")
 
         runCatching {
-            db.dbQuery { repositoryRepository.list() }.forEach { repository ->
-                val requiredRoles = RepositoryPermission.getRolesForRepository(repository.id)
-                val rolePrefix = RepositoryPermission.rolePrefix(repository.id)
+            val repositoryIds = db.dbQuery { repositoryRepository.list() }.mapTo(mutableSetOf()) { it.id }
+
+            repositoryIds.forEach { repository ->
+                val requiredRoles = RepositoryPermission.getRolesForRepository(repository)
+                val rolePrefix = RepositoryPermission.rolePrefix(repository)
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
             }
+
+            removeRoles(
+                roles.filter {
+                    val roleRepositoryId = RepositoryPermission.extractRepositoryIdFromRole(it)
+                    roleRepositoryId != null && roleRepositoryId !in repositoryIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak roles for repository permissions.", it)
         }.getOrThrow()

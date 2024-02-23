@@ -426,6 +426,16 @@ class DefaultAuthorizationServiceTest : WordSpec({
             keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
 
+        "remove roles for non-existing organizations" {
+            val unneededRole = "${OrganizationPermission.rolePrefix(42)}reader"
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
+        }
+
         "remove unneeded product roles" {
             val unneededRole = "${ProductPermission.rolePrefix(productId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
@@ -436,8 +446,28 @@ class DefaultAuthorizationServiceTest : WordSpec({
             keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
         }
 
+        "remove roles for non-existing products" {
+            val unneededRole = "${ProductPermission.rolePrefix(42)}writer"
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
+        }
+
         "remove unneeded repository roles" {
             val unneededRole = "${RepositoryPermission.rolePrefix(repositoryId)}unneeded"
+            val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
+            val service = createService(keycloakClient)
+
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+
+            keycloakClient.getRoles().map { it.name.value } shouldNot contain(unneededRole)
+        }
+
+        "remove roles for non-existing repositories" {
+            val unneededRole = "${RepositoryPermission.rolePrefix(42)}admin"
             val keycloakClient = KeycloakTestClient().apply { createRole(RoleName(unneededRole)) }
             val service = createService(keycloakClient)
 
