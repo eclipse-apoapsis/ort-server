@@ -278,7 +278,8 @@ fun ReporterJob.mapToApi() =
         startedAt,
         finishedAt,
         configuration.mapToApi(),
-        status.mapToApi()
+        status.mapToApi(),
+        filenames
     )
 
 fun ReporterJob.mapToApiSummary() =

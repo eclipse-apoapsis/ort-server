@@ -159,7 +159,12 @@ val jobs = Jobs(
         id = 1L,
         createdAt = Clock.System.now(),
         configuration = jobConfigurations.reporter!!,
-        status = JobStatus.CREATED
+        status = JobStatus.CREATED,
+        reportFilenames = listOf(
+            "AsciiDoc_disclosure_document.pdf",
+            "AsciiDoc_vulnerability_report.pdf",
+            "scan-report-web-app.html"
+        )
     )
 )
 

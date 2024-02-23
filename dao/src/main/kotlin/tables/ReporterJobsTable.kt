@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables
 
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -48,6 +50,7 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ReporterJobDao>(ReporterJobsTable)
 
     var ortRun by OrtRunDao referencedOn ReporterJobsTable.ortRunId
+    val reporterRun by ReporterRunDao optionalBackReferencedOn ReporterRunsTable.reporterJobId
 
     var createdAt by ReporterJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var startedAt by ReporterJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
@@ -63,5 +66,6 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
+        filenames = reporterRun?.reports?.map { it.filename }?.sorted() ?: emptyList()
     )
 }
