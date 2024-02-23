@@ -55,6 +55,9 @@ enum class RepositoryRole(
     );
 
     companion object {
+        /** The prefix for the groups used for repositories. */
+        private const val GROUP_PREFIX = "REPOSITORY_"
+
         /** The prefix for the roles used for repositories. */
         private const val ROLE_PREFIX = "role_repository_"
 
@@ -67,7 +70,7 @@ enum class RepositoryRole(
             enumValues<RepositoryRole>().map { it.roleName(repositoryId) }
 
         /** A unique prefix for the groups for the provided [repositoryId]. */
-        fun groupPrefix(repositoryId: Long) = "REPOSITORY_${repositoryId}_"
+        fun groupPrefix(repositoryId: Long) = "$GROUP_PREFIX${repositoryId}_"
 
         /** A unique prefix for the roles for the provided [repositoryId]. */
         fun rolePrefix(repositoryId: Long) = "$ROLE_PREFIX${repositoryId}_"
@@ -78,6 +81,13 @@ enum class RepositoryRole(
          */
         fun extractRepositoryIdFromRole(roleName: String): Long? =
             roleName.extractIdAfterPrefix(ROLE_PREFIX)
+
+        /**
+         * Return the ID of the repository this [groupName] belongs to or *null* if [groupName] does not reference a
+         * repository group.
+         */
+        fun extractRepositoryIdFromGroup(groupName: String): Long? =
+            groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

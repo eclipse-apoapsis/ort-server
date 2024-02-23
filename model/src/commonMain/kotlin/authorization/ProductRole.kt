@@ -62,6 +62,9 @@ enum class ProductRole(
     );
 
     companion object {
+        /** The prefix for the groups used by products. */
+        private const val GROUP_PREFIX = "PRODUCT_"
+
         /** The prefix for the roles used by products. */
         private const val ROLE_PREFIX = "role_product_"
 
@@ -74,7 +77,7 @@ enum class ProductRole(
             enumValues<ProductRole>().map { it.roleName(productId) }
 
         /** A unique prefix for the groups for the provided [productId]. */
-        fun groupPrefix(productId: Long) = "PRODUCT_${productId}_"
+        fun groupPrefix(productId: Long) = "$GROUP_PREFIX${productId}_"
 
         /** A unique prefix for the roles for the provided [productId]. */
         fun rolePrefix(productId: Long) = "$ROLE_PREFIX${productId}_"
@@ -85,6 +88,13 @@ enum class ProductRole(
          */
         fun extractProductIdFromRole(roleName: String): Long? =
             roleName.extractIdAfterPrefix(ROLE_PREFIX)
+
+        /**
+         * Return the ID of the product this [groupName] belongs to or *null* if [groupName] does not reference a
+         * product group.
+         */
+        fun extractProductIdFromGroup(groupName: String): Long? =
+            groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

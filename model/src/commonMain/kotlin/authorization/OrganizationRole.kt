@@ -62,6 +62,9 @@ enum class OrganizationRole(
     );
 
     companion object {
+        /** The prefix for the groups used by organizations. */
+        private const val GROUP_PREFIX = "ORGANIZATION_"
+
         /** The prefix for the roles used by organizations. */
         private const val ROLE_PREFIX = "role_organization_"
 
@@ -74,7 +77,7 @@ enum class OrganizationRole(
             enumValues<OrganizationRole>().map { it.roleName(organizationId) }
 
         /** A unique prefix for the groups for the provided [organizationId]. */
-        fun groupPrefix(organizationId: Long) = "ORGANIZATION_${organizationId}_"
+        fun groupPrefix(organizationId: Long) = "$GROUP_PREFIX${organizationId}_"
 
         /** A unique prefix for the roles for the provided [organizationId]. */
         fun rolePrefix(organizationId: Long) = "${ROLE_PREFIX}${organizationId}_"
@@ -85,6 +88,13 @@ enum class OrganizationRole(
          */
         fun extractOrganizationIdFromRole(roleName: String): Long? =
             roleName.extractIdAfterPrefix(ROLE_PREFIX)
+
+        /**
+         * Return the ID of the organization this [groupName] belongs to or *null* if [groupName] does not reference an
+         * organization group.
+         */
+        fun extractOrganizationIdFromGroup(groupName: String): Long? =
+            groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */

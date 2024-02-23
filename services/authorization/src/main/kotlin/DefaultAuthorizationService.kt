@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.util.removePrefixOrNull
 
 import org.jetbrains.exposed.sql.Database
 
@@ -455,22 +456,33 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak groups for organization roles.")
 
         runCatching {
-            db.dbQuery { organizationRepository.list() }.forEach { organization ->
+            val organizationIds = db.dbQuery { organizationRepository.list().mapTo(mutableSetOf()) { it.id } }
+
+            organizationIds.forEach { organizationId ->
                 // Make sure that all groups exist.
                 val requiredGroups =
-                    OrganizationRole.getGroupsForOrganization(organization.id).map { keycloakGroupPrefix + it }
-                val groupPrefix = keycloakGroupPrefix + OrganizationRole.groupPrefix(organization.id)
+                    OrganizationRole.getGroupsForOrganization(organizationId).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + OrganizationRole.groupPrefix(organizationId)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 OrganizationRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        keycloakGroupPrefix + role.groupName(organization.id),
-                        role.roleName(organization.id),
-                        OrganizationRole.groupPrefix(organization.id)
+                        keycloakGroupPrefix + role.groupName(organizationId),
+                        role.roleName(organizationId),
+                        OrganizationRole.groupPrefix(organizationId)
                     )
                 }
             }
+
+            // Make sure that groups for non-existing organizations are removed.
+            removeGroups(
+                groups.filter {
+                    val groupId = it.removePrefixOrNull(keycloakGroupPrefix)
+                        ?.let(OrganizationRole::extractOrganizationIdFromGroup)
+                    groupId != null && groupId !in organizationIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak groups for organization roles.", it)
         }.getOrThrow()
@@ -485,21 +497,32 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak groups for product roles.")
 
         runCatching {
-            db.dbQuery { productRepository.list() }.forEach { product ->
+            val productIds = db.dbQuery { productRepository.list().mapTo(mutableSetOf()) { it.id } }
+
+            productIds.forEach { productId ->
                 // Make sure that all groups exist.
-                val requiredGroups = ProductRole.getGroupsForProduct(product.id).map { keycloakGroupPrefix + it }
-                val groupPrefix = keycloakGroupPrefix + ProductRole.groupPrefix(product.id)
+                val requiredGroups = ProductRole.getGroupsForProduct(productId).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + ProductRole.groupPrefix(productId)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 ProductRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        keycloakGroupPrefix + role.groupName(product.id),
-                        role.roleName(product.id),
-                        ProductRole.groupPrefix(product.id)
+                        keycloakGroupPrefix + role.groupName(productId),
+                        role.roleName(productId),
+                        ProductRole.groupPrefix(productId)
                     )
                 }
             }
+
+            // Make sure that groups for non-existing products are removed.
+            removeGroups(
+                groups.filter {
+                    val groupId = it.removePrefixOrNull(keycloakGroupPrefix)
+                        ?.let(ProductRole::extractProductIdFromGroup)
+                    groupId != null && groupId !in productIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak groups for product roles.", it)
         }.getOrThrow()
@@ -515,22 +538,33 @@ class DefaultAuthorizationService(
         logger.info("Synchronizing Keycloak groups for repository roles.")
 
         runCatching {
-            db.dbQuery { repositoryRepository.list() }.forEach { repository ->
+            val repositoryIds = db.dbQuery { repositoryRepository.list().mapTo(mutableSetOf()) { it.id } }
+
+            repositoryIds.forEach { repositoryId ->
                 // Make sure that all groups exist.
                 val requiredGroups =
-                    RepositoryRole.getGroupsForRepository(repository.id).map { keycloakGroupPrefix + it }
-                val groupPrefix = keycloakGroupPrefix + RepositoryRole.groupPrefix(repository.id)
+                    RepositoryRole.getGroupsForRepository(repositoryId).map { keycloakGroupPrefix + it }
+                val groupPrefix = keycloakGroupPrefix + RepositoryRole.groupPrefix(repositoryId)
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
                 RepositoryRole.values().forEach { role ->
                     synchronizeKeycloakGroupRole(
-                        keycloakGroupPrefix + role.groupName(repository.id),
-                        role.roleName(repository.id),
-                        RepositoryRole.groupPrefix(repository.id)
+                        keycloakGroupPrefix + role.groupName(repositoryId),
+                        role.roleName(repositoryId),
+                        RepositoryRole.groupPrefix(repositoryId)
                     )
                 }
             }
+
+            // Make sure that groups for non-existing repositories are removed.
+            removeGroups(
+                groups.filter {
+                    val groupId = it.removePrefixOrNull(keycloakGroupPrefix)
+                        ?.let(RepositoryRole::extractRepositoryIdFromGroup)
+                    groupId != null && groupId !in repositoryIds
+                }
+            )
         }.onFailure {
             logger.error("Error while synchronizing Keycloak groups for repository roles.", it)
         }.getOrThrow()
@@ -639,7 +673,13 @@ class DefaultAuthorizationService(
             keycloakClient.createGroup(GroupName(group))
         }
 
-        val unneededGroups = groups.filter { it.startsWith(groupPrefix) }.filter { it !in requiredGroups }
+        removeGroups(groups.filter { it.startsWith(groupPrefix) }.filter { it !in requiredGroups })
+    }
+
+    /**
+     * Remove the given [unneededGroups] from Keycloak.
+     */
+    private suspend fun removeGroups(unneededGroups: Collection<String>) {
         if (unneededGroups.isNotEmpty()) {
             logger.info("Removing unneeded groups: ${unneededGroups.joinToString()}")
         }

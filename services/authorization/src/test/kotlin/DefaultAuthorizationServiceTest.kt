@@ -28,6 +28,7 @@ import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
@@ -765,6 +766,25 @@ class DefaultAuthorizationServiceTest : WordSpec({
             keycloakClient.getGroups().map { it.name.value } shouldNot contain(unneededGroup)
         }
 
+        "remove groups for non-existing organizations" {
+            val unneededGroup = "$keycloakGroupPrefix${OrganizationRole.groupPrefix(42)}readers"
+            val unaffectedGroup1 = "$keycloakGroupPrefix${Superuser.GROUP_NAME}"
+            val unaffectedGroup2 = "otherGroupPrefix${OrganizationRole.groupPrefix(organizationId)}readers"
+            val keycloakClient = KeycloakTestClient().apply {
+                createGroup(GroupName(unneededGroup))
+                createGroup(GroupName(unaffectedGroup1))
+                createGroup(GroupName(unaffectedGroup2))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingGroups = keycloakClient.getGroups().map { it.name.value }
+            remainingGroups shouldNot contain(unneededGroup)
+            remainingGroups shouldContainAll listOf(unaffectedGroup1, unaffectedGroup2)
+        }
+
         "remove unneeded product groups" {
             val unneededGroup = "$keycloakGroupPrefix${ProductRole.groupPrefix(productId)}unneeded"
             val keycloakClient = KeycloakTestClient().apply { createGroup(GroupName(unneededGroup)) }
@@ -775,6 +795,26 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getGroups().map { it.name.value } shouldNot contain(unneededGroup)
+        }
+
+        "remove groups for non-existing products" {
+            val unneededGroup = "$keycloakGroupPrefix${ProductRole.groupPrefix(42)}writers"
+            val unaffectedGroup1 = "$keycloakGroupPrefix${Superuser.GROUP_NAME}"
+            val unaffectedGroup2 = "otherGroupPrefix${ProductRole.groupPrefix(productId)}writers"
+            val keycloakClient = KeycloakTestClient().apply {
+                createGroup(GroupName(unneededGroup))
+                createGroup(GroupName(unaffectedGroup1))
+                createGroup(GroupName(unaffectedGroup2))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+            service.createOrganizationRoles(organizationId)
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingGroups = keycloakClient.getGroups().map { it.name.value }
+            remainingGroups shouldNot contain(unneededGroup)
+            remainingGroups shouldContainAll listOf(unaffectedGroup1, unaffectedGroup2)
         }
 
         "remove unneeded repository groups" {
@@ -788,6 +828,27 @@ class DefaultAuthorizationServiceTest : WordSpec({
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
             keycloakClient.getGroups().map { it.name.value } shouldNot contain(unneededGroup)
+        }
+
+        "remove groups for non-existing repositories" {
+            val unneededGroup = "$keycloakGroupPrefix${RepositoryRole.groupPrefix(42)}admins"
+            val unaffectedGroup1 = "$keycloakGroupPrefix${Superuser.GROUP_NAME}"
+            val unaffectedGroup2 = "otherGroupPrefix${RepositoryRole.groupPrefix(repositoryId)}admins"
+            val keycloakClient = KeycloakTestClient().apply {
+                createGroup(GroupName(unneededGroup))
+                createGroup(GroupName(unaffectedGroup1))
+                createGroup(GroupName(unaffectedGroup2))
+            }
+            val service = createService(keycloakClient)
+            mockkTransaction { runBlocking { service.synchronizePermissions() } }
+            service.createOrganizationRoles(organizationId)
+            service.createProductRoles(productId)
+
+            mockkTransaction { runBlocking { service.synchronizeRoles() } }
+
+            val remainingGroups = keycloakClient.getGroups().map { it.name.value }
+            remainingGroups shouldNot contain(unneededGroup)
+            remainingGroups shouldContainAll listOf(unaffectedGroup1, unaffectedGroup2)
         }
 
         "assign the correct roles to organization groups" {
