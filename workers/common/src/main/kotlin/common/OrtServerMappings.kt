@@ -597,7 +597,8 @@ fun RemoteArtifact.mapToOrt() =
     OrtRemoteArtifact(
         url = url,
         hash = OrtHash(
-            value = hashValue,
+            // Convert hash values to lowercase as this is required by the SpdxDocument reporter.
+            value = hashValue.lowercase(),
             algorithm = OrtHashAlgorithm.fromString(hashAlgorithm)
         )
     )
