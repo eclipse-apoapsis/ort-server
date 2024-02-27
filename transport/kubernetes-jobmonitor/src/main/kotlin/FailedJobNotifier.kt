@@ -26,6 +26,11 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(FailedJobNotifier::class.java)
 
 /** A prefix for the name of a label storing a part of the trace ID. */
 private const val TRACE_LABEL_PREFIX = "trace-id-"
@@ -53,6 +58,13 @@ internal class FailedJobNotifier(
             if (traceId.isNotEmpty() && ortRunId != null) {
                 val header = MessageHeader(token = "", traceId = traceId, ortRunId)
                 val message = Message(header, WorkerError(endpointName))
+
+                log.info(
+                    "Sending '${message.payload::class.simpleName}' message " +
+                            "to '${OrchestratorEndpoint::class.simpleName}'. " +
+                            "TraceID: '${message.header.traceId}'."
+                )
+
                 sender.send(message)
             }
         }
