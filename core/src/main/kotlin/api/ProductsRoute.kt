@@ -31,6 +31,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
@@ -38,8 +40,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToModel
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById

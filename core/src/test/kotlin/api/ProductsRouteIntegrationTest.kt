@@ -37,6 +37,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
@@ -50,7 +51,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission

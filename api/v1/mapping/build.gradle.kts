@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.kotlinxDatetime)
-                api(libs.konform)
-
-                implementation(libs.kotlinxSerializationJson)
+                api(projects.api.v1.apiV1Model)
+                api(projects.model)
             }
         }
 

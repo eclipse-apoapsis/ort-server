@@ -31,6 +31,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
@@ -41,8 +43,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToModel
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName

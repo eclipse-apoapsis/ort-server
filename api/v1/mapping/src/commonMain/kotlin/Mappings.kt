@@ -19,7 +19,7 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.api.v1.mapping
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration

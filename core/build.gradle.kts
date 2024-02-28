@@ -42,7 +42,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(projects.api.v1.apiV1Model)
+    implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
     implementation(projects.config.configSpi)
     implementation(projects.dao)

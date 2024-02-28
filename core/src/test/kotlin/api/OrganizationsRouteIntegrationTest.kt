@@ -40,6 +40,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
@@ -57,7 +58,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
