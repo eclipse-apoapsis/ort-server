@@ -48,7 +48,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(projects.apiV1)
+    implementation(projects.api.v1.apiV1Model)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)

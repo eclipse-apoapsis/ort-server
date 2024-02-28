@@ -23,7 +23,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "ort-server"
 
-include(":api-v1")
+include(":api:v1:model")
 include(":clients:keycloak")
 include(":config:secret-file")
 include(":config:spi")
@@ -60,6 +60,7 @@ include(":workers:evaluator")
 include(":workers:reporter")
 include(":workers:scanner")
 
+project(":api:v1:model").name = "api-v1-model"
 project(":config:spi").name = "config-spi"
 project(":logaccess:spi").name = "logaccess-spi"
 project(":secrets:spi").name = "secrets-spi"
