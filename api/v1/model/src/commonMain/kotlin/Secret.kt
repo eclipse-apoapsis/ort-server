@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.api.v1.validation.Constraints.namePatternMessage
-import org.eclipse.apoapsis.ortserver.api.v1.validation.Constraints.namePatternRegex
-import org.eclipse.apoapsis.ortserver.api.v1.validation.ValidatorFunc
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternMessage
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternRegex
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**

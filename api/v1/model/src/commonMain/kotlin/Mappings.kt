@@ -19,39 +19,39 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.eclipse.apoapsis.ortserver.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
-import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJob as ApiAdvisorJob
-import org.eclipse.apoapsis.ortserver.api.v1.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJob as ApiAnalyzerJob
-import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig as ApiEnvironmentConfig
-import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
-import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJob as ApiEvaluatorJob
-import org.eclipse.apoapsis.ortserver.api.v1.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService as ApiInfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
-import org.eclipse.apoapsis.ortserver.api.v1.JobStatus as ApiJobStatus
-import org.eclipse.apoapsis.ortserver.api.v1.JobSummaries as ApiJobSummaries
-import org.eclipse.apoapsis.ortserver.api.v1.JobSummary as ApiJobSummary
-import org.eclipse.apoapsis.ortserver.api.v1.Jobs as ApiJobs
-import org.eclipse.apoapsis.ortserver.api.v1.Organization as ApiOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.OrtIssue as ApiOrtIssue
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRun as ApiOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRunStatus as ApiOrtRunStatus
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRunSummary as ApiOrtRunSummary
-import org.eclipse.apoapsis.ortserver.api.v1.PackageManagerConfiguration as ApiPackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.PluginConfiguration as ApiPluginConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.Product as ApiProduct
-import org.eclipse.apoapsis.ortserver.api.v1.ProviderPluginConfiguration as ApiProviderPluginConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.ReporterAsset as ApiReporterAsset
-import org.eclipse.apoapsis.ortserver.api.v1.ReporterJob as ApiReporterJob
-import org.eclipse.apoapsis.ortserver.api.v1.ReporterJobConfiguration as ApiReporterJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.Repository as ApiRepository
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType as ApiRepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.ScannerJob as ApiScannerJob
-import org.eclipse.apoapsis.ortserver.api.v1.ScannerJobConfiguration as ApiScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.Secret as ApiSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
+import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
+import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtIssue as ApiOrtIssue
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterAsset as ApiReporterAsset
+import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob as ApiReporterJob
+import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration as ApiReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.Repository as ApiRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob

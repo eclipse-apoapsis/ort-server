@@ -40,19 +40,19 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService as ApiInfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.Organization
-import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.Product
-import org.eclipse.apoapsis.ortserver.api.v1.Secret
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateInfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Product
+import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole

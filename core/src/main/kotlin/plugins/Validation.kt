@@ -27,12 +27,12 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
-import org.eclipse.apoapsis.ortserver.api.v1.CreateInfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 
 fun Application.configureValidation() {
     install(RequestValidation) {

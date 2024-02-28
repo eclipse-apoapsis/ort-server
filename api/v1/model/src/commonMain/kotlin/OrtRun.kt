@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable

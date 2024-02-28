@@ -23,17 +23,17 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.Product
-import org.eclipse.apoapsis.ortserver.api.v1.Repository
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType.GIT
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType.SUBVERSION
-import org.eclipse.apoapsis.ortserver.api.v1.Secret
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Product
+import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.GIT
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.SUBVERSION
+import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField

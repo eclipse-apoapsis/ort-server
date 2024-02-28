@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.validation
+package org.eclipse.apoapsis.ortserver.api.v1.model.validation
 
 import io.konform.validation.ValidationBuilder
 import io.konform.validation.ValidationResult

@@ -38,24 +38,24 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentConfig
-import org.eclipse.apoapsis.ortserver.api.v1.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
-import org.eclipse.apoapsis.ortserver.api.v1.InfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.JobConfigurations as ApiJobConfigurations
-import org.eclipse.apoapsis.ortserver.api.v1.JobSummaries
-import org.eclipse.apoapsis.ortserver.api.v1.Jobs
-import org.eclipse.apoapsis.ortserver.api.v1.OrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.Repository
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType as ApiRepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.Secret
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.mapToApiSummary
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
+import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration

@@ -37,16 +37,16 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.Product
-import org.eclipse.apoapsis.ortserver.api.v1.Repository
-import org.eclipse.apoapsis.ortserver.api.v1.RepositoryType as ApiRepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.Secret
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Product
+import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission

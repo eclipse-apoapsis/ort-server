@@ -31,13 +31,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.eclipse.apoapsis.ortserver.api.v1.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.UpdateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToModel
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
