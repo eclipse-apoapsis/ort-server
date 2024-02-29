@@ -27,6 +27,7 @@ import java.time.Instant
 
 import kotlinx.datetime.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -186,6 +187,7 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason as OrtRul
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason as OrtScopeExcludeReason
+import org.ossreviewtoolkit.model.config.SendMailConfiguration as OrtSendMailConfiguration
 import org.ossreviewtoolkit.model.config.StorageType as OrtStorageTypd
 import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
@@ -743,4 +745,14 @@ fun ProviderPluginConfiguration.mapToOrt() =
         enabled = enabled,
         options = options,
         secrets = secrets
+    )
+
+fun MailServerConfiguration.mapToOrt() =
+    OrtSendMailConfiguration(
+        hostName = hostName,
+        port = port,
+        username = username,
+        password = password,
+        useSsl = useSsl,
+        fromAddress = fromAddress
     )
