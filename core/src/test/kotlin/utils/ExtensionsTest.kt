@@ -45,34 +45,34 @@ class ExtensionsTest : WordSpec({
     "ApplicationCall.listQueryParameters" should {
         "handle a request without parameters" {
             testPagingOptionsExtraction(null) {
-                it.limit shouldBe DEFAULT_LIMIT
-                it.offset shouldBe 0
-                it.sortProperties shouldBe listOf(SortProperty("name", SortDirection.ASCENDING))
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe 0
+                sortProperties shouldBe listOf(SortProperty("name", SortDirection.ASCENDING))
             }
         }
 
         "handle a request with a limit parameter" {
             val limit = 42
-            testPagingOptionsExtraction("?limit=$limit") { params ->
-                params.limit shouldBe limit
-                params.offset shouldBe 0
+            testPagingOptionsExtraction("?limit=$limit") {
+                limit shouldBe limit
+                offset shouldBe 0
             }
         }
 
         "handle a request with an offset parameter" {
             val offset = 128
-            testPagingOptionsExtraction("?offset=$offset") { params ->
-                params.limit shouldBe DEFAULT_LIMIT
-                params.offset shouldBe offset
+            testPagingOptionsExtraction("?offset=$offset") {
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe offset
             }
         }
 
         "handle a request with a sort parameter defining a field" {
             val field = "name"
-            testPagingOptionsExtraction("?sort=name") { params ->
-                params.limit shouldBe DEFAULT_LIMIT
-                params.offset shouldBe 0
-                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
+            testPagingOptionsExtraction("?sort=name") {
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe 0
+                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
@@ -81,28 +81,28 @@ class ExtensionsTest : WordSpec({
             val expectedSortProperties = fields.map { name -> SortProperty(name, SortDirection.ASCENDING) }
             val query = "?sort=${fields.joinToString(",")}"
 
-            testPagingOptionsExtraction(query) { params ->
-                params.limit shouldBe DEFAULT_LIMIT
-                params.offset shouldBe 0
-                params.sortProperties shouldContainExactly expectedSortProperties
+            testPagingOptionsExtraction(query) {
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe 0
+                sortProperties shouldContainExactly expectedSortProperties
             }
         }
 
         "handle a request with a sort parameter defining a field with an ascending prefix" {
             val field = "fieldToSort"
-            testPagingOptionsExtraction("?sort=%2B$field") { params ->
-                params.limit shouldBe DEFAULT_LIMIT
-                params.offset shouldBe 0
-                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
+            testPagingOptionsExtraction("?sort=%2B$field") {
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe 0
+                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
         "handle a request with a sort parameter defining a field with a descending prefix" {
             val field = "creationDate"
-            testPagingOptionsExtraction("?sort=-$field") { params ->
-                params.limit shouldBe DEFAULT_LIMIT
-                params.offset shouldBe 0
-                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.DESCENDING))
+            testPagingOptionsExtraction("?sort=-$field") {
+                limit shouldBe DEFAULT_LIMIT
+                offset shouldBe 0
+                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.DESCENDING))
             }
         }
     }
@@ -111,7 +111,7 @@ class ExtensionsTest : WordSpec({
 /**
  * Execute a test for extracting the [PagingOptions] from the given [query] by applying the specified [check] function.
  */
-private fun testPagingOptionsExtraction(query: String?, check: (PagingOptions) -> Unit) {
+private fun testPagingOptionsExtraction(query: String?, check: PagingOptions.() -> Unit) {
     ortServerTestApplication(config = noDbConfig) {
         routing {
             get("/test") {
