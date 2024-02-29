@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.mapToModel
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
@@ -118,7 +119,11 @@ fun Route.organizations() = route("organizations") {
             val organizationId = call.requireParameter("organizationId").toLong()
             val org = call.receive<UpdateOrganization>()
 
-            val updatedOrg = organizationService.updateOrganization(organizationId, org.name, org.description)
+            val updatedOrg = organizationService.updateOrganization(
+                organizationId,
+                org.name.mapToModel(),
+                org.description.mapToModel()
+            )
 
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }
@@ -200,8 +205,8 @@ fun Route.organizations() = route("organizations") {
                         secretService.updateSecretByOrganizationAndName(
                             organizationId,
                             secretName,
-                            updateSecret.value,
-                            updateSecret.description
+                            updateSecret.value.mapToModel(),
+                            updateSecret.description.mapToModel()
                         ).mapToApi()
                     )
                 }
@@ -285,11 +290,11 @@ fun Route.organizations() = route("organizations") {
                     val updatedService = infrastructureServiceService.updateForOrganization(
                         organizationId,
                         serviceName,
-                        updateService.url,
-                        updateService.description,
-                        updateService.usernameSecretRef,
-                        updateService.passwordSecretRef,
-                        updateService.excludeFromNetrc
+                        updateService.url.mapToModel(),
+                        updateService.description.mapToModel(),
+                        updateService.usernameSecretRef.mapToModel(),
+                        updateService.passwordSecretRef.mapToModel(),
+                        updateService.excludeFromNetrc.mapToModel()
                     )
 
                     call.respond(HttpStatusCode.OK, updatedService.mapToApi())

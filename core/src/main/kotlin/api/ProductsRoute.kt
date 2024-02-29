@@ -84,7 +84,7 @@ fun Route.products() = route("products/{productId}") {
         val updateProduct = call.receive<UpdateProduct>()
 
         val updatedProduct =
-            productService.updateProduct(id, updateProduct.name, updateProduct.description)
+            productService.updateProduct(id, updateProduct.name.mapToModel(), updateProduct.description.mapToModel())
 
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
@@ -170,8 +170,8 @@ fun Route.products() = route("products/{productId}") {
                     secretService.updateSecretByProductAndName(
                         productId,
                         secretName,
-                        updateSecret.value,
-                        updateSecret.description
+                        updateSecret.value.mapToModel(),
+                        updateSecret.description.mapToModel()
                     ).mapToApi()
                 )
             }

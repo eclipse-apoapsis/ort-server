@@ -27,7 +27,6 @@ import kotlinx.serialization.Serializable
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternMessage
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternRegex
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
  * The response object for the endpoint to manage infrastructure services.

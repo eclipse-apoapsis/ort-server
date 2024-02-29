@@ -83,8 +83,11 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val id = call.requireParameter("repositoryId").toLong()
         val updateRepository = call.receive<UpdateRepository>()
 
-        val updatedRepository =
-            repositoryService.updateRepository(id, updateRepository.type.mapToModel(), updateRepository.url)
+        val updatedRepository = repositoryService.updateRepository(
+            id,
+            updateRepository.type.mapToModel { it.mapToModel() },
+            updateRepository.url.mapToModel()
+        )
 
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
@@ -194,8 +197,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     secretService.updateSecretByRepositoryAndName(
                         repositoryId,
                         secretName,
-                        updateSecret.value,
-                        updateSecret.description
+                        updateSecret.value.mapToModel(),
+                        updateSecret.description.mapToModel()
                     ).mapToApi()
                 )
             }

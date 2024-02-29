@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiReposito
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -70,7 +71,6 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.D
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
-import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService

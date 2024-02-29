@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model.validation
 import io.konform.validation.ValidationBuilder
 import io.konform.validation.ValidationResult
 
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 
 /**
  * A typealias containing an argument and a return type for a validation function that should be implemented in entity

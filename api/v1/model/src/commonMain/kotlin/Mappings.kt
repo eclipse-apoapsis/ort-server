@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtIssue as ApiOrtIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
@@ -269,7 +270,13 @@ fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
 fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
 
-fun OptionalValue<ApiRepositoryType>.mapToModel() = map { it.mapToModel() }
+fun <T> ApiOptionalValue<T>.mapToModel() = mapToModel { it }
+
+fun <IN, OUT> ApiOptionalValue<IN>.mapToModel(valueMapping: (IN) -> OUT): OptionalValue<OUT> =
+    when (this) {
+        is ApiOptionalValue.Present -> OptionalValue.Present(valueMapping(value))
+        is ApiOptionalValue.Absent -> OptionalValue.Absent
+    }
 
 fun ReporterJob.mapToApi() =
     ApiReporterJob(

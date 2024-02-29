@@ -34,10 +34,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.SUBVERSION
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
-import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
     operationId = "GetProductById"

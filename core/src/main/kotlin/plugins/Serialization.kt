@@ -28,8 +28,8 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValueSerializer
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValueSerializer
 
 import org.koin.ktor.ext.inject
 
