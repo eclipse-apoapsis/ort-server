@@ -22,11 +22,6 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import kotlinx.serialization.Serializable
 
 /**
- * A typealias for key-value pairs.
- */
-typealias Options = Map<String, String>
-
-/**
  * The configurations for the jobs in an [OrtRun].
  */
 @Serializable
