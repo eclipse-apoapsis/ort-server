@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
@@ -48,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -107,6 +109,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
         single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }

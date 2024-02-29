@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoInfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
@@ -43,6 +44,8 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
@@ -68,6 +71,7 @@ class Fixtures(private val db: Database) {
     val repositoryConfigurationRepository = DaoRepositoryConfigurationRepository(db)
     val reporterJobRepository = DaoReporterJobRepository(db)
     val reporterRunRepository = DaoReporterRunRepository(db)
+    val notifierJobRepository = DaoNotifierJobRepository(db)
     val repositoryRepository = DaoRepositoryRepository(db)
     val resolvedConfigurationRepository = DaoResolvedConfigurationRepository(db)
     val scannerJobRepository = DaoScannerJobRepository(db)
@@ -83,6 +87,7 @@ class Fixtures(private val db: Database) {
     val scannerJob by lazy { createScannerJob() }
     val evaluatorJob by lazy { createEvaluatorJob() }
     val reporterJob by lazy { createReporterJob() }
+    val notifierJob by lazy { createNotifierJob() }
     val identifier by lazy { createIdentifier() }
     val ruleViolation by lazy { getViolation() }
 
@@ -101,6 +106,11 @@ class Fixtures(private val db: Database) {
         ),
         reporter = ReporterJobConfiguration(
             formats = listOf("WebApp")
+        ),
+        notifier = NotifierJobConfiguration(
+            mail = MailNotificationConfiguration(
+                recipientAddresses = listOf("test@example.com")
+            )
         )
     )
 
@@ -149,6 +159,11 @@ class Fixtures(private val db: Database) {
         ortRunId: Long = ortRun.id,
         configuration: ReporterJobConfiguration = jobConfigurations.reporter!!
     ) = reporterJobRepository.create(ortRunId, configuration)
+
+    fun createNotifierJob(
+        ortRunId: Long = ortRun.id,
+        configuration: NotifierJobConfiguration = jobConfigurations.notifier!!
+    ) = notifierJobRepository.create(ortRunId, configuration)
 
     fun createIdentifier() = db.blockingQuery {
         IdentifierDao.new {
