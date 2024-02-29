@@ -20,13 +20,17 @@
 package org.eclipse.apoapsis.ortserver.model.util
 
 /**
- * A property type that can be used for PATCH requests. It represents two different states:
+ * A property type that can be used in update functions. It represents two different states:
  * * [OptionalValue.Present]
  * * [OptionalValue.Absent]
+ *
+ * This makes generic update functions possible that take all upgradable properties as parameters and only update the
+ * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties there would be no way to
+ * distinguish if the property should be ignored or updated.
  */
 sealed interface OptionalValue<out T> {
     /**
-     * Value is present, the entry will be updated with [value].
+     * Value is present, the property will be updated with [value].
      */
     class Present<T>(val value: T) : OptionalValue<T> {
         override fun toString() = value.toString()
@@ -46,7 +50,7 @@ sealed interface OptionalValue<out T> {
     }
 
     /**
-     * Omitted from the request, will be ignored in the update.
+     * Value is not present, the property will be ignored.
      */
     data object Absent : OptionalValue<Nothing>
 
@@ -77,7 +81,7 @@ sealed interface OptionalValue<out T> {
     }
 
     /**
-     * If this [OptionalValue] is [Present] [transform] the [value][Present.value], otherwise return [Absent].
+     * If this [OptionalValue] is [Present], [transform] the [value][Present.value], otherwise return [Absent].
      */
     fun <M> map(transform: (T) -> M) =
         when (this) {
