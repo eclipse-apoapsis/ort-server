@@ -138,6 +138,24 @@ data class ReporterWorkerError(
 ) : OrchestratorMessage()
 
 /**
+ * A message notifying the Orchestrator about a result produced by the Notifier Worker.
+ */
+@Serializable
+data class NotifierWorkerResult(
+    /** The ID of the Notifier job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about a failed Notifier worker job.
+ */
+@Serializable
+data class NotifierWorkerError(
+    /** The ID of the Notifier job, as it is stored in the database. */
+    val jobId: Long
+) : OrchestratorMessage()
+
+/**
  * A message notifying the Orchestrator about a new ORT run.
  */
 @Serializable

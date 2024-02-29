@@ -27,7 +27,9 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
@@ -46,6 +48,9 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
@@ -56,11 +61,13 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -70,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
+import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
@@ -93,6 +101,7 @@ class Orchestrator(
     private val scannerJobRepository: ScannerJobRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
     private val reporterJobRepository: ReporterJobRepository,
+    private val notifierJobRepository: NotifierJobRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
@@ -381,7 +390,7 @@ class Orchestrator(
     /**
      * Handle messages of the type [ReporterWorkerResult].
      */
-    fun handleReporterWorkerResult(reporterWorkerResult: ReporterWorkerResult) {
+    fun handleReporterWorkerResult(header: MessageHeader, reporterWorkerResult: ReporterWorkerResult) {
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = reporterWorkerResult.jobId
 
@@ -389,13 +398,21 @@ class Orchestrator(
                 "Reporter job '$jobId' not found."
             }
 
+            val ortRun = requireNotNull(ortRunRepository.get(reporterJob.ortRunId)) {
+                "ORT run '${reporterJob.ortRunId}' not found."
+            }
+
             reporterJobRepository.update(
                 id = reporterJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
             )
-        }.onSuccess { job ->
-            scheduleCreatedJobs(job.ortRunId, emptyList())
+
+            reporterJob.ortRunId to listOfNotNull(
+                createNotifierJob(ortRun)?.let { { scheduleNotifierJob(ortRun, it, header) } }
+            )
+        }.onSuccess { (jobId, createdJobs) ->
+            scheduleCreatedJobs(jobId, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'ReporterWorkerResult' message.", it)
         }
@@ -409,6 +426,37 @@ class Orchestrator(
             handleWorkerError(reporterJobRepository, reporterWorkerError.jobId)
         }.onFailure {
             log.warn("Failed to handle 'ReporterWorkerError' message.", it)
+        }
+    }
+
+    /**
+     * Handle messages of the type [NotifierWorkerResult].
+     */
+    fun handleNotifierWorkerResult(notifierWorkerResult: NotifierWorkerResult) {
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            val jobId = notifierWorkerResult.jobId
+
+            val notifierJob = requireNotNull(notifierJobRepository.get(jobId)) {
+                "Notifier job '$jobId' not found."
+            }
+
+            notifierJobRepository.update(
+                id = notifierJob.id,
+                finishedAt = Clock.System.now().asPresent(),
+                status = JobStatus.FINISHED.asPresent()
+            )
+        }.onSuccess { job ->
+            scheduleCreatedJobs(job.ortRunId, emptyList())
+        }.onFailure {
+            log.warn("Failed to handle 'NotifierWorkerResult' message.", it)
+        }
+    }
+
+    fun handleNotifierWorkerError(notifierWorkerError: NotifierWorkerError) {
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            handleWorkerError(notifierJobRepository, notifierWorkerError.jobId)
+        }.onFailure {
+            log.warn("Failed to handle 'NotifierWorkerError' message.", it)
         }
     }
 
@@ -468,12 +516,22 @@ class Orchestrator(
             reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
+    /**
+     * Create a [NotifierJob] if it is enabled.
+     */
+    private fun createNotifierJob(ortRun: OrtRun): NotifierJob? =
+        getConfig(ortRun).notifier?.let { notifierJobConfiguration ->
+            notifierJobRepository.create(ortRun.id, notifierJobConfiguration)
+        }
+
     private fun scheduleCreatedJobs(runId: Long, createdJobs: CreatedJobs) {
         // TODO: Handle errors during job scheduling.
 
         createdJobs.forEach { it() }
 
         if (createdJobs.isEmpty()) {
+            cleanupJobs(runId)
+
             ortRunRepository.update(runId, OrtRunStatus.FINISHED.asPresent())
         }
     }
@@ -548,6 +606,18 @@ class Orchestrator(
     }
 
     /**
+     * Publish a message to the [NotifierEndpoint] and update the [notifierJob] status to [JobStatus.SCHEDULED].
+     */
+    private fun scheduleNotifierJob(run: OrtRun, notifierJob: NotifierJob, header: MessageHeader) {
+        publish(NotifierEndpoint, run, header, NotifierRequest(notifierJob.id))
+
+        notifierJobRepository.update(
+            id = notifierJob.id,
+            status = JobStatus.SCHEDULED.asPresent()
+        )
+    }
+
+    /**
      * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
      * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
      * current ORT run.
@@ -570,9 +640,37 @@ class Orchestrator(
     private fun <T : WorkerJob> handleWorkerError(jobRepository: WorkerJobRepository<T>, jobId: Long) {
         val updatedJob = jobRepository.complete(jobId, Clock.System.now(), JobStatus.FAILED)
 
+        cleanupJobs(updatedJob.ortRunId)
+
         // If the worker job failed, the whole OrtRun will be treated as failed.
         failOrtRun(updatedJob.ortRunId)
     }
+
+    /**
+     * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
+     */
+    private fun cleanupJobs(ortRunId: Long) {
+        ortRunRepository.get(ortRunId)?.let { ortRun ->
+            ortRunRepository.update(
+                id = ortRunId,
+                jobConfigs = OptionalValue.Present(cleanupJobConfigs(ortRun.jobConfigs)),
+                resolvedJobConfigs = ortRun.resolvedJobConfigs?.let {
+                    OptionalValue.Present(cleanupJobConfigs(it))
+                } ?: OptionalValue.Absent
+            )
+        }
+
+        notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
+            notifierJobRepository.deleteMailRecipients(notifierJob.id)
+        }
+    }
+
+    private fun cleanupJobConfigs(jobConfigs: JobConfigurations) = jobConfigs.copy(
+        notifier = jobConfigs.notifier?.copy(
+            mail = jobConfigs.notifier?.mail?.copy(recipientAddresses = emptyList())
+        ),
+        parameters = jobConfigs.parameters - "recipientAddresses"
+    )
 
     /**
      * Handle a fatal worker error for the given [ortRunId] which affects the worker managed by the given [repository].
