@@ -45,7 +45,7 @@ class OrtServerNestedProvenanceStorage(
     private val db: Database,
     private val packageProvenanceCache: PackageProvenanceCache
 ) : NestedProvenanceStorage {
-    override fun putNestedProvenance(
+    override fun writeNestedProvenance(
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
     ) = db.blockingQuery {

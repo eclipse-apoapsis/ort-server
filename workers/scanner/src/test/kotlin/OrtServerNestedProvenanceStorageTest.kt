@@ -63,7 +63,7 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                 OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id, packageProvenanceCache)
             nestedProvenanceStorage = OrtServerNestedProvenanceStorage(dbExtension.db, packageProvenanceCache)
 
-            packageProvenanceStorage.putProvenance(id, vcsInfo, packageProvenance)
+            packageProvenanceStorage.writeProvenance(id, vcsInfo, packageProvenance)
         }
 
         /**
@@ -84,14 +84,14 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
             }
         }
 
-        "putNestedProvenance" should {
+        "writeNestedProvenance" should {
             "store a nested provenance in the database and associate it with the package provenance" {
                 val result = NestedProvenanceResolutionResult(
                     nestedProvenance = createNestedProvenance(rootProvenance),
                     hasOnlyFixedRevisions = true
                 )
 
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result)
 
                 nestedProvenanceStorage.readNestedProvenance(rootProvenance) shouldBe result
 
@@ -108,8 +108,8 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                     hasOnlyFixedRevisions = true
                 )
 
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result1)
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result2)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result1)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result2)
 
                 transaction {
                     NestedProvenancesTable.selectAll().count() shouldBe 2
@@ -122,12 +122,12 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                 val subInfo2 = vcsInfo.copy(path = "sub2")
                 val subProvenance2 = RepositoryProvenance(subInfo2, subInfo2.revision)
 
-                packageProvenanceStorage.putProvenance(
+                packageProvenanceStorage.writeProvenance(
                     id.copy(name = "sub1"),
                     subInfo1,
                     ResolvedRepositoryProvenance(subProvenance1, subInfo1.revision, true)
                 )
-                packageProvenanceStorage.putProvenance(
+                packageProvenanceStorage.writeProvenance(
                     id.copy(name = "sub2"),
                     subInfo2,
                     ResolvedRepositoryProvenance(subProvenance2, subInfo2.revision, true)
@@ -138,7 +138,7 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                     hasOnlyFixedRevisions = true
                 )
 
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result)
 
                 listOf(subProvenance1, subProvenance2).forAll { provenance ->
                     verifyAssociatedProvenance(result, provenance)
@@ -161,8 +161,8 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                     hasOnlyFixedRevisions = true
                 )
 
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result1)
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, result2)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result1)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, result2)
 
                 nestedProvenanceStorage.readNestedProvenance(rootProvenance) shouldBe result2
             }
@@ -172,7 +172,7 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                     nestedProvenance = createNestedProvenance(rootProvenance),
                     hasOnlyFixedRevisions = true
                 )
-                nestedProvenanceStorage.putNestedProvenance(rootProvenance, resolutionResult)
+                nestedProvenanceStorage.writeNestedProvenance(rootProvenance, resolutionResult)
 
                 // Recreate the test storage instances with a clean cache.
                 packageProvenanceCache = PackageProvenanceCache()
@@ -185,12 +185,12 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                 val subInfo2 = vcsInfo.copy(path = "sub2")
                 val subProvenance2 = RepositoryProvenance(subInfo2, subInfo2.revision)
 
-                packageProvenanceStorage.putProvenance(
+                packageProvenanceStorage.writeProvenance(
                     id.copy(name = "sub1"),
                     subInfo1,
                     ResolvedRepositoryProvenance(subProvenance1, subInfo1.revision, true)
                 )
-                packageProvenanceStorage.putProvenance(
+                packageProvenanceStorage.writeProvenance(
                     id.copy(name = "sub2"),
                     subInfo2,
                     ResolvedRepositoryProvenance(subProvenance2, subInfo2.revision, true)

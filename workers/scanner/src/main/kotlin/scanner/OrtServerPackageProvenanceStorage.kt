@@ -112,7 +112,7 @@ class OrtServerPackageProvenanceStorage(
             .mapNotNull { it.mapToOrt() }
     }
 
-    override fun putProvenance(
+    override fun writeProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact,
         result: PackageProvenanceResolutionResult
@@ -144,7 +144,7 @@ class OrtServerPackageProvenanceStorage(
         }
     }
 
-    override fun putProvenance(
+    override fun writeProvenance(
         id: Identifier,
         vcs: VcsInfo,
         result: PackageProvenanceResolutionResult
@@ -178,6 +178,11 @@ class OrtServerPackageProvenanceStorage(
 
             associateProvenanceWithScannerRun(provenanceDao)
         }
+    }
+
+    override fun deleteProvenances(id: Identifier) {
+        // Do not implement the function as it is currently only used by a helper CLI command.
+        throw UnsupportedOperationException("deleteProvenance is not implemented.")
     }
 
     private fun associateProvenanceWithScannerRun(provenanceDao: PackageProvenanceDao) {

@@ -85,13 +85,13 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
             }
         }
 
-        "putProvenance" should {
+        "writeProvenance" should {
             "create an artifact provenance in the database and associate it to the scanner run" {
                 val id = createIdentifier()
                 val sourceArtifact = createRemoteArtifact()
                 val provenance = createArtifactProvenance(sourceArtifact)
 
-                packageProvenanceStorage.putProvenance(id, sourceArtifact, provenance)
+                packageProvenanceStorage.writeProvenance(id, sourceArtifact, provenance)
 
                 verifyAssociatedProvenance(scannerRun, provenance.provenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, sourceArtifact) shouldBe provenance
@@ -102,7 +102,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val vcsInfo = createVcsInfo()
                 val provenance = createRepositoryProvenance(vcsInfo)
 
-                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, provenance)
 
                 verifyAssociatedProvenance(scannerRun, provenance.provenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
@@ -125,7 +125,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 }.id.value
                 packageProvenanceCache.putNestedProvenance(rootProvenance, nestedProvenanceId)
 
-                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, provenance)
 
                 dbExtension.db.blockingQuery {
                     ScannerRunDao[scannerRun.id].packageProvenances.toList().forAll { provenanceDao ->
@@ -139,7 +139,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val vcsInfo = createVcsInfo()
                 val provenance = UnresolvedPackageProvenance("message")
 
-                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, provenance)
 
                 verifyAssociatedProvenance(scannerRun, UnknownProvenance, packageProvenanceCache)
                 packageProvenanceStorage.readProvenance(id, vcsInfo) shouldBe provenance
@@ -151,8 +151,8 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val provenance = createRepositoryProvenance(vcsInfo)
                 val errorProvenance = createErrorProvenance("Provenance error")
 
-                packageProvenanceStorage.putProvenance(id, vcsInfo, provenance)
-                packageProvenanceStorage.putProvenance(id, vcsInfo, errorProvenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, provenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, errorProvenance)
 
                 packageProvenanceStorage.readProvenances(id) should
                         containExactlyInAnyOrder(provenance, errorProvenance)
@@ -177,8 +177,8 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val id = createIdentifier()
                 val sourceArtifact = createRemoteArtifact()
                 val artifactProvenance = createArtifactProvenance(sourceArtifact)
-                packageProvenanceStorage.putProvenance(id, sourceArtifact, UnresolvedPackageProvenance("message"))
-                packageProvenanceStorage.putProvenance(id, sourceArtifact, artifactProvenance)
+                packageProvenanceStorage.writeProvenance(id, sourceArtifact, UnresolvedPackageProvenance("message"))
+                packageProvenanceStorage.writeProvenance(id, sourceArtifact, artifactProvenance)
 
                 // Create a new scanner run and related storage as the put call above already associated the provenance
                 // with the default scanner run.
@@ -204,8 +204,8 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val id = createIdentifier()
                 val vcsInfo = createVcsInfo()
                 val repositoryProvenance = createRepositoryProvenance(vcsInfo)
-                packageProvenanceStorage.putProvenance(id, vcsInfo, UnresolvedPackageProvenance("message"))
-                packageProvenanceStorage.putProvenance(id, vcsInfo, repositoryProvenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, UnresolvedPackageProvenance("message"))
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, repositoryProvenance)
 
                 // Create a new scanner run and related storage as the put call above already associated the provenance
                 // with the default scanner run.
@@ -227,11 +227,11 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
 
                 val sourceArtifact = createRemoteArtifact()
                 val artifactProvenance = createArtifactProvenance(sourceArtifact)
-                packageProvenanceStorage.putProvenance(id, sourceArtifact, artifactProvenance)
+                packageProvenanceStorage.writeProvenance(id, sourceArtifact, artifactProvenance)
 
                 val vcsInfo = createVcsInfo()
                 val repositoryProvenance = createRepositoryProvenance(vcsInfo)
-                packageProvenanceStorage.putProvenance(id, vcsInfo, repositoryProvenance)
+                packageProvenanceStorage.writeProvenance(id, vcsInfo, repositoryProvenance)
 
                 packageProvenanceStorage.readProvenances(id) should containExactlyInAnyOrder(
                     artifactProvenance,
