@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
@@ -38,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
@@ -76,6 +78,7 @@ class OrtRunService(
     private val ortRunRepository: OrtRunRepository,
     private val reporterJobRepository: ReporterJobRepository,
     private val reporterRunRepository: ReporterRunRepository,
+    private val notifierJobRepository: NotifierJobRepository,
     private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
     private val repositoryRepository: RepositoryRepository,
     private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
@@ -226,6 +229,11 @@ class OrtRunService(
     }
 
     /**
+     * Return the [NotifierJob] for the provided [id] or `null` if the run does not exist.
+     */
+    fun getNotifierJob(id: Long) = db.blockingQuery { notifierJobRepository.get(id) }
+
+    /**
      * Return the resolved configuration for the provided [ortRun]. If no resolved configuration is stored, an empty
      * resolved configuration is returned.
      */
@@ -269,6 +277,11 @@ class OrtRunService(
      * Start the [ReporterJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
     fun startReporterJob(id: Long) = reporterJobRepository.tryStart(id, Clock.System.now())
+
+    /**
+     * Start the [NotifierJob] with the provided [id] and return the updated job or `null` if the job does not exist.
+     */
+    fun startNotifierJob(id: Long) = notifierJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [ScannerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
