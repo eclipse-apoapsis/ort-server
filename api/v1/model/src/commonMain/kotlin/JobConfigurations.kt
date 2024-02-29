@@ -32,8 +32,11 @@ data class JobConfigurations(
     val evaluator: EvaluatorJobConfiguration? = null,
     val reporter: ReporterJobConfiguration? = null,
 
-    /** A map with custom parameters for the whole ORT run. */
-    val parameters: Parameters = emptyMap()
+    /**
+     * A map with custom parameters for the whole ORT run. These parameters are subject for validation performed by a
+     * validation script, which can then map modify the `CreateOrtRun` request based on the provided parameters.
+     */
+    val parameters: Options = emptyMap()
 )
 
 /**
@@ -314,9 +317,3 @@ data class ReporterJobConfiguration(
      */
     val nameMappings: Map<String, ReportNameMapping>? = null
 )
-
-/**
- * A type for storing key-value pairs of job configuration parameters. These parameters are subject for validation
- * performed by a validation script, which can then map them to [Options].
- */
-typealias Parameters = Map<String, String>
