@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterRunRepository
@@ -39,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
@@ -65,6 +67,7 @@ fun ortRunServiceModule(): Module = module {
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
     single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
+    single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
     single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }

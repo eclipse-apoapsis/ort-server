@@ -81,6 +81,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     val evaluatorJob by EvaluatorJobDao optionalBackReferencedOn EvaluatorJobsTable.ortRunId
     val scannerJob by ScannerJobDao optionalBackReferencedOn ScannerJobsTable.ortRunId
     val reporterJob by ReporterJobDao optionalBackReferencedOn ReporterJobsTable.ortRunId
+    val notifierJob by NotifierJobDao optionalBackReferencedOn NotifierJobsTable.ortRunId
     val repositoryConfig by RepositoryConfigurationDao optionalBackReferencedOn RepositoryConfigurationsTable.ortRunId
     val nestedRepositories by NestedRepositoryDao referrersOn NestedRepositoriesTable.ortRunId
 
