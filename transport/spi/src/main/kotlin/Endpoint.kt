@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
@@ -79,6 +80,11 @@ object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanne
  * A concrete [Endpoint] declaration representing the Evaluator worker.
  */
 object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
+
+/**
+ * A concrete [Endpoint] declaration representing the Notifier worker.
+ */
+object NotifierEndpoint : Endpoint<NotifierRequest>(NotifierRequest::class, "notifier")
 
 /**
  * A concrete [Endpoint] declaration representing the Reporter worker.

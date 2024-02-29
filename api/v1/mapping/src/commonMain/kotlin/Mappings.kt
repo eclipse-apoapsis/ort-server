@@ -35,6 +35,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration as ApiMailNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as ApiMailServerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtIssue as ApiOrtIssue
@@ -69,6 +72,9 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Jobs
+import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
+import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
@@ -206,6 +212,7 @@ fun JobConfigurations.mapToApi() =
         scanner?.mapToApi(),
         evaluator?.mapToApi(),
         reporter?.mapToApi(),
+        notifier?.mapToApi(),
         parameters
     )
 
@@ -216,6 +223,7 @@ fun ApiJobConfigurations.mapToModel() =
         scanner?.mapToModel(),
         evaluator?.mapToModel(),
         reporter?.mapToModel(),
+        notifier?.mapToModel(),
         parameters
     )
 
@@ -316,6 +324,20 @@ fun ReporterJobConfiguration.mapToApi() =
         assetFiles.map { it.mapToApi() },
         assetDirectories.map { it.mapToApi() },
         config?.mapValues { it.value.mapToApi() }
+    )
+
+fun NotifierJobConfiguration.mapToApi() =
+    ApiNotifierJobConfiguration(
+        notifierRules = notifierRules,
+        resolutionsFile = resolutionsFile,
+        mail = mail?.mapToApi()
+    )
+
+fun ApiNotifierJobConfiguration.mapToModel() =
+    NotifierJobConfiguration(
+        notifierRules = notifierRules,
+        resolutionsFile = resolutionsFile,
+        mail = mail?.mapToModel()
     )
 
 fun ApiReporterJobConfiguration.mapToModel() =
@@ -435,6 +457,38 @@ fun ReporterAsset.mapToApi() =
 
 fun ApiReporterAsset.mapToModel() =
     ReporterAsset(sourcePath, targetFolder, targetName)
+
+fun MailNotificationConfiguration.mapToApi() =
+    ApiMailNotificationConfiguration(
+        recipientAddresses = recipientAddresses,
+        mailServerConfiguration = mailServerConfiguration?.mapToApi()
+    )
+
+fun ApiMailNotificationConfiguration.mapToModel() =
+    MailNotificationConfiguration(
+        recipientAddresses = recipientAddresses,
+        mailServerConfiguration = mailServerConfiguration?.mapToModel()
+    )
+
+fun MailServerConfiguration.mapToApi() =
+    ApiMailServerConfiguration(
+        hostName = hostName,
+        port = port,
+        username = username,
+        password = password,
+        useSsl = useSsl,
+        fromAddress = fromAddress
+    )
+
+fun ApiMailServerConfiguration.mapToModel() =
+    MailServerConfiguration(
+        hostName = hostName,
+        port = port,
+        username = username,
+        password = password,
+        useSsl = useSsl,
+        fromAddress = fromAddress
+    )
 
 fun ApiPagingOptions.mapToModel() =
     ListQueryParameters(

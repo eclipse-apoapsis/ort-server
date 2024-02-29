@@ -31,6 +31,7 @@ data class JobConfigurations(
     val scanner: ScannerJobConfiguration? = null,
     val evaluator: EvaluatorJobConfiguration? = null,
     val reporter: ReporterJobConfiguration? = null,
+    val notifier: NotifierJobConfiguration? = null,
 
     /**
      * A map with custom parameters for the whole ORT run. These parameters are subject for validation performed by a
@@ -323,3 +324,31 @@ data class ReporterJobConfiguration(
      */
     val nameMappings: Map<String, ReportNameMapping>? = null
 )
+
+/**
+ * The configuration for a notifier job.
+ */
+@Serializable
+data class NotifierJobConfiguration(
+    /**
+     * The notifier script to use. If this is null, the configured default notification will be used.
+     */
+    val notifierRules: String? = null,
+
+    /**
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * the default path from ORT will be used.
+     */
+    val resolutionsFile: String? = null,
+
+    /**
+     * The configuration for Email notifications. If this is null, no email notifications will be sent.
+     */
+    val mail: MailNotificationConfiguration? = null
+)
+
+/**
+ * A type for storing key-value pairs of job configuration parameters. These parameters are subject for validation
+ * performed by a validation script, which can then map them to [Options].
+ */
+typealias Parameters = Map<String, String>
