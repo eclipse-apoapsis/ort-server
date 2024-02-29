@@ -19,18 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-
 /**
  * A property type that can be used for PATCH requests. It represents two different states:
  * * [OptionalValue.Present]
  * * [OptionalValue.Absent]
  */
-@Serializable(with = OptionalValueSerializer::class)
 sealed interface OptionalValue<out T> {
     /**
      * Value is present, the entry will be updated with [value].
@@ -91,22 +84,6 @@ sealed interface OptionalValue<out T> {
             is Present -> Present(transform(value))
             else -> Absent
         }
-}
-
-class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : KSerializer<OptionalValue<T>> {
-    override val descriptor: SerialDescriptor = valueSerializer.descriptor
-
-    override fun deserialize(decoder: Decoder): OptionalValue<T> {
-        val value = valueSerializer.deserialize(decoder)
-        return value.asPresent()
-    }
-
-    override fun serialize(encoder: Encoder, value: OptionalValue<T>) {
-        when (value) {
-            is OptionalValue.Absent -> {}
-            is OptionalValue.Present -> valueSerializer.serialize(encoder, value.value)
-        }
-    }
 }
 
 /**
