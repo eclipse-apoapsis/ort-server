@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,20 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-data class RepositoryConfiguration(
-    val id: Long,
-    val ortRunId: Long,
-    val analyzerConfig: RepositoryAnalyzerConfiguration? = null,
-    val excludes: Excludes = Excludes(),
-    val resolutions: Resolutions = Resolutions(),
-    val curations: Curations = Curations(),
-    val packageConfigurations: List<PackageConfiguration> = emptyList(),
-    val licenseChoices: LicenseChoices = LicenseChoices(),
-    val provenanceSnippetChoices: List<ProvenanceSnippetChoices> = emptyList()
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
+
+/**
+ * A collection of snippet choices for a given provenance.
+ */
+data class ProvenanceSnippetChoices(
+    /**
+     * The provenance this snippet choice applies to.
+     */
+    val provenance: Provenance,
+
+    /**
+     * The snippet choices for this package.
+     */
+    val choices: List<SnippetChoice>
 )
