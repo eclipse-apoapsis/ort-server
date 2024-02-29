@@ -40,6 +40,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
@@ -91,8 +93,10 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is ScannerWorkerError -> orchestrator.handleScannerWorkerError(payload)
             is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(message.header, payload)
             is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(payload)
-            is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(payload)
+            is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(message.header, payload)
             is ReporterWorkerError -> orchestrator.handleReporterWorkerError(payload)
+            is NotifierWorkerResult -> orchestrator.handleNotifierWorkerResult(payload)
+            is NotifierWorkerError -> orchestrator.handleNotifierWorkerError(payload)
             is WorkerError -> orchestrator.handleWorkerError(message.header.ortRunId, payload)
         }
     }

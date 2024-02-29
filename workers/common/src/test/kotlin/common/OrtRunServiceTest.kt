@@ -128,6 +128,7 @@ class OrtRunServiceTest : WordSpec({
             fixtures.ortRunRepository,
             fixtures.reporterJobRepository,
             fixtures.reporterRunRepository,
+            fixtures.notifierJobRepository,
             repositoryConfigRepository,
             fixtures.repositoryRepository,
             resolvedConfigurationRepository,
