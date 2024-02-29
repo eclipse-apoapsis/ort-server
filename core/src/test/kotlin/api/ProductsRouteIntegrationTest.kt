@@ -40,10 +40,13 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
@@ -55,11 +58,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -256,10 +255,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         Repository(createdRepository1.id, type.mapToApi(), url1),
                         Repository(createdRepository2.id, type.mapToApi(), url2)
                     ),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("url", ASCENDING)),
+                    PagingOptions(
                         limit = DEFAULT_LIMIT,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -283,10 +282,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(Repository(createdRepository2.id, type.mapToApi(), url2)),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("url", DESCENDING)),
+                    PagingOptions(
                         limit = 1,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("url", SortDirection.DESCENDING))
                     )
                 )
             }
@@ -360,10 +359,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("name", ASCENDING)),
+                    PagingOptions(
                         limit = 20,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -381,10 +380,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(secret.mapToApi()),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("name", DESCENDING)),
+                    PagingOptions(
                         limit = 1,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
             }

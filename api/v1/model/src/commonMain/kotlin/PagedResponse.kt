@@ -21,15 +21,55 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-
 /**
- * Response object for returning paged lists of entities.
- * [data] contains the ordered list of entities, while
- * [page] is used to hold metadata for paging.
+ * A response object for returning paged lists of entities.
  */
 @Serializable
 data class PagedResponse<E>(
+    /** The list of entities to return. */
     val data: List<E>,
-    val page: ListQueryParameters
+
+    /** The [PagingOptions] used for the request. */
+    val options: PagingOptions
 )
+
+@Serializable
+data class PagingOptions(
+    /** An optional limit for the number of items to return. */
+    val limit: Int? = null,
+
+    /**
+     * An optional offset for the items to return. This is used to skip a number of items from the beginning of the
+     * result set.
+     */
+    val offset: Long? = null,
+
+    /**
+     * An optional list of properties by which the result set should be sorted.
+     */
+    val sortProperties: List<SortProperty>? = null
+)
+
+@Serializable
+/**
+ * A data class defining a property by which a query result should be sorted.
+ */
+data class SortProperty(
+    /** The name of the property to use for sorting. */
+    val name: String,
+
+    /** The direction in which the result set should be sorted. */
+    val direction: SortDirection
+)
+
+@Serializable
+/**
+ * An enum class defining constants for the direction in which properties are sorted.
+ */
+enum class SortDirection {
+    /** Constant for _ascending_ sort direction. */
+    ASCENDING,
+
+    /** Constant for _descending_ sort direction. */
+    DESCENDING
+}

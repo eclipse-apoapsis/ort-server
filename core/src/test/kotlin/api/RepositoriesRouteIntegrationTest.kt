@@ -49,9 +49,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
@@ -66,11 +69,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -272,10 +271,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApiSummary(JobSummaries()), run2.mapToApiSummary(JobSummaries())),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("index", ASCENDING)),
+                    PagingOptions(
                         limit = DEFAULT_LIMIT,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("index", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -309,10 +308,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApiSummary(jobs1), run2.mapToApiSummary(jobs2)),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("index", ASCENDING)),
+                    PagingOptions(
                         limit = DEFAULT_LIMIT,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("index", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -337,13 +336,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(run2.mapToApiSummary(JobSummaries())),
-                    ListQueryParameters(
-                        sortFields = listOf(
-                            OrderField("revision", DESCENDING),
-                            OrderField("createdAt", DESCENDING)
-                        ),
+                    PagingOptions(
                         limit = 1,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(
+                            SortProperty("revision", SortDirection.DESCENDING),
+                            SortProperty("createdAt", SortDirection.DESCENDING)
+                        )
                     )
                 )
             }
@@ -505,10 +504,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("name", ASCENDING)),
+                    PagingOptions(
                         limit = DEFAULT_LIMIT,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -526,10 +525,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(secret.mapToApi()),
-                    ListQueryParameters(
-                        sortFields = listOf(OrderField("name", DESCENDING)),
+                    PagingOptions(
                         limit = 1,
-                        offset = 0
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
             }

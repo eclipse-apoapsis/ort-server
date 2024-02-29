@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.mapToApi
@@ -53,11 +55,9 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
-import org.eclipse.apoapsis.ortserver.core.utils.listQueryParameters
+import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -107,14 +107,13 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
-            val paginationParameters =
-                call.listQueryParameters(OrderField("index", OrderDirection.ASCENDING))
+            val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
-            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, paginationParameters)
+            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel())
                 .map { it.mapToApiSummary(repositoryService.getJobs(repositoryId, it.index)!!.mapToApiSummary()) }
             val pagedResponse = PagedResponse(
                 jobsForOrtRuns,
-                paginationParameters
+                pagingOptions
             )
 
             call.respond(HttpStatusCode.OK, pagedResponse)
@@ -162,12 +161,12 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             requirePermission(RepositoryPermission.READ)
 
             val repositoryId = call.requireParameter("repositoryId").toLong()
-            val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-            val secretsForRepository = secretService.listForRepository(repositoryId, paginationParameters)
+            val secretsForRepository = secretService.listForRepository(repositoryId, pagingOptions.mapToModel())
             val pagedResponse = PagedResponse(
                 secretsForRepository.map { it.mapToApi() },
-                paginationParameters
+                pagingOptions
             )
 
             call.respond(HttpStatusCode.OK, pagedResponse)

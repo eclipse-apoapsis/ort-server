@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
@@ -53,6 +54,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiReposito
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -82,7 +85,10 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -427,3 +433,18 @@ fun ReporterAsset.mapToApi() =
 
 fun ApiReporterAsset.mapToModel() =
     ReporterAsset(sourcePath, targetFolder, targetName)
+
+fun ApiPagingOptions.mapToModel() =
+    ListQueryParameters(
+        sortFields = sortProperties?.map { it.mapToModel() }.orEmpty(),
+        limit = limit,
+        offset = offset
+    )
+
+fun ApiSortProperty.mapToModel() = OrderField(name, direction.mapToModel())
+
+fun ApiSortDirection.mapToModel() =
+    when (this) {
+        ApiSortDirection.ASCENDING -> OrderDirection.ASCENDING
+        ApiSortDirection.DESCENDING -> OrderDirection.DESCENDING
+    }

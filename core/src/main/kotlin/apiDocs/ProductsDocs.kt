@@ -26,18 +26,18 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.GIT
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.SUBVERSION
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 val getProductById: OpenApiRoute.() -> Unit = {
     operationId = "GetProductById"
@@ -138,10 +138,10 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
                                 id = 2, type = SUBVERSION, url = "https://example.com/second/repo"
                             )
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("url", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING)),
                         )
                     )
                 )
@@ -206,10 +206,10 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
                             Secret(name = "rsa", description = "ssh rsa certificate"),
                             Secret(name = "secret", description = "another secret")
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )

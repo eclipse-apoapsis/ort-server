@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
@@ -56,13 +57,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 private val fullJobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(
@@ -330,10 +329,10 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                                 resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                             )
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("createdAt", DESCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING)),
                         )
                     )
                 )
@@ -466,10 +465,10 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
                             Secret(name = "rsa", description = "ssh rsa certificate"),
                             Secret(name = "secret", description = "another secret")
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )

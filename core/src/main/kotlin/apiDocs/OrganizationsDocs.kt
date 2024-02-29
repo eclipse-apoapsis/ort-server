@@ -30,15 +30,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.ASCENDING
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizationById"
@@ -84,10 +84,10 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
                             Organization(id = 1, name = "First Organization", description = "Description"),
                             Organization(id = 2, name = "Second Organization")
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )
@@ -199,10 +199,10 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
                             Product(id = 1, name = "My first product", description = "Description"),
                             Product(id = 2, name = "My second product")
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )
@@ -264,10 +264,10 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
                             Secret(name = "rsa", description = "rsa certificate"),
                             Secret(name = "secret", description = "another secret")
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )
@@ -428,10 +428,10 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
                                 passwordSecretRef = "gitHubPassword"
                             )
                         ),
-                        ListQueryParameters(
-                            sortFields = listOf(OrderField("name", ASCENDING)),
+                        PagingOptions(
                             limit = 20,
-                            offset = 0
+                            offset = 0,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
                 )

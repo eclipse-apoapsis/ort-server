@@ -36,6 +36,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
@@ -59,11 +61,9 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.core.utils.listQueryParameters
+import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
@@ -79,12 +79,12 @@ fun Route.organizations() = route("organizations") {
     get(getOrganizations) {
         requireSuperuser()
 
-        val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+        val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-        val organizations = organizationService.listOrganizations(paginationParameters)
+        val organizations = organizationService.listOrganizations(pagingOptions.mapToModel())
         val pagedResponse = PagedResponse(
             organizations.map { it.mapToApi() },
-            paginationParameters
+            pagingOptions
         )
 
         call.respond(HttpStatusCode.OK, pagedResponse)
@@ -142,13 +142,13 @@ fun Route.organizations() = route("organizations") {
             requirePermission(OrganizationPermission.READ_PRODUCTS)
 
             val orgId = call.requireParameter("organizationId").toLong()
-            val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
             val productsForOrganization =
-                organizationService.listProductsForOrganization(orgId, paginationParameters)
+                organizationService.listProductsForOrganization(orgId, pagingOptions.mapToModel())
             val pagedResponse = PagedResponse(
                 productsForOrganization.map { it.mapToApi() },
-                paginationParameters
+                pagingOptions
             )
 
             call.respond(HttpStatusCode.OK, pagedResponse)
@@ -170,12 +170,12 @@ fun Route.organizations() = route("organizations") {
                 requirePermission(OrganizationPermission.READ)
 
                 val orgId = call.requireParameter("organizationId").toLong()
-                val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-                val secretsForOrganization = secretService.listForOrganization(orgId, paginationParameters)
+                val secretsForOrganization = secretService.listForOrganization(orgId, pagingOptions.mapToModel())
                 val pagedResponse = PagedResponse(
                     secretsForOrganization.map { it.mapToApi() },
-                    paginationParameters
+                    pagingOptions
                 )
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
@@ -248,13 +248,13 @@ fun Route.organizations() = route("organizations") {
                 requirePermission(OrganizationPermission.READ)
 
                 val orgId = call.requireParameter("organizationId").toLong()
-                val paginationParameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
                 val infrastructureServicesForOrganization =
-                    infrastructureServiceService.listForOrganization(orgId, paginationParameters)
+                    infrastructureServiceService.listForOrganization(orgId, pagingOptions.mapToModel())
                 val pagedResponse = PagedResponse(
                     infrastructureServicesForOrganization.map { it.mapToApi() },
-                    paginationParameters
+                    pagingOptions
                 )
 
                 call.respond(HttpStatusCode.OK, pagedResponse)

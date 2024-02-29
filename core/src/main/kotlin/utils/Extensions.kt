@@ -21,14 +21,14 @@ package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.application.ApplicationCall
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 /**
  * Get the parameter from this [ApplicationCall].
@@ -62,47 +62,44 @@ fun ConfigManager.createKeycloakClientConfiguration() =
     )
 
 /**
- * Return a [ListQueryParameters] object with the standard query parameters defined for this [ApplicationCall]. This
- * can then be used when calling services.
+ * Return a [PagingOptions] object for this [ApplicationCall]. If no limit is provided, [DEFAULT_LIMIT] is ues. If no
+ * offset is provided, 0 is used. If no sort order is provided, the [defaultSortProperty] is used.
  *
- *  Whenever a lists of results is returned, in order to grant reproducible results, there has
- *  to be a sort order, and it needs to be specified as [defaultOrderField].
- *  Additionally, to avoid that large numbers of results are returned, there
- *  is a default limit of results (if no other limit is given).
+ * The default values ensure that reproducible results are returned and that large numbers of results are avoided.
  */
-fun ApplicationCall.listQueryParameters(defaultOrderField: OrderField): ListQueryParameters {
-    val sortFields = parameters["sort"]?.let(::processSortParameter).orEmpty().takeIf { it.isNotEmpty() }
-        ?: listOf(defaultOrderField)
+fun ApplicationCall.pagingOptions(defaultSortProperty: SortProperty): PagingOptions {
+    val sortProperties = parameters["sort"]?.let(::processSortParameter).orEmpty().takeIf { it.isNotEmpty() }
+        ?: listOf(defaultSortProperty)
     val limit = numberParameter("limit")?.toInt()?.takeIf { it > 0 } ?: DEFAULT_LIMIT
     val offset = numberParameter("offset")?.toLong()?.takeIf { it >= 0 } ?: 0
 
-    return ListQueryParameters(sortFields, limit, offset)
+    return PagingOptions(limit, offset, sortProperties)
 }
 
 /**
- * Converts the given [sort] parameter with the fields to sort query results to a list of [OrderField] objects. The
- * parameter is expected to contain a comma-separated list of field names. To define the sort order for each field, it
- * can have one of the prefixes "+" for ascending or "-" for descending. If no prefix is provided, ascending is
- * assumed.
+ * Converts the given [sort] parameter with the properties to sort request results to a list of [SortProperty] objects.
+ * The parameter is expected to contain a comma-separated list of property names. To define the sort direction for each
+ * property, it can have one of the prefixes "+" for ascending or "-" for descending. If no prefix is provided,
+ * ascending is assumed.
  */
-private fun processSortParameter(sort: String): List<OrderField> {
+private fun processSortParameter(sort: String): List<SortProperty> {
     val fields = sort.split(',')
 
-    return fields.map(String::toOrderField)
+    return fields.map(String::toSortProperty)
 }
 
-/** A map to associate sort order prefixes with the corresponding constants. */
-private val orderPrefixes = mapOf(
-    '+' to OrderDirection.ASCENDING,
-    '-' to OrderDirection.DESCENDING
+/** A map to associate sort direction prefixes with the corresponding constants. */
+private val sortPrefixes = mapOf(
+    '+' to SortDirection.ASCENDING,
+    '-' to SortDirection.DESCENDING
 )
 
 /**
- * Convert this string to an [OrderField]. The string is expected to contain a field name with an option prefix
+ * Convert this string to a [SortProperty]. The string is expected to contain a property name with an optional prefix
  * determining the sort order.
  */
-private fun String.toOrderField(): OrderField {
-    val orderFromPrefix = orderPrefixes.filterKeys { prefix -> startsWith(prefix) }.map { it.value }.firstOrNull()
-    return orderFromPrefix?.let { OrderField(substring(1), orderFromPrefix) }
-        ?: OrderField(this, OrderDirection.ASCENDING)
+private fun String.toSortProperty(): SortProperty {
+    val directionFromPrefix = sortPrefixes.filterKeys { prefix -> startsWith(prefix) }.map { it.value }.firstOrNull()
+    return directionFromPrefix?.let { SortProperty(substring(1), directionFromPrefix) }
+        ?: SortProperty(this, SortDirection.ASCENDING)
 }

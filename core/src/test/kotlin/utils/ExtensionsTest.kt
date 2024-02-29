@@ -30,13 +30,13 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class ExtensionsTest : WordSpec({
@@ -44,16 +44,16 @@ class ExtensionsTest : WordSpec({
 
     "ApplicationCall.listQueryParameters" should {
         "handle a request without parameters" {
-            testParameterExtraction(null) {
+            testPagingOptionsExtraction(null) {
                 it.limit shouldBe DEFAULT_LIMIT
                 it.offset shouldBe 0
-                it.sortFields shouldBe listOf(OrderField("name", OrderDirection.ASCENDING))
+                it.sortProperties shouldBe listOf(SortProperty("name", SortDirection.ASCENDING))
             }
         }
 
         "handle a request with a limit parameter" {
             val limit = 42
-            testParameterExtraction("?limit=$limit") { params ->
+            testPagingOptionsExtraction("?limit=$limit") { params ->
                 params.limit shouldBe limit
                 params.offset shouldBe 0
             }
@@ -61,7 +61,7 @@ class ExtensionsTest : WordSpec({
 
         "handle a request with an offset parameter" {
             val offset = 128
-            testParameterExtraction("?offset=$offset") { params ->
+            testPagingOptionsExtraction("?offset=$offset") { params ->
                 params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe offset
             }
@@ -69,55 +69,55 @@ class ExtensionsTest : WordSpec({
 
         "handle a request with a sort parameter defining a field" {
             val field = "name"
-            testParameterExtraction("?sort=name") { params ->
-                params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.ASCENDING))
+            testPagingOptionsExtraction("?sort=name") { params ->
                 params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe 0
+                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
         "handle a request with a sort parameter defining multiple fields" {
             val fields = listOf("lastName", "firstName", "birthDate")
-            val expectedOrderFields = fields.map { name -> OrderField(name, OrderDirection.ASCENDING) }
+            val expectedSortProperties = fields.map { name -> SortProperty(name, SortDirection.ASCENDING) }
             val query = "?sort=${fields.joinToString(",")}"
 
-            testParameterExtraction(query) { params ->
-                params.sortFields shouldContainExactly expectedOrderFields
+            testPagingOptionsExtraction(query) { params ->
                 params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe 0
+                params.sortProperties shouldContainExactly expectedSortProperties
             }
         }
 
         "handle a request with a sort parameter defining a field with an ascending prefix" {
             val field = "fieldToSort"
-            testParameterExtraction("?sort=%2B$field") { params ->
-                params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.ASCENDING))
+            testPagingOptionsExtraction("?sort=%2B$field") { params ->
                 params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe 0
+                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
         "handle a request with a sort parameter defining a field with a descending prefix" {
             val field = "creationDate"
-            testParameterExtraction("?sort=-$field") { params ->
-                params.sortFields shouldContainExactly listOf(OrderField(field, OrderDirection.DESCENDING))
+            testPagingOptionsExtraction("?sort=-$field") { params ->
                 params.limit shouldBe DEFAULT_LIMIT
                 params.offset shouldBe 0
+                params.sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.DESCENDING))
             }
         }
     }
 })
 
 /**
- * Execute a test for extracting the parameters from the given [query] by applying the specified [check] function.
+ * Execute a test for extracting the [PagingOptions] from the given [query] by applying the specified [check] function.
  */
-private fun testParameterExtraction(query: String?, check: (ListQueryParameters) -> Unit) {
+private fun testPagingOptionsExtraction(query: String?, check: (PagingOptions) -> Unit) {
     ortServerTestApplication(config = noDbConfig) {
         routing {
             get("/test") {
-                val parameters = call.listQueryParameters(OrderField("name", OrderDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-                check(parameters)
+                check(pagingOptions)
 
                 call.respond("SUCCESS")
             }
