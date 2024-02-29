@@ -120,7 +120,7 @@ data class ScannerJobConfiguration(
      * Mappings from licenses returned by the scanner to valid SPDX licenses. Note that these mappings are only applied
      * in new scans, stored scan results are not affected.
      */
-    val detectedLicenseMappings: Map<String, String>? = null,
+    val detectedLicenseMappings: Options? = null,
 
     /**
      * A list of glob expressions that match file paths which are to be excluded from scan results.

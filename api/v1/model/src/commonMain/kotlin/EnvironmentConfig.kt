@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
  * The list then contains the corresponding definitions with their specific properties. This structure is evaluated by
  * a factory that creates concrete class instances out of it.
  */
-typealias RepositoryEnvironmentDefinitions = Map<String, List<Map<String, String>>>
+typealias RepositoryEnvironmentDefinitions = Map<String, List<Options>>
 
 /**
  * A data class describing the environment configuration of a specific repository.

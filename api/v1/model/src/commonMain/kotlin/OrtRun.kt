@@ -79,7 +79,7 @@ data class OrtRun(
     /**
      * The labels of this run.
      */
-    val labels: Map<String, String>,
+    val labels: Options,
 
     /**
      * A list with issues that have been found for this run and that are not related to one of the processing steps.
@@ -119,7 +119,7 @@ data class CreateOrtRun(
     /**
      * The labels for this run.
      */
-    val labels: Map<String, String>? = emptyMap(),
+    val labels: Options? = emptyMap(),
 
     /**
      * The optional context for obtaining the configuration of this run.

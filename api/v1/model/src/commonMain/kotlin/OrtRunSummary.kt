@@ -71,7 +71,7 @@ data class OrtRunSummary(
     /**
      * The labels of this run.
      */
-    val labels: Map<String, String>,
+    val labels: Options,
 
     /**
      * An optional context to be used when obtaining configuration for this ORT run. This context is passed to the
