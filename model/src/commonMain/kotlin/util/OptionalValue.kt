@@ -48,7 +48,7 @@ sealed interface OptionalValue<out T> {
     /**
      * Omitted from the request, will be ignored in the update.
      */
-    object Absent : OptionalValue<Nothing>
+    data object Absent : OptionalValue<Nothing>
 
     /**
      * Return the [value][Present.value] if this [OptionalValue] is [Present], otherwise throw an
