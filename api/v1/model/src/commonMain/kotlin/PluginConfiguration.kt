@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.model.Options
-
 @Serializable
 data class PluginConfiguration(
     /**
