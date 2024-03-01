@@ -58,6 +58,7 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var packageConfigurations by PackageConfigurationDao via RepositoryConfigurationsPackageConfigurationsTable
     var spdxLicenseChoices by SpdxLicenseChoiceDao via RepositoryConfigurationsSpdxLicenseChoicesTable
     var packageLicenseChoices by PackageLicenseChoiceDao via RepositoryConfigurationsPackageLicenseChoicesTable
+    var provenanceSnippetChoices by SnippetChoicesDao via RepositoryConfigurationsProvenanceSnippetChoicesTable
 
     fun mapToModel() = RepositoryConfiguration(
         id = id.value,
@@ -80,6 +81,7 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         licenseChoices = LicenseChoices(
             repositoryLicenseChoices = spdxLicenseChoices.map(SpdxLicenseChoiceDao::mapToModel),
             packageLicenseChoices = packageLicenseChoices.map(PackageLicenseChoiceDao::mapToModel)
-        )
+        ),
+        provenanceSnippetChoices = provenanceSnippetChoices.map(SnippetChoicesDao::mapToModel)
     )
 }
