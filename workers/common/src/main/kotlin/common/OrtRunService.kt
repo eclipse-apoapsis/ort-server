@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
@@ -53,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -79,6 +81,7 @@ class OrtRunService(
     private val reporterJobRepository: ReporterJobRepository,
     private val reporterRunRepository: ReporterRunRepository,
     private val notifierJobRepository: NotifierJobRepository,
+    private val notifierRunRepository: NotifierRunRepository,
     private val repositoryConfigurationRepository: RepositoryConfigurationRepository,
     private val repositoryRepository: RepositoryRepository,
     private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
@@ -340,6 +343,14 @@ class OrtRunService(
             reporterRun.startTime,
             reporterRun.endTime,
             reporterRun.reports
+        )
+    }
+
+    fun storeNotifierRun(notifierRun: NotifierRun) {
+        notifierRunRepository.create(
+            notifierRun.notifierJobId,
+            notifierRun.startTime,
+            notifierRun.endTime
         )
     }
 
