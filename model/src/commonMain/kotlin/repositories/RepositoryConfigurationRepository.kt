@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -34,6 +35,7 @@ interface RepositoryConfigurationRepository {
     /**
      * Create a repository configuration.
      */
+    @Suppress("LongParameterList")
     fun create(
         ortRunId: Long,
         analyzerConfig: RepositoryAnalyzerConfiguration?,
@@ -41,7 +43,8 @@ interface RepositoryConfigurationRepository {
         resolutions: Resolutions,
         curations: Curations,
         packageConfigurations: List<PackageConfiguration>,
-        licenseChoices: LicenseChoices
+        licenseChoices: LicenseChoices,
+        provenanceSnippetChoices: List<ProvenanceSnippetChoices>
     ): RepositoryConfiguration
 
     /**

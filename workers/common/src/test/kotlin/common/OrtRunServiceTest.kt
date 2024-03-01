@@ -979,7 +979,8 @@ private fun createOrtRun(
         resolutions = repositoryConfiguration.resolutions,
         curations = repositoryConfiguration.curations,
         packageConfigurations = repositoryConfiguration.packageConfigurations,
-        licenseChoices = repositoryConfiguration.licenseChoices
+        licenseChoices = repositoryConfiguration.licenseChoices,
+        provenanceSnippetChoices = repositoryConfiguration.provenanceSnippetChoices
     )
 
     ortRunDao.mapToModel()

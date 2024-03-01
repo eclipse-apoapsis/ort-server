@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfi
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RuleViolationResolutionDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.ScopeExcludeDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.SnippetChoicesDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.SpdxLicenseChoiceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.VulnerabilityResolutionDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
@@ -45,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -63,7 +65,8 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
         resolutions: Resolutions,
         curations: Curations,
         packageConfigurations: List<PackageConfiguration>,
-        licenseChoices: LicenseChoices
+        licenseChoices: LicenseChoices,
+        provenanceSnippetChoices: List<ProvenanceSnippetChoices>
     ): RepositoryConfiguration = db.blockingQuery {
         RepositoryConfigurationDao.new {
             this.ortRun = OrtRunDao[ortRunId]
@@ -85,6 +88,7 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
                 mapAndDeduplicate(licenseChoices.repositoryLicenseChoices, SpdxLicenseChoiceDao::getOrPut)
             this.packageLicenseChoices =
                 mapAndDeduplicate(licenseChoices.packageLicenseChoices, ::createPackageLicenseChoice)
+            this.provenanceSnippetChoices = mapAndDeduplicate(provenanceSnippetChoices, SnippetChoicesDao::getOrPut)
         }.mapToModel()
     }
 
