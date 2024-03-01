@@ -19,13 +19,19 @@
 
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
+import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+
+import org.jetbrains.exposed.sql.Database
 
 import org.slf4j.LoggerFactory
 
@@ -34,6 +40,7 @@ private val logger = LoggerFactory.getLogger(NotifierWorker::class.java)
 private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class NotifierWorker(
+    private val db: Database,
     private val runner: NotifierRunner,
     private val ortRunService: OrtRunService,
     private val workerContextFactory: WorkerContextFactory
@@ -63,7 +70,22 @@ internal class NotifierWorker(
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
+        val startTime = Clock.System.now()
+
         runner.run(ortResult, job.configuration, workerContext)
+
+        val endTime = Clock.System.now()
+
+        val notifierRun = NotifierRun(
+            id = -1L,
+            notifierJobId = job.id,
+            startTime = startTime,
+            endTime = endTime
+        )
+
+        db.blockingQuery {
+            ortRunService.storeNotifierRun(notifierRun)
+        }
 
         RunResult.Success
     }.getOrElse {

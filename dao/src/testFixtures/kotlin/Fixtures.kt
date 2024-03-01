@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
@@ -72,6 +73,7 @@ class Fixtures(private val db: Database) {
     val reporterJobRepository = DaoReporterJobRepository(db)
     val reporterRunRepository = DaoReporterRunRepository(db)
     val notifierJobRepository = DaoNotifierJobRepository(db)
+    val notifierRunRepository = DaoNotifierRunRepository(db)
     val repositoryRepository = DaoRepositoryRepository(db)
     val resolvedConfigurationRepository = DaoResolvedConfigurationRepository(db)
     val scannerJobRepository = DaoScannerJobRepository(db)

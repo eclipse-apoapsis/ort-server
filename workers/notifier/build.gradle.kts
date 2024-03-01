@@ -36,6 +36,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(projects.config.configSpi)
+    implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
     implementation(projects.workers.common)
