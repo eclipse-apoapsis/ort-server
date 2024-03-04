@@ -243,7 +243,16 @@ class AnalyzerRunner(
             config.skipExcluded ?: false
         )
 
-        val repositoryConfiguration = inputDir.resolve(ORT_REPO_CONFIG_FILENAME).takeIf { it.isFile }?.readValueOrNull()
+        val repositoryConfigPath = config.repositoryConfigPath ?: ORT_REPO_CONFIG_FILENAME
+        val repositoryConfigFile = inputDir.resolve(repositoryConfigPath)
+
+        require(repositoryConfigFile.canonicalFile.startsWith(inputDir)) {
+            "The `repositoryConfigPath` with value '$repositoryConfigPath' resolves to the file " +
+                    "'${repositoryConfigFile.absolutePath}' which is not in the input directory " +
+                    "'${inputDir.absolutePath}'."
+        }
+
+        val repositoryConfiguration = repositoryConfigFile.takeIf { it.isFile }?.readValueOrNull()
             ?: RepositoryConfiguration()
 
         val analyzerConfig = repositoryConfiguration.analyzer?.let { analyzerConfigFromJob.merge(it) }

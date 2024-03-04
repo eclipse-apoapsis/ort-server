@@ -1,0 +1,10 @@
+---
+analyzer:
+  allow_dynamic_versions: true
+  skip_excluded: true
+excludes:
+  paths:
+  - pattern: "**/custom"
+    reason: EXAMPLE_OF
+    comment: >-
+      This is an example path exclude from a custom .ort.yml file.

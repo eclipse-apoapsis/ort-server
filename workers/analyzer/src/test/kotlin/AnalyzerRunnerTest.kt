@@ -211,6 +211,32 @@ class AnalyzerRunnerTest : WordSpec({
             result.nestedRepositories should beEmpty()
         }
 
+        "use the .ort.yml defined by repositoryConfigPath" {
+            val repository = run(config = AnalyzerJobConfiguration(repositoryConfigPath = ".custom.ort.yml")).repository
+
+            repository.config shouldBe RepositoryConfiguration(
+                analyzer = RepositoryAnalyzerConfiguration(
+                    allowDynamicVersions = true,
+                    skipExcluded = true
+                ),
+                excludes = Excludes(
+                    paths = listOf(
+                        PathExclude(
+                            pattern = "**/custom",
+                            reason = PathExcludeReason.EXAMPLE_OF,
+                            comment = "This is an example path exclude from a custom .ort.yml file."
+                        )
+                    )
+                )
+            )
+        }
+
+        "fail if repositoryConfigPath points to a file outside the analyzed directory" {
+            shouldThrow<IllegalArgumentException> {
+                run(config = AnalyzerJobConfiguration(repositoryConfigPath = "../.ort.yml"))
+            }
+        }
+
         "pass all the properties to ORT Analyzer" {
             val enabledPackageManagers = listOf("conan", "npm")
             val disabledPackageManagers = listOf("maven")
