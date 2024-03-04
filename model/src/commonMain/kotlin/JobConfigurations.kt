@@ -88,6 +88,12 @@ data class AnalyzerJobConfiguration(
     val packageManagerOptions: Map<String, PackageManagerConfiguration>? = null,
 
     /**
+     * The optional path to a repository configuration file. If this is not defined, the repository configuration is
+     * read from the default location `.ort.yml`.
+     */
+    val repositoryConfigPath: String? = null,
+
+    /**
      * A flag to control whether excluded scopes and paths should be skipped during the analysis.
      */
     val skipExcluded: Boolean? = null

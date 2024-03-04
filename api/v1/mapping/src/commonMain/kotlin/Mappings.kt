@@ -142,6 +142,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         environmentConfig?.mapToApi(),
         packageCurationProviders.map { it.mapToApi() },
         packageManagerOptions?.mapValues { it.value.mapToApi() },
+        repositoryConfigPath,
         skipExcluded
     )
 
@@ -153,6 +154,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         environmentConfig?.mapToModel(),
         packageCurationProviders.map { it.mapToModel() },
         packageManagerOptions?.mapValues { it.value.mapToModel() },
+        repositoryConfigPath,
         skipExcluded
     )
 
