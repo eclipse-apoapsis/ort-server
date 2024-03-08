@@ -56,7 +56,10 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
+    testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.transport.transportSpi))
+    testImplementation(testFixtures(projects.workers.common))
 }
 
 jib {
