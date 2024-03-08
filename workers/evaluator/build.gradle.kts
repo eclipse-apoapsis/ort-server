@@ -48,6 +48,7 @@ dependencies {
     runtimeOnly(projects.config.github)
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.storage.database)
+    runtimeOnly(projects.storage.s3)
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.kubernetes)
     runtimeOnly(projects.transport.rabbitmq)
