@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.models.V1Job
@@ -36,97 +36,121 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-class FailedJobNotifierTest : StringSpec({
-    "A message about a failed job is sent to the Orchestrator" {
-        val sender = mockk<MessageSender<OrchestratorMessage>>()
-        every { sender.send(any()) } just runs
+class FailedJobNotifierTest : WordSpec({
+    "sendFailedJobNotification" should {
+        "send a failure message to the Orchestrator" {
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
+            every { sender.send(any()) } just runs
 
-        val meta = V1ObjectMeta().apply {
-            name = "analyzer-plus-some-suffix"
-            labels = mapOf(
-                "trace-id-0" to "trace1_",
-                "trace-id-1" to "trace2_",
-                "trace-id-2" to "trace3",
-                "run-id" to "1234"
-            )
+            val meta = V1ObjectMeta().apply {
+                name = "analyzer-plus-some-suffix"
+                labels = mapOf(
+                    "trace-id-0" to "trace1_",
+                    "trace-id-1" to "trace2_",
+                    "trace-id-2" to "trace3",
+                    "run-id" to "1234"
+                )
+            }
+
+            val job = V1Job().apply {
+                metadata = meta
+            }
+
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendFailedJobNotification(job)
+
+            val slot = slot<Message<OrchestratorMessage>>()
+            verify {
+                sender.send(capture(slot))
+            }
+
+            with(slot.captured) {
+                header.traceId shouldBe "trace1_trace2_trace3"
+                header.ortRunId shouldBe 1234
+                payload shouldBe WorkerError("analyzer")
+            }
         }
 
-        val job = V1Job().apply {
-            metadata = meta
+        "ignore a job without a name in metadata" {
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
+
+            val meta = V1ObjectMeta().apply {
+                labels = mapOf("trace-id-0" to "someTraceId")
+            }
+
+            val job = V1Job().apply {
+                metadata = meta
+            }
+
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendFailedJobNotification(job)
+
+            verify(exactly = 0) {
+                sender.send(any())
+            }
         }
 
-        val notifier = FailedJobNotifier(sender)
-        notifier.sendFailedJobNotification(job)
+        "ignore a job without a trace ID in metadata" {
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
 
-        val slot = slot<Message<OrchestratorMessage>>()
-        verify {
-            sender.send(capture(slot))
+            val meta = V1ObjectMeta().apply {
+                name = "advisor-someFailedJob"
+                labels = mapOf("run-id" to "1")
+            }
+
+            val job = V1Job().apply {
+                metadata = meta
+            }
+
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendFailedJobNotification(job)
+
+            verify(exactly = 0) {
+                sender.send(any())
+            }
         }
 
-        with(slot.captured) {
-            header.traceId shouldBe "trace1_trace2_trace3"
-            header.ortRunId shouldBe 1234
-            payload shouldBe WorkerError("analyzer")
+        "ignore a job without an ORT run ID in metadata" {
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
+
+            val meta = V1ObjectMeta().apply {
+                name = "advisor-someFailedJob"
+                labels = mapOf("trace-id-0" to "someTraceId")
+            }
+
+            val job = V1Job().apply {
+                metadata = meta
+            }
+
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendFailedJobNotification(job)
+
+            verify(exactly = 0) {
+                sender.send(any())
+            }
         }
     }
 
-    "A job without a name in metadata is ignored" {
-        val sender = mockk<MessageSender<OrchestratorMessage>>()
+    "sendLostJobNotification" should {
+        "send a notification about a lost job" {
+            val ortRunId = 20240315155611L
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
+            every { sender.send(any()) } just runs
 
-        val meta = V1ObjectMeta().apply {
-            labels = mapOf("trace-id-0" to "someTraceId")
-        }
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendLostJobNotification(ortRunId, ScannerEndpoint)
 
-        val job = V1Job().apply {
-            metadata = meta
-        }
+            val slot = slot<Message<OrchestratorMessage>>()
+            verify {
+                sender.send(capture(slot))
+            }
 
-        val notifier = FailedJobNotifier(sender)
-        notifier.sendFailedJobNotification(job)
-
-        verify(exactly = 0) {
-            sender.send(any())
-        }
-    }
-
-    "A job without a trace ID in metadata is ignored" {
-        val sender = mockk<MessageSender<OrchestratorMessage>>()
-
-        val meta = V1ObjectMeta().apply {
-            name = "advisor-someFailedJob"
-            labels = mapOf("run-id" to "1")
-        }
-
-        val job = V1Job().apply {
-            metadata = meta
-        }
-
-        val notifier = FailedJobNotifier(sender)
-        notifier.sendFailedJobNotification(job)
-
-        verify(exactly = 0) {
-            sender.send(any())
-        }
-    }
-
-    "A job without an ORT run ID in metadata is ignored" {
-        val sender = mockk<MessageSender<OrchestratorMessage>>()
-
-        val meta = V1ObjectMeta().apply {
-            name = "advisor-someFailedJob"
-            labels = mapOf("trace-id-0" to "someTraceId")
-        }
-
-        val job = V1Job().apply {
-            metadata = meta
-        }
-
-        val notifier = FailedJobNotifier(sender)
-        notifier.sendFailedJobNotification(job)
-
-        verify(exactly = 0) {
-            sender.send(any())
+            with(slot.captured) {
+                header.ortRunId shouldBe ortRunId
+                payload shouldBe WorkerError("scanner")
+            }
         }
     }
 })
