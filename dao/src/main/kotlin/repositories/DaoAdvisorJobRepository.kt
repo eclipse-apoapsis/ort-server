@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.and
 
 class DaoAdvisorJobRepository(private val db: Database) : AdvisorJobRepository {
     override fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob = db.blockingQuery {
@@ -64,6 +65,13 @@ class DaoAdvisorJobRepository(private val db: Database) : AdvisorJobRepository {
         status.ifPresent { advisorJob.status = it }
 
         AdvisorJobDao[id].mapToModel()
+    }
+
+    override fun listActive(before: Instant?): List<AdvisorJob> = db.blockingQuery {
+        AdvisorJobDao.find {
+            val opFinished = AdvisorJobsTable.finishedAt eq null
+            before?.let { opFinished and (AdvisorJobsTable.createdAt lessEq it) } ?: opFinished
+        }.map { it.mapToModel() }
     }
 
     override fun delete(id: Long) = db.blockingQuery { AdvisorJobDao[id].delete() }

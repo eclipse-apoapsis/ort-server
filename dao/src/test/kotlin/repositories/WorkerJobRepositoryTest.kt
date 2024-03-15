@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -148,6 +150,41 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
             shouldThrow<IllegalArgumentException> {
                 getJobRepository().tryComplete(-1, Clock.System.now(), JobStatus.FAILED)
             }
+        }
+
+        "listActive should return an active job" {
+            val job = createJob()
+
+            val activeJobs = getJobRepository().listActive()
+
+            activeJobs shouldContainExactly listOf(job)
+        }
+
+        "listActive should not return a completed job" {
+            val job = createJob()
+            getJobRepository().complete(job.id, Clock.System.now(), JobStatus.FINISHED)
+
+            val activeJobs = getJobRepository().listActive()
+
+            activeJobs should beEmpty()
+        }
+
+        "listActive should return an active job before a given reference date" {
+            val job = createJob()
+            val referenceDate = job.createdAt.plus(1.seconds)
+
+            val activeJobs = getJobRepository().listActive(referenceDate)
+
+            activeJobs shouldContainExactly listOf(job)
+        }
+
+        "listActive should not return an active job after a given reference date" {
+            val job = createJob()
+            val referenceDate = job.createdAt.minus(1.seconds)
+
+            val activeJobs = getJobRepository().listActive(referenceDate)
+
+            activeJobs should beEmpty()
         }
     }
 }
