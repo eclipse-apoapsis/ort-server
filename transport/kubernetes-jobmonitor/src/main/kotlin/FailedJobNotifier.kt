@@ -23,6 +23,7 @@ import io.kubernetes.client.openapi.models.V1Job
 
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
@@ -52,14 +53,32 @@ internal class FailedJobNotifier(
                 val header = MessageHeader(token = "", traceId = traceId, ortRunId)
                 val message = Message(header, WorkerError(endpointName))
 
-                log.info(
-                    "Sending '${message.payload::class.simpleName}' message " +
-                            "to '${OrchestratorEndpoint::class.simpleName}'. " +
-                            "TraceID: '${message.header.traceId}'."
-                )
-
-                sender.send(message)
+                sendToOrchestrator(message)
             }
         }
+    }
+
+    /**
+     * Send a notification about a lost job for the given [ortRunId] and [endpoint]. This is used to notify the
+     * Orchestrator about jobs that disappeared in Kubernetes.
+     */
+    fun sendLostJobNotification(ortRunId: Long, endpoint: Endpoint<*>) {
+        val header = MessageHeader(token = "", traceId = "", ortRunId)
+        val message = Message(header, WorkerError(endpoint.configPrefix))
+
+        sendToOrchestrator(message)
+    }
+
+    /**
+     * Send the given [message] to the Orchestrator via the configured [MessageSender].
+     */
+    private fun sendToOrchestrator(message: Message<OrchestratorMessage>) {
+        log.info(
+            "Sending '${message.payload::class.simpleName}' message " +
+                    "to '${OrchestratorEndpoint::class.simpleName}'. " +
+                    "TraceID: '${message.header.traceId}'."
+        )
+
+        sender.send(message)
     }
 }
