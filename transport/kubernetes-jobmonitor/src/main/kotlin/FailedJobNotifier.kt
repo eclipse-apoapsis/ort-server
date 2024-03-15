@@ -27,16 +27,12 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.traceId
 
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FailedJobNotifier::class.java)
-
-/** A prefix for the name of a label storing a part of the trace ID. */
-private const val TRACE_LABEL_PREFIX = "trace-id-"
-
-/** The label which stores the ORT run ID. */
-private const val RUN_ID_LABEL = "run-id"
 
 /**
  * A helper class that sends a message to the Orchestrator about a failed job. The content of this message is extracted
@@ -49,11 +45,8 @@ internal class FailedJobNotifier(
     fun sendFailedJobNotification(job: V1Job) {
         val endpointName = job.metadata?.name?.substringBefore('-')
         if (endpointName != null) {
-            val labels = job.metadata?.labels.orEmpty()
-            val traceLabels = labels.filterKeys { it.startsWith(TRACE_LABEL_PREFIX) }.toList()
-                .sortedBy { it.first.substringAfter(TRACE_LABEL_PREFIX).toInt() }
-            val traceId = traceLabels.fold("") { id, label -> "$id${label.second}" }
-            val ortRunId = labels[RUN_ID_LABEL]?.toLong()
+            val traceId = job.traceId()
+            val ortRunId = job.ortRunId
 
             if (traceId.isNotEmpty() && ortRunId != null) {
                 val header = MessageHeader(token = "", traceId = traceId, ortRunId)

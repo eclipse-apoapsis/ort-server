@@ -73,6 +73,12 @@ internal class JobHandler(
         /** A set with the condition types that indicate that a job is completed. */
         private val COMPLETED_CONDITIONS = setOf(COMPLETE_CONDITION, FAILED_CONDITION)
 
+        /** The label which stores the ORT run ID. */
+        private const val RUN_ID_LABEL = "run-id"
+
+        /** A prefix for the name of a label storing a part of the trace ID. */
+        private const val TRACE_LABEL_PREFIX = "trace-id-"
+
         /**
          * Return a flag whether this job has failed. For jobs that are still running the result is *false*.
          */
@@ -85,6 +91,23 @@ internal class JobHandler(
         fun V1Job.isCompleted(): Boolean =
             status?.completionTime != null ||
                     status?.conditions.orEmpty().any { it.type in COMPLETED_CONDITIONS }
+
+        /**
+         * Obtain the ID of the ORT run from this job from the label used for this purpose. If the label is not set,
+         * return *null*.
+         */
+        val V1Job.ortRunId: Long?
+            get() = metadata?.labels?.get(RUN_ID_LABEL)?.toLongOrNull()
+
+        /**
+         * Return the trace ID from this job for the labels used for this purpose.
+         */
+        fun V1Job.traceId(): String {
+            val labels = metadata?.labels.orEmpty()
+            val traceLabels = labels.filterKeys { it.startsWith(TRACE_LABEL_PREFIX) }.toList()
+                .sortedBy { it.first.substringAfter(TRACE_LABEL_PREFIX).toInt() }
+            return traceLabels.fold("") { id, label -> "$id${label.second}" }
+        }
 
         /**
          * Return a flag whether this job has completed before the given [time]. Note that a completion time is only
