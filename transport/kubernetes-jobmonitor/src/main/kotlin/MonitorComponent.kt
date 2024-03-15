@@ -99,7 +99,7 @@ internal class MonitorComponent(
     /**
      * Return a [Module] with the components used by this application.
      */
-    private fun monitoringModule(): Module {
+    internal fun monitoringModule(): Module {
         val namespace = configManager.getString(NAMESPACE_PROPERTY)
 
         return module {
