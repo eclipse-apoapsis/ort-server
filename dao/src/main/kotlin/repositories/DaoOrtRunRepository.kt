@@ -95,6 +95,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus>,
+        jobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigContext: OptionalValue<String?>,
         issues: OptionalValue<Collection<OrtIssue>>,
@@ -109,6 +110,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
                 ortRun.finishedAt = Clock.System.now().toDatabasePrecision()
             }
         }
+
+        jobConfigs.ifPresent { ortRun.jobConfigs = it }
 
         resolvedJobConfigs.ifPresent { ortRun.resolvedJobConfigs = it }
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }

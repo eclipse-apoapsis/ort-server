@@ -165,6 +165,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
         val updateResult = ortRunRepository.update(
             ortRun.id,
             updateStatus,
+            jobConfigurations.asPresent(),
             resolvedJobConfigurations.asPresent(),
             resolvedContext.asPresent(),
             listOf(issue2, issue3).asPresent(),
