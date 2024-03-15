@@ -34,6 +34,8 @@ dependencies {
 
     implementation(libs.ktorKotlinxSerialization)
 
+    testImplementation(projects.utils.test)
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
 }

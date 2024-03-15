@@ -38,6 +38,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(projects.dao))
+    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
