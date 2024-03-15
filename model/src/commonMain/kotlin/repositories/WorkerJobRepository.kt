@@ -91,6 +91,15 @@ interface WorkerJobRepository<T : WorkerJob> {
     fun tryComplete(id: Long, finishedAt: Instant, status: JobStatus): T? =
         if (getStatus(id) !in completedJobStates) complete(id, finishedAt, status) else null
 
+    /**
+     * Return a list with all jobs managed by this repository that have not yet been finished. Optionally, a
+     * [date][before] can be specified; then only jobs created before this timestamp are returned. This can be used
+     * for instance to find jobs that are running for a longer time. If unspecified, all active jobs are returned.
+     * A job is considered active if it does not have a finished timestamp. Note that the [JobStatus] is not taken
+     * into account here, since the finished timestamp is always set together with a completed status.
+     */
+    fun listActive(before: Instant? = null): List<T>
+
     /** Return the status of a job by [id] or throw an [IllegalArgumentException] if the job is not found. */
     private fun getStatus(id: Long): JobStatus =
         requireNotNull(get(id)?.status) { "${javaClass.simpleName}: Job '$id' not found." }
