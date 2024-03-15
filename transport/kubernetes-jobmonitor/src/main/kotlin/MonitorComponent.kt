@@ -28,7 +28,6 @@ import io.kubernetes.client.util.ClientBuilder
 import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -84,9 +83,9 @@ internal class MonitorComponent(
         if (configManager.getBoolean(REAPER_ENABLED_PROPERTY)) {
             logger.info("Starting Reaper component.")
 
-            val ticker = tickerFlow(configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds)
+            val scheduler by inject<Scheduler>()
             val reaper by inject<Reaper>()
-            launch { reaper.run(ticker) }
+            reaper.run(scheduler, configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds)
         }
 
         if (configManager.getBoolean(WATCHING_ENABLED_PROPERTY)) {
@@ -110,6 +109,7 @@ internal class MonitorComponent(
 
             single { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
+            single { Scheduler() }
             single { JobWatchHelper.create(get(), namespace) }
             single { JobHandler(get(), get(), get(), namespace) }
             single { FailedJobNotifier(get()) }
