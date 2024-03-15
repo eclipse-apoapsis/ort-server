@@ -46,7 +46,6 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -154,18 +153,21 @@ class MonitorComponentTest : KoinTest, StringSpec() {
         }
 
         "The reaper component is started" {
-            val singleTickFlow = listOf(Unit).asFlow()
-            mockkStatic(::tickerFlow)
-            every { tickerFlow(REAPER_INTERVAL.seconds) } returns singleTickFlow
-
             runComponentTest(enableWatching = false) { component ->
                 val handler = declareMock<JobHandler> {
                     every { findJobsCompletedBefore(any()) } returns emptyList()
                 }
 
+                val scheduler = declareMock<Scheduler> {
+                    initSchedulerMock(this)
+                }
+
                 component.start()
 
-                verify(timeout = 3000) {
+                val reaperAction = fetchScheduledAction(scheduler, REAPER_INTERVAL.seconds)
+                reaperAction()
+
+                verify {
                     handler.findJobsCompletedBefore(any())
                 }
             }

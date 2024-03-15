@@ -47,8 +47,6 @@ import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -62,6 +60,9 @@ import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler
 
 /** Constant for the maximum age of a job before it gets deleted. */
 private val maxJobAge = 10.minutes
+
+/** The interval how frequently the reaper should run. */
+private val reaperInterval = 7.minutes
 
 class ReaperTest : WordSpec({
     beforeSpec {
@@ -87,7 +88,9 @@ class ReaperTest : WordSpec({
             every { jobHandler.findJobsCompletedBefore(any()) } returns emptyList()
 
             val reaper = Reaper(jobHandler, maxJobAge, clock, zoneOffset)
-            reaper.run(tickFlow(2))
+            val helper = SchedulerTestHelper()
+            reaper.run(helper.scheduler, reaperInterval)
+            helper.expectSchedule(reaperInterval).triggerAction(times = 2)
 
             verify {
                 jobHandler.findJobsCompletedBefore(
@@ -126,7 +129,9 @@ class ReaperTest : WordSpec({
             }
 
             val reaper = Reaper(jobHandler, maxJobAge)
-            reaper.run(tickFlow(1))
+            val helper = SchedulerTestHelper()
+            reaper.run(helper.scheduler, reaperInterval)
+            helper.expectSchedule(reaperInterval).triggerAction()
 
             jobs.forAll { job ->
                 coVerify {
@@ -165,12 +170,6 @@ class ReaperTest : WordSpec({
         }
     }
 })
-
-/**
- * Generate a flow simulating ticks with the given [number of elements][count].
- */
-private fun tickFlow(count: Int): Flow<Unit> =
-    (1..count).asFlow().map { }
 
 /**
  * Create a job with the given [failure status][failed].

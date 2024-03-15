@@ -27,9 +27,7 @@ import kotlin.time.Duration
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Clock
 
 import org.slf4j.LoggerFactory
@@ -59,11 +57,10 @@ internal class Reaper(
     }
 
     /**
-     * Run reaper jobs periodically using the provided [tickFlow] as timer. On each element received from the flow, a
-     * check of completed jobs is done.
+     * Run reaper jobs periodically in the given [interval] using the provided [scheduler].
      */
-    suspend fun run(tickFlow: Flow<Unit>) {
-        tickFlow.onEach { reap() }.collect()
+    fun run(scheduler: Scheduler, interval: Duration) {
+        scheduler.schedule(interval) { reap() }
     }
 
     /**
