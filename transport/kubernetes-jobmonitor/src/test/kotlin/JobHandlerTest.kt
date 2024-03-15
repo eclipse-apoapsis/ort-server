@@ -51,6 +51,7 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
 
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
@@ -372,6 +373,38 @@ class JobHandlerTest : WordSpec({
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
             jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2, matchJob3)
+        }
+    }
+
+    "findJobsForWorker" should {
+        "return a list of jobs for the given worker" {
+            val job1 = createJob("job1")
+            val job2 = createJob("job2")
+
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val jobList = V1JobList().apply { items = listOf(job1, job2) }
+            every {
+                jobApi.listNamespacedJob(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    "metadata.name=analyzer-*",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            } returns jobList
+
+            val handler = createJobHandler(jobApi, coreApi)
+            val jobs = handler.findJobsForWorker(AnalyzerEndpoint)
+
+            jobs shouldContainExactlyInAnyOrder listOf(job1, job2)
         }
     }
 
