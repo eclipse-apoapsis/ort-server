@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -42,25 +43,33 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import java.time.ZoneOffset
+
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
+import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
+import org.koin.test.verify.verify
 
 private const val NAMESPACE = "test-namespace"
 private const val REAPER_INTERVAL = 654321
 
+@OptIn(KoinExperimentalAPI::class)
 class MonitorComponentTest : KoinTest, StringSpec() {
     init {
         beforeSpec {
@@ -74,6 +83,16 @@ class MonitorComponentTest : KoinTest, StringSpec() {
 
         afterSpec {
             unmockkAll()
+        }
+
+        "The DI configuration is correct" {
+            runComponentTest { component ->
+                component.monitoringModule()
+                    .verify(extraTypes = listOf(Duration::class, Clock::class, ZoneOffset::class))
+
+                val scheduler by inject<Scheduler>()
+                scheduler.shouldNotBeNull()
+            }
         }
 
         "The watcher component is started" {
