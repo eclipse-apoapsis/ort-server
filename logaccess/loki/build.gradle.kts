@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(testFixtures(projects.logaccess.logaccessSpi))
+    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

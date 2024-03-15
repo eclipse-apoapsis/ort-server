@@ -38,6 +38,8 @@ dependencies {
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
+    testImplementation(projects.utils.test)
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
