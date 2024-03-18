@@ -95,11 +95,12 @@ fun createDataSource(config: DatabaseConfig): DataSource {
 
 /**
  * Return a Koin [Module] that sets up a database connection based on the current application configuration.
+ * Depending on the [startEager] parameter, the database connection is established either eagerly or lazily.
  */
-fun databaseModule(): Module = module {
+fun databaseModule(startEager: Boolean = true): Module = module {
     single { DatabaseConfig.create(get()) }
 
-    single(createdAtStart = true) { createDataSource(get()).connect() }
+    single(createdAtStart = startEager) { createDataSource(get()).connect() }
 }
 
 /**
