@@ -162,7 +162,6 @@ subprojects {
 
         kotlinOptions {
             allWarningsAsErrors = true
-            apiVersion = "1.8"
         }
     }
 
