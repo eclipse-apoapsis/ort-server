@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
@@ -52,11 +53,27 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.model.AdvisorJob
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
+
+import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.context.stopKoin
@@ -68,6 +85,8 @@ import org.koin.test.verify.verify
 
 private const val NAMESPACE = "test-namespace"
 private const val REAPER_INTERVAL = 654321
+private const val LOST_JOBS_INTERVAL = 123456
+private const val LOST_JOBS_MIN_AGE = 33
 
 @OptIn(KoinExperimentalAPI::class)
 class MonitorComponentTest : KoinTest, StringSpec() {
@@ -88,7 +107,16 @@ class MonitorComponentTest : KoinTest, StringSpec() {
         "The DI configuration is correct" {
             runComponentTest { component ->
                 component.monitoringModule()
-                    .verify(extraTypes = listOf(Duration::class, Clock::class, ZoneOffset::class))
+                    .verify(
+                        extraTypes = listOf(
+                            Boolean::class,
+                            Config::class,
+                            Duration::class,
+                            Function0::class,
+                            Function1::class,
+                            ZoneOffset::class,
+                        )
+                    )
 
                 val scheduler by inject<Scheduler>()
                 scheduler.shouldNotBeNull()
@@ -100,7 +128,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
             val traceId = "test-trace-id"
             val runId = 27L
 
-            runComponentTest(enableReaper = false) { component ->
+            runComponentTest(enableWatching = true) { component ->
                 declareMock<BatchV1Api> {
                     every { apiClient } returns mockk(relaxed = true)
                     every {
@@ -172,7 +200,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
         }
 
         "The reaper component is started" {
-            runComponentTest(enableWatching = false) { component ->
+            runComponentTest(enableReaper = true) { component ->
                 val handler = declareMock<JobHandler> {
                     every { findJobsCompletedBefore(any()) } returns emptyList()
                 }
@@ -191,23 +219,61 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 }
             }
         }
+
+        "The lost jobs finder component is started" {
+            runComponentTest(enableLostJobs = true) { component ->
+                val handler = declareMock<JobHandler> {
+                    every { findJobsForWorker(any()) } returns emptyList()
+                }
+
+                val analyzerJobRepo = declareRepositoryMock<AnalyzerJob, AnalyzerJobRepository>()
+                declareRepositoryMock<AdvisorJob, AdvisorJobRepository>()
+                declareRepositoryMock<ScannerJob, ScannerJobRepository>()
+                declareRepositoryMock<EvaluatorJob, EvaluatorJobRepository>()
+                declareRepositoryMock<ReporterJob, ReporterJobRepository>()
+
+                val scheduler = declareMock<Scheduler> {
+                    initSchedulerMock(this)
+                }
+
+                val referenceTime = Instant.parse("2024-03-18T10:04:42Z")
+                declareMock<Clock> {
+                    every { now() } returns referenceTime
+                }
+
+                component.start()
+
+                val lostJobsFinderAction = fetchScheduledAction(scheduler, LOST_JOBS_INTERVAL.seconds)
+                lostJobsFinderAction()
+
+                verify {
+                    handler.findJobsForWorker(AnalyzerEndpoint)
+                    analyzerJobRepo.listActive(referenceTime.minus(LOST_JOBS_MIN_AGE.seconds))
+                }
+            }
+        }
     }
 
     /**
      * Run a test on a test instance of [MonitorComponent] that executes the given [block]. In the configuration, set
-     * the flags to enable [watching][enableWatching] and [the reaper][enableReaper].
+     * the flags to enable [watching][enableWatching], [the reaper][enableReaper], and
+     * [lost job detection][enableLostJobs].
      */
     private suspend fun runComponentTest(
-        enableWatching: Boolean = true,
-        enableReaper: Boolean = true,
+        enableWatching: Boolean = false,
+        enableReaper: Boolean = false,
+        enableLostJobs: Boolean = false,
         block: suspend (MonitorComponent) -> Unit
     ) {
         val environment = mapOf(
             "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
             "MONITOR_NAMESPACE" to NAMESPACE,
             "MONITOR_REAPER_INTERVAL" to REAPER_INTERVAL.toString(),
+            "MONITOR_LOST_JOBS_INTERVAL" to LOST_JOBS_INTERVAL.toString(),
+            "MONITOR_LOST_JOBS_MIN_AGE" to LOST_JOBS_MIN_AGE.toString(),
             "MONITOR_WATCHING_ENABLED" to enableWatching.toString(),
-            "MONITOR_REAPER_ENABLED" to enableReaper.toString()
+            "MONITOR_REAPER_ENABLED" to enableReaper.toString(),
+            "MONITOR_LOST_JOBS_ENABLED" to enableLostJobs.toString()
         )
 
         withEnvironment(environment) {
@@ -217,7 +283,16 @@ class MonitorComponentTest : KoinTest, StringSpec() {
 
             MockProvider.register { mockkClass(it) }
 
+            declareMock<Database>()
             block(monitoringComponent)
         }
     }
+
+    /**
+     * Create a mock for a [WorkerJobRepository] of a given type that is prepared to expect a query for active jobs.
+     */
+    private inline fun <J : WorkerJob, reified R : WorkerJobRepository<J>> declareRepositoryMock(): R =
+        declareMock<R> {
+            every { listActive(any()) } returns emptyList()
+        }
 }

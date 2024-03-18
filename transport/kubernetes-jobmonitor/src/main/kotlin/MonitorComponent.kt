@@ -29,8 +29,20 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
@@ -61,18 +73,27 @@ internal class MonitorComponent(
         /** The configuration property defining the interval in which the reaper runs. */
         private const val REAPER_INTERVAL_PROPERTY = "$CONFIG_PREFIX.reaperInterval"
 
+        /** The configuration property defining the interval in which the lost jobs detection should run. */
+        private const val LOST_JOBS_INTERVAL_PROPERTY = "$CONFIG_PREFIX.lostJobsInterval"
+
+        /** The configuration property defining the minimum age of a job (in seconds) to be considered lost. */
+        private const val LOST_JOBS_MIN_AGE_PROPERTY = "$CONFIG_PREFIX.lostJobsMinAge"
+
         /** The configuration property to enable or disable the watching component. */
         private const val WATCHING_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableWatching"
 
         /** The configuration property to enable or disable the Reaper component. */
         private const val REAPER_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableReaper"
 
+        /** The configuration property to enable or disable the detection of lost jobs. */
+        private const val LOST_JOBS_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableLostJobs"
+
         private val logger = LoggerFactory.getLogger(MonitorComponent::class.java)
     }
 
     init {
         startKoin {
-            modules(monitoringModule())
+            modules(databaseModule(startEager = false), monitoringModule())
         }
     }
 
@@ -86,6 +107,14 @@ internal class MonitorComponent(
             val scheduler by inject<Scheduler>()
             val reaper by inject<Reaper>()
             reaper.run(scheduler, configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds)
+        }
+
+        if (configManager.getBoolean(LOST_JOBS_ENABLED_PROPERTY)) {
+            logger.info("Starting lost jobs detection component.")
+
+            val scheduler by inject<Scheduler>()
+            val lostJobsFinder by inject<LostJobsFinder>()
+            lostJobsFinder.run(scheduler, configManager.getInt(LOST_JOBS_INTERVAL_PROPERTY).seconds)
         }
 
         if (configManager.getBoolean(WATCHING_ENABLED_PROPERTY)) {
@@ -103,11 +132,19 @@ internal class MonitorComponent(
         val namespace = configManager.getString(NAMESPACE_PROPERTY)
 
         return module {
+            single<Clock> { Clock.System }
+            single { configManager }
             single { ClientBuilder.defaultClient() }
             single { BatchV1Api(get()) }
             single { CoreV1Api(get()) }
 
             single { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
+
+            single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+            single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+            single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+            single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+            single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
 
             single { Scheduler() }
             single { JobWatchHelper.create(get(), namespace) }
@@ -115,6 +152,19 @@ internal class MonitorComponent(
             single { FailedJobNotifier(get()) }
             singleOf(::JobMonitor)
             single { Reaper(get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
+            single {
+                LostJobsFinder(
+                    get(),
+                    get(),
+                    configManager.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
+                    get(),
+                    get(),
+                    get(),
+                    get(),
+                    get(),
+                    get()
+                )
+            }
         }
     }
 }
