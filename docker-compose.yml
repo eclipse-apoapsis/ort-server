@@ -185,11 +185,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres:5432"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_RECEIVER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -230,11 +231,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -255,11 +257,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -280,11 +283,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -305,11 +309,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -330,11 +335,12 @@ services:
         condition: service_healthy
     environment:
       DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
