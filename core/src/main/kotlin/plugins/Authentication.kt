@@ -31,6 +31,8 @@ import io.ktor.server.config.ApplicationConfig
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
+import kotlin.time.measureTimedValue
+
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
@@ -65,9 +67,15 @@ fun Application.configureAuthentication() {
 
             validate { credential ->
                 credential.payload.takeIf(this@configureAuthentication::validateJwtPayload)?.let { payload ->
-                    val roles = runCatching {
-                        keycloakClient.getUserClientRoles(UserId(payload.subject))
-                            .mapTo(mutableSetOf()) { it.name.value }
+                    val (result, duration) = measureTimedValue {
+                        runCatching {
+                            keycloakClient.getUserClientRoles(UserId(payload.subject))
+                                .mapTo(mutableSetOf()) { it.name.value }
+                        }
+                    }
+
+                    val roles = result.onSuccess {
+                        logger.debug("Loaded ${it.size} Keycloak roles for '${payload.subject}' in $duration.")
                     }.onFailure {
                         logger.error("Failed to load Keycloak roles for '${payload.subject}'.", it)
                     }.getOrThrow()
