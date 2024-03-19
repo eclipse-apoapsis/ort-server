@@ -93,24 +93,3 @@ fine-tune the time completed jobs are kept.
 
 In addition to these options, the configuration must contain a section defining the link:../README.adoc[transport]
 for sending notifications to the Orchestrator.
-
-== Open Points
-In the current state of the implementation, the information the Job Monitor component sends to the Orchestrator when it
-detects a failed job is limited. This is due to the fact that from a failed job not much information about the
-associated ORT task is available. Especially, there is no way currently to determine the job ID or the ORT run ID,
-which would both be particularly helpful for the Orchestrator. Instead, messages sent to the Orchestrator only contain
-the name of the worker endpoint (analyzer, advisor, ...) and the trace ID, which can both be obtained from labels
-assigned to the job.
-
-There are multiple solutions to deal with this shortcoming:
-
-* The Orchestrator could store the trace ID together with the ORT run in the database. It is then able to map it back
-  to the affected run. This could be useful in general, since it would simplify log analysis for specific ORT runs.
-* The trace ID could be derived somehow from the ORT run ID - after all, it just has to be unique. So it would be
-  possible to compute the ORT run ID again based on the trace ID.
-* Since all worker jobs are passed an ID parameter, it could be an option to expose this ID in a special way in the
-  corresponding messages, e.g. by defining an interface to be implemented or by using a special message header field.
-  Then the Kubernetes transport implementation would be able to extract this ID and store it in a specific label,
-  which can be queried again by the Job Monitor component.
-
-Other than that, the implementation should be production-ready.
