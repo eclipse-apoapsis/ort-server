@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import javax.naming.OperationNotSupportedException
-
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
@@ -81,12 +79,7 @@ class OrtServerScanResultStorage(
     private val db: Database,
     private val scannerRunId: Long
 ) : ProvenanceBasedScanStorage {
-    override fun read(provenance: KnownProvenance): List<ScanResult> {
-        // This function is never used by ORT itself, it is only used by some helper-cli commands.
-        throw OperationNotSupportedException()
-    }
-
-    override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher): List<ScanResult> =
+    override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher?): List<ScanResult> =
         db.blockingQuery {
             val scanResultDaos = when (provenance) {
                 is ArtifactProvenance -> {
@@ -111,7 +104,7 @@ class OrtServerScanResultStorage(
                     summary = it.scanSummary.mapToOrt(),
                     additionalData = it.additionalScanResultData?.data ?: emptyMap()
                 )
-            }.filterValues { scannerMatcher.matches(it.scanner) }
+            }.filterValues { scannerMatcher?.matches(it.scanner) != false }
 
             matchingScanResults.forEach { (dao, _) ->
                 associateScanResultWithScannerRun(dao)
