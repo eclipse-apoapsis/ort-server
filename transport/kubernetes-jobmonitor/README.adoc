@@ -17,7 +17,7 @@ sending corresponding notifications to the Orchestrator. With this in place, it 
 always notified about the outcome of a job it has triggered.
 
 == Functionality
-For the detection of failed jobs, the Job Monitor component actually implements two strategies:
+For the detection of failed jobs, the Job Monitor component actually implements multiple strategies:
 
 * It uses the https://kubernetes.io/docs/reference/using-api/api-concepts/#efficient-detection-of-changes[Kubernetes Watch API]
   to receive notifications about changes in the current state of jobs. Based on such change events, it can detect
@@ -30,6 +30,7 @@ For the detection of failed jobs, the Job Monitor component actually implements 
   ** Based on the job list, it is possible to remove completed jobs and their associated pods. This is not done
     out-of-the-box by Kubernetes; so the set of completed jobs would permanently grow. Therefore, the monitor component
     does an automatic cleanup of older jobs.
+* Practice has shown that the strategies described so far are still not sufficient to handle all potential failure scenarios: It is possible - probably related to certain infrastructure failures - that Kubernetes jobs simply disappear without a notification being received via the watch API. This effect can also be achieved by simply killing a job via a `kubectl delete job` command. Then also the safety net with listing the existing jobs and checking for failures does not help, since the affected jobs no longer exist. The ORT run owning the job would then never be marked as completed. Therefore, there is another component referred to as _lost jobs finder_, which basically does a periodic sync between the jobs that should be active according to the ORT Server database and the actual jobs running on Kubernetes. If this component detects jobs that are expected to be active on Kubernetes, but are missing, it notifies the Orchestrator about them, which can then act accordingly.
 
 == Configuration
 Some aspects of the component can be configured in the module's configuration file or via environment variables. The
@@ -43,6 +44,9 @@ jobMonitor {
   enableWatching = true
   enableReaper = true
   reaperInterval = 600
+  enableLostJobs = true
+  lostJobsInterval = 120
+  lostJobsMinAge = 30
 }
 ----
 
@@ -73,6 +77,18 @@ active. Again, it can be useful to disable this part to diagnose problems with f
 | MONITOR_REAPER_INTERVAL
 | The interval in which the periodic scans for completed and failed jobs are done (in seconds). This can be used to
 fine-tune the time completed jobs are kept.
+
+|enableLostJobs
+|MONITOR_LOST_JOBS_ENABLED
+|A flag that controls whether the lost jobs finder component is enabled. If this component is active, a valid database configuration must be provided as well.
+
+|lostJobsInterval
+|MONITOR_LOST_JOBS_INTERVAL
+|The interval in which the lost jobs finder component executes its checks (in seconds). Since a check requires some database queries, a balance has to be found between the load on the system caused by this and the delay of notifications sent to the Orchestrator. As the scenario of lost jobs should be rather rare, a longer interval is probably acceptable.
+
+|lostJobsMinAge
+|MONITOR_LOST_JOBS_MIN_AGE
+|The minimum age of a job (in seconds) to be taken into account by the lost jobs finder component. This setting addresses potential race conditions that might be caused by delays between creating an entry in the database and starting the corresponding job in Kubernetes; in an extreme case, a job would be considered as lost before it even started on Kubernetes.
 |===
 
 In addition to these options, the configuration must contain a section defining the link:../README.adoc[transport]
