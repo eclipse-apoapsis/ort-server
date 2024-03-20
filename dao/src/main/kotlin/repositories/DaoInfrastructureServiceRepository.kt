@@ -187,6 +187,12 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         }
     }
 
+    override fun listForSecret(secretId: Long): List<InfrastructureService> =
+        listBlocking(ListQueryParameters.DEFAULT) {
+            InfrastructureServicesTable.usernameSecretId eq secretId or
+                    (InfrastructureServicesTable.passwordSecretId eq secretId)
+        }
+
     /**
      * Helper function to list all services that match a specific [expression][op] according to the given [parameters]
      * in a blocking query.

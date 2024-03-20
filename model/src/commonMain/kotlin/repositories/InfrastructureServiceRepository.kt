@@ -138,4 +138,9 @@ interface InfrastructureServiceRepository {
      * Note: If [repositoryUrl] is not a valid URL, an exception is thrown.
      */
     fun listForRepositoryUrl(repositoryUrl: String, organizationId: Long, productId: Long): List<InfrastructureService>
+
+    /**
+     * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].
+     */
+    fun listForSecret(secretId: Long): List<InfrastructureService>
 }
