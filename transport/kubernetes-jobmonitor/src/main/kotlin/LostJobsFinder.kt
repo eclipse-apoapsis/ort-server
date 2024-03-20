@@ -121,6 +121,13 @@ internal class LostJobsFinder(
 
         val kubeJobs = jobHandler.findJobsForWorker(endpoint).associateBy { it.ortRunId }
 
+        logger.debug(
+            "Found {} active Kubernetes jobs for {}: {}",
+            kubeJobs.size,
+            endpoint.configPrefix,
+            kubeJobs.values.map { it.metadata?.name }
+        )
+
         val lostJobs = jobRepository.listActive(currentTime - minJobAge)
             .filterNot { it.ortRunId in kubeJobs }
 
