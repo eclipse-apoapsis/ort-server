@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainOnly
@@ -529,6 +530,31 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                         fixtures.product.id
                     )
                 }
+            }
+        }
+
+        "listForSecret" should {
+            "return all services using the secret" {
+                val service1 = createInfrastructureService()
+                val service2 = createInfrastructureService(name = "OtherRepositoryService")
+
+                val otherSecret = secretRepository.create("p3", "otherUser", null, fixtures.organization.id, null, null)
+
+                val service3 = createInfrastructureService(
+                    name = "NotIncludedService",
+                    usernameSecret = otherSecret,
+                    passwordSecret = otherSecret
+                )
+
+                infrastructureServicesRepository.create(service1)
+                infrastructureServicesRepository.create(service2)
+                infrastructureServicesRepository.create(service3)
+
+                infrastructureServicesRepository.listForSecret(usernameSecret.id) shouldBe listOf(service1, service2)
+            }
+
+            "return an empty list when a secret is not used in any service" {
+                infrastructureServicesRepository.listForSecret(usernameSecret.id).shouldBeEmpty()
             }
         }
     }
