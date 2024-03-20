@@ -771,6 +771,33 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with Conflict when secret is in use" {
+            integrationTestApplication {
+                val organizationId = createOrganization().id
+
+                val userSecret = createSecret(organizationId, path = "user", name = "user")
+                val passSecret = createSecret(organizationId, path = "pass", name = "pass")
+
+                val service = infrastructureServiceRepository.create(
+                    name = "testService",
+                    url = "http://repo1.example.org/obsolete",
+                    description = "good bye, cruel world",
+                    usernameSecret = userSecret,
+                    passwordSecret = passSecret,
+                    excludeFromNetrc = false,
+                    organizationId = organizationId,
+                    productId = null
+                )
+
+                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${userSecret.name}")
+                response shouldHaveStatus HttpStatusCode.Conflict
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "The entity you tried to delete is in use."
+                body.cause shouldContain service.name
+            }
+        }
+
         "handle a failure from the SecretStorage" {
             integrationTestApplication {
                 val organizationId = createOrganization().id

@@ -57,6 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.secrets.Path
@@ -73,6 +74,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
     lateinit var secretRepository: SecretRepository
+    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
 
     var orgId = -1L
 
@@ -100,6 +102,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
+        infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
         secretRepository = dbExtension.fixtures.secretRepository
 
         orgId = organizationService.createOrganization(name = "name", description = "description").id
@@ -577,6 +580,33 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
+            }
+        }
+
+        "respond with Conflict when secret is in use" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                val userSecret = createSecret(productId, path = "user", name = "user")
+                val passSecret = createSecret(productId, path = "pass", name = "pass")
+
+                val service = infrastructureServiceRepository.create(
+                    name = "testService",
+                    url = "http://repo1.example.org/obsolete",
+                    description = "good bye, cruel world",
+                    usernameSecret = userSecret,
+                    passwordSecret = passSecret,
+                    excludeFromNetrc = false,
+                    organizationId = null,
+                    productId = productId
+                )
+
+                val response = superuserClient.delete("/api/v1/products/$productId/secrets/${userSecret.name}")
+                response shouldHaveStatus HttpStatusCode.Conflict
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "The entity you tried to delete is in use."
+                body.cause shouldContain service.name
             }
         }
 
