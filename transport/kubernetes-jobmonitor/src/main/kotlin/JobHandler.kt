@@ -141,9 +141,9 @@ internal class JobHandler(
      * Return a list with all currently active jobs for the worker defined by the given [endpoint].
      */
     fun findJobsForWorker(endpoint: Endpoint<*>): List<V1Job> {
-        val fieldSelector = "metadata.name=${endpoint.configPrefix}-*"
+        val labelSelector = "ort-worker=${endpoint.configPrefix}"
 
-        return listJobs(fieldSelector)
+        return listJobs(labelSelector)
     }
 
     /**
@@ -232,8 +232,8 @@ internal class JobHandler(
     }
 
     /**
-     * Return a list with the jobs in the configured namespace. Apply the given [fieldSelector] filter.
+     * Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter.
      */
-    private fun listJobs(fieldSelector: String? = null): List<V1Job> =
-        jobApi.listNamespacedJob(namespace, null, null, null, fieldSelector, null, null, null, null, null, false).items
+    private fun listJobs(labelSelector: String? = null): List<V1Job> =
+        jobApi.listNamespacedJob(namespace, null, null, null, null, labelSelector, null, null, null, null, false).items
 }
