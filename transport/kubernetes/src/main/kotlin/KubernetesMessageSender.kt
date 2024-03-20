@@ -45,6 +45,12 @@ private const val TRACE_LABEL_LENGTH = 60
 /** The label to store the current ORT run ID. */
 private const val RUN_ID_LABEL = "run-id"
 
+/**
+ * The label to store the name of the worker. This is used, so that jobs for specific workers can be easily looked
+ * up via label selectors.
+ */
+private const val WORKER_LABEL = "ort-worker"
+
 /** A prefix for generating names for secret volumes. */
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 
@@ -89,7 +95,10 @@ internal class KubernetesMessageSender<T : Any>(
 
         val msgConfig = config.forMessage(message)
         val envVars = createEnvironment()
-        val labels = createTraceIdLabels(message.header.traceId) + (RUN_ID_LABEL to message.header.ortRunId.toString())
+        val labels = createTraceIdLabels(message.header.traceId) + mapOf(
+            RUN_ID_LABEL to message.header.ortRunId.toString(),
+            WORKER_LABEL to endpoint.configPrefix
+        )
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()

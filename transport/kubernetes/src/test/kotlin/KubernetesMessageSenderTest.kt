@@ -271,4 +271,5 @@ private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long)
     traceIdFromLabels shouldBe traceId
 
     actualLabels["run-id"] shouldBe expectedRunId.toString()
+    actualLabels["ort-worker"] shouldBe "analyzer"
 }
