@@ -122,7 +122,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { OrganizationService(get(), get(), get(), get()) }
     single { ProductService(get(), get(), get(), get()) }
     single { RepositoryService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    single { SecretService(get(), get(), get()) }
+    single { SecretService(get(), get(), get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }

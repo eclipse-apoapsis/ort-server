@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -36,6 +37,7 @@ import org.jetbrains.exposed.sql.Database
 class SecretService(
     private val db: Database,
     private val secretRepository: SecretRepository,
+    private val infrastructureServiceRepository: InfrastructureServiceRepository,
     private val secretStorage: SecretStorage
 ) {
     /**
@@ -66,7 +68,14 @@ class SecretService(
      * Delete a secret by [organizationId] and [name].
      */
     suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String) = db.dbQuery {
-        val secret = secretRepository.getByOrganizationIdAndName(organizationId, name)
+        val secret = secretRepository.getByOrganizationIdAndName(organizationId, name)?.also {
+            val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
+
+            if (services.isNotEmpty()) {
+                throw ReferencedEntityException("Could not delete secret '${it.name}' due to usage in $services.")
+            }
+        }
+
         secretRepository.deleteForOrganizationAndName(organizationId, name)
         secret?.deleteValue()
     }
@@ -75,7 +84,14 @@ class SecretService(
      * Delete a secret by [productId] and [name].
      */
     suspend fun deleteSecretByProductAndName(productId: Long, name: String) = db.dbQuery {
-        val secret = secretRepository.getByProductIdAndName(productId, name)
+        val secret = secretRepository.getByProductIdAndName(productId, name)?.also {
+            val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
+
+            if (services.isNotEmpty()) {
+                throw ReferencedEntityException("Could not delete secret '${it.name}' due to usage in $services.")
+            }
+        }
+
         secretRepository.deleteForProductAndName(productId, name)
         secret?.deleteValue()
     }
@@ -214,3 +230,5 @@ class SecretService(
         secretStorage.removeSecret(Path(path))
     }
 }
+
+class ReferencedEntityException(message: String) : Exception(message)

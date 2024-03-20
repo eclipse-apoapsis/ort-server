@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
+import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
@@ -55,6 +56,12 @@ fun Application.configureStatusPages() {
             call.respond(
                 HttpStatusCode.BadRequest,
                 ErrorResponse(message = "Secret reference could not be resolved.", e.message)
+            )
+        }
+        exception<ReferencedEntityException> { call, e ->
+            call.respond(
+                HttpStatusCode.Conflict,
+                ErrorResponse("The entity you tried to delete is in use.", e.message)
             )
         }
         exception<ReportNotFoundException> { call, e ->
