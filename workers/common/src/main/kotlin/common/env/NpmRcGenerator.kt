@@ -35,11 +35,36 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         /** The name of the configuration file created by this generator. */
         private const val TARGET = ".npmrc"
 
+        /** A map with proxy settings that are added to the generated file if the corresponding variables are set. */
+        private val proxySettings = mapOf(
+            "proxy" to "HTTP_PROXY",
+            "https-proxy" to "HTTPS_PROXY",
+            "noproxy" to "NO_PROXY"
+        )
+
         /**
          * Return the value of this string base64 encoded.
          */
         private fun String.base64(): String =
             Base64.getEncoder().encodeToString(toByteArray())
+
+        /**
+         * Generate a configuration setting for te given [key] if an environment [variable] exists either with the
+         * provided name of in lower case.
+         */
+        private fun settingFromEnv(key: String, variable: String): String? {
+            val value = System.getenv(variable) ?: System.getenv(variable.lowercase())
+
+            return value?.let { "$key=$it" }
+        }
+
+        /**
+         * Generate proxy settings to be included in the generated configuration file based on existing environment
+         * variables.
+         */
+        private fun generateProxySettings(): List<String> = proxySettings.mapNotNull { (key, variable) ->
+            settingFromEnv(key, variable)
+        }
     }
 
     override val environmentDefinitionType: Class<NpmDefinition>
@@ -68,6 +93,11 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 if (definition.alwaysAuth) {
                     println("$uriFragment:always-auth=true")
                 }
+            }
+
+            generateProxySettings().takeUnless { it.isEmpty() }?.let { proxySettings ->
+                println()
+                proxySettings.forEach { println(it) }
             }
         }
     }

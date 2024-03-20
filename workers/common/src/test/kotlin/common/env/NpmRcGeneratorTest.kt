@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -284,6 +285,39 @@ class NpmRcGeneratorTest : WordSpec({
                 "$REGISTRY_URI_FRAGMENT:always-auth=true"
             )
             val lines = mockBuilder.generatedLines()
+            lines shouldContainExactly expectedLines
+        }
+
+        "add proxy configuration if defined" {
+            val usernameSecret = MockConfigFileBuilder.createSecret("registryUser")
+            val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
+            val definition = NpmDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                false
+            )
+
+            val proxy = "http://proxy.example.org:8080"
+            val httpsProxy = "https://proxy.example.org:8080"
+            val noProxy = "localhost,foo,bar"
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            val env = mapOf(
+                "HTTP_PROXY" to proxy,
+                "https_proxy" to httpsProxy,
+                "NO_PROXY" to noProxy
+            )
+            withEnvironment(env) {
+                NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
+            }
+
+            val expectedLines = listOf(
+                "",
+                "proxy=$proxy",
+                "https-proxy=$httpsProxy",
+                "noproxy=$noProxy"
+            )
+            val lines = mockBuilder.generatedLines().takeLast(4)
             lines shouldContainExactly expectedLines
         }
     }
