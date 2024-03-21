@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -97,7 +98,7 @@ internal class ReporterWorker(
 
         val reports = reporterRunnerResult.reports.values
             .flatMap { it.toList() }
-            .map { file -> Report(file) }
+            .map { file -> Report(file, "", Instant.DISTANT_PAST) }
             .toList()
 
         val reporterRun = ReporterRun(

@@ -19,6 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.reporter
 
+import kotlinx.datetime.Instant
+
+/**
+ * A data class providing some metadata about a report generated during an ORT run.
+ */
 data class Report(
-    val filename: String
+    /** The filename of the report. */
+    val filename: String,
+
+    /** A link that can be used to download the report without additional authentication. */
+    val downloadLink: String,
+
+    /** The date until when the [downloadLink] is valid. */
+    val downloadTokenExpiryDate: Instant
 )

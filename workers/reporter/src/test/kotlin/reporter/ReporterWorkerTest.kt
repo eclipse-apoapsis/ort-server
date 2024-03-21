@@ -36,6 +36,7 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -187,7 +188,9 @@ class ReporterWorkerTest : StringSpec({
             environmentService.generateNetRcFileForCurrentRun(context)
         }
 
-        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(Report("report.html"))
+        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+            Report("report.html", "", Instant.DISTANT_PAST)
+        )
     }
 
     "A failure result should be returned in case of an error" {

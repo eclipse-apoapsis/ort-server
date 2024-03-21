@@ -23,6 +23,8 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import kotlin.time.Duration.Companion.minutes
+
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -37,8 +39,11 @@ class DaoReporterRunRepositoryTest : StringSpec({
     lateinit var reporterRunRepository: DaoReporterRunRepository
     lateinit var reporterJob: ReporterJob
 
-    val reports = listOf(Report("file1.pdf"), Report("file2.pdf"))
     val time = Clock.System.now().toDatabasePrecision()
+    val reports = listOf(
+        Report("file1.pdf", "token1", time.plus(10.minutes)),
+        Report("file2.pdf", "token2", time.minus(10.minutes))
+    )
 
     beforeEach {
         reporterRunRepository = dbExtension.fixtures.reporterRunRepository

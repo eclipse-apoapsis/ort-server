@@ -752,7 +752,10 @@ class OrtRunServiceTest : WordSpec({
                 reporterJobId = fixtures.reporterJob.id,
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
-                reports = listOf(Report("report1.zip"), Report("report2.zip"))
+                reports = listOf(
+                    Report("report1.zip", "token1", Clock.System.now().toDatabasePrecision()),
+                    Report("report2.zip", "token2", Clock.System.now().toDatabasePrecision())
+                )
             )
 
             service.storeReporterRun(reporterRun)
