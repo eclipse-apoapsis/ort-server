@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -49,7 +50,7 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
     override fun get(id: Long): ReporterJob? = db.entityQuery { ReporterJobDao[id].mapToModel() }
 
     override fun getForOrtRun(ortRunId: Long): ReporterJob? = db.blockingQuery {
-        ReporterJobDao.find { ReporterJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
+        findJobForOrtRun(ortRunId)?.mapToModel()
     }
 
     override fun update(
@@ -75,4 +76,18 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
     }
 
     override fun delete(id: Long) = db.blockingQuery { ReporterJobDao[id].delete() }
+
+    override fun getReportByToken(ortRunId: Long, token: String): Report? = db.blockingQuery {
+        val time = Clock.System.now()
+        val linkSuffix = "/reporter/token/$token"
+        findJobForOrtRun(ortRunId)?.reporterRun?.reports?.find {
+            it.downloadTokenExpiryDate > time && it.downloadLink.endsWith(linkSuffix)
+        }?.mapToModel()
+    }
+
+    /**
+     * Return the [ReporterJobDao] for the given [ortRunId], or *null* if no job exists for the run.
+     */
+    private fun findJobForOrtRun(ortRunId: Long) =
+        ReporterJobDao.find { ReporterJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()
 }

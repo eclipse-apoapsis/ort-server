@@ -25,20 +25,27 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 /**
  * A table to represent a report.
  */
 object ReportsTable : LongIdTable("reports") {
     val filename = text("report_filename")
+    val downloadLink = text("download_link")
+    val downloadTokenExpiryDate = timestamp("download_token_expiry_date")
 }
 
 class ReportDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ReportDao>(ReportsTable)
 
     var filename by ReportsTable.filename
+    var downloadLink by ReportsTable.downloadLink
+    var downloadTokenExpiryDate by ReportsTable.downloadTokenExpiryDate
 
     fun mapToModel() = Report(
-        filename = filename
+        filename = filename,
+        downloadLink = downloadLink,
+        downloadTokenExpiryDate = downloadTokenExpiryDate
     )
 }

@@ -19,11 +19,16 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories
 
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import kotlin.time.Duration.Companion.minutes
+
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
@@ -31,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
@@ -117,5 +123,47 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             reporterJobRepository.get(reporterJob.id) shouldBe null
         }
+
+        "getReportByToken should return an existing report" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+            val report = reporterJob.createRunWithReport(Clock.System.now().toDatabasePrecision().plus(10.minutes))
+
+            val reportByToken = reporterJobRepository.getReportByToken(ortRunId, "report-token")
+
+            reportByToken shouldBe report
+        }
+
+        "getReportByToken should return null if there is no ReporterRun" {
+            reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+            reporterJobRepository.getReportByToken(ortRunId, "token") should beNull()
+        }
+
+        "getReportByToken should return null if the token cannot be resolved" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+            reporterJob.createRunWithReport(Clock.System.now().plus(10.minutes))
+
+            reporterJobRepository.getReportByToken(ortRunId, "invalid") should beNull()
+        }
+
+        "getReportByToken should return null if the token has expired" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+            reporterJob.createRunWithReport(Clock.System.now().minus(10.minutes))
+
+            reporterJobRepository.getReportByToken(ortRunId, "token") should beNull()
+        }
+    }
+
+    /**
+     * Create a run for this [ReporterJob] that contains a test report with the given token [expiryTime].
+     */
+    private fun ReporterJob.createRunWithReport(expiryTime: Instant): Report {
+        val refTime = Clock.System.now().toDatabasePrecision()
+        val downloadLink = "https://reports.example.org/ap1/v1/runs/42/reporter/token/report-token"
+        val report = Report("file.pdf", downloadLink, expiryTime)
+        val runRepository = dbExtension.fixtures.reporterRunRepository
+        runRepository.create(id, refTime, refTime, listOf(report))
+
+        return report
     }
 }
