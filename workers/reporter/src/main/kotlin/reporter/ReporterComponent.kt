@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
@@ -99,7 +98,6 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         )
 
     private fun reporterModule(): Module = module {
-        single { ConfigManager.create(get()) }
         single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
 
         single {
