@@ -42,4 +42,9 @@ interface ReporterJobRepository : WorkerJobRepository<ReporterJob> {
      * authentication. Result is *null* if the token cannot be resolved or has expired.
      */
     fun getReportByToken(ortRunId: Long, token: String): Report?
+
+    /**
+     * Get all reports for the [ortRunId] filtered by the expiration date of the [Report.downloadLink].
+     */
+    fun getNonExpiredReports(ortRunId: Long): List<Report>
 }

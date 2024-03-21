@@ -167,6 +167,13 @@ class OrtRunService(
     }
 
     /**
+     * Return the download links for the reports of the ORT run with the given [ortRunId].
+     */
+    fun getDownloadLinksForOrtRun(ortRunId: Long) = db.blockingQuery {
+        reporterJobRepository.getNonExpiredReports(ortRunId)
+    }
+
+    /**
      * Return the [Hierarchy] for the provided [ortRunId] or `null` if the run does not exist.
      */
     fun getHierarchyForOrtRun(ortRunId: Long) = db.blockingQuery {

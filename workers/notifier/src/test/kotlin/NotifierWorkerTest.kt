@@ -30,10 +30,11 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
-
-import java.time.Instant
+import io.mockk.verify
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -45,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -92,7 +94,11 @@ class NotifierWorkerTest : StringSpec({
             every { revision } returns "main"
         }
 
-        val ortResult = mockk<OrtResult>()
+        val ortResult = mockk<OrtResult> {
+            every { labels } returns emptyMap()
+            // Ignore the changed value as the validation is done by checking the parameter.
+            every { copy(labels = any()) } returns this
+        }
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
@@ -108,6 +114,13 @@ class NotifierWorkerTest : StringSpec({
             every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
             every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            every { getDownloadLinksForOrtRun(ORT_RUN_ID) } returns listOf(
+                Report(
+                    filename = "scan-report.html",
+                    downloadLink = "https://example.com/scan-report.html",
+                    downloadTokenExpiryDate = Instant.DISTANT_FUTURE
+                )
+            )
             every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { storeNotifierRun(any()) } returns mockk()
             every { storeIssues(any(), any()) } just runs
@@ -122,8 +135,8 @@ class NotifierWorkerTest : StringSpec({
 
         val runnerResult = NotifierRunnerResult(
             OrtNotifierRun(
-                startTime = Instant.now(),
-                endTime = Instant.now()
+                startTime = Clock.System.now().toJavaInstant(),
+                endTime = Clock.System.now().toJavaInstant()
             )
         )
 
@@ -152,6 +165,15 @@ class NotifierWorkerTest : StringSpec({
         }
 
         slotNotifierRun.captured.notifierJobId shouldBe NOTIFIER_JOB_ID
+
+        verify(exactly = 1) {
+            @Suppress("UnusedDataClassCopyResult")
+            ortResult.copy(
+                labels = mapOf(
+                    "report_scan-report.html" to "https://example.com/scan-report.html"
+                )
+            )
+        }
     }
 
     "A failure result should be returned in case of an error" {

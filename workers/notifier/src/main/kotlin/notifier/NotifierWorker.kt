@@ -33,6 +33,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.OrtResult
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(NotifierWorker::class.java)
@@ -61,6 +63,11 @@ internal class NotifierWorker(
         val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
         val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
 
+        // Get the report links for the ORT run as a map of the report name to the download link.
+        val downloadLinks: Map<String, String> = ortRunService.getDownloadLinksForOrtRun(ortRun.id).associate {
+            it.filename to it.downloadLink
+        }
+
         val ortResult = ortRun.mapToOrt(
             repository = repository,
             analyzerRun = analyzerRun?.mapToOrt(),
@@ -68,7 +75,7 @@ internal class NotifierWorker(
             scannerRun = scannerRun?.mapToOrt(),
             evaluatorRun = evaluatorRun?.mapToOrt(),
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        )
+        ).addReportLinkLabels(downloadLinks)
 
         val startTime = Clock.System.now()
 
@@ -110,5 +117,16 @@ internal class NotifierWorker(
         if (status in invalidStates) {
             throw JobIgnoredException("Notifier job '$id' status is already set to '$status'")
         }
+    }
+
+    private fun OrtResult.addReportLinkLabels(reportLinks: Map<String, String>): OrtResult {
+        if (reportLinks.isEmpty()) return this
+
+        val updatedLabels = labels.toMutableMap()
+        reportLinks.forEach { (reportName, reportLink) ->
+            updatedLabels["report_$reportName"] = reportLink
+        }
+
+        return copy(labels = updatedLabels)
     }
 }
