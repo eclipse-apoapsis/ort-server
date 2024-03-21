@@ -152,6 +152,26 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             reporterJobRepository.getReportByToken(ortRunId, "token") should beNull()
         }
+
+        "getNonExpiredReports should return a report that has not expired" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+            val report = reporterJob.createRunWithReport(Clock.System.now().toDatabasePrecision().plus(10.minutes))
+
+            val nonExpiredReports = reporterJobRepository.getNonExpiredReports(ortRunId)
+
+            nonExpiredReports shouldBe listOf(report)
+        }
+
+        "getNonExpiredReports should not return expired reports" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+
+            reporterJob.createRunWithReport(Clock.System.now().toDatabasePrecision().minus(10.minutes))
+
+            val nonExpiredReports = reporterJobRepository.getNonExpiredReports(ortRunId)
+
+            nonExpiredReports shouldBe emptyList()
+        }
     }
 
     /**

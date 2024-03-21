@@ -85,6 +85,13 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         }?.mapToModel()
     }
 
+    override fun getNonExpiredReports(ortRunId: Long) = db.blockingQuery {
+        val time = Clock.System.now()
+        findJobForOrtRun(ortRunId)?.reporterRun?.reports?.filter {
+            it.downloadTokenExpiryDate > time
+        }?.map { it.mapToModel() } ?: emptyList()
+    }
+
     /**
      * Return the [ReporterJobDao] for the given [ortRunId], or *null* if no job exists for the run.
      */
