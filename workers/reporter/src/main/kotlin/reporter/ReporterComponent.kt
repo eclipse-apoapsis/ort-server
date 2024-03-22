@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
+import kotlin.time.Duration.Companion.days
+
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
@@ -64,6 +67,30 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
          * need this information, for instance to define the search path for fonts.
          */
         const val WORK_DIR_PLACEHOLDER = "\${workdir}"
+
+        /**
+         * The path in the configuration containing the properties for the reporter worker.
+         */
+        private const val PATH_REPORTER = "reporter"
+
+        /**
+         * Name of the configuration property that defines the prefix for download links. This prefix should contain
+         * the protocol, the host, and an optional path component. The path starting with "/api" is then added.
+         */
+        private const val REPORT_LINK_PREFIX_PROPERTY = "reportDownloadLinkPrefix"
+
+        /**
+         * Name of the configuration property that defines the length of the tokens that are generated to download
+         * reports without authentication. If unauthenticated report download is not desired, set this property to a
+         * value less than or equal to zero.
+         */
+        private const val REPORT_TOKEN_LENGTH_PROPERTY = "reportTokenLength"
+
+        /**
+         * Name of the configuration property that defines the validity time of generated tokens. The value is
+         * interpreted as the number of days a token should be valid.
+         */
+        private const val REPORT_TOKEN_VALIDITY_PROPERTY = "reportTokenValidityDays"
     }
 
     override val endpointHandler: EndpointHandler<ReporterRequest> = { message ->
@@ -103,6 +130,16 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         single {
             val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
+        }
+
+        single {
+            with(configManager.subConfig(Path(PATH_REPORTER))) {
+                ReportDownloadLinkGenerator(
+                    getString(REPORT_LINK_PREFIX_PROPERTY),
+                    getInt(REPORT_TOKEN_LENGTH_PROPERTY),
+                    getInt(REPORT_TOKEN_VALIDITY_PROPERTY).days
+                )
+            }
         }
 
         singleOf(::ReportStorage)
