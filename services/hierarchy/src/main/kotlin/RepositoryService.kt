@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -44,6 +45,7 @@ private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
 /**
  * A service providing functions for working with [repositories][Repository].
  */
+@Suppress("LongParameterList")
 class RepositoryService(
     private val db: Database,
     private val ortRunRepository: OrtRunRepository,
@@ -53,6 +55,7 @@ class RepositoryService(
     private val scannerJobRepository: ScannerJobRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
     private val reporterJobRepository: ReporterJobRepository,
+    private val notifierJobRepository: NotifierJobRepository,
     private val authorizationService: AuthorizationService
 ) {
     /**
@@ -80,8 +83,8 @@ class RepositoryService(
         val scannerJob = scannerJobRepository.getForOrtRun(ortRun.id)
         val evaluatorJob = evaluatorJobRepository.getForOrtRun(ortRun.id)
         val reporterJob = reporterJobRepository.getForOrtRun(ortRun.id)
-
-        Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
+        val notifierJob = notifierJobRepository.getForOrtRun(ortRun.id)
+        Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
     }
 
     suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.dbQuery {

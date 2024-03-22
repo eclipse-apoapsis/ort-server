@@ -27,5 +27,6 @@ data class Jobs(
     val advisor: AdvisorJob?,
     val scanner: ScannerJob?,
     val evaluator: EvaluatorJob?,
-    val reporter: ReporterJob?
+    val reporter: ReporterJob?,
+    val notifier: NotifierJob?
 )

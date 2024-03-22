@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration as ApiMailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as ApiMailServerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
@@ -74,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
+import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -228,7 +230,14 @@ fun ApiJobConfigurations.mapToModel() =
     )
 
 fun Jobs.mapToApi() =
-    ApiJobs(analyzer?.mapToApi(), advisor?.mapToApi(), scanner?.mapToApi(), evaluator?.mapToApi(), reporter?.mapToApi())
+    ApiJobs(
+        analyzer?.mapToApi(),
+        advisor?.mapToApi(),
+        scanner?.mapToApi(),
+        evaluator?.mapToApi(),
+        reporter?.mapToApi(),
+        notifier?.mapToApi()
+    )
 
 fun Jobs.mapToApiSummary() =
     ApiJobSummaries(
@@ -325,6 +334,16 @@ fun ReporterJobConfiguration.mapToApi() =
         assetDirectories.map { it.mapToApi() },
         config?.mapValues { it.value.mapToApi() }
     )
+
+fun NotifierJob.mapToApi() =
+    ApiNotifierJob(
+        id,
+        createdAt,
+        startedAt,
+        finishedAt,
+        configuration.mapToApi(),
+        status.mapToApi()
+      )
 
 fun NotifierJobConfiguration.mapToApi() =
     ApiNotifierJobConfiguration(
