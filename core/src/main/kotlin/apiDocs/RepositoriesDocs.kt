@@ -43,6 +43,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
@@ -126,7 +129,22 @@ private val fullJobConfigurations = JobConfigurations(
         resolutionsFile = "resolutions.yml",
         ruleSet = "rules.evaluator.kts"
     ),
-    reporter = ReporterJobConfiguration(formats = listOf("WebApp"))
+    reporter = ReporterJobConfiguration(formats = listOf("WebApp")),
+    notifier = NotifierJobConfiguration(
+        notifierRules = "reporter.notifications.kts",
+        resolutionsFile = "resolutions.yml",
+        mail = MailNotificationConfiguration(
+            recipientAddresses = listOf("mail@example.com", "info@example.com"),
+            mailServerConfiguration = MailServerConfiguration(
+                hostName = "smtp.example.com",
+                port = 587,
+                username = "user",
+                password = "password",
+                useSsl = true,
+                fromAddress = "no-reply@example.com"
+            )
+        )
+    )
 )
 
 private val minimalJobConfigurations = JobConfigurations(
