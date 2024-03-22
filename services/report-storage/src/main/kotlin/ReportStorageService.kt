@@ -23,8 +23,11 @@ import io.ktor.http.ContentType
 
 import java.io.OutputStream
 
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
+
+import org.slf4j.LoggerFactory
 
 /**
  * A service providing functionality related to accessing report files from a storage, so that they can be downloaded
@@ -32,8 +35,15 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
  */
 class ReportStorageService(
     /** The [Storage] that contains the report files. */
-    private val reportStorage: Storage
+    private val reportStorage: Storage,
+
+    /** The repository for reporter jobs, which is used to resolve download tokens for reports. */
+    private val reporterJobRepository: ReporterJobRepository
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(ReportStorageService::class.java)
+    }
+
     /**
      * Return a [ReportDownloadData] object for the report with the given [fileName] for the specified [runId]. Throw a
      * [ReportNotFoundException] if the report cannot be resolved.
@@ -48,6 +58,18 @@ class ReportStorageService(
         return ReportDownloadData(contentType) {
             entry.data.copyTo(this)
         }
+    }
+
+    /**
+     * Return a [ReportDownloadData] object for the report with the given [token] for the specified [runId]. Throw a
+     * [ReportNotFoundException] if the report cannot be resolved or the token has expired.
+     */
+    fun fetchReportByToken(runId: Long, token: String): ReportDownloadData {
+        return reporterJobRepository.getReportByToken(runId, token)?.let { report ->
+            logger.info("Resolved report '${report.filename}' for run $runId from token.")
+
+            fetchReport(runId, report.filename)
+        } ?: throw ReportNotFoundException(runId, "<from token>")
     }
 }
 

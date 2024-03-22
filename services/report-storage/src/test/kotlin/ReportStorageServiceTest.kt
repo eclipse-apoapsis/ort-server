@@ -32,6 +32,10 @@ import io.mockk.mockk
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
+import kotlinx.datetime.Instant
+
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
@@ -49,7 +53,7 @@ class ReportStorageServiceTest : WordSpec({
             every { storage.containsKey(key) } returns true
             every { storage.read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), contentType)
 
-            val service = ReportStorageService(storage)
+            val service = ReportStorageService(storage, mockk())
             val downloadData = service.fetchReport(runId, fileName)
 
             downloadData.contentType shouldBe ContentType.Text.Html
@@ -66,7 +70,7 @@ class ReportStorageServiceTest : WordSpec({
             val storage = mockk<Storage>()
             every { storage.containsKey(any()) } returns false
 
-            val service = ReportStorageService(storage)
+            val service = ReportStorageService(storage, mockk())
             val exception = shouldThrow<ReportNotFoundException> {
                 service.fetchReport(runId, fileName)
             }
@@ -85,10 +89,55 @@ class ReportStorageServiceTest : WordSpec({
             every { storage.containsKey(key) } returns true
             every { storage.read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), null)
 
-            val service = ReportStorageService(storage)
+            val service = ReportStorageService(storage, mockk())
             val downloadData = service.fetchReport(runId, fileName)
 
             downloadData.contentType shouldBe ContentType.Application.OctetStream
+        }
+    }
+
+    "fetchReportByToken" should {
+        "return a ReportDownloadData object for a valid token" {
+            val runId = 207L
+            val fileName = "testReport.html"
+            val reportData = "This is a report from the storage, resolved from a token.".toByteArray()
+            val contentType = "text/html"
+            val key = Key("$runId|$fileName")
+            val token = "test-report-token"
+
+            val storage = mockk<Storage> {
+                every { containsKey(key) } returns true
+                every { read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), contentType)
+            }
+
+            val reporterJobRepository = mockk<ReporterJobRepository> {
+                every { getReportByToken(runId, token) } returns Report(fileName, token, Instant.DISTANT_FUTURE)
+            }
+
+            val service = ReportStorageService(storage, reporterJobRepository)
+            val downloadData = service.fetchReportByToken(runId, token)
+
+            downloadData.contentType shouldBe ContentType.Text.Html
+
+            val stream = ByteArrayOutputStream()
+            downloadData.loader(stream)
+            stream.toByteArray() shouldBe reportData
+        }
+
+        "throw an exception if the token cannot be resolved" {
+            val runId = 223L
+            val token = "anInvalidToken"
+            val reporterJobRepository = mockk<ReporterJobRepository> {
+                every { getReportByToken(runId, token) } returns null
+            }
+
+            val service = ReportStorageService(mockk(), reporterJobRepository)
+
+            val exception = shouldThrow<ReportNotFoundException> {
+                service.fetchReportByToken(runId, token)
+            }
+
+            exception.message shouldContain runId.toString()
         }
     }
 })
