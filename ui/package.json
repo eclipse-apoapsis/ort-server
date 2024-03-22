@@ -11,12 +11,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-router": "^1.22.2",
+    "@tanstack/router-devtools": "^1.22.2",
     "oidc-client-ts": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-oidc-context": "^3.0.0"
   },
   "devDependencies": {
+    "@tanstack/router-vite-plugin": "^1.20.5",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
