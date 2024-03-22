@@ -166,12 +166,18 @@ class ReporterWorkerTest : StringSpec({
             } returns runnerResult
         }
 
+        val link = ReportDownloadLink("https://report.example.org/ap1/$ORT_RUN_ID/someToken", Instant.DISTANT_FUTURE)
+        val linkGenerator = mockk<ReportDownloadLinkGenerator> {
+            every { generateLink(ORT_RUN_ID) } returns link
+        }
+
         val worker = ReporterWorker(
             contextFactory,
             mockk(),
             environmentService,
             runner,
-            ortRunService
+            ortRunService,
+            linkGenerator
         )
 
         mockkTransaction {
@@ -189,7 +195,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
-            Report("report.html", "", Instant.DISTANT_PAST)
+            Report("report.html", link.downloadLink, link.expirationTime)
         )
     }
 
@@ -204,7 +210,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
-            ortRunService
+            ortRunService,
+            mockk()
         )
 
         mockkTransaction {
@@ -226,7 +233,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
-            ortRunService
+            ortRunService,
+            mockk()
         )
 
         mockkTransaction {

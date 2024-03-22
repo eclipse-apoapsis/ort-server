@@ -30,6 +30,8 @@ import io.kotest.matchers.shouldNot
 import io.mockk.every
 import io.mockk.mockkClass
 
+import kotlin.time.Duration.Companion.days
+
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
@@ -54,6 +56,9 @@ import org.koin.test.mock.declareMock
 private const val REPORTER_JOB_ID = 1L
 private const val TOKEN = "token"
 private const val TRACE_ID = "42"
+private const val DOWNLOAD_LINK_PREFIX = "https://report.example.org/download/"
+private const val TOKEN_LENGTH = 77
+private const val TOKEN_VALIDITY = 101
 
 private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 26)
 
@@ -77,6 +82,16 @@ class ReporterComponentTest : KoinTest, StringSpec() {
                 val reporterWorker by inject<ReporterWorker>()
 
                 reporterWorker shouldNot beNull()
+            }
+        }
+
+        "The download link generator is correctly configured" {
+            runEndpointTest {
+                val linkGenerator by inject<ReportDownloadLinkGenerator>()
+
+                linkGenerator.linkPrefix shouldBe DOWNLOAD_LINK_PREFIX
+                linkGenerator.tokenLength shouldBe TOKEN_LENGTH
+                linkGenerator.validityTime shouldBe TOKEN_VALIDITY.days
             }
         }
 
@@ -139,7 +154,10 @@ class ReporterComponentTest : KoinTest, StringSpec() {
             val environment = mapOf(
                 "REPORTER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "REPORTER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+                "REPORTER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
+                "REPORT_DOWNLOAD_LINK_PREFIX" to DOWNLOAD_LINK_PREFIX,
+                "REPORT_TOKEN_LENGTH" to TOKEN_LENGTH.toString(),
+                "REPORT_TOKEN_VALIDITY_DAYS" to TOKEN_VALIDITY.toString()
             )
 
             withEnvironment(environment) {
