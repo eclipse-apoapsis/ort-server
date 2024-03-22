@@ -17,15 +17,16 @@
  * License-Filename: LICENSE
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './app.tsx';
-import { Providers } from './components/providers.tsx';
+import { ReactNode } from 'react';
+import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Providers>
-      <App />
-    </Providers>
-  </React.StrictMode>
-);
+const oidcConfig = {
+  authority: 'http://localhost:8081/realms/master',
+  redirect_uri: 'http://localhost:5173/',
+  client_id: 'react',
+  automaticSilentRenew: true,
+} satisfies AuthProviderProps;
+
+export const Providers = ({ children }: { children: ReactNode }) => {
+  return <AuthProvider {...oidcConfig}>{children}</AuthProvider>;
+};
