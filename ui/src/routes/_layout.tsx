@@ -17,15 +17,20 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute } from '@tanstack/react-router';
-import { useAuth } from 'react-oidc-context';
+import { Header } from '@/components/header';
+import { Outlet, createFileRoute } from '@tanstack/react-router';
 
-export const IndexPage = () => {
-  const auth = useAuth();
-
-  return <div>Hello {auth.user?.profile.preferred_username}</div>;
+const Layout = () => {
+  return (
+    <div className="flex min-h-screen w-full flex-col">
+      <Header />
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <Outlet />
+      </main>
+    </div>
+  );
 };
 
-export const Route = createFileRoute('/')({
-  component: IndexPage,
+export const Route = createFileRoute('/_layout')({
+  component: Layout,
 });
