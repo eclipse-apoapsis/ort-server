@@ -17,28 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { Providers } from './components/providers.tsx';
+import { createFileRoute } from '@tanstack/react-router';
+import { useAuth } from 'react-oidc-context';
 
-// Import the generated route tree
-import { routeTree } from './routeTree.gen';
+export const IndexPage = () => {
+  const auth = useAuth();
 
-// Create a new router instance
-const router = createRouter({ routeTree });
+  return <div>Hello {auth.user?.profile.preferred_username}</div>;
+};
 
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Providers>
-      <RouterProvider router={router} />
-    </Providers>
-  </React.StrictMode>
-);
+export const Route = createFileRoute('/')({
+  component: IndexPage,
+});
