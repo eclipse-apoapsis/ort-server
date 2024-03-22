@@ -30,6 +30,8 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(projects.storage.storageSpi)
 
+    implementation(projects.model)
+
     implementation(libs.ktorHttp)
 
     runtimeOnly(libs.logback)
