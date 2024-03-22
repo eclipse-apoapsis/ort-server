@@ -141,5 +141,6 @@ data class Jobs(
     val advisor: AdvisorJob? = null,
     val scanner: ScannerJob? = null,
     val evaluator: EvaluatorJob? = null,
-    val reporter: ReporterJob? = null
+    val reporter: ReporterJob? = null,
+    val notifier: NotifierJob? = null
 )

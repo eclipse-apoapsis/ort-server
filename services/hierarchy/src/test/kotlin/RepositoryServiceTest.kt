@@ -56,6 +56,7 @@ class RepositoryServiceTest : WordSpec({
         dbExtension.fixtures.scannerJobRepository,
         dbExtension.fixtures.evaluatorJobRepository,
         dbExtension.fixtures.reporterJobRepository,
+        dbExtension.fixtures.notifierJobRepository,
         authorizationService
     )
 
