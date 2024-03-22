@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.ktorServerCallLogging)
     implementation(libs.ktorServerContentNegotiation)
     implementation(libs.ktorServerCore)
+    implementation(libs.ktorServerCors)
     implementation(libs.ktorServerDefaultHeaders)
     implementation(libs.ktorServerMetricsMicrometer)
     implementation(libs.ktorServerNetty)

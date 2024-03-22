@@ -115,6 +115,7 @@ ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", versi
 ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref = "ktor" }
 ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
 ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktorServerDefaultHeaders = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }
 ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
