@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
@@ -191,6 +192,12 @@ val jobs = Jobs(
             "AsciiDoc_vulnerability_report.pdf",
             "scan-report-web-app.html"
         )
+    ),
+    notifier = NotifierJob(
+        id = 1L,
+        createdAt = Clock.System.now(),
+        configuration = fullJobConfigurations.notifier!!,
+        status = JobStatus.CREATED
     )
 )
 
