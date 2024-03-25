@@ -143,7 +143,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             run
         }
 
-        LogSource.values().forEach { source ->
+        LogSource.entries.forEach { source ->
             val logFile = logFileDir.resolve("${source.name}.log")
             logFile.writeText(logFileContent(source))
 
@@ -267,7 +267,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 checkLogArchiveChannel(channel, EnumSet.allOf(LogSource::class.java))
 
                 val logRequests = LogFileProviderFactoryForTesting.requests()
-                logRequests shouldHaveSize LogSource.values().size
+                logRequests shouldHaveSize LogSource.entries.size
                 logRequests.forAll { request ->
                     val endTime = request.endTime.shouldNotBeNull()
                     val delta = Clock.System.now() - endTime
