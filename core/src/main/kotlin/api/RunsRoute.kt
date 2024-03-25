@@ -58,6 +58,21 @@ import org.koin.ktor.ext.inject
 fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
 
+    route("reporter/token/{token}") {
+        val reportStorageService by inject<ReportStorageService>()
+
+        get {
+            call.forRun(ortRunRepository) { ortRun ->
+                // Note: The requirePermission call is deliberately omitted here as access is controlled by the token.
+                val token = call.requireParameter("token")
+
+                val downloadData = reportStorageService.fetchReportByToken(ortRun.id, token)
+
+                call.respondOutputStream(downloadData.contentType, producer = downloadData.loader)
+            }
+        }
+    }
+
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
 

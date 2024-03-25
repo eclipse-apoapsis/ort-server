@@ -48,6 +48,8 @@ import java.io.File
 import java.io.IOException
 import java.util.EnumSet
 
+import kotlin.time.Duration.Companion.minutes
+
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -59,6 +61,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -115,6 +118,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
     val reportFile = "disclosure-document-pdf"
     val reportData = "Data of the report to download".toByteArray()
+    val reportToken = "secret-token-to-access-the-test-report"
 
     /**
      * Create an [OrtRun], store a report for the created run, and return the created run.
@@ -125,6 +129,16 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
         val storage = Storage.create("reportStorage", ConfigManager.create(ConfigFactory.load("application-test.conf")))
         storage.write(key, reportData, "application/pdf")
+
+        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId = run.id)
+        val downloadLink = "https://report.example.org/download/api/v1/runs/${run.id}/reporter/token/$reportToken"
+        val report = Report(reportFile, downloadLink, Clock.System.now() + 60.minutes)
+        dbExtension.fixtures.reporterRunRepository.create(
+            reporterJob.id,
+            Clock.System.now() - 1.minutes,
+            Clock.System.now(),
+            listOf(report)
+        )
 
         return run
     }
@@ -223,6 +237,42 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/reporter/$reportFile")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/report/token/{token}" should {
+        "support downloading a report by token" {
+            integrationTestApplication {
+                val run = createReport()
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/token/$reportToken")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response should haveHeader("Content-Type", "application/pdf")
+                response.body<ByteArray>() shouldBe reportData
+            }
+        }
+
+        "handle an invalid token" {
+            integrationTestApplication {
+                val run = createReport()
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/token/invalidToken")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "not require any permission" {
+            integrationTestApplication {
+                val run = createReport()
+
+                val response = testUserClient.get("/api/v1/runs/${run.id}/reporter/token/$reportToken")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response should haveHeader("Content-Type", "application/pdf")
+                response.body<ByteArray>() shouldBe reportData
             }
         }
     }
