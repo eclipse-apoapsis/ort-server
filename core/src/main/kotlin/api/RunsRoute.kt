@@ -39,6 +39,7 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndToken
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -61,7 +62,7 @@ fun Route.runs() = route("runs/{runId}") {
     route("reporter/token/{token}") {
         val reportStorageService by inject<ReportStorageService>()
 
-        get {
+        get(getReportByRunIdAndToken) {
             call.forRun(ortRunRepository) { ortRun ->
                 // Note: The requirePermission call is deliberately omitted here as access is controlled by the token.
                 val token = call.requireParameter("token")
