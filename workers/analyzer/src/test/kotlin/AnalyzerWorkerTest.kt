@@ -79,6 +79,7 @@ private val ortRun = OrtRun(
     index = 1L,
     repositoryId = repository.id,
     revision = "main",
+    path = null,
     createdAt = Clock.System.now(),
     jobConfigs = JobConfigurations(),
     resolvedJobConfigs = JobConfigurations(),

@@ -94,6 +94,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     index = 12,
                     repositoryId = 120,
                     revision = "main",
+                    path = null,
                     createdAt = Instant.fromEpochSeconds(0),
                     finishedAt = null,
                     jobConfigs = JobConfigurations(),

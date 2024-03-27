@@ -229,6 +229,7 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         index = 2,
         repositoryId = 3,
         revision = "main",
+        path = null,
         createdAt = Clock.System.now(),
         jobConfigs = JobConfigurations(),
         resolvedJobConfigs = null,

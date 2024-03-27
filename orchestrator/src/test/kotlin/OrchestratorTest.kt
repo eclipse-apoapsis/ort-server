@@ -186,6 +186,7 @@ class OrchestratorTest : WordSpec() {
         index = 12,
         repositoryId = repository.id,
         revision = "main",
+        path = null,
         createdAt = Instant.fromEpochSeconds(0),
         finishedAt = null,
         jobConfigs = JobConfigurations(
@@ -217,6 +218,7 @@ class OrchestratorTest : WordSpec() {
         index = 12,
         repositoryId = repository.id,
         revision = "main",
+        path = null,
         createdAt = Instant.fromEpochSeconds(0),
         finishedAt = null,
         jobConfigs = JobConfigurations(

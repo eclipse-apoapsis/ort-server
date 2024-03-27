@@ -312,6 +312,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     27,
                     repository.id,
                     "main",
+                    null,
                     Instant.parse("2023-06-27T05:17:02Z"),
                     null,
                     JobConfigurations(),

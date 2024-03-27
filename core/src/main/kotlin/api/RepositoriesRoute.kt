@@ -130,6 +130,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 orchestratorService.createOrtRun(
                     repositoryId,
                     createOrtRun.revision,
+                    createOrtRun.path,
                     createOrtRun.jobConfigs.mapToModel(),
                     createOrtRun.jobConfigContext,
                     createOrtRun.labels

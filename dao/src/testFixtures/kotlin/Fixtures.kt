@@ -135,7 +135,14 @@ class Fixtures(private val db: Database) {
         repositoryId: Long = repository.id,
         revision: String = "revision",
         jobConfigurations: JobConfigurations = this.jobConfigurations
-    ) = ortRunRepository.create(repositoryId, revision, jobConfigurations, null, mapOf("label key" to "label value"))
+    ) = ortRunRepository.create(
+        repositoryId,
+        revision,
+        null,
+        jobConfigurations,
+        null,
+        mapOf("label key" to "label value")
+    )
 
     fun createAnalyzerJob(
         ortRunId: Long = ortRun.id,
