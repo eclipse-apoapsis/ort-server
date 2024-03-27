@@ -23,6 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.file.beEmptyDirectory
 import io.kotest.matchers.file.shouldContainFile
+import io.kotest.matchers.file.shouldNotExist
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldNot
@@ -73,6 +74,22 @@ class AnalyzerDownloaderTest : WordSpec({
                     revision = "941c5c62471168b5d18153755c2a7b38d2560e58"
                 )
             )
+        }
+
+        "clone a sub-directory of a Git repository" {
+            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+            val revision = "63b81fda7961c7426672469caaf4fb350a9d4ee0"
+            val subPath = "pkg1"
+
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision, subPath)
+
+            outputDir shouldContainFile "LICENSE"
+            outputDir shouldContainFile "README.md"
+
+            outputDir.resolve("pkg1") shouldNot beEmptyDirectory()
+            outputDir.resolve("pkg2").shouldNotExist()
+            outputDir.resolve("pkg3").shouldNotExist()
+            outputDir.resolve("pkg4").shouldNotExist()
         }
 
         "throw an exception if the VCS type cannot be determined from the URL" {
