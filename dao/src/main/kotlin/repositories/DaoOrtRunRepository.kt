@@ -55,6 +55,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun create(
         repositoryId: Long,
         revision: String,
+        path: String?,
         jobConfigs: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>,
@@ -66,6 +67,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.index = nextIndex
             this.repository = RepositoryDao[repositoryId]
             this.revision = revision
+            this.path = path
             this.createdAt = Clock.System.now().toDatabasePrecision()
             this.jobConfigs = jobConfigs
             this.jobConfigContext = jobConfigContext
