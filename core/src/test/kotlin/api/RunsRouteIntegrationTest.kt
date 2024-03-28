@@ -79,8 +79,6 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
     var repositoryId = -1L
 
-    // val logFileDownloadDir = tempdir()
-
     beforeEach {
         val authorizationService = DefaultAuthorizationService(
             keycloakClient,
