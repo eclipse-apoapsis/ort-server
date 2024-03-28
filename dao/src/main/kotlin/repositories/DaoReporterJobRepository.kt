@@ -79,7 +79,7 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
 
     override fun getReportByToken(ortRunId: Long, token: String): Report? = db.blockingQuery {
         val time = Clock.System.now()
-        val linkSuffix = "/reporter/token/$token"
+        val linkSuffix = "/downloads/report/$token"
         findJobForOrtRun(ortRunId)?.reporterRun?.reports?.find {
             it.downloadTokenExpiryDate > time && it.downloadLink.endsWith(linkSuffix)
         }?.mapToModel()

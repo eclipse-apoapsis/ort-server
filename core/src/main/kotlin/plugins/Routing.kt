@@ -24,6 +24,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
+import org.eclipse.apoapsis.ortserver.core.api.downloads
 import org.eclipse.apoapsis.ortserver.core.api.healthChecks
 import org.eclipse.apoapsis.ortserver.core.api.organizations
 import org.eclipse.apoapsis.ortserver.core.api.products
@@ -34,6 +35,7 @@ fun Application.configureRouting() {
     routing {
         route("api/v1") {
             healthChecks()
+            downloads()
             authenticate(SecurityConfigurations.token) {
                 organizations()
                 products()
