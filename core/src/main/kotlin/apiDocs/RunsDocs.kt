@@ -54,34 +54,6 @@ val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getReportByRunIdAndToken: OpenApiRoute.() -> Unit = {
-    operationId = "GetReportByRunIdAndToken"
-    summary = "Download a report of an ORT run using a token. This endpoint does not require authentication."
-    tags = listOf("Reports")
-
-    request {
-        pathParameter<Long>("runId") {
-            description = "The ID of the ORT run."
-        }
-        pathParameter<String>("token") {
-            description = "The token providing access to the report file to be downloaded."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success. The response body contains the requested report file."
-            header<String>("Content-Type") {
-                description = "The content type is set to the media type derived from the report file."
-            }
-        }
-
-        HttpStatusCode.NotFound to {
-            description = "The provided token could not be resolved or has expired."
-        }
-    }
-}
-
 val getLogsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetLogsByRunId"
     summary = "Download an archive with selected logs of an ORT run."

@@ -39,7 +39,6 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndToken
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -58,21 +57,6 @@ import org.koin.ktor.ext.inject
  */
 fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
-
-    route("reporter/token/{token}") {
-        val reportStorageService by inject<ReportStorageService>()
-
-        get(getReportByRunIdAndToken) {
-            call.forRun(ortRunRepository) { ortRun ->
-                // Note: The requirePermission call is deliberately omitted here as access is controlled by the token.
-                val token = call.requireParameter("token")
-
-                val downloadData = reportStorageService.fetchReportByToken(ortRun.id, token)
-
-                call.respondOutputStream(downloadData.contentType, producer = downloadData.loader)
-            }
-        }
-    }
 
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
@@ -128,7 +112,7 @@ fun Route.runs() = route("runs/{runId}") {
  * [repository] and pass it as parameter to the given [handler] function. Return a 404 response if the run cannot be
  * resolved.
  */
-private suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
+internal suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
     val runId = requireParameter("runId").toLong()
     val ortRun = repository.get(runId)
 

@@ -159,7 +159,7 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
      */
     private fun ReporterJob.createRunWithReport(expiryTime: Instant): Report {
         val refTime = Clock.System.now().toDatabasePrecision()
-        val downloadLink = "https://reports.example.org/ap1/v1/runs/42/reporter/token/report-token"
+        val downloadLink = "https://reports.example.org/ap1/v1/runs/42/downloads/report/report-token"
         val report = Report("file.pdf", downloadLink, expiryTime)
         val runRepository = dbExtension.fixtures.reporterRunRepository
         runRepository.create(id, refTime, refTime, listOf(report))
