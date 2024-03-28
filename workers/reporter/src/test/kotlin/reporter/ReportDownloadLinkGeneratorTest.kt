@@ -52,7 +52,7 @@ class ReportDownloadLinkGeneratorTest : WordSpec({
 
             val token = extractToken(generator.generateLink(RUN_ID).downloadLink)
 
-            val tokenBytes = Base64.getDecoder().decode(token)
+            val tokenBytes = Base64.getUrlDecoder().decode(token)
             tokenBytes.size shouldBe tokenLength
         }
 
