@@ -35,7 +35,7 @@ class RunStatisticsReporter : Reporter {
     override val type = "RunStatistics"
 
     override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
-        val outputFile = outputDir.resolve("run-statistics.json")
+        val outputFile = outputDir.resolve("statistics.json")
         val statistics = input.statistics
         outputFile.writeValue(statistics)
         return listOf(outputFile)
