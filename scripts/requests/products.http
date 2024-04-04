@@ -1,0 +1,19 @@
+### Get all Products for an Organization
+GET {{host}}/organizations/1/products
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+### Get a single Product
+GET {{host}}/products/1
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+### Create a Product
+POST {{host}}/organizations/1/products
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "Example Product",
+  "description": "This is an example product"
+}

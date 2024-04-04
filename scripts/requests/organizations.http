@@ -1,0 +1,19 @@
+### Get all Organizations
+GET {{host}}/organizations
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+### Get a single Organization
+GET {{host}}/organizations/1
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+### Create an Organization
+POST {{host}}/organizations
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "Example Organization",
+  "description": "This is an example organization"
+}

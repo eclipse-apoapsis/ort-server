@@ -13,3 +13,9 @@ out/
 # Helm subcharts and install packages
 /scripts/helm/ort-server/charts/
 /scripts/helm/*.tgz
+
+# Private environment for IDEA HTTP client
+http-client.private.env.json
+
+# Private http requests
+*.private.http

@@ -1,0 +1,3 @@
+### Check application health
+GET {{host}}/liveness
+Content-Type: application/json
