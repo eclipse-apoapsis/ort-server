@@ -26,10 +26,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.clients"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.ktorClientAuth)

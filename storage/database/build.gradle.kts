@@ -24,10 +24,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.storage"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.dao)
     implementation(projects.storage.storageSpi)

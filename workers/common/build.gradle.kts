@@ -31,10 +31,6 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.dao)
     implementation(projects.model)

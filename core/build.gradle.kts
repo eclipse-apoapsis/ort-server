@@ -43,10 +43,6 @@ tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)

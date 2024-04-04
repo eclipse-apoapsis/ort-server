@@ -176,6 +176,8 @@ subprojects {
     }
 
     tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+
         // Required since Java 17, see: https://kotest.io/docs/next/extensions/system_extensions.html#system-environment
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
             jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")

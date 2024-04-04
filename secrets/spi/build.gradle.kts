@@ -26,10 +26,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.secrets"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     api(projects.config.configSpi)
 
