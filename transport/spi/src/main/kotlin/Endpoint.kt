@@ -54,39 +54,39 @@ sealed class Endpoint<T : Any>(
 /**
  * A concrete [Endpoint] declaration representing the Orchestrator endpoint.
  */
-object OrchestratorEndpoint : Endpoint<OrchestratorMessage>(OrchestratorMessage::class, "orchestrator")
+data object OrchestratorEndpoint : Endpoint<OrchestratorMessage>(OrchestratorMessage::class, "orchestrator")
 
 /**
  * A concrete [Endpoint] declaration representing the Config endpoint.
  */
-object ConfigEndpoint : Endpoint<ConfigRequest>(ConfigRequest::class, "config")
+data object ConfigEndpoint : Endpoint<ConfigRequest>(ConfigRequest::class, "config")
 
 /**
  * A concrete [Endpoint] declaration representing the Analyzer worker.
  */
-object AnalyzerEndpoint : Endpoint<AnalyzerRequest>(AnalyzerRequest::class, "analyzer")
+data object AnalyzerEndpoint : Endpoint<AnalyzerRequest>(AnalyzerRequest::class, "analyzer")
 
 /**
  * A concrete [Endpoint] declaration representing the Advisor worker.
  */
-object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "advisor")
+data object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "advisor")
 
 /**
  * A concrete [Endpoint] declaration representing the Scanner worker.
  */
-object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")
+data object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")
 
 /**
  * A concrete [Endpoint] declaration representing the Evaluator worker.
  */
-object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
+data object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
 
 /**
  * A concrete [Endpoint] declaration representing the Notifier worker.
  */
-object NotifierEndpoint : Endpoint<NotifierRequest>(NotifierRequest::class, "notifier")
+data object NotifierEndpoint : Endpoint<NotifierRequest>(NotifierRequest::class, "notifier")
 
 /**
  * A concrete [Endpoint] declaration representing the Reporter worker.
  */
-object ReporterEndpoint : Endpoint<ReporterRequest>(ReporterRequest::class, "reporter")
+data object ReporterEndpoint : Endpoint<ReporterRequest>(ReporterRequest::class, "reporter")

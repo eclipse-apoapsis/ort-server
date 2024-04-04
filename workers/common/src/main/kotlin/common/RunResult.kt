@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 sealed interface RunResult {
-    object Success : RunResult
-    object Ignored : RunResult
+    data object Success : RunResult
+    data object Ignored : RunResult
     class Failed(val error: Throwable) : RunResult
 }
