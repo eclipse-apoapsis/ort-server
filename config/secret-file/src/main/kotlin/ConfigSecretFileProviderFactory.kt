@@ -45,7 +45,7 @@ class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
         /** Regular expression to split the property with the list of files. */
         private val splitFilesRegex = Regex("""\s*,\s*""")
 
-        private val logger = LoggerFactory.getLogger(ConfigSecretFileProvider::class.java)
+        private val logger = LoggerFactory.getLogger(ConfigSecretFileProviderFactory::class.java)
     }
 
     override val name: String

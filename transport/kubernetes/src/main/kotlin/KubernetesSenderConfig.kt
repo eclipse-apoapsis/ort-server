@@ -235,7 +235,7 @@ data class KubernetesSenderConfig(
         /** The separator character used in string lists. */
         private const val LIST_SEPARATOR = ','
 
-        private val logger = LoggerFactory.getLogger(KubernetesMessageReceiverFactory::class.java)
+        private val logger = LoggerFactory.getLogger(KubernetesSenderConfig::class.java)
 
         /**
          * A regular expression to split the string with commands. Commands are split at whitespace, except the
