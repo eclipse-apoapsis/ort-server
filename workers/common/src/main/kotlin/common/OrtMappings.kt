@@ -191,8 +191,9 @@ fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
         endTime = endTime.toKotlinInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
-        advisorRecords = results.advisorResults.mapKeys { it.key.mapToModel() }
-            .mapValues { it.value.map { it.mapToModel() } }
+        advisorRecords = results.advisorResults.entries.associate { (k, v) ->
+            k.mapToModel() to v.map { it.mapToModel() }
+        }
     )
 
 fun OrtAnalyzerConfiguration.mapToModel() =
@@ -213,7 +214,7 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
         config = config.mapToModel(),
         projects = result.projects.mapTo(mutableSetOf()) { it.mapToModel() },
         packages = result.packages.mapTo(mutableSetOf()) { it.mapToModel() },
-        issues = result.issues.mapKeys { it.key.mapToModel() }.mapValues { it.value.map { it.mapToModel() } },
+        issues = result.issues.entries.associate { (k, v) -> k.mapToModel() to v.map { it.mapToModel() } },
         dependencyGraphs = result.dependencyGraphs.mapValues { it.value.mapToModel() }
     )
 
