@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
  */
 class RabbitMqMessageSenderFactory : MessageSenderFactory {
     companion object {
-        private val logger = LoggerFactory.getLogger(this::class.java)
+        private val logger = LoggerFactory.getLogger(RabbitMqMessageSenderFactory::class.java)
     }
 
     override val name: String = RabbitMqConfig.TRANSPORT_NAME
