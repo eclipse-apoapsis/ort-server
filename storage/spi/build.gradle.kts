@@ -26,10 +26,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.storage"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     api(projects.config.configSpi)
 

@@ -23,10 +23,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.config"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.utils.config)

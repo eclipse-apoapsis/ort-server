@@ -33,10 +33,6 @@ tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)

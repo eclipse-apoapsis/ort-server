@@ -25,10 +25,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.logaccess"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     api(projects.config.configSpi)
 

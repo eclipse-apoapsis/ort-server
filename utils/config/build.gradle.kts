@@ -23,10 +23,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.utils"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(libs.typesafeConfig)
 
