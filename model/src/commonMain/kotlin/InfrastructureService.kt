@@ -23,8 +23,8 @@ import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
-import org.eclipse.apoapsis.ortserver.model.validation.Constraints.namePatternMessage
-import org.eclipse.apoapsis.ortserver.model.validation.Constraints.namePatternRegex
+import org.eclipse.apoapsis.ortserver.model.validation.Constraints.NAME_PATTERN_MESSAGE
+import org.eclipse.apoapsis.ortserver.model.validation.Constraints.NAME_PATTERN_REGEX
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
@@ -71,7 +71,7 @@ data class InfrastructureService(
     fun validate() {
         val validationResult = Validation {
             InfrastructureService::name {
-                pattern(namePatternRegex) hint namePatternMessage
+                pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
             }
         }.validate(this)
 
