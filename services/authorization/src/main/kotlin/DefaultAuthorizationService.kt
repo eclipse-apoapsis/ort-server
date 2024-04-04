@@ -76,7 +76,7 @@ class DefaultAuthorizationService(
     }
 
     override suspend fun createOrganizationRoles(organizationId: Long) {
-        OrganizationRole.values().forEach { role ->
+        OrganizationRole.entries.forEach { role ->
             val roleName = RoleName(role.roleName(organizationId))
             keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
             role.permissions.forEach { permission ->
@@ -91,7 +91,7 @@ class DefaultAuthorizationService(
     }
 
     override suspend fun deleteOrganizationRoles(organizationId: Long) {
-        OrganizationRole.values().forEach { role ->
+        OrganizationRole.entries.forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(organizationId)))
             keycloakClient.deleteGroup(
                 keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(organizationId))).id
@@ -115,7 +115,7 @@ class DefaultAuthorizationService(
         val product = checkNotNull(productRepository.get(productId))
         val organization = checkNotNull(organizationRepository.get(product.organizationId))
 
-        ProductRole.values().forEach { role ->
+        ProductRole.entries.forEach { role ->
             val roleName = RoleName(role.roleName(productId))
             keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
             role.permissions.forEach { permission ->
@@ -123,7 +123,7 @@ class DefaultAuthorizationService(
                 keycloakClient.addCompositeRole(roleName, compositeRole.id)
             }
 
-            OrganizationRole.values().find { it.includedProductRole == role }?.let { orgRole ->
+            OrganizationRole.entries.find { it.includedProductRole == role }?.let { orgRole ->
                 val parentRole = keycloakClient.getRole(RoleName(orgRole.roleName(organization.id)))
                 val childRole = keycloakClient.getRole(roleName)
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
@@ -136,7 +136,7 @@ class DefaultAuthorizationService(
     }
 
     override suspend fun deleteProductRoles(productId: Long) {
-        ProductRole.values().forEach { role ->
+        ProductRole.entries.forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(productId)))
             keycloakClient.deleteGroup(
                 keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(productId))).id
@@ -160,7 +160,7 @@ class DefaultAuthorizationService(
         val repository = checkNotNull(repositoryRepository.get(repositoryId))
         val product = checkNotNull(productRepository.get(repository.productId))
 
-        RepositoryRole.values().forEach { role ->
+        RepositoryRole.entries.forEach { role ->
             val roleName = RoleName(role.roleName(repositoryId))
             keycloakClient.createRole(name = roleName, description = ROLE_DESCRIPTION)
             role.permissions.forEach { permission ->
@@ -168,7 +168,7 @@ class DefaultAuthorizationService(
                 keycloakClient.addCompositeRole(roleName, compositeRole.id)
             }
 
-            ProductRole.values().find { it.includedRepositoryRole == role }?.let { productRole ->
+            ProductRole.entries.find { it.includedRepositoryRole == role }?.let { productRole ->
                 val parentRole = keycloakClient.getRole(RoleName(productRole.roleName(product.id)))
                 val childRole = keycloakClient.getRole(roleName)
                 keycloakClient.addCompositeRole(parentRole.name, childRole.id)
@@ -181,7 +181,7 @@ class DefaultAuthorizationService(
     }
 
     override suspend fun deleteRepositoryRoles(repositoryId: Long) {
-        RepositoryRole.values().forEach { role ->
+        RepositoryRole.entries.forEach { role ->
             keycloakClient.deleteRole(RoleName(role.roleName(repositoryId)))
             keycloakClient.deleteGroup(
                 keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(repositoryId))).id
@@ -320,7 +320,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
 
                 // Make sure that roles have the correct composite roles.
-                OrganizationRole.values().forEach { role ->
+                OrganizationRole.entries.forEach { role ->
                     val roleName = RoleName(role.roleName(organizationId))
                     val requiredCompositeRoles = role.permissions.map { it.roleName(organizationId) }
                     val actualCompositeRoles = keycloakClient.getCompositeRoles(roleName).map { it.name.value }
@@ -366,7 +366,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
 
                 // Make sure that roles have the correct composite roles.
-                ProductRole.values().forEach { role ->
+                ProductRole.entries.forEach { role ->
                     val roleName = RoleName(role.roleName(product.id))
                     val requiredCompositeRoles = role.permissions.map { it.roleName(product.id) }
                     val actualCompositeRoles = keycloakClient.getCompositeRoles(roleName).map { it.name.value }
@@ -380,9 +380,9 @@ class DefaultAuthorizationService(
                 }
 
                 // Make sure that the roles are added as composites to the related organization roles.
-                ProductRole.values().forEach { role ->
+                ProductRole.entries.forEach { role ->
                     val roleName = RoleName(role.roleName(product.id))
-                    OrganizationRole.values().find { it.includedProductRole == role }
+                    OrganizationRole.entries.find { it.includedProductRole == role }
                         ?.let { organizationRole ->
                             val organizationRoleName = RoleName(organizationRole.roleName(product.organizationId))
                             val compositeRoles =
@@ -430,7 +430,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakRoles(roles, requiredRoles, rolePrefix)
 
                 // Make sure that roles have the correct composite roles.
-                RepositoryRole.values().forEach { role ->
+                RepositoryRole.entries.forEach { role ->
                     val roleName = RoleName(role.roleName(repository.id))
                     val requiredCompositeRoles = role.permissions.map { it.roleName(repository.id) }
                     val actualCompositeRoles = keycloakClient.getCompositeRoles(roleName).map { it.name.value }
@@ -444,9 +444,9 @@ class DefaultAuthorizationService(
                 }
 
                 // Make sure that the roles are added as composites to the related product roles.
-                RepositoryRole.values().forEach { role ->
+                RepositoryRole.entries.forEach { role ->
                     val roleName = RoleName(role.roleName(repository.id))
-                    ProductRole.values().find { it.includedRepositoryRole == role }
+                    ProductRole.entries.find { it.includedRepositoryRole == role }
                         ?.let { productRole ->
                             val productRoleName = RoleName(productRole.roleName(repository.productId))
                             val compositeRoles = keycloakClient.getCompositeRoles(productRoleName).map { it.name.value }
@@ -493,7 +493,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
-                OrganizationRole.values().forEach { role ->
+                OrganizationRole.entries.forEach { role ->
                     synchronizeKeycloakGroupRole(
                         keycloakGroupPrefix + role.groupName(organizationId),
                         role.roleName(organizationId),
@@ -533,7 +533,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
-                ProductRole.values().forEach { role ->
+                ProductRole.entries.forEach { role ->
                     synchronizeKeycloakGroupRole(
                         keycloakGroupPrefix + role.groupName(productId),
                         role.roleName(productId),
@@ -575,7 +575,7 @@ class DefaultAuthorizationService(
                 synchronizeKeycloakGroups(groups, requiredGroups, groupPrefix)
 
                 // Make sure that groups have the correct role assigned.
-                RepositoryRole.values().forEach { role ->
+                RepositoryRole.entries.forEach { role ->
                     synchronizeKeycloakGroupRole(
                         keycloakGroupPrefix + role.groupName(repositoryId),
                         role.roleName(repositoryId),

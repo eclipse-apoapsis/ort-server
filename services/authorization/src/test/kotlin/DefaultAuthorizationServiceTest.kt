@@ -144,7 +144,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "add the correct permission roles as composites" {
-            OrganizationRole.values().forEach { role ->
+            OrganizationRole.entries.forEach { role ->
                 val actualRoles =
                     keycloakClient.getCompositeRoles(RoleName(role.roleName(organizationId))).map { it.name.value }
                 val expectedRoles = role.permissions.map { it.roleName(organizationId) }
@@ -218,7 +218,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "add the correct permission roles as composites" {
-            ProductRole.values().forEach { role ->
+            ProductRole.entries.forEach { role ->
                 val actualRoles =
                     keycloakClient.getCompositeRoles(RoleName(role.roleName(productId))).map { it.name.value }
                 val expectedRoles = role.permissions.map { it.roleName(productId) }
@@ -228,8 +228,8 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "add the roles as composites to the parent roles" {
-            ProductRole.values().forEach { role ->
-                OrganizationRole.values().find { it.includedProductRole == role }?.let { orgRole ->
+            ProductRole.entries.forEach { role ->
+                OrganizationRole.entries.find { it.includedProductRole == role }?.let { orgRole ->
                     keycloakClient.getCompositeRoles(RoleName(orgRole.roleName(organizationId)))
                         .map { it.name.value } should contain(role.roleName(productId))
                 }
@@ -304,7 +304,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "add the correct permission roles as composites" {
-            RepositoryRole.values().forEach { role ->
+            RepositoryRole.entries.forEach { role ->
                 val actualRoles =
                     keycloakClient.getCompositeRoles(RoleName(role.roleName(repositoryId))).map { it.name.value }
                 val expectedRoles = role.permissions.map { it.roleName(repositoryId) }
@@ -314,8 +314,8 @@ class DefaultAuthorizationServiceTest : WordSpec({
         }
 
         "add the roles as composites to the parent roles" {
-            RepositoryRole.values().forEach { role ->
-                ProductRole.values().find { it.includedRepositoryRole == role }?.let { orgRole ->
+            RepositoryRole.entries.forEach { role ->
+                ProductRole.entries.find { it.includedRepositoryRole == role }?.let { orgRole ->
                     keycloakClient.getCompositeRoles(RoleName(orgRole.roleName(productId)))
                         .map { it.name.value } should contain(role.roleName(repositoryId))
                 }
@@ -888,7 +888,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
-            OrganizationRole.values().forEach { role ->
+            OrganizationRole.entries.forEach { role ->
                 val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(organizationId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(organizationId))
@@ -903,7 +903,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
-            ProductRole.values().forEach { role ->
+            ProductRole.entries.forEach { role ->
                 val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(productId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(productId))
@@ -919,7 +919,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
 
             mockkTransaction { runBlocking { service.synchronizeRoles() } }
 
-            RepositoryRole.values().forEach { role ->
+            RepositoryRole.entries.forEach { role ->
                 val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(repositoryId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(repositoryId))
