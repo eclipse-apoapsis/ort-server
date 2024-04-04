@@ -52,8 +52,8 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
                         (this.disabledPackageManagers eq config.disabledPackageManagers?.joinToString(",")) and
                         (this.skipExcluded eq config.skipExcluded)
             }
-        }.singleOrNull {
-            it.packageManagerConfigurations.associate { it.name to it.mapToModel() } == config.packageManagers
+        }.singleOrNull { dao ->
+            dao.packageManagerConfigurations.associate { it.name to it.mapToModel() } == config.packageManagers
         }
 
         fun getOrPut(config: RepositoryAnalyzerConfiguration): RepositoryAnalyzerConfigurationDao =
