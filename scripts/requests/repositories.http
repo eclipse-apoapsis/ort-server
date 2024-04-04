@@ -1,0 +1,62 @@
+### Get all Repositories of a Product
+GET {{host}}/products/1/repositories
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get a single Repository
+GET {{host}}/repositories/1
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Create a Repository
+POST {{host}}/products/1/repositories
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "type": "GIT",
+  "url": "https://github.com/eclipse-apoapsis/ort-server.git"
+}
+
+### Get all Runs for a Repository
+GET {{host}}/repositories/1/runs
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get latest Run
+GET {{host}}/repositories/1/runs?limit=1&sort=-index
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Start a new Run
+POST {{host}}/repositories/1/runs
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "revision": "main",
+  "jobConfigs": {
+    "analyzer": {},
+    "advisor": {},
+    "scanner": {},
+    "evaluator": {},
+    "reporter": {},
+    "notifier": {}
+  }
+}
+
+> {%
+    client.global.set("runId", response.body.id);
+%}
+
+### Get latest Run
+GET {{host}}/repositories/1/runs?limit=1&sort=-index
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+> {%
+    client.global.set("runId", response.body.data[0].id);
+%}
+
+### Get details of a Run
+GET {{host}}/repositories/1/runs/{{runId}}
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get WebApp Report for Run
+GET {{host}}/runs/{{runId}}/reporter/scan-report-web-app.html
+Authorization: Bearer {{$auth.token("keycloak")}}

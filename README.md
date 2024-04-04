@@ -106,6 +106,11 @@ without TLS.**
 | RabbitMQ       | http://localhost:15672           | admin:admin       |
 | Graphite       | http://localhost:8888            | root:root         |
 
+#### HTTP request collections
+
+When using IntelliJ IDEA Ultimate, you can use the [integrated HTTP client](https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html) to execute requests against the ORT server.
+The requests can be found in [scripts/requests](./scripts/requests).
+
 ### Debugging
 
 To debug the ORT server in IntelliJ, you can use a composition with only some selected services:

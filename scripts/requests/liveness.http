@@ -1,0 +1,2 @@
+### Check application health
+GET {{host}}/liveness
