@@ -25,6 +25,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
@@ -47,6 +48,8 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+
+import org.ossreviewtoolkit.utils.common.EnvironmentVariableFilter
 
 class WorkerContextFactoryTest : WordSpec({
     "ortRun" should {
@@ -322,6 +325,34 @@ class WorkerContextFactoryTest : WordSpec({
             resolvedConfig shouldBe expectedConfig
         }
     }
+
+    "the ORT configuration" should {
+        "configure the environment variable filter" {
+            val helper = ContextFactoryTestHelper()
+
+            helper.context()
+
+            listOf("allowedKey", "otherKey").forAll { key ->
+                EnvironmentVariableFilter.isAllowed(key) shouldBe true
+            }
+
+            listOf("secretTest", "forbiddenKey").forAll { key ->
+                EnvironmentVariableFilter.isAllowed(key) shouldBe false
+            }
+
+            EnvironmentVariableFilter.reset()
+        }
+
+        "support default values" {
+            val configManager = ConfigManager.create(ConfigFactory.empty())
+            val factory = WorkerContextFactory(configManager, mockk(), mockk())
+
+            factory.createContext(RUN_ID)
+
+            EnvironmentVariableFilter.isAllowed("someKey") shouldBe false
+            EnvironmentVariableFilter.isAllowed("GRADLE_USER_HOME") shouldBe true
+        }
+    }
 })
 
 private const val RUN_ID = 20230607142948L
@@ -349,9 +380,14 @@ private fun createConfigManager(): ConfigManager {
         ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to configSecrets,
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME
     )
+    val ortConfig = mapOf(
+        WorkerContextFactory.ENV_ALLOW_NAMES_PROPERTY to "allowedKey,otherKey",
+        WorkerContextFactory.ENV_DENY_SUBSTRINGS_PROPERTY to "secret,forbidden"
+    )
     val properties = mapOf(
         SecretStorage.CONFIG_PREFIX to mapOf(SecretStorage.NAME_PROPERTY to SecretsProviderFactoryForTesting.NAME),
-        ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties
+        ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties,
+        WorkerContextFactory.ORT_CONFIG_SECTION to ortConfig
     )
     return ConfigManager.create(ConfigFactory.parseMap(properties))
 }
