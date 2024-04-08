@@ -64,7 +64,7 @@ val getProductById: OpenApiRoute.() -> Unit = {
 }
 
 val patchProductById: OpenApiRoute.() -> Unit = {
-    operationId = "PathProductById"
+    operationId = "PatchProductById"
     summary = "Update a product."
     tags = listOf("Products")
 
