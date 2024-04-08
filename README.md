@@ -8,15 +8,26 @@ The ORT server is a standalone application to deploy the
 To start the ORT server with the required 3rd party services, you can use
 [Docker Compose](https://docs.docker.com/compose/).
 
-First, build the base images for the workers which contain the external tools and required configuration:
+First, ensure to have [Docker BuildKit](https://docs.docker.com/build/buildkit/) enabled by either using Docker version
+23.0 or newer, running `export DOCKER_BUILDKIT=1`, or configuring `/etc/docker/daemon.json` with
+
+```json
+{
+  "features": {
+    "buildkit": true
+  }
+}
+```
+
+Then build the base images for the workers which contain the external tools and required configuration:
 
 ```shell
-DOCKER_BUILDKIT=1 docker build workers/analyzer/docker -f workers/analyzer/docker/Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
-DOCKER_BUILDKIT=1 docker build workers/config/docker -f workers/config/docker/Config.Dockerfile -t ort-server-config-worker-base-image:latest
-DOCKER_BUILDKIT=1 docker build workers/evaluator/docker -f workers/evaluator/docker/Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image:latest
-DOCKER_BUILDKIT=1 docker build workers/notifier/docker -f workers/notifier/docker/Notifier.Dockerfile -t ort-server-notifier-worker-base-image:latest
-DOCKER_BUILDKIT=1 docker build workers/reporter/docker -f workers/reporter/docker/Reporter.Dockerfile -t ort-server-reporter-worker-base-image:latest
-DOCKER_BUILDKIT=1 docker build workers/scanner/docker -f workers/scanner/docker/Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
+docker build workers/analyzer/docker -f workers/analyzer/docker/Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:latest
+docker build workers/config/docker -f workers/config/docker/Config.Dockerfile -t ort-server-config-worker-base-image:latest
+docker build workers/evaluator/docker -f workers/evaluator/docker/Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image:latest
+docker build workers/notifier/docker -f workers/notifier/docker/Notifier.Dockerfile -t ort-server-notifier-worker-base-image:latest
+docker build workers/reporter/docker -f workers/reporter/docker/Reporter.Dockerfile -t ort-server-reporter-worker-base-image:latest
+docker build workers/scanner/docker -f workers/scanner/docker/Scanner.Dockerfile -t ort-server-scanner-worker-base-image:latest
 ```
 
 For analyzing Java projects, it must be ensured that the Java version used by the Analyzer worker is compatible with
@@ -27,8 +38,7 @@ possible to customize the Java version in the container image for the Analyzer w
 with the desired target version, for instance for targeting Java 11:
 
 ```shell
-DOCKER_BUILDKIT=1 docker build --build-arg="TEMURIN_VERSION=11" . -f Analyzer.Dockerfile \
-  -t ort-server-analyzer-worker-base-image:11-latest
+docker build --build-arg="TEMURIN_VERSION=11" . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:11-latest
 ```
 
 Then the Docker images can be built with [Jib](https://github.com/GoogleContainerTools/jib):
