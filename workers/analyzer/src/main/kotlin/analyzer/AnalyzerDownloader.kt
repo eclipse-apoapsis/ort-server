@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(AnalyzerDownloader::class.java)
 
 class AnalyzerDownloader {
-    fun downloadRepository(repositoryUrl: String, revision: String): File {
+    fun downloadRepository(repositoryUrl: String, revision: String, path: String = ""): File {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
         val outputDir = createOrtTempDir("analyzer-worker")
@@ -42,7 +42,8 @@ class AnalyzerDownloader {
         val vcsInfo = VcsInfo(
             type = VcsType.forName(vcs.type),
             url = repositoryUrl,
-            revision = revision
+            revision = revision,
+            path = path
         )
 
         val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)

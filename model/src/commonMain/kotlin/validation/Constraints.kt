@@ -24,6 +24,6 @@ package org.eclipse.apoapsis.ortserver.model.validation
  */
 @Suppress("MaxLineLength")
 object Constraints {
-    const val namePatternRegex = "^(?! )[A-Za-z0-9- ]*(?<! )$"
-    const val namePatternMessage = "The entity name may only contain letters, numbers, hyphen marks and spaces. Leading and trailing spaces are not allowed."
+    const val NAME_PATTERN_REGEX = "^(?! )[A-Za-z0-9- ]*(?<! )$"
+    const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and spaces. Leading and trailing spaces are not allowed."
 }

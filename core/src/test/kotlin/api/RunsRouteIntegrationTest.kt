@@ -48,7 +48,10 @@ import java.io.File
 import java.io.IOException
 import java.util.EnumSet
 
+import kotlin.time.Duration.Companion.minutes
+
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
@@ -59,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -74,8 +78,6 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     var repositoryId = -1L
-
-    // val logFileDownloadDir = tempdir()
 
     beforeEach {
         val authorizationService = DefaultAuthorizationService(
@@ -126,6 +128,15 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         val storage = Storage.create("reportStorage", ConfigManager.create(ConfigFactory.load("application-test.conf")))
         storage.write(key, reportData, "application/pdf")
 
+        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId = run.id)
+        val report = Report(reportFile, "", Instant.fromEpochSeconds(0))
+        dbExtension.fixtures.reporterRunRepository.create(
+            reporterJob.id,
+            Clock.System.now() - 1.minutes,
+            Clock.System.now(),
+            listOf(report)
+        )
+
         return run
     }
 
@@ -143,7 +154,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             run
         }
 
-        LogSource.values().forEach { source ->
+        LogSource.entries.forEach { source ->
             val logFile = logFileDir.resolve("${source.name}.log")
             logFile.writeText(logFileContent(source))
 
@@ -267,7 +278,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 checkLogArchiveChannel(channel, EnumSet.allOf(LogSource::class.java))
 
                 val logRequests = LogFileProviderFactoryForTesting.requests()
-                logRequests shouldHaveSize LogSource.values().size
+                logRequests shouldHaveSize LogSource.entries.size
                 logRequests.forAll { request ->
                     val endTime = request.endTime.shouldNotBeNull()
                     val delta = Clock.System.now() - endTime

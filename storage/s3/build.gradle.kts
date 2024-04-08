@@ -27,10 +27,6 @@ plugins {
 group = "org.ossreviewtoolkit.server"
 version = "0.0.1"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     api(projects.storage.storageSpi)
 
@@ -43,8 +39,4 @@ dependencies {
     testImplementation(libs.testContainersLocalStack)
 
     testFixturesRuntimeOnly(libs.testContainers)
-}
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
 }

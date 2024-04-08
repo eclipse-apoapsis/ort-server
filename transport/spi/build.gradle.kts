@@ -26,10 +26,6 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.transport"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(projects.model)
 

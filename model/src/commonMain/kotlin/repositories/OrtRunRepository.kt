@@ -36,6 +36,7 @@ interface OrtRunRepository {
     fun create(
         repositoryId: Long,
         revision: String,
+        path: String?,
         jobConfigs: JobConfigurations,
         jobConfigContext: String? = null,
         labels: Map<String, String>,

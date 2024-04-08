@@ -116,6 +116,7 @@ class SourceCodeBundleReporterTest : WordSpec({
 
             val input = getReporterInput()
             val outputDir = tempdir()
+            val bundleTmpOutputDir = outputDir.resolve(SOURCE_BUNDLE_SUB_DIR)
 
             shouldThrow<DownloadException> {
                 reporter.generateReport(
@@ -125,6 +126,7 @@ class SourceCodeBundleReporterTest : WordSpec({
                 )
             }
 
+            bundleTmpOutputDir.exists() shouldBe false
             outputDir.listFiles()?.size shouldBe 0
         }
 

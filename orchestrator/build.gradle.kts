@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import com.google.cloud.tools.jib.gradle.JibTask
+
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
 
@@ -27,8 +29,8 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
+tasks.withType<JibTask> {
+    notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
 dependencies {

@@ -44,7 +44,13 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
         endTime: Instant,
         reports: List<Report>
     ): ReporterRun = db.blockingQuery {
-        val reportsList = mapAndDeduplicate(reports) { ReportDao.new { filename = it.filename } }
+        val reportsList = mapAndDeduplicate(reports) {
+            ReportDao.new {
+                filename = it.filename
+                downloadLink = it.downloadLink
+                downloadTokenExpiryDate = it.downloadTokenExpiryDate
+            }
+        }
 
         ReporterRunDao.new {
             this.reporterJob = ReporterJobDao[reporterJobId]

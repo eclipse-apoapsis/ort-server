@@ -49,9 +49,9 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
                         (EnvironmentsTable.os eq environment.os) and
                         (EnvironmentsTable.processors eq environment.processors) and
                         (EnvironmentsTable.maxMemory eq environment.maxMemory)
-            }.singleOrNull {
-                it.variables.associate { it.name to it.value } == environment.variables &&
-                        it.toolVersions.associate { it.name to it.version } == environment.toolVersions
+            }.singleOrNull { dao ->
+                dao.variables.associate { it.name to it.value } == environment.variables &&
+                        dao.toolVersions.associate { it.name to it.version } == environment.toolVersions
             }
 
         fun getOrPut(environment: Environment): EnvironmentDao =

@@ -24,8 +24,8 @@ import io.konform.validation.jsonschema.pattern
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternMessage
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.namePatternRegex
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.NAME_PATTERN_MESSAGE
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.NAME_PATTERN_REGEX
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.optionalPattern
 
@@ -55,7 +55,7 @@ data class CreateProduct(
         val validate: ValidatorFunc<CreateProduct> = { obj ->
             Validation {
                 CreateProduct::name {
-                    pattern(namePatternRegex) hint namePatternMessage
+                    pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }
@@ -74,7 +74,7 @@ data class UpdateProduct(
         val validate: ValidatorFunc<UpdateProduct> = { obj ->
             Validation {
                 UpdateProduct::name {
-                    optionalPattern(namePatternRegex) hint namePatternMessage
+                    optionalPattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }

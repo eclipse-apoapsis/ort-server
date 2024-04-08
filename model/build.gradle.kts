@@ -48,10 +48,6 @@ kotlin {
     }
 }
 
-tasks.named<Test>("jvmTest") {
-    useJUnitPlatform()
-}
-
 tasks.named<Detekt>("detekt") {
     dependsOn("detektMetadataMain")
 }

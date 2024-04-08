@@ -22,7 +22,6 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-@Suppress("DSL_SCOPE_VIOLATION") // See https://youtrack.jetbrains.com/issue/KTIJ-19369.
 plugins {
     alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.detekt)
@@ -177,6 +176,8 @@ subprojects {
     }
 
     tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+
         // Required since Java 17, see: https://kotest.io/docs/next/extensions/system_extensions.html#system-environment
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
             jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")

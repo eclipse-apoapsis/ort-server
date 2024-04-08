@@ -36,6 +36,7 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -165,12 +166,18 @@ class ReporterWorkerTest : StringSpec({
             } returns runnerResult
         }
 
+        val link = ReportDownloadLink("https://report.example.org/ap1/$ORT_RUN_ID/someToken", Instant.DISTANT_FUTURE)
+        val linkGenerator = mockk<ReportDownloadLinkGenerator> {
+            every { generateLink(ORT_RUN_ID) } returns link
+        }
+
         val worker = ReporterWorker(
             contextFactory,
             mockk(),
             environmentService,
             runner,
-            ortRunService
+            ortRunService,
+            linkGenerator
         )
 
         mockkTransaction {
@@ -187,7 +194,9 @@ class ReporterWorkerTest : StringSpec({
             environmentService.generateNetRcFileForCurrentRun(context)
         }
 
-        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(Report("report.html"))
+        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+            Report("report.html", link.downloadLink, link.expirationTime)
+        )
     }
 
     "A failure result should be returned in case of an error" {
@@ -201,7 +210,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
-            ortRunService
+            ortRunService,
+            mockk()
         )
 
         mockkTransaction {
@@ -223,7 +233,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             mockk(),
             ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
-            ortRunService
+            ortRunService,
+            mockk()
         )
 
         mockkTransaction {

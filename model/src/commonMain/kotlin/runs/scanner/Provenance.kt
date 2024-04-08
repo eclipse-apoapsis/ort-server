@@ -26,7 +26,7 @@ sealed interface Provenance
 
 sealed interface KnownProvenance : Provenance
 
-object UnknownProvenance : Provenance
+data object UnknownProvenance : Provenance
 
 data class ArtifactProvenance(
     val sourceArtifact: RemoteArtifact

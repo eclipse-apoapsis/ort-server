@@ -127,6 +127,7 @@ class OrtServerMappingsTest : WordSpec({
                 index = 1L,
                 repositoryId = repository.id,
                 revision = OrtTestData.projectRevision,
+                path = null,
                 createdAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 finishedAt = null,
                 jobConfigs = JobConfigurations(),

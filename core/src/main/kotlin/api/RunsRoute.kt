@@ -112,7 +112,7 @@ fun Route.runs() = route("runs/{runId}") {
  * [repository] and pass it as parameter to the given [handler] function. Return a 404 response if the run cannot be
  * resolved.
  */
-private suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
+internal suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
     val runId = requireParameter("runId").toLong()
     val ortRun = repository.get(runId)
 

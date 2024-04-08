@@ -47,7 +47,8 @@ internal class ReporterWorker(
     private val db: Database,
     private val environmentService: EnvironmentService,
     private val runner: ReporterRunner,
-    private val ortRunService: OrtRunService
+    private val ortRunService: OrtRunService,
+    private val linkGenerator: ReportDownloadLinkGenerator
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidReporterJob(jobId)
@@ -97,7 +98,7 @@ internal class ReporterWorker(
 
         val reports = reporterRunnerResult.reports.values
             .flatMap { it.toList() }
-            .map { file -> Report(file) }
+            .map { toReport(it, job.ortRunId) }
             .toList()
 
         val reporterRun = ReporterRun(
@@ -144,5 +145,13 @@ internal class ReporterWorker(
         if (status in invalidStates) {
             throw JobIgnoredException("Reporter job '$id' status is already set to '$status'.")
         }
+    }
+
+    /**
+     * Create a [Report] for the given [file] and [runId] together with a link to download it.
+     */
+    private fun toReport(file: String, runId: Long): Report {
+        val reportToken = linkGenerator.generateLink(runId)
+        return Report(file, reportToken.downloadLink, reportToken.expirationTime)
     }
 }

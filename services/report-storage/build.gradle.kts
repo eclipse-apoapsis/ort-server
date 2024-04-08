@@ -23,12 +23,10 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.services"
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
 dependencies {
     api(projects.storage.storageSpi)
+
+    implementation(projects.model)
 
     implementation(libs.ktorHttp)
 

@@ -46,7 +46,7 @@ class RunStatisticsReporterTest : WordSpec({
             reportFiles should haveSize(1)
 
             val runStatisticsFile = reportFiles.single()
-            runStatisticsFile.name shouldBe "run-statistics.json"
+            runStatisticsFile.name shouldBe "statistics.json"
             val actualResult = runStatisticsFile.readValue<Statistics>()
             actualResult shouldBe input.statistics
         }

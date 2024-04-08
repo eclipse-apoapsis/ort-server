@@ -74,7 +74,11 @@ internal class AnalyzerWorker(
             } to null
         }
 
-        val sourcesDir = downloader.downloadRepository(repository.url, ortRun.revision)
+        val sourcesDir = downloader.downloadRepository(
+            repository.url,
+            ortRun.revision,
+            ortRun.path.orEmpty()
+        )
 
         val resolvedEnvConfigFromRepo = if (envConfigFromJob == null) {
             environmentService.setUpEnvironment(context, sourcesDir, repositoryService)

@@ -66,13 +66,13 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
 
         queryParameter<String>("level") {
             description = "The log level; can be one of " +
-                    LogLevel.values().joinToString { "'$it'" } + " (ignoring case)." +
+                    LogLevel.entries.joinToString { "'$it'" } + " (ignoring case)." +
                     "Only logs of this level or higher are retrieved. Defaults to 'INFO' if missing."
         }
 
         queryParameter<String>("steps") {
             description = "Defines the run steps for which logs are to be retrieved. This is a comma-separated " +
-                    "string with the following allowed steps: " + LogSource.values().joinToString { "'$it'" } +
+                    "string with the following allowed steps: " + LogSource.entries.joinToString { "'$it'" } +
                     " (ignoring case). If missing, the logs for all steps are retrieved."
         }
     }

@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.slf4j.LoggerFactory
 
 const val SOURCE_BUNDLE_FILE_NAME = "source-bundle-archive.zip"
+const val SOURCE_BUNDLE_SUB_DIR = "source_code_bundle"
 
 /**
  * A custom reporter that creates source code bundles.
@@ -93,17 +94,28 @@ class SourceCodeBundleReporter(
             }
         }
 
-        log.info("Downloading ${packages.size} project(s) / package(s) in total.")
+        val bundleDownloadDir = provideCodeBundleDownloadDir(outputDir)
 
-        val packageDownloadDirs = packages.associateWith { outputDir.resolve(it.id.toPath()) }
+        try {
+            log.info("Downloading ${packages.size} project(s) / package(s) in total.")
 
-        runBlocking { downloadAllPackages(packageDownloadDirs, outputDir) }
+            val packageDownloadDirs =
+                packages.associateWith { bundleDownloadDir.resolve(it.id.toPath()) }
 
-        val sourceCodeZipFile = outputDir.resolve(SOURCE_BUNDLE_FILE_NAME)
+            runBlocking { downloadAllPackages(packageDownloadDirs, bundleDownloadDir) }
 
-        log.info("Archiving directory '$outputDir' to '$sourceCodeZipFile'.")
-        outputDir.packZip(sourceCodeZipFile)
-        return sourceCodeZipFile
+            val sourceCodeZipFile = outputDir.resolve(SOURCE_BUNDLE_FILE_NAME)
+
+            log.info("Archiving directory '$bundleDownloadDir' to '$sourceCodeZipFile'.")
+            bundleDownloadDir.packZip(sourceCodeZipFile)
+
+            return sourceCodeZipFile
+        } finally {
+            bundleDownloadDir.safeDeleteRecursively(baseDirectory = bundleDownloadDir)
+            bundleDownloadDir.delete()
+
+            log.debug("Temp code bundle packages download dir ${bundleDownloadDir.absolutePath} deleted.")
+        }
     }
 
     private suspend fun downloadAllPackages(packageDownloadDirs: Map<Package, File>, outputDir: File) {
@@ -133,5 +145,21 @@ class SourceCodeBundleReporter(
 
         log.info("Archiving directory '$dir' to '$zipFile'.")
         dir.packZip(zipFile, "${pkg.id.name.encodeOrUnknown()}/${pkg.id.version.encodeOrUnknown()}/")
+    }
+
+    private fun provideCodeBundleDownloadDir(outputDir: File): File {
+        require(outputDir.exists() && outputDir.isDirectory && outputDir.canWrite()) {
+            "Output dir ${outputDir.absolutePath} doesn't exists or is not writeable."
+        }
+
+        val codeBundleDir = outputDir.resolve(SOURCE_BUNDLE_SUB_DIR)
+
+        require(codeBundleDir.mkdir()) {
+            "Can't create writable code bundle output dir ${codeBundleDir.absolutePath}."
+        }
+
+        log.debug("Temp dir ${codeBundleDir.absolutePath} for code bundle packages download created.")
+
+        return codeBundleDir
     }
 }
