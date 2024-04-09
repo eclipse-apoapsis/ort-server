@@ -6,5 +6,8 @@
     ":semanticCommitTypeAll(deps)"
   ],
   "branchPrefix": "renovate-action/",
-  "dependencyDashboard": false
+  "dependencyDashboard": false,
+  "repositories": [
+    "eclipse-apoapsis/ort-server"
+  ]
 }
