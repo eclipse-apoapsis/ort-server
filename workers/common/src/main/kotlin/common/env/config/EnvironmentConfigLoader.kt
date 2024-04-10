@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.decodeFromStream
 
 import java.io.File
 
