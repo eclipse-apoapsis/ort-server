@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainInOrder
@@ -30,8 +31,6 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-
-import java.nio.file.Paths
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -56,6 +55,10 @@ private val annotationVariables = mapOf(
 )
 
 class KubernetesMessageSenderFactoryTest : StringSpec({
+    val kubeconfigPath = tempfile().apply {
+        writeText(KubernetesMessageSenderFactoryTest::class.java.getResource("/kubeconfig").readText())
+    }.absolutePath
+
     "A correct MessageSender can be created" {
         val keyPrefix = "analyzer.sender"
         val configMap = mapOf(
@@ -75,8 +78,6 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
         )
         val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
-
-        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
         val envVariables = annotationVariables + ("KUBECONFIG" to kubeconfigPath)
         val sender = withEnvironment(envVariables) {
@@ -122,8 +123,6 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.imageName" to IMAGE_NAME
         )
         val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
-
-        val kubeconfigPath = Paths.get(this.javaClass.getResource("/kubeconfig")!!.toURI()).toFile().absolutePath
 
         val sender = withEnvironment("KUBECONFIG" to kubeconfigPath) {
             MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
