@@ -115,9 +115,7 @@ val testHierarchy = Hierarchy(
  * Load the script with the given [name] from resources and return it as a string.
  */
 private fun loadScript(name: String): String =
-    ConfigValidatorTest::class.java.getResourceAsStream("/$name")?.use { stream ->
-        String(stream.readAllBytes())
-    } ?: fail("Could not load script file '$name'.")
+    ConfigValidatorTest::class.java.getResource("/$name")?.readText() ?: fail("Could not load script file '$name'.")
 
 /**
  * Check whether the given [issue][actual] corresponds to the given [expected] issue. This function does not do an
