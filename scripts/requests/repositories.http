@@ -51,10 +51,11 @@ Authorization: Bearer {{$auth.token("keycloak")}}
 
 > {%
     client.global.set("runId", response.body.data[0].id);
+    client.global.set("runIndex", response.body.data[0].index);
 %}
 
 ### Get details of a Run
-GET {{host}}/repositories/1/runs/{{runId}}
+GET {{host}}/repositories/1/runs/{{runIndex}}
 Authorization: Bearer {{$auth.token("keycloak")}}
 
 ### Get WebApp Report for Run
