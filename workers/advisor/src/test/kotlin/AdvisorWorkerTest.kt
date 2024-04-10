@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -31,8 +32,6 @@ import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkAll
 import io.mockk.verify
-
-import kotlin.test.fail
 
 import kotlinx.datetime.Clock
 
