@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.fail
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -35,8 +36,6 @@ import io.mockk.runs
 import io.mockk.verify
 
 import java.io.File
-
-import kotlin.test.fail
 
 import kotlinx.datetime.Clock
 
