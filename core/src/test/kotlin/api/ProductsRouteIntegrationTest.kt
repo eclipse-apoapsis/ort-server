@@ -178,7 +178,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with a Bad Request if a product name is invalid" {
+        "respond with 'Bad Request' if the product's name is invalid" {
             integrationTestApplication {
                 val createdProduct = createProduct()
 
@@ -468,7 +468,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with Bad Request if the secret's name is invalid" {
+        "respond with 'Bad Request' if the secret's name is invalid" {
             integrationTestApplication {
                 val productId = createProduct().id
                 val secret = CreateSecret(" New secret 6!", secretValue, secretDescription)

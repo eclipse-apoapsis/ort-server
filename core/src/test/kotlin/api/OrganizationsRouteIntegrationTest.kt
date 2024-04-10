@@ -219,7 +219,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with a Bad Request if the name is invalid" {
+        "respond with 'Bad Request' if the organization's name is invalid" {
             integrationTestApplication {
                 val org = CreateOrganization(name = " org_name!", description = "description")
 
@@ -304,7 +304,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with a Bad Request if the organization name is invalid" {
+        "respond with 'Bad Request' if the organization's name is invalid" {
             integrationTestApplication {
                 val createdOrg = createOrganization()
 
@@ -421,7 +421,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with a Bad Request if a product name is invalid" {
+        "respond with 'Bad Request' if the product's name is invalid" {
             integrationTestApplication {
                 val orgId = createOrganization().id
 
@@ -656,7 +656,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with Bad Request if the secret's name is invalid" {
+        "respond with 'Bad Request' if the secret's name is invalid" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
                 val secret = CreateSecret(" New secret 6!", secretValue, secretDescription)
@@ -990,7 +990,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with Bad Request if the name of infrastructure service is invalid" {
+        "respond with 'Bad Request' if the infrastructure service's name is invalid" {
             integrationTestApplication {
                 val orgId = createOrganization().id
 
