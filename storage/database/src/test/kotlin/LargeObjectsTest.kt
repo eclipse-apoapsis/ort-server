@@ -97,8 +97,8 @@ class LargeObjectsTest : WordSpec({
 
             val stream = getStreamForLargeObject(lom, oid, data.size.toLong(), data.size)
 
-            stream.readAllBytes() shouldBe data
             stream.shouldBeInstanceOf<ByteArrayInputStream>()
+            stream.use { it.readAllBytes() } shouldBe data
 
             verify { obj.close() }
         }
@@ -114,8 +114,8 @@ class LargeObjectsTest : WordSpec({
             every { obj.close() } just runs
 
             getStreamForLargeObject(lom, oid, data.size.toLong(), data.size - 1).use { stream ->
-                stream.readAllBytes() shouldBe data
                 stream.shouldBeInstanceOf<TempFileInputStream>()
+                stream.use { it.readAllBytes() } shouldBe data
             }
 
             verify { obj.close() }
