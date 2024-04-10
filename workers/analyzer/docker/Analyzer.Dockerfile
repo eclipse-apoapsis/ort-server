@@ -21,7 +21,7 @@
 # License-Filename: LICENSE
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-ARG TEMURIN_VERSION=17.0.10_7-jdk-jammy@sha256:ea9fa95d08ebe9be6709b036088603db68ded9902692755e489fa64954491e14
+ARG TEMURIN_VERSION=17.0.10_7-jdk-jammy@sha256:c8c2aa6fec59bce2caa631fff2a895a35645cd728a2b62ec7562694a0a7f917d
 
 FROM eclipse-temurin:$TEMURIN_VERSION as ort-base-image
 
