@@ -64,7 +64,7 @@ qpidJmsClient = "2.5.0"
 slf4j = "2.0.12"
 testContainers = "1.19.5"
 typesafeConfig = "1.4.3"
-wiremock = "2.35.0"
+wiremock = "2.35.2"
 
 [plugins]
 dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }
