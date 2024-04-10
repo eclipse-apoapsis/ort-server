@@ -30,7 +30,7 @@ kotlinxCoroutines = "1.8.0"
 kotlinxDatetime = "0.5.0"
 kotlinxSerialization = "1.6.3"
 mavenPublishPlugin = "0.27.0"
-rabbitMq = "5.20.0"
+rabbitMq = "5.21.0"
 versionCatalogUpdatePlugin = "0.8.4"
 versionsPlugin = "0.51.0"
 
