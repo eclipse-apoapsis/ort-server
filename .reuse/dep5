@@ -4,8 +4,76 @@ Source: https://github.com/oss-review-toolkit/ort-server
 
 # If multiple globs match the same files, the last match wins.
 
-Files: *
-Copyright: The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+Files: .git*
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: .detekt.license.template
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: .env.development
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: .run/*.xml
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: NOTICE
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: README.md
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */README.adoc
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */README.md
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: config/*.adoc
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: config/*.txt
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: docs/*
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: scripts/*
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/*.rules.kts
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/*.sql
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/*.template
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/*.yml
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/*config*
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
+Files: */resources/META-INF/services/*
+Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
 
 Files: gradlew*
