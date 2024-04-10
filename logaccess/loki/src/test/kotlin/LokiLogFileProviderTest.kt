@@ -31,6 +31,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
@@ -295,8 +296,8 @@ private fun WireMockServer.stubLogRequest(
  * Read the file with the template to generate Loki responses with log statements.
  */
 private fun readResponseTemplate(): String =
-    requireNotNull(LokiLogFileProviderTest::class.java.getResourceAsStream("/loki-response.json.template"))
-        .use { String(it.readAllBytes()) }
+    LokiLogFileProviderTest::class.java.getResource("/loki-response.json.template")?.readText()
+        ?: fail("Could not load response template.")
 
 /**
  * Generate a log line for the given [timestamp].
