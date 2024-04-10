@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
@@ -112,6 +113,9 @@ class AnalyzerRunner(
             val exchangeDir = File(args[0])
 
             runCatching {
+                val workerOrtConfig = WorkerOrtConfig.create()
+                workerOrtConfig.setUpOrtEnvironment()
+
                 val projectDir = File(args[1])
                 val configFile = exchangeDir.resolve(ANALYZER_CONFIG_FILE)
                 val resultFile = exchangeDir.resolve(ANALYZER_RESULT_FILE)

@@ -37,8 +37,12 @@ import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.File
@@ -50,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -105,6 +110,10 @@ class AnalyzerRunnerTest : WordSpec({
         runner: AnalyzerRunner = AnalyzerRunner(ConfigFactory.empty())
     ): OrtResult =
         runner.run(context, inputDir, config, environmentConfig)
+
+    afterSpec {
+        unmockkAll()
+    }
 
     "run" should {
         "return the correct repository information" {
@@ -529,6 +538,23 @@ class AnalyzerRunnerTest : WordSpec({
 
             val errorResult = exchangeDir.resolve("analyzer-error.txt").readText()
             errorResult shouldContain "java.lang.IllegalArgumentException"
+        }
+
+        "set up the ORT environment" {
+            mockkObject(WorkerOrtConfig)
+            val workerOrtConfigMock = mockk<WorkerOrtConfig> {
+                every { setUpOrtEnvironment() } just runs
+            }
+            every { WorkerOrtConfig.create() } returns workerOrtConfigMock
+
+            val exchangeDir = tempdir()
+            exchangeDir.resolve("analyzer-config.json").writeValue(AnalyzerJobConfiguration())
+
+            AnalyzerRunner.main(arrayOf(exchangeDir.absolutePath, "non-existing-directory"))
+
+            verify {
+                workerOrtConfigMock.setUpOrtEnvironment()
+            }
         }
     }
 })
