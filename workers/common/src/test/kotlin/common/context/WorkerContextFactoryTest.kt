@@ -25,7 +25,6 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
@@ -34,7 +33,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
+import io.mockk.unmockkAll
+import io.mockk.verify
 
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -49,9 +53,11 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
-import org.ossreviewtoolkit.utils.common.EnvironmentVariableFilter
-
 class WorkerContextFactoryTest : WordSpec({
+    afterSpec {
+        unmockkAll()
+    }
+
     "ortRun" should {
         "return the OrtRun object" {
             val helper = ContextFactoryTestHelper()
@@ -327,30 +333,19 @@ class WorkerContextFactoryTest : WordSpec({
     }
 
     "the ORT configuration" should {
-        "configure the environment variable filter" {
-            val helper = ContextFactoryTestHelper()
+        "should be set up" {
+            mockkObject(WorkerOrtConfig)
+            val workerOrtConfigMock = mockk<WorkerOrtConfig> {
+                every { setUpOrtEnvironment() } just runs
+            }
+            every { WorkerOrtConfig.create(config) } returns workerOrtConfigMock
 
+            val helper = ContextFactoryTestHelper()
             helper.context()
 
-            listOf("allowedKey", "otherKey").forAll { key ->
-                EnvironmentVariableFilter.isAllowed(key) shouldBe true
+            verify {
+                workerOrtConfigMock.setUpOrtEnvironment()
             }
-
-            listOf("secretTest", "forbiddenKey").forAll { key ->
-                EnvironmentVariableFilter.isAllowed(key) shouldBe false
-            }
-
-            EnvironmentVariableFilter.reset()
-        }
-
-        "support default values" {
-            val configManager = ConfigManager.create(ConfigFactory.empty())
-            val factory = WorkerContextFactory(configManager, mockk(), mockk())
-
-            factory.createContext(RUN_ID)
-
-            EnvironmentVariableFilter.isAllowed("someKey") shouldBe false
-            EnvironmentVariableFilter.isAllowed("GRADLE_USER_HOME") shouldBe true
         }
     }
 })
@@ -380,14 +375,9 @@ private fun createConfigManager(): ConfigManager {
         ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to configSecrets,
         ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME
     )
-    val ortConfig = mapOf(
-        WorkerContextFactory.ENV_ALLOW_NAMES_PROPERTY to "allowedKey,otherKey",
-        WorkerContextFactory.ENV_DENY_SUBSTRINGS_PROPERTY to "secret,forbidden"
-    )
     val properties = mapOf(
         SecretStorage.CONFIG_PREFIX to mapOf(SecretStorage.NAME_PROPERTY to SecretsProviderFactoryForTesting.NAME),
-        ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties,
-        WorkerContextFactory.ORT_CONFIG_SECTION to ortConfig
+        ConfigManager.CONFIG_MANAGER_SECTION to configManagerProperties
     )
     return ConfigManager.create(ConfigFactory.parseMap(properties))
 }
