@@ -630,7 +630,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with Bad Request if the secret's name is invalid" {
+        "respond with 'Bad Request' if the secret's name is invalid" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
                 val secret = CreateSecret(" secret_28! ", secretValue, secretDescription)
