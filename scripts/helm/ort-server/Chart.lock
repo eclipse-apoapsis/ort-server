@@ -4,9 +4,9 @@ dependencies:
   version: 13.4.1
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 11.16.2
+  version: 14.0.0
 - name: vault
   repository: https://helm.releases.hashicorp.com
   version: 0.28.0
-digest: sha256:75e687402defe640259a9b09658abfb475c0daec9ad3aa845d4738141eea7fbd
-generated: "2024-04-10T11:35:21.350968386Z"
+digest: sha256:c9f2d062804c2c98a05c9674fe2baea7caa2a59214af20b77c7d83f0d93b7831
+generated: "2024-04-10T14:07:12.661140329Z"
