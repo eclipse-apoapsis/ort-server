@@ -33,12 +33,12 @@ typealias ValidatorFunc<T> = (T) -> ValidationResult<T>
 /**
  * An extension function for validating [OptionalValue] objects against a given regex [pattern].
  */
-fun ValidationBuilder<OptionalValue<String>>.optionalPattern(pattern: String) = addConstraint(
+fun ValidationBuilder<OptionalValue<String>>.optionalPattern(pattern: Regex) = addConstraint(
     "must match the expected pattern",
-    pattern
+    pattern.pattern
 ) {
     when (it) {
-        is OptionalValue.Present -> it.value.matches(pattern.toRegex())
+        is OptionalValue.Present -> it.value.matches(pattern)
         is OptionalValue.Absent -> true
     }
 }
