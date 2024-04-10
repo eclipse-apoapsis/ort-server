@@ -8,6 +8,12 @@
   "branchPrefix": "renovate-action/",
   "dependencyDashboard": false,
   "gitAuthor": "eclipse-apoapsis-bot <159786767+eclipse-apoapsis-bot@users.noreply.github.com>",
+  "packageRules": [
+    {
+      "matchManagers": ["gradle"],
+      "commitMessageTopic": "{{depName}}"
+    }
+  ],
   "repositories": [
     "eclipse-apoapsis/ort-server"
   ]
