@@ -36,7 +36,6 @@ import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.notifier.Notifier
@@ -93,7 +92,7 @@ private fun createWorkerContext(): WorkerContext {
 
     return mockk {
         every { configManager } returns configManagerMock
-        every { resolvedConfigurationContext } returns resolvedConfigContext
+        every { ortRun.resolvedJobConfigContext } returns resolvedConfigContext.name
     }
 }
 
