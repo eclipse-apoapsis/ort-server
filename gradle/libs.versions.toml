@@ -35,7 +35,7 @@ versionCatalogUpdatePlugin = "0.8.4"
 versionsPlugin = "0.51.0"
 
 # Gradle dependencies
-awsSdk = "1.1.15"
+awsSdk = "1.1.16"
 exposed = "0.49.0"
 flyway = "10.8.1"
 hikari = "5.1.0"
