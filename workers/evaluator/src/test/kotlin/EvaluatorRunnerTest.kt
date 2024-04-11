@@ -41,7 +41,6 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
@@ -234,6 +233,6 @@ private fun createWorkerContext(): WorkerContext {
 
     return mockk {
         every { configManager } returns configManagerMock
-        every { resolvedConfigurationContext } returns resolvedConfiContext
+        every { ortRun.resolvedJobConfigContext } returns resolvedConfiContext.name
     }
 }

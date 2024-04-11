@@ -62,7 +62,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
@@ -94,7 +93,7 @@ class ReporterRunnerTest : WordSpec({
      */
     fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
         val context = mockk<WorkerContext> {
-            every { resolvedConfigurationContext } returns configurationContext
+            every { ortRun.resolvedJobConfigContext } returns configurationContext.name
             every { createTempDir() } returnsMany listOf(configDirectory, outputDirectory)
             every { close() } just runs
             coEvery { resolveConfigSecrets(any()) } answers {
@@ -632,7 +631,7 @@ class ReporterRunnerTest : WordSpec({
 
             val downloadedAssets = mutableMapOf<Collection<Path>, File>()
             val (contextFactory, context) = mockContext()
-            every { context.resolvedConfigurationContext } returns resolvedContext
+            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
             every { context.configManager } returns configManager
             coEvery { context.downloadConfigurationFiles(any(), any()) } answers {
                 val paths = firstArg<Collection<Path>>()
