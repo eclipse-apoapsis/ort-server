@@ -60,7 +60,7 @@ private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
 private const val RESOLUTIONS_FILE = "/resolutions.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 
-private val resolvedConfiContext = Context("resolvedContext")
+private val resolvedConfigContext = Context("resolvedContext")
 
 class EvaluatorRunnerTest : WordSpec({
     val runner = EvaluatorRunner(mockk())
@@ -201,28 +201,28 @@ class EvaluatorRunnerTest : WordSpec({
 
 private fun createConfigManager(): ConfigManager {
     val configManager = mockk<ConfigManager> {
-        every { getFileAsString(resolvedConfiContext, Path(SCRIPT_FILE)) } returns
+        every { getFileAsString(resolvedConfigContext, Path(SCRIPT_FILE)) } returns
                 File("src/test/resources/example.rules.kts").readText()
 
-        every { getFileAsString(resolvedConfiContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
+        every { getFileAsString(resolvedConfigContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
                 File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
 
-        every { getFile(resolvedConfiContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
+        every { getFile(resolvedConfigContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfiContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
 
-        every { getFile(resolvedConfiContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
+        every { getFile(resolvedConfigContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfiContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfigContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
 
-        every { getFile(resolvedConfiContext, Path(RESOLUTIONS_FILE)) } answers
+        every { getFile(resolvedConfigContext, Path(RESOLUTIONS_FILE)) } answers
                 { File("src/test/resources/resolutions.yml").inputStream() }
 
-        every { getFileAsString(resolvedConfiContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        every { getFileAsString(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
 
-        every { getFile(resolvedConfiContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        every { getFile(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
     }
 
     return configManager
@@ -233,6 +233,6 @@ private fun createWorkerContext(): WorkerContext {
 
     return mockk {
         every { configManager } returns configManagerMock
-        every { ortRun.resolvedJobConfigContext } returns resolvedConfiContext.name
+        every { ortRun.resolvedJobConfigContext } returns resolvedConfigContext.name
     }
 }
