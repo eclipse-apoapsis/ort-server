@@ -237,6 +237,29 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'Bad Request' if the request body is invalid" {
+            integrationTestApplication {
+                val invalidJson = """
+                    {
+                      "name": "Example Organization",
+                      "description": This description is missing double quotes.,
+                    }
+                """.trimIndent()
+
+                val response = superuserClient.post("/api/v1/organizations") {
+                    setBody(invalidJson)
+                }
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Invalid request body."
+                body.cause.shouldContain(
+                    "Illegal input: Unexpected JSON token at offset 53: Expected quotation mark '\"'"
+                )
+
+                organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
+            }
+        }
+
         "create Keycloak roles and groups" {
             integrationTestApplication {
                 val org = CreateOrganization(name = "name", description = "description")
