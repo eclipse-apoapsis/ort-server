@@ -67,7 +67,6 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-@Suppress("MaxLineLength")
 class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
