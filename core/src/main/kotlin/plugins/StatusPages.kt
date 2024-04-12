@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
@@ -48,6 +49,14 @@ fun Application.configureStatusPages() {
         }
         exception<AuthorizationException> { call, _ ->
             call.respond(HttpStatusCode.Forbidden)
+        }
+        exception<BadRequestException> { call, e ->
+            val detailedMessage = e.cause?.message ?: e.message
+
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse(message = "Invalid request body.", detailedMessage)
+            )
         }
         exception<EntityNotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound)
