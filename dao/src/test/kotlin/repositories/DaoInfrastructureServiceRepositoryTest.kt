@@ -50,7 +50,6 @@ import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
-@Suppress("MaxLineLength")
 class DaoInfrastructureServiceRepositoryTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -507,7 +506,11 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     url = "https://repo2.example.org/test/repo",
                     organization = fixtures.organization
                 )
-                val noMatch2 = createInfrastructureService("non-matching2", url = repositoryUrl, product = otherProduct)
+                val noMatch2 = createInfrastructureService(
+                    name = "non-matching2",
+                    url = repositoryUrl,
+                    product = otherProduct
+                )
 
                 listOf(match1, match2, match3, match4, noMatch1, noMatch2).forEach {
                     infrastructureServicesRepository.create(it)
@@ -538,7 +541,14 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val service1 = createInfrastructureService()
                 val service2 = createInfrastructureService(name = "OtherRepositoryService")
 
-                val otherSecret = secretRepository.create("p3", "otherUser", null, fixtures.organization.id, null, null)
+                val otherSecret = secretRepository.create(
+                    path = "p3",
+                    name = "otherUser",
+                    description = null,
+                    organizationId = fixtures.organization.id,
+                    productId = null,
+                    repositoryId = null
+                )
 
                 val service3 = createInfrastructureService(
                     name = "NotIncludedService",

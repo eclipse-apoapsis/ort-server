@@ -74,7 +74,7 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-@Suppress("LargeClass", "MaxLineLength")
+@Suppress("LargeClass")
 class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
@@ -812,7 +812,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     productId = null
                 )
 
-                val response = superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${userSecret.name}")
+                val response =
+                    superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${userSecret.name}")
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()
