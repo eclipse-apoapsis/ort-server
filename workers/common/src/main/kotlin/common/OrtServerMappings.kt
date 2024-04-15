@@ -68,6 +68,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -77,6 +78,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
@@ -188,11 +191,17 @@ import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfi
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason as OrtScopeExcludeReason
 import org.ossreviewtoolkit.model.config.SendMailConfiguration as OrtSendMailConfiguration
+import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.StorageType as OrtStorageTypd
 import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
+import org.ossreviewtoolkit.model.config.snippet.Choice
+import org.ossreviewtoolkit.model.config.snippet.Given
+import org.ossreviewtoolkit.model.config.snippet.Provenance as OrtProvenance
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
@@ -613,7 +622,8 @@ fun RepositoryConfiguration.mapToOrt() = OrtRepositoryConfiguration(
     resolutions = resolutions.mapToOrt(),
     curations = curations.mapToOrt(),
     packageConfigurations = packageConfigurations.map(PackageConfiguration::mapToOrt),
-    licenseChoices = licenseChoices.mapToOrt()
+    licenseChoices = licenseChoices.mapToOrt(),
+    snippetChoices = provenanceSnippetChoices.map(ProvenanceSnippetChoices::mapToOrt)
 )
 
 fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.map(ScopeExclude::mapToOrt))
@@ -708,6 +718,22 @@ fun LicenseChoices.mapToOrt() =
         repositoryLicenseChoices = repositoryLicenseChoices.map(SpdxLicenseChoice::mapToOrt),
         packageLicenseChoices = packageLicenseChoices.map(PackageLicenseChoice::mapToOrt)
     )
+
+fun ProvenanceSnippetChoices.mapToOrt() = OrtSnippetChoices(
+    OrtProvenance(provenance.url),
+    choices.map(SnippetChoice::mapToOrt)
+)
+
+fun SnippetChoice.mapToOrt() = OrtSnippetChoice(
+    Given(given.sourceLocation.mapToOrt()),
+    Choice(
+        choice.purl,
+        choice.reason.mapToOrt(),
+        choice.comment
+    )
+)
+
+fun SnippetChoiceReason.mapToOrt() = OrtSnippetChoiceReason.valueOf(name)
 
 fun SpdxLicenseChoice.mapToOrt() = OrtSpdxLicenseChoice(given?.toSpdx(), choice.toSpdx())
 
