@@ -12,6 +12,10 @@
     {
       "matchManagers": ["gradle"],
       "commitMessageTopic": "{{depName}}"
+    },
+    {
+      "matchPackageNames": ["aws.sdk.kotlin:s3"],
+      "schedule": ["after 9pm on sunday"]
     }
   ],
   "prHourlyLimit": 5,
