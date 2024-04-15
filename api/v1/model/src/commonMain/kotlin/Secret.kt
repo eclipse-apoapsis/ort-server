@@ -24,8 +24,6 @@ import io.konform.validation.jsonschema.pattern
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.NAME_PATTERN_MESSAGE
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.Constraints.NAME_PATTERN_REGEX
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 
 /**
@@ -54,6 +52,10 @@ data class CreateSecret(
     val description: String?
 ) {
     companion object {
+        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
+                "spaces. Leading and trailing whitespaces are not allowed."
+
         val validate: ValidatorFunc<CreateSecret> = { obj ->
             Validation {
                 CreateSecret::name {
