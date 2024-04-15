@@ -50,9 +50,9 @@ data class CreateProduct(
     val description: String? = null
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
+        val NAME_PATTERN_REGEX = """^(?!\s)[^<>%\\]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name must not contain chevrons, percents or backslashes. Also " +
+                "leading or trailing whitespaces are not allowed."
 
         val validate: ValidatorFunc<CreateProduct> = { obj ->
             Validation {
