@@ -23,8 +23,6 @@ import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
-import org.eclipse.apoapsis.ortserver.model.validation.Constraints.NAME_PATTERN_MESSAGE
-import org.eclipse.apoapsis.ortserver.model.validation.Constraints.NAME_PATTERN_REGEX
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
@@ -67,6 +65,11 @@ data class InfrastructureService(
      */
     val excludeFromNetrc: Boolean = false
 ) {
+    companion object {
+        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
+                "spaces. Leading and trailing whitespaces are not allowed."
+    }
 
     fun validate() {
         val validationResult = Validation {
