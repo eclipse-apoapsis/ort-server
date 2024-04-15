@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -69,6 +70,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Choice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Given
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
@@ -158,9 +164,12 @@ import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
 import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
+import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
@@ -544,7 +553,8 @@ fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfigurat
     resolutions = resolutions.mapToModel(),
     curations = curations.mapToModel(),
     packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
-    licenseChoices = licenseChoices.mapToModel()
+    licenseChoices = licenseChoices.mapToModel(),
+    provenanceSnippetChoices = snippetChoices.map(OrtSnippetChoices::mapToModel)
 )
 
 fun OrtRepositoryAnalyzerConfiguration.mapToModel() = RepositoryAnalyzerConfiguration(
@@ -616,6 +626,18 @@ fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
     pathExcludes = pathExcludes.map(OrtPathExclude::mapToModel),
     licenseFindingCurations = licenseFindingCurations.map(OrtLicenseFindingCuration::mapToModel)
 )
+
+fun OrtSnippetChoices.mapToModel() = ProvenanceSnippetChoices(
+    Provenance(provenance.url),
+    choices.map(OrtSnippetChoice::mapToModel)
+)
+
+fun OrtSnippetChoice.mapToModel() = SnippetChoice(
+    Given(given.sourceLocation.mapToModel()),
+    Choice(choice.purl, choice.reason.mapToOrt(), choice.comment)
+)
+
+fun OrtSnippetChoiceReason.mapToOrt() = SnippetChoiceReason.valueOf(name)
 
 fun OrtLicenseChoices.mapToModel() = LicenseChoices(
     repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),

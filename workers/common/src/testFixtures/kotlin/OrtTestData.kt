@@ -89,9 +89,15 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason
+import org.ossreviewtoolkit.model.config.SnippetChoices
 import org.ossreviewtoolkit.model.config.StorageType
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
+import org.ossreviewtoolkit.model.config.snippet.Choice
+import org.ossreviewtoolkit.model.config.snippet.Given
+import org.ossreviewtoolkit.model.config.snippet.Provenance
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoice
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference
 import org.ossreviewtoolkit.utils.common.enumSetOf
@@ -122,6 +128,20 @@ object OrtTestData {
     val spdxLicenseChoice = SpdxLicenseChoice(
         given = "LicenseRef-a OR LicenseRef-b".toSpdx(),
         choice = "LicenseRef-b".toSpdx()
+    )
+
+    val snippetChoices = SnippetChoices(
+        provenance = Provenance("https://example.org/provenance-url"),
+        choices = listOf(
+            SnippetChoice(
+                Given(TextLocation("source.txt", 1, 10)),
+                Choice(
+                    "pkg:github/package-url/purl-spec@244fd47e07d1004",
+                    SnippetChoiceReason.ORIGINAL_FINDING,
+                    "A comment"
+                )
+            )
+        )
     )
 
     const val projectRepositoryUrl = "git@example.org/project.git"
@@ -256,7 +276,8 @@ object OrtTestData {
                         licenseChoices = listOf(spdxLicenseChoice)
                     )
                 )
-            )
+            ),
+            snippetChoices = listOf(snippetChoices)
         )
     )
 

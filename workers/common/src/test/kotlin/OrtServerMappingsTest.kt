@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -74,6 +75,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Choice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Given
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
+import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
@@ -556,6 +562,21 @@ class OrtServerMappingsTest : WordSpec({
                         PackageLicenseChoice(
                             identifier = pkgIdentifier,
                             licenseChoices = listOf(spdxLicenseChoice)
+                        )
+                    )
+                ),
+                provenanceSnippetChoices = listOf(
+                    ProvenanceSnippetChoices(
+                        provenance = Provenance("https://example.org/provenance-url"),
+                        choices = listOf(
+                            SnippetChoice(
+                                Given(TextLocation("source.txt", 1, 10)),
+                                Choice(
+                                    "pkg:github/package-url/purl-spec@244fd47e07d1004",
+                                    SnippetChoiceReason.ORIGINAL_FINDING,
+                                    "A comment"
+                                )
+                            )
                         )
                     )
                 )
