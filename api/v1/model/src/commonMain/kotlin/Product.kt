@@ -39,7 +39,13 @@ data class Product(
 
     /** The optional description of a product. */
     val description: String? = null
-)
+) {
+    companion object {
+        val NAME_PATTERN_REGEX = """^(?!\s)[^<>%\\]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name must not contain chevrons, percents or backslashes. Also " +
+                "leading or trailing whitespaces are not allowed."
+    }
+}
 
 /**
  * Request object for the create product endpoint.
@@ -50,14 +56,10 @@ data class CreateProduct(
     val description: String? = null
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[^<>%\\]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name must not contain chevrons, percents or backslashes. Also " +
-                "leading or trailing whitespaces are not allowed."
-
         val validate: ValidatorFunc<CreateProduct> = { obj ->
             Validation {
                 CreateProduct::name {
-                    pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+                    pattern(Product.NAME_PATTERN_REGEX) hint Product.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }
@@ -73,14 +75,10 @@ data class UpdateProduct(
     val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
-
         val validate: ValidatorFunc<UpdateProduct> = { obj ->
             Validation {
                 UpdateProduct::name {
-                    optionalPattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+                    optionalPattern(Product.NAME_PATTERN_REGEX) hint Product.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }

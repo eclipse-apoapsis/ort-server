@@ -39,7 +39,13 @@ data class Organization(
 
     /** The optional description of the organization. */
     val description: String? = null
-)
+) {
+    companion object {
+        val NAME_PATTERN_REGEX = """^(?!\s)[^<>%\\]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name must not contain chevrons, percents or backslashes. Also " +
+                "leading or trailing whitespaces are not allowed."
+    }
+}
 
 /**
  * Request object for the create organization endpoint.
@@ -50,14 +56,10 @@ data class CreateOrganization(
     val description: String? = null
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[^<>%\\]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name must not contain chevrons, percents or backslashes. Also " +
-                "leading or trailing whitespaces are not allowed."
-
         val validate: ValidatorFunc<CreateOrganization> = { obj ->
             Validation {
                 CreateOrganization::name {
-                    pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+                    pattern(Organization.NAME_PATTERN_REGEX) hint Organization.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }
@@ -73,14 +75,10 @@ data class UpdateOrganization(
     val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
-
         val validate: ValidatorFunc<UpdateOrganization> = { obj ->
             Validation {
                 UpdateOrganization::name {
-                    optionalPattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+                    optionalPattern(Organization.NAME_PATTERN_REGEX) hint Organization.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }
