@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
+import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -66,7 +67,7 @@ fun Route.products() = route("products/{productId}") {
     get(getProductById) {
         requirePermission(ProductPermission.READ)
 
-        val id = call.requireParameter("productId").toLong()
+        val id = call.requireIdParameter("productId")
 
         val product = productService.getProduct(id)
 
@@ -80,7 +81,7 @@ fun Route.products() = route("products/{productId}") {
     patch(patchProductById) {
         requirePermission(ProductPermission.WRITE)
 
-        val id = call.requireParameter("productId").toLong()
+        val id = call.requireIdParameter("productId")
         val updateProduct = call.receive<UpdateProduct>()
 
         val updatedProduct =
@@ -92,7 +93,7 @@ fun Route.products() = route("products/{productId}") {
     delete(deleteProductById) {
         requirePermission(ProductPermission.DELETE)
 
-        val id = call.requireParameter("productId").toLong()
+        val id = call.requireIdParameter("productId")
 
         productService.deleteProduct(id)
 
@@ -103,7 +104,7 @@ fun Route.products() = route("products/{productId}") {
         get(getRepositoriesByProductId) {
             requirePermission(ProductPermission.READ_REPOSITORIES)
 
-            val productId = call.requireParameter("productId").toLong()
+            val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("url", SortDirection.ASCENDING))
 
             val repositoriesForProduct =
@@ -119,7 +120,7 @@ fun Route.products() = route("products/{productId}") {
         post(postRepository) {
             requirePermission(ProductPermission.CREATE_REPOSITORY)
 
-            val id = call.requireParameter("productId").toLong()
+            val id = call.requireIdParameter("productId")
             val createRepository = call.receive<CreateRepository>()
 
             call.respond(
@@ -134,7 +135,7 @@ fun Route.products() = route("products/{productId}") {
         get(getSecretsByProductId) {
             requirePermission(ProductPermission.READ)
 
-            val productId = call.requireParameter("productId").toLong()
+            val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
             val secretsForProduct = secretService.listForProduct(productId, pagingOptions.mapToModel())
@@ -150,7 +151,7 @@ fun Route.products() = route("products/{productId}") {
             get(getSecretByProductIdAndName) {
                 requirePermission(ProductPermission.READ)
 
-                val productId = call.requireParameter("productId").toLong()
+                val productId = call.requireIdParameter("productId")
                 val secretName = call.requireParameter("secretName")
 
                 secretService.getSecretByProductIdAndName(productId, secretName)
@@ -161,7 +162,7 @@ fun Route.products() = route("products/{productId}") {
             patch(patchSecretByProductIdAndName) {
                 requirePermission(ProductPermission.WRITE_SECRETS)
 
-                val productId = call.requireParameter("productId").toLong()
+                val productId = call.requireIdParameter("productId")
                 val secretName = call.requireParameter("secretName")
                 val updateSecret = call.receive<UpdateSecret>()
 
@@ -179,7 +180,7 @@ fun Route.products() = route("products/{productId}") {
             delete(deleteSecretByProductIdAndName) {
                 requirePermission(ProductPermission.WRITE_SECRETS)
 
-                val productId = call.requireParameter("productId").toLong()
+                val productId = call.requireIdParameter("productId")
                 val secretName = call.requireParameter("secretName")
 
                 secretService.deleteSecretByProductAndName(productId, secretName)
@@ -191,7 +192,7 @@ fun Route.products() = route("products/{productId}") {
         post(postSecretForProduct) {
             requirePermission(ProductPermission.WRITE_SECRETS)
 
-            val productId = call.requireParameter("productId").toLong()
+            val productId = call.requireIdParameter("productId")
             val createSecret = call.receive<CreateSecret>()
 
             call.respond(

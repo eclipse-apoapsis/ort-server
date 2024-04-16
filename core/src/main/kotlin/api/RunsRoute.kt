@@ -40,6 +40,7 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
@@ -113,7 +114,7 @@ fun Route.runs() = route("runs/{runId}") {
  * resolved.
  */
 internal suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
-    val runId = requireParameter("runId").toLong()
+    val runId = requireIdParameter("runId")
     val ortRun = repository.get(runId)
 
     if (ortRun == null) {

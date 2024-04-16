@@ -263,7 +263,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
         "handle a non-existing ORT run" {
             integrationTestApplication {
-                val response = superuserClient.get("/api/v1/runs/-1/logs")
+                val response = superuserClient.get("/api/v1/runs/12345/logs")
 
                 response shouldHaveStatus HttpStatusCode.NotFound
             }

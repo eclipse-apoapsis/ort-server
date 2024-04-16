@@ -25,7 +25,7 @@ import io.ktor.server.auth.principal
 import io.ktor.util.pipeline.PipelineContext
 
 import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
  * otherwise.
  */
 fun PipelineContext<*, ApplicationCall>.requirePermission(permission: OrganizationPermission) {
-    val orgId = call.requireParameter("organizationId").toLong()
+    val orgId = call.requireIdParameter("organizationId")
     requirePermission(permission.roleName(orgId))
 }
 
@@ -45,7 +45,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: Organizati
  * otherwise.
  */
 fun PipelineContext<*, ApplicationCall>.requirePermission(permission: ProductPermission) {
-    val productId = call.requireParameter("productId").toLong()
+    val productId = call.requireIdParameter("productId")
     requirePermission(permission.roleName(productId))
 }
 
@@ -54,7 +54,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: ProductPer
  * otherwise.
  */
 fun PipelineContext<*, ApplicationCall>.requirePermission(permission: RepositoryPermission) {
-    val repositoryId = call.requireParameter("repositoryId").toLong()
+    val repositoryId = call.requireIdParameter("repositoryId")
     requirePermission(permission.roleName(repositoryId))
 }
 
