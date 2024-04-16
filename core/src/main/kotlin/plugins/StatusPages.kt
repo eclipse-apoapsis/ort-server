@@ -30,6 +30,7 @@ import io.ktor.server.response.respond
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
 import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
+import org.eclipse.apoapsis.ortserver.core.utils.UrlPathFormatException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
@@ -84,6 +85,9 @@ fun Application.configureStatusPages() {
                 HttpStatusCode.Conflict,
                 ErrorResponse("The entity you tried to create already exists.", e.message)
             )
+        }
+        exception<UrlPathFormatException> { call, e ->
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid URL path.", e.message))
         }
         exception<QueryParametersException> { call, e ->
             call.respond(

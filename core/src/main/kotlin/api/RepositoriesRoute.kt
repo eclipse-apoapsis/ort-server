@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
+import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -71,7 +72,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
 
-        val id = call.requireParameter("repositoryId").toLong()
+        val id = call.requireIdParameter("repositoryId")
 
         repositoryService.getRepository(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
@@ -80,7 +81,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     patch(patchRepositoryById) {
         requirePermission(RepositoryPermission.WRITE)
 
-        val id = call.requireParameter("repositoryId").toLong()
+        val id = call.requireIdParameter("repositoryId")
         val updateRepository = call.receive<UpdateRepository>()
 
         val updatedRepository = repositoryService.updateRepository(
@@ -95,7 +96,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     delete(deleteRepositoryById) {
         requirePermission(RepositoryPermission.DELETE)
 
-        val id = call.requireParameter("repositoryId").toLong()
+        val id = call.requireIdParameter("repositoryId")
 
         repositoryService.deleteRepository(id)
 
@@ -106,7 +107,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         get(getOrtRuns) {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
-            val repositoryId = call.requireParameter("repositoryId").toLong()
+            val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
             val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel())
@@ -122,7 +123,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         post(postOrtRun) {
             requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)
 
-            val repositoryId = call.requireParameter("repositoryId").toLong()
+            val repositoryId = call.requireIdParameter("repositoryId")
             val createOrtRun = call.receive<CreateOrtRun>()
 
             call.respond(
@@ -142,8 +143,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             get(getOrtRunByIndex) {
                 requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
-                val repositoryId = call.requireParameter("repositoryId").toLong()
-                val ortRunIndex = call.requireParameter("ortRunIndex").toLong()
+                val repositoryId = call.requireIdParameter("repositoryId")
+                val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
                 repositoryService.getOrtRun(repositoryId, ortRunIndex)
                     ?.let {
@@ -161,7 +162,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         get(getSecretsByRepositoryId) {
             requirePermission(RepositoryPermission.READ)
 
-            val repositoryId = call.requireParameter("repositoryId").toLong()
+            val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
             val secretsForRepository = secretService.listForRepository(repositoryId, pagingOptions.mapToModel())
@@ -177,7 +178,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             get(getSecretByRepositoryIdAndName) {
                 requirePermission(RepositoryPermission.READ)
 
-                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val repositoryId = call.requireIdParameter("repositoryId")
                 val secretName = call.requireParameter("secretName")
 
                 secretService.getSecretByRepositoryIdAndName(repositoryId, secretName)
@@ -188,7 +189,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             patch(patchSecretByRepositoryIdAndName) {
                 requirePermission(RepositoryPermission.WRITE_SECRETS)
 
-                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val repositoryId = call.requireIdParameter("repositoryId")
                 val secretName = call.requireParameter("secretName")
                 val updateSecret = call.receive<UpdateSecret>()
 
@@ -206,7 +207,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             delete(deleteSecretByRepositoryIdAndName) {
                 requirePermission(RepositoryPermission.WRITE_SECRETS)
 
-                val repositoryId = call.requireParameter("repositoryId").toLong()
+                val repositoryId = call.requireIdParameter("repositoryId")
                 val secretName = call.requireParameter("secretName")
 
                 secretService.deleteSecretByRepositoryAndName(repositoryId, secretName)
@@ -218,7 +219,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         post(postSecretForRepository) {
             requirePermission(RepositoryPermission.WRITE_SECRETS)
 
-            val repositoryId = call.requireParameter("repositoryId").toLong()
+            val repositoryId = call.requireIdParameter("repositoryId")
             val createSecret = call.receive<CreateSecret>()
 
             call.respond(

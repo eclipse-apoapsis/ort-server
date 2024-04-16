@@ -122,5 +122,18 @@ class ErrorsIntegrationTest : StringSpec() {
                 cause shouldContain "'offset'"
             }
         }
+
+        "An invalid URL path should be handled" {
+            val invalidOrgId = "not_a_number"
+
+            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+                val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
+
+                val response = client.get("/api/v1/organizations/$invalidOrgId")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().cause shouldContain "'$invalidOrgId'"
+            }
+        }
     }
 }
