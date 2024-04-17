@@ -34,28 +34,7 @@ services:
     volumes:
     - db:/var/lib/postgresql/data
 
-  artemis:
-    profiles:
-      - artemis
-    image: quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD-SHELL', ' ~/broker/bin/artemis check queue --name analyzer_queue']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    environment:
-      # 'relax-jolokia' allows to connect to the Artemis Console at http://localhost:8161/console/
-      AMQ_EXTRA_ARGS: "--relax-jolokia --queues analyzer_queue:anycast"
-      AMQ_USER: admin
-      AMQ_PASSWORD: admin
-    ports:
-      - "8161:8161"
-      - "61616:61616"
-
   rabbitmq:
-    profiles:
-      - rabbitmq
     # Setting the hostname is necessary for persistence.
     # See https://www.futurefundamentals.com/set-rabbitmq-with-data-persistent-with-docker-compose/.
     hostname: ort-server-rabbitmq
