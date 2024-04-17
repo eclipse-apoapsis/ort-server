@@ -208,38 +208,6 @@ services:
         source: ./.env.development
         target: /etc/fileBasedSecretStorage/.env.development
 
-  analyzer-worker:
-    image: ort-server-analyzer-worker
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    environment:
-      DB_URL: "jdbc:postgresql://postgres"
-      DB_HOST: "postgres"
-      DB_NAME: ort_server
-      DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_SSL_MODE: disable
-      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
-      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
-      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
-      ANALYZER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
-      ANALYZER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
-      ANALYZER_RECEIVER_TRANSPORT_QUEUE_NAME: analyzer_queue
-      ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
-      ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
-      ANALYZER_SECRET_PROVIDER: secret-file
-      ANALYZER_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
-    volumes:
-      - type: bind
-        source: ./.env.development
-        target: /etc/fileBasedSecretStorage/.env.development
-
   advisor-worker:
     image: ort-server-advisor-worker
     depends_on:
@@ -268,12 +236,12 @@ services:
       ADVISOR_SECRET_PROVIDER: secret-file
       ADVISOR_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
     volumes:
-      - type: bind
-        source: ./.env.development
-        target: /etc/fileBasedSecretStorage/.env.development
+    - type: bind
+      source: ./.env.development
+      target: /etc/fileBasedSecretStorage/.env.development
 
-  scanner-worker:
-    image: ort-server-scanner-worker
+  analyzer-worker:
+    image: ort-server-analyzer-worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -292,13 +260,13 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
-      SCANNER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
-      SCANNER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
-      SCANNER_RECEIVER_TRANSPORT_QUEUE_NAME: scanner_queue
-      SCANNER_RECEIVER_TRANSPORT_USERNAME: admin
-      SCANNER_RECEIVER_TRANSPORT_PASSWORD: admin
-      SCANNER_SECRET_PROVIDER: secret-file
-      SCANNER_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
+      ANALYZER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      ANALYZER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ANALYZER_RECEIVER_TRANSPORT_QUEUE_NAME: analyzer_queue
+      ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
+      ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
+      ANALYZER_SECRET_PROVIDER: secret-file
+      ANALYZER_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
     volumes:
       - type: bind
         source: ./.env.development
@@ -332,9 +300,9 @@ services:
       EVALUATOR_SECRET_PROVIDER: secret-file
       EVALUATOR_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
     volumes:
-      - type: bind
-        source: ./.env.development
-        target: /etc/fileBasedSecretStorage/.env.development
+    - type: bind
+      source: ./.env.development
+      target: /etc/fileBasedSecretStorage/.env.development
 
   reporter-worker:
     image: ort-server-reporter-worker
@@ -363,6 +331,38 @@ services:
       REPORTER_RECEIVER_TRANSPORT_PASSWORD: admin
       REPORTER_SECRET_PROVIDER: secret-file
       REPORTER_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
+    volumes:
+    - type: bind
+      source: ./.env.development
+      target: /etc/fileBasedSecretStorage/.env.development
+
+  scanner-worker:
+    image: ort-server-scanner-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSL_MODE: disable
+      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
+      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      SCANNER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      SCANNER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      SCANNER_RECEIVER_TRANSPORT_QUEUE_NAME: scanner_queue
+      SCANNER_RECEIVER_TRANSPORT_USERNAME: admin
+      SCANNER_RECEIVER_TRANSPORT_PASSWORD: admin
+      SCANNER_SECRET_PROVIDER: secret-file
+      SCANNER_SECRET_FILES: /etc/fileBasedSecretStorage/.env.development
     volumes:
       - type: bind
         source: ./.env.development
