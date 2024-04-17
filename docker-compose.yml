@@ -15,7 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-version: "3.9"
 services:
   postgres:
     image: postgres:14
