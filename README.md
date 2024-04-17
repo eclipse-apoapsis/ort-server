@@ -86,11 +86,10 @@ Here, the `dockerBaseImageTag` parameter specifies the tag of the Analyzer base 
 This example sets the same tag for both the base image and the final Analyzer image, which is certainly a reasonable
 convention.
 
-Finally, you can start Docker Compose. Since the choice between ActiveMQ Artemis and RabbitMQ is offered, you need to
-choose the one to activate with a [profile](https://docs.docker.com/compose/profiles/):
+Finally, you can start Docker Compose:
 
 ```shell
-docker compose --profile rabbitmq up
+docker compose up
 ```
 
 **Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
@@ -116,7 +115,7 @@ The requests can be found in [scripts/requests](./scripts/requests).
 To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
 
 ```shell
-docker compose --profile rabbitmq up rabbitmq keycloak 
+docker compose up rabbitmq keycloak 
 ```
 
 Please note that Postgres does not need to be explicitly passed: since it is a dependency of Keycloak, it will be
