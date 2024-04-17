@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.typesafeConfig)
 
     runtimeOnly(projects.config.github)
+    runtimeOnly(projects.config.local)
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.secrets.file)
     runtimeOnly(projects.secrets.vault)

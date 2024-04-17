@@ -48,6 +48,7 @@ dependencies {
     implementation(platform(libs.ortAdvisors))
 
     runtimeOnly(projects.config.github)
+    runtimeOnly(projects.config.local)
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.kubernetes)
