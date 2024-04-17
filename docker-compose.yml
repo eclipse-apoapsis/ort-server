@@ -186,6 +186,11 @@ services:
       ANALYZER_SENDER_TRANSPORT_QUEUE_NAME: analyzer_queue
       ANALYZER_SENDER_TRANSPORT_USERNAME: admin
       ANALYZER_SENDER_TRANSPORT_PASSWORD: admin
+      CONFIG_SENDER_TRANSPORT_TYPE: rabbitMQ
+      CONFIG_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      CONFIG_SENDER_TRANSPORT_QUEUE_NAME: config_queue
+      CONFIG_SENDER_TRANSPORT_USERNAME: admin
+      CONFIG_SENDER_TRANSPORT_PASSWORD: admin
       EVALUATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       EVALUATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       EVALUATOR_SENDER_TRANSPORT_QUEUE_NAME: evaluator_queue
@@ -274,6 +279,42 @@ services:
       ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
       ANALYZER_SECRET_PROVIDER: secret-file
       ANALYZER_SECRET_FILES: /mnt/secrets.properties
+    volumes:
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
+    - type: bind
+      source: ./scripts/compose/secrets.properties
+      target: /mnt/secrets.properties
+
+  config-worker:
+    image: ort-server-config-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: "jdbc:postgresql://postgres"
+      DB_HOST: "postgres"
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_PASSWORD: postgres
+      DB_SSL_MODE: disable
+      ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+      ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
+      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      CONFIG_CONFIG_FILE_PROVIDER: local-config
+      CONFIG_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
+      CONFIG_RECEIVER_TRANSPORT_TYPE: rabbitMQ
+      CONFIG_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
+      CONFIG_RECEIVER_TRANSPORT_QUEUE_NAME: config_queue
+      CONFIG_RECEIVER_TRANSPORT_USERNAME: admin
+      CONFIG_RECEIVER_TRANSPORT_PASSWORD: admin
+      CONFIG_SECRET_PROVIDER: secret-file
+      CONFIG_SECRET_FILES: /mnt/secrets.properties
     volumes:
     - type: bind
       source: ./scripts/compose/config
