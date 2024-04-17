@@ -38,7 +38,7 @@
   "policies": [],
   "queues": [
     {
-      "name": "orchestrator_queue",
+      "name": "advisor_queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -56,24 +56,6 @@
       }
     },
     {
-      "name": "advisor_queue",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {
-        "x-queue-type": "classic"
-      }
-    },
-    {
-      "name": "scanner_queue",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {
-        "x-queue-type": "classic"
-      }
-    },
-    {
       "name": "evaluator_queue",
       "vhost": "/",
       "durable": true,
@@ -83,7 +65,25 @@
       }
     },
     {
+      "name": "orchestrator_queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
       "name": "reporter_queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "scanner_queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
