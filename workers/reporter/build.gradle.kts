@@ -42,7 +42,9 @@ dependencies {
     implementation(projects.model)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
-    implementation(projects.workers.common)
+    implementation(projects.workers.common) {
+        exclude(group = "com.charleskorn.kaml", module = "kaml")
+    }
 
     implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(platform(libs.ortVersionControlSystems))
