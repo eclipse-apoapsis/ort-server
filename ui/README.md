@@ -21,3 +21,12 @@ in with `admin:admin` and create a client with the following details:
 5. Valid post logout redirect URIs: `/*`
 6. Web origins: `+`
 7. In the Advanced tab, set the "Access Token Lifespan" to expire in 5 minutes.
+
+## Regenerating the UI Query Client
+
+The exact details and process of the synchronization between the ORT Server's OpenAPI specification and the matching UI queries is to be discussed.
+
+In case there are changes in the OpenAPI specification that warrant regeneration of the query client used in the UI, here are the instructions to do so:
+
+1. Go to the `ui/` folder
+2. Run: `pnpm codegen`
