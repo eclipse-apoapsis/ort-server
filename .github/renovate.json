@@ -21,6 +21,10 @@
     {
       "matchPackageNames": ["aws.sdk.kotlin:s3"],
       "schedule": ["after 9pm on sunday"]
+    },
+    {
+      "matchPackageNames": ["eclipse-temurin"],
+      "allowedVersions": "< 18"
     }
   ],
   "prHourlyLimit": 5,
