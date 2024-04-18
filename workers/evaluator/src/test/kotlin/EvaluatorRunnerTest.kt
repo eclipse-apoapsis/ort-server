@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
 import io.mockk.mockk
@@ -50,6 +51,7 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.spdx.toSpdx
@@ -88,10 +90,10 @@ class EvaluatorRunnerTest : WordSpec({
             result.evaluatorRun.violations shouldBe listOf(expectedRuleViolation)
         }
 
-        "throw an exception when no rule set is provided" {
-            shouldThrow<IllegalArgumentException> {
+        "try to read the default rule file when no rule set is provided" {
+            shouldThrow<ConfigException> {
                 runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(), createWorkerContext())
-            }
+            }.message shouldContain ORT_EVALUATOR_RULES_FILENAME
         }
 
         "throw an exception if script file could not be found" {
@@ -211,6 +213,9 @@ private fun createConfigManager(): ConfigManager {
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
         every { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+
+        every { getFileAsString(resolvedConfigContext, Path(ORT_EVALUATOR_RULES_FILENAME)) } throws
+                ConfigException("Could not read '$ORT_EVALUATOR_RULES_FILENAME'.", null)
 
         every { getFile(resolvedConfigContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
