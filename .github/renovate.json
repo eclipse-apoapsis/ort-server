@@ -15,6 +15,10 @@
       "commitMessageTopic": "{{depName}}"
     },
     {
+      "matchManagers": ["helm"],
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["aws.sdk.kotlin:s3"],
       "schedule": ["after 9pm on sunday"]
     }
