@@ -145,16 +145,16 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       SECRETS_PROVIDER_NAME: fileBasedSecretsProvider
-      FILE_BASED_PATH: "/etc/fileBasedSecretStorage/secrets.properties"
+      FILE_BASED_PATH: "/mnt/secrets.properties"
       GRAPHITE_HOST: "graphite"
       GRAPHITE_PORT: 2003
       GRAPHITE_PROTOCOL: PLAINTEXT
       CORE_SECRET_PROVIDER: secret-file
-      CORE_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      CORE_SECRET_FILES: /mnt/secrets.properties
     volumes:
       - type: bind
         source: ./scripts/compose/secrets.properties
-        target: /etc/fileBasedSecretStorage/secrets.properties
+        target: /mnt/secrets.properties
 
   orchestrator:
     image: ort-server-orchestrator
@@ -202,11 +202,11 @@ services:
       SCANNER_SENDER_TRANSPORT_USERNAME: admin
       SCANNER_SENDER_TRANSPORT_PASSWORD: admin
       ORCHESTRATOR_SECRET_PROVIDER: secret-file
-      ORCHESTRATOR_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      ORCHESTRATOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
       - type: bind
         source: ./scripts/compose/secrets.properties
-        target: /etc/fileBasedSecretStorage/secrets.properties
+        target: /mnt/secrets.properties
 
   advisor-worker:
     image: ort-server-advisor-worker
@@ -234,11 +234,11 @@ services:
       ADVISOR_RECEIVER_TRANSPORT_USERNAME: admin
       ADVISOR_RECEIVER_TRANSPORT_PASSWORD: admin
       ADVISOR_SECRET_PROVIDER: secret-file
-      ADVISOR_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      ADVISOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
     - type: bind
       source: ./scripts/compose/secrets.properties
-      target: /etc/fileBasedSecretStorage/secrets.properties
+      target: /mnt/secrets.properties
 
   analyzer-worker:
     image: ort-server-analyzer-worker
@@ -266,11 +266,11 @@ services:
       ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
       ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
       ANALYZER_SECRET_PROVIDER: secret-file
-      ANALYZER_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      ANALYZER_SECRET_FILES: /mnt/secrets.properties
     volumes:
       - type: bind
         source: ./scripts/compose/secrets.properties
-        target: /etc/fileBasedSecretStorage/secrets.properties
+        target: /mnt/secrets.properties
 
   evaluator-worker:
     image: ort-server-evaluator-worker
@@ -298,11 +298,11 @@ services:
       EVALUATOR_RECEIVER_TRANSPORT_USERNAME: admin
       EVALUATOR_RECEIVER_TRANSPORT_PASSWORD: admin
       EVALUATOR_SECRET_PROVIDER: secret-file
-      EVALUATOR_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      EVALUATOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
     - type: bind
       source: ./scripts/compose/secrets.properties
-      target: /etc/fileBasedSecretStorage/secrets.properties
+      target: /mnt/secrets.properties
 
   reporter-worker:
     image: ort-server-reporter-worker
@@ -330,11 +330,11 @@ services:
       REPORTER_RECEIVER_TRANSPORT_USERNAME: admin
       REPORTER_RECEIVER_TRANSPORT_PASSWORD: admin
       REPORTER_SECRET_PROVIDER: secret-file
-      REPORTER_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      REPORTER_SECRET_FILES: /mnt/secrets.properties
     volumes:
     - type: bind
       source: ./scripts/compose/secrets.properties
-      target: /etc/fileBasedSecretStorage/secrets.properties
+      target: /mnt/secrets.properties
 
   scanner-worker:
     image: ort-server-scanner-worker
@@ -362,11 +362,11 @@ services:
       SCANNER_RECEIVER_TRANSPORT_USERNAME: admin
       SCANNER_RECEIVER_TRANSPORT_PASSWORD: admin
       SCANNER_SECRET_PROVIDER: secret-file
-      SCANNER_SECRET_FILES: /etc/fileBasedSecretStorage/secrets.properties
+      SCANNER_SECRET_FILES: /mnt/secrets.properties
     volumes:
       - type: bind
         source: ./scripts/compose/secrets.properties
-        target: /etc/fileBasedSecretStorage/secrets.properties
+        target: /mnt/secrets.properties
 
 volumes:
   db:
