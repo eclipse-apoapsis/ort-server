@@ -44,8 +44,13 @@ import org.ossreviewtoolkit.model.utils.setPackageConfigurations
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
+
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(EvaluatorRunner::class.java)
 
 class EvaluatorRunner(
     /**
@@ -64,13 +69,14 @@ class EvaluatorRunner(
         config: EvaluatorJobConfiguration,
         workerContext: WorkerContext
     ): EvaluatorRunnerResult {
-        val script = config.ruleSet?.let {
-            workerContext.configManager.getFileAsString(
-                workerContext.resolvedConfigurationContext,
-                Path(it)
-            )
+        val ruleSetPath = config.ruleSet ?: ORT_EVALUATOR_RULES_FILENAME.also {
+            logger.info("No rule set path provided, using default path '$it'.")
         }
-            ?: throw IllegalArgumentException("The rule set path is not specified in the config.", null)
+
+        val script = workerContext.configManager.getFileAsString(
+            workerContext.resolvedConfigurationContext,
+            Path(ruleSetPath)
+        )
 
         val copyrightGarbage = workerContext.configManager.readConfigFileWithDefault(
             path = config.copyrightGarbageFile,
