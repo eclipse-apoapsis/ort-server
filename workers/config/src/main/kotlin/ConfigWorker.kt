@@ -81,34 +81,46 @@ class ConfigWorker(
         )
 
         // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it configurable.
-        val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+        val validationScriptExists = configManager.containsFile(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+        val (result, validationResult) = if (validationScriptExists) {
+            val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+            val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
+            val validationResult = validator.validate(validationScript)
 
-        val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
-        val validationResult = validator.validate(validationScript)
+            logger.debug("Issues returned by validation script: {}.", validationResult.issues)
 
-        logger.debug("Issues returned by validation script: {}.", validationResult.issues)
+            when (validationResult) {
+                is ConfigValidationResultSuccess -> RunResult.Success to Triple(
+                    validationResult.resolvedConfigurations.asPresent(),
+                    validationResult.issues.asPresent(),
+                    validationResult.labelsToUpdate()
+                )
 
-        val (result, configs, labels) = when (validationResult) {
-            is ConfigValidationResultSuccess -> Triple(
-                RunResult.Success,
-                validationResult.resolvedConfigurations.asPresent(),
-                validationResult.labelsToUpdate()
-            )
-
-            is ConfigValidationResultFailure -> Triple(
-                RunResult.Failed(IllegalArgumentException("Parameter validation failed.")),
+                is ConfigValidationResultFailure -> RunResult.Failed(
+                    IllegalArgumentException("Parameter validation failed.")
+                ) to Triple(
+                    OptionalValue.Absent,
+                    validationResult.issues.asPresent(),
+                    OptionalValue.Absent
+                )
+            }
+        } else {
+            RunResult.Ignored to Triple(
+                context.ortRun.jobConfigs.asPresent(),
                 OptionalValue.Absent,
                 OptionalValue.Absent
             )
         }
 
+        val (configs, issues, labels) = validationResult
+
         db.dbQuery {
             ortRunRepository.update(
-                ortRunId,
+                id = ortRunId,
                 resolvedJobConfigs = configs,
-                issues = validationResult.issues.asPresent(),
-                labels = labels,
-                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent()
+                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
+                issues = issues,
+                labels = labels
             )
         }
 

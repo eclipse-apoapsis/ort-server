@@ -197,6 +197,37 @@ class ConfigWorkerTest : StringSpec({
             capturedContext.resolvedConfigurationContext shouldBe Context(RESOLVED_CONTEXT)
         }
     }
+
+    "A missing validation script should be ignored" {
+        val (contextFactory, context) = mockContext()
+        val configManager = mockConfigManager(validationScriptExists = false)
+
+        val resolvedConfig = mockk<JobConfigurations>()
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
+
+        val ortRunRepository = mockk<OrtRunRepository> {
+            every {
+                update(RUN_ID, any(), any(), any(), any(), any(), any())
+            } returns mockk()
+        }
+
+        mockkTransaction {
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            worker.testRun() shouldBe RunResult.Ignored
+
+            val expectedJobConfigs = context.ortRun.jobConfigs
+
+            verify {
+                configManager.resolveContext(Context(ORIGINAL_CONTEXT))
+
+                ortRunRepository.update(
+                    id = RUN_ID,
+                    resolvedJobConfigs = expectedJobConfigs.asPresent(),
+                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent()
+                )
+            }
+        }
+    }
 })
 
 /** The ID of a test run. */
@@ -273,10 +304,15 @@ private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
 /**
  * Create a mock [ConfigManager]. The mock is configured to return the test validation script.
  */
-private fun mockConfigManager(): ConfigManager = mockk<ConfigManager> {
+private fun mockConfigManager(validationScriptExists: Boolean = true): ConfigManager = mockk<ConfigManager> {
+    every {
+        containsFile(Context(RESOLVED_CONTEXT), ConfigWorker.VALIDATION_SCRIPT_PATH)
+    } returns validationScriptExists
+
     every {
         getFileAsString(Context(RESOLVED_CONTEXT), ConfigWorker.VALIDATION_SCRIPT_PATH)
     } returns PARAMETERS_SCRIPT
+
     every { resolveContext(any()) } returns Context(RESOLVED_CONTEXT)
 }
 
