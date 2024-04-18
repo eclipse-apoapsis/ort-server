@@ -228,6 +228,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      ADVISOR_CONFIG_FILE_PROVIDER: local-config
+      ADVISOR_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       ADVISOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ADVISOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ADVISOR_RECEIVER_TRANSPORT_QUEUE_NAME: advisor_queue
@@ -236,6 +238,9 @@ services:
       ADVISOR_SECRET_PROVIDER: secret-file
       ADVISOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
@@ -260,6 +265,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      ANALYZER_CONFIG_FILE_PROVIDER: local-config
+      ANALYZER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       ANALYZER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ANALYZER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ANALYZER_RECEIVER_TRANSPORT_QUEUE_NAME: analyzer_queue
@@ -268,9 +275,12 @@ services:
       ANALYZER_SECRET_PROVIDER: secret-file
       ANALYZER_SECRET_FILES: /mnt/secrets.properties
     volumes:
-      - type: bind
-        source: ./scripts/compose/secrets.properties
-        target: /mnt/secrets.properties
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
+    - type: bind
+      source: ./scripts/compose/secrets.properties
+      target: /mnt/secrets.properties
 
   evaluator-worker:
     image: ort-server-evaluator-worker
@@ -292,6 +302,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      EVALUATOR_CONFIG_FILE_PROVIDER: local-config
+      EVALUATOR_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       EVALUATOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       EVALUATOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       EVALUATOR_RECEIVER_TRANSPORT_QUEUE_NAME: evaluator_queue
@@ -300,6 +312,9 @@ services:
       EVALUATOR_SECRET_PROVIDER: secret-file
       EVALUATOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
@@ -324,6 +339,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      REPORTER_CONFIG_FILE_PROVIDER: local-config
+      REPORTER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       REPORTER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       REPORTER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       REPORTER_RECEIVER_TRANSPORT_QUEUE_NAME: reporter_queue
@@ -332,6 +349,9 @@ services:
       REPORTER_SECRET_PROVIDER: secret-file
       REPORTER_SECRET_FILES: /mnt/secrets.properties
     volumes:
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
@@ -356,6 +376,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
+      SCANNER_CONFIG_FILE_PROVIDER: local-config
+      SCANNER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       SCANNER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       SCANNER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       SCANNER_RECEIVER_TRANSPORT_QUEUE_NAME: scanner_queue
@@ -364,9 +386,12 @@ services:
       SCANNER_SECRET_PROVIDER: secret-file
       SCANNER_SECRET_FILES: /mnt/secrets.properties
     volumes:
-      - type: bind
-        source: ./scripts/compose/secrets.properties
-        target: /mnt/secrets.properties
+    - type: bind
+      source: ./scripts/compose/config
+      target: /mnt/config
+    - type: bind
+      source: ./scripts/compose/secrets.properties
+      target: /mnt/secrets.properties
 
 volumes:
   db:
