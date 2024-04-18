@@ -88,22 +88,26 @@ class ConfigWorker(
 
         logger.debug("Issues returned by validation script: {}.", validationResult.issues)
 
-        val (result, updates) = when (validationResult) {
-            is ConfigValidationResultSuccess ->
-                RunResult.Success to
-                        (validationResult.resolvedConfigurations.asPresent() to validationResult.labelsToUpdate())
+        val (result, configs, labels) = when (validationResult) {
+            is ConfigValidationResultSuccess -> Triple(
+                RunResult.Success,
+                validationResult.resolvedConfigurations.asPresent(),
+                validationResult.labelsToUpdate()
+            )
 
-            is ConfigValidationResultFailure ->
-                RunResult.Failed(IllegalArgumentException("Parameter validation failed.")) to
-                        (OptionalValue.Absent to OptionalValue.Absent)
+            is ConfigValidationResultFailure -> Triple(
+                RunResult.Failed(IllegalArgumentException("Parameter validation failed.")),
+                OptionalValue.Absent,
+                OptionalValue.Absent
+            )
         }
 
         db.dbQuery {
             ortRunRepository.update(
                 ortRunId,
-                resolvedJobConfigs = updates.first,
+                resolvedJobConfigs = configs,
                 issues = validationResult.issues.asPresent(),
-                labels = updates.second,
+                labels = labels,
                 resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent()
             )
         }
