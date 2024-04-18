@@ -52,26 +52,26 @@ interface ReportNameMapper {
         private fun createWithMapping(nameMapping: ReportNameMapping): ReportNameMapper =
             object : ReportNameMapper {
                 override fun mapReportNames(reportFiles: Collection<File>): Map<String, File> =
-                    if (reportFiles.size == 1) {
-                        mapOf(mapReportFile(nameMapping, 0, reportFiles.first()))
+                    if (reportFiles.size == 1 && !nameMapping.alwaysAppendIndex) {
+                        mapOf(mapReportFile(nameMapping, 0, false, reportFiles.first()))
                     } else {
                         reportFiles.mapIndexed { index, file ->
-                            mapReportFile(nameMapping, index + 1, file)
+                            mapReportFile(nameMapping, index, true, file)
                         }.toMap()
                     }
             }
 
         /**
-         * Return a mapping for the given report [file] with the given [index] (1-based) in the result file collection
-         * based on the given [nameMapping]. An [index] of 0 means that this is the only result file; in this case, no
-         * index is appended to the name.
+         * Return a mapping for the given report [file] with the given [index] (0-based) in the result file collection
+         * based on the given [nameMapping]. The [applyIndex] flag controls whether the index is appended to the name.
          */
         private fun mapReportFile(
             nameMapping: ReportNameMapping,
             index: Int,
+            applyIndex: Boolean,
             file: File
         ): Pair<String, File> {
-            val indexSuffix = if (index > 0) "-$index" else ""
+            val indexSuffix = if (applyIndex) "-${index + nameMapping.startIndex}" else ""
             return "${nameMapping.namePrefix}$indexSuffix.${file.extension}" to file
         }
     }
