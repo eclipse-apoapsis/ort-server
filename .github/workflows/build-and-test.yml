@@ -55,6 +55,14 @@ jobs:
     - name: Run tests
       run: ./gradlew test -Dkotest.tags='!Integration'
 
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: test-results
+        path: "**/build/reports/tests"
+        retention-days: 7
+
   integration-test:
     needs: build
     runs-on: ubuntu-latest
@@ -75,3 +83,11 @@ jobs:
 
     - name: Run integration tests
       run: ./gradlew test -Dkotest.tags='Integration'
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: integration-test-results
+        path: "**/build/reports/tests"
+        retention-days: 7
