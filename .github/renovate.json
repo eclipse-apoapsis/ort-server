@@ -7,6 +7,7 @@
   ],
   "branchPrefix": "renovate-action/",
   "dependencyDashboard": false,
+  "labels": ["dependencies"],
   "gitAuthor": "eclipse-apoapsis-bot <159786767+eclipse-apoapsis-bot@users.noreply.github.com>",
   "packageRules": [
     {
