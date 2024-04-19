@@ -25,8 +25,8 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.beEmptyArray
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.sequences.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -109,7 +109,8 @@ class LogFileServiceTest : WordSpec({
             logArchive.unpack(archiveContentDir)
 
             val expectedLogFiles = listOf("config.log", "analyzer.log", "reporter.log")
-            archiveContentDir.listFiles().orEmpty().map(File::getName) shouldContainExactlyInAnyOrder expectedLogFiles
+            archiveContentDir.walk().maxDepth(1).filter { it.isFile }
+                .mapTo(mutableListOf()) { it.name } shouldContainExactlyInAnyOrder expectedLogFiles
 
             fun checkLogFile(name: String, source: LogSource) {
                 val logFile = archiveContentDir.resolve(name)
@@ -142,7 +143,7 @@ class LogFileServiceTest : WordSpec({
                 )
             }
 
-            archiveDir.listFiles().orEmpty() should beEmptyArray()
+            archiveDir.walk().maxDepth(1).filter { it.isFile } should beEmpty()
         }
     }
 })

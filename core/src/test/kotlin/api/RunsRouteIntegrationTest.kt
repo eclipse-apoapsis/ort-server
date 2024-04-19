@@ -366,7 +366,7 @@ private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
     try {
         archiveFile.unpack(targetDirectory = currentDir, forceArchiveType = ArchiveType.ZIP)
 
-        val files = currentDir.listFiles()?.map(File::getName) ?: fail("Could not list unpack dir.")
+        val files = currentDir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableListOf()) { it.name }
         val expectedFileNames = sources.map { it.logFileName() } + archiveFile.name
         files shouldContainExactlyInAnyOrder expectedFileNames
 
