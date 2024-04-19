@@ -5,10 +5,8 @@
     ":semanticCommitScopeDisabled",
     ":semanticCommitTypeAll(deps)"
   ],
-  "branchPrefix": "renovate-action/",
   "dependencyDashboard": false,
   "labels": ["dependencies"],
-  "gitAuthor": "eclipse-apoapsis-bot <159786767+eclipse-apoapsis-bot@users.noreply.github.com>",
   "packageRules": [
     {
       "matchManagers": ["gradle"],
@@ -27,8 +25,5 @@
       "allowedVersions": "< 18"
     }
   ],
-  "prHourlyLimit": 5,
-  "repositories": [
-    "eclipse-apoapsis/ort-server"
-  ]
+  "prHourlyLimit": 5
 }
