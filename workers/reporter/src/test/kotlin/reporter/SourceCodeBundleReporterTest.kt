@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.file.shouldContainFile
 import io.kotest.matchers.file.shouldContainNFiles
 import io.kotest.matchers.maps.containAnyKeys
+import io.kotest.matchers.sequences.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
@@ -127,7 +128,7 @@ class SourceCodeBundleReporterTest : WordSpec({
             }
 
             bundleTmpOutputDir.exists() shouldBe false
-            outputDir.listFiles()?.size shouldBe 0
+            outputDir.walk().maxDepth(1).filter { it.isFile } should beEmpty()
         }
 
         "be found by the service loader" {
