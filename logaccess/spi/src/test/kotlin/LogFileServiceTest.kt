@@ -105,7 +105,6 @@ class LogFileServiceTest : WordSpec({
 
             logArchive.parentFile shouldBe archiveDir
             val archiveContentDir = temp.resolve("archive")
-            archiveContentDir.mkdir()
             logArchive.unpack(archiveContentDir)
 
             val expectedLogFiles = listOf("config.log", "analyzer.log", "reporter.log")
