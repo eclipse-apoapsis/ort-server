@@ -45,6 +45,18 @@ jobs:
     - name: Check for Detekt Issues
       run: ./gradlew --stacktrace detekt
 
+  renovate-validation:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Validate Repository Renovate Config
+      run: npx -y --package renovate -- renovate-config-validator .github/renovate.json
+
+    - name: Validate Global Renovate Config
+      run: npx -y --package renovate -- renovate-config-validator .github/renovate-global.json
+
   reuse-tool:
     runs-on: ubuntu-latest
     steps:
