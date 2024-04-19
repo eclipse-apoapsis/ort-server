@@ -15,7 +15,7 @@
       "commitMessageTopic": "{{depName}}"
     },
     {
-      "matchManagers": ["helm"],
+      "matchManagers": ["helmv3"],
       "enabled": false
     },
     {
