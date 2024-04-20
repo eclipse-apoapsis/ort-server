@@ -19,6 +19,8 @@
 
 import com.google.cloud.tools.jib.gradle.JibTask
 
+val dockerBaseImagePrefix: String by project
+val dockerBaseImageTag: String by project
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
 
@@ -72,7 +74,7 @@ dependencies {
 }
 
 jib {
-    from.image = "docker://ort-server-config-worker-base-image:latest"
+    from.image = "${dockerBaseImagePrefix}ort-server-config-worker-base-image:$dockerBaseImageTag"
     to.image = "${dockerImagePrefix}ort-server-config-worker:$dockerImageTag"
 
     container {
