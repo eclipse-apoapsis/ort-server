@@ -63,14 +63,14 @@ data class AnalyzerJobConfiguration(
     val allowDynamicVersions: Boolean = false,
 
     /**
-     * A list of the case-insensitive names of package managers that are enabled. Disabling a package manager in
-     * [disabledPackageManagers] overrides enabling it here.
+     * A list of the case-insensitive names of package managers that are disabled. Disabling a package manager in this
+     * list overrides [enabledPackageManagers].
      */
     val disabledPackageManagers: List<String>? = null,
 
     /**
-     * A list of the case-insensitive names of package managers that are disabled. Disabling a package manager in this
-     * list overrides [enabledPackageManagers].
+     * A list of the case-insensitive names of package managers that are enabled. Disabling a package manager in
+     * [disabledPackageManagers] overrides enabling it here.
      */
     val enabledPackageManagers: List<String>? = null,
 
