@@ -265,6 +265,12 @@ class AnalyzerRunner(
         val analyzer = Analyzer(analyzerConfig)
 
         val enabledPackageManagers = analyzerConfig.determineEnabledPackageManagers()
+
+        logger.info(
+            "Searching for definitions files of the following enabled package manager(s): " +
+                    enabledPackageManagers.joinToString().ifEmpty { "<None>" }
+        )
+
         val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, repositoryConfiguration)
         if (info.managedFiles.isEmpty()) {
             logger.warn("No definition files found.")
