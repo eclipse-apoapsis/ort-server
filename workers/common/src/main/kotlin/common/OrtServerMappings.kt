@@ -27,6 +27,7 @@ import java.time.Instant
 
 import kotlinx.datetime.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
@@ -168,6 +169,7 @@ import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStor
 import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
+import org.ossreviewtoolkit.model.config.JiraConfiguration as OrtJiraConfiguration
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason as OrtLicenseFindingCurationReason
@@ -781,4 +783,11 @@ fun MailServerConfiguration.mapToOrt() =
         password = password,
         useSsl = useSsl,
         fromAddress = fromAddress
+    )
+
+fun JiraRestClientConfiguration.mapToOrt() =
+    OrtJiraConfiguration(
+        host = serverUrl,
+        username = username,
+        password = password
     )

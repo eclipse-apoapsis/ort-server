@@ -70,16 +70,35 @@ class NotifierRunner {
                 workerContext.configManager.getSecret(Path(it))
             }
 
-            val notifierConfiguration = if (mailServerUser != null && mailServerPassword != null) {
-                NotifierConfiguration(
-                    mail = config.mail?.mailServerConfiguration?.copy(
+            val sendMailConfiguration = if (mailServerUser != null && mailServerPassword != null) {
+                config.mail?.mailServerConfiguration?.copy(
                         username = mailServerUser,
                         password = mailServerPassword
                     )?.mapToOrt()
-                )
             } else {
-                NotifierConfiguration()
+                null
             }
+
+            val jiraRestClientUsername = config.jira?.jiraRestClientConfiguration?.username?.let {
+                workerContext.configManager.getSecret(Path(it))
+            }
+            val jiraRestClientPassword = config.jira?.jiraRestClientConfiguration?.password?.let {
+                workerContext.configManager.getSecret(Path(it))
+            }
+
+            val jiraConfiguration = if (jiraRestClientUsername != null && jiraRestClientPassword != null) {
+                config.jira?.jiraRestClientConfiguration?.copy(
+                        username = jiraRestClientUsername,
+                        password = jiraRestClientPassword
+                    )?.mapToOrt()
+            } else {
+                null
+            }
+
+            val notifierConfiguration = NotifierConfiguration(
+                mail = sendMailConfiguration,
+                jira = jiraConfiguration
+            )
 
             val resolutionsFromOrtResult = ortResult.repository.config.resolutions
 

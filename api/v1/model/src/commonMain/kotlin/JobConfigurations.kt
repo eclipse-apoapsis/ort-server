@@ -344,7 +344,12 @@ data class NotifierJobConfiguration(
     /**
      * The configuration for Email notifications. If this is null, no email notifications will be sent.
      */
-    val mail: MailNotificationConfiguration? = null
+    val mail: MailNotificationConfiguration? = null,
+
+    /**
+     * The configuration for Jira notifications. If this is null, no Jira notifications will be sent.
+     */
+    val jira: JiraNotificationConfiguration? = null
 )
 
 /**

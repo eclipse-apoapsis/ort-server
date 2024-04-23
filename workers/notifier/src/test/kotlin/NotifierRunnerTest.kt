@@ -32,6 +32,8 @@ import java.io.File
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
@@ -61,6 +63,13 @@ class NotifierRunnerTest : WordSpec({
                     password = "secret-password",
                     useSsl = false,
                     fromAddress = "no-reply@oss-review-toolkit.org"
+                )
+            ),
+            jira = JiraNotificationConfiguration(
+                jiraRestClientConfiguration = JiraRestClientConfiguration(
+                    serverUrl = "https://jira.example.com",
+                    username = "secret-username",
+                    password = "secret-password"
                 )
             )
         )

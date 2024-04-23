@@ -38,6 +38,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
@@ -143,6 +145,13 @@ private val fullJobConfigurations = JobConfigurations(
                 password = "password",
                 useSsl = true,
                 fromAddress = "no-reply@example.com"
+            )
+        ),
+        jira = JiraNotificationConfiguration(
+            jiraRestClientConfiguration = JiraRestClientConfiguration(
+                serverUrl = "https://jira.example.com",
+                username = "user",
+                password = "password"
             )
         )
     )
