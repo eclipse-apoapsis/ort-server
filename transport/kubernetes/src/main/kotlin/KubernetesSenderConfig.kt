@@ -316,7 +316,8 @@ data class KubernetesSenderConfig(
          */
         private fun Config.parseSecretVolumeMounts(): List<SecretVolumeMount> =
             toVolumeMounts(MOUNT_SECRETS_PROPERTY, mountSecretDeclarationRegex) { match ->
-                SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!.trim(), match.groups[3]?.value)
+                val (secretName, mountPath, subPath) = match.destructured
+                SecretVolumeMount(secretName, mountPath.trim(), subPath.takeUnless { it.isEmpty() })
             }
 
         /**
@@ -324,11 +325,8 @@ data class KubernetesSenderConfig(
          */
         private fun Config.parsePvcVolumeMounts(): List<PvcVolumeMount> =
             toVolumeMounts(MOUNT_PVCS_PROPERTY, mountPvcDeclarationRegex) { match ->
-                PvcVolumeMount(
-                    match.groups[1]?.value!!,
-                    match.groups[2]?.value!!,
-                    match.groups[3]?.value?.lowercase() == "r"
-                )
+                val (claimName, mountPath, readOnly) = match.destructured
+                PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r")
             }
 
         /**
