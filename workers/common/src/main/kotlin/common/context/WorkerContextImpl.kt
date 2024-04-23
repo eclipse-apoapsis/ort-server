@@ -108,7 +108,7 @@ internal class WorkerContextImpl(
             val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
 
             c.mapValues { entry -> entry.value.resolveSecrets(resolvedSecrets) }
-        } ?: emptyMap()
+        }.orEmpty()
 
     override suspend fun downloadConfigurationFile(
         path: ConfigPath,

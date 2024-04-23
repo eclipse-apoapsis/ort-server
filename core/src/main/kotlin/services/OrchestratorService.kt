@@ -56,7 +56,7 @@ class OrchestratorService(
         labels: Map<String, String>?
     ): OrtRun {
         val ortRun = db.dbQuery {
-            ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels ?: emptyMap())
+            ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels.orEmpty())
         }
 
         // TODO: Set the correct token.

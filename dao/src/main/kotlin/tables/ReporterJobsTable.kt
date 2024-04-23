@@ -66,6 +66,6 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
-        filenames = reporterRun?.reports?.map { it.filename }?.sorted() ?: emptyList()
+        filenames = reporterRun?.reports?.map { it.filename }?.sorted().orEmpty()
     )
 }

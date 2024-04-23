@@ -102,7 +102,7 @@ class OrtServerScanResultStorage(
                         configuration = it.scannerConfiguration
                     ),
                     summary = it.scanSummary.mapToOrt(),
-                    additionalData = it.additionalScanResultData?.data ?: emptyMap()
+                    additionalData = it.additionalScanResultData?.data.orEmpty()
                 )
             }.filterValues { scannerMatcher?.matches(it.scanner) != false }
 
