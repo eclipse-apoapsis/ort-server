@@ -148,11 +148,11 @@ class LokiLogFileProvider(
                 )
             }
 
-            config.username?.let { user ->
+            if (config.username != null && config.password != null) {
                 install(Auth) {
                     basic {
                         credentials {
-                            BasicAuthCredentials(user, config.password!!)
+                            BasicAuthCredentials(config.username, config.password)
                         }
                         sendWithoutRequest { true }
                     }
