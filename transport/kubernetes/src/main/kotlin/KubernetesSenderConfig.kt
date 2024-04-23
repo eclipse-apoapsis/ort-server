@@ -244,7 +244,7 @@ data class KubernetesSenderConfig(
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
         /** A regular expression to parse a secret volume mount declaration. */
-        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)((\s*)\|\s*(.+))?""")
+        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:(?:\s*)\|\s*(.+))?""")
 
         /** A regular expression to parse a PVC-based volume mount declaration. */
         private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
@@ -316,7 +316,7 @@ data class KubernetesSenderConfig(
          */
         private fun Config.parseSecretVolumeMounts(): List<SecretVolumeMount> =
             toVolumeMounts(MOUNT_SECRETS_PROPERTY, mountSecretDeclarationRegex) { match ->
-                SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!.trim(), match.groups[5]?.value)
+                SecretVolumeMount(match.groups[1]?.value!!, match.groups[2]?.value!!.trim(), match.groups[3]?.value)
             }
 
         /**
