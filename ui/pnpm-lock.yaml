@@ -23,6 +23,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.29.2
         version: 5.32.0(react@18.2.0)
+      '@tanstack/react-query-devtools':
+        specifier: ^5.32.0
+        version: 5.32.0(@tanstack/react-query@5.32.0(react@18.2.0))(react@18.2.0)
       '@tanstack/react-router':
         specifier: ^1.22.2
         version: 1.29.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -59,7 +62,7 @@ importers:
     devDependencies:
       '@7nohe/openapi-react-query-codegen':
         specifier: ^0.5.3
-        version: 0.5.3(commander@4.1.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)
+        version: 0.5.3(commander@10.0.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)
       '@tanstack/router-vite-plugin':
         specifier: ^1.20.5
         version: 1.30.0(vite@5.2.10(@types/node@20.12.7))
@@ -879,6 +882,15 @@ packages:
 
   '@tanstack/query-core@5.32.0':
     resolution: {integrity: sha512-Z3flEgCat55DRXU5UMwYU1U+DgFZKA3iufyOKs+II7iRAo0uXkeU7PH5e6sOH1CGEag0IpKmZxlUFpCg6roSKw==}
+
+  '@tanstack/query-devtools@5.28.10':
+    resolution: {integrity: sha512-5UN629fKa5/1K/2Pd26gaU7epxRrYiT1gy+V+pW5K6hnf1DeUKK3pANSb2eHKlecjIKIhTwyF7k9XdyE2gREvQ==}
+
+  '@tanstack/react-query-devtools@5.32.0':
+    resolution: {integrity: sha512-KWrzLoUjs9JtDSH3H2qbm5MjjykyAT8DkvP8tukw3gBG4ziu5WaWHciBjMsYSe1JB79AOxxGovzjW/Cd9+ofVw==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.32.0
+      react: ^18.0.0
 
   '@tanstack/react-query@5.32.0':
     resolution: {integrity: sha512-+E3UudQtarnx9A6xhpgMZapyF+aJfNBGFMgI459FnduEZqT/9KhOWnMOneZahLRt52yzskSA0AuOyLkXHK0yBA==}
@@ -2030,9 +2042,9 @@ packages:
 
 snapshots:
 
-  '@7nohe/openapi-react-query-codegen@0.5.3(commander@4.1.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)':
+  '@7nohe/openapi-react-query-codegen@0.5.3(commander@10.0.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)':
     dependencies:
-      commander: 4.1.1
+      commander: 10.0.1
       glob: 10.3.12
       openapi-typescript-codegen: 0.24.0
       typescript: 5.4.5
@@ -2760,6 +2772,14 @@ snapshots:
   '@tanstack/history@1.28.9': {}
 
   '@tanstack/query-core@5.32.0': {}
+
+  '@tanstack/query-devtools@5.28.10': {}
+
+  '@tanstack/react-query-devtools@5.32.0(@tanstack/react-query@5.32.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@tanstack/query-devtools': 5.28.10
+      '@tanstack/react-query': 5.32.0(react@18.2.0)
+      react: 18.2.0
 
   '@tanstack/react-query@5.32.0(react@18.2.0)':
     dependencies:

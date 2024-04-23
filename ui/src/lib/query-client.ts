@@ -17,22 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { queryClient } from '@/lib/query-client';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
-import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
+import { QueryClient } from '@tanstack/react-query';
 
-const oidcConfig = {
-  authority: 'http://localhost:8081/realms/master',
-  redirect_uri: 'http://localhost:5173/',
-  client_id: 'react',
-  automaticSilentRenew: true,
-} satisfies AuthProviderProps;
-
-export const Providers = ({ children }: { children: ReactNode }) => {
-  return (
-    <AuthProvider {...oidcConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </AuthProvider>
-  );
-};
+export const queryClient = new QueryClient();
