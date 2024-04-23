@@ -89,7 +89,7 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         val time = Clock.System.now()
         findJobForOrtRun(ortRunId)?.reporterRun?.reports?.filter {
             it.downloadTokenExpiryDate > time
-        }?.map { it.mapToModel() } ?: emptyList()
+        }?.map { it.mapToModel() }.orEmpty()
     }
 
     /**

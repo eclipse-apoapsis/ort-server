@@ -105,7 +105,7 @@ data class VaultConfiguration(
         private fun getOptionalRootPath(config: Config): String =
             config.getStringOrNull(ROOT_PATH_PROPERTY)?.let { rootPath ->
                 rootPath.takeIf { it.endsWith(PATH_SEPARATOR) } ?: "$rootPath$PATH_SEPARATOR"
-            } ?: ""
+            }.orEmpty()
 
         /**
          * Return the prefix for paths from the given [config] or the default prefix.
