@@ -133,12 +133,7 @@ internal class WorkerContextImpl(
             extractDownloadFileKey(directory.absolutePath, null)
         )
 
-        val failure = results.values.find { it.isFailure }
-        return if (failure == null) {
-            results.map { e -> e.key to e.value.getOrThrow() }.toMap()
-        } else {
-            throw failure.exceptionOrNull()!!
-        }
+        return results.map { e -> e.key to e.value.getOrThrow() }.toMap()
     }
 
     override fun close() {
