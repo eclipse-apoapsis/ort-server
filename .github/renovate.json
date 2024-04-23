@@ -25,5 +25,6 @@
       "allowedVersions": "< 18"
     }
   ],
+  "prConcurrentLimit": 15,
   "prHourlyLimit": 5
 }
