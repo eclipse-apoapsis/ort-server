@@ -58,8 +58,8 @@ internal class Scheduler : AutoCloseable {
             tickerFlow.collect {
                 runCatching {
                     action()
-                }.onFailure {
-                    logger.error("Exception while executing scheduled action.", it)
+                }.onFailure { e ->
+                    logger.error("Exception while executing scheduled action.", e)
                 }
             }
         }

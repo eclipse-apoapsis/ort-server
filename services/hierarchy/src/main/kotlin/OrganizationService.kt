@@ -51,8 +51,8 @@ class OrganizationService(
         runCatching {
             authorizationService.createOrganizationPermissions(organization.id)
             authorizationService.createOrganizationRoles(organization.id)
-        }.onFailure {
-            logger.error("Error while creating Keycloak roles for organization '${organization.id}'.", it)
+        }.onFailure { e ->
+            logger.error("Error while creating Keycloak roles for organization '${organization.id}'.", e)
         }
     }.getOrThrow()
 
@@ -65,8 +65,8 @@ class OrganizationService(
         runCatching {
             authorizationService.createProductPermissions(product.id)
             authorizationService.createProductRoles(product.id)
-        }.onFailure {
-            logger.error("Error while creating Keycloak roles for product '${product.id}'.", it)
+        }.onFailure { e ->
+            logger.error("Error while creating Keycloak roles for product '${product.id}'.", e)
         }
     }.getOrThrow()
 
@@ -79,8 +79,8 @@ class OrganizationService(
         runCatching {
             authorizationService.deleteOrganizationPermissions(organizationId)
             authorizationService.deleteOrganizationRoles(organizationId)
-        }.onFailure {
-            logger.error("Error while deleting Keycloak roles for organization '$organizationId'.", it)
+        }.onFailure { e ->
+            logger.error("Error while deleting Keycloak roles for organization '$organizationId'.", e)
         }
     }.getOrThrow()
 

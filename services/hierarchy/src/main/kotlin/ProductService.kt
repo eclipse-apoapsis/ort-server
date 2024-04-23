@@ -53,8 +53,8 @@ class ProductService(
         runCatching {
             authorizationService.createRepositoryPermissions(repository.id)
             authorizationService.createRepositoryRoles(repository.id)
-        }.onFailure {
-            logger.error("Error while creating Keycloak roles for repository '${repository.id}'.", it)
+        }.onFailure { e ->
+            logger.error("Error while creating Keycloak roles for repository '${repository.id}'.", e)
         }
     }.getOrThrow()
 
@@ -67,8 +67,8 @@ class ProductService(
         runCatching {
             authorizationService.deleteProductPermissions(productId)
             authorizationService.deleteProductRoles(productId)
-        }.onFailure {
-            logger.error("Error while deleting Keycloak roles for product '$productId'.", it)
+        }.onFailure { e ->
+            logger.error("Error while deleting Keycloak roles for product '$productId'.", e)
         }
     }.getOrThrow()
 
