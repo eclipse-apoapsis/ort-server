@@ -43,7 +43,7 @@ dependencies:
     version: 18.2.0(react@18.2.0)
   react-oidc-context:
     specifier: ^3.0.0
-    version: 3.0.0(oidc-client-ts@3.0.1)(react@18.2.0)
+    version: 3.1.0(oidc-client-ts@3.0.1)(react@18.2.0)
   tailwind-merge:
     specifier: ^2.2.2
     version: 2.2.2
@@ -2693,8 +2693,8 @@ packages:
       scheduler: 0.23.0
     dev: false
 
-  /react-oidc-context@3.0.0(oidc-client-ts@3.0.1)(react@18.2.0):
-    resolution: {integrity: sha512-VmSnEGWl3pTMO5zT94pGAwoK58njg6VPVFXbrepUGsLhSM0IVEKN0DtzNJvTtDSUOPA4xnJ6+jiq1fgdrWtHSQ==}
+  /react-oidc-context@3.1.0(oidc-client-ts@3.0.1)(react@18.2.0):
+    resolution: {integrity: sha512-ceQztvDfdl28mbr0So31XF/tCJamyF1+nm4AQNIE/nub+Xs9PLtDqLy/+75Yx1ahI0/n3nsq0R2qcP0R2Laa3Q==}
     engines: {node: '>=18'}
     peerDependencies:
       oidc-client-ts: ^3.0.0
