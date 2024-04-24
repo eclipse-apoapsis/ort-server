@@ -80,14 +80,9 @@ internal class AnalyzerWorker(
             ortRun.path.orEmpty()
         )
 
-        val resolvedEnvConfigFromRepo = if (envConfigFromJob == null) {
-            environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
-        } else {
-            null
-        }
-
-        val resolvedEnvConfig = resolvedEnvConfigFromJob ?: resolvedEnvConfigFromRepo
-        val ortResult = runner.run(context, sourcesDir, job.configuration, resolvedEnvConfig!!)
+        val resolvedEnvConfig = resolvedEnvConfigFromJob
+            ?: environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
+        val ortResult = runner.run(context, sourcesDir, job.configuration, resolvedEnvConfig)
 
         ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
         ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
