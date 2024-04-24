@@ -66,8 +66,8 @@ class SnippetDao(id: EntityID<Long>) : LongEntity(id) {
                 it.mapToModel().provenance == snippet.provenance && it.additionalData?.data == snippet.additionalData
             }
 
-        fun getOrPut(snippet: Snippet): SnippetDao =
-            findBySnippet(snippet) ?: new {
+        fun put(snippet: Snippet): SnippetDao =
+            new {
                 this.purl = snippet.purl
                 this.path = snippet.location.path
                 this.startLine = snippet.location.startLine
