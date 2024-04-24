@@ -68,7 +68,8 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                 it.binaryArtifact?.mapToModel() == data.binaryArtifact &&
                         it.sourceArtifact?.mapToModel() == data.sourceArtifact &&
                         it.vcsInfoCurationData?.mapToModel() == data.vcs &&
-                        it.takeIf { it.hasAuthors }?.authors?.map { author -> author.name }?.toSet() == data.authors &&
+                        it.authors.takeIf { _ -> it.hasAuthors }
+                            ?.mapTo(mutableSetOf()) { author -> author.name } == data.authors &&
                         it.declaredLicenseMappings
                             .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping
             }
