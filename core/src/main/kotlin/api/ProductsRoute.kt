@@ -101,7 +101,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("repositories") {
-        get(getRepositoriesByProductId) {
+        get(getRepositoriesByProductId) { _ ->
             requirePermission(ProductPermission.READ_REPOSITORIES)
 
             val productId = call.requireIdParameter("productId")
@@ -132,7 +132,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("secrets") {
-        get(getSecretsByProductId) {
+        get(getSecretsByProductId) { _ ->
             requirePermission(ProductPermission.READ)
 
             val productId = call.requireIdParameter("productId")
@@ -148,7 +148,7 @@ fun Route.products() = route("products/{productId}") {
         }
 
         route("{secretName}") {
-            get(getSecretByProductIdAndName) {
+            get(getSecretByProductIdAndName) { _ ->
                 requirePermission(ProductPermission.READ)
 
                 val productId = call.requireIdParameter("productId")
