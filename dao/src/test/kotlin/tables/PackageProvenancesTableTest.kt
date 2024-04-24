@@ -87,7 +87,7 @@ class PackageProvenancesTableTest : WordSpec({
             val vcsInfo = VcsInfo(type = RepositoryType.GIT, url = "url", revision = "revision", path = "path")
             val dao = createDao(vcsInfo = vcsInfo)
 
-            shouldThrow<NullPointerException> { dao.mapToModel() }
+            shouldThrow<IllegalStateException> { dao.mapToModel() }
         }
 
         "create an UnknownProvenance if no properties are set" {

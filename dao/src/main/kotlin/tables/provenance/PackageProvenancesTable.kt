@@ -80,10 +80,11 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
 
     var scannerRuns by ScannerRunDao via ScannerRunsPackageProvenancesTable
 
-    fun mapToModel(): Provenance = when {
-        errorMessage != null -> UnknownProvenance
-        artifact != null -> ArtifactProvenance(artifact!!.mapToModel())
-        vcs != null -> RepositoryProvenance(vcs!!.mapToModel(), resolvedRevision!!)
-        else -> UnknownProvenance
+    fun mapToModel(): Provenance {
+        if (errorMessage != null) return UnknownProvenance
+
+        return artifact?.mapToModel()?.let { ArtifactProvenance(it) }
+            ?: vcs?.mapToModel()?.let { RepositoryProvenance(it, checkNotNull(resolvedRevision)) }
+            ?: UnknownProvenance
     }
 }
