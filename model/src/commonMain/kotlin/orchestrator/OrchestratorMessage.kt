@@ -48,13 +48,22 @@ data class ConfigWorkerError(
 ) : OrchestratorMessage()
 
 /**
+ * A common interface for messages that are sent by workers to the Orchestrator. The interface allows access to the
+ * job ID of the affected worker. This can be used to handle such messages in a generic way. Note that the Config
+ * worker is a bit special here; it does only initial preparations, but does not have its own job table.
+ */
+interface WorkerMessage {
+    val jobId: Long
+}
+
+/**
  * A message notifying the Orchestrator about a result produced by the Analyzer Worker.
  */
 @Serializable
 data class AnalyzerWorkerResult(
     /** The ID of the Analyzer job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Analyzer worker job.
@@ -62,8 +71,8 @@ data class AnalyzerWorkerResult(
 @Serializable
 data class AnalyzerWorkerError(
     /** The ID of the Analyzer job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Advisor Worker.
@@ -71,8 +80,8 @@ data class AnalyzerWorkerError(
 @Serializable
 data class AdvisorWorkerResult(
     /** The ID of the Advisor job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Advisor worker job.
@@ -80,8 +89,8 @@ data class AdvisorWorkerResult(
 @Serializable
 data class AdvisorWorkerError(
     /** The ID of the Advisor job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Scanner Worker.
@@ -89,8 +98,8 @@ data class AdvisorWorkerError(
 @Serializable
 data class ScannerWorkerResult(
     /** The ID of the Scanner job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Scanner worker job.
@@ -98,8 +107,8 @@ data class ScannerWorkerResult(
 @Serializable
 data class ScannerWorkerError(
     /** The ID of the Scanner job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Evaluator Worker.
@@ -107,8 +116,8 @@ data class ScannerWorkerError(
 @Serializable
 data class EvaluatorWorkerResult(
     /** The ID of the Evaluator job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Evaluator worker job.
@@ -116,8 +125,8 @@ data class EvaluatorWorkerResult(
 @Serializable
 data class EvaluatorWorkerError(
     /** The ID of the Evaluator job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Reporter Worker.
@@ -125,8 +134,8 @@ data class EvaluatorWorkerError(
 @Serializable
 data class ReporterWorkerResult(
     /** The ID of the Reporter job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Reporter worker job.
@@ -134,8 +143,8 @@ data class ReporterWorkerResult(
 @Serializable
 data class ReporterWorkerError(
     /** The ID of the Reporter job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Notifier Worker.
@@ -143,8 +152,8 @@ data class ReporterWorkerError(
 @Serializable
 data class NotifierWorkerResult(
     /** The ID of the Notifier job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Notifier worker job.
@@ -152,8 +161,8 @@ data class NotifierWorkerResult(
 @Serializable
 data class NotifierWorkerError(
     /** The ID of the Notifier job, as it is stored in the database. */
-    val jobId: Long
-) : OrchestratorMessage()
+    override val jobId: Long
+) : OrchestratorMessage(), WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a new ORT run.
