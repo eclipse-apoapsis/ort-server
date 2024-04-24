@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
@@ -110,8 +111,12 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
-            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel())
-                .map { it.mapToApiSummary(repositoryService.getJobs(repositoryId, it.index)!!.mapToApiSummary()) }
+            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel()).map {
+                repositoryService.getJobs(repositoryId, it.index)?.let { jobs ->
+                    it.mapToApiSummary(jobs.mapToApiSummary())
+                } ?: it.mapToApiSummary(JobSummaries())
+            }
+
             val pagedResponse = PagedResponse(
                 jobsForOrtRuns,
                 pagingOptions
@@ -146,14 +151,11 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
-                repositoryService.getOrtRun(repositoryId, ortRunIndex)
-                    ?.let {
-                        call.respond(
-                            HttpStatusCode.OK,
-                            it.mapToApi(repositoryService.getJobs(repositoryId, ortRunIndex)!!.mapToApi())
-                        )
+                repositoryService.getOrtRun(repositoryId, ortRunIndex)?.let {
+                    repositoryService.getJobs(repositoryId, ortRunIndex)?.let { jobs ->
+                        call.respond(HttpStatusCode.OK, it.mapToApi(jobs.mapToApi()))
                     }
-                    ?: call.respond(HttpStatusCode.NotFound)
+                } ?: call.respond(HttpStatusCode.NotFound)
             }
         }
     }
