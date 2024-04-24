@@ -416,8 +416,8 @@ private fun InfrastructureServiceRepository.expectServiceAssignments(): List<Inf
 
     val slotService = slot<InfrastructureService>()
     every { getOrCreateForRun(capture(slotService), RUN_ID) } answers {
-        firstArg<InfrastructureService>().also {
-            assignedServices += it
+        firstArg<InfrastructureService>().also { service ->
+            assignedServices += service
         }
     }
 

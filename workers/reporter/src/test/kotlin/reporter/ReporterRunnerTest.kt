@@ -179,7 +179,7 @@ class ReporterRunnerTest : WordSpec({
             val (contextFactory, context) = mockContext()
             coEvery { context.downloadConfigurationFiles(any(), configDirectory) } answers {
                 val paths = firstArg<Collection<Path>>()
-                paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
+                paths.associateWith { path -> File(resolvedTemplatePrefix, path.path) }
             }
 
             val runner = ReporterRunner(
@@ -239,7 +239,7 @@ class ReporterRunnerTest : WordSpec({
             val (contextFactory, context) = mockContext()
             coEvery { context.downloadConfigurationFiles(any(), configDirectory) } answers {
                 val paths = firstArg<Collection<Path>>()
-                paths.associateWith { File("$resolvedTemplatePrefix${it.path}") }
+                paths.associateWith { path -> File(resolvedTemplatePrefix, path.path) }
             }
 
             val runner = ReporterRunner(
@@ -638,7 +638,7 @@ class ReporterRunnerTest : WordSpec({
                 val dir = secondArg<File>()
                 dir.isDirectory shouldBe true
                 downloadedAssets[paths] = dir
-                paths.associateWith { File(it.path) }
+                paths.associateWith { path -> File(path.path) }
             }
 
             val runner = ReporterRunner(
