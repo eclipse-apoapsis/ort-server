@@ -80,9 +80,7 @@ fun ApplicationTestBuilder.createJsonClient(
  * Create a [user] with the provided [password].
  */
 fun Keycloak.setUpUser(user: User, password: String) {
-    realm(TEST_REALM).apply {
-        users().create(user.toUserRepresentation(password = password))
-    }
+    realm(TEST_REALM).users().create(user.toUserRepresentation(password = password))
 }
 
 /**
