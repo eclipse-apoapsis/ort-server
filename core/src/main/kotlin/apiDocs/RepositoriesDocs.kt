@@ -173,41 +173,51 @@ val jobs = Jobs(
         configuration = fullJobConfigurations.analyzer,
         status = JobStatus.CREATED
     ),
-    advisor = AdvisorJob(
-        id = 1L,
-        createdAt = Clock.System.now(),
-        configuration = fullJobConfigurations.advisor!!,
-        status = JobStatus.CREATED
-    ),
-    scanner = ScannerJob(
-        id = 1L,
-        createdAt = Clock.System.now(),
-        configuration = fullJobConfigurations.scanner!!,
-        status = JobStatus.CREATED
-    ),
-    evaluator = EvaluatorJob(
-        id = 1L,
-        createdAt = Clock.System.now(),
-        configuration = fullJobConfigurations.evaluator!!,
-        status = JobStatus.CREATED
-    ),
-    reporter = ReporterJob(
-        id = 1L,
-        createdAt = Clock.System.now(),
-        configuration = fullJobConfigurations.reporter!!,
-        status = JobStatus.CREATED,
-        reportFilenames = listOf(
-            "AsciiDoc_disclosure_document.pdf",
-            "AsciiDoc_vulnerability_report.pdf",
-            "scan-report-web-app.html"
+    advisor = fullJobConfigurations.advisor?.let {
+        AdvisorJob(
+            id = 1L,
+            createdAt = Clock.System.now(),
+            configuration = it,
+            status = JobStatus.CREATED
         )
-    ),
-    notifier = NotifierJob(
-        id = 1L,
-        createdAt = Clock.System.now(),
-        configuration = fullJobConfigurations.notifier!!,
-        status = JobStatus.CREATED
-    )
+    },
+    scanner = fullJobConfigurations.scanner?.let {
+        ScannerJob(
+            id = 1L,
+            createdAt = Clock.System.now(),
+            configuration = it,
+            status = JobStatus.CREATED
+        )
+    },
+    evaluator = fullJobConfigurations.evaluator?.let {
+        EvaluatorJob(
+            id = 1L,
+            createdAt = Clock.System.now(),
+            configuration = it,
+            status = JobStatus.CREATED
+        )
+    },
+    reporter = fullJobConfigurations.reporter?.let {
+        ReporterJob(
+            id = 1L,
+            createdAt = Clock.System.now(),
+            configuration = it,
+            status = JobStatus.CREATED,
+            reportFilenames = listOf(
+                "AsciiDoc_disclosure_document.pdf",
+                "AsciiDoc_vulnerability_report.pdf",
+                "scan-report-web-app.html"
+            )
+        )
+    },
+    notifier = fullJobConfigurations.notifier?.let {
+        NotifierJob(
+            id = 1L,
+            createdAt = Clock.System.now(),
+            configuration = it,
+            status = JobStatus.CREATED
+        )
+    }
 )
 
 /**
