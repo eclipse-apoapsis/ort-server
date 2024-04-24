@@ -69,7 +69,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
 
-    get(getRepositoryById) {
+    get(getRepositoryById) { _ ->
         requirePermission(RepositoryPermission.READ)
 
         val id = call.requireIdParameter("repositoryId")
@@ -78,7 +78,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    patch(patchRepositoryById) {
+    patch(patchRepositoryById) { _ ->
         requirePermission(RepositoryPermission.WRITE)
 
         val id = call.requireIdParameter("repositoryId")
@@ -104,7 +104,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getOrtRuns) {
+        get(getOrtRuns) { _ ->
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -140,7 +140,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get(getOrtRunByIndex) {
+            get(getOrtRunByIndex) { _ ->
                 requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
                 val repositoryId = call.requireIdParameter("repositoryId")
@@ -159,7 +159,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("secrets") {
-        get(getSecretsByRepositoryId) {
+        get(getSecretsByRepositoryId) { _ ->
             requirePermission(RepositoryPermission.READ)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -175,7 +175,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{secretName}") {
-            get(getSecretByRepositoryIdAndName) {
+            get(getSecretByRepositoryIdAndName) { _ ->
                 requirePermission(RepositoryPermission.READ)
 
                 val repositoryId = call.requireIdParameter("repositoryId")
