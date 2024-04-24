@@ -164,7 +164,7 @@ class ReporterRunner(
                 licenseClassifications = licenseClassifications
             )
 
-            val results = runBlocking(Dispatchers.IO) {
+            val (successes, failures) = runBlocking(Dispatchers.IO) {
                 val transformedOptions = processReporterOptions(context, config)
 
                 val outputDir = context.createTempDir()
@@ -190,11 +190,9 @@ class ReporterRunner(
                 }.awaitAll()
             }.partition { it.second.isSuccess }
 
-            val failures = results.second.mapNotNull { (format, failure) ->
-                failure.exceptionOrNull()?.let { format to it }
-            }
-
-            val issues = failures.map { (reporter, e) ->
+            val issues = failures.mapNotNull { (reporter, failure) ->
+                failure.exceptionOrNull()?.let { reporter to it }
+            }.map { (reporter, e) ->
                 e.showStackTrace()
 
                 logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
@@ -207,9 +205,9 @@ class ReporterRunner(
                 )
             }
 
-            val reports = results.first.associate {
-                logger.info("Successfully created '${it.first}' report.")
-                it.first to it.second.getOrDefault(emptyMap()).keys.toList()
+            val reports = successes.associate { (name, report) ->
+                logger.info("Successfully created '$name' report.")
+                name to report.getOrDefault(emptyMap()).keys.toList()
             }
 
             // Only return the package configurations and resolutions if they were not already resolved by the
