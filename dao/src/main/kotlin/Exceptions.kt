@@ -33,7 +33,7 @@ enum class PostgresErrorCodes(val value: String) {
 
 class UniqueConstraintException(msg: String, cause: Throwable) :
     RuntimeException(msg, cause), CopyableThrowable<UniqueConstraintException> {
-    override fun createCopy() = UniqueConstraintException(message!!, cause!!)
+    override fun createCopy() = UniqueConstraintException(checkNotNull(message), cause!!)
 }
 
 /**
@@ -41,5 +41,5 @@ class UniqueConstraintException(msg: String, cause: Throwable) :
  */
 class QueryParametersException(msg: String, cause: Throwable? = null) :
     RuntimeException(msg, cause), CopyableThrowable<QueryParametersException> {
-    override fun createCopy() = QueryParametersException(message!!, cause)
+    override fun createCopy() = QueryParametersException(checkNotNull(message), cause)
 }
