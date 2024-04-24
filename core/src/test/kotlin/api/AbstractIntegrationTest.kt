@@ -77,7 +77,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
         "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to secretErrorPath
     )
 
-    val additionalConfig = keycloakConfig + jwtConfig + secretsConfig
+    private val additionalConfig = keycloakConfig + jwtConfig + secretsConfig
 
     private val superuserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
         user = SUPERUSER.username.value,
