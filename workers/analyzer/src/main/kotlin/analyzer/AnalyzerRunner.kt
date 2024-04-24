@@ -317,7 +317,7 @@ class AnalyzerRunner(
         val curationCount = ortResult.getPackages().sumOf { it.curations.size }
         logger.info("Applied $curationCount curation(s) from 1 provider.")
 
-        check(ortResult.analyzer?.result != null) {
+        checkNotNull(ortResult.analyzer?.result) {
             "There was an error creating the analyzer result."
         }
 
