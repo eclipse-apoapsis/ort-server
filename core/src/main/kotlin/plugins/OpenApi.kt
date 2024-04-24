@@ -114,7 +114,7 @@ fun Application.configureOpenApi() {
             schemaDefinitionsField = "definitions"
 
             exampleEncoder { type, example ->
-                json.encodeToString(serializer(type!!), example)
+                type?.let { json.encodeToString(serializer(it), example) } ?: example.toString()
             }
         }
     }
