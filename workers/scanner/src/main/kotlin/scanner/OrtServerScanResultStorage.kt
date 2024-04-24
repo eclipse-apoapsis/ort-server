@@ -183,7 +183,7 @@ class OrtServerScanResultStorage(
                         this.endLine = snippetFinding.sourceLocation.endLine
                         this.snippets = SizedCollection(
                             snippetFinding.snippets.map { snippet ->
-                                SnippetDao.getOrPut(snippet.mapToModel())
+                                SnippetDao.put(snippet.mapToModel())
                             }
                         )
                     }
