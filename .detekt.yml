@@ -42,6 +42,8 @@ complexity:
 coroutines:
   InjectDispatcher:
     active: false
+  RedundantSuspendModifier:
+    active: false
 
 # Formatting rules are implemented via the ktlint plugin. As ktlint does not allow exceptions, we need to disable
 # respective rules completely.
