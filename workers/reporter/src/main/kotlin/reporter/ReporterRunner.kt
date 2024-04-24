@@ -190,8 +190,8 @@ class ReporterRunner(
                 }.awaitAll()
             }.partition { it.second.isSuccess }
 
-            val failures = results.second.associate { (format, failure) ->
-                format to failure.exceptionOrNull()!!
+            val failures = results.second.mapNotNull { (format, failure) ->
+                failure.exceptionOrNull()?.let { format to it }
             }
 
             val issues = failures.map { (reporter, e) ->
