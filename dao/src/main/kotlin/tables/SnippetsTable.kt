@@ -94,15 +94,10 @@ class SnippetDao(id: EntityID<Long>) : LongEntity(id) {
     var additionalData by SnippetsTable.additionalData
 
     fun mapToModel(): Snippet {
-        val provenance = if (artifact != null) {
-            ArtifactProvenance(sourceArtifact = artifact!!.mapToModel())
-        } else {
-            val vcsInfo = vcs!!.mapToModel()
-            RepositoryProvenance(
-                vcsInfo = vcsInfo,
-                resolvedRevision = vcsInfo.revision
-            )
-        }
+        val provenance = artifact?.mapToModel()?.let { ArtifactProvenance(it) }
+            ?: vcs?.mapToModel()?.let { RepositoryProvenance(it, it.revision) }
+
+        checkNotNull(provenance)
 
         return Snippet(
             purl = purl,
