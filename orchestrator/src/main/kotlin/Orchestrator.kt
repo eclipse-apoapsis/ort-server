@@ -58,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -220,11 +221,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(analyzerJobRepository, analyzerWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'AnalyzerWorkerError' message.", it)
-        }
+        handleWorkerError(analyzerJobRepository, analyzerWorkerError)
     }
 
     /**
@@ -279,11 +276,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(advisorJobRepository, advisorWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'AdvisorWorkerError' message.", it)
-        }
+        handleWorkerError(advisorJobRepository, advisorWorkerError)
     }
 
     /**
@@ -338,11 +331,7 @@ class Orchestrator(
      * Handle messages of the type [ScannerWorkerError].
      */
     fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(scannerJobRepository, scannerWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'ScannerWorkerError' message.", it)
-        }
+        handleWorkerError(scannerJobRepository, scannerWorkerError)
     }
 
     /**
@@ -380,11 +369,7 @@ class Orchestrator(
      * Handle messages of the type [EvaluatorWorkerError].
      */
     fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(evaluatorJobRepository, evaluatorWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'EvaluatorWorkerError' message.", it)
-        }
+        handleWorkerError(evaluatorJobRepository, evaluatorWorkerError)
     }
 
     /**
@@ -422,11 +407,7 @@ class Orchestrator(
      * Handle messages of the type [ReporterWorkerError].
      */
     fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(reporterJobRepository, reporterWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'ReporterWorkerError' message.", it)
-        }
+        handleWorkerError(reporterJobRepository, reporterWorkerError)
     }
 
     /**
@@ -453,11 +434,7 @@ class Orchestrator(
     }
 
     fun handleNotifierWorkerError(notifierWorkerError: NotifierWorkerError) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            handleWorkerError(notifierJobRepository, notifierWorkerError.jobId)
-        }.onFailure {
-            log.warn("Failed to handle 'NotifierWorkerError' message.", it)
-        }
+        handleWorkerError(notifierJobRepository, notifierWorkerError)
     }
 
     /**
@@ -634,16 +611,20 @@ class Orchestrator(
     private fun getConfig(ortRun: OrtRun) = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
 
     /**
-     * Handle an error notification from a worker job with the given [jobId] using the given [jobRepository]. Mark
-     * both the job and the whole OrtRun as failed.
+     * Handle an error notification [message] from a worker job using the given [jobRepository]. Mark both the job and
+     * the whole OrtRun as failed.
      */
-    private fun <T : WorkerJob> handleWorkerError(jobRepository: WorkerJobRepository<T>, jobId: Long) {
-        val updatedJob = jobRepository.complete(jobId, Clock.System.now(), JobStatus.FAILED)
+    private fun <T : WorkerJob> handleWorkerError(jobRepository: WorkerJobRepository<T>, message: WorkerMessage) {
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            val updatedJob = jobRepository.complete(message.jobId, Clock.System.now(), JobStatus.FAILED)
 
-        cleanupJobs(updatedJob.ortRunId)
+            cleanupJobs(updatedJob.ortRunId)
 
-        // If the worker job failed, the whole OrtRun will be treated as failed.
-        failOrtRun(updatedJob.ortRunId)
+            // If the worker job failed, the whole OrtRun will be treated as failed.
+            failOrtRun(updatedJob.ortRunId)
+        }.onFailure {
+            log.warn("Failed to handle '${message::class.java.simpleName}' message.", it)
+        }
     }
 
     /**
