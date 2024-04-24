@@ -77,7 +77,7 @@ interface ReportNameMapper {
     }
 
     /**
-     * Return a map that assigns each element of the given collection of [reportFiles] a name. The report file is then
+     * Return a map that assigns a name to each element of the given [reportFiles] collection. The report file is then
      * stored under this name.
      */
     fun mapReportNames(reportFiles: Collection<File>): Map<String, File>
