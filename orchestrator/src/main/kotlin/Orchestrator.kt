@@ -59,14 +59,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
-import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -97,26 +91,12 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
 @Suppress("LongParameterList", "TooManyFunctions")
 class Orchestrator(
     private val db: Database,
-    private val analyzerJobRepository: AnalyzerJobRepository,
-    private val advisorJobRepository: AdvisorJobRepository,
-    private val scannerJobRepository: ScannerJobRepository,
-    private val evaluatorJobRepository: EvaluatorJobRepository,
-    private val reporterJobRepository: ReporterJobRepository,
-    private val notifierJobRepository: NotifierJobRepository,
+    private val workerJobRepositories: WorkerJobRepositories,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
     private val publisher: MessagePublisher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
-
-    /** A map storing all job repositories by the worker endpoint names. */
-    private val jobRepositories = mapOf(
-        AnalyzerEndpoint.configPrefix to analyzerJobRepository,
-        AdvisorEndpoint.configPrefix to advisorJobRepository,
-        ScannerEndpoint.configPrefix to scannerJobRepository,
-        EvaluatorEndpoint.configPrefix to evaluatorJobRepository,
-        ReporterEndpoint.configPrefix to reporterJobRepository
-    )
 
     /**
      * Handle messages of the type [CreateOrtRun].
@@ -175,11 +155,11 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = analyzerWorkerResult.jobId
 
-            val analyzerJob = requireNotNull(analyzerJobRepository.get(jobId)) {
+            val analyzerJob = requireNotNull(workerJobRepositories.analyzerJobRepository.get(jobId)) {
                 "Analyzer job '$jobId' not found."
             }
 
-            analyzerJobRepository.update(
+            workerJobRepositories.analyzerJobRepository.update(
                 id = analyzerJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -221,7 +201,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
-        handleWorkerError(analyzerJobRepository, analyzerWorkerError)
+        handleWorkerError(workerJobRepositories.analyzerJobRepository, analyzerWorkerError)
     }
 
     /**
@@ -231,11 +211,11 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = advisorWorkerResult.jobId
 
-            val advisorJob = requireNotNull(advisorJobRepository.get(jobId)) {
+            val advisorJob = requireNotNull(workerJobRepositories.advisorJobRepository.get(jobId)) {
                 "Advisor job '$jobId' not found."
             }
 
-            advisorJobRepository.update(
+            workerJobRepositories.advisorJobRepository.update(
                 id = advisorJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -249,7 +229,8 @@ class Orchestrator(
 
             // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
             // or the scanner job is skipped.
-            val scannerJobStatus = scannerJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
+            val scannerJobStatus = workerJobRepositories.scannerJobRepository.getForOrtRun(ortRun.id)?.status
+                ?: JobStatus.FINISHED
             if (scannerJobStatus == JobStatus.FINISHED) {
                 if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
@@ -276,7 +257,7 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerError].
      */
     fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
-        handleWorkerError(advisorJobRepository, advisorWorkerError)
+        handleWorkerError(workerJobRepositories.advisorJobRepository, advisorWorkerError)
     }
 
     /**
@@ -286,11 +267,11 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = scannerWorkerResult.jobId
 
-            val scannerJob = requireNotNull(scannerJobRepository.get(jobId)) {
+            val scannerJob = requireNotNull(workerJobRepositories.scannerJobRepository.get(jobId)) {
                 "Scanner job '$jobId' not found."
             }
 
-            scannerJobRepository.update(
+            workerJobRepositories.scannerJobRepository.update(
                 id = scannerJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -304,7 +285,8 @@ class Orchestrator(
 
             // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
             // or the advisor job is skipped.
-            val advisorJobStatus = advisorJobRepository.getForOrtRun(ortRun.id)?.status ?: JobStatus.FINISHED
+            val advisorJobStatus = workerJobRepositories.advisorJobRepository.getForOrtRun(ortRun.id)?.status
+                ?: JobStatus.FINISHED
             if (advisorJobStatus == JobStatus.FINISHED) {
                 if (getConfig(ortRun).evaluator != null) {
                     createEvaluatorJob(ortRun)?.let { job ->
@@ -331,7 +313,7 @@ class Orchestrator(
      * Handle messages of the type [ScannerWorkerError].
      */
     fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
-        handleWorkerError(scannerJobRepository, scannerWorkerError)
+        handleWorkerError(workerJobRepositories.scannerJobRepository, scannerWorkerError)
     }
 
     /**
@@ -341,11 +323,11 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = evaluatorWorkerResult.jobId
 
-            val evaluatorJob = requireNotNull(evaluatorJobRepository.get(jobId)) {
+            val evaluatorJob = requireNotNull(workerJobRepositories.evaluatorJobRepository.get(jobId)) {
                 "Evaluator job '$jobId' not found."
             }
 
-            evaluatorJobRepository.update(
+            workerJobRepositories.evaluatorJobRepository.update(
                 id = evaluatorJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -369,7 +351,7 @@ class Orchestrator(
      * Handle messages of the type [EvaluatorWorkerError].
      */
     fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
-        handleWorkerError(evaluatorJobRepository, evaluatorWorkerError)
+        handleWorkerError(workerJobRepositories.evaluatorJobRepository, evaluatorWorkerError)
     }
 
     /**
@@ -379,7 +361,7 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = reporterWorkerResult.jobId
 
-            val reporterJob = requireNotNull(reporterJobRepository.get(jobId)) {
+            val reporterJob = requireNotNull(workerJobRepositories.reporterJobRepository.get(jobId)) {
                 "Reporter job '$jobId' not found."
             }
 
@@ -387,7 +369,7 @@ class Orchestrator(
                 "ORT run '${reporterJob.ortRunId}' not found."
             }
 
-            reporterJobRepository.update(
+            workerJobRepositories.reporterJobRepository.update(
                 id = reporterJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -407,7 +389,7 @@ class Orchestrator(
      * Handle messages of the type [ReporterWorkerError].
      */
     fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
-        handleWorkerError(reporterJobRepository, reporterWorkerError)
+        handleWorkerError(workerJobRepositories.reporterJobRepository, reporterWorkerError)
     }
 
     /**
@@ -417,11 +399,11 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val jobId = notifierWorkerResult.jobId
 
-            val notifierJob = requireNotNull(notifierJobRepository.get(jobId)) {
+            val notifierJob = requireNotNull(workerJobRepositories.notifierJobRepository.get(jobId)) {
                 "Notifier job '$jobId' not found."
             }
 
-            notifierJobRepository.update(
+            workerJobRepositories.notifierJobRepository.update(
                 id = notifierJob.id,
                 finishedAt = Clock.System.now().asPresent(),
                 status = JobStatus.FINISHED.asPresent()
@@ -434,7 +416,7 @@ class Orchestrator(
     }
 
     fun handleNotifierWorkerError(notifierWorkerError: NotifierWorkerError) {
-        handleWorkerError(notifierJobRepository, notifierWorkerError)
+        handleWorkerError(workerJobRepositories.notifierJobRepository, notifierWorkerError)
     }
 
     /**
@@ -444,7 +426,7 @@ class Orchestrator(
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            jobRepositories[workerError.endpointName]?.let { repository ->
+            workerJobRepositories[workerError.endpointName]?.let { repository ->
                 handleWorkerErrorForRepository(ortRunId, repository)
             } ?: failOrtRun(ortRunId)
         }.onFailure {
@@ -456,7 +438,7 @@ class Orchestrator(
      * Create an [AnalyzerJob].
      */
     private fun createAnalyzerJob(ortRun: OrtRun): AnalyzerJob =
-        analyzerJobRepository.create(
+        workerJobRepositories.analyzerJobRepository.create(
             ortRun.id,
             getConfig(ortRun).analyzer
         )
@@ -466,7 +448,7 @@ class Orchestrator(
      */
     private fun createAdvisorJob(ortRun: OrtRun): AdvisorJob? =
         getConfig(ortRun).advisor?.let { advisorJobConfiguration ->
-            advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
+            workerJobRepositories.advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
         }
 
     /**
@@ -474,7 +456,7 @@ class Orchestrator(
      */
     private fun createScannerJob(ortRun: OrtRun): ScannerJob? =
         getConfig(ortRun).scanner?.let { scannerJobConfiguration ->
-            scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
+            workerJobRepositories.scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
         }
 
     /**
@@ -482,7 +464,7 @@ class Orchestrator(
      */
     private fun createEvaluatorJob(ortRun: OrtRun): EvaluatorJob? =
         getConfig(ortRun).evaluator?.let { evaluatorJobConfiguration ->
-            evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
+            workerJobRepositories.evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
         }
 
     /**
@@ -490,7 +472,7 @@ class Orchestrator(
      */
     private fun createReporterJob(ortRun: OrtRun): ReporterJob? =
         getConfig(ortRun).reporter?.let { reporterJobConfiguration ->
-            reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
+            workerJobRepositories.reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
         }
 
     /**
@@ -498,7 +480,7 @@ class Orchestrator(
      */
     private fun createNotifierJob(ortRun: OrtRun): NotifierJob? =
         getConfig(ortRun).notifier?.let { notifierJobConfiguration ->
-            notifierJobRepository.create(ortRun.id, notifierJobConfiguration)
+            workerJobRepositories.notifierJobRepository.create(ortRun.id, notifierJobConfiguration)
         }
 
     private fun scheduleCreatedJobs(runId: Long, createdJobs: CreatedJobs) {
@@ -528,7 +510,7 @@ class Orchestrator(
     private fun scheduleAnalyzerJob(run: OrtRun, analyzerJob: AnalyzerJob, header: MessageHeader) {
         publish(AnalyzerEndpoint, run, header, AnalyzerRequest(analyzerJob.id))
 
-        analyzerJobRepository.update(
+        workerJobRepositories.analyzerJobRepository.update(
             analyzerJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -540,7 +522,7 @@ class Orchestrator(
     private fun scheduleAdvisorJob(run: OrtRun, advisorJob: AdvisorJob, header: MessageHeader) {
         publish(AdvisorEndpoint, run, header, AdvisorRequest(advisorJob.id))
 
-        advisorJobRepository.update(
+        workerJobRepositories.advisorJobRepository.update(
             advisorJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -552,7 +534,7 @@ class Orchestrator(
     private fun scheduleScannerJob(run: OrtRun, scannerJob: ScannerJob, header: MessageHeader) {
         publish(ScannerEndpoint, run, header, ScannerRequest(scannerJob.id))
 
-        scannerJobRepository.update(
+        workerJobRepositories.scannerJobRepository.update(
             id = scannerJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -564,7 +546,7 @@ class Orchestrator(
     private fun scheduleEvaluatorJob(run: OrtRun, evaluatorJob: EvaluatorJob, header: MessageHeader) {
         publish(EvaluatorEndpoint, run, header, EvaluatorRequest(evaluatorJob.id))
 
-        evaluatorJobRepository.update(
+        workerJobRepositories.evaluatorJobRepository.update(
             id = evaluatorJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -576,7 +558,7 @@ class Orchestrator(
     private fun scheduleReporterJob(run: OrtRun, reporterJob: ReporterJob, header: MessageHeader) {
         publish(ReporterEndpoint, run, header, ReporterRequest(reporterJob.id))
 
-        reporterJobRepository.update(
+        workerJobRepositories.reporterJobRepository.update(
             id = reporterJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -588,7 +570,7 @@ class Orchestrator(
     private fun scheduleNotifierJob(run: OrtRun, notifierJob: NotifierJob, header: MessageHeader) {
         publish(NotifierEndpoint, run, header, NotifierRequest(notifierJob.id))
 
-        notifierJobRepository.update(
+        workerJobRepositories.notifierJobRepository.update(
             id = notifierJob.id,
             status = JobStatus.SCHEDULED.asPresent()
         )
@@ -641,8 +623,8 @@ class Orchestrator(
             )
         }
 
-        notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
-            notifierJobRepository.deleteMailRecipients(notifierJob.id)
+        workerJobRepositories.notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
+            workerJobRepositories.notifierJobRepository.deleteMailRecipients(notifierJob.id)
         }
     }
 

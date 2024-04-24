@@ -1446,12 +1446,14 @@ private fun createOrchestrator(
 ): Orchestrator =
     Orchestrator(
         mockk(),
-        analyzerJobRepository,
-        advisorJobRepository,
-        scannerJobRepository,
-        evaluatorJobRepository,
-        reporterJobRepository,
-        notifierJobRepository,
+        WorkerJobRepositories(
+            analyzerJobRepository,
+            advisorJobRepository,
+            scannerJobRepository,
+            evaluatorJobRepository,
+            reporterJobRepository,
+            notifierJobRepository
+        ),
         repositoryRepository,
         ortRunRepository,
         publisher
