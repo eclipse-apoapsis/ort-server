@@ -139,7 +139,6 @@ class LogFileService private constructor(
     ) {
         val levels = LogLevel.levelOrHigher(level)
 
-        @Suppress("InjectDispatcher")
         withContext(Dispatchers.IO) {
             sources.forEach { source ->
                 launch { downloadLogFile(ortRunId, source, levels, startTime, endTime, targetDir) }
