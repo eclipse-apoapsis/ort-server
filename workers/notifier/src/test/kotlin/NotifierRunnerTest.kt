@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import io.kotest.core.spec.style.WordSpec
 
+import io.mockk.EqMatcher
+import io.mockk.OfTypeMatcher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -40,6 +42,13 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.JiraConfiguration
+import org.ossreviewtoolkit.model.config.NotifierConfiguration as OrtNotifierConfiguration
+import org.ossreviewtoolkit.model.config.SendMailConfiguration
+import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.notifier.Notifier
 
 const val NOTIFICATION_SET = "default"
@@ -50,12 +59,13 @@ class NotifierRunnerTest : WordSpec({
     val runner = NotifierRunner()
 
     lateinit var notifierConfig: NotifierJobConfiguration
+    lateinit var ortNotifierConfig: OrtNotifierConfiguration
 
     beforeSpec {
         notifierConfig = NotifierJobConfiguration(
             notifierRules = "default",
             mail = MailNotificationConfiguration(
-                recipientAddresses = listOf("test@example.com"),
+                recipientAddresses = listOf("test@example.com", "more-test@example.com"),
                 mailServerConfiguration = MailServerConfiguration(
                     hostName = "localhost",
                     port = 465,
@@ -68,9 +78,25 @@ class NotifierRunnerTest : WordSpec({
             jira = JiraNotificationConfiguration(
                 jiraRestClientConfiguration = JiraRestClientConfiguration(
                     serverUrl = "https://jira.example.com",
-                    username = "secret-username",
-                    password = "secret-password"
+                    username = "jira-secret-username",
+                    password = "jira-secret-password"
                 )
+            )
+        )
+
+        ortNotifierConfig = OrtNotifierConfiguration(
+            mail = SendMailConfiguration(
+                hostName = "localhost",
+                port = 465,
+                username = "no-reply@oss-review-toolkit.org",
+                password = "hunter2",
+                useSsl = false,
+                fromAddress = "no-reply@oss-review-toolkit.org"
+            ),
+            jira = JiraConfiguration(
+                host = "https://jira.example.com",
+                username = "jiraUser",
+                password = "jiraPass"
             )
         )
     }
@@ -81,16 +107,34 @@ class NotifierRunnerTest : WordSpec({
         "invoke the ORT notifier" {
             mockkConstructor(Notifier::class)
 
-            every { anyConstructed<Notifier>().run(any()) } returns mockk()
+            val originalOrtResult = OrtResult.EMPTY.copy(
+                repository = Repository.EMPTY.copy(vcs = VcsInfo(VcsType.GIT, "https://example.com/repo.git", "main")),
+                labels = mapOf("foo" to "bar")
+            )
+            val expectedOrtResult = originalOrtResult.copy(
+                labels = originalOrtResult.labels + ("emailRecipients" to "test@example.com;more-test@example.com")
+            )
+
+            every {
+                constructedWith<Notifier>(
+                    EqMatcher(expectedOrtResult),
+                    EqMatcher(ortNotifierConfig),
+                    OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
+                ).run(any())
+            } returns mockk()
 
             runner.run(
-                ortResult = OrtResult.EMPTY,
+                ortResult = originalOrtResult,
                 config = notifierConfig,
                 workerContext = createWorkerContext()
             )
 
             verify(exactly = 1) {
-                anyConstructed<Notifier>().run(script.readText())
+                constructedWith<Notifier>(
+                    EqMatcher(expectedOrtResult),
+                    EqMatcher(ortNotifierConfig),
+                    OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
+                ).run(script.readText())
             }
         }
     }
@@ -111,6 +155,8 @@ private fun createConfigManager() = mockk<ConfigManager> {
 
     every { getSecret(Path("secret-username")) } returns "no-reply@oss-review-toolkit.org"
     every { getSecret(Path("secret-password")) } returns "hunter2"
+    every { getSecret(Path("jira-secret-username")) } returns "jiraUser"
+    every { getSecret(Path("jira-secret-password")) } returns "jiraPass"
 
     every { getFile(resolvedConfigContext, Path("resolutions.yml")) } returns
             File("src/test/resources/resolutions.yml").inputStream()
