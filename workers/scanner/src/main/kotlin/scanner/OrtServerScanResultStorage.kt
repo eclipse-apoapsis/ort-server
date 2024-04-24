@@ -234,19 +234,21 @@ private fun SnippetFindingDao.mapToOrt() = SnippetFinding(
     snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
 )
 
-private fun SnippetDao.mapToOrt() = Snippet(
-    purl = purl,
-    provenance = if (artifact != null) {
-        ArtifactProvenance(artifact!!.mapToOrt())
-    } else {
-        val vcs = vcs!!.mapToOrt()
-        RepositoryProvenance(vcs, vcs.revision)
-    },
-    score = score,
-    location = TextLocation(path, startLine, endLine),
-    licenses = license.toSpdx(),
-    additionalData = additionalData?.data.orEmpty()
-)
+private fun SnippetDao.mapToOrt(): Snippet {
+    val provenance = artifact?.mapToOrt()?.let { ArtifactProvenance(it) }
+        ?: vcs?.mapToOrt()?.let { RepositoryProvenance(it, it.revision) }
+
+    checkNotNull(provenance)
+
+    return Snippet(
+        purl = purl,
+        provenance = provenance,
+        score = score,
+        location = TextLocation(path, startLine, endLine),
+        licenses = license.toSpdx(),
+        additionalData = additionalData?.data.orEmpty()
+    )
+}
 
 private fun RemoteArtifactDao.mapToOrt() = RemoteArtifact(
     url = url,
