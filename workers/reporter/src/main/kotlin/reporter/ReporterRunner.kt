@@ -194,13 +194,11 @@ class ReporterRunner(
                 format to failure.exceptionOrNull()!!
             }
 
-            failures.forEach { (reporter, e) ->
+            val issues = failures.map { (reporter, e) ->
                 e.showStackTrace()
 
                 logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
-            }
 
-            val issues = failures.map { (reporter, e) ->
                 OrtIssue(
                     timestamp = Clock.System.now(),
                     source = "Reporter",
