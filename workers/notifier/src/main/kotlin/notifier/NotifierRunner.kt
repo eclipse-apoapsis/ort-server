@@ -63,33 +63,19 @@ class NotifierRunner {
                 )
             } ?: throw IllegalArgumentException("The notification script path is not specified in the config.", null)
 
-            val mailServerUser = config.mail?.mailServerConfiguration?.username?.let {
-                workerContext.configManager.getSecret(Path(it))
-            }
-            val mailServerPassword = config.mail?.mailServerConfiguration?.password?.let {
-                workerContext.configManager.getSecret(Path(it))
-            }
+            val sendMailConfiguration = config.mail?.mailServerConfiguration?.let {
+                it.copy(
+                    username = workerContext.configManager.getSecret(Path(it.username)),
+                    password = workerContext.configManager.getSecret(Path(it.password)),
+                )
+            }?.mapToOrt()
 
-            val sendMailConfiguration = config.mail?.mailServerConfiguration?.takeIf {
-                mailServerUser != null && mailServerPassword != null
-            }?.copy(
-                username = mailServerUser!!,
-                password = mailServerPassword!!
-            )?.mapToOrt()
-
-            val jiraRestClientUsername = config.jira?.jiraRestClientConfiguration?.username?.let {
-                workerContext.configManager.getSecret(Path(it))
-            }
-            val jiraRestClientPassword = config.jira?.jiraRestClientConfiguration?.password?.let {
-                workerContext.configManager.getSecret(Path(it))
-            }
-
-            val jiraConfiguration = config.jira?.jiraRestClientConfiguration?.takeIf {
-                jiraRestClientUsername != null && jiraRestClientPassword != null
-            }?.copy(
-                username = jiraRestClientUsername!!,
-                password = jiraRestClientPassword!!
-            )?.mapToOrt()
+            val jiraConfiguration = config.jira?.jiraRestClientConfiguration?.let {
+                it.copy(
+                    username = workerContext.configManager.getSecret(Path(it.username)),
+                    password = workerContext.configManager.getSecret(Path(it.password)),
+                )
+            }?.mapToOrt()
 
             val notifierConfiguration = NotifierConfiguration(
                 mail = sendMailConfiguration,
