@@ -1,0 +1,120 @@
+/*
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
+import { Button } from '@/components/ui/button';
+import { OrganizationsService } from '@/api/requests';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import { PlusIcon } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+export const IndexPage = () => {
+  const { data } = useSuspenseQuery({
+    queryKey: [useOrganizationsServiceGetOrganizationsKey],
+    queryFn: () => OrganizationsService.getOrganizations(),
+  });
+
+  return (
+    <TooltipProvider>
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader className="flex flex-row items-start">
+          <div className="grid gap-2">
+            <CardTitle>Organizations</CardTitle>
+            <CardDescription>
+              Browse your organizations or create a new one
+            </CardDescription>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size="sm" className="gap-1 ml-auto">
+                <Link to="/create-organization">
+                  New
+                  <PlusIcon className="w-4 h-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Create a new organization</TooltipContent>
+          </Tooltip>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Organization</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.data.map((org) => {
+                return (
+                  <TableRow key={org.id}>
+                    <TableCell>
+                      <div>
+                        <Link
+                          className="font-semibold text-blue-400 hover:underline"
+                          to={'/'}
+                          disabled
+                        >
+                          {org.name}
+                        </Link>
+                      </div>
+                      <div className="hidden text-sm text-muted-foreground md:inline">
+                        {org.description as unknown as string}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
+  );
+};
+
+export const Route = createFileRoute('/_layout/')({
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData({
+      queryKey: [useOrganizationsServiceGetOrganizationsKey],
+      queryFn: () => OrganizationsService.getOrganizations(),
+    });
+  },
+  component: IndexPage,
+});
