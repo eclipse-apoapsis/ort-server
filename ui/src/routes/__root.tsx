@@ -17,37 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { RouterContext } from '@/app';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
-import { useEffect, useState } from 'react';
-import { hasAuthParams, useAuth } from 'react-oidc-context';
 
 const RootComponent = () => {
-  const auth = useAuth();
-  const [hasTriedSignin, setHasTriedSignin] = useState(false);
-
-  // Automatically sign-in
-  useEffect(() => {
-    if (
-      !hasAuthParams() &&
-      !auth.isAuthenticated &&
-      !auth.activeNavigator &&
-      !auth.isLoading &&
-      !hasTriedSignin
-    ) {
-      auth.signinRedirect();
-      setHasTriedSignin(true);
-    }
-  }, [auth, hasTriedSignin]);
-
-  if (auth.isLoading) {
-    return <div>Signing you in/out...</div>;
-  }
-
-  if (!auth.isAuthenticated) {
-    return <div>Unable to log in</div>;
-  }
-
   return (
     <>
       <Outlet />
@@ -56,6 +30,6 @@ const RootComponent = () => {
   );
 };
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });

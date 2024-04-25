@@ -17,12 +17,41 @@
  * License-Filename: LICENSE
  */
 
+import { routeTree } from './routeTree.gen';
+import { queryClient } from './lib/query-client.ts';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { OpenAPI } from './api/requests/index.ts';
 import { useEffect, useState } from 'react';
 import { useAuth, hasAuthParams } from 'react-oidc-context';
 
-function App() {
+export interface RouterContext {
+  queryClient: typeof queryClient;
+  breadcrumbs: {
+    organization: string | undefined;
+  };
+  auth: ReturnType<typeof useAuth>;
+}
+
+// Create a new router instance
+const router = createRouter({
+  routeTree,
+  context: {
+    queryClient,
+    breadcrumbs: { organization: undefined },
+    auth: undefined!,
+  },
+});
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+export const App = () => {
   const auth = useAuth();
   const [hasTriedSignin, setHasTriedSignin] = useState(false);
+  const [tokenIsSet, setTokenIsSet] = useState(false);
 
   // Automatically sign-in
   useEffect(() => {
@@ -38,20 +67,28 @@ function App() {
     }
   }, [auth, hasTriedSignin]);
 
+  useEffect(() => {
+    if (auth.user?.access_token) {
+      OpenAPI.TOKEN = auth.user.access_token;
+      setTokenIsSet(true);
+    } else {
+      setTokenIsSet(false);
+    }
+  }, [auth.user]);
+
   if (auth.isLoading) {
-    return <div>Signing you in/out...</div>;
+    return <div>Loading...</div>;
   }
 
   if (!auth.isAuthenticated) {
     return <div>Unable to log in</div>;
   }
 
-  return (
-    <div>
-      Hello {auth.user?.profile.sub}{' '}
-      <button onClick={() => void auth.signoutRedirect()}>Log out</button>
-    </div>
-  );
-}
+  if (!tokenIsSet) {
+    return <div>Token is not set</div>;
+  }
+
+  return <RouterProvider router={router} context={{ auth }} />;
+};
 
 export default App;
