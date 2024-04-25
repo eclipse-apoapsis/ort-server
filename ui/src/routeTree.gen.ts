@@ -14,6 +14,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout/route'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutCreateOrganizationImport } from './routes/_layout/create-organization'
+import { Route as LayoutOrganizationsOrgIdRouteImport } from './routes/_layout/organizations/$orgId.route'
+import { Route as LayoutOrganizationsOrgIdIndexImport } from './routes/_layout/organizations/$orgId.index'
+import { Route as LayoutOrganizationsOrgIdEditImport } from './routes/_layout/organizations/$orgId.edit'
 
 // Create/Update Routes
 
@@ -32,6 +35,24 @@ const LayoutCreateOrganizationRoute = LayoutCreateOrganizationImport.update({
   getParentRoute: () => LayoutRouteRoute,
 } as any)
 
+const LayoutOrganizationsOrgIdRouteRoute =
+  LayoutOrganizationsOrgIdRouteImport.update({
+    path: '/organizations/$orgId',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdIndexRoute =
+  LayoutOrganizationsOrgIdIndexImport.update({
+    path: '/',
+    getParentRoute: () => LayoutOrganizationsOrgIdRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdEditRoute =
+  LayoutOrganizationsOrgIdEditImport.update({
+    path: '/edit',
+    getParentRoute: () => LayoutOrganizationsOrgIdRouteRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -48,6 +69,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexImport
       parentRoute: typeof LayoutRouteImport
     }
+    '/_layout/organizations/$orgId': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdRouteImport
+      parentRoute: typeof LayoutRouteImport
+    }
+    '/_layout/organizations/$orgId/edit': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdEditImport
+      parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
+    }
+    '/_layout/organizations/$orgId/': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdIndexImport
+      parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
+    }
   }
 }
 
@@ -57,6 +90,10 @@ export const routeTree = rootRoute.addChildren([
   LayoutRouteRoute.addChildren([
     LayoutCreateOrganizationRoute,
     LayoutIndexRoute,
+    LayoutOrganizationsOrgIdRouteRoute.addChildren([
+      LayoutOrganizationsOrgIdEditRoute,
+      LayoutOrganizationsOrgIdIndexRoute,
+    ]),
   ]),
 ])
 

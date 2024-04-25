@@ -17,8 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import { useOrganizationsServicePostOrganizations } from '@/api/queries';
+import { useOrganizationsServiceGetOrganizationByIdKey, useOrganizationsServicePatchOrganizationById } from '@/api/queries';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { ApiError, OrganizationsService } from '@/api/requests';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,27 +40,38 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
-import { ApiError } from '@/api/requests';
-import { ToastError } from '@/components/toast-error';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useToast } from "@/components/ui/use-toast";
+import { ToastError } from "@/components/toast-error";
 
 const formSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-});
+    name: z.string(),
+    description: z.string().optional(),
+  });
 
-const CreateOrganizationPage = () => {
+const EditOrganizationPage = () => {
+  const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { mutateAsync } = useOrganizationsServicePostOrganizations({
+  const { data: organization } = useSuspenseQuery({
+        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryFn: async () =>
+          await OrganizationsService.getOrganizationById(
+            Number.parseInt(params.orgId)
+          ),
+      },  
+  );
+
+  const { mutateAsync } = useOrganizationsServicePatchOrganizationById({
     onSuccess() {
       toast({
-        title: 'Create Organization',
-        description: 'New organization created successfully.',
+        title: 'Edit Organization',
+        description: 'Organization updated successfully.',
       });
       navigate({
-        to: '/',
+        to: '/organizations/$orgId',
+        params: { orgId: params.orgId },
       });
     },
     onError(error: ApiError) {
@@ -68,15 +80,20 @@ const CreateOrganizationPage = () => {
         description: <ToastError message={error.body.message} cause={error.body.cause} />,
         variant: 'destructive',
       });
-    },
+    }
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: organization.name,
+      description: organization.description as unknown as string,
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
+      organizationId: organization.id,
       requestBody: {
         name: values.name,
         // There's a bug somewhere in the OpenAPI generation. Swagger UI hints that the bug may be
@@ -88,7 +105,7 @@ const CreateOrganizationPage = () => {
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>Create Organization</CardHeader>
+      <CardHeader>Edit Organization</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <CardContent>
@@ -126,14 +143,26 @@ const CreateOrganizationPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit">Create</Button>
+            <Button className="m-1" variant="outline" onClick={() => navigate({ to: '/organizations/' + params.orgId })}>
+              Cancel
+            </Button>
+            <Button type="submit">Submit</Button>
           </CardFooter>
         </form>
       </Form>
     </Card>
   );
-};
+}
 
-export const Route = createFileRoute('/_layout/create-organization')({
-  component: CreateOrganizationPage,
-});
+export const Route = createFileRoute('/_layout/organizations/$orgId/edit')({
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData({
+        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryFn: () =>
+          OrganizationsService.getOrganizationById(
+            Number.parseInt(params.orgId)
+          ),
+    });
+  },
+  component: EditOrganizationPage,
+})
