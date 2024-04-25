@@ -88,8 +88,8 @@ export const IndexPage = () => {
                       <div>
                         <Link
                           className="font-semibold text-blue-400 hover:underline"
-                          to={'/'}
-                          disabled
+                          to={`/organizations/$orgId`}
+                          params={{ orgId: org.id.toString() }}
                         >
                           {org.name}
                         </Link>

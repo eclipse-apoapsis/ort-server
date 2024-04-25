@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Button } from './ui/button';
@@ -28,49 +28,84 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { useAuth } from 'react-oidc-context';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+} from './ui/breadcrumb';
 
 export const Header = () => {
   const auth = useAuth();
 
+  const matches = useRouterState({ select: (state) => state.matches });
+
+  // The breadcrumbs are set in the routes, for example the organization name is set in the route
+  // file `_layout.organizations.$orgId.route.tsx`, which is activated when the route matches any
+  // route that starts with `/organizations/$orgId`. The breadcrumbs are stored in the router
+  // context, and it is not reset when the user leaves the organization route. If does change when
+  // the user navigates to a different organization.
+  //
+  // This find checks if the organization route is currently active, so we can display the
+  // organization name in the header breadcrumb only when the user is in the organization route.
+  const organizationMatch = matches.find(
+    (match) => match.routeId === '/_layout/organizations/$orgId'
+  );
+
   return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-lg font-semibold md:text-base"
-        >
-          <Home className="h-6 w-6" />
-          <span className="sr-only">Home</span>
-        </Link>
-      </nav>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left">
-          <nav className="grid gap-6 text-lg font-medium">
-            <Link
-              href="#"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
-              <Home className="h-6 w-6" />
-              <span className="sr-only">Home</span>
-            </Link>
-          </nav>
-        </SheetContent>
-      </Sheet>
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+    <header className="sticky top-0 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6">
+      <div className="flex flex-row items-center gap-4">
+        <nav className="flex-col hidden gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-lg font-semibold md:text-base"
+          >
+            <Home className="w-6 h-6" />
+            <span className="sr-only">Home</span>
+          </Link>
+        </nav>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+              <Menu className="w-5 h-5" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <nav className="grid gap-6 text-lg font-medium">
+              <Link
+                href="#"
+                className="flex items-center gap-2 text-lg font-semibold"
+              >
+                <Home className="w-6 h-6" />
+                <span className="sr-only">Home</span>
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
+        <Breadcrumb>
+          <BreadcrumbList>
+          {organizationMatch && (
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={organizationMatch.pathname}>
+                      {organizationMatch.context.breadcrumbs.organization}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+            )}
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="secondary"
               size="icon"
-              className="rounded-full ml-auto"
+              className="ml-auto rounded-full"
             >
-              <CircleUser className="h-5 w-5" />
+              <CircleUser className="w-5 h-5" />
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
