@@ -264,7 +264,7 @@ fun OrtDependencyGraph.mapToModel() =
         packages = packages.map { it.mapToModel() },
         nodes = nodes?.map { it.mapToModel() }.orEmpty(),
         edges = edges?.map { it.mapToModel() }.orEmpty(),
-        scopes = scopes.mapValues { it.value.map { it.mapToModel() } }
+        scopes = scopes.mapValues { (_, indices) -> indices.map { it.mapToModel() } }
     )
 
 fun OrtDependencyGraphEdge.mapToModel() =
