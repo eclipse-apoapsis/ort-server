@@ -46,7 +46,7 @@ jobs:
       run: ./gradlew --stacktrace detekt
 
     - name: Check for Detekt Issues with Type Resolution
-      run: ./gradlew --stacktrace detektTest
+      run: ./gradlew --stacktrace detektMain detektTest
 
   renovate-validation:
     runs-on: ubuntu-22.04
