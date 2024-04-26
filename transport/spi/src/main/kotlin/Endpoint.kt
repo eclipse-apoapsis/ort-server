@@ -49,7 +49,25 @@ sealed class Endpoint<T : Any>(
      * implementations of message senders and receivers that need to interact with this endpoint.
      */
     val configPrefix: String
-)
+) {
+    companion object {
+        /**
+         * Return the [Endpoint] instance for the given configuration [prefix] or throw an exception if the prefix is
+         * invalid.
+         */
+        fun fromConfigPrefix(prefix: String): Endpoint<*> = when (prefix) {
+            OrchestratorEndpoint.configPrefix -> OrchestratorEndpoint
+            ConfigEndpoint.configPrefix -> ConfigEndpoint
+            AnalyzerEndpoint.configPrefix -> AnalyzerEndpoint
+            AdvisorEndpoint.configPrefix -> AdvisorEndpoint
+            ScannerEndpoint.configPrefix -> ScannerEndpoint
+            EvaluatorEndpoint.configPrefix -> EvaluatorEndpoint
+            NotifierEndpoint.configPrefix -> NotifierEndpoint
+            ReporterEndpoint.configPrefix -> ReporterEndpoint
+            else -> throw IllegalArgumentException("Unknown endpoint configuration prefix: $prefix")
+        }
+    }
+}
 
 /**
  * A concrete [Endpoint] declaration representing the Orchestrator endpoint.
