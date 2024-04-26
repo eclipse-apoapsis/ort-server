@@ -29,9 +29,10 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.yamlMapper
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-val logger = LoggerFactory.getLogger(ConfigManager::class.java)
+val logger: Logger = LoggerFactory.getLogger(ConfigManager::class.java)
 
 /**
  * If [path] is not `null`, read the file using the provided [context]. If a [ConfigException] occurs while reading the
