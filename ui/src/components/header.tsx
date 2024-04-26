@@ -59,6 +59,12 @@ export const Header = () => {
       match.routeId === '/_layout/organizations/$orgId/products/$productId'
   );
   
+  const repoMatch = matches.find(
+    (match) =>
+      match.routeId ===
+      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId'
+  );
+  
   return (
     <header className="sticky top-0 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6">
       <div className="flex flex-row items-center gap-4">
@@ -108,6 +114,18 @@ export const Header = () => {
                   <BreadcrumbLink asChild>
                     <Link to={productMatch.pathname}>
                       {productMatch.context.breadcrumbs.product}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            {repoMatch && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={repoMatch.pathname}>
+                      {repoMatch.context.breadcrumbs.repo}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>

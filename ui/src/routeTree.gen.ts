@@ -21,6 +21,10 @@ import { Route as LayoutOrganizationsOrgIdCreateProductImport } from './routes/_
 import { Route as LayoutOrganizationsOrgIdProductsProductIdRouteImport } from './routes/_layout/organizations/$orgId.products.$productId.route'
 import { Route as LayoutOrganizationsOrgIdProductsProductIdIndexImport } from './routes/_layout/organizations/$orgId.products.$productId.index'
 import { Route as LayoutOrganizationsOrgIdProductsProductIdEditImport } from './routes/_layout/organizations/$orgId.products.$productId.edit'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryImport } from './routes/_layout/organizations/$orgId.products.$productId.create-repository'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.route'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.index'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.edit'
 
 // Create/Update Routes
 
@@ -81,6 +85,36 @@ const LayoutOrganizationsOrgIdProductsProductIdEditRoute =
     getParentRoute: () => LayoutOrganizationsOrgIdProductsProductIdRouteRoute,
   } as any)
 
+const LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryRoute =
+  LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryImport.update({
+    path: '/create-repository',
+    getParentRoute: () => LayoutOrganizationsOrgIdProductsProductIdRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport.update(
+    {
+      path: '/repositories/$repoId',
+      getParentRoute: () => LayoutOrganizationsOrgIdProductsProductIdRouteRoute,
+    } as any,
+  )
+
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport.update(
+    {
+      path: '/',
+      getParentRoute: () =>
+        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute,
+    } as any,
+  )
+
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport.update({
+    path: '/edit',
+    getParentRoute: () =>
+      LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -117,6 +151,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
     }
+    '/_layout/organizations/$orgId/products/$productId/create-repository': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
+    }
     '/_layout/organizations/$orgId/products/$productId/edit': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdEditImport
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
@@ -124,6 +162,18 @@ declare module '@tanstack/react-router' {
     '/_layout/organizations/$orgId/products/$productId/': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdIndexImport
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
     }
   }
 }
@@ -139,8 +189,15 @@ export const routeTree = rootRoute.addChildren([
       LayoutOrganizationsOrgIdEditRoute,
       LayoutOrganizationsOrgIdIndexRoute,
       LayoutOrganizationsOrgIdProductsProductIdRouteRoute.addChildren([
+        LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryRoute,
         LayoutOrganizationsOrgIdProductsProductIdEditRoute,
         LayoutOrganizationsOrgIdProductsProductIdIndexRoute,
+        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute.addChildren(
+          [
+            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute,
+            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexRoute,
+          ],
+        ),
       ]),
     ]),
   ]),
