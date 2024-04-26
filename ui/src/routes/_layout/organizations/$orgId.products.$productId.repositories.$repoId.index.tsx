@@ -18,11 +18,12 @@
  */
 
 import {
-  useProductsServiceGetProductByIdKey,
-  useProductsServiceDeleteProductById,
-  useRepositoriesServiceGetRepositoriesByProductIdKey,
+  useRepositoriesServiceGetOrtRunsKey,
+  useRepositoriesServiceGetRepositoryById,
+  useRepositoriesServiceGetRepositoryByIdKey,
+  useRepositoriesServiceDeleteRepositoryById,
 } from '@/api/queries';
-import { ApiError, ProductsService, RepositoriesService } from '@/api/requests';
+import { ApiError, RepositoriesService } from '@/api/requests';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,22 +34,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
   TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+  Table,
 } from '@/components/ui/table';
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -62,47 +63,42 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { ToastError } from "@/components/toast-error";
 
-const ProductComponent = () => {
+const RepoComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [{ data: product }, { data: repositories }] = useSuspenseQueries({
+  const [{ data: repo }, { data: runs }] = useSuspenseQueries({
     queries: [
       {
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+        queryKey: [useRepositoriesServiceGetRepositoryById, params.repoId],
         queryFn: async () =>
-          await ProductsService.getProductById(
-            Number.parseInt(params.productId)
+          await RepositoriesService.getRepositoryById(
+            Number.parseInt(params.repoId)
           ),
       },
       {
-        queryKey: [
-          useRepositoriesServiceGetRepositoriesByProductIdKey,
-          params.productId,
-        ],
+        queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
         queryFn: async () =>
-          await RepositoriesService.getRepositoriesByProductId(
-            Number.parseInt(params.productId)
-          ),
+          await RepositoriesService.getOrtRuns(Number.parseInt(params.repoId)),
       },
     ],
   });
 
-  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
+  const { mutateAsync: deleteRepository } = useRepositoriesServiceDeleteRepositoryById({
     onSuccess() {
       toast({
-        title: 'Delete Product',
-        description: 'Product deleted successfully.',
+        title: 'Delete Repository',
+        description: 'Repository deleted successfully.',
       });
       navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: params.productId },
       });
     },
     onError(error: ApiError) {
       toast({
-        title: 'Delete Product - FAILURE',
+        title: 'Delete Repository - FAILURE',
         description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
         variant: 'destructive',
       });
@@ -110,30 +106,30 @@ const ProductComponent = () => {
   });
 
   async function handleDelete() {
-    await deleteProduct({
-      productId: Number.parseInt(params.productId),
+    await deleteRepository({
+      repositoryId: Number.parseInt(params.repoId),
     });
   }
-
+  
   return (
     <TooltipProvider>
       <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>         
+        <CardHeader>
           <CardTitle className="flex flex-row justify-between">
             <div className="flex items-stretch">
-              <div className="flex items-center pb-1">{product.name}</div>
+              <div className="flex items-center pb-1">{repo.url}</div>
               <Tooltip>
                 <TooltipTrigger>
                   <Button asChild size="sm" variant="outline" className="px-2 ml-2">
                     <Link
-                      to="/organizations/$orgId/products/$productId/edit"
-                      params={{ orgId: params.orgId, productId: params.productId }}
+                      to="/organizations/$orgId/products/$productId/repositories/$repoId/edit"
+                      params={{ orgId: params.orgId, productId: params.productId, repoId: params.repoId}}
                     >
                       <EditIcon className="w-4 h-4" />
                     </Link>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Edit this product</TooltipContent>
+                <TooltipContent>Edit this repository</TooltipContent>
               </Tooltip>
             </div>
             <AlertDialog>
@@ -144,10 +140,10 @@ const ProductComponent = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete product</AlertDialogTitle>
+                  <AlertDialogTitle>Delete repository</AlertDialogTitle>
                 </AlertDialogHeader>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this product?
+                  Are you sure you want to delete this repository?
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -157,58 +153,50 @@ const ProductComponent = () => {
             </AlertDialog>
           </CardTitle>
           <CardDescription>
-            {product.description as unknown as string}
-          </CardDescription> 
+            {repo.type}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="flex flex-row items-center justify-between pb-1.5 pr-0">
-                  Repositories
+                <TableHead>Run</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="pb-1.5 pr-0 text-right">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button asChild size="sm" className="gap-1 ml-auto">
                         <Link
-                          to="/organizations/$orgId/products/$productId/create-repository"
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                          }}
+                          to='/'
+                          disabled
                         >
-                          New repository
+                          New run
                           <PlusIcon className="w-4 h-4" />
                         </Link>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Add a new repository for this product</TooltipContent>
+                    <TooltipContent>Create a new ORT run for this repository</TooltipContent>
                   </Tooltip>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {repositories?.data.map((repo) => {
+              {runs?.data.map((run) => {
                 return (
-                  <TableRow key={repo.id}>
+                  <TableRow key={run.id}>
                     <TableCell>
                       <div>
                         <Link
-                          to={
-                            '/organizations/$orgId/products/$productId/repositories/$repoId'
-                          }
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                            repoId: repo.id.toString(),
-                          }}
+                          to={'/'}
+                          disabled
                           className="font-semibold text-blue-400 hover:underline"
                         >
-                          {repo.url}
+                          {run.index}
                         </Link>
                       </div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        {repo.type}
-                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{run.status}</div>
                     </TableCell>
                   </TableRow>
                 );
@@ -222,26 +210,26 @@ const ProductComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
   loader: async ({ context, params }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
         queryFn: () =>
-          ProductsService.getProductById(Number.parseInt(params.productId)),
+          RepositoriesService.getRepositoryById(Number.parseInt(params.repoId)),
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
-          useRepositoriesServiceGetRepositoriesByProductIdKey,
-          params.productId,
+          useRepositoriesServiceGetOrtRunsKey,
+          params.repoId,
         ],
         queryFn: () =>
-          RepositoriesService.getRepositoriesByProductId(
-            Number.parseInt(params.productId)
+          RepositoriesService.getOrtRuns(
+            Number.parseInt(params.repoId)
           ),
       }),
     ]);
   },
-  component: ProductComponent,
+  component: RepoComponent,
 });

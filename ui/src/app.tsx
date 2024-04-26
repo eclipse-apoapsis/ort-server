@@ -29,6 +29,7 @@ export interface RouterContext {
   breadcrumbs: {
     organization: string | undefined;
     product: string | undefined;
+    repo: string | undefined;
   };
   auth: ReturnType<typeof useAuth>;
 }
@@ -38,7 +39,11 @@ const router = createRouter({
   routeTree,
   context: {
     queryClient,
-    breadcrumbs: { organization: undefined, product: undefined },
+    breadcrumbs: { 
+      organization: undefined, 
+      product: undefined,
+      repo: undefined,
+    },
     auth: undefined!,
   },
 });
