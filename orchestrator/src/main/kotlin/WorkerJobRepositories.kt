@@ -19,6 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.orchestrator
 
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -26,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -77,4 +82,25 @@ class WorkerJobRepositories(
      * repository.
      */
     operator fun get(endpointName: String): WorkerJobRepository<*>? = jobRepositories[endpointName]
+
+    /**
+     * Update the status for a job for the given [endpoint] and [jobId] in the database to the provided [status].
+     * If [finished] is *true*, also set the finished time.
+     */
+    fun updateJobStatus(endpoint: Endpoint<*>, jobId: Long, status: JobStatus, finished: Boolean = true): WorkerJob {
+        val repository = jobRepositories.getValue(endpoint.configPrefix)
+
+        return requireNotNull(repository.get(jobId)) {
+            "Job for endpoint '${endpoint.configPrefix}' with ID '$jobId' not found."
+        }.also {
+            if (finished) {
+                repository.complete(jobId, Clock.System.now(), status)
+            } else {
+                repository.update(
+                    id = jobId,
+                    status = status.asPresent()
+                )
+            }
+        }
+    }
 }

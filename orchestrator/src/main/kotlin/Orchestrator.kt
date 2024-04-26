@@ -24,18 +24,12 @@ import java.sql.Connection
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
-import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.ReporterJob
-import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
@@ -45,16 +39,12 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
@@ -109,9 +99,10 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            ortRun.id to listOf { scheduleConfigWorkerJob(ortRun, header) }
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
+            val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
+            context to listOf { scheduleConfigWorkerJob(ortRun, header) }
+        }.onSuccess { (context, createdJobs) ->
+            scheduleCreatedJobs(context, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -126,9 +117,10 @@ class Orchestrator(
                 "ORT run '${configWorkerResult.ortRunId}' not found."
             }
 
-            ortRun.id to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(ortRun, it, header) } })
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
+            val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
+            context to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(ortRun, it, header) } })
+        }.onSuccess { (context, createdJobs) ->
+            scheduleCreatedJobs(context, createdJobs)
         }.onFailure {
             log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
         }
@@ -152,271 +144,81 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerResult].
      */
     fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = analyzerWorkerResult.jobId
-
-            val analyzerJob = requireNotNull(workerJobRepositories.analyzerJobRepository.get(jobId)) {
-                "Analyzer job '$jobId' not found."
-            }
-
-            workerJobRepositories.analyzerJobRepository.update(
-                id = analyzerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-
-            val ortRun = requireNotNull(ortRunRepository.get(analyzerJob.ortRunId)) {
-                "ORT run '${analyzerJob.ortRunId}' not found."
-            }
-
-            val createdJobs = listOfNotNull(
-                createAdvisorJob(ortRun)?.let { { scheduleAdvisorJob(ortRun, it, header) } },
-                createScannerJob(ortRun)?.let { { scheduleScannerJob(ortRun, it, header) } }
-            ).toMutableList()
-
-            // Create an evaluator job only if the advisor and scanner jobs have finished successfully.
-            if (createdJobs.isEmpty()) {
-                if (getConfig(ortRun).evaluator != null) {
-                    // Create an evaluator job if no advisor or scanner job is configured.
-                    createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
-                    }
-                } else {
-                    // Create a reporter job if no advisor, scanner or evaluator job is configured.
-                    createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
-                    }
-                }
-            }
-
-            analyzerJob.ortRunId to createdJobs
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
-        }.onFailure {
-            log.warn("Failed to handle 'AnalyzerWorkerResult' message.", it)
-        }
+        handleWorkerResult(AnalyzerEndpoint, header, analyzerWorkerResult)
     }
 
     /**
      * Handle messages of the type [AnalyzerWorkerError].
      */
-    fun handleAnalyzerWorkerError(analyzerWorkerError: AnalyzerWorkerError) {
-        handleWorkerError(workerJobRepositories.analyzerJobRepository, analyzerWorkerError)
+    fun handleAnalyzerWorkerError(header: MessageHeader, analyzerWorkerError: AnalyzerWorkerError) {
+        handleWorkerError(AnalyzerEndpoint, header, analyzerWorkerError)
     }
 
     /**
      * Handle messages of the type [AdvisorWorkerResult].
      */
     fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = advisorWorkerResult.jobId
-
-            val advisorJob = requireNotNull(workerJobRepositories.advisorJobRepository.get(jobId)) {
-                "Advisor job '$jobId' not found."
-            }
-
-            workerJobRepositories.advisorJobRepository.update(
-                id = advisorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-
-            val ortRun = requireNotNull(ortRunRepository.get(advisorJob.ortRunId)) {
-                "ORT run '${advisorJob.ortRunId}' not found."
-            }
-
-            val createdJobs = mutableListOf<JobScheduleFunc>()
-
-            // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
-            // or the scanner job is skipped.
-            val scannerJobStatus = workerJobRepositories.scannerJobRepository.getForOrtRun(ortRun.id)?.status
-                ?: JobStatus.FINISHED
-            if (scannerJobStatus == JobStatus.FINISHED) {
-                if (getConfig(ortRun).evaluator != null) {
-                    createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
-                    }
-                } else {
-                    createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
-                    }
-                }
-            } else {
-                createdJobs += dummyScheduleFunc
-            }
-
-            advisorJob.ortRunId to createdJobs
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
-        }.onFailure {
-            log.warn("Failed to handle 'AdvisorWorkerResult' message.", it)
-        }
+        handleWorkerResult(AdvisorEndpoint, header, advisorWorkerResult)
     }
 
     /**
      * Handle messages of the type [AnalyzerWorkerError].
      */
-    fun handleAdvisorWorkerError(advisorWorkerError: AdvisorWorkerError) {
-        handleWorkerError(workerJobRepositories.advisorJobRepository, advisorWorkerError)
+    fun handleAdvisorWorkerError(header: MessageHeader, advisorWorkerError: AdvisorWorkerError) {
+        handleWorkerError(AdvisorEndpoint, header, advisorWorkerError)
     }
 
     /**
      * Handle messages of the type [ScannerWorkerResult].
      */
     fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = scannerWorkerResult.jobId
-
-            val scannerJob = requireNotNull(workerJobRepositories.scannerJobRepository.get(jobId)) {
-                "Scanner job '$jobId' not found."
-            }
-
-            workerJobRepositories.scannerJobRepository.update(
-                id = scannerJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-
-            val ortRun = requireNotNull(ortRunRepository.get(scannerJob.ortRunId)) {
-                "ORT run '${scannerJob.ortRunId}' not found."
-            }
-
-            val createdJobs = mutableListOf<JobScheduleFunc>()
-
-            // Create an evaluator or reporter job only if both the advisor and scanner jobs have finished successfully
-            // or the advisor job is skipped.
-            val advisorJobStatus = workerJobRepositories.advisorJobRepository.getForOrtRun(ortRun.id)?.status
-                ?: JobStatus.FINISHED
-            if (advisorJobStatus == JobStatus.FINISHED) {
-                if (getConfig(ortRun).evaluator != null) {
-                    createEvaluatorJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleEvaluatorJob(ortRun, job, header) }
-                    }
-                } else {
-                    createReporterJob(ortRun)?.let { job ->
-                        createdJobs += { scheduleReporterJob(ortRun, job, header) }
-                    }
-                }
-            } else {
-                createdJobs += dummyScheduleFunc
-            }
-
-            scannerJob.ortRunId to createdJobs
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
-        }.onFailure {
-            log.warn("Failed to handle 'ScannerWorkerResult' message.", it)
-        }
+        handleWorkerResult(ScannerEndpoint, header, scannerWorkerResult)
     }
 
     /**
      * Handle messages of the type [ScannerWorkerError].
      */
-    fun handleScannerWorkerError(scannerWorkerError: ScannerWorkerError) {
-        handleWorkerError(workerJobRepositories.scannerJobRepository, scannerWorkerError)
+    fun handleScannerWorkerError(header: MessageHeader, scannerWorkerError: ScannerWorkerError) {
+        handleWorkerError(ScannerEndpoint, header, scannerWorkerError)
     }
 
     /**
      * Handle messages of the type [EvaluatorWorkerResult].
      */
     fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = evaluatorWorkerResult.jobId
-
-            val evaluatorJob = requireNotNull(workerJobRepositories.evaluatorJobRepository.get(jobId)) {
-                "Evaluator job '$jobId' not found."
-            }
-
-            workerJobRepositories.evaluatorJobRepository.update(
-                id = evaluatorJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-
-            val ortRun = requireNotNull(ortRunRepository.get(evaluatorJob.ortRunId)) {
-                "ORT run '${evaluatorJob.ortRunId}' not found."
-            }
-
-            evaluatorJob.ortRunId to listOfNotNull(
-                createReporterJob(ortRun)?.let { { scheduleReporterJob(ortRun, it, header) } }
-            )
-        }.onSuccess { (runId, createdJobs) ->
-            scheduleCreatedJobs(runId, createdJobs)
-        }.onFailure {
-            log.warn("Failed to handle 'EvaluatorWorkerResult' message.", it)
-        }
+        handleWorkerResult(EvaluatorEndpoint, header, evaluatorWorkerResult)
     }
 
     /**
      * Handle messages of the type [EvaluatorWorkerError].
      */
-    fun handleEvaluatorWorkerError(evaluatorWorkerError: EvaluatorWorkerError) {
-        handleWorkerError(workerJobRepositories.evaluatorJobRepository, evaluatorWorkerError)
+    fun handleEvaluatorWorkerError(header: MessageHeader, evaluatorWorkerError: EvaluatorWorkerError) {
+        handleWorkerError(EvaluatorEndpoint, header, evaluatorWorkerError)
     }
 
     /**
      * Handle messages of the type [ReporterWorkerResult].
      */
     fun handleReporterWorkerResult(header: MessageHeader, reporterWorkerResult: ReporterWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = reporterWorkerResult.jobId
-
-            val reporterJob = requireNotNull(workerJobRepositories.reporterJobRepository.get(jobId)) {
-                "Reporter job '$jobId' not found."
-            }
-
-            val ortRun = requireNotNull(ortRunRepository.get(reporterJob.ortRunId)) {
-                "ORT run '${reporterJob.ortRunId}' not found."
-            }
-
-            workerJobRepositories.reporterJobRepository.update(
-                id = reporterJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-
-            reporterJob.ortRunId to listOfNotNull(
-                createNotifierJob(ortRun)?.let { { scheduleNotifierJob(ortRun, it, header) } }
-            )
-        }.onSuccess { (jobId, createdJobs) ->
-            scheduleCreatedJobs(jobId, createdJobs)
-        }.onFailure {
-            log.warn("Failed to handle 'ReporterWorkerResult' message.", it)
-        }
+        handleWorkerResult(ReporterEndpoint, header, reporterWorkerResult)
     }
 
     /**
      * Handle messages of the type [ReporterWorkerError].
      */
-    fun handleReporterWorkerError(reporterWorkerError: ReporterWorkerError) {
-        handleWorkerError(workerJobRepositories.reporterJobRepository, reporterWorkerError)
+    fun handleReporterWorkerError(header: MessageHeader, reporterWorkerError: ReporterWorkerError) {
+        handleWorkerError(ReporterEndpoint, header, reporterWorkerError)
     }
 
     /**
      * Handle messages of the type [NotifierWorkerResult].
      */
-    fun handleNotifierWorkerResult(notifierWorkerResult: NotifierWorkerResult) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val jobId = notifierWorkerResult.jobId
-
-            val notifierJob = requireNotNull(workerJobRepositories.notifierJobRepository.get(jobId)) {
-                "Notifier job '$jobId' not found."
-            }
-
-            workerJobRepositories.notifierJobRepository.update(
-                id = notifierJob.id,
-                finishedAt = Clock.System.now().asPresent(),
-                status = JobStatus.FINISHED.asPresent()
-            )
-        }.onSuccess { job ->
-            scheduleCreatedJobs(job.ortRunId, emptyList())
-        }.onFailure {
-            log.warn("Failed to handle 'NotifierWorkerResult' message.", it)
-        }
+    fun handleNotifierWorkerResult(header: MessageHeader, notifierWorkerResult: NotifierWorkerResult) {
+        handleWorkerResult(NotifierEndpoint, header, notifierWorkerResult)
     }
 
-    fun handleNotifierWorkerError(notifierWorkerError: NotifierWorkerError) {
-        handleWorkerError(workerJobRepositories.notifierJobRepository, notifierWorkerError)
+    fun handleNotifierWorkerError(header: MessageHeader, notifierWorkerError: NotifierWorkerError) {
+        handleWorkerError(NotifierEndpoint, header, notifierWorkerError)
     }
 
     /**
@@ -435,6 +237,66 @@ class Orchestrator(
     }
 
     /**
+     * Handle the given [result] message with the given [header] from a worker of the given [endpoint].
+     */
+    private fun handleWorkerResult(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
+        handleCompletedJob(endpoint, header, result, JobStatus.FINISHED)
+    }
+
+    /**
+     * Handle the given [error] message with the given [header] from a worker of the given [endpoint].
+     */
+    private fun handleWorkerError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
+        handleCompletedJob(endpoint, header, error, JobStatus.FAILED)
+    }
+
+    /**
+     * Handle a [message] with the given [header] about a worker job for the given [endpoint] that completed in the
+     * given [status]. This is the central scheduling function. It determines the current job execution state of the
+     * affected ORT run, schedules the next job(s) if possible, or decides that the ORT run is now finished.
+     */
+    private fun handleCompletedJob(
+        endpoint: Endpoint<*>,
+        header: MessageHeader,
+        message: WorkerMessage,
+        status: JobStatus
+    ) {
+        log.info(
+            "Job {} for endpoint '{}' completed in status '{}'.",
+            message.jobId,
+            endpoint.configPrefix,
+            status.name
+        )
+
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            val job = workerJobRepositories.updateJobStatus(endpoint, message.jobId, status)
+
+            log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, job.ortRunId)
+
+            val ortRun = requireNotNull(ortRunRepository.get(job.ortRunId)) {
+                "ORT run '${job.ortRunId}' not found."
+            }
+
+            val jobs = workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
+                repository.getForOrtRun(ortRun.id)?.let { endpoint to it }
+            }.toMap()
+
+            val scheduleContext = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, jobs)
+            val schedules = if (scheduleContext.isFailed()) {
+                emptyList()
+            } else {
+                scheduleInfos.values.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
+            }
+
+            scheduleContext to schedules
+        }.onSuccess { (context, schedules) ->
+            scheduleCreatedJobs(context, schedules)
+        }.onFailure {
+            log.warn("Failed to handle '{}' message.", message::class.java.simpleName, it)
+        }
+    }
+
+    /**
      * Create an [AnalyzerJob].
      */
     private fun createAnalyzerJob(ortRun: OrtRun): AnalyzerJob =
@@ -444,54 +306,26 @@ class Orchestrator(
         )
 
     /**
-     * Create an [AdvisorJob] if it is enabled.
+     * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
+     * also includes sending corresponding messages to the worker endpoints.
      */
-    private fun createAdvisorJob(ortRun: OrtRun): AdvisorJob? =
-        getConfig(ortRun).advisor?.let { advisorJobConfiguration ->
-            workerJobRepositories.advisorJobRepository.create(ortRun.id, advisorJobConfiguration)
-        }
-
-    /**
-     * Create a [ScannerJob] if it is enabled.
-     */
-    private fun createScannerJob(ortRun: OrtRun): ScannerJob? =
-        getConfig(ortRun).scanner?.let { scannerJobConfiguration ->
-            workerJobRepositories.scannerJobRepository.create(ortRun.id, scannerJobConfiguration)
-        }
-
-    /**
-     * Create an [EvaluatorJob] if it is enabled.
-     */
-    private fun createEvaluatorJob(ortRun: OrtRun): EvaluatorJob? =
-        getConfig(ortRun).evaluator?.let { evaluatorJobConfiguration ->
-            workerJobRepositories.evaluatorJobRepository.create(ortRun.id, evaluatorJobConfiguration)
-        }
-
-    /**
-     * Create a [ReporterJob] if it is enabled.
-     */
-    private fun createReporterJob(ortRun: OrtRun): ReporterJob? =
-        getConfig(ortRun).reporter?.let { reporterJobConfiguration ->
-            workerJobRepositories.reporterJobRepository.create(ortRun.id, reporterJobConfiguration)
-        }
-
-    /**
-     * Create a [NotifierJob] if it is enabled.
-     */
-    private fun createNotifierJob(ortRun: OrtRun): NotifierJob? =
-        getConfig(ortRun).notifier?.let { notifierJobConfiguration ->
-            workerJobRepositories.notifierJobRepository.create(ortRun.id, notifierJobConfiguration)
-        }
-
-    private fun scheduleCreatedJobs(runId: Long, createdJobs: CreatedJobs) {
+    private fun scheduleCreatedJobs(context: WorkerScheduleContext, createdJobs: CreatedJobs) {
         // TODO: Handle errors during job scheduling.
 
         createdJobs.forEach { it() }
 
-        if (createdJobs.isEmpty()) {
-            cleanupJobs(runId)
+        if (createdJobs.isEmpty() && !context.hasRunningJobs()) {
+            cleanupJobs(context.ortRun.id)
 
-            ortRunRepository.update(runId, OrtRunStatus.FINISHED.asPresent())
+            val ortRunStatus = if (context.isFailed()) {
+                OrtRunStatus.FAILED
+            } else {
+                OrtRunStatus.FINISHED
+            }
+
+            log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
+
+            ortRunRepository.update(context.ortRun.id, ortRunStatus.asPresent())
         }
     }
 
@@ -517,66 +351,6 @@ class Orchestrator(
     }
 
     /**
-     * Publish a message to the [AdvisorEndpoint] and update the [advisorJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleAdvisorJob(run: OrtRun, advisorJob: AdvisorJob, header: MessageHeader) {
-        publish(AdvisorEndpoint, run, header, AdvisorRequest(advisorJob.id))
-
-        workerJobRepositories.advisorJobRepository.update(
-            advisorJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
-     * Publish a message to the [ScannerEndpoint] and update the [scannerJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleScannerJob(run: OrtRun, scannerJob: ScannerJob, header: MessageHeader) {
-        publish(ScannerEndpoint, run, header, ScannerRequest(scannerJob.id))
-
-        workerJobRepositories.scannerJobRepository.update(
-            id = scannerJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
-     * Publish a message to the [EvaluatorEndpoint] and update the [evaluatorJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleEvaluatorJob(run: OrtRun, evaluatorJob: EvaluatorJob, header: MessageHeader) {
-        publish(EvaluatorEndpoint, run, header, EvaluatorRequest(evaluatorJob.id))
-
-        workerJobRepositories.evaluatorJobRepository.update(
-            id = evaluatorJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
-     * Publish a message to the [ReporterEndpoint] and update the [reporterJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleReporterJob(run: OrtRun, reporterJob: ReporterJob, header: MessageHeader) {
-        publish(ReporterEndpoint, run, header, ReporterRequest(reporterJob.id))
-
-        workerJobRepositories.reporterJobRepository.update(
-            id = reporterJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
-     * Publish a message to the [NotifierEndpoint] and update the [notifierJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleNotifierJob(run: OrtRun, notifierJob: NotifierJob, header: MessageHeader) {
-        publish(NotifierEndpoint, run, header, NotifierRequest(notifierJob.id))
-
-        workerJobRepositories.notifierJobRepository.update(
-            id = notifierJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
      * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
      * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
      * current ORT run.
@@ -591,23 +365,6 @@ class Orchestrator(
      * Return the resolved job configurations if available. Otherwise, return the original job configurations.
      */
     private fun getConfig(ortRun: OrtRun) = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
-
-    /**
-     * Handle an error notification [message] from a worker job using the given [jobRepository]. Mark both the job and
-     * the whole OrtRun as failed.
-     */
-    private fun <T : WorkerJob> handleWorkerError(jobRepository: WorkerJobRepository<T>, message: WorkerMessage) {
-        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val updatedJob = jobRepository.complete(message.jobId, Clock.System.now(), JobStatus.FAILED)
-
-            cleanupJobs(updatedJob.ortRunId)
-
-            // If the worker job failed, the whole OrtRun will be treated as failed.
-            failOrtRun(updatedJob.ortRunId)
-        }.onFailure {
-            log.warn("Failed to handle '${message::class.java.simpleName}' message.", it)
-        }
-    }
 
     /**
      * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
@@ -650,7 +407,7 @@ class Orchestrator(
 
     /**
      * Set the status of the ORT run identified by the given [ortRunId] as failed.
-      */
+     */
     private fun failOrtRun(ortRunId: Long) {
         ortRunRepository.update(
             id = ortRunId,
@@ -660,17 +417,6 @@ class Orchestrator(
 }
 
 /**
- * Type definition for a function that schedules another worker job.
- */
-typealias JobScheduleFunc = () -> Unit
-
-/**
  * Type definition to represent a list of jobs that have been created and must be scheduled.
  */
 typealias CreatedJobs = List<JobScheduleFunc>
-
-/**
- * A [JobScheduleFunc] that does not schedule any job. This is used if after handling a result message no job can be
- * scheduled, but the ORT run is not yet complete.
- */
-private val dummyScheduleFunc: JobScheduleFunc = {}
