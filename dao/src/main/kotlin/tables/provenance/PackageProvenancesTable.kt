@@ -58,7 +58,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
          * Return a matching package provenance for the provided [package][pkg] or null if no provenance is found.
          */
         fun findByPackage(pkg: PackageDao): PackageProvenanceDao? =
-        // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
+            // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
             //       provenances are found for a package.
             PackageProvenanceDao.find {
                 (PackageProvenancesTable.identifierId eq pkg.identifier.id) and (
