@@ -53,7 +53,14 @@ internal class WorkerScheduleContext(
     /**
      * A map storing the jobs for the current run that have already been created. Keys are the endpoint names for jobs.
      */
-    val jobs: Map<String, WorkerJob>
+    val jobs: Map<String, WorkerJob>,
+
+    /**
+     * A flag indicating that the current [OrtRun] has failed. Per default, the failure state is determined by the
+     * jobs that have been run. With this flag, this mechanism can be overridden, which is necessary for workers that
+     * do not spawn jobs like the Config worker.
+     */
+    private val failed: Boolean = false
 ) {
     /**
      * Return the [JobConfigurations] object for the current run. Prefer the resolved configurations if available;
@@ -95,7 +102,7 @@ internal class WorkerScheduleContext(
      * Return a flag whether this [OrtRun] has failed, i.e. it has at least one job in failed state.
      */
     fun isFailed(): Boolean =
-        jobs.values.any { it.status == JobStatus.FAILED }
+        failed || jobs.values.any { it.status == JobStatus.FAILED }
 }
 
 /**

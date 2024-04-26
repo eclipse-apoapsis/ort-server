@@ -97,7 +97,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is ReporterWorkerError -> orchestrator.handleReporterWorkerError(message.header, payload)
             is NotifierWorkerResult -> orchestrator.handleNotifierWorkerResult(message.header, payload)
             is NotifierWorkerError -> orchestrator.handleNotifierWorkerError(message.header, payload)
-            is WorkerError -> orchestrator.handleWorkerError(message.header.ortRunId, payload)
+            is WorkerError -> orchestrator.handleWorkerError(message.header, payload)
         }
     }
 

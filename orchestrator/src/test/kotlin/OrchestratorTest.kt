@@ -1287,14 +1287,15 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
                         ortRunRepository = ortRunRepository,
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1322,7 +1323,8 @@ class OrchestratorTest : WordSpec() {
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -1331,7 +1333,7 @@ class OrchestratorTest : WordSpec() {
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1359,7 +1361,8 @@ class OrchestratorTest : WordSpec() {
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -1368,7 +1371,7 @@ class OrchestratorTest : WordSpec() {
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1398,7 +1401,8 @@ class OrchestratorTest : WordSpec() {
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -1408,7 +1412,7 @@ class OrchestratorTest : WordSpec() {
                         scannerJobRepository = scannerJobRepository,
                         evaluatorJobRepository = evaluatorJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1438,7 +1442,8 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -1449,7 +1454,7 @@ class OrchestratorTest : WordSpec() {
                         evaluatorJobRepository = evaluatorJobRepository,
                         reporterJobRepository = reporterJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1471,6 +1476,7 @@ class OrchestratorTest : WordSpec() {
                     every {
                         tryComplete(notifierJob.id, any(), any())
                     } returns createJob(JobStatus.FAILED, notifierJob.id)
+                    every { deleteMailRecipients(notifierJob.id) } returns notifierJob
                 }
 
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
@@ -1480,7 +1486,8 @@ class OrchestratorTest : WordSpec() {
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
@@ -1492,7 +1499,7 @@ class OrchestratorTest : WordSpec() {
                         reporterJobRepository = reporterJobRepository,
                         notifierJobRepository = notifierJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
@@ -1530,7 +1537,7 @@ class OrchestratorTest : WordSpec() {
                         evaluatorJobRepository = evaluatorJobRepository,
                         reporterJobRepository = reporterJobRepository,
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 0) {
@@ -1542,13 +1549,14 @@ class OrchestratorTest : WordSpec() {
                 val workerError = WorkerError(ConfigEndpoint.configPrefix)
 
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any()) } returns mockk()
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any(), any()) } returns mockk()
                 }
 
                 mockkTransaction {
                     createOrchestrator(
                         ortRunRepository = ortRunRepository
-                    ).handleWorkerError(msgHeader.ortRunId, workerError)
+                    ).handleWorkerError(msgHeader, workerError)
                 }
 
                 verify(exactly = 1) {
