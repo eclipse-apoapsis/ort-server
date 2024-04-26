@@ -287,6 +287,7 @@ class OrchestratorTest : WordSpec() {
                 val configWorkerResult = ConfigWorkerResult(ortRun.id)
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository {
                     every { create(any(), any()) } returns analyzerJob
+                    every { get(analyzerJob.id) } returns analyzerJob
                     every { update(any(), any(), any(), any()) } returns mockk()
                 }
 
