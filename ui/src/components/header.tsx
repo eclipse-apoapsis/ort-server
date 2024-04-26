@@ -33,6 +33,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbSeparator,
 } from './ui/breadcrumb';
 
 export const Header = () => {
@@ -52,6 +53,12 @@ export const Header = () => {
     (match) => match.routeId === '/_layout/organizations/$orgId'
   );
 
+  // The same breadcrumb logic applies to the other breadcrumb levels.
+  const productMatch = matches.find(
+    (match) =>
+      match.routeId === '/_layout/organizations/$orgId/products/$productId'
+  );
+  
   return (
     <header className="sticky top-0 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6">
       <div className="flex flex-row items-center gap-4">
@@ -85,14 +92,26 @@ export const Header = () => {
         </Sheet>
         <Breadcrumb>
           <BreadcrumbList>
-          {organizationMatch && (
+            {organizationMatch && (
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link to={organizationMatch.pathname}>
+                        {organizationMatch.context.breadcrumbs.organization}
+                      </Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+            )}
+            {productMatch && (
+              <>
+                <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to={organizationMatch.pathname}>
-                      {organizationMatch.context.breadcrumbs.organization}
+                    <Link to={productMatch.pathname}>
+                      {productMatch.context.breadcrumbs.product}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
+              </>
             )}
           </BreadcrumbList>
         </Breadcrumb>

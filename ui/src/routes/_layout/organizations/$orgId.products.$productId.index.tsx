@@ -18,11 +18,11 @@
  */
 
 import {
-  useOrganizationsServiceGetOrganizationByIdKey,
-  useOrganizationsServiceDeleteOrganizationById,
-  useProductsServiceGetOrganizationProductsKey,
+  useProductsServiceGetProductByIdKey,
+  useProductsServiceDeleteProductById,
+  useRepositoriesServiceGetRepositoriesByProductIdKey,
 } from '@/api/queries';
-import { ApiError, OrganizationsService, ProductsService } from '@/api/requests';
+import { ApiError, ProductsService, RepositoriesService } from '@/api/requests';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,75 +62,79 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { ToastError } from "@/components/toast-error";
 
-const OrganizationComponent = () => {
+const ProductComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [{ data: organization }, { data: products }] = useSuspenseQueries({
+  const [{ data: product }, { data: repositories }] = useSuspenseQueries({
     queries: [
       {
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: async () =>
-          await OrganizationsService.getOrganizationById(
-            Number.parseInt(params.orgId)
+          await ProductsService.getProductById(
+            Number.parseInt(params.productId)
           ),
       },
       {
-        queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
+        queryKey: [
+          useRepositoriesServiceGetRepositoriesByProductIdKey,
+          params.productId,
+        ],
         queryFn: async () =>
-          await ProductsService.getOrganizationProducts(
-            Number.parseInt(params.orgId)
+          await RepositoriesService.getRepositoriesByProductId(
+            Number.parseInt(params.productId)
           ),
       },
     ],
   });
 
-  const { mutateAsync: deleteOrganization } = useOrganizationsServiceDeleteOrganizationById({
+  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
     onSuccess() {
       toast({
-        title: 'Delete Organization',
-        description: 'Organization deleted successfully.',
+        title: 'Delete Product',
+        description: 'Product deleted successfully.',
       });
       navigate({
-        to: '/',
+        to: '/organizations/$orgId',
+        params: { orgId: params.orgId },
       });
     },
     onError(error: ApiError) {
       toast({
-        title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        title: 'Delete Product - FAILURE',
+        description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
         variant: 'destructive',
       });
     }
   });
 
   async function handleDelete() {
-    await deleteOrganization({
-      organizationId: Number.parseInt(params.orgId),
+    await deleteProduct({
+      productId: Number.parseInt(params.productId),
     });
   }
 
   return (
     <TooltipProvider>
       <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
+        <CardHeader>         
           <CardTitle className="flex flex-row justify-between">
             <div className="flex items-stretch">
-              <div className="flex items-center pb-1">{organization.name}</div>
+              <div className="flex items-center pb-1">{product.name}</div>
               <Tooltip>
                 <TooltipTrigger>
                   <Button asChild size="sm" variant="outline" className="px-2 ml-2">
                     <Link
-                      to="/organizations/$orgId/edit"
-                      params={{ orgId: organization.id.toString() }}
+                      to="/organizations/$orgId/products/$productId/edit"
+                      params={{ orgId: params.orgId, productId: params.productId }}
                     >
                       <EditIcon className="w-4 h-4" />
                     </Link>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Edit this organization</TooltipContent>
-              </Tooltip>              
+                <TooltipContent>Edit this product</TooltipContent>
+              </Tooltip>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -140,10 +144,10 @@ const OrganizationComponent = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete organization</AlertDialogTitle>
+                  <AlertDialogTitle>Delete product</AlertDialogTitle>
                 </AlertDialogHeader>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this organization?
+                  Are you sure you want to delete this product?
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -153,51 +157,48 @@ const OrganizationComponent = () => {
             </AlertDialog>
           </CardTitle>
           <CardDescription>
-            {organization.description as unknown as string}
-          </CardDescription>
+            {product.description as unknown as string}
+          </CardDescription> 
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="flex flex-row items-center justify-between pb-1.5 pr-0">
-                  Products
+                  Repositories
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild size="sm">
-                        <Link 
-                          to="/organizations/$orgId/create-product"
-                          params={{ orgId: organization.id.toString() }}
+                      <Button asChild size="sm" className="gap-1 ml-auto">
+                        <Link
+                          to='/'
+                          disabled
                         >
-                          New product
+                          New repository
                           <PlusIcon className="w-4 h-4" />
                         </Link>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Create a new product for this organization</TooltipContent>
+                    <TooltipContent>Add a new repository for this product</TooltipContent>
                   </Tooltip>
-                </TableHead>           
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products?.data.map((product) => {
+              {repositories?.data.map((repo) => {
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow key={repo.id}>
                     <TableCell>
                       <div>
                         <Link
-                          to={`/organizations/$orgId/products/$productId`}
-                          params={{
-                            orgId: organization.id.toString(),
-                            productId: product.id.toString(),
-                          }}
+                          to={'/'}
+                          disabled
                           className="font-semibold text-blue-400 hover:underline"
                         >
-                          {product.name}
+                          {repo.url}
                         </Link>
                       </div>
                       <div className="hidden text-sm text-muted-foreground md:inline">
-                        {product.description as unknown as string}
+                        {repo.type}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -211,24 +212,27 @@ const OrganizationComponent = () => {
   );
 };
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/')({
+export const Route = createFileRoute(
+  '/_layout/organizations/$orgId/products/$productId/'
+)({
   loader: async ({ context, params }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: () =>
-          OrganizationsService.getOrganizationById(
-            Number.parseInt(params.orgId)
-          ),
+          ProductsService.getProductById(Number.parseInt(params.productId)),
       }),
       context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
+        queryKey: [
+          useRepositoriesServiceGetRepositoriesByProductIdKey,
+          params.productId,
+        ],
         queryFn: () =>
-          ProductsService.getOrganizationProducts(
-            Number.parseInt(params.orgId)
+          RepositoriesService.getRepositoriesByProductId(
+            Number.parseInt(params.productId)
           ),
       }),
     ]);
   },
-  component: OrganizationComponent,
+  component: ProductComponent,
 });
