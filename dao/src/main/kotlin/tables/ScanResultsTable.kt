@@ -91,20 +91,20 @@ class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
         val provenance = when {
             artifactUrl != null -> ArtifactProvenance(
                 sourceArtifact = RemoteArtifact(
-                    url = artifactUrl!!,
-                    hashValue = artifactHash.orEmpty(),
-                    hashAlgorithm = artifactHashAlgorithm.orEmpty()
+                    url = checkNotNull(artifactUrl),
+                    hashValue = checkNotNull(artifactHash),
+                    hashAlgorithm = checkNotNull(artifactHashAlgorithm)
                 )
             )
 
             vcsUrl != null -> RepositoryProvenance(
                 vcsInfo = VcsInfo(
-                    type = RepositoryType.forName(vcsType!!),
-                    url = vcsUrl!!,
-                    revision = vcsRevision!!,
+                    type = RepositoryType.forName(checkNotNull(vcsType)),
+                    url = checkNotNull(vcsUrl),
+                    revision = checkNotNull(vcsRevision),
                     path = ""
                 ),
-                resolvedRevision = vcsRevision!!
+                resolvedRevision = checkNotNull(vcsRevision)
             )
 
             else -> UnknownProvenance
