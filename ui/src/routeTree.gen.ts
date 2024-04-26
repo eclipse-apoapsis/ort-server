@@ -17,6 +17,10 @@ import { Route as LayoutCreateOrganizationImport } from './routes/_layout/create
 import { Route as LayoutOrganizationsOrgIdRouteImport } from './routes/_layout/organizations/$orgId.route'
 import { Route as LayoutOrganizationsOrgIdIndexImport } from './routes/_layout/organizations/$orgId.index'
 import { Route as LayoutOrganizationsOrgIdEditImport } from './routes/_layout/organizations/$orgId.edit'
+import { Route as LayoutOrganizationsOrgIdCreateProductImport } from './routes/_layout/organizations/$orgId.create-product'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRouteImport } from './routes/_layout/organizations/$orgId.products.$productId.route'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdIndexImport } from './routes/_layout/organizations/$orgId.products.$productId.index'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdEditImport } from './routes/_layout/organizations/$orgId.products.$productId.edit'
 
 // Create/Update Routes
 
@@ -53,6 +57,30 @@ const LayoutOrganizationsOrgIdEditRoute =
     getParentRoute: () => LayoutOrganizationsOrgIdRouteRoute,
   } as any)
 
+const LayoutOrganizationsOrgIdCreateProductRoute =
+  LayoutOrganizationsOrgIdCreateProductImport.update({
+    path: '/create-product',
+    getParentRoute: () => LayoutOrganizationsOrgIdRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdProductsProductIdRouteRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRouteImport.update({
+    path: '/products/$productId',
+    getParentRoute: () => LayoutOrganizationsOrgIdRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdProductsProductIdIndexRoute =
+  LayoutOrganizationsOrgIdProductsProductIdIndexImport.update({
+    path: '/',
+    getParentRoute: () => LayoutOrganizationsOrgIdProductsProductIdRouteRoute,
+  } as any)
+
+const LayoutOrganizationsOrgIdProductsProductIdEditRoute =
+  LayoutOrganizationsOrgIdProductsProductIdEditImport.update({
+    path: '/edit',
+    getParentRoute: () => LayoutOrganizationsOrgIdProductsProductIdRouteRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -73,6 +101,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdRouteImport
       parentRoute: typeof LayoutRouteImport
     }
+    '/_layout/organizations/$orgId/create-product': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdCreateProductImport
+      parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
+    }
     '/_layout/organizations/$orgId/edit': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdEditImport
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
@@ -80,6 +112,18 @@ declare module '@tanstack/react-router' {
     '/_layout/organizations/$orgId/': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdIndexImport
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
+      parentRoute: typeof LayoutOrganizationsOrgIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/edit': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdEditImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdIndexImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
     }
   }
 }
@@ -91,8 +135,13 @@ export const routeTree = rootRoute.addChildren([
     LayoutCreateOrganizationRoute,
     LayoutIndexRoute,
     LayoutOrganizationsOrgIdRouteRoute.addChildren([
+      LayoutOrganizationsOrgIdCreateProductRoute,
       LayoutOrganizationsOrgIdEditRoute,
       LayoutOrganizationsOrgIdIndexRoute,
+      LayoutOrganizationsOrgIdProductsProductIdRouteRoute.addChildren([
+        LayoutOrganizationsOrgIdProductsProductIdEditRoute,
+        LayoutOrganizationsOrgIdProductsProductIdIndexRoute,
+      ]),
     ]),
   ]),
 ])
