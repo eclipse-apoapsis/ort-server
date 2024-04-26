@@ -239,7 +239,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                 MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
 
                 verify {
-                    orchestrator.handleWorkerError(msgHeader.ortRunId, workerError)
+                    orchestrator.handleWorkerError(msgHeader, workerError)
                 }
             }
         }
