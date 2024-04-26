@@ -102,11 +102,7 @@ class SnippetDao(id: EntityID<Long>) : LongEntity(id) {
         return Snippet(
             purl = purl,
             provenance = provenance,
-            location = TextLocation(
-                path = path,
-                startLine = startLine,
-                endLine = endLine
-            ),
+            location = TextLocation(path, startLine, endLine),
             score = score,
             spdxLicense = license,
             additionalData = additionalData?.data.orEmpty()
