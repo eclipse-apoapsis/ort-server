@@ -25,6 +25,9 @@ import { Route as LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryImpor
 import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.route'
 import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.index'
 import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.edit'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.create-run'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.runs.$runId.route'
+import { Route as LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexImport } from './routes/_layout/organizations/$orgId.products.$productId.repositories.$repoId.runs.$runId.index'
 
 // Create/Update Routes
 
@@ -115,6 +118,33 @@ const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute =
       LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute,
   } as any)
 
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunImport.update(
+    {
+      path: '/create-run',
+      getParentRoute: () =>
+        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute,
+    } as any,
+  )
+
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport.update(
+    {
+      path: '/runs/$runId',
+      getParentRoute: () =>
+        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute,
+    } as any,
+  )
+
+const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexRoute =
+  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexImport.update(
+    {
+      path: '/',
+      getParentRoute: () =>
+        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute,
+    } as any,
+  )
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -167,6 +197,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport
     }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
+    }
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
@@ -174,6 +208,14 @@ declare module '@tanstack/react-router' {
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/': {
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport
+    }
+    '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/': {
+      preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexImport
+      parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport
     }
   }
 }
@@ -194,8 +236,14 @@ export const routeTree = rootRoute.addChildren([
         LayoutOrganizationsOrgIdProductsProductIdIndexRoute,
         LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute.addChildren(
           [
+            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunRoute,
             LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute,
             LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexRoute,
+            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute.addChildren(
+              [
+                LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexRoute,
+              ],
+            ),
           ],
         ),
       ]),

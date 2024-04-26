@@ -30,6 +30,7 @@ export interface RouterContext {
     organization: string | undefined;
     product: string | undefined;
     repo: string | undefined;
+    run: string | undefined;
   };
   auth: ReturnType<typeof useAuth>;
 }
@@ -43,6 +44,7 @@ const router = createRouter({
       organization: undefined, 
       product: undefined,
       repo: undefined,
+      run: undefined,
     },
     auth: undefined!,
   },

@@ -167,8 +167,12 @@ const RepoComponent = () => {
                     <TooltipTrigger asChild>
                       <Button asChild size="sm" className="gap-1 ml-auto">
                         <Link
-                          to='/'
-                          disabled
+                          to="/organizations/$orgId/products/$productId/repositories/$repoId/create-run"
+                          params={{
+                            orgId: params.orgId,
+                            productId: params.productId,
+                            repoId: params.repoId,
+                          }}
                         >
                           New run
                           <PlusIcon className="w-4 h-4" />
@@ -187,8 +191,15 @@ const RepoComponent = () => {
                     <TableCell>
                       <div>
                         <Link
-                          to={'/'}
-                          disabled
+                          to={
+                            '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
+                          }
+                          params={{
+                            orgId: params.orgId,
+                            productId: params.productId,
+                            repoId: repo.id.toString(),
+                            runId: run.id.toString(),
+                          }}
                           className="font-semibold text-blue-400 hover:underline"
                         >
                           {run.index}
