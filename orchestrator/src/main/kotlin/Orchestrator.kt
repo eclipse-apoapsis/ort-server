@@ -24,7 +24,6 @@ import java.sql.Connection
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -32,7 +31,6 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
@@ -114,8 +112,7 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val ortRun = getCurrentOrtRun(configWorkerResult.ortRunId)
 
-            val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
-            context to listOf(createAnalyzerJob(ortRun).let { { scheduleAnalyzerJob(ortRun, it, header) } })
+            nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
         }.onSuccess { (context, createdJobs) ->
             scheduleCreatedJobs(context, createdJobs)
         }.onFailure {
@@ -232,7 +229,7 @@ class Orchestrator(
                 }
 
                 repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
-                    nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job, header)
+                    nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
                 }
             } ?: (createWorkerSchedulerContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
         }.onSuccess { (context, schedules) ->
@@ -285,7 +282,7 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val job = workerJobRepositories.updateJobStatus(endpoint, message.jobId, status)
 
-            nextJobsToSchedule(endpoint, job, header)
+            nextJobsToSchedule(endpoint, job.ortRunId, header)
         }.onSuccess { (context, schedules) ->
             scheduleCreatedJobs(context, schedules)
         }.onFailure {
@@ -294,23 +291,21 @@ class Orchestrator(
     }
 
     /**
-     * Determine the next jobs that can be scheduled after the given [job][completedJob] for the given [endpoint] has
-     * completed. Use the given [header] to send messages to the worker endpoints. Return a list with the new jobs to
-     * schedule and the current [WorkerScheduleContext].
+     * Determine the next jobs that can be scheduled after a job for the given [endpoint] for the run with the given
+     * [ortRunId] has completed. Use the given [header] to send messages to the worker endpoints. Optionally,
+     * accept a map with the [jobs] that have been run. Return a list with the new jobs to schedule and the current
+     * [WorkerScheduleContext].
      */
     private fun nextJobsToSchedule(
         endpoint: Endpoint<*>,
-        completedJob: WorkerJob,
-        header: MessageHeader
+        ortRunId: Long,
+        header: MessageHeader,
+        jobs: Map<String, WorkerJob>? = null
     ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
-        log.info(
-            "Handling a completed job for endpoint '{}' and ORT run {}.",
-            endpoint.configPrefix,
-            completedJob.ortRunId
-        )
+        log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
 
-        val ortRun = getCurrentOrtRun(completedJob.ortRunId)
-        val scheduleContext = createWorkerSchedulerContext(ortRun, header)
+        val ortRun = getCurrentOrtRun(ortRunId)
+        val scheduleContext = createWorkerSchedulerContext(ortRun, header, workerJobs = jobs)
         val schedules = if (scheduleContext.isFailed()) {
             emptyList()
         } else {
@@ -322,28 +317,21 @@ class Orchestrator(
 
     /**
      * Create a [WorkerScheduleContext] for the given [ortRun] and message [header] with the given [failed] flag.
-     * The context is initialized with the status of all jobs for this run.
+     * The context is initialized with the status of all jobs for this run, either from the given [workerJobs]
+     * parameter or by loading the job status from the database.
      */
     private fun createWorkerSchedulerContext(
         ortRun: OrtRun,
         header: MessageHeader,
-        failed: Boolean = false
+        failed: Boolean = false,
+        workerJobs: Map<String, WorkerJob>? = null
     ): WorkerScheduleContext {
-        val jobs = workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
+        val jobs = workerJobs ?: workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
             repository.getForOrtRun(ortRun.id)?.let { endpoint to it }
         }.toMap()
 
         return WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, jobs, failed)
     }
-
-    /**
-     * Create an [AnalyzerJob].
-     */
-    private fun createAnalyzerJob(ortRun: OrtRun): AnalyzerJob =
-        workerJobRepositories.analyzerJobRepository.create(
-            ortRun.id,
-            getConfig(ortRun).analyzer
-        )
 
     /**
      * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
@@ -379,18 +367,6 @@ class Orchestrator(
     }
 
     /**
-     * Publish a message to the [AnalyzerEndpoint] and update the [analyzerJob] status to [JobStatus.SCHEDULED].
-     */
-    private fun scheduleAnalyzerJob(run: OrtRun, analyzerJob: AnalyzerJob, header: MessageHeader) {
-        publish(AnalyzerEndpoint, run, header, AnalyzerRequest(analyzerJob.id))
-
-        workerJobRepositories.analyzerJobRepository.update(
-            analyzerJob.id,
-            status = JobStatus.SCHEDULED.asPresent()
-        )
-    }
-
-    /**
      * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
      * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
      * current ORT run.
@@ -400,11 +376,6 @@ class Orchestrator(
 
         publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
-
-    /**
-     * Return the resolved job configurations if available. Otherwise, return the original job configurations.
-     */
-    private fun getConfig(ortRun: OrtRun) = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
 
     /**
      * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
