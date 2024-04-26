@@ -64,6 +64,12 @@ export const Header = () => {
       match.routeId ===
       '/_layout/organizations/$orgId/products/$productId/repositories/$repoId'
   );
+
+  const runMatch = matches.find(
+    (match) =>
+      match.routeId ===
+      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
+  );
   
   return (
     <header className="sticky top-0 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6">
@@ -126,6 +132,18 @@ export const Header = () => {
                   <BreadcrumbLink asChild>
                     <Link to={repoMatch.pathname}>
                       {repoMatch.context.breadcrumbs.repo}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            {runMatch && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={runMatch.pathname}>
+                      {runMatch.context.breadcrumbs.run}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
