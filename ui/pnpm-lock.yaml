@@ -43,10 +43,10 @@ importers:
         version: 5.32.0(@tanstack/react-query@5.32.0(react@18.3.0))(react@18.3.0)
       '@tanstack/react-router':
         specifier: ^1.22.2
-        version: 1.29.2(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
+        version: 1.31.1(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
       '@tanstack/router-devtools':
         specifier: ^1.22.2
-        version: 1.29.2(csstype@3.1.3)(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
+        version: 1.31.1(csstype@3.1.3)(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -83,7 +83,7 @@ importers:
     devDependencies:
       '@7nohe/openapi-react-query-codegen':
         specifier: ^0.5.3
-        version: 0.5.3(commander@10.0.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)
+        version: 0.5.3(commander@4.1.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)
       '@tanstack/router-vite-plugin':
         specifier: ^1.20.5
         version: 1.30.0(vite@5.2.10(@types/node@20.12.7))
@@ -988,8 +988,8 @@ packages:
     peerDependencies:
       react: ^18.0.0
 
-  '@tanstack/react-router@1.29.2':
-    resolution: {integrity: sha512-rSSLyI+AaVg79qeeH5fH6KA8ZQkckinH9mFdLrGUhA4wX2B7Az7eloepha2TqvsFJon0HgeV7heMqPkq9nyAeg==}
+  '@tanstack/react-router@1.31.1':
+    resolution: {integrity: sha512-FZ7wYCL4UXkkT+yB703RcrnD6WO9dqphnEDWoPQIkN3f4Zk28nZPHRew3dcpK8n9o33sZJbCW24PVAdbjmpdEQ==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=16.8'
@@ -1001,8 +1001,8 @@ packages:
       react: '>=16'
       react-dom: '>=16'
 
-  '@tanstack/router-devtools@1.29.2':
-    resolution: {integrity: sha512-8w8wH4++U9WU/CFWN+GbKnoxPeZjTCGX8T9K3qsPYi5dp43H0599RkfQj7nch0fecT3S9HLWIGWdIX74NEU0Jw==}
+  '@tanstack/router-devtools@1.31.1':
+    resolution: {integrity: sha512-vtxzLzPOHx0/5SXEXOHB4CSSUaMHnEOE1IyBTPxNBDizhGGImCxw8C74FoVzDSFQ2ED+4t6sPSLUA0m9FnnTWA==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=16.8'
@@ -1311,8 +1311,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.4.748:
-    resolution: {integrity: sha512-VWqjOlPZn70UZ8FTKUOkUvBLeTQ0xpty66qV0yJcAGY2/CthI4xyW9aEozRVtuwv3Kpf5xTesmJUcPwuJmgP4A==}
+  electron-to-chromium@1.4.749:
+    resolution: {integrity: sha512-LRMMrM9ITOvue0PoBrvNIraVmuDbJV5QC9ierz/z5VilMdPOVMjOtpICNld3PuXuTZ3CHH/UPxX9gHhAPwi+0Q==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -1620,8 +1620,8 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  lru-cache@10.2.0:
-    resolution: {integrity: sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==}
+  lru-cache@10.2.1:
+    resolution: {integrity: sha512-tS24spDe/zXhWbNPErCHs/AGOzbKGHT+ybSBqmdLm8WZ1xXLWvH8Qn71QPAlqVhd0qUTWjy+Kl9JmISgDdEjsA==}
     engines: {node: 14 || >=16.14}
 
   lru-cache@5.1.1:
@@ -1827,8 +1827,8 @@ packages:
       oidc-client-ts: ^3.0.0
       react: '>=16.8.0'
 
-  react-refresh@0.14.0:
-    resolution: {integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==}
+  react-refresh@0.14.1:
+    resolution: {integrity: sha512-iZiRCtNGY3QYP3pYOSSBOvQmBpQTcJccr/VcK2blpJrpPTUDjeN51mxm5nsrkCzBwsbGUj+TN9q2oPz5E13FLg==}
     engines: {node: '>=0.10.0'}
 
   react-remove-scroll-bar@2.3.6:
@@ -2067,8 +2067,8 @@ packages:
       '@types/react':
         optional: true
 
-  use-sync-external-store@1.2.0:
-    resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
+  use-sync-external-store@1.2.1:
+    resolution: {integrity: sha512-6MCBDr76UJmRpbF8pzP27uIoTocf3tITaMJ52mccgAhMJycuh5A/RL6mDZCTwTisj0Qfeq69FtjMCUX27U78oA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
 
@@ -2139,9 +2139,9 @@ packages:
 
 snapshots:
 
-  '@7nohe/openapi-react-query-codegen@0.5.3(commander@10.0.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)':
+  '@7nohe/openapi-react-query-codegen@0.5.3(commander@4.1.1)(glob@10.3.12)(openapi-typescript-codegen@0.24.0)(typescript@5.4.5)':
     dependencies:
-      commander: 10.0.1
+      commander: 4.1.1
       glob: 10.3.12
       openapi-typescript-codegen: 0.24.0
       typescript: 5.4.5
@@ -2964,7 +2964,7 @@ snapshots:
       '@tanstack/query-core': 5.32.0
       react: 18.3.0
 
-  '@tanstack/react-router@1.29.2(react-dom@18.3.0(react@18.3.0))(react@18.3.0)':
+  '@tanstack/react-router@1.31.1(react-dom@18.3.0(react@18.3.0))(react@18.3.0)':
     dependencies:
       '@tanstack/history': 1.28.9
       '@tanstack/react-store': 0.2.1(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
@@ -2978,11 +2978,11 @@ snapshots:
       '@tanstack/store': 0.1.3
       react: 18.3.0
       react-dom: 18.3.0(react@18.3.0)
-      use-sync-external-store: 1.2.0(react@18.3.0)
+      use-sync-external-store: 1.2.1(react@18.3.0)
 
-  '@tanstack/router-devtools@1.29.2(csstype@3.1.3)(react-dom@18.3.0(react@18.3.0))(react@18.3.0)':
+  '@tanstack/router-devtools@1.31.1(csstype@3.1.3)(react-dom@18.3.0(react@18.3.0))(react@18.3.0)':
     dependencies:
-      '@tanstack/react-router': 1.29.2(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
+      '@tanstack/react-router': 1.31.1(react-dom@18.3.0(react@18.3.0))(react@18.3.0)
       clsx: 2.1.1
       date-fns: 2.30.0
       goober: 2.1.14(csstype@3.1.3)
@@ -3154,7 +3154,7 @@ snapshots:
       '@babel/plugin-transform-react-jsx-self': 7.24.1(@babel/core@7.24.4)
       '@babel/plugin-transform-react-jsx-source': 7.24.1(@babel/core@7.24.4)
       '@types/babel__core': 7.20.5
-      react-refresh: 0.14.0
+      react-refresh: 0.14.1
       vite: 5.2.10(@types/node@20.12.7)
     transitivePeerDependencies:
       - supports-color
@@ -3233,7 +3233,7 @@ snapshots:
   browserslist@4.23.0:
     dependencies:
       caniuse-lite: 1.0.30001612
-      electron-to-chromium: 1.4.748
+      electron-to-chromium: 1.4.749
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
 
@@ -3330,7 +3330,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.4.748: {}
+  electron-to-chromium@1.4.749: {}
 
   emoji-regex@8.0.0: {}
 
@@ -3652,7 +3652,7 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  lru-cache@10.2.0: {}
+  lru-cache@10.2.1: {}
 
   lru-cache@5.1.1:
     dependencies:
@@ -3750,7 +3750,7 @@ snapshots:
 
   path-scurry@1.10.2:
     dependencies:
-      lru-cache: 10.2.0
+      lru-cache: 10.2.1
       minipass: 7.0.4
 
   path-type@4.0.0: {}
@@ -3823,7 +3823,7 @@ snapshots:
       oidc-client-ts: 3.0.1
       react: 18.3.0
 
-  react-refresh@0.14.0: {}
+  react-refresh@0.14.1: {}
 
   react-remove-scroll-bar@2.3.6(@types/react@18.3.0)(react@18.3.0):
     dependencies:
@@ -4070,7 +4070,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.0
 
-  use-sync-external-store@1.2.0(react@18.3.0):
+  use-sync-external-store@1.2.1(react@18.3.0):
     dependencies:
       react: 18.3.0
 
