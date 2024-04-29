@@ -26,6 +26,7 @@ plugins {
     alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.detekt)
     alias(libs.plugins.gitSemver)
+    alias(libs.plugins.jib) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.mavenPublish)
