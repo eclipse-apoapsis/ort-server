@@ -29,7 +29,6 @@ plugins {
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.mavenPublish)
-    alias(libs.plugins.versionCatalogUpdate)
     alias(libs.plugins.versions)
 }
 
@@ -44,11 +43,6 @@ semver {
 version = semver.semVersion
 
 logger.lifecycle("Building ORT Server version $version.")
-
-versionCatalogUpdate {
-    // Keep the custom sorting / grouping.
-    sortByKey.set(false)
-}
 
 allprojects {
     buildscript {

@@ -31,7 +31,6 @@ kotlinxDatetime = "0.5.0"
 kotlinxSerialization = "1.6.3"
 mavenPublishPlugin = "0.28.0"
 rabbitMq = "5.21.0"
-versionCatalogUpdatePlugin = "0.8.4"
 versionsPlugin = "0.51.0"
 
 # Gradle dependencies
@@ -75,7 +74,6 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinPlugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlinPlugin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublishPlugin" }
-versionCatalogUpdate = { id = "nl.littlerobots.version-catalog-update", version.ref = "versionCatalogUpdatePlugin" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 
 [libraries]
