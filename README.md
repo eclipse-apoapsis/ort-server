@@ -51,20 +51,6 @@ Then the Docker images can be built with [Jib](https://github.com/GoogleContaine
 ./gradlew :core:jibDockerBuild
 ```
 
-The `jibDockerBuild` task occasionally gets stuck while pulling the Eclipse Temurin base image. In this case it usually
-helps to clean the project and stop the Gradle Daemon:
-
-```shell
-./gradlew clean
-./gradlew --stop
-```
-
-When building multiple images at once it can also help to disable parallel builds:
-
-```shell
-./gradlew --no-parallel jibDockerBuild
-```
-
 In case multiple base images have been created for the Analyzer supporting different Java versions, the tag of the base
 image to be used can be specified as a property. Note that the JDK on which the build is executed determines the JVM
 target of the resulting artifacts. So, if a specialized Analyzer image for Java 11 is to be created, the build must be
