@@ -98,8 +98,8 @@ const RepoComponent = () => {
     },
     onError(error: ApiError) {
       toast({
-        title: 'Delete Repository - FAILURE',
-        description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
+        title: error.message,
+        description: <ToastError message={error.body.message} cause={error.body.cause} />,
         variant: 'destructive',
       });
     }
