@@ -933,7 +933,7 @@ class OrchestratorTest : WordSpec() {
         }
 
         "handleReporterWorkerResult" should {
-            "update the job in the database and mark the ORT run as finished" {
+            "update the job in the database and create a notifier job" {
                 val reporterWorkerResult = ReporterWorkerResult(reporterJob.id)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED) {
                     every { get(reporterWorkerResult.jobId) } returns reporterJob
