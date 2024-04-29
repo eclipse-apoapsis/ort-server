@@ -244,9 +244,7 @@ class OrchestratorTest : WordSpec() {
                     every { this@mockk.get(any()) } returns repository
                 }
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(ConfigEndpoint, any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 val ortRunRepository = mockk<OrtRunRepository> {
                     every { update(any(), any()) } returns mockk()
@@ -291,12 +289,9 @@ class OrchestratorTest : WordSpec() {
                     every { update(any(), any(), any(), any()) } returns mockk()
                 }
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(AnalyzerEndpoint, any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(configWorkerResult.ortRunId) } returns ortRun
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false) {
                     every { update(any(), any()) } returns mockk()
                 }
 
@@ -380,13 +375,9 @@ class OrchestratorTest : WordSpec() {
                     every { complete(analyzerJob.id, any(), any()) } returns mockk()
                 }
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(analyzerJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -444,15 +435,9 @@ class OrchestratorTest : WordSpec() {
                     every { complete(analyzerJob.id, any(), any()) } returns mockk()
                 }
 
-                val reporterJobRepository: ReporterJobRepository = createRepository {
-                    every { create(ortRun.id, any()) } returns reporterJob
-                    every { get(reporterJob.id) } returns reporterJob
-                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -463,18 +448,12 @@ class OrchestratorTest : WordSpec() {
                     ).handleAnalyzerWorkerResult(msgHeader, analyzerWorkerResult)
                 }
 
+                verifyReporterJobCreated(reporterJobRepository, publisher)
                 verify(exactly = 1) {
                     analyzerJobRepository.complete(
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FINISHED }
-                    )
-                    publisher.publish(
-                        to = withArg<ReporterEndpoint> { it shouldBe ReporterEndpoint },
-                        message = withArg {
-                            it.header shouldBe msgHeaderWithProperties
-                            it.payload.reporterJobId shouldBe reporterJob.id
-                        }
                     )
                 }
             }
@@ -497,14 +476,9 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(advisorJob.ortRunId) } returns ortRun
-                    every { get(scannerJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -564,9 +538,7 @@ class OrchestratorTest : WordSpec() {
                     every { get(RUN_ID) } returns ortRunWithoutAdvisor
                 }
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -615,9 +587,7 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.RUNNING)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
                 val publisher = mockk<MessagePublisher>()
 
@@ -644,21 +614,19 @@ class OrchestratorTest : WordSpec() {
             "update the job and the ORT run in the database" {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FAILED) {
                     every { get(analyzerJob.id) } returns analyzerJob
+                    every { complete(analyzerJob.id, any(), any()) } returns analyzerJob
                 }
                 val repositoryRepository = mockk<RepositoryRepository>()
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(any(), any(), any()) } returns mockk()
-                    every { get(analyzerJob.ortRunId) } returns ortRun
-                }
-                val publisher = mockk<MessagePublisher>()
+                val ortRunRepository = createOrtRunRepository()
+                val reporterJobRepository = expectReporterJob()
+                val publisher = createMessagePublisher()
 
                 val analyzerWorkerError = AnalyzerWorkerError(123)
-
-                every { analyzerJobRepository.complete(analyzerJob.id, any(), any()) } returns analyzerJob
 
                 mockkTransaction {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
+                        reporterJobRepository = reporterJobRepository,
                         repositoryRepository = repositoryRepository,
                         ortRunRepository = ortRunRepository,
                         publisher = publisher
@@ -672,13 +640,14 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
-
-                    // The ORT run status was updated.
+                }
+                verify(exactly = 0) {
                     ortRunRepository.update(
                         id = withArg { it shouldBe analyzerJob.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
         }
 
@@ -697,13 +666,9 @@ class OrchestratorTest : WordSpec() {
                     every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
                 }
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(advisorJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
@@ -760,9 +725,7 @@ class OrchestratorTest : WordSpec() {
 
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 val ortRunWithoutScanner = ortRun.copy(
                     jobConfigs = ortRun.jobConfigs.copy(scanner = null)
@@ -817,13 +780,9 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository()
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(advisorJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
                 val scannerJobRepository = mockk<ScannerJobRepository> {
                     every { getForOrtRun(ortRun.id) } returns scannerJob
@@ -856,12 +815,9 @@ class OrchestratorTest : WordSpec() {
 
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(advisorJob.ortRunId) } returns ortRun
-                    every { update(advisorJob.ortRunId, any(), any()) } returns mockk()
-                }
-
-                val publisher = mockk<MessagePublisher>()
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 val advisorWorkerError = AdvisorWorkerError(advisorJob.id)
 
@@ -869,6 +825,7 @@ class OrchestratorTest : WordSpec() {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
                         advisorJobRepository = advisorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
                         ortRunRepository = ortRunRepository,
                         publisher = publisher
                     ).handleAdvisorWorkerError(msgHeader, advisorWorkerError)
@@ -880,12 +837,11 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
-
-                    ortRunRepository.update(
-                        id = withArg { it shouldBe advisorJob.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
-                    )
                 }
+                verify(exactly = 0) {
+                    ortRunRepository.update(any(), any())
+                }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
         }
 
@@ -897,23 +853,15 @@ class OrchestratorTest : WordSpec() {
                     every { complete(evaluatorJob.id, any(), any()) } returns mockk()
                 }
 
-                val reporterJobRepository: ReporterJobRepository = createRepository {
-                    every { create(ortRun.id, any()) } returns reporterJob
-                    every { get(reporterJob.id) } returns reporterJob
-                    every { update(reporterJob.id, any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
 
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(evaluatorJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -927,18 +875,8 @@ class OrchestratorTest : WordSpec() {
                     ).handleEvaluatorWorkerResult(msgHeader, evaluatorWorkerResult)
                 }
 
+                verifyReporterJobCreated(reporterJobRepository, publisher)
                 verify(exactly = 1) {
-                    reporterJobRepository.create(
-                        ortRunId = withArg { it shouldBe ortRun.id },
-                        configuration = withArg { it shouldBe reporterJob.configuration }
-                    )
-                    publisher.publish(
-                        to = withArg<ReporterEndpoint> { it shouldBe ReporterEndpoint },
-                        message = withArg {
-                            it.header shouldBe msgHeaderWithProperties
-                            it.payload.reporterJobId shouldBe reporterJob.id
-                        }
-                    )
                     evaluatorJobRepository.complete(
                         id = withArg { it shouldBe evaluatorJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
@@ -959,12 +897,9 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
-                val reporterJobRepository: ReporterJobRepository = createRepository()
-
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(evaluatorJob.ortRunId) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -974,6 +909,7 @@ class OrchestratorTest : WordSpec() {
                         evaluatorJobRepository = evaluatorJobRepository,
                         reporterJobRepository = reporterJobRepository,
                         ortRunRepository = ortRunRepository,
+                        publisher = publisher
                     ).handleEvaluatorWorkerError(msgHeader, evaluatorWorkerError)
                 }
 
@@ -983,15 +919,16 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
+                }
+
+                verify(exactly = 0) {
                     ortRunRepository.update(
                         id = withArg { it shouldBe evaluatorJob.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
 
-                verify(exactly = 0) {
-                    reporterJobRepository.create(any(), any())
-                }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
         }
 
@@ -1014,13 +951,9 @@ class OrchestratorTest : WordSpec() {
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(evaluatorJob.ortRunId) } returns ortRun
-                }
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
 
-                val publisher = mockk<MessagePublisher> {
-                    every { publish(any<Endpoint<*>>(), any()) } just runs
-                }
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1061,10 +994,7 @@ class OrchestratorTest : WordSpec() {
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(ortRun.id) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1111,10 +1041,7 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(notifierJob.ortRunId) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1156,10 +1083,7 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(notifierJob.ortRunId) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1194,10 +1118,7 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(ortRun.id) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1238,10 +1159,7 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(ortRun.id, any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1287,15 +1205,16 @@ class OrchestratorTest : WordSpec() {
                     } returns createJob<AnalyzerJob>(JobStatus.FAILED, analyzerJob.id)
                 }
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
+                        reporterJobRepository = reporterJobRepository,
                         ortRunRepository = ortRunRepository,
+                        publisher = publisher
                     ).handleWorkerError(msgHeader, workerError)
                 }
 
@@ -1305,11 +1224,14 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
+                }
+                verify(exactly = 0) {
                     ortRunRepository.update(
                         id = withArg { it shouldBe msgHeader.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
 
             "handle a failed advisor job" {
@@ -1323,17 +1245,18 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
-                        ortRunRepository = ortRunRepository
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
                     ).handleWorkerError(msgHeader, workerError)
                 }
 
@@ -1343,11 +1266,8 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
-                    ortRunRepository.update(
-                        id = withArg { it shouldBe msgHeader.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
-                    )
                 }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
 
             "handle a failed scanner job" {
@@ -1361,17 +1281,18 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
                         analyzerJobRepository = analyzerJobRepository,
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
-                        ortRunRepository = ortRunRepository
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
                     ).handleWorkerError(msgHeader, workerError)
                 }
 
@@ -1381,11 +1302,8 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
-                    ortRunRepository.update(
-                        id = withArg { it shouldBe msgHeader.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
-                    )
                 }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
 
             "handle a failed evaluator job" {
@@ -1401,10 +1319,9 @@ class OrchestratorTest : WordSpec() {
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1412,7 +1329,9 @@ class OrchestratorTest : WordSpec() {
                         advisorJobRepository = advisorJobRepository,
                         scannerJobRepository = scannerJobRepository,
                         evaluatorJobRepository = evaluatorJobRepository,
-                        ortRunRepository = ortRunRepository
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
                     ).handleWorkerError(msgHeader, workerError)
                 }
 
@@ -1422,11 +1341,8 @@ class OrchestratorTest : WordSpec() {
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
                     )
-                    ortRunRepository.update(
-                        id = withArg { it shouldBe msgHeader.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
-                    )
                 }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
 
             "handle a failed reporter job" {
@@ -1442,10 +1358,7 @@ class OrchestratorTest : WordSpec() {
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1486,10 +1399,7 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1549,10 +1459,7 @@ class OrchestratorTest : WordSpec() {
             "handle a failed config job" {
                 val workerError = WorkerError(ConfigEndpoint.configPrefix)
 
-                val ortRunRepository = mockk<OrtRunRepository> {
-                    every { get(RUN_ID) } returns ortRun
-                    every { update(any(), any(), any()) } returns mockk()
-                }
+                val ortRunRepository = createOrtRunRepository()
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1567,6 +1474,56 @@ class OrchestratorTest : WordSpec() {
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Create a mock for a [ReporterJobRepository] that is prepared to expect a schedule of a reporter job.
+     */
+    private fun expectReporterJob(): ReporterJobRepository {
+        val reporterJobRepository: ReporterJobRepository = createRepository {
+            every { create(ortRun.id, any()) } returns reporterJob
+            every { get(reporterJob.id) } returns reporterJob
+            every { update(reporterJob.id, any(), any(), any()) } returns mockk()
+        }
+        return reporterJobRepository
+    }
+
+    /**
+     * Verify that a job for the Reporter worker has been created and scheduled using the given
+     * [reporterJobRepository] and [publisher].
+     */
+    private fun verifyReporterJobCreated(reporterJobRepository: ReporterJobRepository, publisher: MessagePublisher) {
+        verify(exactly = 1) {
+            reporterJobRepository.create(
+                ortRunId = withArg { it shouldBe ortRun.id },
+                configuration = withArg { it shouldBe reporterJob.configuration }
+            )
+            publisher.publish(
+                to = withArg<ReporterEndpoint> { it shouldBe ReporterEndpoint },
+                message = withArg {
+                    it.header shouldBe msgHeaderWithProperties
+                    it.payload.reporterJobId shouldBe reporterJob.id
+                }
+            )
+        }
+    }
+
+    /**
+     * Create a mock for an [OrtRunRepository] and prepare it with some default expectations. The mock returns the
+     * default [ortRun] for the test run ID. If [expectUpdate] is *true*, it expects an update of its status
+     * (including a configuration update). With the given [block], additional expectations can be defined.
+     */
+    private fun createOrtRunRepository(
+        expectUpdate: Boolean = true,
+        block: OrtRunRepository.() -> Unit = {}
+    ): OrtRunRepository {
+        return mockk<OrtRunRepository> {
+            every { get(RUN_ID) } returns ortRun
+            if (expectUpdate) {
+                every { update(any(), any(), any()) } returns mockk<OrtRun>()
+            }
+            block()
         }
     }
 }
@@ -1634,6 +1591,14 @@ private inline fun <reified J : WorkerJob> createJob(status: JobStatus, jobId: L
         every { this@mockk.status } returns status
         every { ortRunId } returns RUN_ID
     }
+
+/**
+ * Create a mock for a [MessagePublisher] and prepare it to expect the publication of messages to all possible
+ * endpoints.
+ */
+private fun createMessagePublisher() = mockk<MessagePublisher> {
+    every { publish(any<Endpoint<*>>(), any()) } just runs
+}
 
 private fun Instant.verifyTimeRange(allowedDiff: Duration) {
     val now = Clock.System.now()

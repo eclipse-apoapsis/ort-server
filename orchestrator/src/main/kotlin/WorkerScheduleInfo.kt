@@ -62,7 +62,12 @@ internal abstract class WorkerScheduleInfo(
      * A list defining the worker jobs that must run before this job. The difference to [dependsOn] is that this job
      * can also run if these other jobs will not be executed. It is only guaranteed that it runs after all of them.
      */
-    private val runsAfter: List<Endpoint<*>> = emptyList()
+    private val runsAfter: List<Endpoint<*>> = emptyList(),
+
+    /**
+     * A flag determining whether the represented worker should be run even if previous workers have already failed.
+     */
+    private val runAfterFailure: Boolean = false
 ) {
     /**
      * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create
@@ -104,6 +109,7 @@ internal abstract class WorkerScheduleInfo(
     private fun canRun(context: WorkerScheduleContext): Boolean =
         isConfigured(context.jobConfigs()) &&
                 !context.wasScheduled(endpoint) &&
+                canRunWithFailureState(context) &&
                 dependsOn.all { context.isJobCompleted(it) } &&
                 runsAfter.none { scheduleInfos.getValue(it.configPrefix).isPending(context) }
 
@@ -114,10 +120,18 @@ internal abstract class WorkerScheduleInfo(
     private fun isPending(context: WorkerScheduleContext): Boolean =
         isConfigured(context.jobConfigs()) &&
                 !context.isJobCompleted(endpoint) &&
+                canRunWithFailureState(context) &&
                 dependsOn.all {
                     context.wasScheduled(it) ||
                             scheduleInfos.getValue(it.configPrefix).isPending(context)
                 }
+
+    /**
+     * Check whether the represented worker can be executed for the failure state stored in the given [context]. Here
+     * a worker can decide whether it can always run or only if all previous workers were successful.
+     */
+    private fun canRunWithFailureState(context: WorkerScheduleContext) =
+        runAfterFailure || !context.isFailed()
 }
 
 private val analyzerWorkerScheduleInfo = object : WorkerScheduleInfo(AnalyzerEndpoint) {
@@ -180,7 +194,7 @@ private val evaluatorWorkerScheduleInfo =
     }
 
 private val reporterWorkerScheduleInfo =
-    object : WorkerScheduleInfo(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint)) {
+    object : WorkerScheduleInfo(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint), runAfterFailure = true) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().reporter?.let { config ->
                 context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
