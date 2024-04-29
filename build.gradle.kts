@@ -22,6 +22,8 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val dockerBaseImageTag: String by project
+
 plugins {
     alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.detekt)
@@ -215,4 +217,39 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
     rejectVersionIf {
         candidate.version.matches(nonFinalQualifiersRegex)
     }
+}
+
+rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.forEach { dockerfile ->
+    val name = dockerfile.name.substringBeforeLast('.')
+    val context = dockerfile.parent
+
+    tasks.register<Exec>("build${name}WorkerImage") {
+        group = "Docker"
+        description = "Builds the $name worker Docker image."
+
+        inputs.file(dockerfile)
+        inputs.dir(context)
+
+        commandLine = listOf(
+            "docker", "build",
+            "-f", dockerfile.path,
+            "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
+            "-q",
+            context
+        )
+    }
+}
+
+val buildAllWorkerImages by tasks.registering {
+    val workerImageTaskRegex = Regex("build[A-Z][a-z]+WorkerImage")
+    val workerImageTasks = tasks.matching { it.name.matches(workerImageTaskRegex) }
+    dependsOn(workerImageTasks)
+}
+
+tasks.register("buildAllImages") {
+    val jibDockerBuilds = getTasksByName("jibDockerBuild", /* recursive = */ true).onEach {
+        it.mustRunAfter(buildAllWorkerImages)
+    }
+
+    dependsOn(buildAllWorkerImages, jibDockerBuilds)
 }
