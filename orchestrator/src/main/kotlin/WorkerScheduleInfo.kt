@@ -209,7 +209,7 @@ private val reporterWorkerScheduleInfo =
     }
 
 private val notifierWorkerScheduleInfo =
-    object : WorkerScheduleInfo(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint)) {
+    object : WorkerScheduleInfo(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint), runAfterFailure = true) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().notifier?.let { config ->
                 context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
