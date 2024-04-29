@@ -88,11 +88,11 @@ const EditRepositoryPage = () => {
     },
     onError(error: ApiError) {
       toast({
-        title: 'Edit repository - FAILURE',
-        description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
+        title: error.message,
+        description: <ToastError message={error.body.message} cause={error.body.cause} />,
         variant: 'destructive',
       });
-    },
+    }
   });
 
   const form = useForm<z.infer<typeof formSchema>>({

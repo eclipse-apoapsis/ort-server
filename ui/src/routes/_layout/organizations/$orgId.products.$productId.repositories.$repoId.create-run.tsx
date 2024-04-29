@@ -70,8 +70,8 @@ const CreateRunPage = () => {
     },
     onError(error: ApiError) {
       toast({
-        title: 'Create ORT Run - FAILURE',
-        description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
+        title: error.message,
+        description: <ToastError message={error.body.message} cause={error.body.cause} />,
         variant: 'destructive',
       });
     }

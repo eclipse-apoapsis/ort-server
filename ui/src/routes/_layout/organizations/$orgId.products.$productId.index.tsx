@@ -102,8 +102,8 @@ const ProductComponent = () => {
     },
     onError(error: ApiError) {
       toast({
-        title: 'Delete Product - FAILURE',
-        description: <ToastError message={`${error.message}: ${error.body.message}`} cause={error.body.cause} />,
+        title: error.message,
+        description: <ToastError message={error.body.message} cause={error.body.cause} />,
         variant: 'destructive',
       });
     }
