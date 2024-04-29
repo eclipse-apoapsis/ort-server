@@ -35,22 +35,65 @@ import {
   TableCell,
   Table,
 } from '@/components/ui/table';
-import { RepositoriesService } from '@/api/requests';
-import { createFileRoute } from '@tanstack/react-router';
+import { RepositoriesService, OpenAPI } from '@/api/requests';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 
 const RunComponent = () => {
   const params = Route.useParams();
-  
+
   const { data: ortRun } = useSuspenseQuery({
-    queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
+    queryKey: [
+      useRepositoriesServiceGetOrtRunByIndexKey,
+      params.orgId,
+      params.productId,
+      params.repoId,
+      params.runId,
+    ],
     queryFn: async () =>
       await RepositoriesService.getOrtRunByIndex(
         Number.parseInt(params.repoId),
         Number.parseInt(params.runId)
       ),
-  },  
-);
+  });
+
+  const downloadZipFile = async ({
+    runId,
+    fileName,
+  }: {
+    runId: number;
+    fileName: string;
+  }) => {
+    try {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`, {
+        headers: {
+          Authorization: `Bearer ${OpenAPI.TOKEN}`,
+        },
+      });
+      // Convert the response to a Blob
+      const blob = await response.blob();
+      // Create a temporary URL for the Blob
+      const url = window.URL.createObjectURL(blob);
+      // Create an anchor element
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      // Programmatically trigger a click event on the anchor element
+      a.click();
+      // Clean up by revoking the URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  async function handleDownload(filename: string) {
+    await downloadZipFile({
+      runId: Number.parseInt(params.runId),
+      fileName: filename,
+    });
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -71,37 +114,87 @@ const RunComponent = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell>
-                Created At
-              </TableCell>
+              <TableCell>Created At</TableCell>
               <TableCell>
                 <div className="font-medium">{ortRun.createdAt}</div>
               </TableCell>
             </TableRow>
+            {ortRun.finishedAt && (
+              <TableRow>
+                <TableCell>Finished At</TableCell>
+                <TableCell>
+                  <div className="font-medium">
+                    {ortRun.finishedAt as unknown as string}
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             <TableRow>
-              <TableCell>
-                Revision
-              </TableCell>
+              <TableCell>Revision</TableCell>
               <TableCell>
                 <div className="font-medium">{ortRun.revision}</div>
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell>Job configs</TableCell>
+              <TableCell>
+                <pre>{JSON.stringify(ortRun.jobConfigs, null, 2)}</pre>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Resolved job configs</TableCell>
+              <TableCell>
+                <pre>{JSON.stringify(ortRun.resolvedJobConfigs, null, 2)}</pre>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Jobs</TableCell>
+              <TableCell>
+                <pre>{JSON.stringify(ortRun.jobs, null, 2)}</pre>
+              </TableCell>
+            </TableRow>
+            {ortRun.issues.length > 0 && (
+              <TableRow>
+                <TableCell>Issues</TableCell>
+                <TableCell>
+                  <pre>{JSON.stringify(ortRun.issues, null, 2)}</pre>
+                </TableCell>
+              </TableRow>
+            )}
+            {ortRun.jobs.reporter?.reportFilenames && (
+              <TableRow>
+                <TableCell>Result files</TableCell>
+                <TableCell>
+                {(ortRun.jobs.reporter?.reportFilenames as unknown as string[]).map((filename) => (
+                  <div key={filename} className="flex flex-col pb-2">
+                    <Link
+                      onClick={() => handleDownload(filename)}
+                    >
+                      <Button variant="outline" className="font-semibold text-blue-400">
+                        {filename}
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 export const Route = createFileRoute('/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/')({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
-        queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
-        queryFn: () =>
-          RepositoriesService.getOrtRunByIndex(
-            Number.parseInt(params.repoId),
-            Number.parseInt(params.runId)
-          ),
+      queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
+      queryFn: () =>
+        RepositoriesService.getOrtRunByIndex(
+          Number.parseInt(params.repoId),
+          Number.parseInt(params.runId)
+        ),
     });
   },
   component: RunComponent,
