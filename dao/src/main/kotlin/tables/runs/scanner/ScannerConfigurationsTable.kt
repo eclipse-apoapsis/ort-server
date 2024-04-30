@@ -83,15 +83,10 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         return ScannerConfiguration(
             skipConcluded = skipConcluded,
-            archive = fileArchiveConfiguration?.mapToModel(),
             createMissingArchives = createMissingArchives,
             detectedLicenseMappings = detectedLicenseMappings.associate { it.license to it.spdxLicense },
             config = config,
-            storages = storages.associate { it.storage to it.storages.mapToModel() },
-            storageReaders = storageReaders,
-            storageWriters = storageWriters,
-            ignorePatterns = ignorePatterns.orEmpty(),
-            provenanceStorage = provenanceStorageConfiguration?.mapToModel()
+            ignorePatterns = ignorePatterns.orEmpty()
         )
     }
 }

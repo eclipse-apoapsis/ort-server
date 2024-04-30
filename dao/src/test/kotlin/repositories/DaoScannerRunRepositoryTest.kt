@@ -47,15 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.LocalFileStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresConnection
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
@@ -306,19 +298,8 @@ private fun createScanResult(
     }
 }
 
-internal val fileStorageConfiguration = FileStorageConfiguration(
-    localFileStorage = LocalFileStorageConfiguration(
-        directory = "/path/to/storage",
-        compression = true
-    )
-)
-
 internal val scannerConfiguration = ScannerConfiguration(
     skipConcluded = false,
-    archive = FileArchiveConfiguration(
-        enabled = true,
-        fileStorage = fileStorageConfiguration
-    ),
     createMissingArchives = true,
     detectedLicenseMappings = mapOf(
         "license-1" to "spdx-license-1",
@@ -334,33 +315,7 @@ internal val scannerConfiguration = ScannerConfiguration(
             secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
         )
     ),
-    storages = mapOf(
-        "local" to FileBasedStorageConfiguration(
-            backend = fileStorageConfiguration,
-            type = "PROVENANCE_BASED"
-        ),
-        "clearlyDefined" to ClearlyDefinedStorageConfiguration(
-            serverUrl = "https://api.clearlydefined.io"
-        )
-    ),
-    storageReaders = listOf("reader-1", "reader-2"),
-    storageWriters = listOf("writer-1", "writer-2"),
-    ignorePatterns = listOf("pattern-1", "pattern-2"),
-    provenanceStorage = ProvenanceStorageConfiguration(
-        postgresStorageConfiguration = PostgresStorageConfiguration(
-            connection = PostgresConnection(
-                url = "jdbc:postgresql://postgresql-server:5432/database",
-                schema = "public",
-                username = "username",
-                sslMode = "required",
-                sslCert = "/defaultdir/postgresql.crt",
-                sslKey = "/defaultdir/postgresql.pk8",
-                sslRootCert = "/defaultdir/root.crt",
-                parallelTransactions = 5
-            ),
-            type = "PROVENANCE_BASED"
-        )
-    )
+    ignorePatterns = listOf("pattern-1", "pattern-2")
 )
 
 private fun associateScannerRunWithPackageProvenance(scannerRun: ScannerRun, packageProvenance: PackageProvenanceDao) {

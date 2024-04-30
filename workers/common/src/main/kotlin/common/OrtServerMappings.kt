@@ -378,24 +378,10 @@ fun RepositoryProvenance.mapToOrt() = OrtRepositoryProvenance(vcsInfo.mapToOrt()
 fun ScannerConfiguration.mapToOrt() =
     OrtScannerConfiguration(
         skipConcluded = skipConcluded,
-        archive = archive?.mapToOrt(),
         createMissingArchives = createMissingArchives,
         detectedLicenseMapping = detectedLicenseMappings,
         config = config.mapValues { it.value.mapToOrt() },
-        storages = storages?.mapNotNull { (name, storage) ->
-            storage?.let {
-                name to when (it) {
-                    is PostgresStorageConfiguration -> it.mapToOrt()
-                    is ClearlyDefinedStorageConfiguration -> it.mapToOrt()
-                    is FileBasedStorageConfiguration -> it.mapToOrt()
-                    is Sw360StorageConfiguration -> it.mapToOrt()
-                }
-            }
-        }?.toMap(),
-        storageReaders = storageReaders,
-        storageWriters = storageWriters,
-        ignorePatterns = ignorePatterns,
-        provenanceStorage = provenanceStorage?.mapToOrt()
+        ignorePatterns = ignorePatterns
     )
 
 fun ClearlyDefinedStorageConfiguration.mapToOrt() = OrtClearlyDefinedStorageConfiguration(serverUrl)

@@ -81,13 +81,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.LicenseFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.LocalFileStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
@@ -361,19 +356,8 @@ class OrtServerMappingsTest : WordSpec({
                 advisorRecords = mapOf(pkgIdentifier to listOf(advisorResult))
             )
 
-            val fileStorageConfiguration = FileStorageConfiguration(
-                localFileStorage = LocalFileStorageConfiguration(
-                    directory = "/path/to/storage",
-                    compression = true
-                )
-            )
-
             val scannerConfiguration = ScannerConfiguration(
                 skipConcluded = true,
-                archive = FileArchiveConfiguration(
-                    enabled = true,
-                    fileStorage = fileStorageConfiguration
-                ),
                 createMissingArchives = true,
                 detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
                 config = mapOf(
@@ -386,15 +370,7 @@ class OrtServerMappingsTest : WordSpec({
                         secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
                     )
                 ),
-                storages = mapOf(
-                    "local" to FileBasedStorageConfiguration(fileStorageConfiguration, "PROVENANCE_BASED")
-                ),
-                storageReaders = listOf("reader-1", "reader-2"),
-                storageWriters = listOf("writer-1", "writer-2"),
-                ignorePatterns = listOf("pattern-1", "pattern-2"),
-                provenanceStorage = ProvenanceStorageConfiguration(
-                    fileStorage = fileStorageConfiguration
-                )
+                ignorePatterns = listOf("pattern-1", "pattern-2")
             )
 
             val packageCuration = PackageCuration(

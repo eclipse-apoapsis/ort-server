@@ -448,22 +448,10 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
 fun OrtScannerConfiguration.mapToModel() =
     ScannerConfiguration(
         skipConcluded = skipConcluded,
-        archive = archive?.mapToModel(),
         createMissingArchives = createMissingArchives,
         detectedLicenseMappings = detectedLicenseMapping,
         config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
-        storages = storages?.map { (name, storage) ->
-            name to when (storage) {
-                is OrtClearlyDefinedStorageConfiguration -> storage.mapToModel()
-                is OrtFileBasedStorageConfiguration -> storage.mapToModel()
-                is OrtPostgresStorageConfiguration -> storage.mapToModel()
-                is OrtSw360StorageConfiguration -> storage.mapToModel()
-            }
-        }?.toMap().orEmpty(),
-        storageReaders = storageReaders,
-        storageWriters = storageWriters,
-        ignorePatterns = ignorePatterns,
-        provenanceStorage = provenanceStorage?.mapToModel()
+        ignorePatterns = ignorePatterns
     )
 
 fun OrtScanResult.mapToModel() =
