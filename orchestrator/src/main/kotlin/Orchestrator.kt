@@ -306,7 +306,7 @@ class Orchestrator(
 
         val ortRun = getCurrentOrtRun(ortRunId)
         val scheduleContext = createWorkerSchedulerContext(ortRun, header, workerJobs = jobs)
-        val schedules = scheduleInfos.values.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
+        val schedules = WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
 
         return scheduleContext to schedules
     }
