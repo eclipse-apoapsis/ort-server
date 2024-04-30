@@ -65,8 +65,6 @@ import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.Curations
 import org.ossreviewtoolkit.model.config.Excludes
-import org.ossreviewtoolkit.model.config.FileArchiverConfiguration
-import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration
 import org.ossreviewtoolkit.model.config.FileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
@@ -80,7 +78,6 @@ import org.ossreviewtoolkit.model.config.PackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason
 import org.ossreviewtoolkit.model.config.PluginConfiguration
-import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
@@ -90,7 +87,6 @@ import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason
 import org.ossreviewtoolkit.model.config.SnippetChoices
-import org.ossreviewtoolkit.model.config.StorageType
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.config.snippet.Choice
@@ -481,10 +477,7 @@ object OrtTestData {
 
     val scannerConfiguration = ScannerConfiguration(
         skipConcluded = true,
-        archive = FileArchiverConfiguration(
-            enabled = true,
-            fileStorage = fileStorageConfiguration
-        ),
+        archive = null,
         createMissingArchives = true,
         detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
         config = mapOf(
@@ -497,18 +490,11 @@ object OrtTestData {
                 secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
             )
         ),
-        storages = mapOf(
-            "local" to FileBasedStorageConfiguration(
-                backend = fileStorageConfiguration,
-                type = StorageType.PROVENANCE_BASED
-            )
-        ),
-        storageReaders = listOf("reader-1", "reader-2"),
-        storageWriters = listOf("writer-1", "writer-2"),
+        storages = null,
+        storageReaders = null,
+        storageWriters = null,
         ignorePatterns = listOf("pattern-1", "pattern-2"),
-        provenanceStorage = ProvenanceStorageConfiguration(
-            fileStorage = fileStorageConfiguration
-        )
+        provenanceStorage = null
     )
 
     val artifactProvenance = ArtifactProvenance(pkgCuration.data.sourceArtifact!!)

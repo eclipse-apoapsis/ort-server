@@ -177,15 +177,10 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
-                    archive = null,
                     createMissingArchives = true,
                     detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
                     config = emptyMap(),
-                    storages = emptyMap(),
-                    storageReaders = listOf("reader-1"),
-                    storageWriters = listOf("writer-1"),
-                    ignorePatterns = listOf("pattern-1"),
-                    provenanceStorage = null
+                    ignorePatterns = listOf("pattern-1")
                 ),
                 provenances = emptySet(),
                 scanResults = emptySet(),
@@ -508,15 +503,10 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
-                    archive = null,
                     createMissingArchives = true,
                     detectedLicenseMappings = emptyMap(),
-                    storages = emptyMap(),
                     config = emptyMap(),
-                    storageReaders = null,
-                    storageWriters = null,
-                    ignorePatterns = emptyList(),
-                    provenanceStorage = null
+                    ignorePatterns = emptyList()
                 ),
                 scanners = emptyMap()
             )

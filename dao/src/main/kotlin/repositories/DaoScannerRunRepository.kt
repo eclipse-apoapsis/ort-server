@@ -27,45 +27,25 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ClearlyDefinedStorageConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.DetectedLicenseMappingDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileArchiverConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileBasedStorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.FileStorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.HttpFileStorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.LocalFileStorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.PostgresConnectionDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.PostgresStorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ProvenanceStorageConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationOptionDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationSecretDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationStorageDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationsOptionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerConfigurationsSecretsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScannersDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScannersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.StorageConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.Sw360StorageConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.KnownProvenance
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.Sw360StorageConfiguration
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -195,8 +175,6 @@ private fun createScannerConfiguration(
         this.skipConcluded = scannerConfiguration.skipConcluded
         this.createMissingArchives = scannerConfiguration.createMissingArchives
         this.ignorePatterns = scannerConfiguration.ignorePatterns
-        this.storageReaders = scannerConfiguration.storageReaders
-        this.storageWriters = scannerConfiguration.storageWriters
         this.detectedLicenseMappings = detectedLicenseMappings
     }
 
@@ -220,111 +198,8 @@ private fun createScannerConfiguration(
         }
     }
 
-    createFileArchiverConfiguration(scannerConfigurationDao, scannerConfiguration.archive)
-    createProvenanceStorageConfiguration(scannerConfigurationDao, scannerConfiguration.provenanceStorage)
-    createStorages(scannerConfigurationDao, scannerConfiguration.storages)
-
     return scannerConfigurationDao
 }
-
-fun createStorages(
-    scannerConfigurationDao: ScannerConfigurationDao,
-    storages: Map<String, ScanStorageConfiguration?>?
-): List<StorageConfigurationDao?>? =
-    storages?.map { (storage, storageConfiguration) ->
-        val scannerStorageConfigurationDao = ScannerConfigurationStorageDao.new {
-            this.scannerConfiguration = scannerConfigurationDao
-            this.storage = storage
-        }
-
-        when (storageConfiguration) {
-            is ClearlyDefinedStorageConfiguration -> {
-                StorageConfigurationDao.new {
-                    this.scannerConfigurationStorage = scannerStorageConfigurationDao
-                    this.clearlyDefinedStorageConfiguration = ClearlyDefinedStorageConfigurationDao
-                        .getOrPut(storageConfiguration)
-                }
-            }
-
-            is PostgresStorageConfiguration -> {
-                StorageConfigurationDao.new {
-                    this.scannerConfigurationStorage = scannerStorageConfigurationDao
-                    this.postgresStorageConfiguration = createPostgresStorageConfiguration(storageConfiguration)
-                }
-            }
-
-            is FileBasedStorageConfiguration -> {
-                StorageConfigurationDao.new {
-                    this.scannerConfigurationStorage = scannerStorageConfigurationDao
-                    this.fileBasedStorageConfiguration = createFileBasedStorageConfiguration(storageConfiguration)
-                }
-            }
-
-            is Sw360StorageConfiguration -> {
-                StorageConfigurationDao.new {
-                    this.scannerConfigurationStorage = scannerStorageConfigurationDao
-                    this.sw360StorageConfiguration = Sw360StorageConfigurationDao.getOrPut(storageConfiguration)
-                }
-            }
-
-            else -> null
-        }
-    }
-
-private fun createProvenanceStorageConfiguration(
-    scannerConfigurationDao: ScannerConfigurationDao,
-    provenanceStorageConfiguration: ProvenanceStorageConfiguration?
-): ProvenanceStorageConfigurationDao? =
-    provenanceStorageConfiguration?.let {
-        ProvenanceStorageConfigurationDao.new {
-            this.scannerConfiguration = scannerConfigurationDao
-            this.fileStorageConfiguration = it.fileStorage?.let { createFileStorageConfiguration(it) }
-            this.postgresStorageConfiguration = it.postgresStorageConfiguration?.let {
-                createPostgresStorageConfiguration(it)
-            }
-        }
-    }
-
-private fun createFileArchiverConfiguration(
-    scannerConfigurationDao: ScannerConfigurationDao,
-    archive: FileArchiveConfiguration?
-): FileArchiverConfigurationDao? =
-    archive?.let {
-        FileArchiverConfigurationDao.new {
-            this.scannerConfiguration = scannerConfigurationDao
-            this.fileStorageConfiguration = it.fileStorage?.let { createFileStorageConfiguration(it) }
-            this.postgresStorageConfiguration = it.postgresStorage?.let { createPostgresStorageConfiguration(it) }
-        }
-    }
-
-private fun createFileStorageConfiguration(
-    fileStorageConfiguration: FileStorageConfiguration
-): FileStorageConfigurationDao =
-    FileStorageConfigurationDao.new {
-        this.localFileStorageConfiguration = fileStorageConfiguration.localFileStorage?.let {
-            LocalFileStorageConfigurationDao.getOrPut(it)
-        }
-
-        this.httpFileStorageConfiguration = fileStorageConfiguration.httpFileStorage?.let {
-            HttpFileStorageConfigurationDao.getOrPut(it)
-        }
-    }
-
-private fun createPostgresStorageConfiguration(
-    postgresStorageConfiguration: PostgresStorageConfiguration
-): PostgresStorageConfigurationDao =
-    PostgresStorageConfigurationDao.new {
-        this.postgresConnection = PostgresConnectionDao.getOrPut(postgresStorageConfiguration.connection)
-        this.type = postgresStorageConfiguration.type
-    }
-
-private fun createFileBasedStorageConfiguration(
-    fileBasedStorageConfiguration: FileBasedStorageConfiguration
-): FileBasedStorageConfigurationDao =
-    FileBasedStorageConfigurationDao.new {
-        this.fileStorageConfiguration = createFileStorageConfiguration(fileBasedStorageConfiguration.backend)
-        this.type = fileBasedStorageConfiguration.type
-    }
 
 private fun createScanners(run: ScannerRunDao, scanners: Map<Identifier, Set<String>>) {
     scanners.entries.forEach { (id, scannerNames) ->

@@ -23,13 +23,8 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 data class ScannerConfiguration(
     val skipConcluded: Boolean,
-    val archive: FileArchiveConfiguration? = null,
     val createMissingArchives: Boolean,
     val detectedLicenseMappings: Map<String, String>,
     val config: Map<String, PluginConfiguration>,
-    val storages: Map<String, ScanStorageConfiguration?>?,
-    val storageReaders: List<String>?,
-    val storageWriters: List<String>?,
-    val ignorePatterns: List<String>,
-    val provenanceStorage: ProvenanceStorageConfiguration?
+    val ignorePatterns: List<String>
 )
