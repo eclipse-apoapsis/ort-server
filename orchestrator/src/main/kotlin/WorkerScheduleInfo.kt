@@ -42,13 +42,13 @@ import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 typealias JobScheduleFunc = () -> Unit
 
 /**
- * An abstract base class that describes if and when a job for a specific worker should be scheduled.
+ * An enumeration class with constants that describe if and when a job for a specific worker should be scheduled.
  *
- * This class enables a declarative approach to scheduling worker jobs. Instead of defining conditional logic, an
- * instance defines on which other jobs the represented worker depends. Therefore, the scheduling logic can determine
+ * This class enables a declarative approach to scheduling worker jobs. Instead of defining conditional logic, a
+ * constant defines on which other jobs the represented worker depends. Therefore, the scheduling logic can determine
  * in a generic way when all conditions are met to schedule the job.
  */
-internal abstract class WorkerScheduleInfo(
+internal enum class WorkerScheduleInfo(
     /** The endpoint of the worker represented by this schedule info. */
     private val endpoint: Endpoint<*>,
 
@@ -69,6 +69,96 @@ internal abstract class WorkerScheduleInfo(
      */
     private val runAfterFailure: Boolean = false
 ) {
+    ANALYZER(AnalyzerEndpoint) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob =
+            context.workerJobRepositories.analyzerJobRepository.create(
+                context.ortRun.id,
+                context.jobConfigs().analyzer
+            )
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(AnalyzerEndpoint, AnalyzerRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean = true
+    },
+
+    ADVISOR(AdvisorEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+            context.jobConfigs().advisor?.let { config ->
+                context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
+            }
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(AdvisorEndpoint, AdvisorRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean =
+            configs.advisor != null
+    },
+
+    SCANNER(ScannerEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+            context.jobConfigs().scanner?.let { config ->
+                context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
+            }
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(ScannerEndpoint, ScannerRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean =
+            configs.scanner != null
+    },
+
+    EVALUATOR(EvaluatorEndpoint, runsAfter = listOf(AdvisorEndpoint, ScannerEndpoint)) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+            context.jobConfigs().evaluator?.let { config ->
+                context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
+            }
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(EvaluatorEndpoint, EvaluatorRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean =
+            configs.evaluator != null
+    },
+
+    REPORTER(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint), runAfterFailure = true) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+            context.jobConfigs().reporter?.let { config ->
+                context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
+            }
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(ReporterEndpoint, ReporterRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean =
+            configs.reporter != null
+    },
+
+    NOTIFIER(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint), runAfterFailure = true) {
+        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+            context.jobConfigs().notifier?.let { config ->
+                context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
+            }
+
+        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
+            context.publish(NotifierEndpoint, NotifierRequest(job.id))
+        }
+
+        override fun isConfigured(configs: JobConfigurations): Boolean =
+            configs.notifier != null
+    };
+
+    companion object {
+        private val entriesByPrefix = entries.associateBy { it.endpoint.configPrefix }
+
+        operator fun get(endpoint: Endpoint<*>): WorkerScheduleInfo = entriesByPrefix.getValue(endpoint.configPrefix)
+    }
+
     /**
      * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create
      * the job in the database and return a function that schedules the job.
@@ -111,7 +201,7 @@ internal abstract class WorkerScheduleInfo(
                 !context.wasScheduled(endpoint) &&
                 canRunWithFailureState(context) &&
                 dependsOn.all { context.isJobCompleted(it) } &&
-                runsAfter.none { scheduleInfos.getValue(it.configPrefix).isPending(context) }
+                runsAfter.none { WorkerScheduleInfo[it].isPending(context) }
 
     /**
      * Check whether the represented worker is pending for the current ORT run based on the given [context]. This
@@ -123,7 +213,7 @@ internal abstract class WorkerScheduleInfo(
                 canRunWithFailureState(context) &&
                 dependsOn.all {
                     context.wasScheduled(it) ||
-                            scheduleInfos.getValue(it.configPrefix).isPending(context)
+                            WorkerScheduleInfo[it].isPending(context)
                 }
 
     /**
@@ -133,104 +223,3 @@ internal abstract class WorkerScheduleInfo(
     private fun canRunWithFailureState(context: WorkerScheduleContext) =
         runAfterFailure || !context.isFailed()
 }
-
-private val analyzerWorkerScheduleInfo = object : WorkerScheduleInfo(AnalyzerEndpoint) {
-    override fun createJob(context: WorkerScheduleContext): WorkerJob =
-        context.workerJobRepositories.analyzerJobRepository.create(
-            context.ortRun.id,
-            context.jobConfigs().analyzer
-        )
-
-    override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-        context.publish(AnalyzerEndpoint, AnalyzerRequest(job.id))
-    }
-
-    override fun isConfigured(configs: JobConfigurations): Boolean = true
-}
-
-private val advisorWorkerScheduleInfo =
-    object : WorkerScheduleInfo(AdvisorEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().advisor?.let { config ->
-                context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
-            }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(AdvisorEndpoint, AdvisorRequest(job.id))
-        }
-
-        override fun isConfigured(configs: JobConfigurations): Boolean =
-            configs.advisor != null
-    }
-
-private val scannerWorkerScheduleInfo =
-    object : WorkerScheduleInfo(ScannerEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().scanner?.let { config ->
-                context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
-            }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(ScannerEndpoint, ScannerRequest(job.id))
-        }
-
-        override fun isConfigured(configs: JobConfigurations): Boolean =
-            configs.scanner != null
-    }
-
-private val evaluatorWorkerScheduleInfo =
-    object : WorkerScheduleInfo(EvaluatorEndpoint, runsAfter = listOf(AdvisorEndpoint, ScannerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().evaluator?.let { config ->
-                context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
-            }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(EvaluatorEndpoint, EvaluatorRequest(job.id))
-        }
-
-        override fun isConfigured(configs: JobConfigurations): Boolean =
-            configs.evaluator != null
-    }
-
-private val reporterWorkerScheduleInfo =
-    object : WorkerScheduleInfo(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint), runAfterFailure = true) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().reporter?.let { config ->
-                context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
-            }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(ReporterEndpoint, ReporterRequest(job.id))
-        }
-
-        override fun isConfigured(configs: JobConfigurations): Boolean =
-            configs.reporter != null
-    }
-
-private val notifierWorkerScheduleInfo =
-    object : WorkerScheduleInfo(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint), runAfterFailure = true) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().notifier?.let { config ->
-                context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
-            }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(NotifierEndpoint, NotifierRequest(job.id))
-        }
-
-        override fun isConfigured(configs: JobConfigurations): Boolean =
-            configs.notifier != null
-    }
-
-/**
- * A map allowing access to the [WorkerScheduleInfo] objects for the different worker endpoints.
- */
-internal val scheduleInfos = mapOf(
-    AnalyzerEndpoint.configPrefix to analyzerWorkerScheduleInfo,
-    AdvisorEndpoint.configPrefix to advisorWorkerScheduleInfo,
-    ScannerEndpoint.configPrefix to scannerWorkerScheduleInfo,
-    EvaluatorEndpoint.configPrefix to evaluatorWorkerScheduleInfo,
-    ReporterEndpoint.configPrefix to reporterWorkerScheduleInfo,
-    NotifierEndpoint.configPrefix to notifierWorkerScheduleInfo
-)
