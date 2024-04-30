@@ -112,9 +112,9 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
             val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel()).map {
-                repositoryService.getJobs(repositoryId, it.index)?.let { jobs ->
-                    it.mapToApiSummary(jobs.mapToApiSummary())
-                } ?: it.mapToApiSummary(JobSummaries())
+                val jobSummaries = repositoryService.getJobs(repositoryId, it.index)?.mapToApiSummary()
+                    ?: JobSummaries()
+                it.mapToApiSummary(jobSummaries)
             }
 
             val pagedResponse = PagedResponse(
