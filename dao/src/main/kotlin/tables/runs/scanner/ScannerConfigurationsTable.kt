@@ -35,8 +35,6 @@ object ScannerConfigurationsTable : LongIdTable("scanner_configurations") {
 
     val skipConcluded = bool("skip_concluded").default(false)
     val createMissingArchives = bool("create_missing_archives").default(false)
-    val storageReaders = text("storage_readers").nullable()
-    val storageWriters = text("storage_writers").nullable()
     val ignorePatterns = text("ignore_patterns").nullable()
 }
 
@@ -44,25 +42,15 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerConfigurationDao>(ScannerConfigurationsTable)
 
     var scannerRun by ScannerRunDao referencedOn ScannerConfigurationsTable.scannerRunId
-    val fileArchiveConfiguration by FileArchiverConfigurationDao optionalBackReferencedOn
-            FileArchiverConfigurationsTable.scannerConfigurationId
-    val provenanceStorageConfiguration by ProvenanceStorageConfigurationDao optionalBackReferencedOn
-            ProvenanceStorageConfigurationsTable.scannerConfigurationId
 
     var skipConcluded by ScannerConfigurationsTable.skipConcluded
     var createMissingArchives by ScannerConfigurationsTable.createMissingArchives
-    var storageReaders: List<String>? by ScannerConfigurationsTable.storageReaders
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
-    var storageWriters: List<String>? by ScannerConfigurationsTable.storageWriters
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
     var ignorePatterns: List<String>? by ScannerConfigurationsTable.ignorePatterns
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var detectedLicenseMappings by DetectedLicenseMappingDao via
             ScannerConfigurationsDetectedLicenseMappingsTable
     var options by ScannerConfigurationOptionDao via ScannerConfigurationsOptionsTable
     var secrets by ScannerConfigurationSecretDao via ScannerConfigurationsSecretsTable
-    val storages by ScannerConfigurationStorageDao referrersOn
-            ScannerConfigurationsStoragesTable.scannerConfigurationId
 
     fun mapToModel(): ScannerConfiguration {
         val optionsByScanner = options.groupBy { it.scanner }
