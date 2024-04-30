@@ -22,11 +22,14 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import { Toaster } from "@/components/ui/toaster";
+import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
+
+OpenAPIConfig.BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const oidcConfig = {
-  authority: 'http://localhost:8081/realms/master',
-  redirect_uri: 'http://localhost:5173/',
-  client_id: 'react',
+  authority: import.meta.env.VITE_AUTHORITY || 'http://localhost:8081/realms/master',
+  redirect_uri: import.meta.env.VITE_UI_URL || 'http://localhost:5173/',
+  client_id: import.meta.env.VITE_CLIENT_ID || 'react',
   automaticSilentRenew: true,
 } satisfies AuthProviderProps;
 
