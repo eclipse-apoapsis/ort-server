@@ -21,7 +21,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-import java.io.File
 import java.net.URI
 import java.time.Instant
 
@@ -82,22 +81,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ClearlyDefinedStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileArchiveConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileBasedStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.FileStorageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.HttpFileStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.KnownProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.LicenseFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.LocalFileStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.NestedProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.NestedProvenanceScanResult
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresConnection
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.PostgresStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.Provenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceStorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
@@ -106,7 +96,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.Snippet
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.Sw360StorageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
@@ -160,29 +149,20 @@ import org.ossreviewtoolkit.model.VcsInfoCurationData as OrtVcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType as OrtVcsType
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
-import org.ossreviewtoolkit.model.config.ClearlyDefinedStorageConfiguration as OrtClearlyDefinedStorageConfiguration
 import org.ossreviewtoolkit.model.config.Curations as OrtCurations
 import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
-import org.ossreviewtoolkit.model.config.FileArchiverConfiguration as OrtFileArchiveConfiguration
-import org.ossreviewtoolkit.model.config.FileBasedStorageConfiguration as OrtFileBasedStorageConfiguration
-import org.ossreviewtoolkit.model.config.FileStorageConfiguration as OrtFileStorageConfiguration
-import org.ossreviewtoolkit.model.config.HttpFileStorageConfiguration as OrtHttpFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
 import org.ossreviewtoolkit.model.config.JiraConfiguration as OrtJiraConfiguration
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason as OrtLicenseFindingCurationReason
-import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration as OrtLocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason as OrtPathExcludeReason
 import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
-import org.ossreviewtoolkit.model.config.PostgresConnection as OrtPostgresConnection
-import org.ossreviewtoolkit.model.config.PostgresStorageConfiguration as OrtPostgresStorageConfiguration
-import org.ossreviewtoolkit.model.config.ProvenanceStorageConfiguration as OrtProvenanceStorageConfiguration
 import org.ossreviewtoolkit.model.config.ProviderPluginConfiguration as OrtProviderPluginConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
@@ -194,8 +174,6 @@ import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason as OrtScopeExcludeReason
 import org.ossreviewtoolkit.model.config.SendMailConfiguration as OrtSendMailConfiguration
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
-import org.ossreviewtoolkit.model.config.StorageType as OrtStorageTypd
-import org.ossreviewtoolkit.model.config.Sw360StorageConfiguration as OrtSw360StorageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
@@ -382,72 +360,6 @@ fun ScannerConfiguration.mapToOrt() =
         detectedLicenseMapping = detectedLicenseMappings,
         config = config.mapValues { it.value.mapToOrt() },
         ignorePatterns = ignorePatterns
-    )
-
-fun ClearlyDefinedStorageConfiguration.mapToOrt() = OrtClearlyDefinedStorageConfiguration(serverUrl)
-
-fun FileBasedStorageConfiguration.mapToOrt() =
-    OrtFileBasedStorageConfiguration(
-        backend = backend.mapToOrt(),
-        type = OrtStorageTypd.valueOf(type)
-    )
-
-fun Sw360StorageConfiguration.mapToOrt() =
-    OrtSw360StorageConfiguration(
-        restUrl = restUrl,
-        authUrl = authUrl,
-        username = username,
-        clientId = clientId
-    )
-
-fun ProvenanceStorageConfiguration.mapToOrt() =
-    OrtProvenanceStorageConfiguration(
-        fileStorage = fileStorage?.mapToOrt(),
-        postgresStorage = postgresStorageConfiguration?.mapToOrt()
-    )
-
-fun FileArchiveConfiguration.mapToOrt() =
-    OrtFileArchiveConfiguration(
-        enabled = enabled,
-        fileStorage = fileStorage?.mapToOrt(),
-        postgresStorage = postgresStorage?.mapToOrt()
-    )
-
-fun FileStorageConfiguration.mapToOrt() =
-    OrtFileStorageConfiguration(
-        httpFileStorage = httpFileStorage?.mapToOrt(),
-        localFileStorage = localFileStorage?.mapToOrt()
-    )
-
-fun HttpFileStorageConfiguration.mapToOrt() =
-    OrtHttpFileStorageConfiguration(
-        url = url,
-        query = query,
-        headers = headers
-    )
-
-fun LocalFileStorageConfiguration.mapToOrt() =
-    OrtLocalFileStorageConfiguration(
-        directory = File(directory),
-        compression = compression
-    )
-
-fun PostgresStorageConfiguration.mapToOrt() =
-    OrtPostgresStorageConfiguration(
-        connection = connection.mapToOrt(),
-        type = OrtStorageTypd.valueOf(type)
-    )
-
-fun PostgresConnection.mapToOrt() =
-    OrtPostgresConnection(
-        url = url,
-        schema = schema,
-        username = username,
-        sslmode = sslMode,
-        sslcert = sslCert,
-        sslkey = sslKey,
-        sslrootcert = sslRootCert,
-        parallelTransactions = parallelTransactions
     )
 
 fun AdvisorResult.mapToOrt() =
