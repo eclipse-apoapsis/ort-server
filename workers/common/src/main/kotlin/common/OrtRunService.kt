@@ -181,20 +181,28 @@ class OrtRunService(
     }
 
     /**
-     * Return the [Repository] information for the provided [OrtRun].
+     * Return the [Repository] information for the provided [OrtRun]. If this information is not available act
+     * accordingly based on the [failIfMissing] flag: If it is *true*, throw an exception; otherwise, return an
+     * empty [Repository] object.
      */
-    fun getOrtRepositoryInformation(ortRun: OrtRun) = db.blockingQuery {
+    fun getOrtRepositoryInformation(ortRun: OrtRun, failIfMissing: Boolean = true) = db.blockingQuery {
         val vcsId = ortRun.vcsId
+        val vcsProcessedId = ortRun.vcsProcessedId
+        val nestedRepositoryIds = ortRun.nestedRepositoryIds
+
+        @Suppress("ComplexCondition")
+        if ((vcsId == null || vcsProcessedId == null || nestedRepositoryIds == null) && !failIfMissing) {
+            return@blockingQuery Repository.EMPTY
+        }
+
         requireNotNull(vcsId) {
             "VCS information is missing from ORT run '${ortRun.id}'."
         }
 
-        val vcsProcessedId = ortRun.vcsProcessedId
         requireNotNull(vcsProcessedId) {
             "VCS processed information is missing from ORT run '${ortRun.id}'."
         }
 
-        val nestedRepositoryIds = ortRun.nestedRepositoryIds
         requireNotNull(nestedRepositoryIds) {
             "Nested repositories information is missing from ORT run '${ortRun.id}'."
         }
