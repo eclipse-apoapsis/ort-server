@@ -374,13 +374,53 @@ class OrtRunServiceTest : WordSpec({
         }
 
         "throw exception if VCS information is not present in ORT run" {
-            val ortRun = fixtures.ortRun
+            val processedVcsInfo = createVcsInfo("https://example.com/repo-processed.git")
+            val nestedVcsInfo1 = createVcsInfo("https://example.com/repo-nested-1.git")
+            val nestedVcsInfo2 = createVcsInfo("https://example.com/repo-nested-2.git")
+
+            val ortRun = createOrtRun(
+                db,
+                null,
+                processedVcsInfo,
+                nestedVcsInfo1,
+                nestedVcsInfo2,
+                fixtures,
+                repositoryConfigRepository
+            )
 
             val exception = shouldThrow<IllegalArgumentException> {
                 service.getOrtRepositoryInformation(ortRun)
             }
 
             exception.message shouldBe "VCS information is missing from ORT run '1'."
+        }
+
+        "throw exception if processed VCS information is not present in ORT run" {
+            val vcsInfo = createVcsInfo("https://example.com/repo.git")
+            val nestedVcsInfo1 = createVcsInfo("https://example.com/repo-nested-1.git")
+            val nestedVcsInfo2 = createVcsInfo("https://example.com/repo-nested-2.git")
+
+            val ortRun = createOrtRun(
+                db,
+                vcsInfo,
+                null,
+                nestedVcsInfo1,
+                nestedVcsInfo2,
+                fixtures,
+                repositoryConfigRepository
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                service.getOrtRepositoryInformation(ortRun)
+            }
+
+            exception.message shouldBe "VCS processed information is missing from ORT run '1'."
+        }
+
+        "return an empty Repository if no VCS information is present and failIfMissing is false" {
+            val repository = service.getOrtRepositoryInformation(fixtures.ortRun, failIfMissing = false)
+
+            repository shouldBe Repository.EMPTY
         }
     }
 
@@ -940,23 +980,23 @@ class OrtRunServiceTest : WordSpec({
 
 private fun createOrtRun(
     db: Database,
-    vcsInfo: VcsInfo,
-    processedVcsInfo: VcsInfo,
+    vcsInfo: VcsInfo?,
+    processedVcsInfo: VcsInfo?,
     nestedVcsInfo1: VcsInfo,
     nestedVcsInfo2: VcsInfo,
     fixtures: Fixtures,
     repositoryConfigurationRepository: RepositoryConfigurationRepository
 ) = db.blockingQuery {
-    val vcs = VcsInfoDao.getOrPut(vcsInfo)
-    val vcsProcessed = VcsInfoDao.getOrPut(processedVcsInfo)
+    val vcs = vcsInfo?.let(VcsInfoDao::getOrPut)
+    val vcsProcessed = processedVcsInfo?.let(VcsInfoDao::getOrPut)
     val vcsNested = mapOf(
         "nested-1" to VcsInfoDao.getOrPut(nestedVcsInfo1),
         "nested-2" to VcsInfoDao.getOrPut(nestedVcsInfo2)
     )
 
     val ortRunDao = OrtRunDao[fixtures.ortRun.id]
-    ortRunDao.vcsId = vcs.id
-    ortRunDao.vcsProcessedId = vcsProcessed.id
+    ortRunDao.vcsId = vcs?.id
+    ortRunDao.vcsProcessedId = vcsProcessed?.id
     vcsNested.forEach { nestedRepository ->
         NestedRepositoriesTable.insert {
             it[ortRunId] = fixtures.ortRun.id
