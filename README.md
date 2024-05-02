@@ -8,10 +8,36 @@ The ORT server is a standalone application to deploy the
 > Eclipse Foundation and working towards making the first release.
 > Once released, the project will use semantic versioning, until then breaking changes can occur at any time. 
 
-## Local Setup
+## Running ORT Server
 
-To start the ORT server with the required 3rd party services, you can use
-[Docker Compose](https://docs.docker.com/compose/).
+The easiest way to run the ORT Server for testing is to use [Docker Compose](https://docs.docker.com/compose/).
+For a proper deployment to Kubernetes, the project will later provide a Helm chart.
+
+### Docker Compose
+
+> [!CAUTION]
+> Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
+> without TLS.
+
+To start the ORT server with the required 3rd party services, you can run:
+
+```shell
+docker compose up
+```
+
+This will use the ORT Server images
+[published on GitHub](https://github.com/orgs/eclipse-apoapsis/packages?ecosystem=container).
+By default, the `main` tag is used.
+Those images are built from the `main` branch of the repository.
+To use a different tag, you can set the `ORT_SERVER_IMAGE_TAG` environment variable, for example:
+
+```shell
+ORT_SERVER_IMAGE_TAG=0.1.0-SNAPSHOT-001.sha.aa4d3fa docker compose up
+```
+
+#### Running with local images
+
+During development, it is useful to run the ORT Server with locally built Docker images.
 
 First, ensure to have [Docker BuildKit](https://docs.docker.com/build/buildkit/) enabled by either using Docker version
 23.0 or newer, running `export DOCKER_BUILDKIT=1`, or configuring `/etc/docker/daemon.json` with
@@ -94,14 +120,12 @@ Here, the `dockerBaseImageTag` parameter specifies the tag of the Analyzer base 
 This example sets the same tag for both the base image and the final Analyzer image, which is certainly a reasonable
 convention.
 
-Finally, you can start Docker Compose:
+Finally, you can start Docker Compose using the local images by setting the image prefix to an empty string and the tag
+to `latest`:
 
 ```shell
-docker compose up
+ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose up
 ```
-
-**Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
-without TLS.**
 
 ### Accessing the services
 
@@ -145,9 +169,10 @@ docker compose -f docker-compose.yml -f docker-compose-maintenance.yml up flyway
 ## Publish Docker Images
 
 To publish the Docker images to a registry, first build the worker base images as described in
-[Local Setup](#local-setup). Then you can use the `jib` task to publish the images by setting the correct prefix for the
-registry. You can also configure the tag which defaults to `latest`. When publishing multiple images at once it is
-recommended to disable parallel builds.
+[Running with local images](#running-with-local-images).
+Then you can use the `jib` task to publish the images by setting the correct prefix for the registry.
+You can also configure the tag which defaults to `latest`.
+When publishing multiple images at once, it is recommended to disable parallel builds.
 
 ```shell
 # Publish all Docker images.
