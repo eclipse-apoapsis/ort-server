@@ -24,6 +24,9 @@ Then build the base images for the workers which contain the external tools and 
 ```shell
 # Build all worker images at once:
 ./gradlew buildAllWorkerImages
+
+# Build all worker images at once with custom build arguments:
+./gradlew -PdockerBaseBuildArgs="TEMURIN_VERSION=11" buildAllWorkerImages
 ```
 
 *or* manually by running
