@@ -35,6 +35,15 @@ To use a different tag, you can set the `ORT_SERVER_IMAGE_TAG` environment varia
 ORT_SERVER_IMAGE_TAG=0.1.0-SNAPSHOT-001.sha.aa4d3fa docker compose up
 ```
 
+By default, the ORT Server API is exposed on port 8080.
+If this port is already in use, it can be changed using the `ORT_SERVER_CORE_PORT` environment variable:
+
+```shell
+ORT_SERVER_CORE_PORT=8090 docker compose up
+```
+
+When using a different port, please make sure that it is not used by [another service](#accessing-the-services).
+
 #### Running with local images
 
 During development, it is useful to run the ORT Server with locally built Docker images.
