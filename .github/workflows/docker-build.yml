@@ -42,6 +42,11 @@ jobs:
           task: :workers:config:jibDockerBuild
           context: workers/config/docker
           dockerfile: Config.Dockerfile
+        - name: Evaluator Worker
+          image: evaluator-worker
+          task: :workers:evaluator:jibDockerBuild
+          context: workers/evaluator/docker
+          dockerfile: Evaluator.Dockerfile
         - name: Notifier Worker
           image: notifier-worker
           task: :workers:notifier:jibDockerBuild
