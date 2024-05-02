@@ -112,7 +112,7 @@ services:
       start_period: 60s
 
   core:
-    image: ort-server-core
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-core:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -158,7 +158,7 @@ services:
         target: /mnt/secrets.properties
 
   orchestrator:
-    image: ort-server-orchestrator
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-orchestrator:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -215,7 +215,7 @@ services:
         target: /mnt/secrets.properties
 
   advisor-worker:
-    image: ort-server-advisor-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-advisor-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -252,7 +252,7 @@ services:
       target: /mnt/secrets.properties
 
   analyzer-worker:
-    image: ort-server-analyzer-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-analyzer-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -289,7 +289,7 @@ services:
       target: /mnt/secrets.properties
 
   config-worker:
-    image: ort-server-config-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-config-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -325,7 +325,7 @@ services:
       target: /mnt/secrets.properties
 
   evaluator-worker:
-    image: ort-server-evaluator-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-evaluator-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -362,7 +362,7 @@ services:
       target: /mnt/secrets.properties
 
   reporter-worker:
-    image: ort-server-reporter-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-reporter-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
@@ -399,7 +399,7 @@ services:
       target: /mnt/secrets.properties
 
   scanner-worker:
-    image: ort-server-scanner-worker
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-scanner-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
       postgres:
         condition: service_healthy
