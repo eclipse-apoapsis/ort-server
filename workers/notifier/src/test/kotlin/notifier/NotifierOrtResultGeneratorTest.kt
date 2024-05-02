@@ -192,7 +192,7 @@ private class ResultGeneratorTestHelper {
         every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
         every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
         every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-        every { getOrtRepositoryInformation(ortRun) } returns repository
+        every { getOrtRepositoryInformation(ortRun, failIfMissing = false) } returns repository
         every { getOrtRun(ORT_RUN_ID) } returns ortRun
         every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
         every { getResolvedConfiguration(ortRun) } returns resolvedConfig
