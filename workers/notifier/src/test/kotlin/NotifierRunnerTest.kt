@@ -107,31 +107,28 @@ class NotifierRunnerTest : WordSpec({
         "invoke the ORT notifier" {
             mockkConstructor(Notifier::class)
 
-            val originalOrtResult = OrtResult.EMPTY.copy(
+            val ortResult = OrtResult.EMPTY.copy(
                 repository = Repository.EMPTY.copy(vcs = VcsInfo(VcsType.GIT, "https://example.com/repo.git", "main")),
                 labels = mapOf("foo" to "bar")
-            )
-            val expectedOrtResult = originalOrtResult.copy(
-                labels = originalOrtResult.labels + ("emailRecipients" to "test@example.com;more-test@example.com")
             )
 
             every {
                 constructedWith<Notifier>(
-                    EqMatcher(expectedOrtResult),
+                    EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
                 ).run(any())
             } returns mockk()
 
             runner.run(
-                ortResult = originalOrtResult,
+                ortResult = ortResult,
                 config = notifierConfig,
                 workerContext = createWorkerContext()
             )
 
             verify(exactly = 1) {
                 constructedWith<Notifier>(
-                    EqMatcher(expectedOrtResult),
+                    EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
                 ).run(script.readText())

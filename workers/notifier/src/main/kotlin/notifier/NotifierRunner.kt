@@ -94,7 +94,7 @@ class NotifierRunner {
             val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
 
             val notifier = Notifier(
-                ortResult = config.mail?.recipientAddresses?.let { ortResult.addMailRecipientLabel(it) } ?: ortResult,
+                ortResult = ortResult,
                 config = notifierConfiguration,
                 resolutionProvider = resolutionProvider
             )
@@ -109,11 +109,6 @@ class NotifierRunner {
         }
     }
 }
-
-// TODO: ORT's Notifier API should be changed to support the email addresses, and not require to handle this information
-//       as a label in the ORT result.
-private fun OrtResult.addMailRecipientLabel(recipients: List<String>) =
-    copy(labels = labels + mapOf("emailRecipients" to recipients.joinToString(";")))
 
 data class NotifierRunnerResult(
     val notifierRun: NotifierRun
