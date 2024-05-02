@@ -22,6 +22,7 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
 
 plugins {
@@ -223,6 +224,8 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
     val name = dockerfile.name.substringBeforeLast('.')
     val context = dockerfile.parent
 
+    val buildArgs = dockerBaseBuildArgs.split(',').flatMap { listOf("--build-arg", it.trim()) }
+
     tasks.register<Exec>("build${name}WorkerImage") {
         group = "Docker"
         description = "Builds the $name worker Docker image."
@@ -233,6 +236,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
         commandLine = listOf(
             "docker", "build",
             "-f", dockerfile.path,
+            *buildArgs.toTypedArray(),
             "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
             "-q",
             context
