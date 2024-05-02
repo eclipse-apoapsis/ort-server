@@ -19,8 +19,16 @@
 
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
+import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
+import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
@@ -36,6 +44,9 @@ import org.ossreviewtoolkit.model.OrtResult
  * - report_&lt;name&gt;: For each report generated for this run, a label with the name of the report is added.
  *   The value is the link under which the report can be downloaded. So, these links could be included in a
  *   notification mail.
+ * - &lt;worker&gt;JobStatus: Labels of this category allow finding out which worker jobs have been executed and their
+ *   status. The values correspond to the names of the constants from the [JobStatus] enum. For instance, a label
+ *   _analyzerJobStatus_ with the value _FINISHED_ means that the Analyzer job has been executed successfully.
  */
 internal class NotifierOrtResultGenerator(
     /** Reference to the service to access the current ORT run. */
@@ -45,12 +56,24 @@ internal class NotifierOrtResultGenerator(
         /** The prefix for labels that represent the download links for reports. */
         private const val REPORT_LABEL_PREFIX = "report_"
 
+        /** The suffix for labels that represent the status of a worker job. */
+        private const val JOB_STATUS_LABEL_SUFFIX = "JobStatus"
+
         /** The label for the email recipients. */
         private const val EMAIL_RECIPIENTS_LABEL = "emailRecipients"
 
         /** The separator for multiple email recipients. */
         private const val RECIPIENTS_SEPARATOR = ";"
     }
+
+    /** A map with functions to retrieve the job status for each worker endpoint. */
+    private val jobStatusFunctions: Map<Endpoint<*>, (Long) -> WorkerJob?> = mapOf(
+        AnalyzerEndpoint to ortRunService::getAnalyzerJobForOrtRun,
+        AdvisorEndpoint to ortRunService::getAdvisorJobForOrtRun,
+        ScannerEndpoint to ortRunService::getScannerJobForOrtRun,
+        EvaluatorEndpoint to ortRunService::getEvaluatorJobForOrtRun,
+        ReporterEndpoint to ortRunService::getReporterJobForOrtRun
+    )
 
     /**
      * Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob].
@@ -72,7 +95,8 @@ internal class NotifierOrtResultGenerator(
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
 
-        val labelsToAdd = getLabelsForReportDownloadLinks(ortRun) + getMailRecipientsLabels(notifierJob)
+        val labelsToAdd = getLabelsForReportDownloadLinks(ortRun) + getMailRecipientsLabels(notifierJob) +
+                getJobStatusLabels(ortRun)
         return baseResult.takeIf { labelsToAdd.isEmpty() }
             ?: baseResult.copy(labels = baseResult.labels + labelsToAdd)
     }
@@ -96,5 +120,21 @@ internal class NotifierOrtResultGenerator(
         return notifierJob.configuration.mail?.recipientAddresses?.let { recipients ->
             mapOf(EMAIL_RECIPIENTS_LABEL to recipients.joinToString(RECIPIENTS_SEPARATOR))
         }.orEmpty()
+    }
+
+    /**
+     * Return a map with labels that contain information about the worker jobs executed for the given [ortRun].
+     */
+    private fun getJobStatusLabels(ortRun: OrtRun): Map<String, String> {
+        val jobStatusLabels = mutableMapOf<String, String>()
+
+        jobStatusFunctions.forEach { (endpoint, getJobFunction) ->
+            val job = getJobFunction(ortRun.id)
+            if (job != null) {
+                jobStatusLabels["${endpoint.configPrefix}$JOB_STATUS_LABEL_SUFFIX"] = job.status.name
+            }
+        }
+
+        return jobStatusLabels
     }
 }
