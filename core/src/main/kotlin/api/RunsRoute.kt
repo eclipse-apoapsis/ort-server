@@ -70,7 +70,19 @@ fun Route.runs() = route("runs/{runId}") {
 
                 val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
 
-                call.respondOutputStream(downloadData.contentType, producer = downloadData.loader)
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.Attachment.withParameter(
+                        ContentDisposition.Parameters.FileName,
+                        fileName
+                    ).toString()
+                )
+
+                call.respondOutputStream(
+                    downloadData.contentType,
+                    producer = downloadData.loader,
+                    contentLength = downloadData.contentLength
+                )
             }
         }
     }

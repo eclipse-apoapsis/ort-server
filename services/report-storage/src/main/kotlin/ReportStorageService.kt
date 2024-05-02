@@ -55,7 +55,7 @@ class ReportStorageService(
         val entry = reportStorage.read(key)
 
         val contentType = entry.contentType?.let(ContentType::parse) ?: ContentType.Application.OctetStream
-        return ReportDownloadData(contentType) {
+        return ReportDownloadData(contentType, entry.length) {
             entry.data.copyTo(this)
         }
     }
@@ -80,6 +80,9 @@ class ReportStorageService(
 data class ReportDownloadData(
     /** The content type of the report data. */
     val contentType: ContentType,
+
+    /** The content length of the report data. */
+    val contentLength: Long,
 
     /** A function to stream the represented data into an [OutputStream]. */
     val loader: suspend OutputStream.() -> Unit
