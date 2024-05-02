@@ -3,6 +3,11 @@
 The ORT server is a standalone application to deploy the
 [OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the cloud.
 
+> [!NOTE]
+> This project is currently in the [incubation phase](https://projects.eclipse.org/projects/technology.apoapsis) at the
+> Eclipse Foundation and working towards making the first release.
+> Once released, the project will use semantic versioning, until then breaking changes can occur at any time. 
+
 ## Local Setup
 
 To start the ORT server with the required 3rd party services, you can use
