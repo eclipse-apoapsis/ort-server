@@ -79,7 +79,7 @@ internal class NotifierOrtResultGenerator(
      * Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob].
      */
     fun generateOrtResult(ortRun: OrtRun, notifierJob: NotifierJob): OrtResult {
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+        val repository = ortRunService.getOrtRepositoryInformation(ortRun, failIfMissing = false)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
         val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
         val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
