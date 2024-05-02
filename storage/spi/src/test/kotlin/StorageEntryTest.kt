@@ -52,7 +52,7 @@ class StorageEntryTest : StringSpec({
             val stream = mockk<InputStream>()
             every { stream.close() } just runs
 
-            val entry = StorageEntry.create(stream, "some-content")
+            val entry = StorageEntry.create(stream, "some-content", 0L)
 
             entry.close()
 

@@ -117,7 +117,7 @@ class StorageTest : WordSpec({
             val entry = StorageProviderFactoryForTesting.getEntry(key)
             entry.contentType shouldBe CONTENT_TYPE
             entry.data shouldBe data.toByteArray()
-            entry.length shouldBe data.length
+            entry.length shouldBe data.toByteArray().size
         }
     }
 
@@ -136,6 +136,7 @@ class StorageTest : WordSpec({
 
             entry.contentType shouldBe CONTENT_TYPE
             entry.data.use { it.readAllBytes() } shouldBe data
+            entry.length shouldBe data.size.toLong()
         }
 
         "handle exceptions thrown by the provider" {
@@ -151,7 +152,7 @@ class StorageTest : WordSpec({
         "return data as an array" {
             val data = "Data to be read from the entry".repeat(8).toByteArray()
 
-            StorageEntry.create(ByteArrayInputStream(data), CONTENT_TYPE).use { entry ->
+            StorageEntry.create(ByteArrayInputStream(data), CONTENT_TYPE, data.size.toLong()).use { entry ->
                 entry.dataArray shouldBe data
             }
         }
@@ -161,7 +162,9 @@ class StorageTest : WordSpec({
         "return data as a String" {
             val data = "This is the data as string."
 
-            StorageEntry.create(ByteArrayInputStream(data.toByteArray()), CONTENT_TYPE).use { entry ->
+            StorageEntry.create(
+                ByteArrayInputStream(data.toByteArray()), CONTENT_TYPE, data.length.toLong()
+            ).use { entry ->
                 entry.dataString shouldBe data
             }
         }
