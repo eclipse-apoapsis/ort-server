@@ -30,10 +30,8 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
-import io.mockk.verify
 
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
@@ -41,18 +39,11 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
-import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
-import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.NotifierRun as OrtNotifierRun
 import org.ossreviewtoolkit.model.OrtResult
@@ -84,10 +75,6 @@ class NotifierWorkerTest : StringSpec({
     }
 
     "NotifierWorker should run successfully" {
-        val analyzerRun = mockk<AnalyzerRun>()
-        val advisorRun = mockk<AdvisorRun>()
-        val evaluatorRun = mockk<EvaluatorRun>()
-        val scannerRun = mockk<ScannerRun>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
             every { repositoryId } returns REPOSITORY_ID
@@ -99,28 +86,14 @@ class NotifierWorkerTest : StringSpec({
             // Ignore the changed value as the validation is done by checking the parameter.
             every { copy(labels = any()) } returns this
         }
-        every { analyzerRun.mapToOrt() } returns mockk()
-        every { advisorRun.mapToOrt() } returns mockk()
-        every { evaluatorRun.mapToOrt() } returns mockk()
-        every { scannerRun.mapToOrt() } returns mockk()
-        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resultGenerator = mockk<NotifierOrtResultGenerator> {
+            every { generateOrtResult(ortRun, notifierJob) } returns ortResult
+        }
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-            every { getOrtRepositoryInformation(ortRun) } returns mockk()
             every { getOrtRun(ORT_RUN_ID) } returns ortRun
             every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-            every { getDownloadLinksForOrtRun(ORT_RUN_ID) } returns listOf(
-                Report(
-                    filename = "scan-report.html",
-                    downloadLink = "https://example.com/scan-report.html",
-                    downloadTokenExpiryDate = Instant.DISTANT_FUTURE
-                )
-            )
             every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { storeNotifierRun(any()) } returns mockk()
             every { storeIssues(any(), any()) } just runs
@@ -150,7 +123,8 @@ class NotifierWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory
+            contextFactory,
+            resultGenerator
         )
 
         mockkTransaction {
@@ -165,15 +139,6 @@ class NotifierWorkerTest : StringSpec({
         }
 
         slotNotifierRun.captured.notifierJobId shouldBe NOTIFIER_JOB_ID
-
-        verify(exactly = 1) {
-            @Suppress("UnusedDataClassCopyResult")
-            ortResult.copy(
-                labels = mapOf(
-                    "report_scan-report.html" to "https://example.com/scan-report.html"
-                )
-            )
-        }
     }
 
     "A failure result should be returned in case of an error" {
@@ -182,7 +147,7 @@ class NotifierWorkerTest : StringSpec({
             every { getNotifierJob(NOTIFIER_JOB_ID) } throws testException
         }
 
-        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk())
+        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk(), mockk())
 
         mockkTransaction {
             when (val result = worker.run(NOTIFIER_JOB_ID, TRACE_ID)) {
@@ -198,7 +163,7 @@ class NotifierWorkerTest : StringSpec({
             every { getNotifierJob(NOTIFIER_JOB_ID) } returns invalidJob
         }
 
-        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk())
+        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk(), mockk())
 
         mockkTransaction {
             val result = worker.run(NOTIFIER_JOB_ID, TRACE_ID)

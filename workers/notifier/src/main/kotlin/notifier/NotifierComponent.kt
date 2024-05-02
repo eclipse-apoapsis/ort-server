@@ -68,6 +68,7 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
         listOf(notifierModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
 
     private fun notifierModule() = module {
+        singleOf(::NotifierOrtResultGenerator)
         singleOf(::NotifierRunner)
         singleOf(::NotifierWorker)
     }

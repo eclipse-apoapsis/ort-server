@@ -29,11 +29,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
-
-import org.ossreviewtoolkit.model.OrtResult
 
 import org.slf4j.LoggerFactory
 
@@ -45,7 +42,8 @@ internal class NotifierWorker(
     private val db: Database,
     private val runner: NotifierRunner,
     private val ortRunService: OrtRunService,
-    private val workerContextFactory: WorkerContextFactory
+    private val workerContextFactory: WorkerContextFactory,
+    private val ortResultGenerator: NotifierOrtResultGenerator
 ) {
     fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidNotifierJob(jobId)
@@ -56,26 +54,7 @@ internal class NotifierWorker(
             ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
         logger.debug("Notifier job with id '{}' started at '{}'.", jobId, job.startedAt)
 
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
-        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
-        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
-        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
-        val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
-
-        // Get the report links for the ORT run as a map of the report name to the download link.
-        val downloadLinks: Map<String, String> = ortRunService.getDownloadLinksForOrtRun(ortRun.id).associate {
-            it.filename to it.downloadLink
-        }
-
-        val ortResult = ortRun.mapToOrt(
-            repository = repository,
-            analyzerRun = analyzerRun?.mapToOrt(),
-            advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt(),
-            evaluatorRun = evaluatorRun?.mapToOrt(),
-            resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        ).addReportLinkLabels(downloadLinks)
+        val ortResult = ortResultGenerator.generateOrtResult(ortRun, job)
 
         val startTime = Clock.System.now()
 
@@ -117,16 +96,5 @@ internal class NotifierWorker(
         if (status in invalidStates) {
             throw JobIgnoredException("Notifier job '$id' status is already set to '$status'")
         }
-    }
-
-    private fun OrtResult.addReportLinkLabels(reportLinks: Map<String, String>): OrtResult {
-        if (reportLinks.isEmpty()) return this
-
-        val updatedLabels = labels.toMutableMap()
-        reportLinks.forEach { (reportName, reportLink) ->
-            updatedLabels["report_$reportName"] = reportLink
-        }
-
-        return copy(labels = updatedLabels)
     }
 }
