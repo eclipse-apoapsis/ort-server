@@ -39,21 +39,24 @@ data class StorageEntry(
     val data: InputStream,
 
     /** The content type associated with this entry if any. */
-    val contentType: String?
+    val contentType: String?,
+
+    /** The length of the [data] stream. */
+    val length: Long
 ) : AutoCloseable {
     companion object {
         /**
-         * Create a [StorageEntry] instance from the provided [data] and [contentType].
+         * Create a [StorageEntry] instance from the provided [data], [contentType], and [length].
          */
-        fun create(data: InputStream, contentType: String?) =
-            StorageEntry(data, contentType)
+        fun create(data: InputStream, contentType: String?, length: Long) =
+            StorageEntry(data, contentType, length)
 
         /**
          * Create a [StorageEntry] instance using a [TempFileInputStream] initialized with the provided [file] and
          * the [contentType].
          */
         fun create(file: File, contentType: String?) =
-            StorageEntry(TempFileInputStream(file), contentType)
+            StorageEntry(TempFileInputStream(file), contentType, file.length())
     }
 
     override fun close() {

@@ -51,7 +51,11 @@ class ReportStorageServiceTest : WordSpec({
 
             val storage = mockk<Storage>()
             every { storage.containsKey(key) } returns true
-            every { storage.read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), contentType)
+            every { storage.read(key) } returns StorageEntry.create(
+                ByteArrayInputStream(reportData),
+                contentType,
+                reportData.size.toLong()
+            )
 
             val service = ReportStorageService(storage, mockk())
             val downloadData = service.fetchReport(runId, fileName)
@@ -87,7 +91,11 @@ class ReportStorageServiceTest : WordSpec({
 
             val storage = mockk<Storage>()
             every { storage.containsKey(key) } returns true
-            every { storage.read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), null)
+            every { storage.read(key) } returns StorageEntry.create(
+                ByteArrayInputStream(reportData),
+                null,
+                reportData.size.toLong()
+            )
 
             val service = ReportStorageService(storage, mockk())
             val downloadData = service.fetchReport(runId, fileName)
@@ -107,7 +115,11 @@ class ReportStorageServiceTest : WordSpec({
 
             val storage = mockk<Storage> {
                 every { containsKey(key) } returns true
-                every { read(key) } returns StorageEntry.create(ByteArrayInputStream(reportData), contentType)
+                every { read(key) } returns StorageEntry.create(
+                    ByteArrayInputStream(reportData),
+                    contentType,
+                    reportData.size.toLong()
+                )
             }
 
             val reporterJobRepository = mockk<ReporterJobRepository> {
