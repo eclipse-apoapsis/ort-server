@@ -181,17 +181,16 @@ To publish the Docker images to a registry, first build the worker base images a
 [Running with local images](#running-with-local-images).
 Then you can use the `jib` task to publish the images by setting the correct prefix for the registry.
 You can also configure the tag which defaults to `latest`.
-When publishing multiple images at once, it is recommended to disable parallel builds.
 
 ```shell
 # Publish all Docker images.
-./gradlew --no-parallel -PdockerImagePrefix=my.registry/ jib
+./gradlew -PdockerImagePrefix=my.registry/ jib
 
 # Publish one specific image.
 ./gradlew -PdockerImagePrefix=my.registry/ :core:jib
 
 # Publish using a custom tag.
-./gradlew --no-parallel -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
+./gradlew -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
 ```
 
 ## License
