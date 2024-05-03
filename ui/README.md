@@ -11,17 +11,6 @@ build tool and [pnpm](https://pnpm.io/) as the package manager.
 
 The UI expects ORT Server to be running locally.
 
-The UI currently requires manual creation of a Keycloak client. Go to <http://localhost:8081>, log
-in with `admin:admin` and create a client with the following details:
-
-1. Client ID: `react`
-2. Root URL: `http://localhost:5173`
-3. Home URL: `http://localhost:5173`
-4. Valid redirect URIs: `/*`
-5. Valid post logout redirect URIs: `/*`
-6. Web origins: `+`
-7. In the Advanced tab, set the "Access Token Lifespan" to expire in 5 minutes.
-
 ## Regenerating the UI Query Client
 
 The exact details and process of the synchronization between the ORT Server's OpenAPI specification and the matching UI queries is to be discussed.
