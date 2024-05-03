@@ -59,7 +59,7 @@ services:
           cpus: '1'
 
   keycloak:
-    image: quay.io/keycloak/keycloak:20.0.5
+    image: quay.io/keycloak/keycloak:24.0.3
     restart: unless-stopped
     entrypoint: /opt/keycloak_init/init-keycloak.sh
     command:
@@ -68,7 +68,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health"]
+      test: ['CMD-SHELL', 'java /opt/keycloak_init/HealthCheck.java']
       interval: 10s
       timeout: 5s
       retries: 15
