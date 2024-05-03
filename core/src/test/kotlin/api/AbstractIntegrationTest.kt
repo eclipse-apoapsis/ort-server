@@ -130,4 +130,14 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
             client.request() shouldHaveStatus successStatus
         }
     }
+
+    fun requestShouldRequireAuthentication(
+        successStatus: HttpStatusCode = HttpStatusCode.OK,
+        request: suspend HttpClient.() -> HttpResponse
+    ) {
+        integrationTestApplication {
+            unauthenticatedClient.request() shouldHaveStatus HttpStatusCode.Unauthorized
+            testUserClient.request() shouldHaveStatus successStatus
+        }
+    }
 }

@@ -113,3 +113,14 @@ private fun String.toSortProperty(): SortProperty {
     return directionFromPrefix?.let { SortProperty(substring(1), directionFromPrefix) }
         ?: SortProperty(this, SortDirection.ASCENDING)
 }
+
+/**
+ * Paginate this list based on the given [pagingOptions]. If no offset is provided, 0 is used. If no limit is provided,
+ * all elements are returned.
+ */
+fun <T> List<T>.paginate(pagingOptions: PagingOptions): List<T> {
+    val offset = pagingOptions.offset ?: 0L
+    val limit = pagingOptions.limit ?: Integer.MAX_VALUE
+
+    return drop(offset.toInt()).take(limit)
+}
