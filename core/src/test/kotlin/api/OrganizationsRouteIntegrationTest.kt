@@ -58,6 +58,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.core.addUserRole
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
@@ -130,7 +132,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     ) = secretRepository.create(path, name, description, organizationId, null, null)
 
     "GET /organizations" should {
-        "return all existing organizations" {
+        "return all existing organizations for the superuser" {
             integrationTestApplication {
                 val org1 = createOrganization(name = "name1", description = "description1")
                 val org2 = createOrganization(name = "name2", description = "description2")
@@ -140,6 +142,37 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(org1.mapToApi(), org2.mapToApi()),
+                    PagingOptions(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                    )
+                )
+            }
+        }
+
+        "return only organizations for which the user has OrganizationPermission.READ" {
+            integrationTestApplication {
+                createOrganization(name = "org1")
+                val org2 = createOrganization(name = "org2")
+                createOrganization(name = "org3")
+                val org4 = createOrganization(name = "org4")
+                createOrganization(name = "org5")
+
+                keycloak.keycloakAdminClient.addUserRole(
+                    TEST_USER.username.value,
+                    OrganizationPermission.READ.roleName(org2.id)
+                )
+                keycloak.keycloakAdminClient.addUserRole(
+                    TEST_USER.username.value,
+                    OrganizationPermission.READ.roleName(org4.id)
+                )
+
+                val response = testUserClient.get("/api/v1/organizations")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(org2.mapToApi(), org4.mapToApi()),
                     PagingOptions(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
@@ -168,8 +201,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "require the superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME) {
+        "require authentication" {
+            requestShouldRequireAuthentication {
                 get("/api/v1/organizations")
             }
         }

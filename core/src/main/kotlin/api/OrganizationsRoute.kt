@@ -59,8 +59,10 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForO
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
+import org.eclipse.apoapsis.ortserver.core.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
@@ -78,15 +80,15 @@ fun Route.organizations() = route("organizations") {
     val infrastructureServiceService by inject<InfrastructureServiceService>()
 
     get(getOrganizations) { _ ->
-        requireSuperuser()
-
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-        val organizations = organizationService.listOrganizations(pagingOptions.mapToModel())
-        val pagedResponse = PagedResponse(
-            organizations.map { it.mapToApi() },
-            pagingOptions
-        )
+        val organizations = organizationService
+            .listOrganizations(pagingOptions.copy(limit = null, offset = null).mapToModel())
+            .filter { hasPermission(it.id, OrganizationPermission.READ) }
+            .paginate(pagingOptions)
+            .map { it.mapToApi() }
+
+        val pagedResponse = PagedResponse(organizations, pagingOptions)
 
         call.respond(HttpStatusCode.OK, pagedResponse)
     }

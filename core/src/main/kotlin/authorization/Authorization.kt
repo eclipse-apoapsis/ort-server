@@ -32,6 +32,23 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 
 /**
+ * Return `true` if the [OrtPrincipal] of the current [call] has the provided [permission] for the organization with the
+ * provided [organizationId].
+ */
+fun PipelineContext<*, ApplicationCall>.hasPermission(
+    organizationId: Long,
+    permission: OrganizationPermission
+): Boolean = hasRole(permission.roleName(organizationId))
+
+/**
+ * Return `true` if the [OrtPrincipal] of the current [call] has the provided [role].
+ */
+fun PipelineContext<*, ApplicationCall>.hasRole(role: String): Boolean {
+    val principal = call.principal<OrtPrincipal>()
+    return principal.isSuperuser() || principal.hasRole(role)
+}
+
+/**
  * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]
  * otherwise.
  */
@@ -63,8 +80,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: Repository
  * otherwise.
  */
 fun PipelineContext<*, ApplicationCall>.requirePermission(requiredRole: String) {
-    val principal = call.principal<OrtPrincipal>()
-    if (!principal.isSuperuser() && !principal.hasRole(requiredRole)) {
+    if (!hasRole(requiredRole)) {
         throw AuthorizationException()
     }
 }
