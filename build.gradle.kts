@@ -224,7 +224,10 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
     val name = dockerfile.name.substringBeforeLast('.')
     val context = dockerfile.parent
 
-    val buildArgs = dockerBaseBuildArgs.split(',').flatMap { listOf("--build-arg", it.trim()) }
+    val buildArgs = dockerBaseBuildArgs.takeUnless { it.isBlank() }
+        ?.split(',')
+        ?.flatMap { listOf("--build-arg", it.trim()) }
+        .orEmpty()
 
     tasks.register<Exec>("build${name}WorkerImage") {
         group = "Docker"
