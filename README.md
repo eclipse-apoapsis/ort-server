@@ -16,7 +16,7 @@ For a proper deployment to Kubernetes, the project will later provide a Helm cha
 ### Docker Compose
 
 > [!CAUTION]
-> Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing KeyCloak
+> Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing Keycloak
 > without TLS.
 
 To start the ORT server with the required 3rd party services, you can run:
