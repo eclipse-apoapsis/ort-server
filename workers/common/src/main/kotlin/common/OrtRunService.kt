@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.PackageConfiguration
@@ -88,6 +89,10 @@ class OrtRunService(
     private val scannerJobRepository: ScannerJobRepository,
     private val scannerRunRepository: ScannerRunRepository
 ) {
+    companion object {
+        private const val RUN_ID_LABEL: String = "runId"
+    }
+
     /**
      * Create an empty [ScannerRun]. This function is supposed to be called before the ORT scanner is invoked, so that
      * data can be associated to the scanner run while the ORT scanner is running.
@@ -274,6 +279,39 @@ class OrtRunService(
      */
     fun getScannerRunForOrtRun(ortRunId: Long) = db.blockingQuery {
         getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
+    }
+
+    /**
+     * Load the results of the previous worker steps and generate an [OrtResult] from them. In addition,
+     * add a number of common labels that can be evaluated by different types of workers to obtain further information
+     * about the run.
+     *
+     * If [failIfRepoInfoMissing] is *true*, throw an [IllegalArgumentException] if the repository information
+     * is missing; otherwise, return an empty [Repository] object.
+     */
+    fun generateOrtResult(ortRun: OrtRun, failIfRepoInfoMissing: Boolean = true): OrtResult {
+        val repository = getOrtRepositoryInformation(ortRun, failIfMissing = failIfRepoInfoMissing)
+        val resolvedConfiguration = getResolvedConfiguration(ortRun)
+        val analyzerRun = getAnalyzerRunForOrtRun(ortRun.id)
+        val advisorRun = getAdvisorRunForOrtRun(ortRun.id)
+        val scannerRun = getScannerRunForOrtRun(ortRun.id)
+        val evaluatorRun = getEvaluatorRunForOrtRun(ortRun.id)
+
+        val baseResult = ortRun.mapToOrt(
+            repository = repository,
+            analyzerRun = analyzerRun?.mapToOrt(),
+            advisorRun = advisorRun?.mapToOrt(),
+            scannerRun = scannerRun?.mapToOrt(),
+            evaluatorRun = evaluatorRun?.mapToOrt(),
+            resolvedConfiguration = resolvedConfiguration.mapToOrt()
+        )
+
+        return baseResult.copy(
+            // Add common labels for all types of workers
+            labels = baseResult.labels + mapOf(
+                RUN_ID_LABEL to ortRun.id.toString()
+            )
+        )
     }
 
     /**

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -67,7 +68,7 @@ class NotifierOrtResultGeneratorTest : StringSpec({
 
         val result = helper.runResultGeneratorTest()
 
-        result.labels shouldBe originalLabels
+        result.labels shouldContainAll originalLabels
     }
 
     "Labels for the generated reports should be added" {
@@ -202,6 +203,14 @@ private class ResultGeneratorTestHelper {
         every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns null
         every { getScannerJobForOrtRun(ORT_RUN_ID) } returns null
         every { getReporterJobForOrtRun(ORT_RUN_ID) } returns null
+        every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtResult.EMPTY.copy(
+            repository = repository,
+            analyzer = ortAnalyzerRun,
+            advisor = ortAdvisorRun,
+            scanner = ortScannerRun,
+            evaluator = ortEvaluatorRun,
+            labels = originalLabels
+        )
     }
 
     init {

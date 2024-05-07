@@ -23,6 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -974,6 +975,45 @@ class OrtRunServiceTest : WordSpec({
             val storedIssues = fixtures.ortRunRepository.get(fixtures.ortRun.id)?.issues
 
             storedIssues shouldBe issues
+        }
+    }
+
+    "generateOrtResult" should {
+        "should return repository information" {
+
+            val vcsInfo = createVcsInfo("https://example.com/repo.git")
+            val processedVcsInfo = createVcsInfo("https://example.com/repo-processed.git")
+            val nestedVcsInfo1 = createVcsInfo("https://example.com/repo-nested-1.git")
+            val nestedVcsInfo2 = createVcsInfo("https://example.com/repo-nested-2.git")
+
+            val ortRun = createOrtRun(
+                db,
+                vcsInfo,
+                processedVcsInfo,
+                nestedVcsInfo1,
+                nestedVcsInfo2,
+                fixtures,
+                repositoryConfigRepository
+            )
+
+            service.generateOrtResult(ortRun).let { ortResult ->
+                ortResult.repository.vcs shouldBe vcsInfo.mapToOrt()
+                ortResult.repository.vcsProcessed shouldBe processedVcsInfo.mapToOrt()
+                ortResult.repository.nestedRepositories["nested-1"] shouldBe nestedVcsInfo1.mapToOrt()
+                ortResult.repository.nestedRepositories["nested-2"] shouldBe nestedVcsInfo2.mapToOrt()
+            }
+        }
+
+        "throw IllegalArgumentException if repository info is required and does actually not exist" {
+            shouldThrow<IllegalArgumentException> {
+                service.generateOrtResult(fixtures.ortRun, failIfRepoInfoMissing = true)
+            }
+        }
+
+        "contain common labels" {
+            service.generateOrtResult(fixtures.ortRun, failIfRepoInfoMissing = false).let { ortResult ->
+                ortResult.labels shouldContain ("runId" to fixtures.ortRun.id.toString())
+            }
         }
     }
 })
