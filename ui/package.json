@@ -41,7 +41,7 @@
     "zod": "^3.23.3"
   },
   "devDependencies": {
-    "@7nohe/openapi-react-query-codegen": "^0.5.3",
+    "@7nohe/openapi-react-query-codegen": "^1.0.0",
     "@tanstack/router-vite-plugin": "^1.20.5",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.64",
