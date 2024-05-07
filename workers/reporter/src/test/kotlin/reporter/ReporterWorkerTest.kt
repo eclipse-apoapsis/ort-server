@@ -120,9 +120,14 @@ class ReporterWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { repositoryId } returns REPOSITORY_ID
             every { revision } returns "main"
+            every { labels } returns mapOf("projectName" to "Test project")
         }
 
-        val ortResult = mockk<OrtResult>()
+        val ortResult = mockk<OrtResult> {
+            every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
+            every { labels } returns mapOf("projectName" to "Test project")
+        }
+
         every { analyzerRun.mapToOrt() } returns mockk()
         every { advisorRun.mapToOrt() } returns mockk()
         every { evaluatorRun.mapToOrt() } returns mockk()
@@ -143,6 +148,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
             every { storeIssues(any(), any()) } just runs
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns ortResult
         }
 
         val context = mockk<WorkerContext>()
@@ -189,7 +195,6 @@ class ReporterWorkerTest : StringSpec({
         val slotReporterRun = slot<ReporterRun>()
         coVerify {
             ortRunService.storeReporterRun(capture(slotReporterRun))
-            ortRunService.getOrtRepositoryInformation(ortRun)
             ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
             environmentService.generateNetRcFileForCurrentRun(context)
         }

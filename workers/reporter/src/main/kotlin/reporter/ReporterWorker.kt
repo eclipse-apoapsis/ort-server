@@ -32,7 +32,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
@@ -68,22 +67,7 @@ internal class ReporterWorker(
         val context = contextFactory.createContext(job.ortRunId)
         runBlocking { environmentService.generateNetRcFileForCurrentRun(context) }
 
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
-        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
-        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
-        val evaluatorJob = ortRunService.getEvaluatorJobForOrtRun(ortRun.id)
-        val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
-        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
-
-        val ortResult = ortRun.mapToOrt(
-            repository = repository,
-            analyzerRun = analyzerRun?.mapToOrt(),
-            advisorRun = advisorRun?.mapToOrt(),
-            evaluatorRun = evaluatorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt(),
-            resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        )
+        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = true)
 
         val startTime = Clock.System.now()
 
@@ -91,7 +75,7 @@ internal class ReporterWorker(
             job.ortRunId,
             ortResult,
             job.configuration,
-            evaluatorJob?.configuration
+            ortRunService.getEvaluatorJobForOrtRun(ortRun.id)?.configuration
         )
 
         val endTime = Clock.System.now()

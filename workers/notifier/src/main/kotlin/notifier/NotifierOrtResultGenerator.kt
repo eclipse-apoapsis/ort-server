@@ -30,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.OrtResult
 
@@ -47,6 +46,7 @@ import org.ossreviewtoolkit.model.OrtResult
  * - &lt;worker&gt;JobStatus: Labels of this category allow finding out which worker jobs have been executed and their
  *   status. The values correspond to the names of the constants from the [JobStatus] enum. For instance, a label
  *   _analyzerJobStatus_ with the value _FINISHED_ means that the Analyzer job has been executed successfully.
+ * - runId: The id of the current [OrtRun].
  */
 internal class NotifierOrtResultGenerator(
     /** Reference to the service to access the current ORT run. */
@@ -79,24 +79,13 @@ internal class NotifierOrtResultGenerator(
      * Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob].
      */
     fun generateOrtResult(ortRun: OrtRun, notifierJob: NotifierJob): OrtResult {
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun, failIfMissing = false)
-        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
-        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
-        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
-        val evaluatorRun = ortRunService.getEvaluatorRunForOrtRun(ortRun.id)
+        val baseResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
 
-        val baseResult = ortRun.mapToOrt(
-            repository = repository,
-            analyzerRun = analyzerRun?.mapToOrt(),
-            advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt(),
-            evaluatorRun = evaluatorRun?.mapToOrt(),
-            resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        )
-
-        val labelsToAdd = getLabelsForReportDownloadLinks(ortRun) + getMailRecipientsLabels(notifierJob) +
+        // Add other labels that are specific to the Notifier.
+        val labelsToAdd = getLabelsForReportDownloadLinks(ortRun) +
+                getMailRecipientsLabels(notifierJob) +
                 getJobStatusLabels(ortRun)
+
         return baseResult.takeIf { labelsToAdd.isEmpty() }
             ?: baseResult.copy(labels = baseResult.labels + labelsToAdd)
     }
