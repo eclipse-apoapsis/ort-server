@@ -11,6 +11,15 @@ build tool and [pnpm](https://pnpm.io/) as the package manager.
 
 The UI expects ORT Server to be running locally.
 
+## Run the UI
+
+Here are the instructions to start the UI in local development mode:
+
+1. Go to the `ui` folder.
+2. Run `pnpm install` followed by `pnpm dev`.
+3. Ctrl-click the shown `http://localhost:5173/` link.
+4. Log in via Keycloak (use "admin" / "admin" as username / password).
+
 ## Regenerating the UI Query Client
 
 The exact details and process of the synchronization between the ORT Server's OpenAPI specification and the matching UI queries is to be discussed.
