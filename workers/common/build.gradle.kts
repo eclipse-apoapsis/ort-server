@@ -36,9 +36,11 @@ dependencies {
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
     implementation(projects.utils.config)
+    // Here the shadow configuration needs to be used. Not sure whether this is possible with type-safe accessors.
+    implementation(project("::utils:yaml", "shadow"))
 
-    implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
+    implementation(libs.kotlinxSerializationJson)
 
     api(projects.config.configSpi)
     api(projects.storage.storageSpi)

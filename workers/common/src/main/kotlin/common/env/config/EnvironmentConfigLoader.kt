@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
-import com.charleskorn.kaml.Yaml
-import com.charleskorn.kaml.decodeFromStream
-
 import java.io.File
 
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -32,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.utils.yaml.YamlReader
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
@@ -108,7 +106,7 @@ class EnvironmentConfigLoader(
             logger.info("Parsing environment configuration file '{}'.", configFile)
 
             configFile.inputStream().use { stream ->
-                val config = Yaml.default.decodeFromStream(RepositoryEnvironmentConfig.serializer(), stream)
+                val config = YamlReader.decodeFromStream(RepositoryEnvironmentConfig.serializer(), stream)
                 resolveRepositoryEnvironmentConfig(config, hierarchy)
             }
         } ?: ResolvedEnvironmentConfig(emptyList())
