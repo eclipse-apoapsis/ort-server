@@ -335,6 +335,8 @@ data class KubernetesSenderConfig(
          * annotations from them. Ignore non-existing or invalid variables, but log them.
          */
         private fun createAnnotations(variableNames: String): Map<String, String> {
+            if (variableNames.isEmpty()) return emptyMap()
+
             val (annotations, invalid) = variableNames.split(splitAnnotationVariablesRegex)
                 .map { variable -> variable to (System.getenv(variable).orEmpty()) }
                 .partition { KEY_VALUE_SEPARATOR in it.second }
