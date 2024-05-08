@@ -618,27 +618,23 @@ class ReporterRunnerTest : WordSpec({
                 ReporterAsset("data"),
                 ReporterAsset("images", "imgs", "ignored")
             )
-            val dataFiles = setOf(Path("data1.txt"), Path("data2.xml"))
-            val imageFiles = setOf(Path("foo.png"), Path("bar.gif"), Path("baz.jpg"))
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(format),
                 assetDirectories = assetDirectories
             )
 
             val resolvedContext = Context("theResolvedContext")
-            coEvery { configManager.listFiles(resolvedContext, Path("data")) } returns dataFiles
-            coEvery { configManager.listFiles(resolvedContext, Path("images")) } returns imageFiles
 
-            val downloadedAssets = mutableMapOf<Collection<Path>, File>()
+            val downloadedAssets = mutableMapOf<Path, File>()
             val (contextFactory, context) = mockContext()
             every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
             every { context.configManager } returns configManager
-            coEvery { context.downloadConfigurationFiles(any(), any()) } answers {
-                val paths = firstArg<Collection<Path>>()
+            coEvery { context.downloadConfigurationDirectory(any(), any()) } answers {
+                val path = Path(firstArg<String>())
                 val dir = secondArg<File>()
                 dir.isDirectory shouldBe true
-                downloadedAssets[paths] = dir
-                paths.associateWith { path -> File(path.path) }
+                downloadedAssets[path] = dir
+                mapOf(path to File(path.path))
             }
 
             val runner = ReporterRunner(
@@ -651,9 +647,9 @@ class ReporterRunnerTest : WordSpec({
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
             downloadedAssets.keys shouldHaveSize 2
-            downloadedAssets[dataFiles] shouldBe configDirectory
+            downloadedAssets[Path("data")] shouldBe configDirectory
 
-            val imageDir = downloadedAssets[imageFiles].shouldNotBeNull()
+            val imageDir = downloadedAssets[Path("images")].shouldNotBeNull()
             imageDir.parentFile shouldBe configDirectory
             imageDir.name shouldBe "imgs"
         }
