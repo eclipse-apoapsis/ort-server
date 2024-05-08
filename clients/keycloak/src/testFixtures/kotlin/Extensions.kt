@@ -108,9 +108,9 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
     clientId: String = TEST_CLIENT
 ) =
     KeycloakClientConfiguration(
-        apiUrl = "${authServerUrl}admin/realms/$TEST_REALM",
+        apiUrl = "$authServerUrl/admin/realms/$TEST_REALM",
         clientId = clientId,
-        accessTokenUrl = "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/token",
+        accessTokenUrl = "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/token",
         apiUser = user,
         apiSecret = secret,
         subjectClientId = TEST_SUBJECT_CLIENT
