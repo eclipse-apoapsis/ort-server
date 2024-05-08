@@ -158,8 +158,8 @@ fun Keycloak.addUserRole(username: String, role: String) {
  */
 fun KeycloakContainer.createJwtConfigMapForTestRealm() =
     mapOf(
-        "jwt.jwksUri" to "${authServerUrl}realms/$TEST_REALM/protocol/openid-connect/certs",
-        "jwt.issuer" to "${authServerUrl}realms/$TEST_REALM",
+        "jwt.jwksUri" to "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/certs",
+        "jwt.issuer" to "$authServerUrl/realms/$TEST_REALM",
         "jwt.realm" to TEST_REALM,
         "jwt.audience" to TEST_SUBJECT_CLIENT
     )
