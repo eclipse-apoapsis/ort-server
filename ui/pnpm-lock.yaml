@@ -88,7 +88,7 @@ importers:
         version: 1.0.7(tailwindcss@3.4.3)
       zod:
         specifier: ^3.23.3
-        version: 3.23.6
+        version: 3.23.7
     devDependencies:
       '@7nohe/openapi-react-query-codegen':
         specifier: ^0.5.3
@@ -2233,8 +2233,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@3.23.6:
-    resolution: {integrity: sha512-RTHJlZhsRbuA8Hmp/iNL7jnfc4nZishjsanDAfEY1QpDQZCahUp3xDzl+zfweE9BklxMUcgBgS1b7Lvie/ZVwA==}
+  zod@3.23.7:
+    resolution: {integrity: sha512-NBeIoqbtOiUMomACV/y+V3Qfs9+Okr18vR5c/5pHClPpufWOrsx8TENboDPe265lFdfewX2yBtNTLPvnmCxwog==}
 
 snapshots:
 
@@ -3224,7 +3224,7 @@ snapshots:
   '@tanstack/router-generator@1.30.0':
     dependencies:
       prettier: 3.2.5
-      zod: 3.23.6
+      zod: 3.23.7
 
   '@tanstack/router-vite-plugin@1.31.18(vite@5.2.11(@types/node@20.12.10))':
     dependencies:
@@ -3243,7 +3243,7 @@ snapshots:
       '@types/babel__template': 7.4.4
       '@types/babel__traverse': 7.20.5
       '@vitejs/plugin-react': 4.2.1(vite@5.2.11(@types/node@20.12.10))
-      zod: 3.23.6
+      zod: 3.23.7
     transitivePeerDependencies:
       - supports-color
       - vite
@@ -4341,4 +4341,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@3.23.6: {}
+  zod@3.23.7: {}
