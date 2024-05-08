@@ -313,13 +313,8 @@ private suspend fun WorkerContext.downloadAssetFiles(assets: Collection<Reporter
  */
 private suspend fun WorkerContext.downloadAssetDirectories(assets: Collection<ReporterAsset>, directory: File) {
     assets.forEach { asset ->
-        val content = configManager.listFiles(resolvedConfigurationContext, Path(asset.sourcePath))
         val targetDir = createAssetDirectory(asset, directory)
-
-        logger.info("Downloading asset directory '{}' to '{}'.", asset.sourcePath, targetDir)
-        logger.debug("The directory contains these files: {}}.", content)
-
-        downloadConfigurationFiles(content, targetDir)
+        downloadConfigurationDirectory(Path(asset.sourcePath), targetDir)
     }
 }
 
