@@ -63,8 +63,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
 
+    - name: Install dependencies
+      run: pnpm -C ui install
+
     - name: Build UI
-      run: pnpm -C ui install build
+      run: pnpm -C ui build
 
   test:
     needs: build
