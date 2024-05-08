@@ -45,6 +45,10 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(WorkerContextImpl::class.java)
+
 /**
  * The internal default implementation of the [WorkerContext] interface.
  */
@@ -134,6 +138,18 @@ internal class WorkerContextImpl(
         )
 
         return results.map { e -> e.key to e.value.getOrThrow() }.toMap()
+    }
+
+    override suspend fun downloadConfigurationDirectory(
+        path: ConfigPath,
+        targetDirectory: File
+    ): Map<ConfigPath, File> {
+        val containedFiles = configManager.listFiles(currentContext, path)
+
+        logger.info("Downloading config directory '{}' to '{}'.", path.path, targetDirectory)
+        logger.debug("The directory contains these files: {}.", containedFiles)
+
+        return downloadConfigurationFiles(containedFiles, targetDirectory)
     }
 
     override fun close() {
