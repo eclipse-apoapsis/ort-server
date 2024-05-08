@@ -43,7 +43,6 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.GroupRequest
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.RoleRequest
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.TokenInfo
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.UserRequest
-import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.findByName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.generateAccessToken
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.refreshToken
 
@@ -178,7 +177,7 @@ class DefaultKeycloakClient(
             }
         }.getOrElse {
             throw KeycloakClientException("Could not find group with name '${name.value}'.", it)
-        }.body<List<Group>>().findByName(name).takeIf { it != null }
+        }.body<List<Group>>().find { it.name == name }
             ?: throw KeycloakClientException("Could not find group with name '${name.value}'.")
 
     override suspend fun createGroup(name: GroupName) {

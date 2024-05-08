@@ -23,22 +23,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.submitForm
 import io.ktor.http.Parameters
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
-
-/**
- * Recursively search for a group with the provided [name].
- */
-internal fun Collection<Group>.findByName(name: GroupName): Group? {
-    forEach {
-        if (it.name == name) return it
-        val group = it.subGroups.findByName(name)
-        if (group != null) return group
-    }
-
-    return null
-}
-
 internal suspend fun HttpClient.generateAccessToken(
     tokenUrl: String,
     clientId: String,

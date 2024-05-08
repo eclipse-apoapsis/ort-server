@@ -30,8 +30,5 @@ data class Group(
     val id: GroupId,
 
     /** The group name. */
-    val name: GroupName,
-
-    /** A set of groups, which represents the subgroup hierarchy. */
-    val subGroups: Set<Group>
+    val name: GroupName
 )

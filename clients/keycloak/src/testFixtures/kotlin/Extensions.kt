@@ -44,7 +44,6 @@ fun Group.toGroupRepresentation(clientRoles: Map<String, List<RoleName>>? = null
     GroupRepresentation().also { group ->
         group.id = id.value
         group.name = name.value
-        group.subGroups = subGroups.map { it.toGroupRepresentation() }
 
         if (!clientRoles.isNullOrEmpty()) {
             group.clientRoles = clientRoles.mapValues { (_, roles) -> roles.map { it.value } }

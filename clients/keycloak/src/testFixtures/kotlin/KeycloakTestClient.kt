@@ -51,15 +51,15 @@ class KeycloakTestClient(
     override suspend fun getGroups() = groups
 
     override suspend fun getGroup(id: GroupId) =
-        getGroupsRecursive().find { it.id == id } ?: throw KeycloakClientException("")
+        groups.find { it.id == id } ?: throw KeycloakClientException("")
 
     override suspend fun getGroup(name: GroupName) =
-        getGroupsRecursive().find { it.name == name } ?: throw KeycloakClientException("")
+        groups.find { it.name == name } ?: throw KeycloakClientException("")
 
     override suspend fun createGroup(name: GroupName) {
         if (groups.any { it.name == name }) throw KeycloakClientException("")
         val id = getNextGroupId()
-        groups += Group(id, name, emptySet())
+        groups += Group(id, name)
         groupClientRoles[id] = emptySet()
     }
 
@@ -195,19 +195,4 @@ class KeycloakTestClient(
             }
         }
     }
-
-    private fun getGroupsRecursive(): Set<Group> =
-        buildSet {
-            groups.forEach {
-                addAll(it.getGroupsRecursive())
-            }
-        }
-
-    private fun Group.getGroupsRecursive(): Set<Group> =
-        buildSet {
-            add(this@getGroupsRecursive)
-            subGroups.forEach {
-                addAll(it.getGroupsRecursive())
-            }
-        }
 }
