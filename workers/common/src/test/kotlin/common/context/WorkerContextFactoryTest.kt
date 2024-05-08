@@ -288,6 +288,23 @@ class WorkerContextFactoryTest : WordSpec({
         }
     }
 
+    "downloadConfigurationDirectory" should {
+        "download all files in a configuration directory" {
+            val helper = ContextFactoryTestHelper()
+            helper.expectRunRequest()
+
+            helper.context().use { context ->
+                val directoryPath = Path("dir")
+                val files = context.downloadConfigurationDirectory(directoryPath, tempdir())
+
+                files shouldHaveSize 2
+
+                files[Path("dir/subConfig1.txt")]?.readText() shouldBe "subConfig1"
+                files[Path("dir/subConfig2.txt")]?.readText() shouldBe "subConfig2"
+            }
+        }
+    }
+
     "resolveConfigFiles" should {
         "return an empty Map for null input" {
             val helper = ContextFactoryTestHelper()

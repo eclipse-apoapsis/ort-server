@@ -85,4 +85,12 @@ interface WorkerContext : AutoCloseable {
      * the given [directory]. Return a [Map] that allows access to the resulting files by their paths.
      */
     suspend fun downloadConfigurationFiles(paths: Collection<Path>, directory: File): Map<Path, File>
+
+    /**
+     * Download all the files contained in the configuration directory at the specified [path] to the given
+     * [targetDirectory]. Return a [Map] that allows access to the resulting files by their paths. Note that this
+     * function does not handle nested folder structures; only the direct children of the specified directory are
+     * downloaded.
+     */
+    suspend fun downloadConfigurationDirectory(path: Path, targetDirectory: File): Map<Path, File>
 }
