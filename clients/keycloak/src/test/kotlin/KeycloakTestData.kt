@@ -31,32 +31,17 @@ import org.keycloak.representations.idm.RolesRepresentation
 
 internal val groupOrgA = Group(
     id = GroupId("e6a8bf53-32e1-43d9-9962-ece3863fe4ce"),
-    name = GroupName("Organization-A"),
-    subGroups = emptySet()
-)
-
-internal val subGroupOrgB1 = Group(
-    id = GroupId("0e5b6055-adc4-47c6-97a9-a2adf4be96f0"),
-    name = GroupName("Sub-Orga-B1"),
-    subGroups = emptySet()
-)
-
-private val subGroupOrgB2 = Group(
-    id = GroupId("1e7526ff-1548-4621-824c-290540cd6264"),
-    name = GroupName("Sub-Orga-B2"),
-    subGroups = emptySet()
+    name = GroupName("Organization-A")
 )
 
 internal val groupOrgB = Group(
     id = GroupId("2ec7f144-1810-4c4d-84a2-e5d026388b92"),
-    name = GroupName("Organization-B"),
-    subGroups = setOf(subGroupOrgB1, subGroupOrgB2)
+    name = GroupName("Organization-B")
 )
 
 internal val groupOrgC = Group(
     id = GroupId("db48d4f2-ac1e-43da-af9e-b0c1273e97d3"),
-    name = GroupName("Organization-C"),
-    subGroups = emptySet()
+    name = GroupName("Organization-C")
 )
 
 internal val adminRole = Role(

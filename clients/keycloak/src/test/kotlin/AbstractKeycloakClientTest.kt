@@ -59,7 +59,6 @@ abstract class AbstractKeycloakClientTest : WordSpec() {
         "getGroupByName" should {
             "return the correct realm group" {
                 client.getGroup(groupOrgA.name) shouldBe groupOrgA
-                client.getGroup(subGroupOrgB1.name) shouldBe subGroupOrgB1
             }
 
             "throw an exception if the group does not exist" {
