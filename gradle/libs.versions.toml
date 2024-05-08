@@ -62,7 +62,7 @@ ort = "22.2.0"
 postgres = "42.7.3"
 qpidJmsClient = "2.5.0"
 slf4j = "2.0.13"
-testContainers = "1.19.7"
+testContainers = "1.19.8"
 typesafeConfig = "1.4.3"
 wiremock = "2.35.2"
 
