@@ -45,7 +45,7 @@ fun mockkTransaction() {
     every { TransactionManager.managerFor(any()) } returns mockk {
         every { defaultIsolationLevel } returns -1
         every { defaultReadOnly } returns false
-        every { defaultRepetitionAttempts } returns -1
+        every { defaultMaxAttempts } returns -1
     }
 
     mockkStatic(TRANSACTION_MANAGER_CLASS)
