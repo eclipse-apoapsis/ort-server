@@ -203,21 +203,6 @@ subprojects {
             showStandardStreams = false
         }
     }
-
-    configurations.all {
-        resolutionStrategy {
-            // Prevent an implicit upgrade to Exposed 0.50.0 which has a bug that prevents using it:
-            // https://github.com/JetBrains/Exposed/issues/1533#issuecomment-2094676488
-            // This can be removed once the fix has been released:
-            // https://github.com/JetBrains/Exposed/pull/2074
-            force(rootProject.libs.exposedCore)
-            force(rootProject.libs.exposedDao)
-            force(rootProject.libs.exposedJavaTime)
-            force(rootProject.libs.exposedJdbc)
-            force(rootProject.libs.exposedJson)
-            force(rootProject.libs.exposedKotlinDatetime)
-        }
-    }
 }
 
 tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
