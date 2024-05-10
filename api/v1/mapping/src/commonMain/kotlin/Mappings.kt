@@ -336,6 +336,7 @@ fun ReporterJobConfiguration.mapToApi() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         resolutionsFile,
+        customLicenseTextDir,
         assetFiles.map { it.mapToApi() },
         assetDirectories.map { it.mapToApi() },
         config?.mapValues { it.value.mapToApi() }
@@ -374,6 +375,7 @@ fun ApiReporterJobConfiguration.mapToModel() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToModel() },
         resolutionsFile,
+        customLicenseTextDir,
         assetFiles.map { it.mapToModel() },
         assetDirectories.map { it.mapToModel() },
         config?.mapValues { it.value.mapToModel() }

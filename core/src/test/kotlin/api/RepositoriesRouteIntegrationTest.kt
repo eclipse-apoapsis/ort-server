@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
+import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -442,11 +443,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     allowDynamicVersions = true,
                     environmentConfig = envConfig
                 )
+                val reporterJob = ReporterJobConfiguration(
+                    copyrightGarbageFile = "COPYRIGHT_GARBAGE",
+                    customLicenseTextDir = "LICENSE_TEXTS"
+                )
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
                 val createRun = CreateOrtRun(
                     "main",
                     null,
-                    ApiJobConfigurations(analyzerJob, parameters = parameters),
+                    ApiJobConfigurations(analyzerJob, reporter = reporterJob, parameters = parameters),
                     labelsMap
                 )
 
@@ -482,6 +487,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfig.environmentVariables shouldContainExactly listOf(
                         EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
                     )
+                }
+
+                with(run.jobConfigs.reporter.shouldNotBeNull()) {
+                    copyrightGarbageFile shouldBe "COPYRIGHT_GARBAGE"
+                    customLicenseTextDir shouldBe "LICENSE_TEXTS"
                 }
 
                 run.jobConfigs.parameters shouldBe parameters
