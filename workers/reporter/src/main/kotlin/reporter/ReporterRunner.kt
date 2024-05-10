@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
+import kotlin.time.measureTimedValue
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -60,6 +62,8 @@ import org.ossreviewtoolkit.model.utils.setPackageConfigurations
 import org.ossreviewtoolkit.model.utils.setResolutions
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
+import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
+import org.ossreviewtoolkit.reporter.LicenseTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.safeMkdirs
@@ -148,26 +152,31 @@ class ReporterRunner(
                 resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
             }
 
-            // TODO: The ReporterInput object is created only with the passed ortResult and rest of the parameters are
-            //       default values. This should be changed as soon as other parameters can be configured in the
-            //       reporter worker.
-            val reporterInput = ReporterInput(
-                ortResult = resolvedOrtResult,
-                licenseInfoResolver = LicenseInfoResolver(
-                    provider = DefaultLicenseInfoProvider(resolvedOrtResult),
-                    copyrightGarbage = copyrightGarbage,
-                    addAuthorsToCopyrights = true,
-                    archiver = fileArchiver,
-                    licenseFilePatterns = LicenseFilePatterns.DEFAULT
-                ),
-                copyrightGarbage = copyrightGarbage,
-                licenseClassifications = licenseClassifications
-            )
+            val outputDir = context.createTempDir()
 
             val (successes, failures) = runBlocking(Dispatchers.IO) {
-                val transformedOptions = processReporterOptions(context, config)
+                val deferredTransformedOptions = async { processReporterOptions(context, config) }
 
-                val outputDir = context.createTempDir()
+                val deferredReporterInput = async {
+                    // TODO: Some parameters of ReporterInput are still set to default values. Make sure that for all
+                    //       corresponding configuration options exist and are used here.
+                    ReporterInput(
+                        ortResult = resolvedOrtResult,
+                        licenseInfoResolver = LicenseInfoResolver(
+                            provider = DefaultLicenseInfoProvider(resolvedOrtResult),
+                            copyrightGarbage = copyrightGarbage,
+                            addAuthorsToCopyrights = true,
+                            archiver = fileArchiver,
+                            licenseFilePatterns = LicenseFilePatterns.DEFAULT
+                        ),
+                        copyrightGarbage = copyrightGarbage,
+                        licenseClassifications = licenseClassifications,
+                        licenseTextProvider = createLicenseTextProvider(context, config),
+                    )
+                }
+
+                val reporterInput = deferredReporterInput.await()
+                val transformedOptions = deferredTransformedOptions.await()
 
                 config.formats.map { format ->
                     async {
@@ -330,3 +339,27 @@ private fun createAssetDirectory(asset: ReporterAsset, directory: File): File =
  * which marks this string as a template file.
  */
 private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.TEMPLATE_REFERENCE))
+
+/**
+ * Return the provider for license texts based on the given [config]. If a path to custom license texts is configured,
+ * download this directory and create a [LicenseTextProvider] for it.
+ */
+private suspend fun createLicenseTextProvider(
+    context: WorkerContext,
+    config: ReporterJobConfiguration
+): LicenseTextProvider {
+    val licenseTextDirectories = config.customLicenseTextDir?.let { customLicenseTextDir ->
+        logger.info("Downloading custom license texts from '{}'.", customLicenseTextDir)
+
+        val licenseTextFolder = context.createTempDir()
+        val timedFiles = measureTimedValue {
+            context.downloadConfigurationDirectory(Path(customLicenseTextDir), licenseTextFolder)
+        }
+
+        logger.debug("Downloaded {} custom license text files in {}.", timedFiles.value.size, timedFiles.duration)
+
+        listOf(licenseTextFolder)
+    }.orEmpty()
+
+    return DefaultLicenseTextProvider(licenseTextDirectories)
+}

@@ -94,7 +94,7 @@ class ReporterRunnerTest : WordSpec({
     fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
         val context = mockk<WorkerContext> {
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
-            every { createTempDir() } returnsMany listOf(configDirectory, outputDirectory)
+            every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
             coEvery { resolveConfigSecrets(any()) } answers {
                 val pluginConfigs: Map<String, PluginConfiguration>? = firstArg()
@@ -652,6 +652,49 @@ class ReporterRunnerTest : WordSpec({
             val imageDir = downloadedAssets[Path("images")].shouldNotBeNull()
             imageDir.parentFile shouldBe configDirectory
             imageDir.name shouldBe "imgs"
+        }
+
+        "download custom license text files" {
+            val format = "testCustomLicenseTexts"
+            val reporter = reporterMock(format)
+            every { reporter.generateReport(any(), any(), any()) } returns listOf(tempfile())
+
+            mockReportersAll(format to reporter)
+
+            val customLicenseText = "This is a custom license."
+            val licenseId = "LicenseRef-Test-License"
+            val customLicenseTextFile = configDirectory.resolve(licenseId).also { it.writeText(customLicenseText) }
+            val customLicenseTextsPath = "custom-license-texts"
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format),
+                customLicenseTextDir = customLicenseTextsPath
+            )
+
+            val resolvedContext = Context("theResolvedContext")
+
+            val (contextFactory, context) = mockContext()
+            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
+            every { context.configManager } returns configManager
+            coEvery { context.downloadConfigurationDirectory(Path(customLicenseTextsPath), any()) } returns mapOf(
+                Path(customLicenseTextsPath) to customLicenseTextFile
+            )
+
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
+
+            // Verify that custom license texts have been correctly configured.
+            val slotInput = slot<ReporterInput>()
+            verify {
+                reporter.generateReport(capture(slotInput), any(), any())
+            }
+
+            slotInput.captured.licenseTextProvider.getLicenseText(licenseId) shouldBe customLicenseText
         }
     }
 })
