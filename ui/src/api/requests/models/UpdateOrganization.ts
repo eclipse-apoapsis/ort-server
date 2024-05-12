@@ -3,7 +3,6 @@
 /* eslint-disable */
 
 export type UpdateOrganization = {
-    name?: string;
-    description?: Record<string, any>;
+  name?: string;
+  description?: Record<string, any>;
 };
-

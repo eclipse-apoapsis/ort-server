@@ -3,7 +3,6 @@
 /* eslint-disable */
 
 export type CreateProduct = {
-    name: string;
-    description?: Record<string, any>;
+  name: string;
+  description?: Record<string, any>;
 };
-

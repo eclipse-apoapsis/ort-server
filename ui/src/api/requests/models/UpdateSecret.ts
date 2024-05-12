@@ -3,8 +3,7 @@
 /* eslint-disable */
 
 export type UpdateSecret = {
-    name?: string;
-    value?: string;
-    description?: string;
+  name?: string;
+  value?: string;
+  description?: string;
 };
-
