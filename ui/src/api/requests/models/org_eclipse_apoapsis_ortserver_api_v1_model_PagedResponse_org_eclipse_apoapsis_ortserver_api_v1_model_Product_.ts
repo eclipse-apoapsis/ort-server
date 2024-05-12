@@ -2,16 +2,16 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_Product_ = {
+export type org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_Product_ =
+  {
     data: Array<{
-        id: number;
-        name: string;
-        description?: Record<string, any>;
+      id: number;
+      name: string;
+      description?: Record<string, any>;
     }>;
     options: {
-        limit?: Record<string, any>;
-        offset?: Record<string, any>;
-        sortProperties?: Record<string, any>;
+      limit?: Record<string, any>;
+      offset?: Record<string, any>;
+      sortProperties?: Record<string, any>;
     };
-};
-
+  };

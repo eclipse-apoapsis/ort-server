@@ -3,6 +3,5 @@
 /* eslint-disable */
 
 export type Liveness = {
-    message: string;
+  message: string;
 };
-
