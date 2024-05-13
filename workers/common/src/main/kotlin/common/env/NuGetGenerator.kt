@@ -30,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinit
 class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
     companion object {
         /** The name of the configuration file created by this generator. */
-        private const val TARGET = "NuGet.Config"
+        private const val TARGET = ".nuget/NuGet/NuGet.Config"
     }
 
     override val environmentDefinitionType: Class<NuGetDefinition>

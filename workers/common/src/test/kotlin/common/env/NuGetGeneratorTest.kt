@@ -51,7 +51,7 @@ class NuGetGeneratorTest : WordSpec({
 
             NuGetGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            mockBuilder.homeFileName shouldBe "NuGet.Config"
+            mockBuilder.homeFileName shouldBe ".nuget/NuGet/NuGet.Config"
         }
 
         "generate a block for a repository with API key authentication" {
