@@ -170,7 +170,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
         "The build environment should contain a NuGet.Config file" {
             runEnvironmentTest { homeFolder ->
-                val nuGetFile = homeFolder.resolve("NuGet.Config")
+                val nuGetFile = homeFolder.resolve(".nuget/NuGet/NuGet.Config")
                 val content = nuGetFile.readText()
 
                 content shouldContain "packageSources"
