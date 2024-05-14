@@ -316,6 +316,40 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'Bad Request' if the repository's URL is malformed" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://git hub.com/org/repo.git")
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateRepository"
+            }
+        }
+
+        "respond with 'Bad Request' if the repository's URL contains userinfo" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://user:password@github.com")
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for CreateRepository"
+            }
+        }
+
         "create Keycloak roles and groups" {
             integrationTestApplication {
                 val createdProduct = createProduct()

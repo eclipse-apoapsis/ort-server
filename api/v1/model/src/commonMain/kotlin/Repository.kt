@@ -19,7 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
+import io.konform.validation.Validation
+
+import java.net.URI
+
 import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 
 /**
  * Response object for the repository endpoint.
@@ -33,7 +39,16 @@ data class Repository(
 
     /** The url to the repository. */
     val url: String
-)
+) {
+    companion object {
+        const val INVALID_URL_MESSAGE = "The repository URL is malformed."
+        const val USER_INFO_MESSAGE = "The repository URL must not contain userinfo."
+
+        fun isValidUrl(url: String): Boolean = runCatching { URI.create(url) }.isSuccess
+
+        fun hasUserInfo(url: String): Boolean = runCatching { URI.create(url) }.getOrNull()?.userInfo != null
+    }
+}
 
 /**
  * Request object for the create repository endpoint.
@@ -42,7 +57,23 @@ data class Repository(
 data class CreateRepository(
     val type: RepositoryType,
     val url: String
-)
+) {
+    companion object {
+        val validate: ValidatorFunc<CreateRepository> = { obj ->
+            Validation {
+                CreateRepository::url {
+                    addConstraint("malformed URL") {
+                        Repository.isValidUrl(it)
+                    } hint Repository.INVALID_URL_MESSAGE
+
+                    addConstraint("URL cannot contain userinfo") {
+                        !Repository.hasUserInfo(it)
+                    } hint Repository.USER_INFO_MESSAGE
+                }
+            }.invoke(obj)
+        }
+    }
+}
 
 /**
  * Request object for the update repository endpoint.
@@ -51,7 +82,29 @@ data class CreateRepository(
 data class UpdateRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
-)
+) {
+    companion object {
+        val validate: ValidatorFunc<UpdateRepository> = { obj ->
+            Validation {
+                UpdateRepository::url {
+                    addConstraint("malformed URL") {
+                        when (it) {
+                            is OptionalValue.Present -> Repository.isValidUrl(it.value)
+                            is OptionalValue.Absent -> true
+                        }
+                    } hint Repository.INVALID_URL_MESSAGE
+
+                    addConstraint("URL cannot contain userinfo") {
+                        when (it) {
+                            is OptionalValue.Present -> !Repository.hasUserInfo(it.valueOrThrow)
+                            is OptionalValue.Absent -> true
+                        }
+                    } hint Repository.USER_INFO_MESSAGE
+                }
+            }.invoke(obj)
+        }
+    }
+}
 
 enum class RepositoryType {
     GIT,

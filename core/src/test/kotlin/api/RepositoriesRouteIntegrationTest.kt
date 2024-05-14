@@ -80,6 +80,7 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
+@Suppress("LargeClass")
 class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
@@ -192,6 +193,48 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     updateRepository.type.valueOrThrow,
                     updateRepository.url.valueOrThrow
                 )
+            }
+        }
+
+        "respond with 'Bad Request' if the repository's URL is malformed" {
+            integrationTestApplication {
+                val createRepository = createRepository()
+
+                val repository = UpdateRepository(
+                    ApiRepositoryType.SUBVERSION.asPresent(),
+                    "ht tps://github.com/org/repo.git".asPresent()
+                )
+
+                val response = superuserClient.patch("/api/v1/repositories/${createRepository.id}") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for UpdateRepository"
+            }
+        }
+
+        "respond with 'Bad Request' if the repository's URL contains userinfo" {
+            integrationTestApplication {
+                val createRepository = createRepository()
+
+                val repository = UpdateRepository(
+                    ApiRepositoryType.SUBVERSION.asPresent(),
+                    "https://user:password@github.com".asPresent()
+                )
+
+                val response = superuserClient.patch("/api/v1/repositories/${createRepository.id}") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for UpdateRepository"
             }
         }
 
