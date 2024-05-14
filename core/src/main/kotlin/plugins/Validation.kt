@@ -30,9 +30,11 @@ import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidati
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 
 fun Application.configureValidation() {
     install(RequestValidation) {
@@ -58,6 +60,14 @@ fun Application.configureValidation() {
 
         validate<CreateInfrastructureService> { create ->
             mapValidationResult(CreateInfrastructureService.validate(create))
+        }
+
+        validate<CreateRepository> { create ->
+            mapValidationResult(CreateRepository.validate(create))
+        }
+
+        validate<UpdateRepository> { update ->
+            mapValidationResult(UpdateRepository.validate(update))
         }
     }
 }
