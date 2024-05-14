@@ -21,10 +21,13 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.mapping
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
@@ -66,6 +69,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -425,13 +429,27 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun InfrastructureService.mapToApi() =
-    ApiInfrastructureService(name, url, description, usernameSecret.name, passwordSecret.name, excludeFromNetrc)
+    ApiInfrastructureService(
+        name,
+        url,
+        description,
+        usernameSecret.name,
+        passwordSecret.name,
+        credentialsTypes.mapToApi()
+    )
 
 fun ApiInfrastructureService.mapToModel() =
-    InfrastructureServiceDeclaration(name, url, description, usernameSecretRef, passwordSecretRef, excludeFromNetrc)
+    InfrastructureServiceDeclaration(
+        name,
+        url,
+        description,
+        usernameSecretRef,
+        passwordSecretRef,
+        credentialsTypes.mapToModel()
+    )
 
 fun InfrastructureServiceDeclaration.mapToApi() =
-    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)
+    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes.mapToApi())
 
 fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(name, secretName)
 
@@ -452,6 +470,16 @@ fun ApiEnvironmentConfig.mapToModel() =
         environmentVariables = environmentVariables.map { it.mapToModel() },
         strict = strict
     )
+
+fun CredentialsType.mapToApi() = ApiCredentialsType.valueOf(name)
+
+fun Set<CredentialsType>.mapToApi(): Set<ApiCredentialsType> =
+    mapTo(EnumSet.noneOf(ApiCredentialsType::class.java)) { it.mapToApi() }
+
+fun ApiCredentialsType.mapToModel() = CredentialsType.valueOf(name)
+
+fun Set<ApiCredentialsType>.mapToModel(): Set<CredentialsType> =
+    mapTo(EnumSet.noneOf(CredentialsType::class.java)) { it.mapToModel() }
 
 fun PackageManagerConfiguration.mapToApi() =
     ApiPackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)

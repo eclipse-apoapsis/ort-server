@@ -34,6 +34,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
+import java.util.EnumSet
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
@@ -85,6 +88,22 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             )
 
             val config = loadConfig(".ort.env.simple.yml", helper)
+
+            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+        }
+
+        "Empty credentials type can be specified" {
+            val helper = TestHelper()
+            val userSecret = helper.createSecret("testUser", repository = repository)
+            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+            val expectedServices = listOf(
+                createTestService(1, userSecret, pass1Secret),
+                createTestService(2, userSecret, pass2Secret).copy(credentialsTypes = emptySet())
+            )
+
+            val config = loadConfig(".ort.env.no-credentials-types.yml", helper)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
@@ -251,7 +270,8 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     serviceUrl(1),
                     serviceDescription(1),
                     userSecret.name,
-                    pass1Secret.name
+                    pass1Secret.name,
+                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
                 ),
                 InfrastructureServiceDeclaration(
                     serviceName(2),
@@ -259,7 +279,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     serviceDescription(2),
                     userSecret.name,
                     pass2Secret.name,
-                    excludeFromNetrc = true
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
             )
             val envDefinitions = mapOf(
@@ -306,7 +326,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                     serviceDescription(2),
                     userSecret.name,
                     pass2Secret.name,
-                    excludeFromNetrc = true
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
             )
             val variableDeclarations = listOf(
@@ -492,7 +512,7 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         passwordSecret = passSecret,
         organization = null,
         product = null,
-        excludeFromNetrc = index % 2 == 0
+        credentialsTypes = setOf(CredentialsType.entries[index % 2])
     )
 
 /**

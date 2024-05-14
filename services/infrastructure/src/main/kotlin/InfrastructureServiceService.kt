@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -56,7 +57,7 @@ class InfrastructureServiceService(
         description: String?,
         usernameSecretRef: String,
         passwordSecretRef: String,
-        excludeFromNetrc: Boolean
+        credentialsTypes: Set<CredentialsType>
     ): InfrastructureService {
         val usernameSecret = resolveOrganizationSecret(organizationId, usernameSecretRef)
         val passwordSecret = resolveOrganizationSecret(organizationId, passwordSecretRef)
@@ -68,7 +69,7 @@ class InfrastructureServiceService(
                 description,
                 usernameSecret,
                 passwordSecret,
-                excludeFromNetrc,
+                credentialsTypes,
                 organizationId,
                 null
             )
@@ -86,7 +87,7 @@ class InfrastructureServiceService(
         description: OptionalValue<String?>,
         usernameSecretRef: OptionalValue<String>,
         passwordSecretRef: OptionalValue<String>,
-        excludeFromNetrc: OptionalValue<Boolean>
+        credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService {
         val usernameSecret = resolveOrganizationSecretOptional(organizationId, usernameSecretRef)
         val passwordSecret = resolveOrganizationSecretOptional(organizationId, passwordSecretRef)
@@ -99,7 +100,7 @@ class InfrastructureServiceService(
                 description,
                 usernameSecret,
                 passwordSecret,
-                excludeFromNetrc
+                credentialsTypes
             )
         }
     }

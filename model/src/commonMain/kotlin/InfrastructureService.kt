@@ -23,6 +23,8 @@ import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
@@ -56,14 +58,16 @@ data class InfrastructureService(
     val product: Product?,
 
     /**
-     * A flag whether this service should be ignored when generating the _.netrc_ file in the runtime environment of
-     * a worker. Per default, all the infrastructure services referenced from a repository are taken into account when
-     * generating the _.netrc_ file. This is typically desired, so that all external tools invoked from a worker can
-     * access the credentials they represent. In some constellations, however, there could be conflicting services;
-     * for instance, if multiple repositories with different credentials are defined on the same repository server.
-     * Then this flag can be used to resolve such conflicts manually.
+     * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
+     * credentials of the service are listed when generating the runtime environment for a worker. Per default, the
+     * credentials for all the infrastructure services referenced from a repository are added to the _.netrc_ file.
+     * This is typically desired, so that all external tools invoked from a worker can access the credentials they
+     * represent. In some constellations, however, there could be conflicting services; for instance, if multiple
+     * repositories with different credentials are defined on the same repository server. Such issues can be resolved
+     * by explicitly removing the [CredentialsType.NETRC_FILE] constant from this set. It is also possible to add other
+     * constants if a special treatment of the credentials is required.
      */
-    val excludeFromNetrc: Boolean = false
+    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
 ) {
     companion object {
         val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()

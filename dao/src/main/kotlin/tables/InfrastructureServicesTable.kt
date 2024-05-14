@@ -19,8 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -34,7 +37,7 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val name = text("name").sortable()
     val url = text("url")
     val description = text("description").nullable()
-    val excludeFromNetrc = bool("exclude_from_netrc")
+    val credentialsType = text("credentials_type").nullable()
 
     val usernameSecretId = reference("username_secret_id", SecretsTable)
     val passwordSecretId = reference("password_secret_id", SecretsTable)
@@ -55,7 +58,10 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
                         (InfrastructureServicesTable.description eq service.description) and
                         (InfrastructureServicesTable.usernameSecretId eq service.usernameSecret.id) and
                         (InfrastructureServicesTable.passwordSecretId eq service.passwordSecret.id) and
-                        (InfrastructureServicesTable.excludeFromNetrc eq service.excludeFromNetrc) and
+                        (
+                                InfrastructureServicesTable.credentialsType eq
+                                    toCredentialsTypeString(service.credentialsTypes)
+                                ) and
                         (InfrastructureServicesTable.organizationId eq service.organization?.id) and
                         (InfrastructureServicesTable.productId eq service.product?.id)
             }.singleOrNull()
@@ -69,16 +75,32 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
                 name = service.name
                 url = service.url
                 description = service.description
-                excludeFromNetrc = service.excludeFromNetrc
+                credentialsTypes = service.credentialsTypes
                 usernameSecret = SecretDao[service.usernameSecret.id]
                 passwordSecret = SecretDao[service.passwordSecret.id]
             }
+
+        /**
+         * Convert a set of [CredentialsType]s to a string representation.
+         */
+        private fun toCredentialsTypeString(types: Set<CredentialsType>): String? =
+            types.takeUnless { it.isEmpty() }?.toSortedSet()?.joinToString(",") { it.name }
+
+        /**
+         * Return a set of [CredentialsType]s from a string representation.
+         */
+        private fun fromCredentialsTypeString(typeString: String?): Set<CredentialsType> =
+            typeString?.split(",")
+                ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) { CredentialsType.valueOf(it) }.orEmpty()
     }
 
     var name by InfrastructureServicesTable.name
     var url by InfrastructureServicesTable.url
     var description by InfrastructureServicesTable.description
-    var excludeFromNetrc by InfrastructureServicesTable.excludeFromNetrc
+    var credentialsTypes by InfrastructureServicesTable.credentialsType.transform(
+        { toCredentialsTypeString(it) },
+        { fromCredentialsTypeString(it) }
+    )
 
     var usernameSecret by SecretDao referencedOn InfrastructureServicesTable.usernameSecretId
     var passwordSecret by SecretDao referencedOn InfrastructureServicesTable.passwordSecretId
@@ -94,6 +116,6 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         passwordSecret.mapToModel(),
         organization?.mapToModel(),
         product?.mapToModel(),
-        excludeFromNetrc
+        credentialsTypes
     )
 }

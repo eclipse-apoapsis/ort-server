@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.repositories
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -39,7 +40,7 @@ interface InfrastructureServiceRepository {
         description: String?,
         usernameSecret: Secret,
         passwordSecret: Secret,
-        excludeFromNetrc: Boolean,
+        credentialsTypes: Set<CredentialsType>,
         organizationId: Long?,
         productId: Long?
     ): InfrastructureService
@@ -78,7 +79,7 @@ interface InfrastructureServiceRepository {
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
         passwordSecret: OptionalValue<Secret>,
-        excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
+        credentialsTypes: OptionalValue<Set<CredentialsType>> = OptionalValue.Absent,
     ): InfrastructureService
 
     /**
@@ -113,7 +114,7 @@ interface InfrastructureServiceRepository {
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
         passwordSecret: OptionalValue<Secret>,
-        excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
+        credentialsTypes: OptionalValue<Set<CredentialsType>> = OptionalValue.Absent,
     ): InfrastructureService
 
     /**

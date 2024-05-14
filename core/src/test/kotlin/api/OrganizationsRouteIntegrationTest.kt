@@ -40,11 +40,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
@@ -61,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.addUserRole
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
@@ -840,7 +844,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     description = "good bye, cruel world",
                     usernameSecret = userSecret,
                     passwordSecret = passSecret,
-                    excludeFromNetrc = false,
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
                     organizationId = organizationId,
                     productId = null
                 )
@@ -895,7 +899,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "description$index",
                         userSecret,
                         passSecret,
-                        index % 2 == 0,
+                        if (index % 2 == 0) {
+                            EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
+                        } else {
+                            emptySet()
+                        },
                         orgId,
                         null
                     )
@@ -908,7 +916,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         service.description,
                         service.usernameSecret.name,
                         service.passwordSecret.name,
-                        service.excludeFromNetrc
+                        if (service.credentialsTypes.isEmpty()) {
+                            emptySet()
+                        } else {
+                            EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
+                        }
                     )
                 }
 
@@ -933,7 +945,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "description$index",
                         userSecret,
                         passSecret,
-                        false,
+                        EnumSet.of(CredentialsType.NETRC_FILE),
                         orgId,
                         null
                     )
@@ -945,7 +957,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "https://repo.example.org/test$index",
                         "description$index",
                         userSecret.name,
-                        passSecret.name
+                        passSecret.name,
+                        EnumSet.of(ApiCredentialsType.NETRC_FILE)
                     )
                 }
 
@@ -979,7 +992,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "test description",
                     userSecret.name,
                     passSecret.name,
-                    excludeFromNetrc = true
+                    credentialsTypes = emptySet()
                 )
                 val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
                     setBody(createInfrastructureService)
@@ -991,7 +1004,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     createInfrastructureService.description,
                     userSecret.name,
                     passSecret.name,
-                    excludeFromNetrc = true
+                    emptySet()
                 )
 
                 response shouldHaveStatus HttpStatusCode.Created
@@ -1091,7 +1104,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "test description",
                     userSecret,
                     passSecret,
-                    false,
+                    emptySet(),
                     orgId,
                     null
                 )
@@ -1100,7 +1113,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val updateService = UpdateInfrastructureService(
                     description = null.asPresent(),
                     url = newUrl.asPresent(),
-                    excludeFromNetrc = true.asPresent()
+                    credentialsTypes = EnumSet.of(
+                        ApiCredentialsType.NETRC_FILE,
+                        ApiCredentialsType.GIT_CREDENTIALS_FILE
+                    ).asPresent()
                 )
                 val response =
                     superuserClient.patch("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
@@ -1113,7 +1129,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     userSecret.name,
                     passSecret.name,
-                    true
+                    EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
                 )
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -1137,7 +1153,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 "test description",
                 userSecret,
                 passSecret,
-                false,
+                emptySet(),
                 organizationId = createdOrg.id,
                 productId = null
             )
@@ -1169,7 +1185,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "good bye, cruel world",
                     userSecret,
                     passSecret,
-                    false,
+                    emptySet(),
                     orgId,
                     null
                 )
@@ -1193,7 +1209,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 "test description",
                 userSecret,
                 passSecret,
-                false,
+                emptySet(),
                 organizationId = createdOrg.id,
                 productId = null
             )

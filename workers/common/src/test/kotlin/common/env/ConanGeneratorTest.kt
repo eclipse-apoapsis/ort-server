@@ -40,7 +40,7 @@ class ConanGeneratorTest : WordSpec({
         "generate the file at the correct location" {
             val definition = ConanDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
-                false,
+                emptySet(),
                 REMOTE_NAME,
                 REMOTE_URL,
                 true
@@ -56,7 +56,7 @@ class ConanGeneratorTest : WordSpec({
         "generate a file with a single remote" {
             val definition = ConanDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
-                false,
+                emptySet(),
                 REMOTE_NAME,
                 REMOTE_URL,
                 true
@@ -85,14 +85,14 @@ class ConanGeneratorTest : WordSpec({
             val definitions = listOf(
                 ConanDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
-                    false,
+                    emptySet(),
                     REMOTE_NAME,
                     REMOTE_URL,
                     true
                 ),
                 ConanDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REMOTE_URL + 1),
-                    false,
+                    emptySet(),
                     REMOTE_NAME + 1,
                     REMOTE_URL + 1,
                     false

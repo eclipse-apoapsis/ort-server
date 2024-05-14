@@ -38,11 +38,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
@@ -62,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -468,7 +472,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     description = "a private repository used by this repository",
                     usernameSecretRef = "repositoryUsername",
                     passwordSecretRef = "repositoryPassword",
-                    excludeFromNetrc = true
+                    credentialsTypes = EnumSet.of(ApiCredentialsType.NETRC_FILE)
                 )
                 val environmentDefinitions = mapOf(
                     "maven" to listOf(mapOf("id" to "repositoryServer"))
@@ -504,7 +508,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     description = service.description,
                     usernameSecret = service.usernameSecretRef,
                     passwordSecret = service.passwordSecretRef,
-                    excludeFromNetrc = true
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
 
                 val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {

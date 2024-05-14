@@ -29,7 +29,9 @@ import io.mockk.mockk
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -60,7 +62,7 @@ class MockConfigFileBuilder {
             url: String = REPOSITORY_URL,
             userSecret: Secret = mockk(),
             passwordSecret: Secret = mockk(),
-            excludeFromNetrc: Boolean = false
+            credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
         ): InfrastructureService =
             InfrastructureService(
                 name = url,
@@ -69,7 +71,7 @@ class MockConfigFileBuilder {
                 passwordSecret = passwordSecret,
                 organization = null,
                 product = null,
-                excludeFromNetrc = excludeFromNetrc
+                credentialsTypes = credentialsTypes
             )
 
         /**

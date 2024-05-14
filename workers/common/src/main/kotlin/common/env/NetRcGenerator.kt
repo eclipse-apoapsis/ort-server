@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.net.URI
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
@@ -63,7 +64,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
         get() = EnvironmentServiceDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<EnvironmentServiceDefinition>) {
-        val serviceHosts = definitions.filterNot(EnvironmentServiceDefinition::excludeServiceFromNetrc)
+        val serviceHosts = definitions.filter { CredentialsType.NETRC_FILE in it.credentialsTypes() }
             .map { it.service to it.service.host() }
             .filter { it.second != null }
             .toMap()

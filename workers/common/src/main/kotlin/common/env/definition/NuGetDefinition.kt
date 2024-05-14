@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -30,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 class NuGetDefinition(
     service: InfrastructureService,
 
-    excludeFromNetrc: Boolean?,
+    credentialsTypes: Set<CredentialsType>?,
 
     /**
      * The name to assign to the package source.
@@ -56,7 +57,7 @@ class NuGetDefinition(
      * Defines the authentication type for this package source.
      */
     val authMode: NuGetAuthMode = NuGetAuthMode.API_KEY
-) : EnvironmentServiceDefinition(service, excludeFromNetrc)
+) : EnvironmentServiceDefinition(service, credentialsTypes)
 
 enum class NuGetAuthMode {
     /**

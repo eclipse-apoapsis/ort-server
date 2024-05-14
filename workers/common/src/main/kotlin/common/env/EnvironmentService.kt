@@ -112,7 +112,7 @@ class EnvironmentService(
                 unreferencedServices.map(::EnvironmentServiceDefinition)
 
         val adjustedServices = config.environmentDefinitions.mapTo(unreferencedServices.toMutableSet()) { definition ->
-            definition.excludeServiceFromNetrc?.let { definition.service.copy(excludeFromNetrc = it) }
+            definition.credentialsTypes?.let { definition.service.copy(credentialsTypes = it) }
                 ?: definition.service
         }
 

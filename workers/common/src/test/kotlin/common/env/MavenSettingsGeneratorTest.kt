@@ -43,7 +43,7 @@ class MavenSettingsGeneratorTest : WordSpec({
                     MockConfigFileBuilder.createSecret("sec1"),
                     MockConfigFileBuilder.createSecret("sec2")
                 ),
-                false,
+                emptySet(),
                 "repo"
             )
 
@@ -62,17 +62,17 @@ class MavenSettingsGeneratorTest : WordSpec({
 
             val definition1 = MavenDefinition(
                 MockConfigFileBuilder.createInfrastructureService("https://repo1.example.org", secUser1, secPass1),
-                false,
+                emptySet(),
                 "repo1"
             )
             val definition2 = MavenDefinition(
                 MockConfigFileBuilder.createInfrastructureService("https://repo2.example.org", secUser2, secPass2),
-                false,
+                emptySet(),
                 "repo2"
             )
             val definition3 = MavenDefinition(
                 MockConfigFileBuilder.createInfrastructureService("https://repo3.example.org", secUser2, secPass2),
-                false,
+                emptySet(),
                 "repo3"
             )
 
@@ -93,7 +93,7 @@ class MavenSettingsGeneratorTest : WordSpec({
                     MockConfigFileBuilder.createSecret("sec1"),
                     MockConfigFileBuilder.createSecret("sec2")
                 ),
-                false,
+                emptySet(),
                 "repo"
             )
 
