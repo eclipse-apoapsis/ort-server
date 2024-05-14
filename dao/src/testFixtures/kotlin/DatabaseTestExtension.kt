@@ -55,12 +55,12 @@ import org.testcontainers.containers.PostgreSQLContainer
  * callback functions like `suspend fun beforeEach` but use the DSL functions like `beforeEach {}` instead. For details
  * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
-class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
+open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
         startupAttempts = 1
     }
 
-    private lateinit var dataSource: DataSource
+    lateinit var dataSource: DataSource
 
     lateinit var db: Database
     lateinit var fixtures: Fixtures
@@ -98,7 +98,7 @@ private fun clean(dataSource: DataSource) {
     Flyway(getTestFlywayConfig(dataSource)).clean()
 }
 
-private fun getTestFlywayConfig(dataSource: DataSource) = FluentConfiguration()
+internal fun getTestFlywayConfig(dataSource: DataSource) = FluentConfiguration()
     .dataSource(dataSource)
     .schemas(TEST_DB_SCHEMA)
     .cleanDisabled(false)
