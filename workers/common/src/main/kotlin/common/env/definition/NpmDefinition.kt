@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -69,7 +70,7 @@ enum class NpmAuthMode {
 class NpmDefinition(
     service: InfrastructureService,
 
-    excludeFromNetrc: Boolean?,
+    credentialsTypes: Set<CredentialsType>?,
 
     /**
      * An optional scope of the registry. If defined, the generated _npmrc_ file will contain an entry that assigns
@@ -92,4 +93,4 @@ class NpmDefinition(
      * instructed to always send authentication information.
      */
     val alwaysAuth: Boolean = true
-) : EnvironmentServiceDefinition(service, excludeFromNetrc)
+) : EnvironmentServiceDefinition(service, credentialsTypes)

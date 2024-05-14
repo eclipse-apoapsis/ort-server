@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -30,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 class MavenDefinition(
     service: InfrastructureService,
 
-    excludeFromNetrc: Boolean?,
+    credentialsTypes: Set<CredentialsType>?,
 
     /**
      * The ID of the represented service. This ID is used in _pom.xml_ files to refer to the represented repository.
@@ -38,4 +39,4 @@ class MavenDefinition(
      * _servers_ section. See https://maven.apache.org/settings.html#servers.
      */
     val id: String
-) : EnvironmentServiceDefinition(service, excludeFromNetrc)
+) : EnvironmentServiceDefinition(service, credentialsTypes)

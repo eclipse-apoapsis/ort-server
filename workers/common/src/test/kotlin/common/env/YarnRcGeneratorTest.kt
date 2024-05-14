@@ -56,7 +56,7 @@ class YarnRcGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = YarnDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
-                excludeFromNetrc = false,
+                credentialsTypes = null,
                 alwaysAuth = true,
                 authMode = YarnAuthMode.AUTH_IDENT
             )

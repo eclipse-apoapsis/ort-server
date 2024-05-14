@@ -19,7 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
+import java.util.EnumSet
+
 import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 
 /**
  * A data class representing the declaration of an infrastructure service in the environment configuration file of a
@@ -48,5 +52,5 @@ internal data class RepositoryInfrastructureService(
     val passwordSecret: String,
 
     /** A flag whether this service should be ignored when generating the _.netrc_ file. */
-    val excludeFromNetrc: Boolean = false
+    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
 )

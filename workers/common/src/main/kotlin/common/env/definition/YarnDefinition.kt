@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -30,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 class YarnDefinition(
     service: InfrastructureService,
 
-    excludeFromNetrc: Boolean?,
+    credentialsTypes: Set<CredentialsType>?,
 
     /**
      * A flag to control the generation of the `mpmAlwaysAuth` property for this registry. Via this flag, Yarn can be
@@ -42,7 +43,7 @@ class YarnDefinition(
      * Defines the way authentication should be handled for this private registry.
      */
     val authMode: YarnAuthMode = YarnAuthMode.AUTH_TOKEN
-) : EnvironmentServiceDefinition(service, excludeFromNetrc)
+) : EnvironmentServiceDefinition(service, credentialsTypes)
 
 enum class YarnAuthMode {
     /**

@@ -41,7 +41,7 @@ class NuGetGeneratorTest : WordSpec({
         "generate the file at the correct location" {
             val definition = NuGetDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI),
-                false,
+                emptySet(),
                 REPOSITORY_NAME,
                 REPOSITORY_URI,
                 REPOSITORY_PROTOCOL_VERSION
@@ -59,7 +59,7 @@ class NuGetGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("repositoryApiKey")
             val definition = NuGetDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret),
-                false,
+                emptySet(),
                 REPOSITORY_NAME,
                 REPOSITORY_URI,
                 REPOSITORY_PROTOCOL_VERSION
@@ -98,14 +98,14 @@ class NuGetGeneratorTest : WordSpec({
             val definitions = listOf(
                 NuGetDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret1),
-                    false,
+                    emptySet(),
                     REPOSITORY_NAME,
                     REPOSITORY_URI,
                     REPOSITORY_PROTOCOL_VERSION
                 ),
                 NuGetDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret2),
-                    false,
+                    emptySet(),
                     REPOSITORY_NAME + "1",
                     REPOSITORY_URI + "1",
                     REPOSITORY_PROTOCOL_VERSION,
@@ -113,7 +113,7 @@ class NuGetGeneratorTest : WordSpec({
                 ),
                 NuGetDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret3),
-                    false,
+                    emptySet(),
                     REPOSITORY_NAME + "2",
                     REPOSITORY_URI + "2",
                     REPOSITORY_PROTOCOL_VERSION,
@@ -121,7 +121,7 @@ class NuGetGeneratorTest : WordSpec({
                 ),
                 NuGetDefinition(
                     MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret4),
-                    false,
+                    emptySet(),
                     REPOSITORY_NAME + "3",
                     REPOSITORY_URI + "3",
                     REPOSITORY_PROTOCOL_VERSION,
@@ -176,7 +176,7 @@ class NuGetGeneratorTest : WordSpec({
             val passwordSecret = MockConfigFileBuilder.createSecret("repositoryPassword")
             val definition = NuGetDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REPOSITORY_URI, usernameSecret, passwordSecret),
-                false,
+                emptySet(),
                 REPOSITORY_NAME,
                 REPOSITORY_URI,
                 REPOSITORY_PROTOCOL_VERSION,
@@ -220,7 +220,7 @@ class NuGetGeneratorTest : WordSpec({
                 sourceName = REPOSITORY_NAME,
                 sourcePath = REPOSITORY_URI,
                 authMode = NuGetAuthMode.PASSWORD,
-                excludeFromNetrc = null
+                credentialsTypes = null
             )
 
             val mockBuilder = MockConfigFileBuilder()

@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -75,7 +76,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description: String?,
         usernameSecret: Secret,
         passwordSecret: Secret,
-        excludeFromNetrc: Boolean,
+        credentialsTypes: Set<CredentialsType>,
         organizationId: Long?,
         productId: Long?
     ): InfrastructureService = db.blockingQuery {
@@ -85,7 +86,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.description = description
             this.usernameSecret = SecretDao[usernameSecret.id]
             this.passwordSecret = SecretDao[passwordSecret.id]
-            this.excludeFromNetrc = excludeFromNetrc
+            this.credentialsTypes = credentialsTypes
             this.organization = organizationId?.let { OrganizationDao[it] }
             this.product = productId?.let { ProductDao[it] }
         }.mapToModel()
@@ -120,7 +121,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
         passwordSecret: OptionalValue<Secret>,
-        excludeFromNetrc: OptionalValue<Boolean>
+        credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService =
         update(
             selectByOrganizationAndName(organizationId, name),
@@ -128,7 +129,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             description,
             usernameSecret,
             passwordSecret,
-            excludeFromNetrc
+            credentialsTypes
         )
 
     override fun deleteForOrganizationAndName(organizationId: Long, name: String) {
@@ -148,7 +149,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
         passwordSecret: OptionalValue<Secret>,
-        excludeFromNetrc: OptionalValue<Boolean>
+        credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService =
         update(
             selectByProductAndName(productId, name),
@@ -156,7 +157,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             description,
             usernameSecret,
             passwordSecret,
-            excludeFromNetrc
+            credentialsTypes
         )
 
     override fun deleteForProductAndName(productId: Long, name: String) {
@@ -224,7 +225,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description: OptionalValue<String?>,
         usernameSecret: OptionalValue<Secret>,
         passwordSecret: OptionalValue<Secret>,
-        excludeFromNetrc: OptionalValue<Boolean>
+        credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService = db.blockingQuery {
         val service = InfrastructureServicesDao.findSingle(op)
 
@@ -232,7 +233,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         description.ifPresent { service.description = it }
         usernameSecret.ifPresent { service.usernameSecret = SecretDao[it.id] }
         passwordSecret.ifPresent { service.passwordSecret = SecretDao[it.id] }
-        excludeFromNetrc.ifPresent { service.excludeFromNetrc = it }
+        credentialsTypes.ifPresent { service.credentialsTypes = it }
 
         service.mapToModel()
     }

@@ -23,6 +23,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
+import java.util.EnumSet
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createSecret
@@ -55,7 +58,7 @@ class NetRcGeneratorTest : StringSpec({
             val service2 = createInfrastructureService("https://repo2.example.org", secUser2, secPass2)
             val service3 = createInfrastructureService("https://repo3.example.org", secUser2, secPass2)
             val serviceIgnored =
-                createInfrastructureService("https://repo1.example.org", secUser2, secPass2, excludeFromNetrc = true)
+                createInfrastructureService("https://repo1.example.org", secUser2, secPass2, emptySet())
 
             val mockBuilder = MockConfigFileBuilder()
 
@@ -116,17 +119,21 @@ class NetRcGeneratorTest : StringSpec({
             mockBuilder.generatedLines() shouldContainExactly expectedLines
         }
 
-        "The excludeFromNetrc flag should be overridden in the environment definition" {
+        "The credentials types set should be overridden in the environment definition" {
             val secUser = createSecret("user1Secret")
             val secPass = createSecret("pass1Secret")
 
-            val service1 =
-                createInfrastructureService("https://repo1.example.org", secUser, secPass, excludeFromNetrc = true)
+            val service1 = createInfrastructureService(
+                "https://repo1.example.org",
+                secUser,
+                secPass,
+                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            )
             val service2 = createInfrastructureService("https://repo2.example.org", secUser, secPass)
 
             val definitions = listOf(
-                EnvironmentServiceDefinition(service1, excludeServiceFromNetrc = false),
-                EnvironmentServiceDefinition(service2, excludeServiceFromNetrc = true)
+                EnvironmentServiceDefinition(service1, credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)),
+                EnvironmentServiceDefinition(service2, credentialsTypes = emptySet())
             )
 
             val mockBuilder = MockConfigFileBuilder()

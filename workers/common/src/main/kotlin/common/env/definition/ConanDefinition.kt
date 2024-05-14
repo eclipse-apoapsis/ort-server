@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -30,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 class ConanDefinition(
     service: InfrastructureService,
 
-    excludeFromNetrc: Boolean?,
+    credentialsTypes: Set<CredentialsType>?,
 
     /**
      * Name of the remote. This name will be used in commands like `conan list`.
@@ -46,4 +47,4 @@ class ConanDefinition(
      * Verify SSL certificate of the specified url.
      */
     val verifySsl: Boolean
-) : EnvironmentServiceDefinition(service, excludeFromNetrc)
+) : EnvironmentServiceDefinition(service, credentialsTypes)

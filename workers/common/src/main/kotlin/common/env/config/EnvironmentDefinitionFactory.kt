@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
+import java.util.EnumSet
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
@@ -54,11 +57,11 @@ class EnvironmentDefinitionFactory {
         /** The name of the property that defines the infrastructure service for a definition. */
         const val SERVICE_PROPERTY = "service"
 
-        /** The name of the property allowing to override the service's _excludeFromNetrc_ flag. */
-        const val EXCLUDE_NETRC_PROPERTY = "excludeFromNetrc"
+        /** The name of the property allowing to override the service's _credentialsTypes_ value. */
+        const val CREDENTIALS_TYPE_PROPERTY = "credentialsTypes"
 
         /** A set with the standard properties supported by all definition types. */
-        internal val standardProperties = setOf(SERVICE_PROPERTY, EXCLUDE_NETRC_PROPERTY)
+        internal val standardProperties = setOf(SERVICE_PROPERTY, CREDENTIALS_TYPE_PROPERTY)
     }
 
     /**
@@ -89,7 +92,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties("name", "url") {
             ConanDefinition(
                 service = service,
-                excludeFromNetrc = excludeFromNetrc(),
+                credentialsTypes = credentialsTypes(),
                 name = getProperty("name"),
                 url = getProperty("url"),
                 verifySsl = getBooleanProperty("verifySsl", true)
@@ -104,7 +107,7 @@ class EnvironmentDefinitionFactory {
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties("id") {
-            MavenDefinition(service, excludeFromNetrc(), getProperty("id"))
+            MavenDefinition(service, credentialsTypes(), getProperty("id"))
         }
 
     /**
@@ -117,7 +120,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties {
             NpmDefinition(
                 service = service,
-                excludeFromNetrc = excludeFromNetrc(),
+                credentialsTypes = credentialsTypes(),
                 scope = getOptionalProperty("scope"),
                 email = getOptionalProperty("email"),
                 authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD),
@@ -135,7 +138,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties("sourceName", "sourcePath") {
             NuGetDefinition(
                 service = service,
-                excludeFromNetrc = excludeFromNetrc(),
+                credentialsTypes = credentialsTypes(),
                 sourceName = getProperty("sourceName"),
                 sourcePath = getProperty("sourcePath"),
                 sourceProtocolVersion = getOptionalProperty("sourceProtocolVersion"),
@@ -153,7 +156,7 @@ class EnvironmentDefinitionFactory {
         properties.withRequiredProperties {
             YarnDefinition(
                 service = service,
-                excludeFromNetrc = excludeFromNetrc(),
+                credentialsTypes = credentialsTypes(),
                 authMode = getEnumProperty("authMode", YarnAuthMode.AUTH_TOKEN),
                 alwaysAuth = getBooleanProperty("alwaysAuth", true)
             )
@@ -184,13 +187,17 @@ private class DefinitionProperties(val properties: Map<String, String>) {
     }
 
     /**
-     * Return the value of the special property whether the associated service should be excluded from the _.netrc_
-     * file.
+     * Return the value of the credentials types property.
      */
-    fun excludeFromNetrc(): Boolean? =
-        properties.takeIf { EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY in it }?.let {
-            getBooleanProperty(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY, false)
-        }
+    fun credentialsTypes(): Set<CredentialsType>? {
+        val credentialsTypesString = properties[EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY]
+        if (credentialsTypesString?.isEmpty() == true) return EnumSet.noneOf(CredentialsType::class.java)
+
+        return credentialsTypesString?.split(",")
+            ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) {
+                toEnumValue(it.trim(), EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY)
+            }
+    }
 
     /**
      * Return the value of the required property with the given [name].
@@ -209,13 +216,21 @@ private class DefinitionProperties(val properties: Map<String, String>) {
      */
     inline fun <reified T : Enum<T>> getEnumProperty(name: String, default: T): T {
         return getOptionalProperty(name)?.let { value ->
-            val allowedValues = enumValues<T>()
-            allowedValues.find { it.name.equals(value, ignoreCase = true) }
-                ?: throw EnvironmentConfigException(
-                    "Invalid valid for property '$name': '$value'. " +
-                            "Allowed values are: ${allowedValues.joinToString()} with properties $properties."
-                )
+            toEnumValue<T>(value, name)
         } ?: default
+    }
+
+    /**
+     * Convert the given string [value] to an enum value of type [T] or throw an [EnvironmentConfigException] if the
+     * string does not reference a valid constant of this type.
+     */
+    inline fun <reified T : Enum<T>> toEnumValue(value: String, name: String): T {
+        val allowedValues = enumValues<T>()
+        return allowedValues.find { it.name.equals(value, ignoreCase = true) }
+            ?: throw EnvironmentConfigException(
+                "Invalid valid for property '$name': '$value'. " +
+                        "Allowed values are: ${allowedValues.joinToString()} with properties $properties."
+            )
     }
 
     /**

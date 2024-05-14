@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.pattern
 
+import java.util.EnumSet
+
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
@@ -50,10 +52,10 @@ data class InfrastructureService(
     val passwordSecretRef: String,
 
     /**
-     * A flag whether this service should be ignored when generating the _.netrc_ file in the runtime environment of
-     * a worker.
+     * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
+     * credentials of the service are listed when generating the runtime environment for a worker.
      */
-    val excludeFromNetrc: Boolean = false
+    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
 )
 
 /**
@@ -66,7 +68,7 @@ data class CreateInfrastructureService(
     val description: String? = null,
     val usernameSecretRef: String,
     val passwordSecretRef: String,
-    val excludeFromNetrc: Boolean = false
+    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
 ) {
     companion object {
         val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
@@ -92,5 +94,5 @@ data class UpdateInfrastructureService(
     val description: OptionalValue<String?> = OptionalValue.Absent,
     val usernameSecretRef: OptionalValue<String> = OptionalValue.Absent,
     val passwordSecretRef: OptionalValue<String> = OptionalValue.Absent,
-    val excludeFromNetrc: OptionalValue<Boolean> = OptionalValue.Absent
+    val credentialsTypes: OptionalValue<Set<CredentialsType>> = OptionalValue.Absent
 )

@@ -33,8 +33,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldInclude
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.Product
@@ -83,7 +86,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
 
             "create an infrastructure service for a product" {
-                val expectedService = createInfrastructureService(product = fixtures.product, excludeFromNetrc = true)
+                val expectedService =
+                    createInfrastructureService(product = fixtures.product, credentialsTypes = emptySet())
 
                 val service = infrastructureServicesRepository.create(expectedService)
 
@@ -302,7 +306,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     usernameSecret = newUser,
                     passwordSecret = newPassword,
                     organization = fixtures.organization,
-                    excludeFromNetrc = true
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE),
                 )
 
                 infrastructureServicesRepository.create(service)
@@ -314,7 +318,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     updatedService.description.asPresent(),
                     updatedService.usernameSecret.asPresent(),
                     updatedService.passwordSecret.asPresent(),
-                    excludeFromNetrc = updatedService.excludeFromNetrc.asPresent()
+                    credentialsTypes = updatedService.credentialsTypes.asPresent()
                 )
 
                 result shouldBe updatedService
@@ -329,6 +333,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     infrastructureServicesRepository.updateForOrganizationAndName(
                         42L,
                         SERVICE_NAME,
+                        OptionalValue.Absent,
                         OptionalValue.Absent,
                         OptionalValue.Absent,
                         OptionalValue.Absent,
@@ -349,7 +354,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     usernameSecret = newUser,
                     passwordSecret = newPassword,
                     product = fixtures.product,
-                    excludeFromNetrc = true
+                    credentialsTypes = emptySet(),
                 )
 
                 infrastructureServicesRepository.create(service)
@@ -361,7 +366,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     updatedService.description.asPresent(),
                     updatedService.usernameSecret.asPresent(),
                     updatedService.passwordSecret.asPresent(),
-                    updatedService.excludeFromNetrc.asPresent()
+                    updatedService.credentialsTypes.asPresent()
                 )
 
                 result shouldBe updatedService
@@ -578,7 +583,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
         passwordSecret: Secret = this.passwordSecret,
         organization: Organization? = null,
         product: Product? = null,
-        excludeFromNetrc: Boolean = false
+        credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE),
     ): InfrastructureService =
         InfrastructureService(
             name,
@@ -588,7 +593,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             passwordSecret,
             organization,
             product,
-            excludeFromNetrc
+            credentialsTypes
         )
 }
 
@@ -606,7 +611,7 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.description,
         service.usernameSecret,
         service.passwordSecret,
-        service.excludeFromNetrc,
+        service.credentialsTypes,
         service.organization?.id,
         service.product?.id
     )

@@ -67,6 +67,8 @@ import org.slf4j.LoggerFactory
  *   description: "Main repository for releases."
  *   usernameSecret: "frogUsername"
  *   passwordSecret: "frogPassword"
+ *   credentialsTypes:
+ *   - "NETRC"
  * environmentDefinitions:
  *   maven:
  *   - service: "JFrog"
@@ -162,7 +164,7 @@ class EnvironmentConfigLoader(
                         passwordSecret,
                         null,
                         null,
-                        service.excludeFromNetrc
+                        service.credentialsTypes
                     )
                 }
             }
@@ -363,7 +365,7 @@ private fun Collection<InfrastructureService>.associateByName(): Map<String, Inf
  * Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService].
  */
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
-    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, excludeFromNetrc)
+    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
 
 /**
  * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].

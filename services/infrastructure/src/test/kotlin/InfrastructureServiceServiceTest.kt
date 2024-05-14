@@ -35,7 +35,10 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -72,7 +75,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         SERVICE_DESC,
                         userSecret,
                         passSecret,
-                        false,
+                        EnumSet.of(CredentialsType.NETRC_FILE),
                         ORGANIZATION_ID,
                         null
                     )
@@ -85,7 +88,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                     SERVICE_DESC,
                     USERNAME_SECRET,
                     PASSWORD_SECRET,
-                    false
+                    EnumSet.of(CredentialsType.NETRC_FILE)
                 )
 
                 createResult shouldBe infrastructureService
@@ -107,7 +110,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         SERVICE_DESC,
                         USERNAME_SECRET,
                         PASSWORD_SECRET,
-                        false
+                        emptySet()
                     )
                 }
 
@@ -142,7 +145,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                     SERVICE_DESC.asPresent(),
                     USERNAME_SECRET.asPresent(),
                     PASSWORD_SECRET.asPresent(),
-                    true.asPresent()
+                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent()
                 )
 
                 updateResult shouldBe infrastructureService
@@ -151,7 +154,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                 val slotDescription = slot<OptionalValue<String?>>()
                 val slotUsernameSecret = slot<OptionalValue<Secret>>()
                 val slotPasswordSecret = slot<OptionalValue<Secret>>()
-                val slotExcludeNetrc = slot<OptionalValue<Boolean>>()
+                val slotCredentialsType = slot<OptionalValue<Set<CredentialsType>>>()
                 verify {
                     repository.updateForOrganizationAndName(
                         ORGANIZATION_ID,
@@ -160,7 +163,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                         capture(slotDescription),
                         capture(slotUsernameSecret),
                         capture(slotPasswordSecret),
-                        capture(slotExcludeNetrc)
+                        capture(slotCredentialsType)
                     )
                 }
 
@@ -168,7 +171,10 @@ class InfrastructureServiceServiceTest : WordSpec({
                 equalsOptionalValues(SERVICE_DESC.asPresent(), slotDescription.captured) shouldBe true
                 equalsOptionalValues(userSecret.asPresent(), slotUsernameSecret.captured) shouldBe true
                 equalsOptionalValues(passSecret.asPresent(), slotPasswordSecret.captured) shouldBe true
-                equalsOptionalValues(true.asPresent(), slotExcludeNetrc.captured) shouldBe true
+                equalsOptionalValues(
+                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent(),
+                    slotCredentialsType.captured
+                ) shouldBe true
             }
         }
 

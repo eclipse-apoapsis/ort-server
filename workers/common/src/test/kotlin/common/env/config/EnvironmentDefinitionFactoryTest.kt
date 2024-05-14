@@ -30,6 +30,9 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 
 import io.mockk.mockk
 
+import java.util.EnumSet
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
@@ -96,12 +99,18 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
             }
 
-            "allow overriding the excludeFromNetrc flag" {
-                val properties = mapOf("id" to "someId", EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+            "allow overriding the credentials types" {
+                val properties = mapOf(
+                    "id" to "someId",
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to "GIT_CREDENTIALS_FILE, NETRC_FILE"
+                )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
 
-                definition.excludeServiceFromNetrc() shouldBe true
+                definition.credentialsTypes() shouldBe EnumSet.of(
+                    CredentialsType.GIT_CREDENTIALS_FILE,
+                    CredentialsType.NETRC_FILE
+                )
             }
         }
 
@@ -146,16 +155,19 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain "'$unsupportedProperty2'"
             }
 
-            "allow overriding the excludeFromNetrc flag" {
+            "allow overriding the credentials types" {
                 val properties = mapOf(
                     "name" to REMOTE_NAME,
                     "url" to REMOTE_URL,
-                    EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true"
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to "NETRC_FILE,GIT_CREDENTIALS_FILE"
                 )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.CONAN_TYPE, properties)
 
-                definition.excludeServiceFromNetrc() shouldBe true
+                definition.credentialsTypes() shouldBe EnumSet.of(
+                    CredentialsType.GIT_CREDENTIALS_FILE,
+                    CredentialsType.NETRC_FILE
+                )
             }
         }
 
@@ -232,20 +244,26 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain "FALSE"
             }
 
-            "allow overriding the excludeFromNetrc flag" {
-                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+            "allow overriding the credentials types" {
+                val properties = mapOf(
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to " NETRC_FILE  , GIT_CREDENTIALS_FILE  "
+                )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
 
-                definition.excludeServiceFromNetrc() shouldBe true
+                definition.credentialsTypes() shouldBe EnumSet.of(
+                    CredentialsType.GIT_CREDENTIALS_FILE,
+                    CredentialsType.NETRC_FILE
+                )
             }
 
-            "fail for an unsupported value of the excludeFromNetrc flag" {
-                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "maybe")
+            "fail for an unsupported value of the credentials types property" {
+                val properties = mapOf(EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to "maybe")
 
                 val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
 
-                exception.message shouldContain properties.getValue(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY)
+                exception.message shouldContain
+                        properties.getValue(EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY)
             }
         }
 
@@ -330,16 +348,16 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain NuGetAuthMode.PASSWORD.name
             }
 
-            "allow overriding the excludeFromNetrc flag" {
+            "allow overriding the credentials types" {
                 val properties = mapOf(
                     "sourceName" to "someSource",
                     "sourcePath" to "somePath",
-                    EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true"
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to ""
                 )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)
 
-                definition.excludeServiceFromNetrc() shouldBe true
+                definition.credentialsTypes() shouldBe EnumSet.noneOf(CredentialsType::class.java)
             }
         }
 
@@ -411,12 +429,14 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain "FALSE"
             }
 
-            "allow overriding the excludeFromNetrc flag" {
-                val properties = mapOf(EnvironmentDefinitionFactory.EXCLUDE_NETRC_PROPERTY to "true")
+            "allow overriding the credentials types" {
+                val properties = mapOf(
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to "GIT_CREDENTIALS_FILE"
+                )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
-                definition.excludeServiceFromNetrc() shouldBe true
+                definition.credentialsTypes() shouldBe EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
             }
         }
     }

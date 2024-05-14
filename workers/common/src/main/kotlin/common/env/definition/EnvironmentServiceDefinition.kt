@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 /**
@@ -40,15 +41,15 @@ open class EnvironmentServiceDefinition(
     val service: InfrastructureService,
 
     /**
-     * A flag to indicate whether the associated [InfrastructureService] should be excluded from the _.netrc_ file.
-     * If this flag is defined, it overrides the corresponding flag from the service.
+     * A set determining the locations where the credentials of the associated [InfrastructureService] should be
+     * used. If it is defined, it overrides the corresponding property from the service.
      */
-    val excludeServiceFromNetrc: Boolean? = null
+    val credentialsTypes: Set<CredentialsType>? = null
 ) {
     /**
-     * Return a flag whether the [InfrastructureService] associated with this [EnvironmentServiceDefinition] should be
-     * excluded when generating the _.netrc_ file. Per default, this is a property of the [InfrastructureService]
-     * itself, but it is possible to override this flag in the [EnvironmentServiceDefinition].
+     * Return a set indicating where the credentials of the [InfrastructureService] associated with this
+     * [EnvironmentServiceDefinition] should be used. Per default, this is a property of the [InfrastructureService]
+     * itself, but it is possible to override this property in the [EnvironmentServiceDefinition].
      */
-    fun excludeServiceFromNetrc(): Boolean = excludeServiceFromNetrc ?: service.excludeFromNetrc
+    fun credentialsTypes(): Set<CredentialsType> = credentialsTypes ?: service.credentialsTypes
 }

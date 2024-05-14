@@ -36,7 +36,9 @@ import io.mockk.runs
 import io.mockk.slot
 
 import java.io.File
+import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -189,7 +191,7 @@ class EnvironmentServiceTest : WordSpec({
             assignedServices shouldContainExactlyInAnyOrder services
         }
 
-        "set an overridden excludeFromNetRc flag when assigning infrastructure services to the current ORT run" {
+        "set an overridden credentials type when assigning infrastructure services to the current ORT run" {
             val service = InfrastructureService(
                 name = "aTestService",
                 url = "https://test.example.org/test/service.git",
@@ -198,7 +200,10 @@ class EnvironmentServiceTest : WordSpec({
                 organization = null,
                 product = null
             )
-            val definition = EnvironmentServiceDefinition(service, excludeServiceFromNetrc = true)
+            val definition = EnvironmentServiceDefinition(
+                service,
+                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            )
 
             val context = mockContext()
             val config = ResolvedEnvironmentConfig(listOf(service), listOf(definition))
@@ -210,7 +215,9 @@ class EnvironmentServiceTest : WordSpec({
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
             environmentService.setUpEnvironment(context, repositoryFolder, null)
 
-            val expectedAssignedService = service.copy(excludeFromNetrc = true)
+            val expectedAssignedService = service.copy(
+                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            )
             assignedServices shouldContainExactlyInAnyOrder listOf(expectedAssignedService)
         }
 
