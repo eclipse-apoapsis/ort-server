@@ -89,34 +89,65 @@ class MockConfigFileBuilder {
             )
     }
 
-    /** The writer to store the generated text. */
-    private val writer = StringWriter()
+    /** Stores information about the files that have been generated via this mock builder. */
+    private val generatedFiles = mutableListOf<GeneratedFile>()
 
     /** The mock for the [WorkerContext] used by the mock [ConfigFileBuilder]. */
     val contextMock = mockk<WorkerContext>()
 
-    /** The path of the generated configuration file. */
-    var targetFile: File? = null
+    /** A list of the files that have been generated via this mock builder's [ConfigFileBuilder.build] function. */
+    val targetFiles: List<File>
+        get() = generatedFiles.mapNotNull { it.targetFile }
 
-    /** The name of the file generated in the user's home directory. */
-    var homeFileName: String? = null
+    /** The path of the single configuration file generated via this builder. */
+    val targetFile: File?
+        get() = targetFiles.singleOrNull()
+
+    /**
+     * A list with the names of the files that have been generated via this mock builder's
+     * [ConfigFileBuilder.buildInUserHome] function.
+     */
+    val homeFileNames: List<String>
+        get() = generatedFiles.mapNotNull { it.homeFileName }
+
+    /** The name of the single file generated in the user's home directory. */
+    val homeFileName: String?
+        get() = homeFileNames.singleOrNull()
 
     /** The mock [ConfigFileBuilder] provided by this class. */
     val builder = createBuilderMock()
 
     /**
-     * Return the text that was generated using the managed mock builder.
+     * Return the text of a configuration file that was generated using this mock builder specified by either
+     * [targetFile] or [homeFileName]. Result is *null* if no matching file was found.
      */
-    fun generatedText(): String = writer.toString()
+    fun generatedTextFor(targetFile: File? = null, homeFileName: String? = null): String? =
+        generatedFiles.firstOrNull { it.targetFile == targetFile && it.homeFileName == homeFileName }?.content
 
     /**
-     * Return the single text lines that were generated using the managed mock builder.
+     * Return the single text lines that were generated using this mock builder for the specified [targetFile] or
+     * [homeFileName]. Result is an empty list if no matching file was found.
      */
-    fun generatedLines(): List<String> {
-        val lines = generatedText().split(System.lineSeparator())
+    fun generatedLinesFor(targetFile: File? = null, homeFileName: String? = null): List<String> {
+        val lines = generatedTextFor(targetFile, homeFileName)?.split(System.lineSeparator()).orEmpty()
 
         // Remove a single last empty line caused by the last newline character in the generated content.
         return lines.takeIf { it.isEmpty() || it.last().isNotEmpty() } ?: lines.dropLast(1)
+    }
+
+    /**
+     * Return the text of the single configuration file that was generated using the managed mock builder. Fail if
+     * no file or multiple files were generated.
+     */
+    fun generatedText(): String = generatedFiles.single().content
+
+    /**
+     * Return the single text lines that were generated using the managed mock builder. Fail if no file or multiple
+     * files were generated.
+     */
+    fun generatedLines(): List<String> {
+        val generatedFile = generatedFiles.single()
+        return generatedLinesFor(generatedFile.targetFile, generatedFile.homeFileName)
     }
 
     /**
@@ -125,13 +156,11 @@ class MockConfigFileBuilder {
     private fun createBuilderMock(): ConfigFileBuilder =
         mockk {
             coEvery { build(any(), any()) } answers {
-                targetFile = firstArg()
-                invokeBuilderBlock()
+                invokeBuilderBlock(firstArg<File>(), null)
             }
 
             coEvery { buildInUserHome(any(), any()) } answers {
-                homeFileName = firstArg()
-                invokeBuilderBlock()
+                invokeBuilderBlock(null, firstArg<String>())
             }
 
             every { secretRef(any()) } answers {
@@ -142,12 +171,29 @@ class MockConfigFileBuilder {
         }
 
     /**
-     * Invoke the block passed to a build() function of the mock builder, so that the generated text can be recorded.
+     * Invoke the block passed to a build() function of the mock builder, so that the generated text can be recorded
+     * for the specified [targetFile] or [homeFileName].
      */
-    private fun MockKAnswerScope<Unit, Unit>.invokeBuilderBlock() {
+    private fun MockKAnswerScope<Unit, Unit>.invokeBuilderBlock(targetFile: File?, homeFileName: String?) {
+        val writer = StringWriter()
         val block = secondArg<suspend PrintWriter.() -> Unit>()
 
         val printWriter = PrintWriter(writer)
         runBlocking { printWriter.block() }
+        generatedFiles += GeneratedFile(targetFile, homeFileName, writer.toString())
     }
 }
+
+/**
+ * A data class holding information about a file generated via [MockConfigFileBuilder].
+ */
+private data class GeneratedFile(
+    /** The path to the generated file if [ConfigFileBuilder.build] was called. */
+    val targetFile: File?,
+
+    /** The name of the generated file if [ConfigFileBuilder.buildInUserHome] was called. */
+    val homeFileName: String?,
+
+    /** The content of the generated file. */
+    val content: String
+)
