@@ -64,6 +64,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { ToastError } from '@/components/toast-error';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 
 const RepoComponent = () => {
   const params = Route.useParams();
@@ -179,7 +180,8 @@ const RepoComponent = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Run</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Run Status</TableHead>
+                <TableHead>Job Statuses</TableHead>
                 <TableHead className="pb-1.5 pr-0 text-right">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -232,6 +234,9 @@ const RepoComponent = () => {
                       >
                         {run.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <OrtRunJobStatus jobs={run.jobs} />
                     </TableCell>
                   </TableRow>
                 );
