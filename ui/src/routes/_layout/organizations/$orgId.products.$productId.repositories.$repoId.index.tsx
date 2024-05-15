@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -62,6 +63,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { ToastError } from '@/components/toast-error';
+import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 const RepoComponent = () => {
   const params = Route.useParams();
@@ -225,7 +227,11 @@ const RepoComponent = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{run.status}</div>
+                      <Badge
+                        className={`border ${getStatusBackgroundColor(run.status)}`}
+                      >
+                        {run.status}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 );
