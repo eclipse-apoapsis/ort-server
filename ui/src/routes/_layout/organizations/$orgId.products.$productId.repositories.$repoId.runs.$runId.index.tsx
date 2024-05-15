@@ -18,13 +18,7 @@
  */
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
   TableHeader,
   TableRow,
@@ -37,6 +31,8 @@ import { RepositoriesService, OpenAPI } from '@/api/requests';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { Badge } from '@/components/ui/badge';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -101,10 +97,12 @@ const RunComponent = () => {
       <CardHeader className="flex flex-row items-start">
         <div className="grid gap-2">
           <CardTitle>{ortRun.id}</CardTitle>
-          <CardDescription>{ortRun.status}</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
+        <Badge className={`border ${getStatusBackgroundColor(ortRun.status)}`}>
+          {ortRun.status}
+        </Badge>
         <Table>
           <TableHeader>
             <TableRow>
