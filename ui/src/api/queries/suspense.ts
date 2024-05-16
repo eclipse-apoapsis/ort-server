@@ -8,7 +8,7 @@ import * as Common from "./common";
 * @returns Liveness Success
 * @throws ApiError
 */
-export const useHealthServiceGetLivenessSuspense = <TData = Common.HealthServiceGetLivenessDefaultResponse, TError = unknown, TQueryKey extends Array<unknown> = unknown[]>(queryKey?: TQueryKey, options?: Omit<UseQueryOptions<TData, TError>, "queryKey" | "queryFn">) => useSuspenseQuery<TData, TError>({ queryKey: Common.UseHealthServiceGetLivenessKeyFn(), queryFn: () => HealthService.getLiveness() as TData, ...options });
+export const useHealthServiceGetLivenessSuspense = <TData = Common.HealthServiceGetLivenessDefaultResponse, TError = unknown, TQueryKey extends Array<unknown> = unknown[]>(_queryKey?: TQueryKey, options?: Omit<UseQueryOptions<TData, TError>, "queryKey" | "queryFn">) => useSuspenseQuery<TData, TError>({ queryKey: Common.UseHealthServiceGetLivenessKeyFn(), queryFn: () => HealthService.getLiveness() as TData, ...options });
 /**
 * Download a report of an ORT run using a token. This endpoint does not require authentication.
 * @param data The data for the request.
