@@ -72,16 +72,16 @@ const OrganizationComponent = () => {
       {
         queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
         queryFn: async () =>
-          await OrganizationsService.getOrganizationById(
-            Number.parseInt(params.orgId)
-          ),
+          await OrganizationsService.getOrganizationById({
+            organizationId: Number.parseInt(params.orgId)
+          }),
       },
       {
         queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
         queryFn: async () =>
-          await ProductsService.getOrganizationProducts(
-            Number.parseInt(params.orgId)
-          ),
+          await ProductsService.getOrganizationProducts({
+            organizationId: Number.parseInt(params.orgId)
+          }),
       },
     ],
   });
@@ -99,7 +99,7 @@ const OrganizationComponent = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -217,16 +217,16 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
       context.queryClient.ensureQueryData({
         queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
         queryFn: () =>
-          OrganizationsService.getOrganizationById(
-            Number.parseInt(params.orgId)
-          ),
+          OrganizationsService.getOrganizationById({
+            organizationId: Number.parseInt(params.orgId)
+          }),
       }),
       context.queryClient.ensureQueryData({
         queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
         queryFn: () =>
-          ProductsService.getOrganizationProducts(
-            Number.parseInt(params.orgId)
-          ),
+          ProductsService.getOrganizationProducts({
+            organizationId: Number.parseInt(params.orgId)
+          }),
       }),
     ]);
   },

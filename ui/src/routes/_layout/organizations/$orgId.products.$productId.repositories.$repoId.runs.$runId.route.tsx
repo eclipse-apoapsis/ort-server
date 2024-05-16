@@ -29,7 +29,10 @@ export const Route = createFileRoute(
     const run = await context.queryClient.ensureQueryData({
       queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
       queryFn: () =>
-        RepositoriesService.getOrtRunByIndex(Number.parseInt(params.repoId), Number.parseInt(params.runId)),
+        RepositoriesService.getOrtRunByIndex({
+          repositoryId: Number.parseInt(params.repoId), 
+          ortRunIndex: Number.parseInt(params.runId)
+        }),
     });
     context.breadcrumbs.run = run.id.toString();
   },

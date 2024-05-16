@@ -29,7 +29,9 @@ export const Route = createFileRoute(
     const product = await context.queryClient.ensureQueryData({
       queryKey: [useProductsServiceGetProductByIdKey, params.productId],
       queryFn: () =>
-        ProductsService.getProductById(Number.parseInt(params.productId)),
+        ProductsService.getProductById({
+          productId: Number.parseInt(params.productId)
+        }),
     });
     context.breadcrumbs.product = product.name;
   },

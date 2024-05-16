@@ -29,7 +29,9 @@ export const Route = createFileRoute(
     const repo = await context.queryClient.ensureQueryData({
       queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
       queryFn: () =>
-        RepositoriesService.getRepositoryById(Number.parseInt(params.repoId)),
+        RepositoriesService.getRepositoryById({
+          repositoryId: Number.parseInt(params.repoId)
+        }),
     });
     context.breadcrumbs.repo = repo.url;
   },

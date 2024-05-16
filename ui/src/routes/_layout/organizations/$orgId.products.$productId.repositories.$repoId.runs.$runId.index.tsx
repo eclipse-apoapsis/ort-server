@@ -52,10 +52,10 @@ const RunComponent = () => {
       params.runId,
     ],
     queryFn: async () =>
-      await RepositoriesService.getOrtRunByIndex(
-        Number.parseInt(params.repoId),
-        Number.parseInt(params.runId)
-      ),
+      await RepositoriesService.getOrtRunByIndex({
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runId)
+      }),
   });
 
   const downloadZipFile = async ({
@@ -191,10 +191,10 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/products/$pr
     await context.queryClient.ensureQueryData({
       queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
       queryFn: () =>
-        RepositoriesService.getOrtRunByIndex(
-          Number.parseInt(params.repoId),
-          Number.parseInt(params.runId)
-        ),
+        RepositoriesService.getOrtRunByIndex({
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runId)
+        }),
     });
   },
   component: RunComponent,
