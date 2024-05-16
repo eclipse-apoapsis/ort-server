@@ -34,11 +34,18 @@ import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
+import org.ossreviewtoolkit.model.licenses.LicenseCategorization
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
+import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
+import org.ossreviewtoolkit.model.licenses.LicenseView
+import org.ossreviewtoolkit.model.licenses.ResolvedLicenseInfo
+import org.ossreviewtoolkit.model.utils.createLicenseInfoResolver
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.encodeOrUnknown
 import org.ossreviewtoolkit.utils.common.packZip
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
+import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice
 
 import org.slf4j.LoggerFactory
 
@@ -58,6 +65,11 @@ class SourceCodeBundleReporter(
         const val PACKAGE_TYPE_PROPERTY = "packageType"
 
         /**
+         * Name of the property that specifies the license classifications to include in the source code bundle.
+         */
+        const val INCLUDED_LICENSE_CATEGORIES_PROPERTY = "includedLicenseCategories"
+
+        /**
          * Name of the property that specifies the type of package for source code bundle
          */
         const val REPORTER_NAME = "SourceCodeBundle"
@@ -73,14 +85,22 @@ class SourceCodeBundleReporter(
         val outputFile = downloadSourceCode(
             input.ortResult,
             outputDir,
+            input.licenseClassifications,
+            config.options[INCLUDED_LICENSE_CATEGORIES_PROPERTY]?.takeUnless { it.isEmpty() }?.split(",").orEmpty(),
             config.options.getOrDefault(PACKAGE_TYPE_PROPERTY, "PROJECT")
         )
 
         return listOf(outputFile)
     }
 
-    private fun downloadSourceCode(ortResult: OrtResult, outputDir: File, packageType: String): File {
-        val packages = buildList {
+    private fun downloadSourceCode(
+        ortResult: OrtResult,
+        outputDir: File,
+        licenseClassifications: LicenseClassifications,
+        includedLicenseCategories: List<String>,
+        packageType: String
+    ): File {
+        val allPackages = buildList {
             if (packageType.contains(PackageType.PROJECT.name, true)) {
                 val projects = consolidateProjectPackagesByVcs(ortResult.getProjects(true)).keys
                 log.info("Found ${projects.size} project(s) in the ORT result.")
@@ -94,13 +114,24 @@ class SourceCodeBundleReporter(
             }
         }
 
+        val licenseInfoResolver = ortResult.createLicenseInfoResolver()
+        val filteredPackages = allPackages.takeIf { includedLicenseCategories.isEmpty() } ?: allPackages.filter { pkg ->
+            val pkgLicenseCategories = pkg.getLicenseCategories(
+                licenseClassifications.categorizations,
+                licenseInfoResolver,
+                ortResult.getPackageLicenseChoices(pkg.id)
+            )
+
+            pkgLicenseCategories.any { it in includedLicenseCategories }
+        }
+
         val bundleDownloadDir = provideCodeBundleDownloadDir(outputDir)
 
         try {
-            log.info("Downloading ${packages.size} project(s) / package(s) in total.")
+            log.info("Downloading ${filteredPackages.size} project(s) / package(s) in total.")
 
             val packageDownloadDirs =
-                packages.associateWith { bundleDownloadDir.resolve(it.id.toPath()) }
+                filteredPackages.associateWith { bundleDownloadDir.resolve(it.id.toPath()) }
 
             runBlocking { downloadAllPackages(packageDownloadDirs, bundleDownloadDir) }
 
@@ -161,5 +192,25 @@ class SourceCodeBundleReporter(
         log.debug("Temp dir ${codeBundleDir.absolutePath} for code bundle packages download created.")
 
         return codeBundleDir
+    }
+
+    /**
+     * Retrieve the license categories for this [Package] based on its [effective license]
+     * [ResolvedLicenseInfo.effectiveLicense].
+     */
+    private fun Package.getLicenseCategories(
+        licenseCategorizations: List<LicenseCategorization>,
+        licenseInfoResolver: LicenseInfoResolver,
+        licenseChoices: List<SpdxLicenseChoice>
+    ): Set<String> {
+        val resolvedLicenseInfo = licenseInfoResolver.resolveLicenseInfo(id)
+        val effectiveLicenses = resolvedLicenseInfo.effectiveLicense(
+            LicenseView.CONCLUDED_OR_DECLARED_AND_DETECTED,
+            licenseChoices
+        )?.decompose().orEmpty()
+
+        return licenseCategorizations
+            .filter { it.id in effectiveLicenses }
+            .flatMapTo(mutableSetOf()) { it.categories }
     }
 }
