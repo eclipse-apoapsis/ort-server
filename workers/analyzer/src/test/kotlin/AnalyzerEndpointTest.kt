@@ -139,6 +139,15 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "The build environment should contain a .git-credentials file" {
+            runEnvironmentTest { homeFolder ->
+                val gitCredentialsFile = homeFolder.resolve(".git-credentials")
+                val content = gitCredentialsFile.readText()
+
+                content shouldContain "https://$USERNAME:$PASSWORD@repo2.example.org/test2/other-repository.git"
+            }
+        }
+
         "The build environment should contain a settings.xml file" {
             runEnvironmentTest { homeFolder ->
                 val settingsFile = homeFolder.resolve("settings.xml")

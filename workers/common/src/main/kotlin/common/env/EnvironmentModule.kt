@@ -46,6 +46,7 @@ fun buildEnvironmentModule(): Module = module {
             get(),
             listOf(
                 ConanGenerator(),
+                GitCredentialsGenerator(),
                 MavenSettingsGenerator(),
                 NetRcGenerator(),
                 NpmRcGenerator(),
