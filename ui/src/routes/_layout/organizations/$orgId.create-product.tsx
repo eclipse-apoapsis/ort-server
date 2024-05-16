@@ -40,7 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 
@@ -71,7 +71,7 @@ const CreateProductPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({

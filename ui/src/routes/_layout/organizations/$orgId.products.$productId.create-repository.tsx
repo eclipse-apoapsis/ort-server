@@ -48,7 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
@@ -78,7 +78,7 @@ const CreateRepositoryPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -133,7 +133,9 @@ const CreateRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values($CreateRepository.properties.type.enum).map((type) => (
+                      {Object.values(
+                        $CreateRepository.properties.type.enum
+                      ).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>

@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -59,9 +59,9 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+} from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const RepoComponent = () => {
   const params = Route.useParams();
@@ -74,45 +74,46 @@ const RepoComponent = () => {
         queryKey: [useRepositoriesServiceGetRepositoryById, params.repoId],
         queryFn: async () =>
           await RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId)
+            repositoryId: Number.parseInt(params.repoId),
           }),
       },
       {
         queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
         queryFn: async () =>
           await RepositoriesService.getOrtRuns({
-            repositoryId: Number.parseInt(params.repoId)
+            repositoryId: Number.parseInt(params.repoId),
           }),
       },
     ],
   });
 
-  const { mutateAsync: deleteRepository } = useRepositoriesServiceDeleteRepositoryById({
-    onSuccess() {
-      toast({
-        title: 'Delete Repository',
-        description: 'Repository deleted successfully.',
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId',
-        params: { orgId: params.orgId, productId: params.productId },
-      });
-    },
-    onError(error: ApiError) {
-      toast({
-        title: error.message,
-        description: <ToastError error={error} />,
-        variant: 'destructive',
-      });
-    }
-  });
+  const { mutateAsync: deleteRepository } =
+    useRepositoriesServiceDeleteRepositoryById({
+      onSuccess() {
+        toast({
+          title: 'Delete Repository',
+          description: 'Repository deleted successfully.',
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId',
+          params: { orgId: params.orgId, productId: params.productId },
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    });
 
   async function handleDelete() {
     await deleteRepository({
       repositoryId: Number.parseInt(params.repoId),
     });
   }
-  
+
   return (
     <TooltipProvider>
       <Card className="w-full max-w-4xl mx-auto">
@@ -122,10 +123,19 @@ const RepoComponent = () => {
               <div className="flex items-center pb-1">{repo.url}</div>
               <Tooltip>
                 <TooltipTrigger>
-                  <Button asChild size="sm" variant="outline" className="px-2 ml-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="px-2 ml-2"
+                  >
                     <Link
                       to="/organizations/$orgId/products/$productId/repositories/$repoId/edit"
-                      params={{ orgId: params.orgId, productId: params.productId, repoId: params.repoId}}
+                      params={{
+                        orgId: params.orgId,
+                        productId: params.productId,
+                        repoId: params.repoId,
+                      }}
                     >
                       <EditIcon className="w-4 h-4" />
                     </Link>
@@ -136,7 +146,11 @@ const RepoComponent = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive" className="px-2 hover:bg-red-700">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="px-2 hover:bg-red-700"
+                >
                   <TrashIcon className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -149,14 +163,14 @@ const RepoComponent = () => {
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </CardTitle>
-          <CardDescription>
-            {repo.type}
-          </CardDescription>
+          <CardDescription>{repo.type}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -181,7 +195,9 @@ const RepoComponent = () => {
                         </Link>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Create a new ORT run for this repository</TooltipContent>
+                    <TooltipContent>
+                      Create a new ORT run for this repository
+                    </TooltipContent>
                   </Tooltip>
                 </TableHead>
               </TableRow>
@@ -231,17 +247,14 @@ export const Route = createFileRoute(
         queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
         queryFn: () =>
           RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId)
+            repositoryId: Number.parseInt(params.repoId),
           }),
       }),
       context.queryClient.ensureQueryData({
-        queryKey: [
-          useRepositoriesServiceGetOrtRunsKey,
-          params.repoId,
-        ],
+        queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
         queryFn: () =>
           RepositoriesService.getOrtRuns({
-            repositoryId: Number.parseInt(params.repoId)
+            repositoryId: Number.parseInt(params.repoId),
           }),
       }),
     ]);

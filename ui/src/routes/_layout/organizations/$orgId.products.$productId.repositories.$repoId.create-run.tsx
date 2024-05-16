@@ -40,7 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Switch } from '@/components/ui/switch';
@@ -61,26 +61,26 @@ const formSchema = z.object({
 
 const reportFormats = [
   {
-    id: "AsciiDocTemplate",
-    label: "AsciiDoc Template",
+    id: 'AsciiDocTemplate',
+    label: 'AsciiDoc Template',
   },
   {
-    id: "ortresult",
-    label: "ORT Result",
+    id: 'ortresult',
+    label: 'ORT Result',
   },
   {
-    id: "PlainTextTemplate",
-    label: "NOTICE file",
+    id: 'PlainTextTemplate',
+    label: 'NOTICE file',
   },
   {
-    id: "SpdxDocument",
-    label: "SPDX Document",
+    id: 'SpdxDocument',
+    label: 'SPDX Document',
   },
   {
-    id: "WebApp",
-    label: "Web App",
+    id: 'WebApp',
+    label: 'Web App',
   },
-] as const
+] as const;
 
 const CreateRunPage = () => {
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ const CreateRunPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -121,7 +121,7 @@ const CreateRunPage = () => {
           skipExcluded: false,
         },
         reporter: {
-          formats: ["ortresult"],
+          formats: ['ortresult'],
         },
       },
     },
@@ -134,7 +134,8 @@ const CreateRunPage = () => {
         revision: values.revision,
         jobConfigs: {
           analyzer: {
-            allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
+            allowDynamicVersions:
+              values.jobConfigs.analyzer.allowDynamicVersions,
             skipExcluded: values.jobConfigs.analyzer.skipExcluded,
           },
           reporter: {
@@ -169,18 +170,17 @@ const CreateRunPage = () => {
             />
 
             <h3 className="my-4 font-medium">Analyzer</h3>
-            
+
             <FormField
               control={form.control}
               name="jobConfigs.analyzer.allowDynamicVersions"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
                   <div className="space-y-0.5">
-                    <FormLabel>
-                      Allow dynamic versions
-                    </FormLabel>
+                    <FormLabel>Allow dynamic versions</FormLabel>
                     <FormDescription>
-                      Enable the analysis of projects that use version ranges to declare their dependencies.
+                      Enable the analysis of projects that use version ranges to
+                      declare their dependencies.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -199,11 +199,10 @@ const CreateRunPage = () => {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
                   <div className="space-y-0.5">
-                    <FormLabel>
-                      Skip excluded
-                    </FormLabel>
+                    <FormLabel>Skip excluded</FormLabel>
                     <FormDescription>
-                      A flag to control whether excluded scopes and paths should be skipped during the analysis.
+                      A flag to control whether excluded scopes and paths should
+                      be skipped during the analysis.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -224,7 +223,9 @@ const CreateRunPage = () => {
               render={() => (
                 <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
                   <FormLabel>Report formats</FormLabel>
-                  <FormDescription className="pb-4">Select the report formats to generate from the ORT Run</FormDescription>
+                  <FormDescription className="pb-4">
+                    Select the report formats to generate from the ORT Run
+                  </FormDescription>
                   {reportFormats.map((format) => (
                     <FormField
                       key={format.id}
@@ -241,12 +242,15 @@ const CreateRunPage = () => {
                                 checked={field.value?.includes(format.id)}
                                 onCheckedChange={(checked) => {
                                   return checked
-                                    ? field.onChange([...field.value, format.id])
+                                    ? field.onChange([
+                                        ...field.value,
+                                        format.id,
+                                      ])
                                     : field.onChange(
                                         field.value?.filter(
                                           (value) => value !== format.id
                                         )
-                                      )
+                                      );
                                 }}
                               />
                             </FormControl>
@@ -254,10 +258,10 @@ const CreateRunPage = () => {
                               {format.label}
                             </FormLabel>
                           </FormItem>
-                        )
+                        );
                       }}
                     />
-                  ))}  
+                  ))}
                   <FormMessage />
                 </FormItem>
               )}

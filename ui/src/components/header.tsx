@@ -58,7 +58,7 @@ export const Header = () => {
     (match) =>
       match.routeId === '/_layout/organizations/$orgId/products/$productId'
   );
-  
+
   const repoMatch = matches.find(
     (match) =>
       match.routeId ===
@@ -70,7 +70,7 @@ export const Header = () => {
       match.routeId ===
       '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
   );
-  
+
   return (
     <header className="sticky top-0 z-50 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6">
       <div className="flex flex-row items-center gap-4">
@@ -85,7 +85,11 @@ export const Header = () => {
         </nav>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 md:hidden"
+            >
               <Menu className="w-5 h-5" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
@@ -105,13 +109,13 @@ export const Header = () => {
         <Breadcrumb>
           <BreadcrumbList>
             {organizationMatch && (
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link to={organizationMatch.pathname}>
-                        {organizationMatch.context.breadcrumbs.organization}
-                      </Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to={organizationMatch.pathname}>
+                    {organizationMatch.context.breadcrumbs.organization}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
             )}
             {productMatch && (
               <>

@@ -40,8 +40,8 @@ const router = createRouter({
   routeTree,
   context: {
     queryClient,
-    breadcrumbs: { 
-      organization: undefined, 
+    breadcrumbs: {
+      organization: undefined,
       product: undefined,
       repo: undefined,
       run: undefined,

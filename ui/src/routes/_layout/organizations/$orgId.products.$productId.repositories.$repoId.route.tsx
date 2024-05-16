@@ -30,7 +30,7 @@ export const Route = createFileRoute(
       queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
       queryFn: () =>
         RepositoriesService.getRepositoryById({
-          repositoryId: Number.parseInt(params.repoId)
+          repositoryId: Number.parseInt(params.repoId),
         }),
     });
     context.breadcrumbs.repo = repo.url;

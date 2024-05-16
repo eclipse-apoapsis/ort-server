@@ -17,7 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { useProductsServiceGetProductByIdKey, useProductsServicePatchProductById } from '@/api/queries';
+import {
+  useProductsServiceGetProductByIdKey,
+  useProductsServicePatchProductById,
+} from '@/api/queries';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ApiError, ProductsService } from '@/api/requests';
 import { useForm } from 'react-hook-form';
@@ -41,8 +44,8 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   name: z.string(),
@@ -55,13 +58,16 @@ const EditProductPage = () => {
   const { toast } = useToast();
 
   const { data: product } = useSuspenseQuery({
-    queryKey: [useProductsServiceGetProductByIdKey, params.orgId, params.productId],
+    queryKey: [
+      useProductsServiceGetProductByIdKey,
+      params.orgId,
+      params.productId,
+    ],
     queryFn: async () =>
       await ProductsService.getProductById({
-        productId: Number.parseInt(params.productId)
+        productId: Number.parseInt(params.productId),
       }),
-    },  
-  );
+  });
 
   const { mutateAsync } = useProductsServicePatchProductById({
     onSuccess() {
@@ -80,7 +86,7 @@ const EditProductPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -141,7 +147,19 @@ const EditProductPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button className="m-1" variant="outline" onClick={() => navigate({ to: '/organizations/' + params.orgId + '/products/' + params.productId })}>
+            <Button
+              className="m-1"
+              variant="outline"
+              onClick={() =>
+                navigate({
+                  to:
+                    '/organizations/' +
+                    params.orgId +
+                    '/products/' +
+                    params.productId,
+                })
+              }
+            >
               Cancel
             </Button>
             <Button type="submit">Submit</Button>
@@ -150,17 +168,19 @@ const EditProductPage = () => {
       </Form>
     </Card>
   );
-}
+};
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/products/$productId/edit')({
+export const Route = createFileRoute(
+  '/_layout/organizations/$orgId/products/$productId/edit'
+)({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-        queryFn: () =>
-          ProductsService.getProductById({
-            productId: Number.parseInt(params.productId)
-          }),
+      queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+      queryFn: () =>
+        ProductsService.getProductById({
+          productId: Number.parseInt(params.productId),
+        }),
     });
   },
   component: EditProductPage,
-})
+});

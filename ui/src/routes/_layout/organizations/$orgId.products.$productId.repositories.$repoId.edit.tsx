@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { 
-  useRepositoriesServiceGetRepositoryById, 
-  useRepositoriesServiceGetRepositoryByIdKey, 
-  useRepositoriesServicePatchRepositoryById } from '@/api/queries';
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import {
+  useRepositoriesServiceGetRepositoryById,
+  useRepositoriesServiceGetRepositoryByIdKey,
+  useRepositoriesServicePatchRepositoryById,
+} from '@/api/queries';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ApiError, RepositoriesService } from '@/api/requests';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -53,8 +54,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   url: z.string(),
@@ -67,13 +68,17 @@ const EditRepositoryPage = () => {
   const { toast } = useToast();
 
   const { data: repository } = useSuspenseQuery({
-    queryKey: [useRepositoriesServiceGetRepositoryById, params.orgId, params.productId, params.repoId],
+    queryKey: [
+      useRepositoriesServiceGetRepositoryById,
+      params.orgId,
+      params.productId,
+      params.repoId,
+    ],
     queryFn: async () =>
       await RepositoriesService.getRepositoryById({
-        repositoryId: Number.parseInt(params.repoId)
+        repositoryId: Number.parseInt(params.repoId),
       }),
-    },  
-  );
+  });
 
   const { mutateAsync } = useRepositoriesServicePatchRepositoryById({
     onSuccess() {
@@ -83,7 +88,11 @@ const EditRepositoryPage = () => {
       });
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: { orgId: params.orgId, productId: params.productId, repoId: params.repoId},
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
       });
     },
     onError(error: ApiError) {
@@ -92,7 +101,7 @@ const EditRepositoryPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -151,7 +160,9 @@ const EditRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values($CreateRepository.properties.type.enum).map((type) => (
+                      {Object.values(
+                        $CreateRepository.properties.type.enum
+                      ).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>
@@ -165,7 +176,19 @@ const EditRepositoryPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button className="m-1" variant="outline" onClick={() => navigate({ to: '/organizations/' + params.orgId + '/products/' + params.productId })}>
+            <Button
+              className="m-1"
+              variant="outline"
+              onClick={() =>
+                navigate({
+                  to:
+                    '/organizations/' +
+                    params.orgId +
+                    '/products/' +
+                    params.productId,
+                })
+              }
+            >
               Cancel
             </Button>
             <Button type="submit">Submit</Button>
@@ -174,17 +197,19 @@ const EditRepositoryPage = () => {
       </Form>
     </Card>
   );
-}
+};
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit')({
+export const Route = createFileRoute(
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit'
+)({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
-        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-        queryFn: () =>
-          RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId)
-          }),
+      queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
+      queryFn: () =>
+        RepositoriesService.getRepositoryById({
+          repositoryId: Number.parseInt(params.repoId),
+        }),
     });
   },
   component: EditRepositoryPage,
-})
+});

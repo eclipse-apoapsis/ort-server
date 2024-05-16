@@ -28,7 +28,7 @@ export const Route = createFileRoute('/_layout/organizations/$orgId')({
       queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
       queryFn: () =>
         OrganizationsService.getOrganizationById({
-          organizationId: Number.parseInt(params.orgId)
+          organizationId: Number.parseInt(params.orgId),
         }),
     });
     context.breadcrumbs.organization = organization.name;
