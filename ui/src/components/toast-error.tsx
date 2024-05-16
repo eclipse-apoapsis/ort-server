@@ -17,14 +17,27 @@
  * License-Filename: LICENSE
  */
 
+import { ApiError } from '@/api/requests';
+
 type ToastErrorProps = {
-  message: string;
+  error: ApiError;
+};
+
+type ErrorBody = {
+  message?: string;
   cause?: string;
 };
 
-export const ToastError = ({ message, cause}: ToastErrorProps) => (
-  <div className="grid gap-2">
-    <div>{message}</div>
-    <div className="break-all">{cause}</div>
-  </div>
-);
+export const ToastError = ({ error }: ToastErrorProps) => {
+  // Casting is not generally recommended, but as both message and cause can be undefined, casting
+  // and accessing them is safe.
+  const body = error.body as ErrorBody;
+  const message = body.message;
+  const cause = body.cause;
+  return (
+    <div className="grid gap-2">
+      <div>{message}</div>
+      <div className="break-all">{cause}</div>
+    </div>
+  );
+};

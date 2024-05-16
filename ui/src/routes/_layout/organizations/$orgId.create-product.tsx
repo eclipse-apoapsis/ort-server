@@ -68,7 +68,7 @@ const CreateProductPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
+        description: <ToastError error={error} />,
         variant: 'destructive',
       });
     }
