@@ -30,7 +30,7 @@ export const Route = createFileRoute(
       queryKey: [useProductsServiceGetProductByIdKey, params.productId],
       queryFn: () =>
         ProductsService.getProductById({
-          productId: Number.parseInt(params.productId)
+          productId: Number.parseInt(params.productId),
         }),
     });
     context.breadcrumbs.product = product.name;

@@ -17,7 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { useOrganizationsServiceGetOrganizationByIdKey, useOrganizationsServicePatchOrganizationById } from '@/api/queries';
+import {
+  useOrganizationsServiceGetOrganizationByIdKey,
+  useOrganizationsServicePatchOrganizationById,
+} from '@/api/queries';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ApiError, OrganizationsService } from '@/api/requests';
 import { useForm } from 'react-hook-form';
@@ -41,13 +44,13 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
-    name: z.string(),
-    description: z.string().optional(),
-  });
+  name: z.string(),
+  description: z.string().optional(),
+});
 
 const EditOrganizationPage = () => {
   const params = Route.useParams();
@@ -55,13 +58,12 @@ const EditOrganizationPage = () => {
   const { toast } = useToast();
 
   const { data: organization } = useSuspenseQuery({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: async () =>
-          await OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId)
-          }),
-      },  
-  );
+    queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+    queryFn: async () =>
+      await OrganizationsService.getOrganizationById({
+        organizationId: Number.parseInt(params.orgId),
+      }),
+  });
 
   const { mutateAsync } = useOrganizationsServicePatchOrganizationById({
     onSuccess() {
@@ -80,7 +82,7 @@ const EditOrganizationPage = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -141,7 +143,11 @@ const EditOrganizationPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button className="m-1" variant="outline" onClick={() => navigate({ to: '/organizations/' + params.orgId })}>
+            <Button
+              className="m-1"
+              variant="outline"
+              onClick={() => navigate({ to: '/organizations/' + params.orgId })}
+            >
               Cancel
             </Button>
             <Button type="submit">Submit</Button>
@@ -150,17 +156,17 @@ const EditOrganizationPage = () => {
       </Form>
     </Card>
   );
-}
+};
 
 export const Route = createFileRoute('/_layout/organizations/$orgId/edit')({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: () =>
-          OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId)
-          }),
+      queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+      queryFn: () =>
+        OrganizationsService.getOrganizationById({
+          organizationId: Number.parseInt(params.orgId),
+        }),
     });
   },
   component: EditOrganizationPage,
-})
+});

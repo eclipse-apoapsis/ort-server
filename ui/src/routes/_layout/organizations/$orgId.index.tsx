@@ -22,7 +22,11 @@ import {
   useOrganizationsServiceDeleteOrganizationById,
   useProductsServiceGetOrganizationProductsKey,
 } from '@/api/queries';
-import { ApiError, OrganizationsService, ProductsService } from '@/api/requests';
+import {
+  ApiError,
+  OrganizationsService,
+  ProductsService,
+} from '@/api/requests';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -58,9 +62,9 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+} from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
@@ -73,37 +77,38 @@ const OrganizationComponent = () => {
         queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
         queryFn: async () =>
           await OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId)
+            organizationId: Number.parseInt(params.orgId),
           }),
       },
       {
         queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
         queryFn: async () =>
           await ProductsService.getOrganizationProducts({
-            organizationId: Number.parseInt(params.orgId)
+            organizationId: Number.parseInt(params.orgId),
           }),
       },
     ],
   });
 
-  const { mutateAsync: deleteOrganization } = useOrganizationsServiceDeleteOrganizationById({
-    onSuccess() {
-      toast({
-        title: 'Delete Organization',
-        description: 'Organization deleted successfully.',
-      });
-      navigate({
-        to: '/',
-      });
-    },
-    onError(error: ApiError) {
-      toast({
-        title: error.message,
-        description: <ToastError error={error} />,
-        variant: 'destructive',
-      });
-    }
-  });
+  const { mutateAsync: deleteOrganization } =
+    useOrganizationsServiceDeleteOrganizationById({
+      onSuccess() {
+        toast({
+          title: 'Delete Organization',
+          description: 'Organization deleted successfully.',
+        });
+        navigate({
+          to: '/',
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    });
 
   async function handleDelete() {
     await deleteOrganization({
@@ -120,7 +125,12 @@ const OrganizationComponent = () => {
               <div className="flex items-center pb-1">{organization.name}</div>
               <Tooltip>
                 <TooltipTrigger>
-                  <Button asChild size="sm" variant="outline" className="px-2 ml-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="px-2 ml-2"
+                  >
                     <Link
                       to="/organizations/$orgId/edit"
                       params={{ orgId: organization.id.toString() }}
@@ -130,11 +140,15 @@ const OrganizationComponent = () => {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Edit this organization</TooltipContent>
-              </Tooltip>              
+              </Tooltip>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive" className="px-2 hover:bg-red-700">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="px-2 hover:bg-red-700"
+                >
                   <TrashIcon className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -147,7 +161,9 @@ const OrganizationComponent = () => {
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -165,7 +181,7 @@ const OrganizationComponent = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button asChild size="sm">
-                        <Link 
+                        <Link
                           to="/organizations/$orgId/create-product"
                           params={{ orgId: organization.id.toString() }}
                         >
@@ -174,9 +190,11 @@ const OrganizationComponent = () => {
                         </Link>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Create a new product for this organization</TooltipContent>
+                    <TooltipContent>
+                      Create a new product for this organization
+                    </TooltipContent>
                   </Tooltip>
-                </TableHead>           
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,14 +236,14 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
         queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
         queryFn: () =>
           OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId)
+            organizationId: Number.parseInt(params.orgId),
           }),
       }),
       context.queryClient.ensureQueryData({
         queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
         queryFn: () =>
           ProductsService.getOrganizationProducts({
-            organizationId: Number.parseInt(params.orgId)
+            organizationId: Number.parseInt(params.orgId),
           }),
       }),
     ]);

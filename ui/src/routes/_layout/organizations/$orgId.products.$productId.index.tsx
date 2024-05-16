@@ -33,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -58,9 +58,9 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastError } from "@/components/toast-error";
+} from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { ToastError } from '@/components/toast-error';
 
 const ProductComponent = () => {
   const params = Route.useParams();
@@ -73,7 +73,7 @@ const ProductComponent = () => {
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: async () =>
           await ProductsService.getProductById({
-            productId: Number.parseInt(params.productId)
+            productId: Number.parseInt(params.productId),
           }),
       },
       {
@@ -83,7 +83,7 @@ const ProductComponent = () => {
         ],
         queryFn: async () =>
           await RepositoriesService.getRepositoriesByProductId({
-            productId: Number.parseInt(params.productId)
+            productId: Number.parseInt(params.productId),
           }),
       },
     ],
@@ -106,7 +106,7 @@ const ProductComponent = () => {
         description: <ToastError error={error} />,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   async function handleDelete() {
@@ -118,16 +118,24 @@ const ProductComponent = () => {
   return (
     <TooltipProvider>
       <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>         
+        <CardHeader>
           <CardTitle className="flex flex-row justify-between">
             <div className="flex items-stretch">
               <div className="flex items-center pb-1">{product.name}</div>
               <Tooltip>
                 <TooltipTrigger>
-                  <Button asChild size="sm" variant="outline" className="px-2 ml-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="px-2 ml-2"
+                  >
                     <Link
                       to="/organizations/$orgId/products/$productId/edit"
-                      params={{ orgId: params.orgId, productId: params.productId }}
+                      params={{
+                        orgId: params.orgId,
+                        productId: params.productId,
+                      }}
                     >
                       <EditIcon className="w-4 h-4" />
                     </Link>
@@ -138,7 +146,11 @@ const ProductComponent = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive" className="px-2 hover:bg-red-700">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="px-2 hover:bg-red-700"
+                >
                   <TrashIcon className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -151,14 +163,16 @@ const ProductComponent = () => {
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </CardTitle>
           <CardDescription>
             {product.description as unknown as string}
-          </CardDescription> 
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -181,7 +195,9 @@ const ProductComponent = () => {
                         </Link>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Add a new repository for this product</TooltipContent>
+                    <TooltipContent>
+                      Add a new repository for this product
+                    </TooltipContent>
                   </Tooltip>
                 </TableHead>
               </TableRow>
@@ -230,7 +246,7 @@ export const Route = createFileRoute(
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: () =>
           ProductsService.getProductById({
-            productId: Number.parseInt(params.productId)
+            productId: Number.parseInt(params.productId),
           }),
       }),
       context.queryClient.ensureQueryData({
@@ -240,7 +256,7 @@ export const Route = createFileRoute(
         ],
         queryFn: () =>
           RepositoriesService.getRepositoriesByProductId({
-            productId: Number.parseInt(params.productId)
+            productId: Number.parseInt(params.productId),
           }),
       }),
     ]);

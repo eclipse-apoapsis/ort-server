@@ -17,9 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  useRepositoriesServiceGetOrtRunByIndexKey,
-} from '@/api/queries';
+import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import {
   Card,
   CardHeader,
@@ -54,7 +52,7 @@ const RunComponent = () => {
     queryFn: async () =>
       await RepositoriesService.getOrtRunByIndex({
         repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runId)
+        ortRunIndex: Number.parseInt(params.runId),
       }),
   });
 
@@ -66,11 +64,14 @@ const RunComponent = () => {
     fileName: string;
   }) => {
     try {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`, {
-        headers: {
-          Authorization: `Bearer ${OpenAPI.TOKEN}`,
-        },
-      });
+      const response = await fetch(
+        `${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`,
+        {
+          headers: {
+            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+          },
+        }
+      );
       // Convert the response to a Blob
       const blob = await response.blob();
       // Create a temporary URL for the Blob
@@ -165,17 +166,20 @@ const RunComponent = () => {
               <TableRow>
                 <TableCell>Result files</TableCell>
                 <TableCell>
-                {(ortRun.jobs.reporter?.reportFilenames as unknown as string[]).map((filename) => (
-                  <div key={filename} className="flex flex-col pb-2">
-                    <Link
-                      onClick={() => handleDownload(filename)}
-                    >
-                      <Button variant="outline" className="font-semibold text-blue-400">
-                        {filename}
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
+                  {(
+                    ortRun.jobs.reporter?.reportFilenames as unknown as string[]
+                  ).map((filename) => (
+                    <div key={filename} className="flex flex-col pb-2">
+                      <Link onClick={() => handleDownload(filename)}>
+                        <Button
+                          variant="outline"
+                          className="font-semibold text-blue-400"
+                        >
+                          {filename}
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
                 </TableCell>
               </TableRow>
             )}
@@ -186,16 +190,24 @@ const RunComponent = () => {
   );
 };
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/')({
+export const Route = createFileRoute(
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/'
+)({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
-      queryKey: [useRepositoriesServiceGetOrtRunByIndexKey, params.orgId, params.productId, params.repoId, params.runId],
+      queryKey: [
+        useRepositoriesServiceGetOrtRunByIndexKey,
+        params.orgId,
+        params.productId,
+        params.repoId,
+        params.runId,
+      ],
       queryFn: () =>
         RepositoriesService.getOrtRunByIndex({
           repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runId)
+          ortRunIndex: Number.parseInt(params.runId),
         }),
     });
   },
   component: RunComponent,
-})
+});
