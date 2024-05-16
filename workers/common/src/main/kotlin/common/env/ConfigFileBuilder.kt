@@ -28,6 +28,8 @@ import kotlin.random.Random
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.slf4j.LoggerFactory
+
 /**
  * A helper class supporting the generation of configuration files.
  *
@@ -43,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
  */
 class ConfigFileBuilder(val context: WorkerContext) {
     companion object {
+        private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
+
         /**
          * Print the given [multiLineText] making sure that the correct line endings are used. This function is
          * intended to be used with a Kotlin multiline string. In multiline strings line endings are always
@@ -68,6 +72,8 @@ class ConfigFileBuilder(val context: WorkerContext) {
      * given [block].
      */
     suspend fun build(file: File, block: suspend PrintWriter.() -> Unit) {
+        logger.info("Generating configuration file at '{}'.", file)
+
         val writer = StringWriter()
         val printWriter = PrintWriter(writer)
 
