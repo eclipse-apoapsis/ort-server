@@ -44,17 +44,27 @@ import org.ossreviewtoolkit.downloader.DownloadException
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.PackageReference
 import org.ossreviewtoolkit.model.RepositoryProvenance
+import org.ossreviewtoolkit.model.Scope
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.PluginConfiguration
+import org.ossreviewtoolkit.model.licenses.LicenseCategorization
+import org.ossreviewtoolkit.model.licenses.LicenseCategory
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.unpackZip
+import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 
 private const val PACKAGE_ID_FILENAME = "Maven-com.vdurmont-semver4j-2.0.1.zip"
 private const val PROJECT_NAME = "semver4j"
 private const val PROJECT_VERSION = "2.0.1"
+
+private const val PACKAGE_ID_FILENAME = "Maven-org.codehaus.jettison-jettison-1.5.4.zip"
+private const val PACKAGE_NAME = "jettison"
+private const val PACKAGE_VERSION = "1.5.4"
 
 private const val TEST_CONTENT_SRC = "testContentSrc"
 private const val TEST_CONTENT_IGNORE = "testContentIgnore"
@@ -137,11 +147,62 @@ class SourceCodeBundleReporterTest : WordSpec({
             Reporter.ALL should containAnyKeys(reporter.type)
             Reporter.ALL[reporter.type] should beInstanceOf<SourceCodeBundleReporter>()
         }
+
+        "add only included sources from packages from included license categories" {
+            val downloader = mockDownloader()
+
+            val reporter = SourceCodeBundleReporter(downloader)
+
+            val input = getReporterInput()
+            val outputDir = tempdir()
+
+            val codeBundleFile = reporter.generateReport(
+                input,
+                outputDir,
+                PluginConfiguration(
+                    options = mapOf(
+                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT,PACKAGE",
+                        SourceCodeBundleReporter.INCLUDED_LICENSE_CATEGORIES_PROPERTY to "include-in-source-code-bundle"
+                    )
+                )
+            ).single()
+
+            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+
+            codeBundleFile.unpackZip(outputDir)
+            outputDir shouldContainNFiles 2
+            outputDir shouldContainFile PACKAGE_ID_FILENAME
+
+            outputDir.resolve(PACKAGE_ID_FILENAME).unpackZip(outputDir)
+            outputDir shouldContainFile PACKAGE_NAME
+            outputDir.resolve(PACKAGE_NAME) shouldContainFile PACKAGE_VERSION
+
+            val packageContents = outputDir.resolve(PACKAGE_NAME).resolve(PACKAGE_VERSION)
+            packageContents shouldContainNFiles 5
+            packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
+            packageContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
+            packageContents.resolve(".travis.yml").readText() shouldBe TEST_CONTENT_TRAVIS
+            packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+            packageContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
+        }
     }
 })
 
 private fun getReporterInput(): ReporterInput {
-    val vcsInfo = VcsInfo(
+    val vcsInfoPackage = VcsInfo(
+        type = VcsType.GIT,
+        url = "https://github.com/jettison-json/jettison.git",
+        revision = "1.5.4",
+        path = ""
+    )
+
+    val pkg = OrtTestData.pkg.copy(
+        id = Identifier("Maven:org.codehaus.jettison:jettison:1.5.4"),
+        vcs = vcsInfoPackage,
+        vcsProcessed = vcsInfoPackage
+    )
+
+    val vcsInfoProject = VcsInfo(
         type = VcsType.GIT,
         url = "https://github.com/vdurmont/semver4j.git",
         revision = "master",
@@ -150,15 +211,17 @@ private fun getReporterInput(): ReporterInput {
 
     val project = OrtTestData.project.copy(
         id = Identifier("Maven:com.vdurmont:semver4j:2.0.1"),
-        vcs = vcsInfo,
-        vcsProcessed = vcsInfo
+        vcs = vcsInfoProject,
+        vcsProcessed = vcsInfoProject,
+        scopeNames = null,
+        scopeDependencies = setOf(Scope("compile", setOf(PackageReference(pkg.id))))
     )
 
-    val repository = OrtTestData.repository.copy(vcs = vcsInfo, vcsProcessed = vcsInfo)
+    val repository = OrtTestData.repository.copy(vcs = vcsInfoProject, vcsProcessed = vcsInfoProject)
 
     val result = AnalyzerResult(
         projects = setOf(project),
-        packages = setOf(OrtTestData.pkg),
+        packages = setOf(pkg),
         issues = mapOf(OrtTestData.pkgIdentifier to listOf(OrtTestData.issue)),
         dependencyGraphs = mapOf("Maven" to OrtTestData.dependencyGraph)
     )
@@ -168,7 +231,19 @@ private fun getReporterInput(): ReporterInput {
     )
 
     val ortResult = OrtTestData.result.copy(analyzer = analyzerRun, repository = repository)
-    val input = ReporterInput(ortResult = ortResult)
+    val input = ReporterInput(
+        ortResult = ortResult,
+        licenseClassifications = LicenseClassifications(
+            categories = listOf(LicenseCategory("include-in-source-code-bundle")),
+            categorizations = listOf(
+                LicenseCategorization(
+                    id = SpdxSingleLicenseExpression.parse("LicenseRef-package-declared"),
+                    categories = setOf("include-in-source-code-bundle")
+                )
+            )
+        )
+    )
+
     return input
 }
 

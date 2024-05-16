@@ -220,13 +220,15 @@ class OrtServerMappingsTest : WordSpec({
                 authors = setOf("Author One", "Author Two"),
                 declaredLicenses = setOf(
                     "LicenseRef-declared",
+                    "LicenseRef-package-declared",
                     "LicenseRef-toBeMapped1",
                     "LicenseRef-toBeMapped2",
                     "LicenseRef-unmapped1",
                     "LicenseRef-unmapped2"
                 ),
                 processedDeclaredLicense = ProcessedDeclaredLicense(
-                    spdxExpression = "LicenseRef-declared OR LicenseRef-mapped1 OR LicenseRef-mapped2",
+                    spdxExpression = "LicenseRef-declared OR LicenseRef-package-declared OR LicenseRef-mapped1 OR " +
+                            "LicenseRef-mapped2",
                     mappedLicenses = mapOf(
                         "LicenseRef-toBeMapped1" to "LicenseRef-mapped1",
                         "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
