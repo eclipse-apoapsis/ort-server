@@ -40,7 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ApiError, CreateRepository } from '@/api/requests';
+import { ApiError, $CreateRepository } from '@/api/requests';
 import {
   Select,
   SelectContent,
@@ -53,7 +53,7 @@ import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   url: z.string(),
-  type: z.nativeEnum(CreateRepository.type),
+  type: z.enum($CreateRepository.properties.type.enum),
 });
 
 const CreateRepositoryPage = () => {
@@ -75,7 +75,7 @@ const CreateRepositoryPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -133,7 +133,7 @@ const CreateRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.keys(CreateRepository.type).map((type) => (
+                      {Object.values($CreateRepository.properties.type.enum).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>

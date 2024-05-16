@@ -57,9 +57,9 @@ const EditProductPage = () => {
   const { data: product } = useSuspenseQuery({
     queryKey: [useProductsServiceGetProductByIdKey, params.orgId, params.productId],
     queryFn: async () =>
-      await ProductsService.getProductById(
-        Number.parseInt(params.productId)
-      ),
+      await ProductsService.getProductById({
+        productId: Number.parseInt(params.productId)
+      }),
     },  
   );
 
@@ -77,7 +77,7 @@ const EditProductPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -87,7 +87,7 @@ const EditProductPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: product.name,
-      description: product.description as unknown as string,
+      description: product.description || '',
     },
   });
 
@@ -96,8 +96,7 @@ const EditProductPage = () => {
       productId: product.id,
       requestBody: {
         name: values.name,
-        // There's a bug somewhere in the OpenAPI generation, similar to organizations.
-        description: values.description as Record<string, unknown> | undefined,
+        description: values.description,
       },
     });
   }
@@ -158,7 +157,9 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/products/$pr
     await context.queryClient.ensureQueryData({
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: () =>
-          ProductsService.getProductById(Number.parseInt(params.productId)),
+          ProductsService.getProductById({
+            productId: Number.parseInt(params.productId)
+          }),
     });
   },
   component: EditProductPage,

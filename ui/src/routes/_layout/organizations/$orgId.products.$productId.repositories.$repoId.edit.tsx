@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CreateRepository } from '@/api/requests';
+import { $CreateRepository } from '@/api/requests';
 import {
   Card,
   CardContent,
@@ -58,7 +58,7 @@ import { ToastError } from "@/components/toast-error";
 
 const formSchema = z.object({
   url: z.string(),
-  type: z.nativeEnum(CreateRepository.type),
+  type: z.enum($CreateRepository.properties.type.enum),
 });
 
 const EditRepositoryPage = () => {
@@ -69,9 +69,9 @@ const EditRepositoryPage = () => {
   const { data: repository } = useSuspenseQuery({
     queryKey: [useRepositoriesServiceGetRepositoryById, params.orgId, params.productId, params.repoId],
     queryFn: async () =>
-      await RepositoriesService.getRepositoryById(
-        Number.parseInt(params.repoId)
-      ),
+      await RepositoriesService.getRepositoryById({
+        repositoryId: Number.parseInt(params.repoId)
+      }),
     },  
   );
 
@@ -89,7 +89,7 @@ const EditRepositoryPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -151,7 +151,7 @@ const EditRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.keys(CreateRepository.type).map((type) => (
+                      {Object.values($CreateRepository.properties.type.enum).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>
@@ -181,7 +181,9 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/products/$pr
     await context.queryClient.ensureQueryData({
         queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
         queryFn: () =>
-          RepositoriesService.getRepositoryById(Number.parseInt(params.repoId)),
+          RepositoriesService.getRepositoryById({
+            repositoryId: Number.parseInt(params.repoId)
+          }),
     });
   },
   component: EditRepositoryPage,

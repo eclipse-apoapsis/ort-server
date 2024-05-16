@@ -73,14 +73,16 @@ const RepoComponent = () => {
       {
         queryKey: [useRepositoriesServiceGetRepositoryById, params.repoId],
         queryFn: async () =>
-          await RepositoriesService.getRepositoryById(
-            Number.parseInt(params.repoId)
-          ),
+          await RepositoriesService.getRepositoryById({
+            repositoryId: Number.parseInt(params.repoId)
+          }),
       },
       {
         queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
         queryFn: async () =>
-          await RepositoriesService.getOrtRuns(Number.parseInt(params.repoId)),
+          await RepositoriesService.getOrtRuns({
+            repositoryId: Number.parseInt(params.repoId)
+          }),
       },
     ],
   });
@@ -99,7 +101,7 @@ const RepoComponent = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -228,7 +230,9 @@ export const Route = createFileRoute(
       context.queryClient.ensureQueryData({
         queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
         queryFn: () =>
-          RepositoriesService.getRepositoryById(Number.parseInt(params.repoId)),
+          RepositoriesService.getRepositoryById({
+            repositoryId: Number.parseInt(params.repoId)
+          }),
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
@@ -236,9 +240,9 @@ export const Route = createFileRoute(
           params.repoId,
         ],
         queryFn: () =>
-          RepositoriesService.getOrtRuns(
-            Number.parseInt(params.repoId)
-          ),
+          RepositoriesService.getOrtRuns({
+            repositoryId: Number.parseInt(params.repoId)
+          }),
       }),
     ]);
   },

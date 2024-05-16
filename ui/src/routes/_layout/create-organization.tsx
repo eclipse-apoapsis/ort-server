@@ -65,7 +65,7 @@ const CreateOrganizationPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     },
@@ -79,9 +79,7 @@ const CreateOrganizationPage = () => {
     await mutateAsync({
       requestBody: {
         name: values.name,
-        // There's a bug somewhere in the OpenAPI generation. Swagger UI hints that the bug may be
-        // in the API, as description in CreateOrganization is an empty object.
-        description: values.description as Record<string, unknown> | undefined,
+        description: values.description,
       },
     });
   }

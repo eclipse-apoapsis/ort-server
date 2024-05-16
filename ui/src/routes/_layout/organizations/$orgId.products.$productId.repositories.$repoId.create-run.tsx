@@ -105,7 +105,7 @@ const CreateRunPage = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -135,7 +135,7 @@ const CreateRunPage = () => {
         jobConfigs: {
           analyzer: {
             allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
-            skipExcluded: values.jobConfigs.analyzer.skipExcluded as unknown as Record<string, any>,
+            skipExcluded: values.jobConfigs.analyzer.skipExcluded,
           },
           reporter: {
             formats: values.jobConfigs.reporter.formats,

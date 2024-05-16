@@ -72,9 +72,9 @@ const ProductComponent = () => {
       {
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: async () =>
-          await ProductsService.getProductById(
-            Number.parseInt(params.productId)
-          ),
+          await ProductsService.getProductById({
+            productId: Number.parseInt(params.productId)
+          }),
       },
       {
         queryKey: [
@@ -82,9 +82,9 @@ const ProductComponent = () => {
           params.productId,
         ],
         queryFn: async () =>
-          await RepositoriesService.getRepositoriesByProductId(
-            Number.parseInt(params.productId)
-          ),
+          await RepositoriesService.getRepositoriesByProductId({
+            productId: Number.parseInt(params.productId)
+          }),
       },
     ],
   });
@@ -103,7 +103,7 @@ const ProductComponent = () => {
     onError(error: ApiError) {
       toast({
         title: error.message,
-        description: <ToastError message={error.body.message} cause={error.body.cause} />,
+        description: <ToastError message={(error.body as any).message} cause={(error.body as any).cause} />,
         variant: 'destructive',
       });
     }
@@ -229,7 +229,9 @@ export const Route = createFileRoute(
       context.queryClient.ensureQueryData({
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: () =>
-          ProductsService.getProductById(Number.parseInt(params.productId)),
+          ProductsService.getProductById({
+            productId: Number.parseInt(params.productId)
+          }),
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
@@ -237,9 +239,9 @@ export const Route = createFileRoute(
           params.productId,
         ],
         queryFn: () =>
-          RepositoriesService.getRepositoriesByProductId(
-            Number.parseInt(params.productId)
-          ),
+          RepositoriesService.getRepositoriesByProductId({
+            productId: Number.parseInt(params.productId)
+          }),
       }),
     ]);
   },
