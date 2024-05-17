@@ -202,7 +202,7 @@ object OrtTestData {
         description = "Example description.",
         references = listOf(
             VulnerabilityReference(
-                url = URI("http://cve.example.org"),
+                url = URI.create("http://cve.example.org"),
                 scoringSystem = "CVSS3",
                 severity = "5.5"
             )

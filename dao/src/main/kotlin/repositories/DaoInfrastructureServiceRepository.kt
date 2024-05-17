@@ -177,7 +177,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         organizationId: Long,
         productId: Long
     ): List<InfrastructureService> = db.blockingQuery {
-        val repositoryHost = URI(repositoryUrl).host
+        val repositoryHost = URI.create(repositoryUrl).host
         val hostPattern = "%$repositoryHost%"
         list(ListQueryParameters.DEFAULT) {
             InfrastructureServicesTable.url like hostPattern and (

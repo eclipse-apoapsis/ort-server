@@ -53,7 +53,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
          */
         private fun InfrastructureService.host(): String? =
             runCatching {
-                URI(url).host
+                URI.create(url).host
             }.onFailure {
                 logger.error("Could not extract host for service '{}'. Ignoring it.", this, it)
             }.getOrNull()
@@ -73,7 +73,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
 
         builder.buildInUserHome(TARGET_NAME) {
             deDuplicatedServices.forEach { service ->
-                val host = URI(service.url).host
+                val host = URI.create(service.url).host
                 val username = builder.secretRef(service.usernameSecret)
                 val password = builder.secretRef(service.passwordSecret)
 

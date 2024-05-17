@@ -33,8 +33,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldInclude
 
-import java.net.URISyntaxException
-
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -526,7 +524,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
 
             "throw when passed an invalid repository URL" {
-                shouldThrow<URISyntaxException> {
+                shouldThrow<IllegalArgumentException> {
                     infrastructureServicesRepository.listForRepositoryUrl(
                         "?!invalid URL!?",
                         fixtures.organization.id,

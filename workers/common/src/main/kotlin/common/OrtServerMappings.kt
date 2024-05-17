@@ -377,7 +377,7 @@ fun AdvisorResult.mapToOrt() =
 fun Defect.mapToOrt() =
     OrtDefect(
         id = externalId,
-        url = URI(url),
+        url = URI.create(url),
         title = title,
         state = state,
         severity = severity,
@@ -398,7 +398,7 @@ fun Vulnerability.mapToOrt() =
         references = references.map(VulnerabilityReference::mapToOrt)
     )
 
-fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(URI(url), scoringSystem, severity)
+fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(URI.create(url), scoringSystem, severity)
 
 fun AnalyzerRun.mapToOrt() =
     OrtAnalyzerRun(
