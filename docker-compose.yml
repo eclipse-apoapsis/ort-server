@@ -61,7 +61,6 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
     restart: unless-stopped
-    entrypoint: /opt/keycloak_init/init-keycloak.sh
     command:
     - "start-dev"
     depends_on:
@@ -87,6 +86,18 @@ services:
     - type: bind
       source: ./scripts/docker/keycloak/
       target: /opt/keycloak_init/
+
+  config-keycloak:
+    image: ghcr.io/opentofu/opentofu:latest
+    restart: no
+    entrypoint: /srv/workspace/init-keycloak.sh
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./scripts/docker/keycloak/tofu
+        target: /srv/workspace
 
   graphite:
     image: graphiteapp/graphite-statsd:1.1.10-5
@@ -118,6 +129,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+      config-keycloak:
+        condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
       graphite:
