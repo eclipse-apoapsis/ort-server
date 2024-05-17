@@ -66,6 +66,9 @@ import { ToastError } from '@/components/toast-error';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 
+const pollInterval =
+  Number.parseInt(import.meta.env.VITE_RUN_POLL_INTERVAL) || 10000;
+
 const RepoComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
@@ -86,6 +89,7 @@ const RepoComponent = () => {
           await RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
           }),
+        refetchInterval: pollInterval,
       },
     ],
   });
