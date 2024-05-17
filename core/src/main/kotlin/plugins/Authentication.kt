@@ -51,7 +51,7 @@ fun Application.configureAuthentication() {
     val keycloakClient by inject<KeycloakClient>()
 
     val issuer = config.property("jwt.issuer").getString()
-    val jwksUri = URI(config.property("jwt.jwksUri").getString()).toURL()
+    val jwksUri = URI.create(config.property("jwt.jwksUri").getString()).toURL()
     val configuredRealm = config.property("jwt.realm").getString()
     val jwkProvider = JwkProviderBuilder(jwksUri)
         .cached(10, 24, TimeUnit.HOURS)
