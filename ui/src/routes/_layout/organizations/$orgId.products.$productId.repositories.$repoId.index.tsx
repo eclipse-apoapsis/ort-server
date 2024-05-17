@@ -19,7 +19,6 @@
 
 import {
   useRepositoriesServiceGetOrtRunsKey,
-  useRepositoriesServiceGetRepositoryById,
   useRepositoriesServiceGetRepositoryByIdKey,
   useRepositoriesServiceDeleteRepositoryById,
 } from '@/api/queries';
@@ -77,7 +76,7 @@ const RepoComponent = () => {
   const [{ data: repo }, { data: runs }] = useSuspenseQueries({
     queries: [
       {
-        queryKey: [useRepositoriesServiceGetRepositoryById, params.repoId],
+        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
         queryFn: async () =>
           await RepositoriesService.getRepositoryById({
             repositoryId: Number.parseInt(params.repoId),
@@ -88,6 +87,7 @@ const RepoComponent = () => {
         queryFn: async () =>
           await RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
+            sort: '-index',
           }),
         refetchInterval: pollInterval,
       },
@@ -270,6 +270,7 @@ export const Route = createFileRoute(
         queryFn: () =>
           RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
+            sort: '-index',
           }),
       }),
     ]);
