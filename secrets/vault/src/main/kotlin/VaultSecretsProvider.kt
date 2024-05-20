@@ -97,7 +97,7 @@ class VaultSecretsProvider(
             when {
                 response.status == HttpStatusCode.NotFound -> null
                 response.status.isSuccess() -> {
-                    val secretResponse: VaultSecretResponse = response.body()
+                    val secretResponse = response.body<VaultSecretResponse>()
                     secretResponse.data.value?.let(::Secret)
                 }
 

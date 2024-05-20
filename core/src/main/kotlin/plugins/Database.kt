@@ -36,7 +36,7 @@ import org.jetbrains.exposed.sql.Database
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
-val DatabaseReady: EventDefinition<Database> = EventDefinition()
+val DatabaseReady = EventDefinition<Database>()
 
 /**
  * Connect and migrate the database. This is the only place where migrations for the production database are done. While
