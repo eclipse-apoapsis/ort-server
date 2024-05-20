@@ -23,6 +23,10 @@
     {
       "matchPackageNames": ["eclipse-temurin"],
       "allowedVersions": "< 18"
+    },
+    {
+      "matchPackageNames": ["eslint"],
+      "rangeStrategy": "in-range-only"
     }
   ],
   "prHourlyLimit": 5
