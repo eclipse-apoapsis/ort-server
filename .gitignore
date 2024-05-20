@@ -19,3 +19,6 @@ http-client.private.env.json
 
 # Private HTTP requests
 *.private.http
+
+# VS Code
+.vscode/
