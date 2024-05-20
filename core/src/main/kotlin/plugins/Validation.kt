@@ -74,7 +74,7 @@ fun Application.configureValidation() {
 
 private fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult {
     return when (result) {
-        is Invalid<*> -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
+        is Invalid -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
         else -> KtorValidationResult.Valid
     }
 }
