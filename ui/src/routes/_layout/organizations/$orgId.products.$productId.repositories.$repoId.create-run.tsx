@@ -23,6 +23,12 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   Form,
   FormControl,
   FormDescription,
@@ -50,10 +56,12 @@ const formSchema = z.object({
   revision: z.string(),
   jobConfigs: z.object({
     analyzer: z.object({
+      enabled: z.boolean(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
     }),
     reporter: z.object({
+      enabled: z.boolean(),
       formats: z.array(z.string()),
     }),
   }),
@@ -117,10 +125,12 @@ const CreateRunPage = () => {
       revision: 'main',
       jobConfigs: {
         analyzer: {
+          enabled: true,
           allowDynamicVersions: false,
           skipExcluded: false,
         },
         reporter: {
+          enabled: true,
           formats: ['ortresult'],
         },
       },
@@ -128,19 +138,24 @@ const CreateRunPage = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const analyzerConfig = values.jobConfigs.analyzer.enabled
+      ? {
+          allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
+          skipExcluded: values.jobConfigs.analyzer.skipExcluded,
+        }
+      : undefined;
+    const reporterConfig = values.jobConfigs.reporter.enabled
+      ? {
+          formats: values.jobConfigs.reporter.formats,
+        }
+      : undefined;
     await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
       requestBody: {
         revision: values.revision,
         jobConfigs: {
-          analyzer: {
-            allowDynamicVersions:
-              values.jobConfigs.analyzer.allowDynamicVersions,
-            skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-          },
-          reporter: {
-            formats: values.jobConfigs.reporter.formats,
-          },
+          analyzer: analyzerConfig,
+          reporter: reporterConfig,
         },
       },
     });
@@ -169,103 +184,147 @@ const CreateRunPage = () => {
               )}
             />
 
-            <h3 className="my-4 font-medium">Analyzer</h3>
+            <h3 className="mt-4">Enable and configure jobs</h3>
 
-            <FormField
-              control={form.control}
-              name="jobConfigs.analyzer.allowDynamicVersions"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <FormLabel>Allow dynamic versions</FormLabel>
-                    <FormDescription>
-                      Enable the analysis of projects that use version ranges to
-                      declare their dependencies.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="jobConfigs.analyzer.skipExcluded"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <FormLabel>Skip excluded</FormLabel>
-                    <FormDescription>
-                      A flag to control whether excluded scopes and paths should
-                      be skipped during the analysis.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <h3 className="my-4 font-medium">Reporter</h3>
-
-            <FormField
-              control={form.control}
-              name="jobConfigs.reporter.formats"
-              render={() => (
-                <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
-                  <FormLabel>Report formats</FormLabel>
-                  <FormDescription className="pb-4">
-                    Select the report formats to generate from the ORT Run
-                  </FormDescription>
-                  {reportFormats.map((format) => (
+            <Accordion type="multiple">
+              {/* Analyzer job */}
+              <div className="flex flex-row align-middle">
+                <FormField
+                  control={form.control}
+                  name="jobConfigs.analyzer.enabled"
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+                <AccordionItem value="analyzer" className="flex-1">
+                  <AccordionTrigger>Analyzer</AccordionTrigger>
+                  <AccordionContent>
                     <FormField
-                      key={format.id}
+                      control={form.control}
+                      name="jobConfigs.analyzer.allowDynamicVersions"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
+                          <div className="space-y-0.5">
+                            <FormLabel>Allow dynamic versions</FormLabel>
+                            <FormDescription>
+                              Enable the analysis of projects that use version
+                              ranges to declare their dependencies.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="jobConfigs.analyzer.skipExcluded"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
+                          <div className="space-y-0.5">
+                            <FormLabel>Skip excluded</FormLabel>
+                            <FormDescription>
+                              A flag to control whether excluded scopes and
+                              paths should be skipped during the analysis.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+
+              {/* Reporter job */}
+              <div className="flex flex-row align-middle">
+                <FormField
+                  control={form.control}
+                  name="jobConfigs.reporter.enabled"
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+                <AccordionItem value="reporter" className="flex-1">
+                  <AccordionTrigger>Reporter</AccordionTrigger>
+                  <AccordionContent>
+                    <FormField
                       control={form.control}
                       name="jobConfigs.reporter.formats"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={format.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(format.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...field.value,
-                                        format.id,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== format.id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {format.label}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
+                      render={() => (
+                        <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
+                          <FormLabel>Report formats</FormLabel>
+                          <FormDescription className="pb-4">
+                            Select the report formats to generate from the ORT
+                            Run
+                          </FormDescription>
+                          {reportFormats.map((format) => (
+                            <FormField
+                              key={format.id}
+                              control={form.control}
+                              name="jobConfigs.reporter.formats"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={format.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(
+                                          format.id
+                                        )}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                format.id,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== format.id
+                                                )
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                      {format.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          ))}
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  ))}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+            </Accordion>
           </CardContent>
           <CardFooter>
             <Button type="submit">Create</Button>
