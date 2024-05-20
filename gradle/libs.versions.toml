@@ -64,7 +64,7 @@ qpidJmsClient = "2.5.0"
 slf4j = "2.0.13"
 testContainers = "1.19.8"
 typesafeConfig = "1.4.3"
-wiremock = "2.35.2"
+wiremock = "3.0.1"
 
 [plugins]
 dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }
@@ -160,7 +160,7 @@ testContainersPostgresql = { module = "org.testcontainers:postgresql", version.r
 testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref = "testContainers" }
 testContainersVault = { module = "org.testcontainers:vault", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
-wiremockStandalone = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
+wiremockStandalone = { module = "com.github.tomakehurst:wiremock-standalone", version.ref = "wiremock" }
 
 [bundles]
 flyway = ["flywayCore", "flywayPostgresql"]
