@@ -160,6 +160,15 @@ internal enum class WorkerScheduleInfo(
     }
 
     /**
+     * Return the transitive set of the workers that must complete before this one can run. This is necessary to
+     * determine whether this worker can be started in the current phase of an ORT run. Note that it is assumed that
+     * no cycles exist in the dependency graph of workers; otherwise, the scheduler algorithm would have a severe
+     * problem.
+     */
+    private val runsAfterTransitively: Set<Endpoint<*>>
+        get() = (runsAfter + dependsOn).flatMap { WorkerScheduleInfo[it].runsAfterTransitively + it }.toSet()
+
+    /**
      * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create
      * the job in the database and return a function that schedules the job.
      */
@@ -201,7 +210,7 @@ internal enum class WorkerScheduleInfo(
                 !context.wasScheduled(endpoint) &&
                 canRunWithFailureState(context) &&
                 dependsOn.all { context.isJobCompleted(it) } &&
-                runsAfter.none { WorkerScheduleInfo[it].isPending(context) }
+                runsAfterTransitively.none { WorkerScheduleInfo[it].isPending(context) }
 
     /**
      * Check whether the represented worker is pending for the current ORT run based on the given [context]. This
