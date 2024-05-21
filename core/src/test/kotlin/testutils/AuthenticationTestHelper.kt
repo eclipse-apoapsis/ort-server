@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.core.testutils
 
-import io.ktor.http.HeadersBuilder
-import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -28,8 +26,6 @@ import io.ktor.server.auth.Principal
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.UserPasswordCredential
 import io.ktor.server.auth.basic
-
-import java.util.Base64
 
 import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
 
@@ -55,10 +51,3 @@ fun Application.configureTestAuthentication() {
  */
 fun validateTestCredentials(credentials: UserPasswordCredential): Principal? =
     credentials.takeIf { it.name == TEST_USER && it.password == TEST_PASSWORD }?.let { UserIdPrincipal(it.name) }
-
-fun HeadersBuilder.basicTestAuth() {
-    set(
-        HttpHeaders.Authorization,
-        "Basic ${Base64.getEncoder().encodeToString("$TEST_USER:$TEST_PASSWORD".toByteArray())}"
-    )
-}
