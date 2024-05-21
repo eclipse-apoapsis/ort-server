@@ -50,8 +50,8 @@ interface SecretsProvider {
     fun removeSecret(path: Path)
 
     /**
-     * Generate a [Path] for the secret basing on [organizationId], [productId] or [repositoryId] they belong to
-     * and [secretName]
+     * Generate a [Path] for the secret belonging to the given [organizationId], [productId] and [repositoryId], as well
+     * as the [secretName].
      */
     fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path
 }
