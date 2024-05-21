@@ -694,7 +694,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByOrganizationIdAndName(organizationId, secret.name)?.mapToApi() shouldBe
+                secretRepository.get(Entity.ORGANIZATION, organizationId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -732,7 +732,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateSecret"
 
-                secretRepository.getByOrganizationIdAndName(organizationId, secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.get(Entity.ORGANIZATION, organizationId, secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("organization_${organizationId}_${secret.name}"))?.value.shouldBeNull()
@@ -767,7 +767,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByOrganizationIdAndName(organizationId, updateSecret.name.valueOrThrow)
+                secretRepository.get(Entity.ORGANIZATION, organizationId, updateSecret.name.valueOrThrow)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
@@ -800,7 +800,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
+                secretRepository.get(Entity.ORGANIZATION, organizationId, secret.name) shouldBe secret
             }
         }
 
@@ -825,7 +825,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForOrganization(organizationId) shouldBe emptyList()
+                secretRepository.list(Entity.ORGANIZATION, organizationId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -868,7 +868,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.InternalServerError
 
-                secretRepository.getByOrganizationIdAndName(organizationId, secret.name) shouldBe secret
+                secretRepository.get(Entity.ORGANIZATION, organizationId, secret.name) shouldBe secret
             }
         }
 

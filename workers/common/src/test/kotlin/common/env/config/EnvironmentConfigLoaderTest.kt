@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
@@ -133,8 +134,8 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             loadConfig(".ort.env.simple.yml", helper)
 
             verify(exactly = 0) {
-                helper.secretRepository.listForProduct(any(), any())
-                helper.secretRepository.listForOrganization(any(), any())
+                helper.secretRepository.list(Entity.PRODUCT, any(), any())
+                helper.secretRepository.list(Entity.ORGANIZATION, any(), any())
             }
         }
 
@@ -467,13 +468,13 @@ private class TestHelper(
      */
     private fun initSecretRepository() {
         every {
-            secretRepository.listForRepository(repository.id)
+            secretRepository.list(Entity.REPOSITORY, repository.id)
         } returns secrets.filter { it.repository != null }
         every {
-            secretRepository.listForProduct(product.id)
+            secretRepository.list(Entity.PRODUCT, product.id)
         } returns secrets.filter { it.product != null }
         every {
-            secretRepository.listForOrganization(organization.id)
+            secretRepository.list(Entity.ORGANIZATION, organization.id)
         } returns secrets.filter { it.organization != null }
     }
 

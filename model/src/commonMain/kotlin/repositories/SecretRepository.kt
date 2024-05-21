@@ -43,83 +43,22 @@ interface SecretRepository {
     fun create(path: String, name: String, description: String?, entity: Entity, id: Long): Secret
 
     /**
-     * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
+     * Get a secret by [id] and [name]. Return null if the secret is not found.
      */
-    fun getByOrganizationIdAndName(organizationId: Long, name: String): Secret?
+    fun get(entity: Entity, id: Long, name: String): Secret?
 
     /**
-     * Get a secret by [productId] and [name]. Returns null if the secret is not found.
+     * List all secrets for an [entity] with [id] according to the given [parameters].
      */
-    fun getByProductIdAndName(productId: Long, name: String): Secret?
+    fun list(entity: Entity, id: Long, parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Secret>
 
     /**
-     * Get a secret by [repositoryId] and [name]. Returns null if the secret is not found.
+     * Update the [description] for the secret with [name] in [entity] with [id].
      */
-    fun getByRepositoryIdAndName(repositoryId: Long, name: String): Secret?
+    fun update(entity: Entity, id: Long, name: String, description: OptionalValue<String?>): Secret
 
     /**
-     * List all secrets for an [organization][organizationId] according to the given [parameters].
+     * Delete the secret with [name] in [entity] with [id].
      */
-    fun listForOrganization(
-        organizationId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
-
-    /**
-     * List all secrets for a [product][productId] according to the given [parameters].
-     */
-    fun listForProduct(
-        productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
-
-    /**
-     * List all secrets for a [repository][repositoryId] according to the given [parameters].
-     */
-    fun listForRepository(
-        repositoryId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
-
-    /**
-     * Update a secret by [organizationId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForOrganizationAndName(
-        organizationId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Update a secret by [productId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForProductAndName(
-        productId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Update a secret by [repositoryId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForRepositoryAndName(
-        repositoryId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Delete a secret by [organizationId] and secret's [name].
-     */
-    fun deleteForOrganizationAndName(organizationId: Long, name: String)
-
-    /**
-     * Delete a secret by [productId] and secret's [name].
-     */
-    fun deleteForProductAndName(productId: Long, name: String)
-
-    /**
-     * Delete a secret by [repositoryId] and secret's [name].
-     */
-    fun deleteForRepositoryAndName(repositoryId: Long, name: String)
+    fun delete(entity: Entity, id: Long, name: String)
 }

@@ -61,7 +61,7 @@ class DaoSecretRepositoryTest : StringSpec() {
             val name = "secret1"
             val secret = createSecret(name, Entity.ORGANIZATION, organizationId)
 
-            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
+            val dbEntry = secretRepository.get(Entity.ORGANIZATION, organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe secret
@@ -71,13 +71,14 @@ class DaoSecretRepositoryTest : StringSpec() {
             val name = "secret2"
             val secret = createSecret(name, Entity.ORGANIZATION, organizationId)
 
-            secretRepository.updateForOrganizationAndName(
+            secretRepository.update(
+                Entity.ORGANIZATION,
                 organizationId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
+            val dbEntry = secretRepository.get(Entity.ORGANIZATION, organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -95,13 +96,14 @@ class DaoSecretRepositoryTest : StringSpec() {
             val name = "secret3"
             val secret = createSecret(name, Entity.PRODUCT, productId)
 
-            secretRepository.updateForProductAndName(
+            secretRepository.update(
+                Entity.PRODUCT,
                 productId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByProductIdAndName(productId, name)
+            val dbEntry = secretRepository.get(Entity.PRODUCT, productId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -119,13 +121,14 @@ class DaoSecretRepositoryTest : StringSpec() {
             val name = "secret2"
             val secret = createSecret(name, Entity.REPOSITORY, repositoryId)
 
-            secretRepository.updateForRepositoryAndName(
+            secretRepository.update(
+                Entity.REPOSITORY,
                 repositoryId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByRepositoryIdAndName(repositoryId, name)
+            val dbEntry = secretRepository.get(Entity.REPOSITORY, repositoryId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -143,9 +146,9 @@ class DaoSecretRepositoryTest : StringSpec() {
             val name = "secret3"
             createSecret(name, Entity.REPOSITORY, repositoryId)
 
-            secretRepository.deleteForRepositoryAndName(repositoryId, name)
+            secretRepository.delete(Entity.REPOSITORY, repositoryId, name)
 
-            secretRepository.listForRepository(repositoryId) shouldBe emptyList()
+            secretRepository.list(Entity.REPOSITORY, repositoryId) shouldBe emptyList()
         }
 
         "Reading all secrets of specific type" should {
@@ -160,7 +163,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("productSecret1", Entity.PRODUCT, productId)
                 createSecret("repositorySecret1", Entity.REPOSITORY, repositoryId)
 
-                secretRepository.listForOrganization(organizationId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.ORGANIZATION, organizationId) should containExactlyInAnyOrder(
                     organizationSecret1,
                     organizationSecret2
                 )
@@ -177,7 +180,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("organizationSecret1", Entity.ORGANIZATION, organizationId)
                 createSecret("repositorySecret2", Entity.REPOSITORY, repositoryId)
 
-                secretRepository.listForProduct(productId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.PRODUCT, productId) should containExactlyInAnyOrder(
                     productSecret1,
                     productSecret2
                 )
@@ -194,7 +197,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("organizationSecret2", Entity.ORGANIZATION, organizationId)
                 createSecret("productSecret2", Entity.ORGANIZATION, organizationId)
 
-                secretRepository.listForRepository(repositoryId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.REPOSITORY, repositoryId) should containExactlyInAnyOrder(
                     repositorySecret1,
                     repositorySecret2
                 )

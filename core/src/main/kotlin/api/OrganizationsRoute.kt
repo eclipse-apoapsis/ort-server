@@ -176,7 +176,8 @@ fun Route.organizations() = route("organizations") {
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-                val secretsForOrganization = secretService.listForOrganization(orgId, pagingOptions.mapToModel())
+                val secretsForOrganization = secretService
+                    .listSecrets(Entity.ORGANIZATION, orgId, pagingOptions.mapToModel())
                 val pagedResponse = PagedResponse(
                     secretsForOrganization.map { it.mapToApi() },
                     pagingOptions
@@ -192,7 +193,7 @@ fun Route.organizations() = route("organizations") {
                     val organizationId = call.requireIdParameter("organizationId")
                     val secretName = call.requireParameter("secretName")
 
-                    secretService.getSecretByOrganizationIdAndName(organizationId, secretName)
+                    secretService.getSecret(Entity.ORGANIZATION, organizationId, secretName)
                         ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                         ?: call.respond(HttpStatusCode.NotFound)
                 }
@@ -206,7 +207,8 @@ fun Route.organizations() = route("organizations") {
 
                     call.respond(
                         HttpStatusCode.OK,
-                        secretService.updateSecretByOrganizationAndName(
+                        secretService.updateSecret(
+                            Entity.ORGANIZATION,
                             organizationId,
                             secretName,
                             updateSecret.value.mapToModel(),
@@ -221,7 +223,7 @@ fun Route.organizations() = route("organizations") {
                     val organizationId = call.requireIdParameter("organizationId")
                     val secretName = call.requireParameter("secretName")
 
-                    secretService.deleteSecretByOrganizationAndName(organizationId, secretName)
+                    secretService.deleteSecret(Entity.ORGANIZATION, organizationId, secretName)
 
                     call.respond(HttpStatusCode.NoContent)
                 }

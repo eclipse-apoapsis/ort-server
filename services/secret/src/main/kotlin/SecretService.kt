@@ -61,10 +61,10 @@ class SecretService(
     }
 
     /**
-     * Delete a secret by [organizationId] and [name].
+     * Delete a secret by [entity], [id] and [name].
      */
-    suspend fun deleteSecretByOrganizationAndName(organizationId: Long, name: String) = db.dbQuery {
-        val secret = secretRepository.getByOrganizationIdAndName(organizationId, name)?.also {
+    suspend fun deleteSecret(entity: SecretRepository.Entity, id: Long, name: String) = db.dbQuery {
+        val secret = secretRepository.get(entity, id, name)?.also {
             val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
 
             if (services.isNotEmpty()) {
@@ -72,135 +72,42 @@ class SecretService(
             }
         }
 
-        secretRepository.deleteForOrganizationAndName(organizationId, name)
+        secretRepository.delete(entity, id, name)
         secret?.deleteValue()
     }
 
     /**
-     * Delete a secret by [productId] and [name].
+     * Get a secret by [entity], [id] and [name]. Return null if the secret is not found.
      */
-    suspend fun deleteSecretByProductAndName(productId: Long, name: String) = db.dbQuery {
-        val secret = secretRepository.getByProductIdAndName(productId, name)?.also {
-            val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
-
-            if (services.isNotEmpty()) {
-                throw ReferencedEntityException("Could not delete secret '${it.name}' due to usage in $services.")
-            }
-        }
-
-        secretRepository.deleteForProductAndName(productId, name)
-        secret?.deleteValue()
+    suspend fun getSecret(entity: SecretRepository.Entity, id: Long, name: String): Secret? = db.dbQuery {
+        secretRepository.get(entity, id, name)
     }
 
     /**
-     * Delete a secret by [repositoryId] and [name].
+     * List all secrets for a specific [entity] with [id] and according to the given [parameters].
      */
-    suspend fun deleteSecretByRepositoryAndName(repositoryId: Long, name: String) = db.dbQuery {
-        val secret = secretRepository.getByRepositoryIdAndName(repositoryId, name)
-        secretRepository.deleteForRepositoryAndName(repositoryId, name)
-        secret?.deleteValue()
-    }
-
-    /**
-     * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
-     */
-    suspend fun getSecretByOrganizationIdAndName(organizationId: Long, name: String): Secret? = db.dbQuery {
-        secretRepository.getByOrganizationIdAndName(organizationId, name)
-    }
-
-    /**
-     * Get a secret by [productId] and [name]. Returns null if the secret is not found.
-     */
-    suspend fun getSecretByProductIdAndName(productId: Long, name: String): Secret? = db.dbQuery {
-        secretRepository.getByProductIdAndName(productId, name)
-    }
-
-    /**
-     * Get a secret by [repositoryId] and [name]. Returns null if the secret is not found.
-     */
-    suspend fun getSecretByRepositoryIdAndName(repositoryId: Long, name: String): Secret? = db.dbQuery {
-        secretRepository.getByRepositoryIdAndName(repositoryId, name)
-    }
-
-    /**
-     * List all secrets for a specific [organization][organizationId] and according to the given [parameters].
-     */
-    suspend fun listForOrganization(
-        organizationId: Long,
+    suspend fun listSecrets(
+        entity: SecretRepository.Entity,
+        id: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): List<Secret> = db.dbQuery {
-        secretRepository.listForOrganization(organizationId, parameters)
+        secretRepository.list(entity, id, parameters)
     }
 
     /**
-     * List all secrets for a specific [product][productId] and according to the given [parameters].
+     * Update the [named][name] secret in [entity] with [id] to the optional [value] and [description].
      */
-    suspend fun listForProduct(
-        productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret> = db.dbQuery {
-        secretRepository.listForProduct(productId, parameters)
-    }
-
-    /**
-     * List all secrets for a specific [repository][repositoryId] and according to the given [parameters].
-     */
-    suspend fun listForRepository(
-        repositoryId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret> = db.dbQuery {
-        secretRepository.listForRepository(repositoryId, parameters)
-    }
-
-    /**
-     * Update a secret by [organizationId] and [name] with the [present][OptionalValue.Present] values.
-     */
-    suspend fun updateSecretByOrganizationAndName(
-        organizationId: Long,
+    suspend fun updateSecret(
+        entity: SecretRepository.Entity,
+        id: Long,
         name: String,
         value: OptionalValue<String>,
         description: OptionalValue<String?>
     ): Secret = db.dbQuery {
-        val secret = secretRepository.updateForOrganizationAndName(organizationId, name, description)
+        val secret = secretRepository.update(entity, id, name, description)
 
         value.ifPresent {
-            secretRepository.getByOrganizationIdAndName(organizationId, name)?.updateValue(it)
-        }
-
-        secret
-    }
-
-    /**
-     * Update a secret by [productId] and [name] with the [present][OptionalValue.Present] values.
-     */
-    suspend fun updateSecretByProductAndName(
-        productId: Long,
-        name: String,
-        value: OptionalValue<String>,
-        description: OptionalValue<String?>
-    ): Secret = db.dbQuery {
-        val secret = secretRepository.updateForProductAndName(productId, name, description)
-
-        value.ifPresent {
-            secretRepository.getByProductIdAndName(productId, name)?.updateValue(it)
-        }
-
-        secret
-    }
-
-    /**
-     * Update a secret by [repositoryId] and [name][name] with the [present][OptionalValue.Present] values.
-     */
-    suspend fun updateSecretByRepositoryAndName(
-        repositoryId: Long,
-        name: String,
-        value: OptionalValue<String>,
-        description: OptionalValue<String?>
-    ): Secret = db.dbQuery {
-        val secret = secretRepository.updateForRepositoryAndName(repositoryId, name, description)
-
-        value.ifPresent {
-            secretRepository.getByRepositoryIdAndName(repositoryId, name)?.updateValue(it)
+            secretRepository.get(entity, id, name)?.updateValue(it)
         }
 
         secret

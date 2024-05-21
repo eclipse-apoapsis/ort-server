@@ -482,7 +482,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
+                secretRepository.get(Entity.PRODUCT, productId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -520,7 +520,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateSecret"
 
-                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.get(Entity.PRODUCT, productId, secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("product_${productId}_${secret.name}"))?.value shouldBe null
@@ -555,7 +555,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByProductIdAndName(productId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
+                secretRepository.get(Entity.PRODUCT, productId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
                         Secret(secret.name, updatedDescription)
             }
         }
@@ -588,7 +588,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
+                secretRepository.get(Entity.PRODUCT, productId, secret.name) shouldBe secret
             }
         }
 
@@ -613,7 +613,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForProduct(productId) shouldBe emptyList()
+                secretRepository.list(Entity.PRODUCT, productId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -655,7 +655,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.InternalServerError
 
-                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
+                secretRepository.get(Entity.PRODUCT, productId, secret.name) shouldBe secret
             }
         }
 
