@@ -68,14 +68,11 @@ private const val SECRET_ACCESS_PREFIX = "data"
 private const val SECRET_DELETE_PREFIX = "metadata"
 
 /**
- * An implementation of the [SecretsProvider] interface based on HashiCorp Vault [1].
+ * An implementation of the [SecretsProvider] interface for [HashiCorp Vault](https://developer.hashicorp.com/vault).
  *
- * This implementation allows accessing secrets managed via the KV Secrets Engine Version 2 [2]. Authentication is
- * done via the AppRole method [3].
- *
- * [1] https://developer.hashicorp.com/vault.
- * [2] https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2
- * [3] https://developer.hashicorp.com/vault/api-docs/auth/approle
+ * This implementation allows accessing secrets managed via the
+ * [KV Secrets Engine Version 2](https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2). Authentication is done
+ * via the [AppRole method](https://developer.hashicorp.com/vault/api-docs/auth/approle).
  */
 class VaultSecretsProvider(
     private val config: VaultConfiguration
