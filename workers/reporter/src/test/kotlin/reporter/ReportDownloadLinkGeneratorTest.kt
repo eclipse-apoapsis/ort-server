@@ -27,14 +27,15 @@ import io.kotest.matchers.string.shouldStartWith
 import io.mockk.every
 import io.mockk.mockk
 
-import java.util.Base64
-
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+@OptIn(ExperimentalEncodingApi::class)
 class ReportDownloadLinkGeneratorTest : WordSpec({
     "generateLink" should {
         "generate unique links" {
@@ -52,7 +53,7 @@ class ReportDownloadLinkGeneratorTest : WordSpec({
 
             val token = extractToken(generator.generateLink(RUN_ID).downloadLink)
 
-            val tokenBytes = Base64.getUrlDecoder().decode(token)
+            val tokenBytes = Base64.UrlSafe.decode(token)
             tokenBytes.size shouldBe tokenLength
         }
 

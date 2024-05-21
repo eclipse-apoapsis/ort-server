@@ -22,7 +22,9 @@ package org.eclipse.apoapsis.ortserver.secrets.file
 import com.typesafe.config.Config
 
 import java.io.File
-import java.util.Base64
+
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.serialization.json.Json
 
@@ -57,10 +59,11 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     private fun readSecrets(): MutableMap<Path, Secret> {
         val file = getOrCreateStorageFile()
 
-        val decodedSecrets = Base64.getDecoder().decode(file.readBytes())
+        val decodedSecrets = Base64.decode(file.readBytes())
         val serializer = FileBasedSecretsStorage.serializer()
 
         return Json.decodeFromString(
@@ -86,6 +89,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     private fun writeSecrets(secrets: MutableMap<Path, Secret>) {
         val serializer = FileBasedSecretsStorage.serializer()
         val secretsJson = Json.encodeToString(
@@ -93,9 +97,9 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
             FileBasedSecretsStorage(secrets.map { (key, value) -> key.path to value.value }.toMap().toMutableMap())
         )
 
-        val encryptedSecrets = Base64.getEncoder().encode(secretsJson.toByteArray())
+        val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
 
-        File(secretStorageFilePath).writeBytes(encryptedSecrets)
+        File(secretStorageFilePath).writeText(encryptedSecrets)
     }
 
     @Synchronized
