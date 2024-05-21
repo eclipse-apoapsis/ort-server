@@ -20,8 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.security.SecureRandom
-import java.util.Base64
 
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
 
 import kotlinx.datetime.Clock
@@ -80,12 +81,13 @@ internal class ReportDownloadLinkGenerator(
      * Return a new [ReportDownloadLink] object for the given [runId] that corresponds to the configuration of this
      * instance.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     fun generateLink(runId: Long): ReportDownloadLink {
         if (tokenLength <= 0) return disabledLink
 
         val tokenBytes = ByteArray(tokenLength)
         random.nextBytes(tokenBytes)
-        val tokenString = Base64.getUrlEncoder().encodeToString(tokenBytes)
+        val tokenString = Base64.UrlSafe.encode(tokenBytes)
 
         val link = "$linkPrefix/api/v1/runs/$runId/downloads/report/$tokenString"
         return ReportDownloadLink(link, clock.now() + validityTime)

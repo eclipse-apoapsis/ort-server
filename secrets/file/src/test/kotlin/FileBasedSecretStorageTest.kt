@@ -26,7 +26,9 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
 
 import java.io.File
-import java.util.Base64
+
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.serialization.json.Json
 
@@ -140,6 +142,7 @@ private fun getStorage(storageFile: File): SecretStorage {
     return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)))
 }
 
+@OptIn(ExperimentalEncodingApi::class)
 private fun initStorage(storageFile: File) {
     val serializer = FileBasedSecretsStorage.serializer()
     val json = Json {
@@ -151,6 +154,6 @@ private fun initStorage(storageFile: File) {
         FileBasedSecretsStorage(mapOf("password" to "securePassword123").toMutableMap())
     )
 
-    val encryptedSecrets = Base64.getEncoder().encode(secretsJson.toByteArray())
-    storageFile.writeBytes(encryptedSecrets)
+    val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
+    storageFile.writeText(encryptedSecrets)
 }

@@ -47,7 +47,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 
-import java.util.Base64
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -388,6 +389,7 @@ private fun WireMockServer.stubUnexpectedJsonContentType() {
 /**
  * A stub for successfully getting a file information in JSON format.
  */
+@OptIn(ExperimentalEncodingApi::class)
 private fun WireMockServer.stubJsonFileContentType() {
     stubFor(
         authorizedGet(
@@ -401,7 +403,7 @@ private fun WireMockServer.stubJsonFileContentType() {
                             "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b5\",\n" +
                             "    \"size\": 303,\n" +
                             "    \"type\": \"file\",\n" +
-                            "    \"content\": \"${String(Base64.getEncoder().encode(CONTENT.toByteArray()))}\"\n" +
+                            "    \"content\": \"${Base64.encode(CONTENT.toByteArray())}\"\n" +
                             "}"
                 )
             )

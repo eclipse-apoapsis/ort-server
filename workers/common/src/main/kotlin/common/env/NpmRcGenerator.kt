@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import java.util.Base64
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
@@ -45,8 +46,9 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         /**
          * Return the value of this string base64 encoded.
          */
+        @OptIn(ExperimentalEncodingApi::class)
         private fun String.base64(): String =
-            Base64.getEncoder().encodeToString(toByteArray())
+            Base64.encode(toByteArray())
 
         /**
          * Generate a configuration setting for te given [key] if an environment [variable] exists either with the
