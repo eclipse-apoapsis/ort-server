@@ -59,6 +59,7 @@ const formSchema = z.object({
       enabled: z.boolean(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
+      enabledPackageManagers: z.array(z.string()),
     }),
     reporter: z.object({
       enabled: z.boolean(),
@@ -66,6 +67,57 @@ const formSchema = z.object({
     }),
   }),
 });
+
+const packageManagers = [
+  {
+    id: 'Bundler',
+    label: 'Bundler (Ruby)',
+  },
+  {
+    id: 'Cargo',
+    label: 'Cargo (Rust)',
+  },
+  {
+    id: 'GoMod',
+    label: 'GoMod (Go)',
+  },
+  {
+    id: 'GradleInspector',
+    label: 'Gradle (Java)',
+  },
+  {
+    id: 'Maven',
+    label: 'Maven (Java)',
+  },
+  {
+    id: 'NPM',
+    label: 'NPM (JavaScript / Node.js)',
+  },
+  {
+    id: 'PIP',
+    label: 'PIP (Python)',
+  },
+  {
+    id: 'Pipenv',
+    label: 'Pipenv (Python)',
+  },
+  {
+    id: 'PNPM',
+    label: 'PNPM (JavaScript / Node.js)',
+  },
+  {
+    id: 'Poetry',
+    label: 'Poetry (Python)',
+  },
+  {
+    id: 'Yarn',
+    label: 'Yarn 1 (JavaScript / Node.js)',
+  },
+  {
+    id: 'Yarn2',
+    label: 'Yarn 2+ (JavaScript / Node.js)',
+  },
+] as const;
 
 const reportFormats = [
   {
@@ -128,6 +180,7 @@ const CreateRunPage = () => {
           enabled: true,
           allowDynamicVersions: false,
           skipExcluded: false,
+          enabledPackageManagers: packageManagers.map((pm) => pm.id),
         },
         reporter: {
           enabled: true,
@@ -142,6 +195,8 @@ const CreateRunPage = () => {
       ? {
           allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
           skipExcluded: values.jobConfigs.analyzer.skipExcluded,
+          enabledPackageManagers:
+            values.jobConfigs.analyzer.enabledPackageManagers,
         }
       : undefined;
     const reporterConfig = values.jobConfigs.reporter.enabled
@@ -244,6 +299,56 @@ const CreateRunPage = () => {
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="jobConfigs.analyzer.enabledPackageManagers"
+                      render={() => (
+                        <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
+                          <FormLabel>Enabled package managers</FormLabel>
+                          <FormDescription className="pb-4">
+                            Select the package managers enabled for this ORT
+                            Run.
+                          </FormDescription>
+                          {packageManagers.map((pm) => (
+                            <FormField
+                              key={pm.id}
+                              control={form.control}
+                              name="jobConfigs.analyzer.enabledPackageManagers"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={pm.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(pm.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                pm.id,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== pm.id
+                                                )
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                      {pm.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          ))}
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
