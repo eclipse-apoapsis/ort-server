@@ -58,7 +58,7 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.unpackZip
 import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 
-private const val PACKAGE_ID_FILENAME = "Maven-com.vdurmont-semver4j-2.0.1.zip"
+private const val PROJECT_ID_FILENAME = "Maven-com.vdurmont-semver4j-2.0.1.zip"
 private const val PROJECT_NAME = "semver4j"
 private const val PROJECT_VERSION = "2.0.1"
 
@@ -94,9 +94,9 @@ class SourceCodeBundleReporterTest : WordSpec({
 
             codeBundleFile.unpackZip(outputDir)
             outputDir shouldContainNFiles 2
-            outputDir shouldContainFile PACKAGE_ID_FILENAME
+            outputDir shouldContainFile PROJECT_ID_FILENAME
 
-            outputDir.resolve(PACKAGE_ID_FILENAME).unpackZip(outputDir)
+            outputDir.resolve(PROJECT_ID_FILENAME).unpackZip(outputDir)
             outputDir shouldContainFile PROJECT_NAME
             outputDir.resolve(PROJECT_NAME) shouldContainFile PROJECT_VERSION
 
