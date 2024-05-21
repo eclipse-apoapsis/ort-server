@@ -61,6 +61,11 @@ const formSchema = z.object({
       skipExcluded: z.boolean(),
       enabledPackageManagers: z.array(z.string()),
     }),
+    scanner: z.object({
+      enabled: z.boolean(),
+      skipConcluded: z.boolean(),
+      skipExcluded: z.boolean(),
+    }),
     reporter: z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
@@ -178,13 +183,18 @@ const CreateRunPage = () => {
       jobConfigs: {
         analyzer: {
           enabled: true,
-          allowDynamicVersions: false,
-          skipExcluded: false,
+          allowDynamicVersions: true,
+          skipExcluded: true,
           enabledPackageManagers: packageManagers.map((pm) => pm.id),
+        },
+        scanner: {
+          enabled: true,
+          skipConcluded: true,
+          skipExcluded: true,
         },
         reporter: {
           enabled: true,
-          formats: ['ortresult'],
+          formats: ['ortresult', 'WebApp'],
         },
       },
     },
@@ -199,17 +209,26 @@ const CreateRunPage = () => {
             values.jobConfigs.analyzer.enabledPackageManagers,
         }
       : undefined;
+    const scannerConfig = values.jobConfigs.scanner.enabled
+      ? {
+          createMissingArchives: true,
+          skipConcluded: values.jobConfigs.scanner.skipConcluded,
+          skipExcluded: values.jobConfigs.scanner.skipExcluded,
+        }
+      : undefined;
     const reporterConfig = values.jobConfigs.reporter.enabled
       ? {
           formats: values.jobConfigs.reporter.formats,
         }
       : undefined;
+
     await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
       requestBody: {
         revision: values.revision,
         jobConfigs: {
           analyzer: analyzerConfig,
+          scanner: scannerConfig,
           reporter: reporterConfig,
         },
       },
@@ -356,6 +375,71 @@ const CreateRunPage = () => {
                 </AccordionItem>
               </div>
 
+              {/* Scanner job */}
+              <div className="flex flex-row align-middle">
+                <FormField
+                  control={form.control}
+                  name="jobConfigs.scanner.enabled"
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+                <AccordionItem value="scanner" className="flex-1">
+                  <AccordionTrigger>Scanner</AccordionTrigger>
+                  <AccordionContent>
+                    <FormField
+                      control={form.control}
+                      name="jobConfigs.scanner.skipConcluded"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
+                          <div className="space-y-0.5">
+                            <FormLabel>Skip concluded</FormLabel>
+                            <FormDescription>
+                              A flag to indicate whether packages that have a
+                              concluded license and authors set (to derive
+                              copyrights from) should be skipped in the scan in
+                              favor of only using the declared information.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="jobConfigs.scanner.skipExcluded"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
+                          <div className="space-y-0.5">
+                            <FormLabel>Skip excluded</FormLabel>
+                            <FormDescription>
+                              Do not scan excluded projects or packages.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+
               {/* Reporter job */}
               <div className="flex flex-row align-middle">
                 <FormField
@@ -382,7 +466,7 @@ const CreateRunPage = () => {
                           <FormLabel>Report formats</FormLabel>
                           <FormDescription className="pb-4">
                             Select the report formats to generate from the ORT
-                            Run
+                            Run.
                           </FormDescription>
                           {reportFormats.map((format) => (
                             <FormField
