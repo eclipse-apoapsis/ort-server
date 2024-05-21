@@ -327,6 +327,35 @@ class OrchestratorTest : WordSpec() {
                     )
                 }
             }
+
+            "not create a reporter job before the workers that must run before are finished" {
+                val configWorkerResult = ConfigWorkerResult(ortRun.id)
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository {
+                    every { create(any(), any()) } returns analyzerJob
+                    every { get(analyzerJob.id) } returns analyzerJob
+                    every { update(any(), any(), any(), any()) } returns mockk()
+                }
+
+                val reporterJobRepository: ReporterJobRepository = createRepository()
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false) {
+                    every { get(ortRun.id) } returns ortRunAnalyzerAndReporter
+                    every { update(any(), any()) } returns mockk()
+                }
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = createMessagePublisher()
+                    ).handleConfigWorkerResult(msgHeader, configWorkerResult)
+                }
+
+                verify(exactly = 0) {
+                    reporterJobRepository.create(any(), any())
+                }
+            }
         }
 
         "handleConfigWorkerError" should {
