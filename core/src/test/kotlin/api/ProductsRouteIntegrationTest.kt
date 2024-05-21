@@ -554,7 +554,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByProductIdAndName(orgId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
+                secretRepository.getByProductIdAndName(productId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
                         Secret(secret.name, updatedDescription)
             }
         }
@@ -587,7 +587,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByProductIdAndName(orgId, secret.name) shouldBe secret
+                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
             }
         }
 
