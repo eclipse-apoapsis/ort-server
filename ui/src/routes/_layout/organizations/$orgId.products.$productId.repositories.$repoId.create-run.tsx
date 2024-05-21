@@ -66,6 +66,9 @@ const formSchema = z.object({
       skipConcluded: z.boolean(),
       skipExcluded: z.boolean(),
     }),
+    evaluator: z.object({
+      enabled: z.boolean(),
+    }),
     reporter: z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
@@ -192,6 +195,9 @@ const CreateRunPage = () => {
           skipConcluded: true,
           skipExcluded: true,
         },
+        evaluator: {
+          enabled: true,
+        },
         reporter: {
           enabled: true,
           formats: ['ortresult', 'WebApp'],
@@ -201,6 +207,11 @@ const CreateRunPage = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // In ORT Server, running or not running a job for and ORT Run is decided
+    // based on the presence or absence of the corresponding job configuration
+    // in the request body. If a job is disabled in the UI, we pass "undefined"
+    // as the configuration for that job in the request body, in effect leaving
+    // it empty, and thus disabling the job.
     const analyzerConfig = values.jobConfigs.analyzer.enabled
       ? {
           allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
@@ -216,6 +227,9 @@ const CreateRunPage = () => {
           skipExcluded: values.jobConfigs.scanner.skipExcluded,
         }
       : undefined;
+    const evaluatorConfig = values.jobConfigs.evaluator.enabled
+      ? {}
+      : undefined;
     const reporterConfig = values.jobConfigs.reporter.enabled
       ? {
           formats: values.jobConfigs.reporter.formats,
@@ -229,6 +243,7 @@ const CreateRunPage = () => {
         jobConfigs: {
           analyzer: analyzerConfig,
           scanner: scannerConfig,
+          evaluator: evaluatorConfig,
           reporter: reporterConfig,
         },
       },
@@ -436,6 +451,29 @@ const CreateRunPage = () => {
                         </FormItem>
                       )}
                     />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+
+              {/* Evaluator job */}
+              <div className="flex flex-row align-middle">
+                <FormField
+                  control={form.control}
+                  name="jobConfigs.evaluator.enabled"
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+                <AccordionItem value="evaluator" className="flex-1">
+                  <AccordionTrigger>Evaluator</AccordionTrigger>
+                  <AccordionContent>
+                    No job configurations yet implemented for Evaluator.
                   </AccordionContent>
                 </AccordionItem>
               </div>
