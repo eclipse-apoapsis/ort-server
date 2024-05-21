@@ -33,5 +33,12 @@ kotlin {
                 api(libs.kotestFrameworkApi)
             }
         }
+
+        val jvmMain by getting {
+            dependencies {
+                // Transitively export this to consumers so they do not have to declare a logger implementation.
+                api(libs.logback)
+            }
+        }
     }
 }
