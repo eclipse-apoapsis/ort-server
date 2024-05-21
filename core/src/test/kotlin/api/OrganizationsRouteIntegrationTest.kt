@@ -72,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -133,7 +134,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, organizationId, null, null)
+    ) = secretRepository.create(path, name, description, Entity.ORGANIZATION, organizationId)
 
     "GET /organizations" should {
         "return all existing organizations for the superuser" {

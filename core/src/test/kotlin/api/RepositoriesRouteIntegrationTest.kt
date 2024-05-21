@@ -74,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -155,7 +156,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, null, null, repositoryId)
+    ) = secretRepository.create(path, name, description, Entity.REPOSITORY, repositoryId)
 
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {

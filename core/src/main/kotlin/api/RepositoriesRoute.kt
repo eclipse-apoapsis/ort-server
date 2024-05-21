@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -230,8 +231,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    null,
+                    Entity.REPOSITORY,
                     repositoryId
                 ).mapToApi()
             )

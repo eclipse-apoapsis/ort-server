@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
@@ -43,23 +44,17 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(DaoSecretRepository::class.java)
 
 class DaoSecretRepository(private val db: Database) : SecretRepository {
-    override fun create(
-        path: String,
-        name: String,
-        description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
-    ) = db.blockingQuery {
-        SecretDao.new {
-            this.path = path
-            this.name = name
-            this.description = description
-            this.organization = organizationId?.let { OrganizationDao[it] }
-            this.product = productId?.let { ProductDao[it] }
-            this.repository = repositoryId?.let { RepositoryDao[it] }
-        }.mapToModel()
-    }
+    override fun create(path: String, name: String, description: String?, entity: Entity, id: Long) =
+        db.blockingQuery {
+            SecretDao.new {
+                this.path = path
+                this.name = name
+                this.description = description
+                this.organization = id.takeIf { entity == Entity.ORGANIZATION }?.let { OrganizationDao[it] }
+                this.product = id.takeIf { entity == Entity.PRODUCT }?.let { ProductDao[it] }
+                this.repository = id.takeIf { entity == Entity.REPOSITORY }?.let { RepositoryDao[it] }
+            }.mapToModel()
+        }
 
     override fun getByOrganizationIdAndName(organizationId: Long, name: String) = db.entityQuery {
         findSecretByParentEntityId(organizationId, null, null, name)?.mapToModel()

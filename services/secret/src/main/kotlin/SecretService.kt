@@ -42,22 +42,18 @@ class SecretService(
 ) {
     /**
      * Create a secret with the given metadata [name] and [description], and the provided [value]. As the secret can
-     * only belong to an organization, a product, or a repository, a respective [check][requireUnambiguousSecret]
-     * validates the input data.
+     * only belong to an organization, a product, or a repository, as specified by the [entity].
      */
     suspend fun createSecret(
         name: String,
         value: String,
         description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
+        entity: SecretRepository.Entity,
+        id: Long
     ): Secret = db.dbQuery {
-        requireUnambiguousSecret(organizationId, productId, repositoryId)
+        val path = secretStorage.createPath(entity, id, name)
 
-        val path = secretStorage.createPath(organizationId, productId, repositoryId, name)
-
-        val secret = secretRepository.create(path.path, name, description, organizationId, productId, repositoryId)
+        val secret = secretRepository.create(path.path, name, description, entity, id)
 
         secretStorage.writeSecret(path, SecretValue(value))
 
@@ -208,12 +204,6 @@ class SecretService(
         }
 
         secret
-    }
-
-    private fun requireUnambiguousSecret(organizationId: Long?, productId: Long?, repositoryId: Long?) {
-        require(listOfNotNull(organizationId, productId, repositoryId).size == 1) {
-            "The secret should belong to one of the following: Organization, Product or Repository."
-        }
     }
 
     /**

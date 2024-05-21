@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -128,7 +129,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, null, productId, null)
+    ) = secretRepository.create(path, name, description, Entity.PRODUCT, productId)
 
     "GET /products/{productId}" should {
         "return a single product" {

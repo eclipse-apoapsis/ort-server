@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -201,9 +202,8 @@ fun Route.products() = route("products/{productId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    productId,
-                    null
+                    Entity.PRODUCT,
+                    productId
                 ).mapToApi()
             )
         }

@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
@@ -238,9 +239,8 @@ fun Route.organizations() = route("organizations") {
                         createSecret.name,
                         createSecret.value,
                         createSecret.description,
-                        organizationId,
-                        null,
-                        null
+                        Entity.ORGANIZATION,
+                        organizationId
                     ).mapToApi()
                 )
             }

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.secrets
 
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+
 /**
  * Definition of an interface for accessing secrets stored in a specific storage implementation.
  *
@@ -50,8 +52,8 @@ interface SecretsProvider {
     fun removeSecret(path: Path)
 
     /**
-     * Generate a [Path] for the secret belonging to the given [organizationId], [productId] and [repositoryId], as well
-     * as the [secretName].
+     * Generate a [Path] for the secret belonging to the given [entity] with [id], as well as the [secretName].
      */
-    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path
+    fun createPath(entity: SecretRepository.Entity, id: Long, secretName: String): Path =
+        Path("${entity.name.lowercase()}_${id}_$secretName")
 }

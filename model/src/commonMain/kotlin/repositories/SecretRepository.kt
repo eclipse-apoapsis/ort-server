@@ -29,16 +29,18 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 @Suppress("TooManyFunctions")
 interface SecretRepository {
     /**
-     * Create a secret for either [organization][organizationId], [product][productId] or [repository][repositoryId]
+     * The entity to which a secret can be attached.
      */
-    fun create(
-        path: String,
-        name: String,
-        description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
-    ): Secret
+    enum class Entity {
+        ORGANIZATION,
+        PRODUCT,
+        REPOSITORY
+    }
+
+    /**
+     * Create a secret of the given [name] at [path] attached to [entity] with [id] and an optional [description].
+     */
+    fun create(path: String, name: String, description: String?, entity: Entity, id: Long): Secret
 
     /**
      * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
