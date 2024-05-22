@@ -23,8 +23,6 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.defaultImports
 
-import kotlinx.datetime.Instant
-
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -40,13 +38,7 @@ import org.ossreviewtoolkit.utils.scripting.OrtScriptCompilationConfiguration
     fileExtension = "params.kts",
     compilationConfiguration = ValidationScriptCompilationConfiguration::class
 )
-open class ValidationScriptTemplate(
-    /** The context containing the run and the parameters to be validated. */
-    val context: WorkerContext,
-
-    /** The current time. */
-    val time: Instant
-) {
+open class ValidationScriptTemplate {
     var validationResult: ConfigValidationResult = ConfigValidationResultSuccess(JobConfigurations())
 }
 
