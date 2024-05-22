@@ -14,6 +14,11 @@ out/
 /scripts/helm/ort-server/charts/
 /scripts/helm/*.tgz
 
+# OpenTofu state
+/scripts/docker/keycloak/tofu/.terraform
+/scripts/docker/keycloak/tofu/.terraform.lock.hcl
+/scripts/docker/keycloak/tofu/terraform.tfstate*
+
 # Private environment for IDEA HTTP client
 http-client.private.env.json
 
