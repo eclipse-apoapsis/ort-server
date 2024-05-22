@@ -51,7 +51,18 @@ interface SecretsProvider {
 
     /**
      * Generate a [Path] for the secret belonging to the given [organizationId], [productId] and [repositoryId], as well
-     * as the [secretName].
+     * as the [secretName]. The default implementation concatenates these properties with underscores.
      */
-    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path
+    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path {
+        val secretType = when {
+            organizationId != null -> "organization"
+            productId != null -> "product"
+            repositoryId != null -> "repository"
+            else -> throw IllegalArgumentException(
+                "Either one of organizationId, productId or repositoryId should be specified to create a path."
+            )
+        }
+
+        return Path(listOfNotNull(secretType, organizationId, productId, repositoryId, secretName).joinToString("_"))
+    }
 }

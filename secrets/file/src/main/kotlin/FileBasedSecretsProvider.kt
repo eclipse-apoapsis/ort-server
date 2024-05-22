@@ -116,29 +116,4 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         secrets -= path
         writeSecrets(secrets)
     }
-
-    override fun createPath(
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?,
-        secretName: String
-    ): Path {
-        val secretType = when {
-            organizationId != null -> "organization"
-            productId != null -> "product"
-            repositoryId != null -> "repository"
-            else -> throw IllegalArgumentException(
-                "Either one of organizationId, productId or repositoryId should be specified to create a path."
-            )
-        }
-        return Path(
-            listOfNotNull(
-                secretType,
-                organizationId,
-                productId,
-                repositoryId,
-                secretName
-            ).joinToString("_")
-        )
-    }
 }
