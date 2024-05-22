@@ -27,4 +27,4 @@ The exact details and process of the synchronization between the ORT Server's Op
 In case there are changes in the OpenAPI specification that warrant regeneration of the query client used in the UI, here are the instructions to do so:
 
 1. Go to the `ui/` folder
-2. Run: `pnpm codegen`
+2. Run: `pnpm generate:api`
