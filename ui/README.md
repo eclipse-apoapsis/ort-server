@@ -10,6 +10,11 @@ build tool and [pnpm](https://pnpm.io/) as the package manager.
 ## Development
 
 The UI expects ORT Server to be running locally.
+In addition, the following Gradle task must be executed to generate the OpenAPI specification locally:
+
+```shell
+./gradlew :core:generateOpenApiSpec
+```
 
 ## Run the UI
 
@@ -20,11 +25,10 @@ Here are the instructions to start the UI in local development mode:
 3. Ctrl-click the shown `http://localhost:5173/` link.
 4. Log in via Keycloak (use "admin" / "admin" as username / password).
 
-## Regenerating the UI Query Client
+## Generating the UI Query Client
 
-The exact details and process of the synchronization between the ORT Server's OpenAPI specification and the matching UI queries is to be discussed.
+As a precondition for generating the query client the OpenAPI specification must be generated as documented in
+[Development](#development).
 
-In case there are changes in the OpenAPI specification that warrant regeneration of the query client used in the UI, here are the instructions to do so:
-
-1. Go to the `ui/` folder
-2. Run: `pnpm generate:api`
+The query client is generated automatically as part of `pnpm build`.
+To generate it manually, for example for testing local changes to the API, run `pnpm generate:api`.

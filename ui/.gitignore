@@ -6,4 +6,5 @@ dist
 .env
 .env.local
 
+src/api/
 src/routeTree.gen.ts

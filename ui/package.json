@@ -6,11 +6,11 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm generate:routes && tsc && vite build",
+    "build": "pnpm generate:api && pnpm generate:routes && tsc && vite build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "generate:api": "rm -fr src/api && openapi-rq -i ../core/build/openapi/openapi.json -o src/api && prettier --write src/api",
+    "generate:api": "rm -fr src/api && openapi-rq -i ../core/build/openapi/openapi.json -o src/api && prettier --write src/api --ignore-path .prettierignore",
     "generate:routes": "tsr generate",
     "preview": "vite preview"
   },
