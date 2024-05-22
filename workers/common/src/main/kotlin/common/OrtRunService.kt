@@ -90,7 +90,7 @@ class OrtRunService(
     private val scannerRunRepository: ScannerRunRepository
 ) {
     companion object {
-        private const val RUN_ID_LABEL: String = "runId"
+        private const val RUN_ID_LABEL = "runId"
     }
 
     /**
