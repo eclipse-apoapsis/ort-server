@@ -17,11 +17,22 @@
  * License-Filename: LICENSE
  */
 
-import { useProductsServicePostProduct } from '@/api/queries';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+
+import { useProductsServicePostProduct } from '@/api/queries';
+import { ApiError } from '@/api/requests';
+import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -32,17 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { ApiError } from '@/api/requests';
-import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   name: z.string(),

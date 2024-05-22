@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { routeTree } from './routeTree.gen';
-import { queryClient } from './lib/query-client.ts';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { OpenAPI } from './api/requests/index.ts';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { useAuth, hasAuthParams } from 'react-oidc-context';
+import { hasAuthParams, useAuth } from 'react-oidc-context';
+
+import { OpenAPI } from './api/requests/index.ts';
+import { queryClient } from './lib/query-client.ts';
+import { routeTree } from './routeTree.gen';
 
 export interface RouterContext {
   queryClient: typeof queryClient;

@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { PlusIcon } from 'lucide-react';
+
 import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
-import { Button } from '@/components/ui/button';
 import { OrganizationsService } from '@/api/requests';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -35,15 +39,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Link, createFileRoute } from '@tanstack/react-router';
-import { PlusIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useSuspenseQuery } from '@tanstack/react-query';
 
 export const IndexPage = () => {
   const { data } = useSuspenseQuery({

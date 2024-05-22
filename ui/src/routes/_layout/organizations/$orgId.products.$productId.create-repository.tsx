@@ -17,11 +17,22 @@
  * License-Filename: LICENSE
  */
 
-import { useRepositoriesServiceCreateRepository } from '@/api/queries';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+
+import { useRepositoriesServiceCreateRepository } from '@/api/queries';
+import { $CreateRepository, ApiError } from '@/api/requests';
+import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -32,15 +43,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { ApiError, $CreateRepository } from '@/api/requests';
 import {
   Select,
   SelectContent,
@@ -49,7 +51,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   url: z.string(),

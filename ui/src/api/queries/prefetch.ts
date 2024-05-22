@@ -1,6 +1,7 @@
 // generated with @7nohe/openapi-react-query-codegen@1.3.0
 
 import { type QueryClient } from '@tanstack/react-query';
+
 import {
   HealthService,
   InfrastructureServicesService,
@@ -12,6 +13,7 @@ import {
   SecretsService,
 } from '../requests/services.gen';
 import * as Common from './common';
+
 /**
  * Get the health of the ORT server.
  * @returns Liveness Success

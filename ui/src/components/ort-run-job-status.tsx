@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_ } from '@/api/requests';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_ } from '@/api/requests';
+import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 type OrtRunJobStatusProps = {
   jobs: org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_['data'][0]['jobs'];

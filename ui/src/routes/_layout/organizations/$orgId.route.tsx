@@ -17,10 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Suspense } from 'react';
+
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
-import { Outlet, createFileRoute } from '@tanstack/react-router';
-import { Suspense } from 'react';
 
 export const Route = createFileRoute('/_layout/organizations/$orgId')({
   loader: async ({ context, params }) => {

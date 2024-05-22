@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';
+
 import {
-  useOrganizationsServiceGetOrganizationByIdKey,
   useOrganizationsServiceDeleteOrganizationById,
+  useOrganizationsServiceGetOrganizationByIdKey,
   useProductsServiceGetOrganizationProductsKey,
 } from '@/api/queries';
 import {
@@ -27,6 +31,7 @@ import {
   OrganizationsService,
   ProductsService,
 } from '@/api/requests';
+import { ToastError } from '@/components/toast-error';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,9 +59,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useSuspenseQueries } from '@tanstack/react-query';
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { PlusIcon, EditIcon, TrashIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -64,7 +66,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastError } from '@/components/toast-error';
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
