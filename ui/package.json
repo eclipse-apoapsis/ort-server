@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "generate:api": "rm -fr src/api && openapi-rq -i http://localhost:${ORT_SERVER_CORE_PORT:-8080}/swagger-ui/api.json -o src/api && prettier --write src/api",
+    "generate:api": "rm -fr src/api && openapi-rq -i ../core/build/openapi/openapi.json -o src/api && prettier --write src/api",
     "generate:routes": "tsr generate",
     "preview": "vite preview"
   },
