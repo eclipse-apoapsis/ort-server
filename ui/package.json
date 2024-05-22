@@ -7,12 +7,12 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm generate:routes && tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "generate:api": "rm -fr src/api && openapi-rq -i http://localhost:${ORT_SERVER_CORE_PORT:-8080}/swagger-ui/api.json -o src/api && prettier --write src/api",
     "generate:routes": "tsr generate",
-    "generate:api": "rm -fr src/api && openapi-rq -i http://localhost:${ORT_SERVER_CORE_PORT:-8080}/swagger-ui/api.json -o src/api && prettier --write src/api"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
