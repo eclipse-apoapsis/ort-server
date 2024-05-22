@@ -6,11 +6,12 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm generate:routes && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "generate:routes": "tsr generate",
     "codegen": "rm -fr src/api && openapi-rq -i http://localhost:${ORT_SERVER_CORE_PORT:-8080}/swagger-ui/api.json -o src/api && prettier --write src/api"
   },
   "dependencies": {
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@7nohe/openapi-react-query-codegen": "^1.0.0",
+    "@tanstack/router-cli": "^1.32.10",
     "@tanstack/router-vite-plugin": "^1.32.17",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.64",

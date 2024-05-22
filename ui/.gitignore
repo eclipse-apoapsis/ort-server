@@ -5,3 +5,5 @@ dist
 
 .env
 .env.local
+
+src/routeTree.gen.ts
