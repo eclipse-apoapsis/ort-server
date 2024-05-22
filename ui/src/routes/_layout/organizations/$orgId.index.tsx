@@ -119,7 +119,7 @@ const OrganizationComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-4xl mx-auto'>
+      <Card className='mx-auto w-full max-w-4xl'>
         <CardHeader>
           <CardTitle className='flex flex-row justify-between'>
             <div className='flex items-stretch'>
@@ -130,13 +130,13 @@ const OrganizationComponent = () => {
                     asChild
                     size='sm'
                     variant='outline'
-                    className='px-2 ml-2'
+                    className='ml-2 px-2'
                   >
                     <Link
                       to='/organizations/$orgId/edit'
                       params={{ orgId: organization.id.toString() }}
                     >
-                      <EditIcon className='w-4 h-4' />
+                      <EditIcon className='h-4 w-4' />
                     </Link>
                   </Button>
                 </TooltipTrigger>
@@ -150,7 +150,7 @@ const OrganizationComponent = () => {
                   variant='destructive'
                   className='px-2 hover:bg-red-700'
                 >
-                  <TrashIcon className='w-4 h-4' />
+                  <TrashIcon className='h-4 w-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -187,7 +187,7 @@ const OrganizationComponent = () => {
                           params={{ orgId: organization.id.toString() }}
                         >
                           New product
-                          <PlusIcon className='w-4 h-4' />
+                          <PlusIcon className='h-4 w-4' />
                         </Link>
                       </Button>
                     </TooltipTrigger>

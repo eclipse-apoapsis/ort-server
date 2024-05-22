@@ -73,14 +73,14 @@ export const Header = () => {
   );
 
   return (
-    <header className='sticky top-0 z-50 flex justify-between h-16 gap-4 px-4 border-b bg-background md:px-6'>
+    <header className='sticky top-0 z-50 flex h-16 justify-between gap-4 border-b bg-background px-4 md:px-6'>
       <div className='flex flex-row items-center gap-4'>
-        <nav className='flex-col hidden gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
+        <nav className='hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
           <Link
             to='/'
             className='flex items-center gap-2 text-lg font-semibold md:text-base'
           >
-            <Home className='w-6 h-6' />
+            <Home className='h-6 w-6' />
             <span className='sr-only'>Home</span>
           </Link>
         </nav>
@@ -91,7 +91,7 @@ export const Header = () => {
               size='icon'
               className='shrink-0 md:hidden'
             >
-              <Menu className='w-5 h-5' />
+              <Menu className='h-5 w-5' />
               <span className='sr-only'>Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
@@ -101,7 +101,7 @@ export const Header = () => {
                 href='#'
                 className='flex items-center gap-2 text-lg font-semibold'
               >
-                <Home className='w-6 h-6' />
+                <Home className='h-6 w-6' />
                 <span className='sr-only'>Home</span>
               </Link>
             </nav>
@@ -165,7 +165,7 @@ export const Header = () => {
               size='icon'
               className='ml-auto rounded-full'
             >
-              <CircleUser className='w-5 h-5' />
+              <CircleUser className='h-5 w-5' />
               <span className='sr-only'>Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>

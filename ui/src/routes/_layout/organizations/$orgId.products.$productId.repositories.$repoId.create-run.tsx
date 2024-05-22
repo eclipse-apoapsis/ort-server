@@ -252,7 +252,7 @@ const CreateRunPage = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl mx-auto'>
+    <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Create an ORT run</CardTitle>
       </CardHeader>
@@ -285,7 +285,7 @@ const CreateRunPage = () => {
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
+                        className='my-4 mr-4 data-[state=checked]:bg-green-500'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
@@ -299,7 +299,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.analyzer.allowDynamicVersions'
                       render={({ field }) => (
-                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                           <div className='space-y-0.5'>
                             <FormLabel>Allow dynamic versions</FormLabel>
                             <FormDescription>
@@ -320,7 +320,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.analyzer.skipExcluded'
                       render={({ field }) => (
-                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                           <div className='space-y-0.5'>
                             <FormLabel>Skip excluded</FormLabel>
                             <FormDescription>
@@ -341,7 +341,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.analyzer.enabledPackageManagers'
                       render={() => (
-                        <FormItem className='flex flex-col justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-col justify-between rounded-lg border p-4'>
                           <FormLabel>Enabled package managers</FormLabel>
                           <FormDescription className='pb-4'>
                             Select the package managers enabled for this ORT
@@ -399,7 +399,7 @@ const CreateRunPage = () => {
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
+                        className='my-4 mr-4 data-[state=checked]:bg-green-500'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
@@ -413,7 +413,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.scanner.skipConcluded'
                       render={({ field }) => (
-                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                           <div className='space-y-0.5'>
                             <FormLabel>Skip concluded</FormLabel>
                             <FormDescription>
@@ -436,7 +436,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.scanner.skipExcluded'
                       render={({ field }) => (
-                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                           <div className='space-y-0.5'>
                             <FormLabel>Skip excluded</FormLabel>
                             <FormDescription>
@@ -464,7 +464,7 @@ const CreateRunPage = () => {
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
+                        className='my-4 mr-4 data-[state=checked]:bg-green-500'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
@@ -487,7 +487,7 @@ const CreateRunPage = () => {
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
+                        className='my-4 mr-4 data-[state=checked]:bg-green-500'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
@@ -501,7 +501,7 @@ const CreateRunPage = () => {
                       control={form.control}
                       name='jobConfigs.reporter.formats'
                       render={() => (
-                        <FormItem className='flex flex-col justify-between p-4 mb-4 border rounded-lg'>
+                        <FormItem className='mb-4 flex flex-col justify-between rounded-lg border p-4'>
                           <FormLabel>Report formats</FormLabel>
                           <FormDescription className='pb-4'>
                             Select the report formats to generate from the ORT
