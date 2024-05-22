@@ -165,11 +165,8 @@ subprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget = maxKotlinJvmTarget
-        }
-
-        kotlinOptions {
             allWarningsAsErrors = true
+            jvmTarget = maxKotlinJvmTarget
         }
     }
 
