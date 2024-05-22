@@ -166,7 +166,7 @@ internal enum class WorkerScheduleInfo(
      * problem.
      */
     private val runsAfterTransitively: Set<Endpoint<*>>
-        get() = (runsAfter + dependsOn).flatMap { WorkerScheduleInfo[it].runsAfterTransitively + it }.toSet()
+        get() = (runsAfter + dependsOn).flatMapTo(mutableSetOf()) { WorkerScheduleInfo[it].runsAfterTransitively + it }
 
     /**
      * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create

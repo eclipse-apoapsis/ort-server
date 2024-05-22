@@ -50,9 +50,9 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     fun mapToModel() = ScanSummary(
         startTime = startTime,
         endTime = endTime,
-        licenseFindings = licenseFindings.map(LicenseFindingDao::mapToModel).toSet(),
-        copyrightFindings = copyrightFindings.map(CopyrightFindingDao::mapToModel).toSet(),
-        snippetFindings = snippetFindings.map(SnippetFindingDao::mapToModel).toSet(),
+        licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel),
+        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel),
+        snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel),
         issues = issues.map(OrtIssueDao::mapToModel)
     )
 }
