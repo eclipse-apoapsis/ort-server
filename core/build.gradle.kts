@@ -116,3 +116,11 @@ jib {
         creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }
+
+/**
+ * A fake test task that writes the OpenAPI specification to `build/openapi/openapi.json`.
+ */
+tasks.register<Test>("generateOpenApiSpec") {
+    include("org/eclipse/apoapsis/ortserver/core/utils/GenerateOpenApiSpec.class")
+    systemProperties("generateOpenApiSpec" to "true")
+}
