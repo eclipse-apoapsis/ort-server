@@ -17,15 +17,25 @@
  * License-Filename: LICENSE
  */
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
 import {
   useProductsServiceGetProductByIdKey,
   useProductsServicePatchProductById,
 } from '@/api/queries';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ApiError, ProductsService } from '@/api/requests';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -36,16 +46,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastError } from '@/components/toast-error';
 
 const formSchema = z.object({
   name: z.string(),

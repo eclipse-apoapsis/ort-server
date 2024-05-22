@@ -1,6 +1,7 @@
 // generated with @7nohe/openapi-react-query-codegen@1.3.0
 
 import { UseQueryResult } from '@tanstack/react-query';
+
 import {
   HealthService,
   InfrastructureServicesService,
@@ -11,6 +12,7 @@ import {
   RepositoriesService,
   SecretsService,
 } from '../requests/services.gen';
+
 export type HealthServiceGetLivenessDefaultResponse = Awaited<
   ReturnType<typeof HealthService.getLiveness>
 >;

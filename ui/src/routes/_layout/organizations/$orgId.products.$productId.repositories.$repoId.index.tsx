@@ -17,12 +17,18 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';
+
 import {
+  useRepositoriesServiceDeleteRepositoryById,
   useRepositoriesServiceGetOrtRunsKey,
   useRepositoriesServiceGetRepositoryByIdKey,
-  useRepositoriesServiceDeleteRepositoryById,
 } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
+import { OrtRunJobStatus } from '@/components/ort-run-job-status';
+import { ToastError } from '@/components/toast-error';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,22 +44,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from '@/components/ui/card';
 import {
-  TableHeader,
-  TableRow,
-  TableHead,
+  Table,
   TableBody,
   TableCell,
-  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
-import { useSuspenseQueries } from '@tanstack/react-query';
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { PlusIcon, EditIcon, TrashIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -61,9 +64,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastError } from '@/components/toast-error';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
-import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 
 const pollInterval =
   Number.parseInt(import.meta.env.VITE_RUN_POLL_INTERVAL) || 10000;

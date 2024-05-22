@@ -19,8 +19,8 @@
 
 import {
   Status,
-  STATUS_FONT_COLOR,
   STATUS_BACKGROUND_COLOR,
+  STATUS_FONT_COLOR,
 } from '@/types/status-types-and-constants';
 
 // Get the color class for font coloring

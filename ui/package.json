@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@7nohe/openapi-react-query-codegen": "^1.0.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "@tanstack/router-cli": "^1.32.10",
     "@tanstack/router-vite-plugin": "^1.32.17",
     "@types/node": "^20.11.30",

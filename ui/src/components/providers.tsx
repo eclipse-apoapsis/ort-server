@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { queryClient } from '@/lib/query-client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
-import { Toaster } from '@/components/ui/toaster';
+
 import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
+import { Toaster } from '@/components/ui/toaster';
+import { queryClient } from '@/lib/query-client';
 
 OpenAPIConfig.BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 

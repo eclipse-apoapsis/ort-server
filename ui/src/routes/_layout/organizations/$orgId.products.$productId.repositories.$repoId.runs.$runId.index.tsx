@@ -17,22 +17,23 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
+
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { OpenAPI, RepositoriesService } from '@/api/requests';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  TableHeader,
-  TableRow,
-  TableHead,
+  Table,
   TableBody,
   TableCell,
-  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
-import { RepositoriesService, OpenAPI } from '@/api/requests';
-import { Link, createFileRoute } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
-import { Badge } from '@/components/ui/badge';
 
 const RunComponent = () => {
   const params = Route.useParams();
