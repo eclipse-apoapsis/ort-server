@@ -150,70 +150,121 @@ const LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexR
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/_layout': {
+      id: '/_layout';
+      path: '';
+      fullPath: '';
       preLoaderRoute: typeof LayoutRouteImport;
       parentRoute: typeof rootRoute;
     };
     '/_layout/create-organization': {
+      id: '/_layout/create-organization';
+      path: '/create-organization';
+      fullPath: '/create-organization';
       preLoaderRoute: typeof LayoutCreateOrganizationImport;
       parentRoute: typeof LayoutRouteImport;
     };
     '/_layout/': {
+      id: '/_layout/';
+      path: '/';
+      fullPath: '/';
       preLoaderRoute: typeof LayoutIndexImport;
       parentRoute: typeof LayoutRouteImport;
     };
     '/_layout/organizations/$orgId': {
+      id: '/_layout/organizations/$orgId';
+      path: '/organizations/$orgId';
+      fullPath: '/organizations/$orgId';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdRouteImport;
       parentRoute: typeof LayoutRouteImport;
     };
     '/_layout/organizations/$orgId/create-product': {
+      id: '/_layout/organizations/$orgId/create-product';
+      path: '/create-product';
+      fullPath: '/organizations/$orgId/create-product';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdCreateProductImport;
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport;
     };
     '/_layout/organizations/$orgId/edit': {
+      id: '/_layout/organizations/$orgId/edit';
+      path: '/edit';
+      fullPath: '/organizations/$orgId/edit';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdEditImport;
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport;
     };
     '/_layout/organizations/$orgId/': {
+      id: '/_layout/organizations/$orgId/';
+      path: '/';
+      fullPath: '/organizations/$orgId/';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdIndexImport;
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId': {
+      id: '/_layout/organizations/$orgId/products/$productId';
+      path: '/products/$productId';
+      fullPath: '/organizations/$orgId/products/$productId';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport;
       parentRoute: typeof LayoutOrganizationsOrgIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/create-repository': {
+      id: '/_layout/organizations/$orgId/products/$productId/create-repository';
+      path: '/create-repository';
+      fullPath: '/organizations/$orgId/products/$productId/create-repository';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/edit': {
+      id: '/_layout/organizations/$orgId/products/$productId/edit';
+      path: '/edit';
+      fullPath: '/organizations/$orgId/products/$productId/edit';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdEditImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/': {
+      id: '/_layout/organizations/$orgId/products/$productId/';
+      path: '/';
+      fullPath: '/organizations/$orgId/products/$productId/';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdIndexImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId';
+      path: '/repositories/$repoId';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run';
+      path: '/create-run';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit';
+      path: '/edit';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId/edit';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/';
+      path: '/';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId/';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId';
+      path: '/runs/$runId';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteImport;
     };
     '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/': {
+      id: '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/';
+      path: '/';
+      fullPath: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/';
       preLoaderRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexImport;
       parentRoute: typeof LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteImport;
     };
@@ -222,33 +273,37 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([
-  LayoutRouteRoute.addChildren([
+export const routeTree = rootRoute.addChildren({
+  LayoutRouteRoute: LayoutRouteRoute.addChildren({
     LayoutCreateOrganizationRoute,
     LayoutIndexRoute,
-    LayoutOrganizationsOrgIdRouteRoute.addChildren([
-      LayoutOrganizationsOrgIdCreateProductRoute,
-      LayoutOrganizationsOrgIdEditRoute,
-      LayoutOrganizationsOrgIdIndexRoute,
-      LayoutOrganizationsOrgIdProductsProductIdRouteRoute.addChildren([
-        LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryRoute,
-        LayoutOrganizationsOrgIdProductsProductIdEditRoute,
-        LayoutOrganizationsOrgIdProductsProductIdIndexRoute,
-        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute.addChildren(
-          [
-            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunRoute,
-            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute,
-            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexRoute,
-            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute.addChildren(
-              [
-                LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexRoute,
-              ]
-            ),
-          ]
-        ),
-      ]),
-    ]),
-  ]),
-]);
+    LayoutOrganizationsOrgIdRouteRoute:
+      LayoutOrganizationsOrgIdRouteRoute.addChildren({
+        LayoutOrganizationsOrgIdCreateProductRoute,
+        LayoutOrganizationsOrgIdEditRoute,
+        LayoutOrganizationsOrgIdIndexRoute,
+        LayoutOrganizationsOrgIdProductsProductIdRouteRoute:
+          LayoutOrganizationsOrgIdProductsProductIdRouteRoute.addChildren({
+            LayoutOrganizationsOrgIdProductsProductIdCreateRepositoryRoute,
+            LayoutOrganizationsOrgIdProductsProductIdEditRoute,
+            LayoutOrganizationsOrgIdProductsProductIdIndexRoute,
+            LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute:
+              LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRouteRoute.addChildren(
+                {
+                  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdCreateRunRoute,
+                  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdEditRoute,
+                  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdIndexRoute,
+                  LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute:
+                    LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdRouteRoute.addChildren(
+                      {
+                        LayoutOrganizationsOrgIdProductsProductIdRepositoriesRepoIdRunsRunIdIndexRoute,
+                      }
+                    ),
+                }
+              ),
+          }),
+      }),
+  }),
+});
 
 /* prettier-ignore-end */
