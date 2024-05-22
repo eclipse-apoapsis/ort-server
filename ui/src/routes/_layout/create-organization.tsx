@@ -85,14 +85,14 @@ const CreateOrganizationPage = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className='w-full max-w-4xl mx-auto'>
       <CardHeader>Create Organization</CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
             <FormField
               control={form.control}
-              name="name"
+              name='name'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
@@ -108,7 +108,7 @@ const CreateOrganizationPage = () => {
             />
             <FormField
               control={form.control}
-              name="description"
+              name='description'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
@@ -124,7 +124,7 @@ const CreateOrganizationPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit">Create</Button>
+            <Button type='submit'>Create</Button>
           </CardFooter>
         </form>
       </Form>

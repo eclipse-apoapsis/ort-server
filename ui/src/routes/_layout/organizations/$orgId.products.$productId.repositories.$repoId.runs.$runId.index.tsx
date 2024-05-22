@@ -93,9 +93,9 @@ const RunComponent = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader className="flex flex-row items-start">
-        <div className="grid gap-2">
+    <Card className='w-full max-w-4xl mx-auto'>
+      <CardHeader className='flex flex-row items-start'>
+        <div className='grid gap-2'>
           <CardTitle>{ortRun.id}</CardTitle>
         </div>
       </CardHeader>
@@ -108,21 +108,21 @@ const RunComponent = () => {
             <TableRow>
               <TableHead>Run parameter</TableHead>
               <TableHead>Value</TableHead>
-              <TableHead className="sr-only">Actions</TableHead>
+              <TableHead className='sr-only'>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
               <TableCell>Created At</TableCell>
               <TableCell>
-                <div className="font-medium">{ortRun.createdAt}</div>
+                <div className='font-medium'>{ortRun.createdAt}</div>
               </TableCell>
             </TableRow>
             {ortRun.finishedAt && (
               <TableRow>
                 <TableCell>Finished At</TableCell>
                 <TableCell>
-                  <div className="font-medium">
+                  <div className='font-medium'>
                     {ortRun.finishedAt as unknown as string}
                   </div>
                 </TableCell>
@@ -131,7 +131,7 @@ const RunComponent = () => {
             <TableRow>
               <TableCell>Revision</TableCell>
               <TableCell>
-                <div className="font-medium">{ortRun.revision}</div>
+                <div className='font-medium'>{ortRun.revision}</div>
               </TableCell>
             </TableRow>
             <TableRow>
@@ -167,11 +167,11 @@ const RunComponent = () => {
                   {(
                     ortRun.jobs.reporter?.reportFilenames as unknown as string[]
                   ).map((filename) => (
-                    <div key={filename} className="flex flex-col pb-2">
+                    <div key={filename} className='flex flex-col pb-2'>
                       <Link onClick={() => handleDownload(filename)}>
                         <Button
-                          variant="outline"
-                          className="font-semibold text-blue-400"
+                          variant='outline'
+                          className='font-semibold text-blue-400'
                         >
                           {filename}
                         </Button>

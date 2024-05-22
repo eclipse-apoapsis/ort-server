@@ -251,16 +251,16 @@ const CreateRunPage = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className='w-full max-w-4xl mx-auto'>
       <CardHeader>
         <CardTitle>Create an ORT run</CardTitle>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
             <FormField
               control={form.control}
-              name="revision"
+              name='revision'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Revision</FormLabel>
@@ -273,33 +273,33 @@ const CreateRunPage = () => {
               )}
             />
 
-            <h3 className="mt-4">Enable and configure jobs</h3>
+            <h3 className='mt-4'>Enable and configure jobs</h3>
 
-            <Accordion type="multiple">
+            <Accordion type='multiple'>
               {/* Analyzer job */}
-              <div className="flex flex-row align-middle">
+              <div className='flex flex-row align-middle'>
                 <FormField
                   control={form.control}
-                  name="jobConfigs.analyzer.enabled"
+                  name='jobConfigs.analyzer.enabled'
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   )}
                 />
-                <AccordionItem value="analyzer" className="flex-1">
+                <AccordionItem value='analyzer' className='flex-1'>
                   <AccordionTrigger>Analyzer</AccordionTrigger>
                   <AccordionContent>
                     <FormField
                       control={form.control}
-                      name="jobConfigs.analyzer.allowDynamicVersions"
+                      name='jobConfigs.analyzer.allowDynamicVersions'
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                          <div className="space-y-0.5">
+                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                          <div className='space-y-0.5'>
                             <FormLabel>Allow dynamic versions</FormLabel>
                             <FormDescription>
                               Enable the analysis of projects that use version
@@ -317,10 +317,10 @@ const CreateRunPage = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="jobConfigs.analyzer.skipExcluded"
+                      name='jobConfigs.analyzer.skipExcluded'
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                          <div className="space-y-0.5">
+                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                          <div className='space-y-0.5'>
                             <FormLabel>Skip excluded</FormLabel>
                             <FormDescription>
                               A flag to control whether excluded scopes and
@@ -338,11 +338,11 @@ const CreateRunPage = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="jobConfigs.analyzer.enabledPackageManagers"
+                      name='jobConfigs.analyzer.enabledPackageManagers'
                       render={() => (
-                        <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
+                        <FormItem className='flex flex-col justify-between p-4 mb-4 border rounded-lg'>
                           <FormLabel>Enabled package managers</FormLabel>
-                          <FormDescription className="pb-4">
+                          <FormDescription className='pb-4'>
                             Select the package managers enabled for this ORT
                             Run.
                           </FormDescription>
@@ -350,12 +350,12 @@ const CreateRunPage = () => {
                             <FormField
                               key={pm.id}
                               control={form.control}
-                              name="jobConfigs.analyzer.enabledPackageManagers"
+                              name='jobConfigs.analyzer.enabledPackageManagers'
                               render={({ field }) => {
                                 return (
                                   <FormItem
                                     key={pm.id}
-                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                    className='flex flex-row items-start space-x-3 space-y-0'
                                   >
                                     <FormControl>
                                       <Checkbox
@@ -374,7 +374,7 @@ const CreateRunPage = () => {
                                         }}
                                       />
                                     </FormControl>
-                                    <FormLabel className="font-normal">
+                                    <FormLabel className='font-normal'>
                                       {pm.label}
                                     </FormLabel>
                                   </FormItem>
@@ -391,29 +391,29 @@ const CreateRunPage = () => {
               </div>
 
               {/* Scanner job */}
-              <div className="flex flex-row align-middle">
+              <div className='flex flex-row align-middle'>
                 <FormField
                   control={form.control}
-                  name="jobConfigs.scanner.enabled"
+                  name='jobConfigs.scanner.enabled'
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   )}
                 />
-                <AccordionItem value="scanner" className="flex-1">
+                <AccordionItem value='scanner' className='flex-1'>
                   <AccordionTrigger>Scanner</AccordionTrigger>
                   <AccordionContent>
                     <FormField
                       control={form.control}
-                      name="jobConfigs.scanner.skipConcluded"
+                      name='jobConfigs.scanner.skipConcluded'
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                          <div className="space-y-0.5">
+                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                          <div className='space-y-0.5'>
                             <FormLabel>Skip concluded</FormLabel>
                             <FormDescription>
                               A flag to indicate whether packages that have a
@@ -433,10 +433,10 @@ const CreateRunPage = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="jobConfigs.scanner.skipExcluded"
+                      name='jobConfigs.scanner.skipExcluded'
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg">
-                          <div className="space-y-0.5">
+                        <FormItem className='flex flex-row items-center justify-between p-4 mb-4 border rounded-lg'>
+                          <div className='space-y-0.5'>
                             <FormLabel>Skip excluded</FormLabel>
                             <FormDescription>
                               Do not scan excluded projects or packages.
@@ -456,21 +456,21 @@ const CreateRunPage = () => {
               </div>
 
               {/* Evaluator job */}
-              <div className="flex flex-row align-middle">
+              <div className='flex flex-row align-middle'>
                 <FormField
                   control={form.control}
-                  name="jobConfigs.evaluator.enabled"
+                  name='jobConfigs.evaluator.enabled'
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   )}
                 />
-                <AccordionItem value="evaluator" className="flex-1">
+                <AccordionItem value='evaluator' className='flex-1'>
                   <AccordionTrigger>Evaluator</AccordionTrigger>
                   <AccordionContent>
                     No job configurations yet implemented for Evaluator.
@@ -479,30 +479,30 @@ const CreateRunPage = () => {
               </div>
 
               {/* Reporter job */}
-              <div className="flex flex-row align-middle">
+              <div className='flex flex-row align-middle'>
                 <FormField
                   control={form.control}
-                  name="jobConfigs.reporter.enabled"
+                  name='jobConfigs.reporter.enabled'
                   render={({ field }) => (
                     <FormControl>
                       <Switch
-                        className="data-[state=checked]:bg-green-500 mr-4 my-4"
+                        className='data-[state=checked]:bg-green-500 mr-4 my-4'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   )}
                 />
-                <AccordionItem value="reporter" className="flex-1">
+                <AccordionItem value='reporter' className='flex-1'>
                   <AccordionTrigger>Reporter</AccordionTrigger>
                   <AccordionContent>
                     <FormField
                       control={form.control}
-                      name="jobConfigs.reporter.formats"
+                      name='jobConfigs.reporter.formats'
                       render={() => (
-                        <FormItem className="flex flex-col justify-between p-4 mb-4 border rounded-lg">
+                        <FormItem className='flex flex-col justify-between p-4 mb-4 border rounded-lg'>
                           <FormLabel>Report formats</FormLabel>
-                          <FormDescription className="pb-4">
+                          <FormDescription className='pb-4'>
                             Select the report formats to generate from the ORT
                             Run.
                           </FormDescription>
@@ -510,12 +510,12 @@ const CreateRunPage = () => {
                             <FormField
                               key={format.id}
                               control={form.control}
-                              name="jobConfigs.reporter.formats"
+                              name='jobConfigs.reporter.formats'
                               render={({ field }) => {
                                 return (
                                   <FormItem
                                     key={format.id}
-                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                    className='flex flex-row items-start space-x-3 space-y-0'
                                   >
                                     <FormControl>
                                       <Checkbox
@@ -536,7 +536,7 @@ const CreateRunPage = () => {
                                         }}
                                       />
                                     </FormControl>
-                                    <FormLabel className="font-normal">
+                                    <FormLabel className='font-normal'>
                                       {format.label}
                                     </FormLabel>
                                   </FormItem>
@@ -554,7 +554,7 @@ const CreateRunPage = () => {
             </Accordion>
           </CardContent>
           <CardFooter>
-            <Button type="submit">Create</Button>
+            <Button type='submit'>Create</Button>
           </CardFooter>
         </form>
       </Form>

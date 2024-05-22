@@ -53,9 +53,9 @@ export const IndexPage = () => {
 
   return (
     <TooltipProvider>
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader className="flex flex-row items-start">
-          <div className="grid gap-2">
+      <Card className='w-full max-w-4xl mx-auto'>
+        <CardHeader className='flex flex-row items-start'>
+          <div className='grid gap-2'>
             <CardTitle>Organizations</CardTitle>
             <CardDescription>
               Browse your organizations or create a new one
@@ -63,10 +63,10 @@ export const IndexPage = () => {
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size="sm" className="gap-1 ml-auto">
-                <Link to="/create-organization">
+              <Button asChild size='sm' className='gap-1 ml-auto'>
+                <Link to='/create-organization'>
                   New
-                  <PlusIcon className="w-4 h-4" />
+                  <PlusIcon className='w-4 h-4' />
                 </Link>
               </Button>
             </TooltipTrigger>
@@ -87,14 +87,14 @@ export const IndexPage = () => {
                     <TableCell>
                       <div>
                         <Link
-                          className="font-semibold text-blue-400 hover:underline"
+                          className='font-semibold text-blue-400 hover:underline'
                           to={`/organizations/$orgId`}
                           params={{ orgId: org.id.toString() }}
                         >
                           {org.name}
                         </Link>
                       </div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
+                      <div className='hidden text-sm text-muted-foreground md:inline'>
                         {org.description as unknown as string}
                       </div>
                     </TableCell>

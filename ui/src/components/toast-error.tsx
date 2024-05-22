@@ -35,9 +35,9 @@ export const ToastError = ({ error }: ToastErrorProps) => {
   const message = body.message;
   const cause = body.cause;
   return (
-    <div className="grid gap-2">
+    <div className='grid gap-2'>
       <div>{message}</div>
-      <div className="break-all">{cause}</div>
+      <div className='break-all'>{cause}</div>
     </div>
   );
 };

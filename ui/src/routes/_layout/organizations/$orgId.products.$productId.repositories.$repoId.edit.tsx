@@ -123,16 +123,16 @@ const EditRepositoryPage = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className='w-full max-w-4xl mx-auto'>
       <CardHeader>
         <CardTitle>Edit repository</CardTitle>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
             <FormField
               control={form.control}
-              name="url"
+              name='url'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>URL</FormLabel>
@@ -146,7 +146,7 @@ const EditRepositoryPage = () => {
             />
             <FormField
               control={form.control}
-              name="type"
+              name='type'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
@@ -156,7 +156,7 @@ const EditRepositoryPage = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a type" />
+                        <SelectValue placeholder='Select a type' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -177,8 +177,8 @@ const EditRepositoryPage = () => {
           </CardContent>
           <CardFooter>
             <Button
-              className="m-1"
-              variant="outline"
+              className='m-1'
+              variant='outline'
               onClick={() =>
                 navigate({
                   to:
@@ -191,7 +191,7 @@ const EditRepositoryPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type='submit'>Submit</Button>
           </CardFooter>
         </form>
       </Form>

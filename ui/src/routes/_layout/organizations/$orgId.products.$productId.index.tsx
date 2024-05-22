@@ -117,27 +117,27 @@ const ProductComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card className='w-full max-w-4xl mx-auto'>
         <CardHeader>
-          <CardTitle className="flex flex-row justify-between">
-            <div className="flex items-stretch">
-              <div className="flex items-center pb-1">{product.name}</div>
+          <CardTitle className='flex flex-row justify-between'>
+            <div className='flex items-stretch'>
+              <div className='flex items-center pb-1'>{product.name}</div>
               <Tooltip>
                 <TooltipTrigger>
                   <Button
                     asChild
-                    size="sm"
-                    variant="outline"
-                    className="px-2 ml-2"
+                    size='sm'
+                    variant='outline'
+                    className='px-2 ml-2'
                   >
                     <Link
-                      to="/organizations/$orgId/products/$productId/edit"
+                      to='/organizations/$orgId/products/$productId/edit'
                       params={{
                         orgId: params.orgId,
                         productId: params.productId,
                       }}
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <EditIcon className='w-4 h-4' />
                     </Link>
                   </Button>
                 </TooltipTrigger>
@@ -147,11 +147,11 @@ const ProductComponent = () => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  size="sm"
-                  variant="destructive"
-                  className="px-2 hover:bg-red-700"
+                  size='sm'
+                  variant='destructive'
+                  className='px-2 hover:bg-red-700'
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <TrashIcon className='w-4 h-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -178,20 +178,20 @@ const ProductComponent = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="flex flex-row items-center justify-between pb-1.5 pr-0">
+                <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
                   Repositories
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild size="sm" className="gap-1 ml-auto">
+                      <Button asChild size='sm' className='gap-1 ml-auto'>
                         <Link
-                          to="/organizations/$orgId/products/$productId/create-repository"
+                          to='/organizations/$orgId/products/$productId/create-repository'
                           params={{
                             orgId: params.orgId,
                             productId: params.productId,
                           }}
                         >
                           New repository
-                          <PlusIcon className="w-4 h-4" />
+                          <PlusIcon className='w-4 h-4' />
                         </Link>
                       </Button>
                     </TooltipTrigger>
@@ -217,12 +217,12 @@ const ProductComponent = () => {
                             productId: params.productId,
                             repoId: repo.id.toString(),
                           }}
-                          className="font-semibold text-blue-400 hover:underline"
+                          className='font-semibold text-blue-400 hover:underline'
                         >
                           {repo.url}
                         </Link>
                       </div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
+                      <div className='hidden text-sm text-muted-foreground md:inline'>
                         {repo.type}
                       </div>
                     </TableCell>
