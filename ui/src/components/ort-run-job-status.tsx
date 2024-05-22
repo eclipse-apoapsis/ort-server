@@ -37,7 +37,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger>
             <div
-              className={`w-3 h-3 rounded-full ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
+              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -49,7 +49,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger>
             <div
-              className={`w-3 h-3 rounded-full ${getStatusBackgroundColor(jobs.advisor?.status)}`}
+              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.advisor?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -61,7 +61,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger>
             <div
-              className={`w-3 h-3 rounded-full ${getStatusBackgroundColor(jobs.scanner?.status)}`}
+              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.scanner?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -73,7 +73,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger>
             <div
-              className={`w-3 h-3 rounded-full ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
+              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -85,7 +85,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger>
             <div
-              className={`w-3 h-3 rounded-full ${getStatusBackgroundColor(jobs.reporter?.status)}`}
+              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.reporter?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>

@@ -23,9 +23,9 @@ import { Header } from '@/components/header';
 
 const Layout = () => {
   return (
-    <div className='flex flex-col w-full min-h-screen'>
+    <div className='flex min-h-screen w-full flex-col'>
       <Header />
-      <main className='flex flex-col flex-1 gap-4 p-4 md:gap-8 md:p-8'>
+      <main className='flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8'>
         <Outlet />
       </main>
     </div>

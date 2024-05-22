@@ -94,7 +94,7 @@ const RunComponent = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl mx-auto'>
+    <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader className='flex flex-row items-start'>
         <div className='grid gap-2'>
           <CardTitle>{ortRun.id}</CardTitle>

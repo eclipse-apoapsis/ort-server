@@ -54,7 +54,7 @@ export const IndexPage = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-4xl mx-auto'>
+      <Card className='mx-auto w-full max-w-4xl'>
         <CardHeader className='flex flex-row items-start'>
           <div className='grid gap-2'>
             <CardTitle>Organizations</CardTitle>
@@ -64,10 +64,10 @@ export const IndexPage = () => {
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size='sm' className='gap-1 ml-auto'>
+              <Button asChild size='sm' className='ml-auto gap-1'>
                 <Link to='/create-organization'>
                   New
-                  <PlusIcon className='w-4 h-4' />
+                  <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>
             </TooltipTrigger>

@@ -105,7 +105,7 @@ const EditOrganizationPage = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl mx-auto'>
+    <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>Edit Organization</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

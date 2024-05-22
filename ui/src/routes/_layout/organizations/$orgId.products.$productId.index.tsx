@@ -118,7 +118,7 @@ const ProductComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-4xl mx-auto'>
+      <Card className='mx-auto w-full max-w-4xl'>
         <CardHeader>
           <CardTitle className='flex flex-row justify-between'>
             <div className='flex items-stretch'>
@@ -129,7 +129,7 @@ const ProductComponent = () => {
                     asChild
                     size='sm'
                     variant='outline'
-                    className='px-2 ml-2'
+                    className='ml-2 px-2'
                   >
                     <Link
                       to='/organizations/$orgId/products/$productId/edit'
@@ -138,7 +138,7 @@ const ProductComponent = () => {
                         productId: params.productId,
                       }}
                     >
-                      <EditIcon className='w-4 h-4' />
+                      <EditIcon className='h-4 w-4' />
                     </Link>
                   </Button>
                 </TooltipTrigger>
@@ -152,7 +152,7 @@ const ProductComponent = () => {
                   variant='destructive'
                   className='px-2 hover:bg-red-700'
                 >
-                  <TrashIcon className='w-4 h-4' />
+                  <TrashIcon className='h-4 w-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -183,7 +183,7 @@ const ProductComponent = () => {
                   Repositories
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild size='sm' className='gap-1 ml-auto'>
+                      <Button asChild size='sm' className='ml-auto gap-1'>
                         <Link
                           to='/organizations/$orgId/products/$productId/create-repository'
                           params={{
@@ -192,7 +192,7 @@ const ProductComponent = () => {
                           }}
                         >
                           New repository
-                          <PlusIcon className='w-4 h-4' />
+                          <PlusIcon className='h-4 w-4' />
                         </Link>
                       </Button>
                     </TooltipTrigger>
