@@ -96,16 +96,16 @@ const CreateRepositoryPage = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className='w-full max-w-4xl mx-auto'>
       <CardHeader>
         <CardTitle>Add repository</CardTitle>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
             <FormField
               control={form.control}
-              name="url"
+              name='url'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>URL</FormLabel>
@@ -119,7 +119,7 @@ const CreateRepositoryPage = () => {
             />
             <FormField
               control={form.control}
-              name="type"
+              name='type'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
@@ -129,7 +129,7 @@ const CreateRepositoryPage = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a type" />
+                        <SelectValue placeholder='Select a type' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -149,7 +149,7 @@ const CreateRepositoryPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit">Create</Button>
+            <Button type='submit'>Create</Button>
           </CardFooter>
         </form>
       </Form>

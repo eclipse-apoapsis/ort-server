@@ -33,7 +33,7 @@ type OrtRunJobStatusProps = {
 export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
   return (
     <TooltipProvider>
-      <div className="flex space-x-1">
+      <div className='flex space-x-1'>
         <Tooltip>
           <TooltipTrigger>
             <div

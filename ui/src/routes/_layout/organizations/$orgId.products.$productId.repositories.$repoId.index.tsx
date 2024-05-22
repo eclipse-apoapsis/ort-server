@@ -123,28 +123,28 @@ const RepoComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card className='w-full max-w-4xl mx-auto'>
         <CardHeader>
-          <CardTitle className="flex flex-row justify-between">
-            <div className="flex items-stretch">
-              <div className="flex items-center pb-1">{repo.url}</div>
+          <CardTitle className='flex flex-row justify-between'>
+            <div className='flex items-stretch'>
+              <div className='flex items-center pb-1'>{repo.url}</div>
               <Tooltip>
                 <TooltipTrigger>
                   <Button
                     asChild
-                    size="sm"
-                    variant="outline"
-                    className="px-2 ml-2"
+                    size='sm'
+                    variant='outline'
+                    className='px-2 ml-2'
                   >
                     <Link
-                      to="/organizations/$orgId/products/$productId/repositories/$repoId/edit"
+                      to='/organizations/$orgId/products/$productId/repositories/$repoId/edit'
                       params={{
                         orgId: params.orgId,
                         productId: params.productId,
                         repoId: params.repoId,
                       }}
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <EditIcon className='w-4 h-4' />
                     </Link>
                   </Button>
                 </TooltipTrigger>
@@ -154,11 +154,11 @@ const RepoComponent = () => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  size="sm"
-                  variant="destructive"
-                  className="px-2 hover:bg-red-700"
+                  size='sm'
+                  variant='destructive'
+                  className='px-2 hover:bg-red-700'
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <TrashIcon className='w-4 h-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -186,12 +186,12 @@ const RepoComponent = () => {
                 <TableHead>Run</TableHead>
                 <TableHead>Run Status</TableHead>
                 <TableHead>Job Statuses</TableHead>
-                <TableHead className="pb-1.5 pr-0 text-right">
+                <TableHead className='pb-1.5 pr-0 text-right'>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild size="sm" className="gap-1 ml-auto">
+                      <Button asChild size='sm' className='gap-1 ml-auto'>
                         <Link
-                          to="/organizations/$orgId/products/$productId/repositories/$repoId/create-run"
+                          to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
                           params={{
                             orgId: params.orgId,
                             productId: params.productId,
@@ -199,7 +199,7 @@ const RepoComponent = () => {
                           }}
                         >
                           New run
-                          <PlusIcon className="w-4 h-4" />
+                          <PlusIcon className='w-4 h-4' />
                         </Link>
                       </Button>
                     </TooltipTrigger>
@@ -226,7 +226,7 @@ const RepoComponent = () => {
                             repoId: repo.id.toString(),
                             runId: run.id.toString(),
                           }}
-                          className="font-semibold text-blue-400 hover:underline"
+                          className='font-semibold text-blue-400 hover:underline'
                         >
                           {run.index}
                         </Link>

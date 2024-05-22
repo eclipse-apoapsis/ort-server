@@ -22,9 +22,9 @@ import { Outlet, createFileRoute } from '@tanstack/react-router';
 
 const Layout = () => {
   return (
-    <div className="flex flex-col w-full min-h-screen">
+    <div className='flex flex-col w-full min-h-screen'>
       <Header />
-      <main className="flex flex-col flex-1 gap-4 p-4 md:gap-8 md:p-8">
+      <main className='flex flex-col flex-1 gap-4 p-4 md:gap-8 md:p-8'>
         <Outlet />
       </main>
     </div>
