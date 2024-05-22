@@ -69,8 +69,8 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
         endTime = endTime,
         environment = environment.mapToModel(),
         config = analyzerConfiguration.mapToModel(),
-        projects = projects.map(ProjectDao::mapToModel).toSet(),
-        packages = packages.map(PackageDao::mapToModel).toSet(),
+        projects = projects.mapTo(mutableSetOf(), ProjectDao::mapToModel),
+        packages = packages.mapTo(mutableSetOf(), PackageDao::mapToModel),
         issues = issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
             identifier.mapToModel() to
                     idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }

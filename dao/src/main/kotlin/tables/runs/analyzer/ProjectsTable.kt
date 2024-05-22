@@ -89,6 +89,6 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
         homepageUrl = homepageUrl,
-        scopeNames = scopeNames.map(ProjectScopeDao::name).toSet()
+        scopeNames = scopeNames.mapTo(mutableSetOf(), ProjectScopeDao::name)
     )
 }

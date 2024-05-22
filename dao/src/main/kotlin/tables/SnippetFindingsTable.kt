@@ -53,6 +53,6 @@ class SnippetFindingDao(id: EntityID<Long>) : LongEntity(id) {
             startLine = startLine,
             endLine = endLine
         ),
-        snippets = snippets.map(SnippetDao::mapToModel).toSet()
+        snippets = snippets.mapTo(mutableSetOf(), SnippetDao::mapToModel)
     )
 }

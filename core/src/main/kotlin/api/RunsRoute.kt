@@ -149,7 +149,7 @@ private fun ApplicationCall.extractLevel(): LogLevel =
  * list of [LogSource] constants. If an invalid worker name is specified, throw a meaningful exception.
  */
 private fun ApplicationCall.extractSteps(): Set<LogSource> =
-    parameters["steps"]?.split(",")?.map { findByName<LogSource>(it) }?.toSet()
+    parameters["steps"]?.split(",")?.mapTo(mutableSetOf()) { findByName<LogSource>(it) }
         ?: EnumSet.allOf(LogSource::class.java)
 
 /**
