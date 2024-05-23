@@ -33,7 +33,7 @@ import kotlinx.serialization.json.Json
  * can be extended via the given [config] block.
  */
 fun createDefaultHttpClient(json: Json, config: HttpClientConfig<*>.() -> Unit = {}): HttpClient =
-    HttpClient(OkHttp.create()) {
+    HttpClient(OkHttp) {
         install(HttpTimeout) {
             requestTimeoutMillis = 60 * 1000
             socketTimeoutMillis = 60 * 1000
