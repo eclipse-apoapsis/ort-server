@@ -136,9 +136,6 @@ class GitHubConfigFileProvider(
                 defaultRequest {
                     header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
                 }
-
-                // Required in order to handle "Not Found" responses manually.
-                expectSuccess = false
             }
         }
     }
