@@ -32,3 +32,26 @@ As a precondition for generating the query client the OpenAPI specification must
 
 The query client is generated automatically as part of `pnpm build`.
 To generate it manually, for example for testing local changes to the API, run `pnpm generate:api`.
+
+## Docker
+
+The Docker image for the UI is built as part of the `buildAllImages` Gradle task.
+To build it manually, run the following steps from the root of the repository:
+
+- Build the OpenAPI specification: `./gradlew :core:generateOpenApiSpec`
+- Build the Docker image: `docker build -t ort-server-ui -f ui/docker/UI.Dockerfile ui`
+
+To run the Docker image, use the following command:
+
+```shell
+docker run --rm -p 8082:80 ort-server-ui
+```
+
+The Docker image can be configured by the following environment variables:
+
+| Variable         | Default                               | Description                          |
+| ---------------- | ------------------------------------- | ------------------------------------ |
+| `VITE_API_URL`   | `http://localhost:8080/api/v1`        | The URL of the ORT Server API.       |
+| `VITE_UI_URL`    | `http://localhost:8082`               | The URL of the UI.                   |
+| `VITE_AUTHORITY` | `http://localhost:8081/realms/master` | The URL of the Keycloak realm.       |
+| `VITE_CLIENT_ID` | `ort-server-ui`                       | The client ID of the UI in Keycloak. |
