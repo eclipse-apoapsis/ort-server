@@ -92,7 +92,7 @@ class DefaultKeycloakClient(
                     val apiUser = config.apiUser
                     val apiSecret = config.apiSecret
 
-                    val tokenClient = createDefaultHttpClient(json) { this.expectSuccess = true }
+                    val tokenClient = createDefaultHttpClient(json) { expectSuccess = true }
 
                     bearer {
                         loadTokens {
