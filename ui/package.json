@@ -41,7 +41,6 @@
     "react-hook-form": "^7.51.3",
     "react-oidc-context": "^3.0.0",
     "tailwind-merge": "^2.2.2",
-    "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.3"
   },
   "devDependencies": {
@@ -61,6 +60,7 @@
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.1",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.2.2",
     "vite": "^5.1.6"
   }
