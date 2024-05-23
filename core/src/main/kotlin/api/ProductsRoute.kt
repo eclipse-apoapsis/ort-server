@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -138,7 +139,7 @@ fun Route.products() = route("products/{productId}") {
             val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-            val secretsForProduct = secretService.listForProduct(productId, pagingOptions.mapToModel())
+            val secretsForProduct = secretService.listSecrets(Entity.PRODUCT, productId, pagingOptions.mapToModel())
             val pagedResponse = PagedResponse(
                 secretsForProduct.map { it.mapToApi() },
                 pagingOptions
@@ -154,7 +155,7 @@ fun Route.products() = route("products/{productId}") {
                 val productId = call.requireIdParameter("productId")
                 val secretName = call.requireParameter("secretName")
 
-                secretService.getSecretByProductIdAndName(productId, secretName)
+                secretService.getSecret(Entity.PRODUCT, productId, secretName)
                     ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                     ?: call.respond(HttpStatusCode.NotFound)
             }
@@ -168,7 +169,8 @@ fun Route.products() = route("products/{productId}") {
 
                 call.respond(
                     HttpStatusCode.OK,
-                    secretService.updateSecretByProductAndName(
+                    secretService.updateSecret(
+                        Entity.PRODUCT,
                         productId,
                         secretName,
                         updateSecret.value.mapToModel(),
@@ -183,7 +185,7 @@ fun Route.products() = route("products/{productId}") {
                 val productId = call.requireIdParameter("productId")
                 val secretName = call.requireParameter("secretName")
 
-                secretService.deleteSecretByProductAndName(productId, secretName)
+                secretService.deleteSecret(Entity.PRODUCT, productId, secretName)
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -201,9 +203,8 @@ fun Route.products() = route("products/{productId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    productId,
-                    null
+                    Entity.PRODUCT,
+                    productId
                 ).mapToApi()
             )
         }

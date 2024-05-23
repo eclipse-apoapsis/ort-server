@@ -23,6 +23,7 @@ import java.util.ServiceLoader
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].
@@ -132,11 +133,10 @@ class SecretStorage(
     fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
 
     /**
-     * Generate a [Path] for the secret basing on the [organizationId], [productId] or [repositoryId] they belong to
-     * and the [secretName].
+     * Generate a [Path] for the secret belonging to the given [entity] with [id], as well as the [secretName].
      */
-    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String) =
-        wrapExceptions { provider.createPath(organizationId, productId, repositoryId, secretName) }
+    fun createPath(entity: SecretRepository.Entity, id: Long, secretName: String) =
+        wrapExceptions { provider.createPath(entity, id, secretName) }
 }
 
 /**

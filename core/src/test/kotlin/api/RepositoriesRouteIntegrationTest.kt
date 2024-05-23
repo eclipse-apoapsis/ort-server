@@ -74,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -155,7 +156,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, null, null, repositoryId)
+    ) = secretRepository.create(path, name, description, Entity.REPOSITORY, repositoryId)
 
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
@@ -653,7 +654,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi() shouldBe
+                secretRepository.get(Entity.REPOSITORY, repositoryId, secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -702,7 +703,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateSecret"
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.get(Entity.REPOSITORY, repositoryId, secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("repository_${repositoryId}_${secret.name}"))?.value.shouldBeNull()
@@ -726,7 +727,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, updateSecret.name.valueOrThrow)
+                secretRepository.get(Entity.REPOSITORY, repositoryId, updateSecret.name.valueOrThrow)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
@@ -759,7 +760,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
+                secretRepository.get(Entity.REPOSITORY, repositoryId, secret.name) shouldBe secret
             }
         }
 
@@ -784,7 +785,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForRepository(repositoryId) shouldBe emptyList()
+                secretRepository.list(Entity.REPOSITORY, repositoryId) shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -799,7 +800,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.InternalServerError
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
+                secretRepository.get(Entity.REPOSITORY, repositoryId, secret.name) shouldBe secret
             }
         }
 

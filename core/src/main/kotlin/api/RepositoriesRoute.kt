@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -167,7 +168,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-            val secretsForRepository = secretService.listForRepository(repositoryId, pagingOptions.mapToModel())
+            val secretsForRepository = secretService
+                .listSecrets(Entity.REPOSITORY, repositoryId, pagingOptions.mapToModel())
             val pagedResponse = PagedResponse(
                 secretsForRepository.map { it.mapToApi() },
                 pagingOptions
@@ -183,7 +185,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val secretName = call.requireParameter("secretName")
 
-                secretService.getSecretByRepositoryIdAndName(repositoryId, secretName)
+                secretService.getSecret(Entity.REPOSITORY, repositoryId, secretName)
                     ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                     ?: call.respond(HttpStatusCode.NotFound)
             }
@@ -197,7 +199,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
                 call.respond(
                     HttpStatusCode.OK,
-                    secretService.updateSecretByRepositoryAndName(
+                    secretService.updateSecret(
+                        Entity.REPOSITORY,
                         repositoryId,
                         secretName,
                         updateSecret.value.mapToModel(),
@@ -212,7 +215,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val secretName = call.requireParameter("secretName")
 
-                secretService.deleteSecretByRepositoryAndName(repositoryId, secretName)
+                secretService.deleteSecret(Entity.REPOSITORY, repositoryId, secretName)
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -230,8 +233,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    null,
+                    Entity.REPOSITORY,
                     repositoryId
                 ).mapToApi()
             )

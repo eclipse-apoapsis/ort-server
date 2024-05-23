@@ -19,20 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import java.lang.IllegalArgumentException
-import java.sql.SQLException
-
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 class DaoSecretRepositoryTest : StringSpec() {
@@ -61,9 +59,9 @@ class DaoSecretRepositoryTest : StringSpec() {
 
         "create should create an entry in the database" {
             val name = "secret1"
-            val secret = createSecret(name, organizationId, null, null)
+            val secret = createSecret(name, Entity.ORGANIZATION, organizationId)
 
-            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
+            val dbEntry = secretRepository.get(Entity.ORGANIZATION, organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe secret
@@ -71,15 +69,16 @@ class DaoSecretRepositoryTest : StringSpec() {
 
         "update should update an organization secret in the database" {
             val name = "secret2"
-            val secret = createSecret(name, organizationId, null, null)
+            val secret = createSecret(name, Entity.ORGANIZATION, organizationId)
 
-            secretRepository.updateForOrganizationAndName(
+            secretRepository.update(
+                Entity.ORGANIZATION,
                 organizationId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByOrganizationIdAndName(organizationId, name)
+            val dbEntry = secretRepository.get(Entity.ORGANIZATION, organizationId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -95,15 +94,16 @@ class DaoSecretRepositoryTest : StringSpec() {
 
         "update should update a product secret in the database" {
             val name = "secret3"
-            val secret = createSecret(name, null, productId, null)
+            val secret = createSecret(name, Entity.PRODUCT, productId)
 
-            secretRepository.updateForProductAndName(
+            secretRepository.update(
+                Entity.PRODUCT,
                 productId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByProductIdAndName(productId, name)
+            val dbEntry = secretRepository.get(Entity.PRODUCT, productId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -119,15 +119,16 @@ class DaoSecretRepositoryTest : StringSpec() {
 
         "update should update a repository secret in the database" {
             val name = "secret2"
-            val secret = createSecret(name, null, null, repositoryId)
+            val secret = createSecret(name, Entity.REPOSITORY, repositoryId)
 
-            secretRepository.updateForRepositoryAndName(
+            secretRepository.update(
+                Entity.REPOSITORY,
                 repositoryId,
                 name,
                 description.asPresent()
             )
 
-            val dbEntry = secretRepository.getByRepositoryIdAndName(repositoryId, name)
+            val dbEntry = secretRepository.get(Entity.REPOSITORY, repositoryId, name)
 
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
@@ -143,69 +144,60 @@ class DaoSecretRepositoryTest : StringSpec() {
 
         "delete should delete the database entry" {
             val name = "secret3"
-            createSecret(name, null, null, repositoryId)
+            createSecret(name, Entity.REPOSITORY, repositoryId)
 
-            secretRepository.deleteForRepositoryAndName(repositoryId, name)
+            secretRepository.delete(Entity.REPOSITORY, repositoryId, name)
 
-            secretRepository.listForRepository(repositoryId) shouldBe emptyList()
-        }
-
-        "adding an ambiguous secret should cause an exception" {
-            shouldThrow<SQLException> {
-                secretRepository.create(path, name, description, organizationId, productId, repositoryId)
-            }
+            secretRepository.list(Entity.REPOSITORY, repositoryId) shouldBe emptyList()
         }
 
         "Reading all secrets of specific type" should {
             "return all stored results for a specific organization" {
-                val organizationSecret1 = createSecret("secret4", organizationId, null, null)
-                val organizationSecret2 = createSecret("secret5", organizationId, null, null)
+                val organizationSecret1 = createSecret("secret4", Entity.ORGANIZATION, organizationId)
+                val organizationSecret2 = createSecret("secret5", Entity.ORGANIZATION, organizationId)
                 createSecret(
                     "secret6",
-                    fixtures.createOrganization("extra organization", "org description").id,
-                    null,
-                    null
+                    Entity.ORGANIZATION,
+                    fixtures.createOrganization("extra organization", "org description").id
                 )
-                createSecret("productSecret1", null, productId, null)
-                createSecret("repositorySecret1", null, null, repositoryId)
+                createSecret("productSecret1", Entity.PRODUCT, productId)
+                createSecret("repositorySecret1", Entity.REPOSITORY, repositoryId)
 
-                secretRepository.listForOrganization(organizationId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.ORGANIZATION, organizationId) should containExactlyInAnyOrder(
                     organizationSecret1,
                     organizationSecret2
                 )
             }
 
             "return all stored results for a specific product" {
-                val productSecret1 = createSecret("secret7", null, productId, null)
-                val productSecret2 = createSecret("secret8", null, productId, null)
+                val productSecret1 = createSecret("secret7", Entity.PRODUCT, productId)
+                val productSecret2 = createSecret("secret8", Entity.PRODUCT, productId)
                 createSecret(
                     "secret9",
-                    null,
-                    fixtures.createProduct("extra product", "prod description", fixtures.organization.id).id,
-                    null
+                    Entity.PRODUCT,
+                    fixtures.createProduct("extra product", "prod description", fixtures.organization.id).id
                 )
-                createSecret("organizationSecret1", organizationId, null, null)
-                createSecret("repositorySecret2", null, null, repositoryId)
+                createSecret("organizationSecret1", Entity.ORGANIZATION, organizationId)
+                createSecret("repositorySecret2", Entity.REPOSITORY, repositoryId)
 
-                secretRepository.listForProduct(productId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.PRODUCT, productId) should containExactlyInAnyOrder(
                     productSecret1,
                     productSecret2
                 )
             }
 
             "return all stored results for a specific repository" {
-                val repositorySecret1 = createSecret("secret10", null, null, repositoryId)
-                val repositorySecret2 = createSecret("secret11", null, null, repositoryId)
+                val repositorySecret1 = createSecret("secret10", Entity.REPOSITORY, repositoryId)
+                val repositorySecret2 = createSecret("secret11", Entity.REPOSITORY, repositoryId)
                 createSecret(
                     "secret12",
-                    null,
-                    null,
+                    Entity.REPOSITORY,
                     fixtures.createRepository(RepositoryType.GIT, "repo description", fixtures.product.id).id
                 )
-                createSecret("organizationSecret2", organizationId, null, null)
-                createSecret("productSecret2", organizationId, null, null)
+                createSecret("organizationSecret2", Entity.ORGANIZATION, organizationId)
+                createSecret("productSecret2", Entity.ORGANIZATION, organizationId)
 
-                secretRepository.listForRepository(repositoryId) should containExactlyInAnyOrder(
+                secretRepository.list(Entity.REPOSITORY, repositoryId) should containExactlyInAnyOrder(
                     repositorySecret1,
                     repositorySecret2
                 )
@@ -215,13 +207,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
     private fun createSecret(
         name: String,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
-    ) = when {
-        organizationId != null -> secretRepository.create("$path$name", name, description, organizationId, null, null)
-        productId != null -> secretRepository.create("$path$name", name, description, null, productId, null)
-        repositoryId != null -> secretRepository.create("$path$name", name, description, null, null, repositoryId)
-        else -> throw IllegalArgumentException("The secret wasn't created")
-    }
+        entity: SecretRepository.Entity,
+        id: Long
+    ) = secretRepository.create("$path$name", name, description, entity, id)
 }

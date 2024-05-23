@@ -31,6 +31,7 @@ import java.util.Base64
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage.Companion.CONFIG_PREFIX
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage.Companion.NAME_PROPERTY
 import org.eclipse.apoapsis.ortserver.secrets.file.FileBasedSecretsProvider
@@ -109,19 +110,19 @@ class FileBasedSecretStorageTest : WordSpec() {
 
         "createPath" should {
             "generate a path for an organization secret" {
-                val result = storage.createPath(1, null, null, "newSecret")
+                val result = storage.createPath(Entity.ORGANIZATION, 1, "newSecret")
 
                 result shouldBe Path("organization_1_newSecret")
             }
 
             "generate a path for a product secret" {
-                val result = storage.createPath(null, 1, null, "newSecret")
+                val result = storage.createPath(Entity.PRODUCT, 1, "newSecret")
 
                 result shouldBe Path("product_1_newSecret")
             }
 
             "generate a path for a repository secret" {
-                val result = storage.createPath(null, null, 1, "newSecret")
+                val result = storage.createPath(Entity.REPOSITORY, 1, "newSecret")
 
                 result shouldBe Path("repository_1_newSecret")
             }

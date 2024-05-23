@@ -24,6 +24,7 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository.Entity
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -131,7 +132,7 @@ class InfrastructureServiceService(
      * reference cannot be resolved.
      */
     private suspend fun resolveOrganizationSecret(organizationId: Long, secretName: String): Secret =
-        secretService.getSecretByOrganizationIdAndName(organizationId, secretName)
+        secretService.getSecret(Entity.ORGANIZATION, organizationId, secretName)
             ?: throw InvalidSecretReferenceException(secretName)
 
     /**
