@@ -54,7 +54,7 @@ class GenerateOpenApiSpec : StringSpec({
 
             response shouldHaveStatus 200
 
-            val outputDir = File("build/openapi")
+            val outputDir = File("../ui/build")
             outputDir.mkdirs()
 
             val outputFile = outputDir.resolve("openapi.json")
