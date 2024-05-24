@@ -31,7 +31,7 @@ const oidcConfig = {
   authority:
     import.meta.env.VITE_AUTHORITY || 'http://localhost:8081/realms/master',
   redirect_uri: import.meta.env.VITE_UI_URL || 'http://localhost:5173/',
-  client_id: import.meta.env.VITE_CLIENT_ID || 'react',
+  client_id: import.meta.env.VITE_CLIENT_ID || 'ort-server-ui-dev',
   automaticSilentRenew: true,
 } satisfies AuthProviderProps;
 
