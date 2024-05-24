@@ -29,11 +29,18 @@ type ErrorBody = {
 };
 
 export const ToastError = ({ error }: ToastErrorProps) => {
-  // Casting is not generally recommended, but as both message and cause can be undefined, casting
-  // and accessing them is safe.
-  const body = error.body as ErrorBody;
-  const message = body.message;
-  const cause = body.cause;
+  let message;
+  let cause;
+  if (error.body === undefined) {
+    message = 'Server responded with status code ' + error.status + '.';
+    cause = error.statusText;
+  } else {
+    // Casting is not generally recommended, but as both message and cause can be undefined, casting
+    // and accessing them is safe.
+    const body = error.body as ErrorBody;
+    message = body.message;
+    cause = body.cause;
+  }
   return (
     <div className='grid gap-2'>
       <div>{message}</div>
