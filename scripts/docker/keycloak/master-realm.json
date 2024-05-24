@@ -101,9 +101,9 @@
       "attributes" : { }
     } ],
     "client" : {
+      "ort-server-ui-dev" : [ ],
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
-      "react" : [ ],
       "account-console" : [ ],
       "ort-server" : [ {
         "id" : "fe1e8021-77fc-463b-a069-da14ec5494db",
@@ -417,8 +417,8 @@
       "id" : "ebe4eb86-b6af-4584-91a9-2b1916e82d8c",
       "type" : "password",
       "createdDate" : 1660816938824,
-      "secretData" : "{\"value\":\"+CHXQV46esRCKB8Ez7vds//OXDJeC3OJtJRCF6jbo9T0icynDyl8lUGz2aKKogl643tJvItUwRTZ4guYeXmLzQ==\",\"salt\":\"e+BKomuIQVx+IK5QtJ/O1w==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+      "secretData" : "{\"value\":\"6icicaCnCWubfxx5RxpvbhTIiUGJvRIyryG8FhvXX9egdnJeyGH0hhHuPAPJn3LmnuW9ZBYFFOJ8thyReSYhxg==\",\"salt\":\"12YdKMw91O0lPGqOa/tEXA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
@@ -650,8 +650,8 @@
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "90717130-1595-44ea-9658-0c8a507d4879",
-    "clientId" : "react",
-    "name" : "",
+    "clientId" : "ort-server-ui-dev",
+    "name" : "ORT Server UI Development",
     "description" : "",
     "rootUrl" : "http://localhost:5173",
     "adminUrl" : "",
