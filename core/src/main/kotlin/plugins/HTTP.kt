@@ -31,13 +31,13 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureHTTP() {
     val config: ApplicationConfig by inject()
-    val allowedHost = config.property("ktor.cors.allowedHost").getString()
+    val allowedHosts = config.property("ktor.cors.allowedHosts").getString()
 
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
     install(CORS) {
-        allowHost(allowedHost)
+        allowedHosts.split(',').forEach(::allowHost)
         allowCredentials = true
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
