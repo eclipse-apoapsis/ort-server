@@ -226,21 +226,42 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
         ?.flatMap { listOf("--build-arg", it.trim()) }
         .orEmpty()
 
-    tasks.register<Exec>("build${name}WorkerImage") {
-        group = "Docker"
-        description = "Builds the $name worker Docker image."
+    if (name == "UI") {
+        tasks.register<Exec>("build${name}Image") {
+            val uiContext = dockerfile.parentFile.parent
 
-        inputs.file(dockerfile)
-        inputs.dir(context)
+            group = "Docker"
+            description = "Builds the $name Docker image."
 
-        commandLine = listOf(
-            "docker", "build",
-            "-f", dockerfile.path,
-            *buildArgs.toTypedArray(),
-            "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
-            "-q",
-            context
-        )
+            inputs.file(dockerfile)
+            inputs.dir(uiContext)
+
+            commandLine = listOf(
+                "docker", "build",
+                "-f", dockerfile.path,
+                *buildArgs.toTypedArray(),
+                "-t", "ort-server-${name.lowercase()}:$dockerBaseImageTag",
+                "-q",
+                uiContext
+            )
+        }
+    } else {
+        tasks.register<Exec>("build${name}WorkerImage") {
+            group = "Docker"
+            description = "Builds the $name worker Docker image."
+
+            inputs.file(dockerfile)
+            inputs.dir(context)
+
+            commandLine = listOf(
+                "docker", "build",
+                "-f", dockerfile.path,
+                *buildArgs.toTypedArray(),
+                "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
+                "-q",
+                context
+            )
+        }
     }
 }
 
@@ -255,5 +276,7 @@ tasks.register("buildAllImages") {
         it.mustRunAfter(buildAllWorkerImages)
     }
 
-    dependsOn(buildAllWorkerImages, jibDockerBuilds)
+    val uiDockerBuild = getTasksByName("buildUIImage", /* recursive = */ false).single()
+
+    dependsOn(buildAllWorkerImages, jibDockerBuilds, uiDockerBuild)
 }
