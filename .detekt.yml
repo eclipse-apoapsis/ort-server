@@ -48,6 +48,8 @@ coroutines:
 # Formatting rules are implemented via the ktlint plugin. As ktlint does not allow exceptions, we need to disable
 # respective rules completely.
 formatting:
+  AnnotationOnSeparateLine:
+    active: false
   ChainWrapping:
     active: false
   CommentWrapping:
@@ -65,6 +67,8 @@ formatting:
   NoWildcardImports:
     active: false
   ParameterListWrapping:
+    active: false
+  SpacingBetweenDeclarationsWithAnnotations:
     active: false
 
 naming:
