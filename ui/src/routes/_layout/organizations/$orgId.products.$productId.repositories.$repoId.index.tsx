@@ -185,6 +185,7 @@ const RepoComponent = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Run</TableHead>
+                <TableHead>Created At</TableHead>
                 <TableHead>Run Status</TableHead>
                 <TableHead>Job Statuses</TableHead>
                 <TableHead className='pb-1.5 pr-0 text-right'>
@@ -232,6 +233,9 @@ const RepoComponent = () => {
                           {run.index}
                         </Link>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(run.createdAt).toLocaleString().split(',')[0]}
                     </TableCell>
                     <TableCell>
                       <Badge
