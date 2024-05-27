@@ -19,8 +19,28 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.scaleway
 
+import com.typesafe.config.ConfigException
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
+
+private const val NAME_OF_SERVER_URL = "scwServerUrl"
+private const val NAME_OF_API_VERSION = "scwApiVersion"
+private const val NAME_OF_REGION = "scwRegion"
+private const val NAME_OF_SECRET_KEY = "scwSecretKey"
+private const val NAME_OF_PROJECT_ID = "scwProjectId"
+
+private inline fun <reified E : Enum<E>> ConfigManager.getEnumOrDefault(path: String, default: E): E =
+    @Suppress("SwallowedException")
+    try {
+        getEnum(E::class.java, path)
+    } catch (e: ConfigException.Missing) {
+        default
+    }
 
 data class ScalewayConfiguration(
     val serverUrl: String = DEFAULT_SERVER_URL,
@@ -34,6 +54,15 @@ data class ScalewayConfiguration(
 
         val DEFAULT_API_VERSION = ScalewayApiVersion.V1_BETA1
         val DEFAULT_REGION = ScalewayRegion.FRANCE_PARIS
+
+        fun create(configManager: ConfigManager) =
+            ScalewayConfiguration(
+                serverUrl = configManager.getStringOrDefault(NAME_OF_SERVER_URL, DEFAULT_SERVER_URL),
+                apiVersion = configManager.getEnumOrDefault(NAME_OF_API_VERSION, DEFAULT_API_VERSION),
+                region = configManager.getEnumOrDefault(NAME_OF_REGION, DEFAULT_REGION),
+                secretKey = configManager.getSecret(Path(NAME_OF_SECRET_KEY)),
+                projectId = configManager.getString(NAME_OF_PROJECT_ID)
+            )
     }
 
     val hasCredentials = secretKey.isNotEmpty() && projectId.isNotEmpty()
