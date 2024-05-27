@@ -15,3 +15,40 @@ Content-Type: application/json
   "name": "Example Organization",
   "description": "This is an example organization"
 }
+
+### Create an Organization secret
+POST {{host}}/{{organizationId}}/secrets
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "Org username secret",
+  "value": "<secret value>",
+  "description": "Org username secret"
+}
+
+### Create an Organization secret
+POST {{host}}/{{organizationId}}/secrets
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "Org password secret",
+  "value": "<secret value>",
+  "description": "Org password secret"
+}
+
+### create a netrc infrastructure service for an organization
+POST {{host}}/organizations/1/infrastructure-services
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "NETRC-github-com",
+  "url": "https://github.com",
+  "usernameSecretRef": "Org username secret",
+  "passwordSecretRef": "Org password secret",
+  "credentialsTypes": [
+    "NETRC_FILE"
+  ]
+}

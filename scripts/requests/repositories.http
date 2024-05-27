@@ -32,13 +32,34 @@ Content-Type: application/json
 {
   "revision": "main",
   "jobConfigs": {
-    "analyzer": {},
-    "advisor": {},
-    "scanner": {},
-    "evaluator": {},
-    "reporter": {},
-    "notifier": {}
-  }
+    "analyzer": {
+      "allowDynamicVersions": true,
+      "packageCurationProviders": [],
+      "skipExcluded": true
+    },
+    "advisor": {
+    },
+    "scanner": {
+    },
+    "evaluator": {
+    },
+    "reporter": {
+    },
+    "parameters": {
+      "ruleSet" :  "evaluator.rules.kts",
+      "useClearlyDefined": "true",
+      "recipientAddresses": "recipient@example.com",
+      "fossIdServer": "https://fossid.example.com/instance/",
+      "fossIdProjectName": "FossID-Projects",
+      "fossIdWaitForResult": "true",
+      "fossIdKeepFailedScans": "false",
+      "fossIdUseDeltaScans":  "true",
+      "fossIdDeltaScanLimit": "5",
+      "snippetReport": "true",
+      "fossIdFetchSnippetMatchedLines": "true"
+    }
+  },
+  "labels": {}
 }
 
 > {%
@@ -61,3 +82,12 @@ Authorization: Bearer {{$auth.token("keycloak")}}
 ### Get WebApp Report for Run
 GET {{host}}/runs/{{runId}}/reporter/scan-report-web-app.html
 Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get ORT result for Run
+GET {{host}}/runs/{{runId}}/reporter/ort-result.zip
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get FossID Snippet Report for Run
+GET {{host}}/runs/{{runId}}/reporter/AsciiDoc_fossid_snippet.html
+Authorization: Bearer {{$auth.token("keycloak")}}
+
