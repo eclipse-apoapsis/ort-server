@@ -64,6 +64,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
+import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 const pollInterval =
@@ -188,6 +189,7 @@ const RepoComponent = () => {
                 <TableHead>Created At</TableHead>
                 <TableHead>Run Status</TableHead>
                 <TableHead>Job Statuses</TableHead>
+                <TableHead>Duration</TableHead>
                 <TableHead className='pb-1.5 pr-0 text-right'>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -246,6 +248,11 @@ const RepoComponent = () => {
                     </TableCell>
                     <TableCell>
                       <OrtRunJobStatus jobs={run.jobs} />
+                    </TableCell>
+                    <TableCell>
+                      {run.finishedAt
+                        ? calculateDuration(run.createdAt, run.finishedAt)
+                        : '-'}
                     </TableCell>
                   </TableRow>
                 );
