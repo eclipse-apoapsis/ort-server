@@ -35,62 +35,68 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
     <TooltipProvider>
       <div className='flex space-x-1'>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div
               className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
             <span>
-              Analyzer: {jobs.analyzer?.status || 'Not included in ORT Run'}
+              Analyzer:{' '}
+              {jobs.analyzer?.status || 'Not started / not included in ORT Run'}
             </span>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div
               className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.advisor?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
             <span>
-              Advisor: {jobs.advisor?.status || 'Not included in ORT Run'}
+              Advisor:{' '}
+              {jobs.advisor?.status || 'Not started / not included in ORT Run'}
             </span>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div
               className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.scanner?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
             <span>
-              Scanner: {jobs.scanner?.status || 'Not included in ORT Run'}
+              Scanner:{' '}
+              {jobs.scanner?.status || 'Not started / not included in ORT Run'}
             </span>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div
               className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
             <span>
-              Evaluator: {jobs.evaluator?.status || 'Not included in ORT Run'}
+              Evaluator:{' '}
+              {jobs.evaluator?.status ||
+                'Not started / not included in ORT Run'}
             </span>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div
               className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.reporter?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
             <span>
-              Reporter: {jobs.reporter?.status || 'Not included in ORT Run'}
+              Reporter:{' '}
+              {jobs.reporter?.status || 'Not started / not included in ORT Run'}
             </span>
           </TooltipContent>
         </Tooltip>
