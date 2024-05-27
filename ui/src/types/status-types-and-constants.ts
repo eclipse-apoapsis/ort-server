@@ -34,7 +34,7 @@ export type Status =
 export const STATUS_FONT_COLOR: { [K in Exclude<Status, undefined>]: string } =
   {
     CREATED: 'text-gray-500',
-    SCHEDULED: 'text-yellow-500',
+    SCHEDULED: 'text-blue-300',
     RUNNING: 'text-blue-500',
     ACTIVE: 'text-blue-500',
     FAILED: 'text-red-500',
@@ -46,9 +46,21 @@ export const STATUS_BACKGROUND_COLOR: {
   [K in Exclude<Status, undefined>]: string;
 } = {
   CREATED: 'bg-gray-500',
-  SCHEDULED: 'bg-yellow-500',
+  SCHEDULED: 'bg-blue-300',
   RUNNING: 'bg-blue-500',
   ACTIVE: 'bg-blue-500',
   FAILED: 'bg-red-500',
   FINISHED: 'bg-green-500',
+} as const;
+
+// Map statuses to TailwindCSS classes
+export const STATUS_CLASS: {
+  [K in Exclude<Status, undefined>]: string;
+} = {
+  CREATED: 'w-3 h-3 rounded-full',
+  SCHEDULED: 'w-3 h-3 rounded-full',
+  RUNNING: 'w-4 h-4 rounded-full animate-pulse border border-black',
+  ACTIVE: 'w-4 h-4 rounded-full animate-pulse border border-black',
+  FAILED: 'w-3 h-3 rounded-full',
+  FINISHED: 'w-3 h-3 rounded-full',
 } as const;

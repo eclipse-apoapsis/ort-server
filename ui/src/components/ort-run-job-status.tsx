@@ -24,7 +24,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import {
+  getStatusBackgroundColor,
+  getStatusClass,
+} from '@/helpers/get-status-colors';
 
 type OrtRunJobStatusProps = {
   jobs: org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_['data'][0]['jobs'];
@@ -33,11 +36,11 @@ type OrtRunJobStatusProps = {
 export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
   return (
     <TooltipProvider>
-      <div className='flex space-x-1'>
+      <div className='flex items-center space-x-1'>
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
+              className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -50,7 +53,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.advisor?.status)}`}
+              className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -63,7 +66,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.scanner?.status)}`}
+              className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -76,7 +79,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
+              className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>
@@ -90,7 +93,7 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`h-3 w-3 rounded-full ${getStatusBackgroundColor(jobs.reporter?.status)}`}
+              className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
             ></div>
           </TooltipTrigger>
           <TooltipContent>

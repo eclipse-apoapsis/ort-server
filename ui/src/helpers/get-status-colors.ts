@@ -20,6 +20,7 @@
 import {
   Status,
   STATUS_BACKGROUND_COLOR,
+  STATUS_CLASS,
   STATUS_FONT_COLOR,
 } from '@/types/status-types-and-constants';
 
@@ -37,4 +38,12 @@ export function getStatusBackgroundColor(status: Status): string {
     return 'bg-gray-300'; // Define the color for undefined status here
   }
   return STATUS_BACKGROUND_COLOR[status]; // This will now only be called for defined statuses
+}
+
+// Get the general class for the elements
+export function getStatusClass(status: Status): string {
+  if (status === undefined) {
+    return 'w-3 h-3 rounded-full'; // Define the class for undefined status here
+  }
+  return STATUS_CLASS[status]; // This will now only be called for defined statuses
 }
