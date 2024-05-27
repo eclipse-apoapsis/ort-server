@@ -21,7 +21,6 @@ import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.api.v1"
