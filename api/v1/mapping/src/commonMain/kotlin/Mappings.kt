@@ -337,6 +337,7 @@ fun ReporterJobConfiguration.mapToApi() =
     ApiReporterJobConfiguration(
         copyrightGarbageFile,
         formats,
+        howToFixTextProviderFile,
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         resolutionsFile,
@@ -376,6 +377,7 @@ fun ApiReporterJobConfiguration.mapToModel() =
     ReporterJobConfiguration(
         copyrightGarbageFile,
         formats,
+        howToFixTextProviderFile,
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToModel() },
         resolutionsFile,

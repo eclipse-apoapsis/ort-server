@@ -288,6 +288,13 @@ data class ReporterJobConfiguration(
     val formats: List<String> = emptyList(),
 
     /**
+     * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
+     * will be used to instantiate an instance of HowToFixTextProvider, which injects how-to-fix texts for ORT issues.
+     * If this is null, default path from ORT will be used.
+     */
+    val howToFixTextProviderFile: String? = null,
+
+    /**
      * The path to the license classifications file which is resolved from the configured configuration source. If this
      * is null, the default path from ORT will be used.
      *
