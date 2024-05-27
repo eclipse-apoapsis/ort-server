@@ -93,8 +93,7 @@ data class DirPackageCurationProviderConfig(
  * A factory implementation for creating [DirPackageCurationProvider] instances.
  */
 class DirPackageCurationProviderFactory : PackageCurationProviderFactory<DirPackageCurationProviderConfig> {
-    override val type: String
-        get() = "Dir"
+    override val type: String = "Dir"
 
     override fun create(config: DirPackageCurationProviderConfig): PackageCurationProvider {
         logger.info("Creating DirPackageCurationProvider using root path '{}'.", config.path)

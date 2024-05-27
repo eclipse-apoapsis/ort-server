@@ -63,8 +63,7 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
         }
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider {
         checkConfigManagerSecretAccess(config, secretProvider)

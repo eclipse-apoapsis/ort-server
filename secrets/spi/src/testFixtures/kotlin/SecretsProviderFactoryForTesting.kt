@@ -83,8 +83,7 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
             )
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(configManager: ConfigManager): SecretsProvider {
         val storage = createStorage()

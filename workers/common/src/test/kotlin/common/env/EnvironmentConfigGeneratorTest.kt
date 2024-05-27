@@ -66,8 +66,8 @@ private class GeneratorTestImpl : EnvironmentConfigGenerator<EnvironmentServiceD
     /** Stores the definitions passed to the [generate] function. */
     val providedDefinitions = mutableListOf<EnvironmentServiceDefinition>()
 
-    override val environmentDefinitionType: Class<EnvironmentServiceDefinitionA>
-        get() = EnvironmentServiceDefinitionA::class.java
+    override val environmentDefinitionType: Class<EnvironmentServiceDefinitionA> =
+        EnvironmentServiceDefinitionA::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<EnvironmentServiceDefinitionA>) {
         providedBuilder = builder

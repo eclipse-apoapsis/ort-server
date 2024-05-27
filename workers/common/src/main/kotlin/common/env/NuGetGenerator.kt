@@ -33,8 +33,7 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
         private const val TARGET = ".nuget/NuGet/NuGet.Config"
     }
 
-    override val environmentDefinitionType: Class<NuGetDefinition>
-        get() = NuGetDefinition::class.java
+    override val environmentDefinitionType: Class<NuGetDefinition> = NuGetDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<NuGetDefinition>) {
         builder.buildInUserHome(TARGET) {

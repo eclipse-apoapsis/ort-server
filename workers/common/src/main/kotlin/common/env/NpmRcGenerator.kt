@@ -69,8 +69,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         }
     }
 
-    override val environmentDefinitionType: Class<NpmDefinition>
-        get() = NpmDefinition::class.java
+    override val environmentDefinitionType: Class<NpmDefinition> = NpmDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<NpmDefinition>) {
         builder.buildInUserHome(TARGET) {

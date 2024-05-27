@@ -33,8 +33,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
         private const val TARGET = ".yarnrc.yml"
     }
 
-    override val environmentDefinitionType: Class<YarnDefinition>
-        get() = YarnDefinition::class.java
+    override val environmentDefinitionType: Class<YarnDefinition> = YarnDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<YarnDefinition>) {
         builder.buildInUserHome(TARGET) {
