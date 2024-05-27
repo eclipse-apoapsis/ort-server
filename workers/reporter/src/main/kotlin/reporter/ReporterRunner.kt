@@ -63,11 +63,13 @@ import org.ossreviewtoolkit.model.utils.setResolutions
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
+import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.LicenseTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.showStackTrace
@@ -152,6 +154,19 @@ class ReporterRunner(
                 resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
             }
 
+            val howToFixTextProviderScript = config.howToFixTextProviderFile
+                ?.let { configManager.getFileAsString(context.resolvedConfigurationContext, Path(it)) }
+                ?: configManager.getFileAsString(
+                    context.resolvedConfigurationContext,
+                    Path(ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
+                )
+
+            val howToFixTextProvider = if (howToFixTextProviderScript.isNotEmpty()) {
+                HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, resolvedOrtResult)
+            } else {
+                HowToFixTextProvider.NONE
+            }
+
             val outputDir = context.createTempDir()
 
             val (successes, failures) = runBlocking(Dispatchers.IO) {
@@ -172,6 +187,7 @@ class ReporterRunner(
                         copyrightGarbage = copyrightGarbage,
                         licenseClassifications = licenseClassifications,
                         licenseTextProvider = createLicenseTextProvider(context, config),
+                        howToFixTextProvider = howToFixTextProvider
                     )
                 }
 
