@@ -40,7 +40,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.slot
-import io.mockk.unmockkObject
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.File
@@ -64,11 +64,13 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
 import org.ossreviewtoolkit.model.EvaluatorRun
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
+import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
 
@@ -77,11 +79,12 @@ private val configurationContext = Context("theConfigContext")
 
 class ReporterRunnerTest : WordSpec({
     afterEach {
-        unmockkObject(Reporter)
+        unmockkAll()
     }
 
     val configManager = mockk<ConfigManager> {
         every { getFile(any(), any()) } throws ConfigException("", null)
+        every { getFileAsString(any(), any()) } returns ""
     }
 
     val configDirectory = tempdir()
@@ -695,6 +698,57 @@ class ReporterRunnerTest : WordSpec({
             }
 
             slotInput.captured.licenseTextProvider.getLicenseText(licenseId) shouldBe customLicenseText
+        }
+
+        "use the configured how-to-fix text provider" {
+            val format = "testHowToFixTextProvider"
+            val howToFixTextProviderFile = "testHowToFixTextProvider.kts"
+            val howToFixTextProviderScript = "How-To-Fix Kotlin Script"
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format),
+                howToFixTextProviderFile = howToFixTextProviderFile
+            )
+
+            val reporter = reporterMock(format)
+            every { reporter.generateReport(any(), any(), any()) } returns listOf(tempfile())
+
+            mockReportersAll(format to reporter)
+
+            // Mock the HowToFixTextProvider.fromKotlinScript function to return the mocked object.
+            val mockHowToFixTextProvider = HowToFixTextProvider { "A test How-To-Fix text." }
+            mockkObject(HowToFixTextProvider)
+            every {
+                HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, any())
+            } returns mockHowToFixTextProvider
+
+            every {
+                configManager.getFileAsString(any(), Path(howToFixTextProviderFile))
+            } returns howToFixTextProviderScript
+
+            val resolvedContext = Context("theResolvedContext")
+
+            val (contextFactory, context) = mockContext()
+            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
+            every { context.configManager } returns configManager
+
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
+
+            val slotInput = slot<ReporterInput>()
+            verify {
+                reporter.generateReport(capture(slotInput), any(), any())
+            }
+
+            slotInput.captured.howToFixTextProvider shouldBe mockHowToFixTextProvider
+            slotInput.captured.howToFixTextProvider.getHowToFixText(
+                issue = Issue(message = "Test issue message.", source = "Test")
+            ) shouldBe "A test How-To-Fix text."
         }
     }
 })
