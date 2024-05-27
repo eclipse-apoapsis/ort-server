@@ -33,6 +33,5 @@ internal data class TokenInfo(
     /**
      * Return a refresh token that is not *null*. For some grant types, Keycloak does not support refresh tokens.
      */
-    val refreshToken: String
-        get() = refreshTokenRaw.orEmpty()
+    val refreshToken: String = refreshTokenRaw.orEmpty()
 }

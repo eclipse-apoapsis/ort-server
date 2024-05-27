@@ -37,8 +37,7 @@ class LokiLogFileProviderFactory : LogFileProviderFactory {
         private val logger = LoggerFactory.getLogger(LokiLogFileProviderFactory::class.java)
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(config: ConfigManager): LogFileProvider {
         logger.info("Creating a LogFileProvider instance for Grafana Loki.")

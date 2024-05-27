@@ -65,8 +65,8 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
         }.getOrNull()
     }
 
-    override val environmentDefinitionType: Class<EnvironmentServiceDefinition>
-        get() = EnvironmentServiceDefinition::class.java
+    override val environmentDefinitionType: Class<EnvironmentServiceDefinition> =
+        EnvironmentServiceDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<EnvironmentServiceDefinition>) {
         definitions.filter {

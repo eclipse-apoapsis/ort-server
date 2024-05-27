@@ -67,8 +67,7 @@ class LogFileProviderFactoryForTesting : LogFileProviderFactory {
         fun requests(): List<LogFileCriteria> = recordedRequests
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(config: ConfigManager): LogFileProvider {
         return object : LogFileProvider {

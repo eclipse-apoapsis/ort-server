@@ -48,8 +48,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
         }
     }
 
-    override val environmentDefinitionType: Class<MavenDefinition>
-        get() = MavenDefinition::class.java
+    override val environmentDefinitionType: Class<MavenDefinition> = MavenDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<MavenDefinition>) {
         builder.buildInUserHome(TARGET_NAME) {

@@ -34,8 +34,7 @@ class LocalConfigFileProviderFactory : ConfigFileProviderFactory {
         const val NAME = "local-config"
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider =
         LocalConfigFileProvider.create(config)

@@ -39,8 +39,7 @@ class ConfigSecretProviderFactoryForTesting : ConfigSecretProviderFactory {
         const val SECRETS_PROPERTY = "testSecrets"
     }
 
-    override val name: String
-        get() = NAME
+    override val name: String = NAME
 
     override fun createProvider(config: Config): ConfigSecretProvider {
         val secrets = config.getConfigOrEmpty(SECRETS_PROPERTY)

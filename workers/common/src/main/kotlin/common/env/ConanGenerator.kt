@@ -32,8 +32,7 @@ class ConanGenerator : EnvironmentConfigGenerator<ConanDefinition> {
         private const val TARGET = ".conan/remotes.json"
     }
 
-    override val environmentDefinitionType: Class<ConanDefinition>
-        get() = ConanDefinition::class.java
+    override val environmentDefinitionType: Class<ConanDefinition> = ConanDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<ConanDefinition>) {
         builder.buildInUserHome(TARGET) {
