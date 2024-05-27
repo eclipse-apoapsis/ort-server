@@ -17,11 +17,8 @@
  * License-Filename: LICENSE
  */
 
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package org.eclipse.apoapsis.ortserver.dao.utils
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 

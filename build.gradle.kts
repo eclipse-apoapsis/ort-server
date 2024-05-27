@@ -164,9 +164,12 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile>().configureEach {
+        val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinxSerialization.get().pluginId)
+
         compilerOptions {
             allWarningsAsErrors = true
             jvmTarget = maxKotlinJvmTarget
+            if (hasSerializationPlugin) optIn = listOf("kotlinx.serialization.ExperimentalSerializationApi")
         }
     }
 

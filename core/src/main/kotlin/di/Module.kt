@@ -24,7 +24,6 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
@@ -76,7 +75,6 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-@OptIn(ExperimentalSerializationApi::class)
 fun ortServerModule(config: ApplicationConfig) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
