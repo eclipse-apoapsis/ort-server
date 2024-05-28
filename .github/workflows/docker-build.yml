@@ -18,50 +18,66 @@ jobs:
       packages: write
     strategy:
       matrix:
+        # Define the Docker images to build. The job first builds an image using Docker which is used for the ui and for
+        # worker base images. Then the job builds an image using Jib. Both steps are optional, e.g., not all Jib builds
+        # need a base image, and the ui build does not need a Jib build.
+        #
+        # If the image is built with Docker:
+        # preparationTask (optional): Gradle task to run before building the image.
+        # image: Name of the image, used for the Docker image name.
+        # context: Path to the Docker context directory.
+        # dockerfile: Path of the Dockerfile to use, relative to context.
+        #
+        # If the image is built with Jib:
+        # jibImage: Name of the image built by Jib.
+        # task: Gradle task to build the image.
+        #
+        # Optional properties:
+        # freeDiskSpace: Whether to free disk space before building the image.
         docker:
-        - name: Core
-          image: core
+        - jibImage: core
           task: :core:jibDockerBuild
-        - name: Orchestrator
-          image: orchestrator
+        - jibImage: orchestrator
           task: :orchestrator:jibDockerBuild
-        - name: Kubernetes Jobmonitor
-          image: kubernetes-jobmonitor
+        - jibImage: kubernetes-jobmonitor
           task: :transport:kubernetes-jobmonitor:jibDockerBuild
-        - name: Advisor Worker
-          image: advisor-worker
+        - jibImage: advisor-worker
           task: :workers:advisor:jibDockerBuild
-        - name: Analyzer Worker
-          image: analyzer-worker
-          task: :workers:analyzer:jibDockerBuild
+        - image: analyzer-worker-base-image
           context: workers/analyzer/docker
           dockerfile: Analyzer.Dockerfile
+          jibImage: analyzer-worker
+          task: :workers:analyzer:jibDockerBuild
           freeDiskSpace: true
-        - name: Config Worker
-          image: config-worker
-          task: :workers:config:jibDockerBuild
+        - image: config-worker-base-image
           context: workers/config/docker
           dockerfile: Config.Dockerfile
-        - name: Evaluator Worker
-          image: evaluator-worker
-          task: :workers:evaluator:jibDockerBuild
+          jibImage: config-worker
+          task: :workers:config:jibDockerBuild
+        - image: evaluator-worker-base-image
           context: workers/evaluator/docker
           dockerfile: Evaluator.Dockerfile
-        - name: Notifier Worker
-          image: notifier-worker
-          task: :workers:notifier:jibDockerBuild
+          jibImage: evaluator-worker
+          task: :workers:evaluator:jibDockerBuild
+        - image: notifier-worker-base-image
           context: workers/notifier/docker
           dockerfile: Notifier.Dockerfile
-        - name: Reporter Worker
-          image: reporter-worker
-          task: :workers:reporter:jibDockerBuild
+          jibImage: notifier-worker
+          task: :workers:notifier:jibDockerBuild
+        - image: reporter-worker-base-image
           context: workers/reporter/docker
           dockerfile: Reporter.Dockerfile
-        - name: Scanner Worker
-          image: scanner-worker
-          task: :workers:scanner:jibDockerBuild
+          jibImage: reporter-worker
+          task: :workers:reporter:jibDockerBuild
+        - image: scanner-worker-base-image
           context: workers/scanner/docker
           dockerfile: Scanner.Dockerfile
+          jibImage: scanner-worker
+          task: :workers:scanner:jibDockerBuild
+        - preparationTask: :core:generateOpenApiSpec
+          image: ui
+          context: ui
+          dockerfile: docker/UI.Dockerfile
 
     steps:
     - name: Checkout Repository
@@ -91,18 +107,22 @@ jobs:
         ORT_SERVER_VERSION=$(./gradlew -q properties --property version | sed -nr 's/version: (.+)/\1/p' | sed 's/+/-/')
         echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
 
-    - name: Extract Docker Metadata for ${{ matrix.docker.name }} Base Image
+    - name: Run Preparation Task ${{ matrix.docker.preparationTask }}
+      if: ${{ matrix.docker.preparationTask != '' }}
+      run: ./gradlew ${{ matrix.docker.preparationTask }}
+
+    - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}-base-image
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
           type=raw,value=${{ env.ORT_SERVER_VERSION }}
           type=ref,event=branch
           type=sha
 
-    - name: Build ${{ matrix.docker.name }} Base Image
+    - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       uses: docker/build-push-action@v5
       with:
@@ -111,10 +131,11 @@ jobs:
         push: true
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
-        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}-base-image:cache
-        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}-base-image:cache,mode=max
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
+        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max
 
-    - name: Extract Docker Metadata for ${{ matrix.docker.name }} Image
+    - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
+      if: ${{ matrix.docker.task != '' }}
       id: meta
       uses: docker/metadata-action@v5
       with:
@@ -123,7 +144,8 @@ jobs:
           type=ref,event=branch
           type=sha
 
-    - name: Build ${{ matrix.docker.name }} Image
+    - name: Build ${{ matrix.docker.jibImage }} Image
+      if: ${{ matrix.docker.task != '' }}
       run: |
         ./gradlew \
           -PdockerBaseImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
@@ -134,4 +156,4 @@ jobs:
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
-        docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }} --all-tags
+        docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
