@@ -275,6 +275,13 @@ const CreateRunPage = () => {
             />
 
             <h3 className='mt-4'>Enable and configure jobs</h3>
+            <div className='text-sm text-gray-500'>
+              Configure the jobs to be included in the ORT Run.{' '}
+            </div>
+            <div className='text-sm text-gray-500'>
+              NOTE: Currently, the Analyzer needs to always run as part of an
+              ORT Run.
+            </div>
 
             <Accordion type='multiple'>
               {/* Analyzer job */}
@@ -287,6 +294,7 @@ const CreateRunPage = () => {
                       <Switch
                         className='my-4 mr-4 data-[state=checked]:bg-green-500'
                         checked={field.value}
+                        disabled
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
