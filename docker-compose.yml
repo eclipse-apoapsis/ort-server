@@ -435,6 +435,19 @@ services:
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
 
+  ui:
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-ui:${ORT_SERVER_IMAGE_TAG:-main}
+    depends_on:
+      core:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -O /dev/null http://localhost || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8082:80"
+
 volumes:
   db:
     driver: local

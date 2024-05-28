@@ -148,6 +148,7 @@ ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose up
 |----------------|----------------------------------|---------------------------------------------------------|
 | ORT Server API | http://localhost:8080/swagger-ui |                                                         |
 | Keycloak       | http://localhost:8081            | Administrator: admin:admin<br/>User: ort-admin:password |
+| UI             | http://localhost:8082            | Same as Keycloak                                        |
 | PostgreSQL     | http://localhost:5433            | postgres:postgres                                       |
 | RabbitMQ       | http://localhost:15672           | admin:admin                                             |
 | Graphite       | http://localhost:8888            | root:root                                               |
