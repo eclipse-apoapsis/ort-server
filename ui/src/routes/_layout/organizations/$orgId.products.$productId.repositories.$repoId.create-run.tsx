@@ -50,6 +50,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -355,6 +356,33 @@ const CreateRunPage = () => {
                             Select the package managers enabled for this ORT
                             Run.
                           </FormDescription>
+                          <div className='flex items-center space-x-3'>
+                            <Checkbox
+                              id='check-all-pms'
+                              checked={packageManagers.every((pm) =>
+                                form
+                                  .getValues(
+                                    'jobConfigs.analyzer.enabledPackageManagers'
+                                  )
+                                  .includes(pm.id)
+                              )}
+                              onCheckedChange={(checked) => {
+                                const enabledPackageManagers = checked
+                                  ? packageManagers.map((pm) => pm.id)
+                                  : [];
+                                form.setValue(
+                                  'jobConfigs.analyzer.enabledPackageManagers',
+                                  enabledPackageManagers
+                                );
+                              }}
+                            />
+                            <Label
+                              htmlFor='check-all-pms'
+                              className='font-bold'
+                            >
+                              Enable/disable all
+                            </Label>
+                          </div>
                           {packageManagers.map((pm) => (
                             <FormField
                               key={pm.id}
@@ -515,6 +543,31 @@ const CreateRunPage = () => {
                             Select the report formats to generate from the ORT
                             Run.
                           </FormDescription>
+                          <div className='flex items-center space-x-3'>
+                            <Checkbox
+                              id='check-all-formats'
+                              checked={reportFormats.every((format) =>
+                                form
+                                  .getValues('jobConfigs.reporter.formats')
+                                  .includes(format.id)
+                              )}
+                              onCheckedChange={(checked) => {
+                                const enabledReportFormats = checked
+                                  ? reportFormats.map((format) => format.id)
+                                  : [];
+                                form.setValue(
+                                  'jobConfigs.reporter.formats',
+                                  enabledReportFormats
+                                );
+                              }}
+                            />
+                            <Label
+                              htmlFor='check-all-formats'
+                              className='font-bold'
+                            >
+                              Enable/disable all
+                            </Label>
+                          </div>
                           {reportFormats.map((format) => (
                             <FormField
                               key={format.id}
