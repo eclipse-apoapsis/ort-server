@@ -44,12 +44,12 @@ const RunComponent = () => {
       params.orgId,
       params.productId,
       params.repoId,
-      params.runId,
+      params.runIndex,
     ],
     queryFn: async () =>
       await RepositoriesService.getOrtRunByIndex({
         repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runId),
+        ortRunIndex: Number.parseInt(params.runIndex),
       }),
   });
 
@@ -86,9 +86,9 @@ const RunComponent = () => {
     }
   };
 
-  async function handleDownload(filename: string) {
+  async function handleDownload(runId: number, filename: string) {
     await downloadZipFile({
-      runId: Number.parseInt(params.runId),
+      runId: runId,
       fileName: filename,
     });
   }
@@ -97,7 +97,7 @@ const RunComponent = () => {
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader className='flex flex-row items-start'>
         <div className='grid gap-2'>
-          <CardTitle>{ortRun.id}</CardTitle>
+          <CardTitle>{ortRun.index}</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
@@ -169,7 +169,7 @@ const RunComponent = () => {
                     ortRun.jobs.reporter?.reportFilenames as unknown as string[]
                   ).map((filename) => (
                     <div key={filename} className='flex flex-col pb-2'>
-                      <Link onClick={() => handleDownload(filename)}>
+                      <Link onClick={() => handleDownload(ortRun.id, filename)}>
                         <Button
                           variant='outline'
                           className='font-semibold text-blue-400'
@@ -190,7 +190,7 @@ const RunComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
@@ -199,12 +199,12 @@ export const Route = createFileRoute(
         params.orgId,
         params.productId,
         params.repoId,
-        params.runId,
+        params.runIndex,
       ],
       queryFn: () =>
         RepositoriesService.getOrtRunByIndex({
           repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runId),
+          ortRunIndex: Number.parseInt(params.runIndex),
         }),
     });
   },
