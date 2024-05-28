@@ -69,7 +69,7 @@ export const Header = () => {
   const runMatch = matches.find(
     (match) =>
       match.routeId ===
-      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
+      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
   );
 
   return (

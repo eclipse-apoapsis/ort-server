@@ -222,13 +222,13 @@ const RepoComponent = () => {
                       <div>
                         <Link
                           to={
-                            '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
+                            '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
                           }
                           params={{
                             orgId: params.orgId,
                             productId: params.productId,
                             repoId: repo.id.toString(),
-                            runId: run.id.toString(),
+                            runIndex: run.index.toString(),
                           }}
                           className='font-semibold text-blue-400 hover:underline'
                         >

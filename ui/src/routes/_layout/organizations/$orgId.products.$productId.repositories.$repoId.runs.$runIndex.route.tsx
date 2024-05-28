@@ -24,7 +24,7 @@ import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runId'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
 )({
   loader: async ({ context, params }) => {
     const run = await context.queryClient.ensureQueryData({
@@ -33,15 +33,15 @@ export const Route = createFileRoute(
         params.orgId,
         params.productId,
         params.repoId,
-        params.runId,
+        params.runIndex,
       ],
       queryFn: () =>
         RepositoriesService.getOrtRunByIndex({
           repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runId),
+          ortRunIndex: Number.parseInt(params.runIndex),
         }),
     });
-    context.breadcrumbs.run = run.id.toString();
+    context.breadcrumbs.run = run.index.toString();
   },
   component: () => (
     <Suspense fallback={<div>Loading...</div>}>
