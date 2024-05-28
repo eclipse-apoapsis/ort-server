@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -383,6 +384,7 @@ const CreateRunPage = () => {
                               Enable/disable all
                             </Label>
                           </div>
+                          <Separator />
                           {packageManagers.map((pm) => (
                             <FormField
                               key={pm.id}
@@ -568,6 +570,7 @@ const CreateRunPage = () => {
                               Enable/disable all
                             </Label>
                           </div>
+                          <Separator />
                           {reportFormats.map((format) => (
                             <FormField
                               key={format.id}
