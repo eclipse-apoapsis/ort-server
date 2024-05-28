@@ -1,8 +1,8 @@
-= ActiveMQ Artemis Transport implementation
+# ActiveMQ Artemis Transport implementation
 
-This module provides an implementation of the transport abstraction layer based on https://activemq.apache.org/components/artemis/[Apache ActiveMQ Artemis].
+This module provides an implementation of the transport abstraction layer based on [Apache ActiveMQ Artemis](https://activemq.apache.org/components/artemis/).
 
-== Synopsis
+## Synopsis
 
 The module allows message exchange via ActiveMQ message queues.
 It assumes that the queues in use are already configured via an external mechanism.
@@ -14,15 +14,14 @@ Metadata from the message header is represented by JMS message properties.
 
 In order to use this module, the `type` property in the transport configuration must be set to `activeMQ`.
 
-== Configuration
+## Configuration
 
 The configuration for message senders and receivers is identical.
 Both require the URI to the message broker server and the name of the address to send messages to or receive messages from.
 
 The following fragment shows the general structure:
 
-[source]
-----
+```
 endpoint {
   sender/receiver: {
     type = "activeMQ"
@@ -30,4 +29,4 @@ endpoint {
     queueName = "my_message_queue"
   }
 }
-----
+```
