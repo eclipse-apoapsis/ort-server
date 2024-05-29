@@ -32,6 +32,7 @@ import {
   ChevronDownIcon,
   ChevronsUpDownIcon,
   ChevronUpIcon,
+  ExternalLink,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
@@ -233,6 +234,90 @@ const OverviewContent = () => {
   );
 };
 
+const UserMgmtContent = () => {
+  const authBaseUrl = import.meta.env.VITE_AUTHORITY
+    ? import.meta.env.VITE_AUTHORITY.split('/realms/')[0]
+    : 'http://localhost:8081';
+  const realm = import.meta.env.VITE_AUTHORITY
+    ? import.meta.env.VITE_AUTHORITY.split('/realms/')[1]
+    : 'master';
+
+  return (
+    <>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm'>User Management</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='gap-1'>
+              Manage users in{' '}
+              <a
+                href={
+                  authBaseUrl + '/admin/master/console/#/' + realm + '/users'
+                }
+                target='_blank'
+                className='gap-1 text-blue-400 hover:underline'
+              >
+                <span>Keycloak</span>
+                <ExternalLink className='mb-1 ml-1 inline' size={16} />
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm'>Authorization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              More information on{' '}
+              <a
+                href={
+                  'https://github.com/eclipse-apoapsis/ort-server/blob/main/docs/authorization/authorization.adoc'
+                }
+                target='_blank'
+                className='gap-1 text-blue-400 hover:underline'
+              >
+                <span>how authorization is implemented on ORT Server</span>
+                <ExternalLink className='mb-1 ml-1 inline' size={16} />
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
+        <Card className='col-span-7'>
+          <CardHeader>
+            <CardTitle>Managing users permissions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <p>
+                When an organization, a product, or a repository is created,
+                groups for admins, writers and readers for that entity are
+                automatically added to Keycloak.
+              </p>
+              <p className='mt-2'>
+                For example, these groups will be created for an organization:
+              </p>
+              <ul className='ml-6 list-disc'>
+                <li>ORGANIZATION_$id_ADMINS</li>
+                <li>ORGANIZATION_$id_WRITERS</li>
+                <li>ORGANIZATION_$id_READERS</li>
+              </ul>
+              <p className='mt-2'>
+                To give user access to an entity, assign the corresponding group
+                to the user in Keycloak.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+};
+
 const AdminDashboard = () => {
   const user = useUser();
   const navigate = useNavigate();
@@ -284,6 +369,7 @@ const AdminDashboard = () => {
               {(search.tab === 'overview' || !search.tab) && (
                 <OverviewContent />
               )}
+              {search.tab === 'user_mgmt' && <UserMgmtContent />}
             </div>
           </div>
         </div>
