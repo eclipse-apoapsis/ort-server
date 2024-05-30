@@ -221,7 +221,7 @@ internal val dependencyGraphs = mapOf(
                 emptyList()
             )
         ),
-        edges = listOf(
+        edges = setOf(
             DependencyGraphEdge(
                 from = 1,
                 to = 0

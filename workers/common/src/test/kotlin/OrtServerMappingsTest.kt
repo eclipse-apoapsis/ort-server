@@ -273,7 +273,7 @@ class OrtServerMappingsTest : WordSpec({
             val dependencyGraph = DependencyGraph(
                 packages = listOf(pkgIdentifier),
                 nodes = listOf(DependencyGraphNode(0, 0, "DYNAMIC", emptyList())),
-                edges = emptyList(),
+                edges = emptySet(),
                 scopes = mapOf(
                     "com.example:project:1.0:compile" to listOf(DependencyGraphRoot(0, 0))
                 )

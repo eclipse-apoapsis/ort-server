@@ -392,7 +392,7 @@ object OrtTestData {
     val dependencyGraph = DependencyGraph(
         packages = listOf(pkgIdentifier),
         nodes = listOf(DependencyGraphNode(0)),
-        edges = emptyList(),
+        edges = emptySet(),
         scopes = mapOf(
             "com.example:project:1.0:compile" to listOf(RootDependencyIndex(0))
         )
