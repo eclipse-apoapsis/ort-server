@@ -64,6 +64,11 @@ const formSchema = z.object({
       skipExcluded: z.boolean(),
       enabledPackageManagers: z.array(z.string()),
     }),
+    advisor: z.object({
+      enabled: z.boolean(),
+      skipExcluded: z.boolean(),
+      advisors: z.array(z.string()),
+    }),
     scanner: z.object({
       enabled: z.boolean(),
       skipConcluded: z.boolean(),
@@ -78,6 +83,21 @@ const formSchema = z.object({
     }),
   }),
 });
+
+const advisors = [
+  {
+    id: 'OssIndex',
+    label: 'OSS Index',
+  },
+  {
+    id: 'OSV',
+    label: 'OSV',
+  },
+  {
+    id: 'VulnerableCode',
+    label: 'VulnerableCode',
+  },
+] as const;
 
 const packageManagers = [
   {
@@ -193,6 +213,11 @@ const CreateRunPage = () => {
           skipExcluded: true,
           enabledPackageManagers: packageManagers.map((pm) => pm.id),
         },
+        advisor: {
+          enabled: true,
+          skipExcluded: true,
+          advisors: ['OSV', 'VulnerableCode'],
+        },
         scanner: {
           enabled: true,
           skipConcluded: true,
@@ -223,6 +248,12 @@ const CreateRunPage = () => {
             values.jobConfigs.analyzer.enabledPackageManagers,
         }
       : undefined;
+    const advisorConfig = values.jobConfigs.advisor.enabled
+      ? {
+          skipExcluded: values.jobConfigs.advisor.skipExcluded,
+          advisors: values.jobConfigs.advisor.advisors,
+        }
+      : undefined;
     const scannerConfig = values.jobConfigs.scanner.enabled
       ? {
           createMissingArchives: true,
@@ -245,6 +276,7 @@ const CreateRunPage = () => {
         revision: values.revision,
         jobConfigs: {
           analyzer: analyzerConfig,
+          advisor: advisorConfig,
           scanner: scannerConfig,
           evaluator: evaluatorConfig,
           reporter: reporterConfig,
@@ -415,6 +447,124 @@ const CreateRunPage = () => {
                                     </FormControl>
                                     <FormLabel className='font-normal'>
                                       {pm.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          ))}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+
+              {/* Advisor job */}
+              <div className='flex flex-row align-middle'>
+                <FormField
+                  control={form.control}
+                  name='jobConfigs.advisor.enabled'
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        className='my-4 mr-4 data-[state=checked]:bg-green-500'
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+                <AccordionItem value='advisor' className='flex-1'>
+                  <AccordionTrigger>Advisor</AccordionTrigger>
+                  <AccordionContent>
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.advisor.skipExcluded'
+                      render={({ field }) => (
+                        <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+                          <div className='space-y-0.5'>
+                            <FormLabel>Skip excluded</FormLabel>
+                            <FormDescription>
+                              A flag to control whether excluded scopes and
+                              paths should be skipped from the advisor.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.advisor.advisors'
+                      render={() => (
+                        <FormItem className='mb-4 flex flex-col justify-between rounded-lg border p-4'>
+                          <FormLabel>Enabled advisors</FormLabel>
+                          <FormDescription className='pb-4'>
+                            Select the advisors enabled for this ORT Run.
+                          </FormDescription>
+                          <div className='flex items-center space-x-3'>
+                            <Checkbox
+                              id='check-all-ads'
+                              checked={advisors.every((ad) =>
+                                form
+                                  .getValues('jobConfigs.advisor.advisors')
+                                  .includes(ad.id)
+                              )}
+                              onCheckedChange={(checked) => {
+                                const enabledAdvisors = checked
+                                  ? advisors.map((ad) => ad.id)
+                                  : [];
+                                form.setValue(
+                                  'jobConfigs.advisor.advisors',
+                                  enabledAdvisors
+                                );
+                              }}
+                            />
+                            <Label
+                              htmlFor='check-all-ads'
+                              className='font-bold'
+                            >
+                              Enable/disable all
+                            </Label>
+                          </div>
+                          <Separator />
+                          {advisors.map((ad) => (
+                            <FormField
+                              key={ad.id}
+                              control={form.control}
+                              name='jobConfigs.advisor.advisors'
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={ad.id}
+                                    className='flex flex-row items-start space-x-3 space-y-0'
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(ad.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                ad.id,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== ad.id
+                                                )
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className='font-normal'>
+                                      {ad.label}
                                     </FormLabel>
                                   </FormItem>
                                 );
