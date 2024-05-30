@@ -37,6 +37,9 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 
 import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
@@ -55,9 +58,9 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
         val header = MessageHeader(token = "testToken", traceId = "testTraceId", ortRunId = 33)
 
         val env = mapOf(
-            "token" to header.token,
-            "traceId" to header.traceId,
-            "runId" to header.ortRunId.toString(),
+            TOKEN_PROPERTY to header.token,
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
             "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
         )
 
@@ -93,9 +96,9 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
         val header = MessageHeader(token = "testToken", traceId = "testTraceId", ortRunId = 7)
 
         val env = mapOf(
-            "token" to header.token,
-            "traceId" to header.traceId,
-            "runId" to header.ortRunId.toString(),
+            TOKEN_PROPERTY to header.token,
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
             "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
         )
 

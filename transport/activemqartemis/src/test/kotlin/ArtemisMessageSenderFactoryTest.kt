@@ -42,6 +42,9 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
@@ -63,9 +66,9 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
 
             connection.start()
             val receivedMessage = consumer.receive(5000) as TextMessage
-            receivedMessage.getStringProperty("token") shouldBe header.token
-            receivedMessage.getStringProperty("traceId") shouldBe header.traceId
-            receivedMessage.getLongProperty("runId") shouldBe header.ortRunId
+            receivedMessage.getStringProperty(TOKEN_PROPERTY) shouldBe header.token
+            receivedMessage.getStringProperty(TRACE_PROPERTY) shouldBe header.traceId
+            receivedMessage.getLongProperty(RUN_ID_PROPERTY) shouldBe header.ortRunId
 
             val serializer = JsonSerializer.forType<OrchestratorMessage>()
             val payload2 = serializer.fromJson(receivedMessage.text)

@@ -29,6 +29,9 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.slf4j.LoggerFactory
@@ -56,9 +59,9 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
 
         logger.info("Starting Kubernetes message receiver for endpoint '{}'.", from.configPrefix)
 
-        val token = System.getenv("token")
-        val traceId = System.getenv("traceId")
-        val runId = System.getenv("runId").toLong()
+        val token = System.getenv(TOKEN_PROPERTY)
+        val traceId = System.getenv(TRACE_PROPERTY)
+        val runId = System.getenv(RUN_ID_PROPERTY).toLong()
         val payload = System.getenv("payload")
 
         val msg = Message(MessageHeader(token, traceId, runId), serializer.fromJson(payload))

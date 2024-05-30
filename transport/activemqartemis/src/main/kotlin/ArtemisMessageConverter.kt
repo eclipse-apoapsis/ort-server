@@ -24,6 +24,9 @@ import jakarta.jms.TextMessage
 
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 /**
@@ -31,15 +34,6 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
  * This is used by both the Artemis-based sender and receiver implementations.
  */
 internal object ArtemisMessageConverter {
-    /** Name of the message property that stores the access token. */
-    private const val TOKEN_PROPERTY = "token"
-
-    /** Name of the message property that stores the trace ID. */
-    private const val TRACE_PROPERTY = "traceId"
-
-    /** Name of the message property that stores the ORT run ID. */
-    private const val RUN_ID_PROPERTY = "runId"
-
     /**
      * Convert the given [message] to a JMS [TextMessage] using the provided [serializer] and [session].
      */

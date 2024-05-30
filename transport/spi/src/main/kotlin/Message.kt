@@ -19,6 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.transport
 
+/** Name of the message property that stores the access token. */
+const val TOKEN_PROPERTY = "token"
+
+/** Name of the message property that stores the trace ID. */
+const val TRACE_PROPERTY = "traceId"
+
+/** Name of the message property that stores the ORT run ID. */
+const val RUN_ID_PROPERTY = "runId"
+
 /**
  * A data class representing the header of messages passed between internal ORT server endpoints. Via the properties
  * defined here, additional metadata about messages is provided.

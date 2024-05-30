@@ -52,6 +52,9 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.testcontainers.containers.RabbitMQContainer
@@ -102,9 +105,9 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
                     { _: String, delivery: Delivery ->
                         val receivedMessage = String(delivery.body)
 
-                        delivery.properties.headers["token"].toString() shouldBe header.token
-                        delivery.properties.headers["traceId"].toString() shouldBe header.traceId
-                        delivery.properties.headers["runId"].toString() shouldBe header.ortRunId.toString()
+                        delivery.properties.headers[TOKEN_PROPERTY].toString() shouldBe header.token
+                        delivery.properties.headers[TRACE_PROPERTY].toString() shouldBe header.traceId
+                        delivery.properties.headers[RUN_ID_PROPERTY].toString() shouldBe header.ortRunId.toString()
 
                         val serializer = JsonSerializer.forType<OrchestratorMessage>()
                         val receivedPayload = serializer.fromJson(receivedMessage)
