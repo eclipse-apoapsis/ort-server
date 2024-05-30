@@ -243,7 +243,7 @@ fun OrtDependencyGraph.mapToModel() =
     DependencyGraph(
         packages = packages.map { it.mapToModel() },
         nodes = nodes?.map { it.mapToModel() }.orEmpty(),
-        edges = edges?.map { it.mapToModel() }.orEmpty(),
+        edges = edges?.mapTo(mutableSetOf()) { it.mapToModel() }.orEmpty(),
         scopes = scopes.mapValues { (_, indices) -> indices.map { it.mapToModel() } }
     )
 

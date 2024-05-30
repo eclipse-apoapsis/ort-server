@@ -446,7 +446,7 @@ fun DependencyGraph.mapToOrt() =
         packages = packages.map(Identifier::mapToOrt),
         scopes = scopes.mapValues { it.value.map(DependencyGraphRoot::mapToOrt) },
         nodes = nodes.map(DependencyGraphNode::mapToOrt),
-        edges = edges.map(DependencyGraphEdge::mapToOrt)
+        edges = edges.mapTo(mutableSetOf(), DependencyGraphEdge::mapToOrt)
     )
 
 fun DependencyGraphRoot.mapToOrt() = OrtRootDependencyIndex(root, fragment)
