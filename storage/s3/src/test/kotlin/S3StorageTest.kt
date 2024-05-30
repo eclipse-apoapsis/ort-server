@@ -202,7 +202,7 @@ class S3StorageTest : WordSpec({
     }
 })
 
-internal const val LOCALSTACK_IMAGE = "localstack/localstack:0.11.3"
+internal const val LOCALSTACK_IMAGE = "localstack/localstack:3.4.0"
 internal const val S3_REGION = "eu-central-1"
 internal const val TEST_BUCKET_NAME = "test-bucket"
 
