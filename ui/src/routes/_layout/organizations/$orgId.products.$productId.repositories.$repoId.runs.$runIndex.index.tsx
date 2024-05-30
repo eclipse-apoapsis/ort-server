@@ -142,12 +142,6 @@ const RunComponent = () => {
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell>Resolved job configs</TableCell>
-              <TableCell>
-                <pre>{JSON.stringify(ortRun.resolvedJobConfigs, null, 2)}</pre>
-              </TableCell>
-            </TableRow>
-            <TableRow>
               <TableCell>Jobs</TableCell>
               <TableCell>
                 <pre>{JSON.stringify(ortRun.jobs, null, 2)}</pre>
