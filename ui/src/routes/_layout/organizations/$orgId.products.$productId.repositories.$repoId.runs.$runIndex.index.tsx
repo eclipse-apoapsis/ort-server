@@ -135,6 +135,27 @@ const RunComponent = () => {
                 <div className='font-medium'>{ortRun.revision}</div>
               </TableCell>
             </TableRow>
+            {ortRun.jobs.reporter?.reportFilenames && (
+              <TableRow>
+                <TableCell>Reports</TableCell>
+                <TableCell>
+                  {(
+                    ortRun.jobs.reporter?.reportFilenames as unknown as string[]
+                  ).map((filename) => (
+                    <div key={filename} className='flex flex-col pb-2'>
+                      <Link onClick={() => handleDownload(ortRun.id, filename)}>
+                        <Button
+                          variant='outline'
+                          className='font-semibold text-blue-400'
+                        >
+                          {filename}
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+                </TableCell>
+              </TableRow>
+            )}
             <TableRow>
               <TableCell>Job configs</TableCell>
               <TableCell>
@@ -152,27 +173,6 @@ const RunComponent = () => {
                 <TableCell>Issues</TableCell>
                 <TableCell>
                   <pre>{JSON.stringify(ortRun.issues, null, 2)}</pre>
-                </TableCell>
-              </TableRow>
-            )}
-            {ortRun.jobs.reporter?.reportFilenames && (
-              <TableRow>
-                <TableCell>Result files</TableCell>
-                <TableCell>
-                  {(
-                    ortRun.jobs.reporter?.reportFilenames as unknown as string[]
-                  ).map((filename) => (
-                    <div key={filename} className='flex flex-col pb-2'>
-                      <Link onClick={() => handleDownload(ortRun.id, filename)}>
-                        <Button
-                          variant='outline'
-                          className='font-semibold text-blue-400'
-                        >
-                          {filename}
-                        </Button>
-                      </Link>
-                    </div>
-                  ))}
                 </TableCell>
               </TableRow>
             )}
