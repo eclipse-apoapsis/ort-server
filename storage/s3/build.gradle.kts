@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.s3)
 
     testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.testContainersLocalStack)
 
