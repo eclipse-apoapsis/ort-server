@@ -17,10 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 
+import { useUser } from '@/hooks/useUser';
+import { SideBar } from './sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -39,6 +42,7 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
 export const Header = () => {
   const auth = useAuth();
+  const user = useUser();
 
   const matches = useRouterState({ select: (state) => state.matches });
 
@@ -98,12 +102,18 @@ export const Header = () => {
           <SheetContent side='left'>
             <nav className='grid gap-6 text-lg font-medium'>
               <Link
-                href='#'
+                to='/'
                 className='flex items-center gap-2 text-lg font-semibold'
               >
                 <Home className='h-6 w-6' />
                 <span className='sr-only'>Home</span>
               </Link>
+              {user.hasRole('superuser') && (
+                <>
+                  <Separator />
+                  <SideBar />
+                </>
+              )}
             </nav>
           </SheetContent>
         </Sheet>
