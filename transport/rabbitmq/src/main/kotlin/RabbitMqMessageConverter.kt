@@ -24,18 +24,12 @@ import com.rabbitmq.client.Delivery
 
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 internal object RabbitMqMessageConverter {
-    /** Name of the message property that stores the access token. */
-    private const val TOKEN_PROPERTY = "token"
-
-    /** Name of the message property that stores the trace ID. */
-    private const val TRACE_PROPERTY = "traceId"
-
-    /** Name of the message property that stores the ORT run ID. */
-    private const val RUN_ID_PROPERTY = "runId"
-
     /**
      * Convert the [message headers][this] to the AMQP compatible [BasicProperties].
      */

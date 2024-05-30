@@ -39,6 +39,9 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 class ArtemisMessageReceiverFactoryTest : StringSpec({
@@ -126,9 +129,9 @@ private fun <T> JsonSerializer<T>.createMessage(
     payload: T
 ): TextMessage =
     session.createTextMessage(toJson(payload)).apply {
-        setStringProperty("token", token)
-        setStringProperty("traceId", traceId)
-        setLongProperty("runId", runId)
+        setStringProperty(TOKEN_PROPERTY, token)
+        setStringProperty(TRACE_PROPERTY, traceId)
+        setLongProperty(RUN_ID_PROPERTY, runId)
     }
 
 /**

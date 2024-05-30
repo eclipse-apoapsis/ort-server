@@ -34,6 +34,9 @@ import io.kubernetes.client.openapi.models.V1VolumeMount
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
+import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
+import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 /** A prefix for the name of a label storing a part of the trace ID. */
@@ -87,9 +90,9 @@ internal class KubernetesMessageSender<T : Any>(
 
     override fun send(message: Message<T>) {
         val msgMap = mapOf(
-            "token" to message.header.token,
-            "traceId" to message.header.traceId,
-            "runId" to message.header.ortRunId.toString(),
+            TOKEN_PROPERTY to message.header.token,
+            TRACE_PROPERTY to message.header.traceId,
+            RUN_ID_PROPERTY to message.header.ortRunId.toString(),
             "payload" to serializer.toJson(message.payload)
         )
 
