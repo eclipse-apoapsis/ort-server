@@ -62,7 +62,7 @@ First, ensure to have [Docker BuildKit](https://docs.docker.com/build/buildkit/)
 To build the Docker image for the UI, the OpenAPI specification must be generated first:
 
 ```shell
-./gradlew :ui:generateOpenApiSpec
+./gradlew :core:generateOpenApiSpec
 ```
 
 Then build the base images for the workers which contain the external tools and required configuration either via the Gradle task
