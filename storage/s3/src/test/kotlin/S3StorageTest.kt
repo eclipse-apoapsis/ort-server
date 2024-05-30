@@ -34,7 +34,9 @@ import aws.smithy.kotlin.runtime.net.url.Url
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -48,8 +50,11 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 class S3StorageTest : WordSpec({
-    val localStackContainer = LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE))
-        .withServices(LocalStackContainer.Service.S3)
+    val localStackContainer = install(
+        ContainerExtension(
+            LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE)).withServices(LocalStackContainer.Service.S3)
+        )
+    )
 
     val s3Client: S3Client by lazy {
         S3Client {
@@ -61,14 +66,6 @@ class S3StorageTest : WordSpec({
                 secretAccessKey = localStackContainer.secretKey
             }
         }
-    }
-
-    beforeSpec {
-        localStackContainer.start()
-    }
-
-    afterSpec {
-        localStackContainer.stop()
     }
 
     beforeEach {
