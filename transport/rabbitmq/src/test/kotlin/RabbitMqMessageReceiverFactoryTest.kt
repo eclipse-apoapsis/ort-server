@@ -33,96 +33,96 @@ import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
-class RabbitMqMessageReceiverFactoryTest : StringSpec() {
-    init {
-        "Messages can be received via the RabbitMQ transport" {
-            val serializer = JsonSerializer.forType<OrchestratorMessage>()
-            val config = startRabbitMqContainer("orchestrator", "receiver")
+class RabbitMqMessageReceiverFactoryTest : StringSpec({
+    "Messages can be received via the RabbitMQ transport" {
+        val serializer = JsonSerializer.forType<OrchestratorMessage>()
+        val config = startRabbitMqContainer("orchestrator", "receiver")
 
-            val connectionFactory = ConnectionFactory().apply {
-                setUri(config.getString("orchestrator.receiver.serverUri"))
-            }
-            connectionFactory.newConnection().use { connection ->
-                val channel = connection.createChannel().also {
-                    it.queueDeclare(
-                        /* queue = */ TEST_QUEUE_NAME,
-                        /* durable = */ false,
-                        /* exclusive = */ false,
-                        /* autoDelete = */ false,
-                        /* arguments = */ emptyMap()
-                    )
-                }
-
-                val messageQueue = startReceiver(config)
-
-                val token1 = "token1"
-                val traceId1 = "trace1"
-                val runId1 = 1L
-                val payload1 = AnalyzerWorkerError(1)
-                val token2 = "token2"
-                val traceId2 = "trace2"
-                val runId2 = 2L
-                val payload2 = AnalyzerWorkerResult(42)
-
-                channel.basicPublish(
-                    "",
-                    TEST_QUEUE_NAME,
-                    MessageHeader(token1, traceId1, runId1).toAmqpProperties(),
-                    serializer.toJson(payload1).toByteArray()
-                )
-
-                channel.basicPublish(
-                    "",
-                    TEST_QUEUE_NAME,
-                    MessageHeader(token2, traceId2, runId2).toAmqpProperties(),
-                    serializer.toJson(payload2).toByteArray()
-                )
-
-                messageQueue.checkMessage(token1, traceId1, runId1, payload1)
-                messageQueue.checkMessage(token2, traceId2, runId2, payload2)
-            }
+        val connectionFactory = ConnectionFactory().apply {
+            setUri(config.getString("orchestrator.receiver.serverUri"))
         }
 
-        "Exceptions during message receiving are handled" {
-            val serializer = JsonSerializer.forType<OrchestratorMessage>()
-            val config = startRabbitMqContainer("orchestrator", "receiver")
-
-            val connectionFactory = ConnectionFactory().apply {
-                setUri(config.getString("orchestrator.receiver.serverUri"))
-            }
-            connectionFactory.newConnection().use { connection ->
-                val channel = connection.createChannel().also {
-                    it.queueDeclare(
-                        /* queue = */ TEST_QUEUE_NAME,
-                        /* durable = */ false,
-                        /* exclusive = */ false,
-                        /* autoDelete = */ false,
-                        /* arguments = */ emptyMap()
-                    )
-                }
-
-                val messageQueue = startReceiver(config)
-
-                channel.basicPublish(
-                    "",
-                    TEST_QUEUE_NAME,
-                    MessageHeader("tokenInvalid", "traceIdInvalid", -1).toAmqpProperties(),
-                    "Invalid payload".toByteArray()
+        connectionFactory.newConnection().use { connection ->
+            val channel = connection.createChannel().also {
+                it.queueDeclare(
+                    /* queue = */ TEST_QUEUE_NAME,
+                    /* durable = */ false,
+                    /* exclusive = */ false,
+                    /* autoDelete = */ false,
+                    /* arguments = */ emptyMap()
                 )
-
-                val token = "validtoken"
-                val traceId = "validtrace"
-                val runId = 10L
-                val payload = AnalyzerWorkerResult(42)
-                channel.basicPublish(
-                    "",
-                    TEST_QUEUE_NAME,
-                    MessageHeader(token, traceId, runId).toAmqpProperties(),
-                    serializer.toJson(payload).toByteArray()
-                )
-
-                messageQueue.checkMessage(token, traceId, runId, payload)
             }
+
+            val messageQueue = startReceiver(config)
+
+            val token1 = "token1"
+            val traceId1 = "trace1"
+            val runId1 = 1L
+            val payload1 = AnalyzerWorkerError(1)
+            val token2 = "token2"
+            val traceId2 = "trace2"
+            val runId2 = 2L
+            val payload2 = AnalyzerWorkerResult(42)
+
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader(token1, traceId1, runId1).toAmqpProperties(),
+                serializer.toJson(payload1).toByteArray()
+            )
+
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader(token2, traceId2, runId2).toAmqpProperties(),
+                serializer.toJson(payload2).toByteArray()
+            )
+
+            messageQueue.checkMessage(token1, traceId1, runId1, payload1)
+            messageQueue.checkMessage(token2, traceId2, runId2, payload2)
         }
     }
-}
+
+    "Exceptions during message receiving are handled" {
+        val serializer = JsonSerializer.forType<OrchestratorMessage>()
+        val config = startRabbitMqContainer("orchestrator", "receiver")
+
+        val connectionFactory = ConnectionFactory().apply {
+            setUri(config.getString("orchestrator.receiver.serverUri"))
+        }
+
+        connectionFactory.newConnection().use { connection ->
+            val channel = connection.createChannel().also {
+                it.queueDeclare(
+                    /* queue = */ TEST_QUEUE_NAME,
+                    /* durable = */ false,
+                    /* exclusive = */ false,
+                    /* autoDelete = */ false,
+                    /* arguments = */ emptyMap()
+                )
+            }
+
+            val messageQueue = startReceiver(config)
+
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader("tokenInvalid", "traceIdInvalid", -1).toAmqpProperties(),
+                "Invalid payload".toByteArray()
+            )
+
+            val token = "validtoken"
+            val traceId = "validtrace"
+            val runId = 10L
+            val payload = AnalyzerWorkerResult(42)
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader(token, traceId, runId).toAmqpProperties(),
+                serializer.toJson(payload).toByteArray()
+            )
+
+            messageQueue.checkMessage(token, traceId, runId, payload)
+        }
+    }
+})
