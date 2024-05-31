@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
+const val TEST_QUEUE_NAME = "test_queue"
+
 /**
  * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done
  * in a separate thread. Return a queue that can be polled to obtain the received messages.

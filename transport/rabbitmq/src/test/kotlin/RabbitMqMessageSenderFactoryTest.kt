@@ -56,11 +56,11 @@ import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 
 import org.testcontainers.containers.RabbitMQContainer
 
 class RabbitMqMessageSenderFactoryTest : StringSpec() {
-    private val queueName = "TEST_QUEUE"
     private val username = "guest"
     private val password = "guest"
 
@@ -86,7 +86,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
                 val channel = spyk<Channel>(
                     connection.createChannel().also {
                         it.queueDeclare(
-                            /* queue = */ queueName,
+                            /* queue = */ TEST_QUEUE_NAME,
                             /* durable = */ false,
                             /* exclusive = */ false,
                             /* autoDelete = */ false,
@@ -100,7 +100,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
 
                 val latch = CountDownLatch(1)
                 channel.basicConsume(
-                    queueName,
+                    TEST_QUEUE_NAME,
                     true,
                     { _: String, delivery: Delivery ->
                         val receivedMessage = String(delivery.body)
@@ -131,7 +131,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
 
             val sender = RabbitMqMessageSender(
                 channel = channel,
-                queueName = queueName,
+                queueName = TEST_QUEUE_NAME,
                 endpoint = AnalyzerEndpoint
             )
 
@@ -155,7 +155,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
 
             val factory = RabbitMqMessageSenderFactory()
             shouldThrowWithMessage<IllegalStateException>(exceptionMessage) {
-                factory.createSenderWithConnection(AnalyzerEndpoint, connectionFactory, queueName)
+                factory.createSenderWithConnection(AnalyzerEndpoint, connectionFactory, TEST_QUEUE_NAME)
             }
 
             verify { connection.close() }
@@ -173,7 +173,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
         )
         val configMap = mapOf(
             "orchestrator.sender.serverUri" to "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
-            "orchestrator.sender.queueName" to queueName,
+            "orchestrator.sender.queueName" to TEST_QUEUE_NAME,
             "orchestrator.sender.type" to "rabbitMQ",
             ConfigManager.CONFIG_MANAGER_SECTION to configProvidersMap
         )

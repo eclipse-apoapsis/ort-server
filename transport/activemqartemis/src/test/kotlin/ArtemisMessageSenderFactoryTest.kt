@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {
@@ -58,7 +59,7 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.sender.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.sender.queueName"))
+            val queue = session.createQueue(TEST_QUEUE_NAME)
             val consumer = session.createConsumer(queue)
 
             val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, config)

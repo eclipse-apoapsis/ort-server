@@ -26,6 +26,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.ContainerExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 
 import org.slf4j.LoggerFactory
 
@@ -55,7 +56,7 @@ fun Spec.startArtemisContainer(consumerName: String, transportType: String): Con
     val keyPrefix = "$consumerName.$transportType"
     val configMap = mapOf(
         "$keyPrefix.serverUri" to "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}",
-        "$keyPrefix.queueName" to "testQueue",
+        "$keyPrefix.queueName" to TEST_QUEUE_NAME,
         "$keyPrefix.type" to "activeMQ"
     )
     return ConfigManager.create(ConfigFactory.parseMap(configMap))
