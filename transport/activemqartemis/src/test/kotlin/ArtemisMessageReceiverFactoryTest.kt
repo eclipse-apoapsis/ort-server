@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 class ArtemisMessageReceiverFactoryTest : StringSpec({
     "Messages can be received via the Artemis transport" {
         val serializer = JsonSerializer.forType<OrchestratorMessage>()
-        val config = startArtemisContainer("receiver")
+        val config = startArtemisContainer("orchestrator", "receiver")
         val messageQueue = startReceiver(config)
 
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
@@ -67,7 +67,7 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 
     "Exceptions during message receiving are handled" {
         val serializer = JsonSerializer.forType<OrchestratorMessage>()
-        val config = startArtemisContainer("receiver")
+        val config = startArtemisContainer("orchestrator", "receiver")
         val messageQueue = startReceiver(config)
 
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
