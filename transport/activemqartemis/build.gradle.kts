@@ -33,6 +33,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(projects.model)
+    testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
