@@ -36,8 +36,20 @@ export function calculateDuration(
   const minutes = Math.floor((durationSec % 3600) / 60);
   const seconds = durationSec % 60;
 
-  // Format the duration as "hours:minutes:seconds"
-  const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  // Format the duration as "xh ym zs", omitting zero values except:
+  // - when the duration is 0 -> "0s"
+  // - when minutes are 0 but hours or seconds are not -> "1h 0m 26s"
+  let formattedDuration = '';
+  if (hours > 0) {
+    formattedDuration += `${hours}h `;
+  }
+  if (minutes > 0 || (hours > 0 && seconds > 0)) {
+    formattedDuration += `${minutes}m `;
+  }
+  if (seconds > 0 || (hours == 0 && minutes == 0)) {
+    formattedDuration += `${seconds}s`;
+  }
 
-  return formattedDuration;
+  // Trim any trailing space and return
+  return formattedDuration.trim();
 }
