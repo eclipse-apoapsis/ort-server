@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
@@ -45,7 +46,7 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.receiver.queueName"))
+            val queue = session.createQueue(TEST_QUEUE_NAME)
             val producer = session.createProducer(queue)
 
             val token1 = "token1"
@@ -73,7 +74,7 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
         connectionFactory.createConnection().use { connection ->
             val session = connection.createSession()
-            val queue = session.createQueue(config.getString("orchestrator.receiver.queueName"))
+            val queue = session.createQueue(TEST_QUEUE_NAME)
             val producer = session.createProducer(queue)
 
             // Send an invalid message which cannot be converted.

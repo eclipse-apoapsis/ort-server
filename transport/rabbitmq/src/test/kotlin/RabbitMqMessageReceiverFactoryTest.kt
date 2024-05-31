@@ -37,13 +37,13 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
 import org.testcontainers.containers.RabbitMQContainer
 
 class RabbitMqMessageReceiverFactoryTest : StringSpec() {
-    private val queueName = "TEST_QUEUE"
     private val username = "guest"
     private val password = "guest"
 
@@ -70,7 +70,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
             connectionFactory.newConnection().use { connection ->
                 val channel = connection.createChannel().also {
                     it.queueDeclare(
-                        /* queue = */ queueName,
+                        /* queue = */ TEST_QUEUE_NAME,
                         /* durable = */ false,
                         /* exclusive = */ false,
                         /* autoDelete = */ false,
@@ -91,14 +91,14 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
 
                 channel.basicPublish(
                     "",
-                    queueName,
+                    TEST_QUEUE_NAME,
                     MessageHeader(token1, traceId1, runId1).toAmqpProperties(),
                     serializer.toJson(payload1).toByteArray()
                 )
 
                 channel.basicPublish(
                     "",
-                    queueName,
+                    TEST_QUEUE_NAME,
                     MessageHeader(token2, traceId2, runId2).toAmqpProperties(),
                     serializer.toJson(payload2).toByteArray()
                 )
@@ -118,7 +118,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
             connectionFactory.newConnection().use { connection ->
                 val channel = connection.createChannel().also {
                     it.queueDeclare(
-                        /* queue = */ queueName,
+                        /* queue = */ TEST_QUEUE_NAME,
                         /* durable = */ false,
                         /* exclusive = */ false,
                         /* autoDelete = */ false,
@@ -130,7 +130,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
 
                 channel.basicPublish(
                     "",
-                    queueName,
+                    TEST_QUEUE_NAME,
                     MessageHeader("tokenInvalid", "traceIdInvalid", -1).toAmqpProperties(),
                     "Invalid payload".toByteArray()
                 )
@@ -141,7 +141,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
                 val payload = AnalyzerWorkerResult(42)
                 channel.basicPublish(
                     "",
-                    queueName,
+                    TEST_QUEUE_NAME,
                     MessageHeader(token, traceId, runId).toAmqpProperties(),
                     serializer.toJson(payload).toByteArray()
                 )
@@ -162,7 +162,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
         )
         val configMap = mapOf(
             "orchestrator.receiver.serverUri" to "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
-            "orchestrator.receiver.queueName" to queueName,
+            "orchestrator.receiver.queueName" to TEST_QUEUE_NAME,
             "orchestrator.receiver.type" to "rabbitMQ",
             ConfigManager.CONFIG_MANAGER_SECTION to configProvidersMap
         )
