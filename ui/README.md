@@ -51,7 +51,7 @@ The Docker image can be configured by the following environment variables:
 
 | Variable         | Default                               | Description                          |
 | ---------------- | ------------------------------------- | ------------------------------------ |
-| `VITE_API_URL`   | `http://localhost:8080/api/v1`        | The URL of the ORT Server API.       |
+| `VITE_API_URL`   | `http://localhost:8080`               | The URL of the ORT Server API.       |
 | `VITE_UI_URL`    | `http://localhost:8082`               | The URL of the UI.                   |
 | `VITE_AUTHORITY` | `http://localhost:8081/realms/master` | The URL of the Keycloak realm.       |
 | `VITE_CLIENT_ID` | `ort-server-ui`                       | The client ID of the UI in Keycloak. |
