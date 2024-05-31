@@ -409,7 +409,9 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
                 value = CreateOrtRun(
                     revision = "main",
                     jobConfigs = fullJobConfigurations,
-                    labels = mapOf("label key" to "label value")
+                    labels = mapOf("label key" to "label value"),
+                    path = "optional VCS sub-path",
+                    jobConfigContext = "optional context",
                 )
             )
         }
