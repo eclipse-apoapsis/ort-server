@@ -22,9 +22,16 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { OpenAPI, RepositoriesService } from '@/api/requests';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -33,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 const RunComponent = () => {
@@ -139,9 +147,7 @@ const RunComponent = () => {
               <TableRow>
                 <TableCell>Reports</TableCell>
                 <TableCell>
-                  {(
-                    ortRun.jobs.reporter?.reportFilenames as unknown as string[]
-                  ).map((filename) => (
+                  {ortRun.jobs.reporter?.reportFilenames.map((filename) => (
                     <div key={filename} className='flex flex-col pb-2'>
                       <Link onClick={() => handleDownload(ortRun.id, filename)}>
                         <Button
@@ -156,18 +162,6 @@ const RunComponent = () => {
                 </TableCell>
               </TableRow>
             )}
-            <TableRow>
-              <TableCell>Job configs</TableCell>
-              <TableCell>
-                <pre>{JSON.stringify(ortRun.jobConfigs, null, 2)}</pre>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Jobs</TableCell>
-              <TableCell>
-                <pre>{JSON.stringify(ortRun.jobs, null, 2)}</pre>
-              </TableCell>
-            </TableRow>
             {ortRun.issues.length > 0 && (
               <TableRow>
                 <TableCell>Issues</TableCell>
@@ -178,6 +172,56 @@ const RunComponent = () => {
             )}
           </TableBody>
         </Table>
+        <Separator />
+
+        <div className='ml-2 mt-4'>
+          <h3>Jobs</h3>
+          <div className='text-sm text-gray-500'>
+            Jobs that were included in this ORT Run. Click the job name to see
+            details.
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Job</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className='text-right'>
+                  Duration (hh:mm:ss)
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.entries(ortRun.jobs).map(([jobName, job]) => (
+                <TableRow key={jobName}>
+                  <TableCell>
+                    <Accordion type='single' collapsible>
+                      <AccordionItem value={jobName} className='border-none'>
+                        <AccordionTrigger className='py-0 font-semibold capitalize text-blue-400 hover:underline'>
+                          {jobName}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <pre>{JSON.stringify(job, null, 2)}</pre>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={`border ${getStatusBackgroundColor(job?.status)}`}
+                    >
+                      {job?.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className='text-right'>
+                    {job?.startedAt && job?.finishedAt
+                      ? calculateDuration(job?.startedAt, job?.finishedAt)
+                      : '-'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
