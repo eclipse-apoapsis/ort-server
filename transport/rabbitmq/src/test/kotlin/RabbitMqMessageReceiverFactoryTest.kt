@@ -21,14 +21,8 @@ package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
-import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestResult
-import io.kotest.extensions.testcontainers.ContainerExtension
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
@@ -37,31 +31,13 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
-import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
-import org.testcontainers.containers.RabbitMQContainer
-
 class RabbitMqMessageReceiverFactoryTest : StringSpec() {
-    private val username = "guest"
-    private val password = "guest"
-
-    private val rabbitMq = install(
-        ContainerExtension(
-            RabbitMQContainer("rabbitmq")
-        )
-    )
-
-    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
-        // Restart the test container after each test to remove all existing receivers.
-        rabbitMq.stop()
-        rabbitMq.start()
-    }
-
     init {
         "Messages can be received via the RabbitMQ transport" {
             val serializer = JsonSerializer.forType<OrchestratorMessage>()
-            val config = createConfig()
+            val config = startRabbitMqContainer("orchestrator", "receiver")
 
             val connectionFactory = ConnectionFactory().apply {
                 setUri(config.getString("orchestrator.receiver.serverUri"))
@@ -109,7 +85,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
 
         "Exceptions during message receiving are handled" {
             val serializer = JsonSerializer.forType<OrchestratorMessage>()
-            val config = createConfig()
+            val config = startRabbitMqContainer("orchestrator", "receiver")
 
             val connectionFactory = ConnectionFactory().apply {
                 setUri(config.getString("orchestrator.receiver.serverUri"))
@@ -148,25 +124,5 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
                 messageQueue.checkMessage(token, traceId, runId, payload)
             }
         }
-    }
-
-    private fun createConfig(): ConfigManager {
-        val secretsMap = mapOf(
-            "rabbitMqUser" to username,
-            "rabbitMqPassword" to password
-        )
-
-        val configProvidersMap = mapOf(
-            ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-            ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
-        )
-
-        return createConfigManager(
-            consumerName = "orchestrator",
-            transportType = "receiver",
-            transportName = "rabbitMQ",
-            serverUri = "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
-            configProvidersMap = configProvidersMap
-        )
     }
 }
