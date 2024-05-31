@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.transport.testing
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -33,6 +35,27 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 const val TEST_QUEUE_NAME = "test_queue"
+
+/**
+ * Create a [ConfigManager] with a test queue for [consumer] using [transportName] and [transportType] that is
+ * accessible at the given [serverUri] with optional [configProvidersMap].
+ */
+fun createConfigManager(
+    consumerName: String,
+    transportType: String,
+    transportName: String,
+    serverUri: String,
+    configProvidersMap: Map<String, Any> = emptyMap()
+): ConfigManager {
+    val configMap = buildMap {
+        put("$consumerName.$transportType.type", transportName)
+        put("$consumerName.$transportType.serverUri", serverUri)
+        put("$consumerName.$transportType.queueName", TEST_QUEUE_NAME)
+        if (configProvidersMap.isNotEmpty()) put(ConfigManager.CONFIG_MANAGER_SECTION, configProvidersMap)
+    }
+
+    return ConfigManager.create(ConfigFactory.parseMap(configMap))
+}
 
 /**
  * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done

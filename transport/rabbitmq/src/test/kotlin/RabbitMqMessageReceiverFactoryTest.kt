@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
-import com.typesafe.config.ConfigFactory
-
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
@@ -39,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
+import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
 import org.testcontainers.containers.RabbitMQContainer
@@ -156,17 +155,18 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
             "rabbitMqUser" to username,
             "rabbitMqPassword" to password
         )
+
         val configProvidersMap = mapOf(
             ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
             ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
         )
-        val configMap = mapOf(
-            "orchestrator.receiver.serverUri" to "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
-            "orchestrator.receiver.queueName" to TEST_QUEUE_NAME,
-            "orchestrator.receiver.type" to "rabbitMQ",
-            ConfigManager.CONFIG_MANAGER_SECTION to configProvidersMap
-        )
 
-        return ConfigManager.create(ConfigFactory.parseMap(configMap))
+        return createConfigManager(
+            consumerName = "orchestrator",
+            transportType = "receiver",
+            transportName = "rabbitMQ",
+            serverUri = "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
+            configProvidersMap = configProvidersMap
+        )
     }
 }
