@@ -32,6 +32,7 @@ dependencies {
 
     testImplementation(projects.model)
     testImplementation(testFixtures(projects.config.configSpi))
+    testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

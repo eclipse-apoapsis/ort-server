@@ -20,29 +20,21 @@
 package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
 
 import jakarta.jms.Session
 import jakarta.jms.TextMessage
 
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
-
 import org.apache.qpid.jms.JmsConnectionFactory
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
-import org.eclipse.apoapsis.ortserver.transport.Message
-import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
-import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
+import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
 class ArtemisMessageReceiverFactoryTest : StringSpec({
     "Messages can be received via the Artemis transport" {
@@ -100,24 +92,6 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
 })
 
 /**
- * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done
- * in a separate thread. Return a queue that can be polled to obtain the received messages.
- */
-private fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
-    val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
-
-    fun handler(message: Message<OrchestratorMessage>) {
-        queue.offer(message)
-    }
-
-    Thread {
-        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
-    }.start()
-
-    return queue
-}
-
-/**
  * Create a JMS messaging using this serializer and the given [session] with the provided [token], [traceId]
  * [runId], and [payload].
  */
@@ -133,16 +107,3 @@ private fun <T> JsonSerializer<T>.createMessage(
         setStringProperty(TRACE_PROPERTY, traceId)
         setLongProperty(RUN_ID_PROPERTY, runId)
     }
-
-/**
- * Check that the next message in this queue has the given [token], [traceId], [runId], and [payload].
- */
-private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, runId: Long, payload: T) {
-    val message = poll(5, TimeUnit.SECONDS)
-
-    message.shouldNotBeNull()
-    message.header.token shouldBe token
-    message.header.traceId shouldBe traceId
-    message.header.ortRunId shouldBe runId
-    message.payload shouldBe payload
-}

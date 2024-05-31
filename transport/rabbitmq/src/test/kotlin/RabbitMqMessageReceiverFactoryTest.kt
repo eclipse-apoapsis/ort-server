@@ -28,24 +28,17 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.extensions.testcontainers.ContainerExtension
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
-import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
-import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
-import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
+import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
+import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
 
 import org.testcontainers.containers.RabbitMQContainer
 
@@ -175,32 +168,5 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec() {
         )
 
         return ConfigManager.create(ConfigFactory.parseMap(configMap))
-    }
-
-    private fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
-        val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
-
-        fun handler(message: Message<OrchestratorMessage>) {
-            queue.offer(message)
-        }
-
-        Thread {
-            MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
-        }.start()
-
-        return queue
-    }
-
-    /**
-     * Check that the next message in this queue has the given [token], [traceId], [runId], and [payload].
-     */
-    private fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, runId: Long, payload: T) {
-        val message = poll(5, TimeUnit.SECONDS)
-
-        message.shouldNotBeNull()
-        message.header.token shouldBe token
-        message.header.traceId shouldBe traceId
-        message.header.ortRunId shouldBe runId
-        message.payload shouldBe payload
     }
 }
