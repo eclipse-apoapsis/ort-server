@@ -49,7 +49,7 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
     "Messages can be sent via the sender" {
-        val config = startArtemisContainer("sender")
+        val config = startArtemisContainer("orchestrator", "sender")
 
         val payload = AnalyzerWorkerResult(42)
         val header = MessageHeader(token = "1234567890", traceId = "dick.tracy", 11)
