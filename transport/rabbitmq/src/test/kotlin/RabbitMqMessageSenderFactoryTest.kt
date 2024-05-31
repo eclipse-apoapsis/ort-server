@@ -25,9 +25,7 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 
 import io.kotest.assertions.throwables.shouldThrowWithMessage
-import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -41,8 +39,6 @@ import java.lang.IllegalStateException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -55,30 +51,18 @@ import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
-import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
-
-import org.testcontainers.containers.RabbitMQContainer
 
 class RabbitMqMessageSenderFactoryTest : StringSpec() {
-    private val username = "guest"
-    private val password = "guest"
-
-    private val rabbitMq = install(
-        ContainerExtension(
-            RabbitMQContainer("rabbitmq")
-        )
-    )
-
     init {
         "Messages can be sent via the sender" {
-            val config = createConfig()
+            val config = startRabbitMqContainer("orchestrator", "sender")
 
             val payload = AnalyzerWorkerResult(42)
             val header = MessageHeader(token = "1234567890", traceId = "dick.tracy", ortRunId = 44)
             val message = Message(header, payload)
 
             val connectionFactory = ConnectionFactory().apply {
-                setUri("amqp://${rabbitMq.host}:${rabbitMq.amqpPort}")
+                setUri(config.getString("orchestrator.sender.serverUri"))
             }
 
             connectionFactory.newConnection().use { connection ->
@@ -159,25 +143,5 @@ class RabbitMqMessageSenderFactoryTest : StringSpec() {
 
             verify { connection.close() }
         }
-    }
-
-    private fun createConfig(): ConfigManager {
-        val secretsMap = mapOf(
-            "rabbitMqUser" to username,
-            "rabbitMqPassword" to password
-        )
-
-        val configProvidersMap = mapOf(
-            ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-            ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
-        )
-
-        return createConfigManager(
-            consumerName = "orchestrator",
-            transportType = "sender",
-            transportName = "rabbitMQ",
-            serverUri = "amqp://${rabbitMq.host}:${rabbitMq.firstMappedPort}",
-            configProvidersMap = configProvidersMap
-        )
     }
 }
