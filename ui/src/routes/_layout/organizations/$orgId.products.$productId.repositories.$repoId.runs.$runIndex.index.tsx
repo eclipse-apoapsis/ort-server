@@ -187,9 +187,7 @@ const RunComponent = () => {
               <TableRow>
                 <TableHead>Job</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className='text-right'>
-                  Duration (hh:mm:ss)
-                </TableHead>
+                <TableHead className='text-right'>Duration</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
