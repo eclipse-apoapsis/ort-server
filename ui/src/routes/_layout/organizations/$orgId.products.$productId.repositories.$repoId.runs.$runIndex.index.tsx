@@ -124,7 +124,9 @@ const RunComponent = () => {
             <TableRow>
               <TableCell>Created At</TableCell>
               <TableCell>
-                <div className='font-medium'>{ortRun.createdAt}</div>
+                <div className='font-medium'>
+                  {new Date(ortRun.createdAt).toLocaleString()}
+                </div>
               </TableCell>
             </TableRow>
             {ortRun.finishedAt && (
@@ -132,7 +134,7 @@ const RunComponent = () => {
                 <TableCell>Finished At</TableCell>
                 <TableCell>
                   <div className='font-medium'>
-                    {ortRun.finishedAt as unknown as string}
+                    {new Date(ortRun.finishedAt).toLocaleString()}
                   </div>
                 </TableCell>
               </TableRow>
