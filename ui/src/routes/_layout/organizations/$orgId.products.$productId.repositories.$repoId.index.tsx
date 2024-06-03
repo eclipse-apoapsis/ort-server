@@ -19,7 +19,7 @@
 
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
@@ -155,24 +155,27 @@ const RepoComponent = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button
-                  size='sm'
-                  variant='destructive'
-                  className='px-2 hover:bg-red-700'
-                >
+                <Button size='sm' variant='outline' className='px-2'>
                   <TrashIcon className='h-4 w-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete repository</AlertDialogTitle>
+                  <div className='flex items-center'>
+                    <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
+                    <AlertDialogTitle>Delete repository</AlertDialogTitle>
+                  </div>
                 </AlertDialogHeader>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this repository?
+                  Are you sure you want to delete this repository:{' '}
+                  <span className='font-bold'>{repo.url}</span>?
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className='bg-red-500'
+                  >
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>

@@ -19,7 +19,7 @@
 
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
 
 import {
   useOrganizationsServiceDeleteOrganizationById,
@@ -145,24 +145,27 @@ const OrganizationComponent = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button
-                  size='sm'
-                  variant='destructive'
-                  className='px-2 hover:bg-red-700'
-                >
+                <Button size='sm' variant='outline' className='px-2'>
                   <TrashIcon className='h-4 w-4' />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete organization</AlertDialogTitle>
+                  <div className='flex items-center'>
+                    <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
+                    <AlertDialogTitle>Delete organization</AlertDialogTitle>
+                  </div>
                 </AlertDialogHeader>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this organization?
+                  Are you sure you want to delete this organization:{' '}
+                  <span className='font-bold'>{organization.name}</span>?
                 </AlertDialogDescription>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className='bg-red-500'
+                  >
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
