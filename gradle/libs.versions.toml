@@ -153,6 +153,7 @@ qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpi
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
 s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersLocalStack = { module = "org.testcontainers:localstack", version.ref = "testContainers" }
