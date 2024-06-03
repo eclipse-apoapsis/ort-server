@@ -19,7 +19,13 @@
 
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
+import {
+  EditIcon,
+  OctagonAlert,
+  PlusIcon,
+  Redo2,
+  TrashIcon,
+} from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
@@ -219,6 +225,7 @@ const RepoComponent = () => {
                 <TableHead>Run Status</TableHead>
                 <TableHead>Job Statuses</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,6 +267,28 @@ const RepoComponent = () => {
                       {run.finishedAt
                         ? calculateDuration(run.createdAt, run.finishedAt)
                         : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant='outline' asChild size='sm'>
+                            <Link
+                              to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                              params={{
+                                orgId: params.orgId,
+                                productId: params.productId,
+                                repoId: params.repoId,
+                              }}
+                            >
+                              Rerun
+                              <Redo2 className='ml-1 h-4 w-4' />
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Create a new ORT run based on this run
+                        </TooltipContent>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 );
