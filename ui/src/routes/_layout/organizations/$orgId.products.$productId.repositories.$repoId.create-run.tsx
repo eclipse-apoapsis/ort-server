@@ -23,7 +23,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRepositoriesServicePostOrtRun } from '@/api/queries';
-import { ApiError } from '@/api/requests';
+import { ApiError, RepositoriesService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
@@ -177,6 +177,7 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { toast } = useToast();
+  const ortRun = Route.useLoaderData();
 
   const { mutateAsync } = useRepositoriesServicePostOrtRun({
     onSuccess() {
@@ -202,36 +203,98 @@ const CreateRunPage = () => {
     },
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      revision: 'main',
-      jobConfigs: {
-        analyzer: {
-          enabled: true,
-          allowDynamicVersions: true,
-          skipExcluded: true,
-          enabledPackageManagers: packageManagers.map((pm) => pm.id),
-        },
-        advisor: {
-          enabled: true,
-          skipExcluded: true,
-          advisors: ['OSV', 'VulnerableCode'],
-        },
-        scanner: {
-          enabled: true,
-          skipConcluded: true,
-          skipExcluded: true,
-        },
-        evaluator: {
-          enabled: true,
-        },
-        reporter: {
-          enabled: true,
-          formats: ['ortresult', 'WebApp'],
-        },
+  // Default values for the form: edit only these, not the defaultValues object.
+  const baseDefaults = {
+    revision: 'main',
+    jobConfigs: {
+      analyzer: {
+        enabled: true,
+        allowDynamicVersions: true,
+        skipExcluded: true,
+        enabledPackageManagers: packageManagers.map((pm) => pm.id),
+      },
+      advisor: {
+        enabled: true,
+        skipExcluded: true,
+        advisors: ['OSV', 'VulnerableCode'],
+      },
+      scanner: {
+        enabled: true,
+        skipConcluded: true,
+        skipExcluded: true,
+      },
+      evaluator: {
+        enabled: true,
+      },
+      reporter: {
+        enabled: true,
+        formats: ['ortresult', 'WebApp'],
       },
     },
+  };
+
+  // Default values for the form are either taken from "baseDefaults" or,
+  // when a rerun action has been taken, fetched from the ORT Run that is
+  // being rerun. Whenever a rerun job config parameter is missing, use the
+  // default value.
+  const defaultValues = ortRun
+    ? {
+        revision: ortRun.revision || baseDefaults.revision,
+        jobConfigs: {
+          analyzer: {
+            enabled: baseDefaults.jobConfigs.analyzer.enabled,
+            allowDynamicVersions:
+              ortRun.jobConfigs.analyzer?.allowDynamicVersions ||
+              baseDefaults.jobConfigs.analyzer.allowDynamicVersions,
+            skipExcluded:
+              ortRun.jobConfigs.analyzer?.skipExcluded ||
+              baseDefaults.jobConfigs.analyzer.skipExcluded,
+            enabledPackageManagers:
+              ortRun.jobConfigs.analyzer?.enabledPackageManagers ||
+              baseDefaults.jobConfigs.analyzer.enabledPackageManagers,
+          },
+          advisor: {
+            enabled:
+              ortRun.jobConfigs.advisor !== undefined &&
+              ortRun.jobConfigs.advisor !== null,
+            skipExcluded:
+              ortRun.jobConfigs.advisor?.skipExcluded ||
+              baseDefaults.jobConfigs.advisor.skipExcluded,
+            advisors:
+              ortRun.jobConfigs.advisor?.advisors ||
+              baseDefaults.jobConfigs.advisor.advisors,
+          },
+          scanner: {
+            enabled:
+              ortRun.jobConfigs.scanner !== undefined &&
+              ortRun.jobConfigs.scanner !== null,
+            skipConcluded:
+              ortRun.jobConfigs.scanner?.skipConcluded ||
+              baseDefaults.jobConfigs.scanner.skipConcluded,
+            skipExcluded:
+              ortRun.jobConfigs.scanner?.skipExcluded ||
+              baseDefaults.jobConfigs.scanner.skipExcluded,
+          },
+          evaluator: {
+            enabled:
+              ortRun.jobConfigs.evaluator !== undefined &&
+              ortRun.jobConfigs.evaluator !== null,
+          },
+          reporter: {
+            enabled:
+              ortRun.jobConfigs.reporter !== undefined &&
+              ortRun.jobConfigs.reporter !== null,
+            formats:
+              ortRun.jobConfigs.reporter?.formats ||
+              baseDefaults.jobConfigs.reporter.formats,
+          },
+        },
+      }
+    : baseDefaults;
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -777,8 +840,30 @@ const CreateRunPage = () => {
   );
 };
 
+const rerunIndexSchema = z.object({
+  rerunIndex: z.number().optional(),
+});
+
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
 )({
+  // This is used to access the search params in the loader.
+  // As search params we use the index of the ORT run on which this run will be based.
+  loaderDeps: ({ search: { rerunIndex } }) => ({ rerunIndex }),
+  // The loader fetches the ORT Run that is being rerun.
+  // It is important to notice that if no rerunIndex is provided to this route,
+  // the query will not be run. This corresponds to the "New run" case, where a new
+  // ORT Run is created from scratch, using all defaults.
+  loader: async ({ params, deps: { rerunIndex } }) => {
+    if (rerunIndex === undefined) {
+      return null;
+    }
+    const ortRun = await RepositoriesService.getOrtRunByIndex({
+      repositoryId: Number.parseInt(params.repoId),
+      ortRunIndex: rerunIndex,
+    });
+    return ortRun;
+  },
   component: CreateRunPage,
+  validateSearch: rerunIndexSchema,
 });

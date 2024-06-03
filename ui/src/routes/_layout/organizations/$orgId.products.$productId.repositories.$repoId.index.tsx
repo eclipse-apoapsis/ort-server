@@ -279,6 +279,9 @@ const RepoComponent = () => {
                                 productId: params.productId,
                                 repoId: params.repoId,
                               }}
+                              search={{
+                                rerunIndex: run.index,
+                              }}
                             >
                               Rerun
                               <Redo2 className='ml-1 h-4 w-4' />
