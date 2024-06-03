@@ -172,7 +172,30 @@ const ProductComponent = () => {
             </AlertDialog>
           </CardTitle>
           <CardDescription>
-            {product.description as unknown as string}
+            <div className='flex flex-col'>
+              <div>{product.description}</div>
+              <div className='py-2'>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild size='sm' className='ml-auto gap-1'>
+                      <Link
+                        to='/organizations/$orgId/products/$productId/create-repository'
+                        params={{
+                          orgId: params.orgId,
+                          productId: params.productId,
+                        }}
+                      >
+                        New repository
+                        <PlusIcon className='h-4 w-4' />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Add a new repository for this product
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -181,25 +204,6 @@ const ProductComponent = () => {
               <TableRow>
                 <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
                   Repositories
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button asChild size='sm' className='ml-auto gap-1'>
-                        <Link
-                          to='/organizations/$orgId/products/$productId/create-repository'
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                          }}
-                        >
-                          New repository
-                          <PlusIcon className='h-4 w-4' />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Add a new repository for this product
-                    </TooltipContent>
-                  </Tooltip>
                 </TableHead>
               </TableRow>
             </TableHeader>

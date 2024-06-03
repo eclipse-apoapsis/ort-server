@@ -170,7 +170,27 @@ const OrganizationComponent = () => {
             </AlertDialog>
           </CardTitle>
           <CardDescription>
-            {organization.description as unknown as string}
+            <div className='flex flex-col'>
+              <div>{organization.description}</div>
+              <div className='py-2'>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild size='sm' className='ml-auto gap-1'>
+                      <Link
+                        to='/organizations/$orgId/create-product'
+                        params={{ orgId: organization.id.toString() }}
+                      >
+                        New product
+                        <PlusIcon className='h-4 w-4' />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Create a new product for this organization
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -179,22 +199,6 @@ const OrganizationComponent = () => {
               <TableRow>
                 <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
                   Products
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button asChild size='sm'>
-                        <Link
-                          to='/organizations/$orgId/create-product'
-                          params={{ orgId: organization.id.toString() }}
-                        >
-                          New product
-                          <PlusIcon className='h-4 w-4' />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Create a new product for this organization
-                    </TooltipContent>
-                  </Tooltip>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -216,7 +220,7 @@ const OrganizationComponent = () => {
                         </Link>
                       </div>
                       <div className='hidden text-sm text-muted-foreground md:inline'>
-                        {product.description as unknown as string}
+                        {product.description}
                       </div>
                     </TableCell>
                   </TableRow>
