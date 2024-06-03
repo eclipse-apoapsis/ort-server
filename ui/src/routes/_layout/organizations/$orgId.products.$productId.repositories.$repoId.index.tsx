@@ -179,7 +179,33 @@ const RepoComponent = () => {
               </AlertDialogContent>
             </AlertDialog>
           </CardTitle>
-          <CardDescription>{repo.type}</CardDescription>
+          <CardDescription>
+            <div className='flex flex-col'>
+              <div>{repo.type}</div>
+              <div className='py-2'>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild size='sm' className='ml-auto gap-1'>
+                      <Link
+                        to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                        params={{
+                          orgId: params.orgId,
+                          productId: params.productId,
+                          repoId: params.repoId,
+                        }}
+                      >
+                        New run
+                        <PlusIcon className='h-4 w-4' />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Create a new ORT run for this repository
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -190,28 +216,6 @@ const RepoComponent = () => {
                 <TableHead>Run Status</TableHead>
                 <TableHead>Job Statuses</TableHead>
                 <TableHead>Duration</TableHead>
-                <TableHead className='pb-1.5 pr-0 text-right'>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button asChild size='sm' className='ml-auto gap-1'>
-                        <Link
-                          to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                            repoId: params.repoId,
-                          }}
-                        >
-                          New run
-                          <PlusIcon className='h-4 w-4' />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Create a new ORT run for this repository
-                    </TooltipContent>
-                  </Tooltip>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

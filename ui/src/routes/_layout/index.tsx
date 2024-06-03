@@ -55,30 +55,34 @@ export const IndexPage = () => {
   return (
     <TooltipProvider>
       <Card className='mx-auto w-full max-w-4xl'>
-        <CardHeader className='flex flex-row items-start'>
-          <div className='grid gap-2'>
-            <CardTitle>Organizations</CardTitle>
-            <CardDescription>
-              Browse your organizations or create a new one
-            </CardDescription>
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link to='/create-organization'>
-                  New
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Create a new organization</TooltipContent>
-          </Tooltip>
+        <CardHeader>
+          <CardTitle>Organizations</CardTitle>
+          <CardDescription>
+            <div className='flex flex-col'>
+              <div>Browse your organizations or create a new one</div>
+            </div>
+            <div className='py-2'>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button asChild size='sm' className='ml-auto gap-1'>
+                    <Link to='/create-organization'>
+                      New organization
+                      <PlusIcon className='h-4 w-4' />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create a new organization</TooltipContent>
+              </Tooltip>
+            </div>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Organization</TableHead>
+                <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
+                  Organizations
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
