@@ -168,8 +168,6 @@ FROM ort-base-image AS nodebuild
 ARG BOWER_VERSION=1.8.12
 ARG NODEJS_VERSION=20.9.0
 ARG NPM_VERSION=10.1.0
-ARG PNPM_VERSION=8.10.3
-ARG YARN_VERSION=1.22.19
 
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
@@ -179,10 +177,13 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm install "$NODEJS_VERSION" \
     && nvm alias default "$NODEJS_VERSION" \
     && nvm use default \
-    && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION pnpm@$PNPM_VERSION yarn@$YARN_VERSION
+    && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION \
+    && corepack enable
 
 FROM scratch AS node
 COPY --from=nodebuild $NVM_DIR $NVM_DIR
+# Required for Corepack to dynamically modify binaries of supported package managers.
+RUN sudo chgrp -R 0 /opt/nvm && chmod -R g+rwX /opt/nvm
 
 #------------------------------------------------------------------------
 # RUBY - Build Ruby as a separate component with rbenv
