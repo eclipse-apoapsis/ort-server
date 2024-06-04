@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 const val TEST_QUEUE_NAME = "test_queue"
 
 /**
- * Create a [ConfigManager] with a test queue for [consumer] using [transportName] and [transportType] that is
+ * Create a [ConfigManager] with a test queue for [consumerName] using [transportType] and [transportName] that is
  * accessible at the given [serverUri] with optional [configProvidersMap].
  */
 fun createConfigManager(
