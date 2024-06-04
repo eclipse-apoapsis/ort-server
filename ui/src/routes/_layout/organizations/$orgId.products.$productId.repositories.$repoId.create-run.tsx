@@ -455,13 +455,25 @@ const CreateRunPage = () => {
                           <div className='flex items-center space-x-3'>
                             <Checkbox
                               id='check-all-pms'
-                              checked={packageManagers.every((pm) =>
-                                form
-                                  .getValues(
-                                    'jobConfigs.analyzer.enabledPackageManagers'
-                                  )
-                                  .includes(pm.id)
-                              )}
+                              checked={
+                                packageManagers.every((pm) =>
+                                  form
+                                    .getValues(
+                                      'jobConfigs.analyzer.enabledPackageManagers'
+                                    )
+                                    .includes(pm.id)
+                                )
+                                  ? true
+                                  : packageManagers.some((pm) =>
+                                        form
+                                          .getValues(
+                                            'jobConfigs.analyzer.enabledPackageManagers'
+                                          )
+                                          .includes(pm.id)
+                                      )
+                                    ? 'indeterminate'
+                                    : false
+                              }
                               onCheckedChange={(checked) => {
                                 const enabledPackageManagers = checked
                                   ? packageManagers.map((pm) => pm.id)
@@ -575,11 +587,23 @@ const CreateRunPage = () => {
                           <div className='flex items-center space-x-3'>
                             <Checkbox
                               id='check-all-ads'
-                              checked={advisors.every((ad) =>
-                                form
-                                  .getValues('jobConfigs.advisor.advisors')
-                                  .includes(ad.id)
-                              )}
+                              checked={
+                                advisors.every((ad) =>
+                                  form
+                                    .getValues('jobConfigs.advisor.advisors')
+                                    .includes(ad.id)
+                                )
+                                  ? true
+                                  : advisors.some((ad) =>
+                                        form
+                                          .getValues(
+                                            'jobConfigs.advisor.advisors'
+                                          )
+                                          .includes(ad.id)
+                                      )
+                                    ? 'indeterminate'
+                                    : false
+                              }
                               onCheckedChange={(checked) => {
                                 const enabledAdvisors = checked
                                   ? advisors.map((ad) => ad.id)
@@ -761,11 +785,23 @@ const CreateRunPage = () => {
                           <div className='flex items-center space-x-3'>
                             <Checkbox
                               id='check-all-formats'
-                              checked={reportFormats.every((format) =>
-                                form
-                                  .getValues('jobConfigs.reporter.formats')
-                                  .includes(format.id)
-                              )}
+                              checked={
+                                reportFormats.every((format) =>
+                                  form
+                                    .getValues('jobConfigs.reporter.formats')
+                                    .includes(format.id)
+                                )
+                                  ? true
+                                  : reportFormats.some((format) =>
+                                        form
+                                          .getValues(
+                                            'jobConfigs.reporter.formats'
+                                          )
+                                          .includes(format.id)
+                                      )
+                                    ? 'indeterminate'
+                                    : false
+                              }
                               onCheckedChange={(checked) => {
                                 const enabledReportFormats = checked
                                   ? reportFormats.map((format) => format.id)
