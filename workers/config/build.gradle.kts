@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.ortScriptingUtils)
     implementation(libs.typesafeConfig)
 
+    runtimeOnly(projects.config.git)
     runtimeOnly(projects.config.github)
     runtimeOnly(projects.config.local)
     runtimeOnly(projects.config.secretFile)
