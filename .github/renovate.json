@@ -17,7 +17,7 @@
       "enabled": false
     },
     {
-      "matchPackageNames": ["aws.sdk.kotlin:s3"],
+      "matchPackagePrefixes": ["aws.sdk.kotlin:"],
       "schedule": ["after 9pm on sunday"]
     },
     {
