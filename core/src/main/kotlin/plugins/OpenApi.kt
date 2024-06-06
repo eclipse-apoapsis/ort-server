@@ -79,7 +79,10 @@ fun Application.configureOpenApi() {
         }
 
         server {
-            url = "http://localhost:8080"
+            val scheme = config.property("ktor.deployment.publicScheme").getString()
+            val fqdn = config.property("ktor.deployment.publicFqdn").getString()
+            val port = config.property("ktor.deployment.publicPort").getString()
+            url = "$scheme://$fqdn:$port"
             description = "Local ORT server"
         }
 
