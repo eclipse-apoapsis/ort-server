@@ -91,14 +91,14 @@ class SqsMessageSenderFactoryTest : StringSpec({
 
         val receiveResponse = client.receiveMessage(receiveRequest)
 
-        receiveResponse.messages.shouldNotBeNull().run {
+        receiveResponse.messages shouldNotBeNull {
             shouldHaveSize(1)
 
-            first().messageAttributes.shouldNotBeNull().run {
+            first().messageAttributes shouldNotBeNull {
                 toMessageHeader() shouldBe header
             }
 
-            first().body.shouldNotBeNull().run {
+            first().body shouldNotBeNull {
                 serializer.fromJson(this) shouldBe payload
             }
         }
