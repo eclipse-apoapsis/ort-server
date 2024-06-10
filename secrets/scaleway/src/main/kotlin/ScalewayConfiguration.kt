@@ -19,13 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.scaleway
 
-import com.typesafe.config.ConfigException
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.config.getEnumOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
 internal const val NAME_OF_SERVER_URL = "scwServerUrl"
@@ -33,22 +32,6 @@ internal const val NAME_OF_API_VERSION = "scwApiVersion"
 internal const val NAME_OF_REGION = "scwRegion"
 internal const val NAME_OF_SECRET_KEY = "scwSecretKey"
 internal const val NAME_OF_PROJECT_ID = "scwProjectId"
-
-private inline fun <reified E : Enum<E>> ConfigManager.getEnumOrDefault(path: String, default: E): E =
-    runCatching {
-        getEnum(E::class.java, path)
-    }.getOrElse {
-        when (it) {
-            is ConfigException.Missing -> default
-
-            is ConfigException.BadValue -> {
-                val enumValue = getString(path)
-                enumValues<E>().single { value -> value.toString() == enumValue }
-            }
-
-            else -> throw it
-        }
-    }
 
 data class ScalewayConfiguration(
     val serverUrl: String = DEFAULT_SERVER_URL,
