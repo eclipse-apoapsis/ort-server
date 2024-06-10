@@ -28,11 +28,11 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
-private const val NAME_OF_SERVER_URL = "scwServerUrl"
-private const val NAME_OF_API_VERSION = "scwApiVersion"
-private const val NAME_OF_REGION = "scwRegion"
-private const val NAME_OF_SECRET_KEY = "scwSecretKey"
-private const val NAME_OF_PROJECT_ID = "scwProjectId"
+internal const val NAME_OF_SERVER_URL = "scwServerUrl"
+internal const val NAME_OF_API_VERSION = "scwApiVersion"
+internal const val NAME_OF_REGION = "scwRegion"
+internal const val NAME_OF_SECRET_KEY = "scwSecretKey"
+internal const val NAME_OF_PROJECT_ID = "scwProjectId"
 
 private inline fun <reified E : Enum<E>> ConfigManager.getEnumOrDefault(path: String, default: E): E =
     @Suppress("SwallowedException")
