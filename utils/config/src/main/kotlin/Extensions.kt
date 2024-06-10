@@ -22,6 +22,7 @@
 package org.eclipse.apoapsis.ortserver.utils.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -39,6 +40,26 @@ fun Config.getBooleanOrNull(path: String): Boolean? = withPath(path)?.getBoolean
  */
 fun Config.getConfigOrEmpty(path: String): Config =
     if (hasPath(path)) getConfig(path) else ConfigFactory.empty()
+
+/**
+ * Return the enum value with the [path] or [default] if it cannot be found. The enum is first looked up by name, but as
+ * a fallback also by string representation.
+ */
+inline fun <reified E : Enum<E>> Config.getEnumOrDefault(path: String, default: E): E =
+    runCatching {
+        getEnum(E::class.java, path)
+    }.getOrElse {
+        when (it) {
+            is ConfigException.Missing -> default
+
+            is ConfigException.BadValue -> {
+                val enumValue = getString(path)
+                enumValues<E>().single { value -> value.toString() == enumValue }
+            }
+
+            else -> throw it
+        }
+    }
 
 /**
  * Return the int value with the given [path] or [default] if it cannot be found.
