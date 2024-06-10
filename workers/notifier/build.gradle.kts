@@ -55,6 +55,7 @@ dependencies {
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.kubernetes)
     runtimeOnly(projects.transport.rabbitmq)
+    runtimeOnly(projects.transport.sqs)
 
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)

@@ -62,6 +62,7 @@ dependencies {
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.kubernetes)
     runtimeOnly(projects.transport.rabbitmq)
+    runtimeOnly(projects.transport.sqs)
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
