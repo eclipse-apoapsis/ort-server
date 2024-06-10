@@ -55,6 +55,7 @@ dependencies {
     runtimeOnly(projects.config.local)
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.secrets.file)
+    runtimeOnly(projects.secrets.scaleway)
     runtimeOnly(projects.secrets.vault)
     runtimeOnly(projects.storage.database)
     runtimeOnly(projects.storage.s3)
