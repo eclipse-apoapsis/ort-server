@@ -36,6 +36,14 @@ class ScalewayConfigurationTest : StringSpec({
         config.apiVersion shouldBe ScalewayApiVersion.V1_BETA1
         config.region shouldBe DEFAULT_REGION
     }
+
+    "Configuration can be created from enum strings" {
+        val scalewayProperties = mapOf(NAME_OF_API_VERSION to "v1beta1", NAME_OF_PROJECT_ID to "projectId")
+        val config = ScalewayConfiguration.create(createConfigManager(scalewayProperties))
+
+        config.apiVersion shouldBe ScalewayApiVersion.V1_BETA1
+        config.region shouldBe DEFAULT_REGION
+    }
 })
 
 /**

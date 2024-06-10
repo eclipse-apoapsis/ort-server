@@ -35,11 +35,19 @@ internal const val NAME_OF_SECRET_KEY = "scwSecretKey"
 internal const val NAME_OF_PROJECT_ID = "scwProjectId"
 
 private inline fun <reified E : Enum<E>> ConfigManager.getEnumOrDefault(path: String, default: E): E =
-    @Suppress("SwallowedException")
-    try {
+    runCatching {
         getEnum(E::class.java, path)
-    } catch (e: ConfigException.Missing) {
-        default
+    }.getOrElse {
+        when (it) {
+            is ConfigException.Missing -> default
+
+            is ConfigException.BadValue -> {
+                val enumValue = getString(path)
+                enumValues<E>().single { value -> value.toString() == enumValue }
+            }
+
+            else -> throw it
+        }
     }
 
 data class ScalewayConfiguration(
