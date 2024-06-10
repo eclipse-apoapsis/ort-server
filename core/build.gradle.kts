@@ -86,6 +86,7 @@ dependencies {
     runtimeOnly(projects.storage.s3)
     runtimeOnly(projects.transport.activemqartemis)
     runtimeOnly(projects.transport.rabbitmq)
+    runtimeOnly(projects.transport.sqs)
 
     runtimeOnly(libs.logback)
 
