@@ -30,6 +30,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContainAll
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -49,8 +50,6 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
-
-import org.ossreviewtoolkit.utils.test.shouldNotBeNull
 
 class KubernetesMessageSenderTest : StringSpec({
     "Kubernetes jobs are created via the sender" {
