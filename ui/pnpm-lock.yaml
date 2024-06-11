@@ -67,7 +67,7 @@ importers:
         version: 8.17.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/router-devtools':
         specifier: ^1.33.7
-        version: 1.35.6(@tanstack/react-router@1.35.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.36.0(@tanstack/react-router@1.35.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1263,8 +1263,8 @@ packages:
     engines: {node: '>=12'}
     hasBin: true
 
-  '@tanstack/router-devtools@1.35.6':
-    resolution: {integrity: sha512-ilWypB+l/aVuwRkbc6WpBHsgW7FGNRnYkGd05iI4Il6CGO0HPCpXvW91rJNQeVgcgRvIiLRdiGOA6Qho3OJe/Q==}
+  '@tanstack/router-devtools@1.36.0':
+    resolution: {integrity: sha512-n1wX79RldSYrEPbqF2h4mD4v5tk78OONwdMuqMOYk/RuExWXUpC65uoAqrXCzpy37TqssBNqKXiREPiSIomHSw==}
     engines: {node: '>=12'}
     peerDependencies:
       '@tanstack/react-router': ^1.35.6
@@ -3829,7 +3829,7 @@ snapshots:
       chokidar: 3.6.0
       yargs: 17.7.2
 
-  '@tanstack/router-devtools@1.35.6(@tanstack/react-router@1.35.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tanstack/router-devtools@1.36.0(@tanstack/react-router@1.35.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/react-router': 1.35.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       clsx: 2.1.1
