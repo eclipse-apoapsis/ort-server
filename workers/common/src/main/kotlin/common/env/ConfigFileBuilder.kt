@@ -58,6 +58,26 @@ class ConfigFileBuilder(val context: WorkerContext) {
         }
 
         /**
+         * Execute the given [block] to generate a proxy configuration section if necessary. This function checks
+         * whether a proxy is (at least partially) defined based on the typical environment variables. If this is the
+         * case, the given [block] is invoked with a corresponding [ProxyConfig] and can write the specific proxy
+         * configuration.
+         */
+        fun PrintWriter.printProxySettings(block: PrintWriter.(ProxyConfig) -> Unit) {
+            val proxySettings = ProxyVariables.entries.associateWith { it.getValue() }.filterValues { it != null }
+
+            if (proxySettings.isNotEmpty()) {
+                val proxyConfig = ProxyConfig(
+                    httpProxy = proxySettings[ProxyVariables.HTTP_PROXY],
+                    httpsProxy = proxySettings[ProxyVariables.HTTPS_PROXY],
+                    noProxy = proxySettings[ProxyVariables.NO_PROXY]
+                )
+
+                this.block(proxyConfig)
+            }
+        }
+
+        /**
          * Generate a unique name for a secret reference. The name is based on a random number. Therefore, it should
          * not appear in other parts of the generated file, and no escaping needs to be implemented.
          */
@@ -113,3 +133,32 @@ class ConfigFileBuilder(val context: WorkerContext) {
         return ref
     }
 }
+
+/**
+ * An enumeration class to represent the typical environment variables that define proxy settings.
+ */
+enum class ProxyVariables(private val variableName: String) {
+    HTTP_PROXY("HTTP_PROXY"),
+    HTTPS_PROXY("HTTPS_PROXY"),
+    NO_PROXY("NO_PROXY");
+
+    /**
+     * Return the value of the environment variable represented by this enum constant. Return *null* if the variable
+     * is not defined.
+     */
+    fun getValue(): String? = System.getenv(variableName) ?: System.getenv(variableName.lowercase())
+}
+
+/**
+ * A data class holding the single properties to define a proxy server.
+ *
+ * Some of the configuration files created via [ConfigFileBuilder] can contain a proxy configuration. Therefore,
+ * writing such a section is supported by the builder. [ConfigFileBuilder] checks whether a proxy is configured for
+ * the system based on the typical environment variables. If so, it creates an instance of this class to hold the
+ * settings. Note that all properties are nullable, since a proxy configuration may be partially defined only.
+ */
+data class ProxyConfig(
+    val httpProxy: String?,
+    val httpsProxy: String?,
+    val noProxy: String?
+)

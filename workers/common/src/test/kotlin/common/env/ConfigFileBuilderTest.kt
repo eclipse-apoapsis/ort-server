@@ -23,6 +23,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -35,6 +36,7 @@ import java.util.Properties
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 
 class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {
@@ -115,6 +117,81 @@ class ConfigFileBuilderTest : StringSpec({
 
         val file = tempDir.resolve(fileName)
         file.readLines() shouldContainExactly listOf(content)
+    }
+
+    "A proxy configuration can be generated" {
+        val httpProxy = "http://proxy.example.com:8080"
+        val httpsProxy = "https://proxy2.example.com:8080"
+        val noProxy = "localhost,foo.bar"
+        val file = tempfile()
+
+        val envMap = mapOf(
+            "http_proxy" to httpProxy,
+            "https_proxy" to httpsProxy,
+            "no_proxy" to noProxy
+        )
+        withEnvironment(envMap, OverrideMode.SetOrOverride) {
+            val builder = ConfigFileBuilder(createContextMock())
+            builder.build(file) {
+                printProxySettings { proxy ->
+                    println("http_proxy = ${proxy.httpProxy}")
+                    println("https_proxy = ${proxy.httpsProxy}")
+                    println("no_proxy = ${proxy.noProxy}")
+                }
+            }
+        }
+
+        file.readLines() shouldContainExactly listOf(
+            "http_proxy = $httpProxy",
+            "https_proxy = $httpsProxy",
+            "no_proxy = $noProxy"
+        )
+    }
+
+    "The proxy configuration handles environment variables with different case" {
+        val httpProxy = "http://proxy.example.com:8080"
+        val httpsProxy = "https://proxy2.example.com:8080"
+        val noProxy = "localhost,foo.bar"
+        val file = tempfile()
+
+        val envMap = mapOf(
+            "HTTP_PROXY" to httpProxy,
+            "HTTPS_PROXY" to httpsProxy,
+            "NO_PROXY" to noProxy
+        )
+        withEnvironment(envMap, OverrideMode.SetOrOverride) {
+            val builder = ConfigFileBuilder(createContextMock())
+            builder.build(file) {
+                printProxySettings { proxy ->
+                    println("http_proxy = ${proxy.httpProxy}")
+                    println("https_proxy = ${proxy.httpsProxy}")
+                    println("no_proxy = ${proxy.noProxy}")
+                }
+            }
+        }
+
+        file.readLines() shouldContainExactly listOf(
+            "http_proxy = $httpProxy",
+            "https_proxy = $httpsProxy",
+            "no_proxy = $noProxy"
+        )
+    }
+
+    "No proxy configuration is generated if no proxy settings exist" {
+        val envMap = mapOf(
+            "HTTP_PROXY" to null,
+            "HTTPS_PROXY" to null,
+            "NO_PROXY" to null
+        )
+
+        withEnvironment(envMap, OverrideMode.SetOrOverride) {
+            val builder = ConfigFileBuilder(createContextMock())
+            builder.build(tempfile()) {
+                printProxySettings {
+                    throw IllegalStateException("This block should not be called.")
+                }
+            }
+        }
     }
 })
 
