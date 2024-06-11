@@ -19,10 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import java.io.PrintWriter
+
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
 
@@ -36,12 +39,14 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         /** The name of the configuration file created by this generator. */
         private const val TARGET = ".npmrc"
 
-        /** A map with proxy settings that are added to the generated file if the corresponding variables are set. */
-        private val proxySettings = mapOf(
-            "proxy" to "HTTP_PROXY",
-            "https-proxy" to "HTTPS_PROXY",
-            "noproxy" to "NO_PROXY"
-        )
+        /** The NPM configuration option to define the HTTP proxy. */
+        private const val PROXY_SETTING = "proxy"
+
+        /** The NPM configuration option to define the HTTPS proxy. */
+        private const val HTTPS_PROXY_SETTING = "https-proxy"
+
+        /** The NPM configuration option to define the no proxy setting. */
+        private const val NO_PROXY_SETTING = "noproxy"
 
         /**
          * Return the value of this string base64 encoded.
@@ -51,21 +56,11 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
             Base64.encode(toByteArray())
 
         /**
-         * Generate a configuration setting for te given [key] if an environment [variable] exists either with the
-         * provided name of in lower case.
+         * Generate a part of the proxy configuration based on the given [key] and [value]. Do not output anything if
+         * the value is undefined.
          */
-        private fun settingFromEnv(key: String, variable: String): String? {
-            val value = System.getenv(variable) ?: System.getenv(variable.lowercase())
-
-            return value?.let { "$key=$it" }
-        }
-
-        /**
-         * Generate proxy settings to be included in the generated configuration file based on existing environment
-         * variables.
-         */
-        private fun generateProxySettings(): List<String> = proxySettings.mapNotNull { (key, variable) ->
-            settingFromEnv(key, variable)
+        private fun PrintWriter.printProxySetting(key: String, value: String?) {
+            value?.let { println("$key=$it") }
         }
     }
 
@@ -96,9 +91,11 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 }
             }
 
-            generateProxySettings().takeUnless { it.isEmpty() }?.let { proxySettings ->
+            printProxySettings { proxyConfig ->
                 println()
-                proxySettings.forEach { println(it) }
+                printProxySetting(PROXY_SETTING, proxyConfig.httpProxy)
+                printProxySetting(HTTPS_PROXY_SETTING, proxyConfig.httpsProxy)
+                printProxySetting(NO_PROXY_SETTING, proxyConfig.noProxy)
             }
         }
     }
