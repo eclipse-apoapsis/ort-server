@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.common.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
@@ -168,6 +170,55 @@ class YarnRcGeneratorTest : WordSpec({
             )
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
+        }
+
+        "generate proxy configuration" {
+            val proxyHttp = "http://proxy.example.com:8080"
+            val proxyHttps = "https://proxy2.example.com:8080"
+            val environment = mapOf(
+                "HTTP_PROXY" to proxyHttp,
+                "HTTPS_PROXY" to proxyHttps
+            )
+
+            val definition = YarnDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI),
+                null
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            withEnvironment(environment, OverrideMode.SetOrOverride) {
+                YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
+            }
+
+            mockBuilder.generatedLines().take(3) shouldContainExactly listOf(
+                "httpProxy: \"$proxyHttp\"",
+                "httpsProxy: \"$proxyHttps\"",
+                ""
+            )
+        }
+
+        "drop undefined settings from the proxy configuration" {
+            val proxyHttps = "https://sec-proxy.example.com:8080"
+            val environment = mapOf(
+                "HTTPS_PROXY" to proxyHttps
+            )
+
+            val definition = YarnDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI),
+                null
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            withEnvironment(environment, OverrideMode.SetOrOverride) {
+                YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
+            }
+
+            mockBuilder.generatedLines().take(2) shouldContainExactly listOf(
+                "httpsProxy: \"$proxyHttps\"",
+                ""
+            )
         }
     }
 })
