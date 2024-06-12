@@ -475,7 +475,7 @@ ENV PATH=$PATH:$HASKELL_HOME/bin
 COPY --from=haskell --chown=$USER:$USER $HASKELL_HOME $HASKELL_HOME
 
 # Make sure the user executing the container has access rights in the home directory.
-RUN sudo chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
+RUN sudo chgrp -R 0 /home/ort && sudo chmod -R g+rwX /home/ort
 
 USER $USERNAME
 WORKDIR $HOMEDIR
