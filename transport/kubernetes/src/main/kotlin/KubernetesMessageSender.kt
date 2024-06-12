@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -90,7 +89,6 @@ internal class KubernetesMessageSender<T : Any>(
 
     override fun send(message: Message<T>) {
         val msgMap = mapOf(
-            TOKEN_PROPERTY to message.header.token,
             TRACE_PROPERTY to message.header.traceId,
             RUN_ID_PROPERTY to message.header.ortRunId.toString(),
             "payload" to serializer.toJson(message.payload)

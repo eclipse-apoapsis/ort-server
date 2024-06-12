@@ -53,11 +53,10 @@ import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
 private const val ADVISOR_JOB_ID = 1L
-private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 private const val VULNERABLE_CODE_API_KEY = "vulnerable_code_api_key"
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 23)
+private val messageHeader = MessageHeader(TRACE_ID, 23)
 
 private val advisorRequest = AdvisorRequest(
     advisorJobId = ADVISOR_JOB_ID

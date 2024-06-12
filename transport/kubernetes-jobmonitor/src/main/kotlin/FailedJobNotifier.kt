@@ -50,7 +50,7 @@ internal class FailedJobNotifier(
             val ortRunId = job.ortRunId
 
             if (traceId.isNotEmpty() && ortRunId != null) {
-                val header = MessageHeader(token = "", traceId = traceId, ortRunId)
+                val header = MessageHeader(traceId = traceId, ortRunId)
                 val message = Message(header, WorkerError(endpointName))
 
                 sendToOrchestrator(message)
@@ -63,7 +63,7 @@ internal class FailedJobNotifier(
      * Orchestrator about jobs that disappeared in Kubernetes.
      */
     fun sendLostJobNotification(ortRunId: Long, endpoint: Endpoint<*>) {
-        val header = MessageHeader(token = "", traceId = "", ortRunId)
+        val header = MessageHeader(traceId = "", ortRunId)
         val message = Message(header, WorkerError(endpoint.configPrefix))
 
         sendToOrchestrator(message)

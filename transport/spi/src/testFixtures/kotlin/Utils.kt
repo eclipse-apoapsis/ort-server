@@ -76,13 +76,12 @@ fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<Orc
 }
 
 /**
- * Check that the next message in this queue has the given [token], [traceId], [runId], and [payload].
+ * Check that the next message in this queue has the given [traceId], [runId], and [payload].
  */
-fun <T> BlockingQueue<Message<T>>.checkMessage(token: String, traceId: String, runId: Long, payload: T) {
+fun <T> BlockingQueue<Message<T>>.checkMessage(traceId: String, runId: Long, payload: T) {
     val message = poll(5, TimeUnit.SECONDS)
 
     message.shouldNotBeNull()
-    message.header.token shouldBe token
     message.header.traceId shouldBe traceId
     message.header.ortRunId shouldBe runId
     message.payload shouldBe payload

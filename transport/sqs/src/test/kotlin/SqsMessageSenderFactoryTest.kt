@@ -67,7 +67,7 @@ class SqsMessageSenderFactoryTest : StringSpec({
     }
 
     "Messages can be sent via the sender" {
-        val header = MessageHeader("token", "traceId", 47)
+        val header = MessageHeader("traceId", 47)
         val payload = AnalyzerWorkerResult(11)
         val message = Message(header, payload)
 

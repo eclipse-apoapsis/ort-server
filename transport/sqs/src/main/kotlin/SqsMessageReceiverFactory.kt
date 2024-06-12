@@ -34,7 +34,6 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -42,7 +41,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(SqsMessageReceiverFactory::class.java)
 
-internal val messageAttributeNames = listOf(TOKEN_PROPERTY, TRACE_PROPERTY, RUN_ID_PROPERTY)
+internal val messageAttributeNames = listOf(TRACE_PROPERTY, RUN_ID_PROPERTY)
 
 /**
  * A [MessageReceiverFactory] implementation for AWS SQS.
@@ -115,10 +114,6 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
 }
 
 internal fun Map<String, MessageAttributeValue>.toMessageHeader(): MessageHeader {
-    val token = checkNotNull(get(TOKEN_PROPERTY)?.stringValue) {
-        "The token attribute is not a valid string value."
-    }
-
     val traceId = checkNotNull(get(TRACE_PROPERTY)?.stringValue) {
         "The trace ID attribute is not a valid string value."
     }
@@ -127,5 +122,5 @@ internal fun Map<String, MessageAttributeValue>.toMessageHeader(): MessageHeader
         "The ORT run ID attribute is not a valid long value."
     }
 
-    return MessageHeader(token, traceId, ortRunId)
+    return MessageHeader(traceId, ortRunId)
 }

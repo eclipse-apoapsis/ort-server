@@ -55,11 +55,9 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
 
             val messageQueue = startReceiver(config)
 
-            val token1 = "token1"
             val traceId1 = "trace1"
             val runId1 = 1L
             val payload1 = AnalyzerWorkerError(1)
-            val token2 = "token2"
             val traceId2 = "trace2"
             val runId2 = 2L
             val payload2 = AnalyzerWorkerResult(42)
@@ -67,19 +65,19 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             channel.basicPublish(
                 "",
                 TEST_QUEUE_NAME,
-                MessageHeader(token1, traceId1, runId1).toAmqpProperties(),
+                MessageHeader(traceId1, runId1).toAmqpProperties(),
                 serializer.toJson(payload1).toByteArray()
             )
 
             channel.basicPublish(
                 "",
                 TEST_QUEUE_NAME,
-                MessageHeader(token2, traceId2, runId2).toAmqpProperties(),
+                MessageHeader(traceId2, runId2).toAmqpProperties(),
                 serializer.toJson(payload2).toByteArray()
             )
 
-            messageQueue.checkMessage(token1, traceId1, runId1, payload1)
-            messageQueue.checkMessage(token2, traceId2, runId2, payload2)
+            messageQueue.checkMessage(traceId1, runId1, payload1)
+            messageQueue.checkMessage(traceId2, runId2, payload2)
         }
     }
 
@@ -107,22 +105,21 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             channel.basicPublish(
                 "",
                 TEST_QUEUE_NAME,
-                MessageHeader("tokenInvalid", "traceIdInvalid", -1).toAmqpProperties(),
+                MessageHeader("traceIdInvalid", -1).toAmqpProperties(),
                 "Invalid payload".toByteArray()
             )
 
-            val token = "validtoken"
             val traceId = "validtrace"
             val runId = 10L
             val payload = AnalyzerWorkerResult(42)
             channel.basicPublish(
                 "",
                 TEST_QUEUE_NAME,
-                MessageHeader(token, traceId, runId).toAmqpProperties(),
+                MessageHeader(traceId, runId).toAmqpProperties(),
                 serializer.toJson(payload).toByteArray()
             )
 
-            messageQueue.checkMessage(token, traceId, runId, payload)
+            messageQueue.checkMessage(traceId, runId, payload)
         }
     }
 })

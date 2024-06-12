@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.transport
 
-/** Name of the message property that stores the access token. */
-const val TOKEN_PROPERTY = "token"
-
 /** Name of the message property that stores the trace ID. */
 const val TRACE_PROPERTY = "traceId"
 
@@ -33,12 +30,6 @@ const val RUN_ID_PROPERTY = "runId"
  * defined here, additional metadata about messages is provided.
  */
 data class MessageHeader(
-    /**
-     * The access token associated with the current request. This property can be used to get information about the
-     * caller who triggered this request.
-     */
-    val token: String,
-
     /**
      * An identifier for the current request. This purpose of this string is to allow a correlation of multiple
      * messages that are exchanged to handle a single request.

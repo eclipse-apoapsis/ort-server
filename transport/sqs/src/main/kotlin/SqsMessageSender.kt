@@ -30,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -58,10 +57,6 @@ class SqsMessageSender<T : Any>(
 
 internal fun MessageHeader.toMessageAttributes() =
     mapOf(
-        TOKEN_PROPERTY to MessageAttributeValue {
-            stringValue = token
-            dataType = "String"
-        },
         TRACE_PROPERTY to MessageAttributeValue {
             stringValue = traceId
             dataType = "String"

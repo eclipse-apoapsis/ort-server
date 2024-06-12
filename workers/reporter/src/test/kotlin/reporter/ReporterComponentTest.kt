@@ -54,13 +54,12 @@ import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
 
 private const val REPORTER_JOB_ID = 1L
-private const val TOKEN = "token"
 private const val TRACE_ID = "42"
 private const val DOWNLOAD_LINK_PREFIX = "https://report.example.org/download/"
 private const val TOKEN_LENGTH = 77
 private const val TOKEN_VALIDITY = 101
 
-private val messageHeader = MessageHeader(TOKEN, TRACE_ID, 26)
+private val messageHeader = MessageHeader(TRACE_ID, 26)
 
 private val reporterRequest = ReporterRequest(REPORTER_JOB_ID)
 

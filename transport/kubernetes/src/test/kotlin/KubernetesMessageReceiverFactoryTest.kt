@@ -39,7 +39,6 @@ import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 
 class KubernetesMessageReceiverFactoryTest : StringSpec({
@@ -54,10 +53,9 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
 
     "Messages can be received via the Kubernetes transport" {
         val payload = AnalyzerRequest(1)
-        val header = MessageHeader(token = "testToken", traceId = "testTraceId", ortRunId = 33)
+        val header = MessageHeader(traceId = "testTraceId", ortRunId = 33)
 
         val env = mapOf(
-            TOKEN_PROPERTY to header.token,
             TRACE_PROPERTY to header.traceId,
             RUN_ID_PROPERTY to header.ortRunId.toString(),
             "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
@@ -78,7 +76,6 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             }
 
             receivedMessage.shouldNotBeNull {
-                this.header.token shouldBe header.token
                 this.header.traceId shouldBe header.traceId
                 this.header.ortRunId shouldBe header.ortRunId
                 this.payload shouldBe payload
@@ -92,10 +89,9 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
 
     "The process is terminated even if an exception is thrown by the handler" {
         val payload = AnalyzerRequest(1)
-        val header = MessageHeader(token = "testToken", traceId = "testTraceId", ortRunId = 7)
+        val header = MessageHeader(traceId = "testTraceId", ortRunId = 7)
 
         val env = mapOf(
-            TOKEN_PROPERTY to header.token,
             TRACE_PROPERTY to header.traceId,
             RUN_ID_PROPERTY to header.ortRunId.toString(),
             "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
