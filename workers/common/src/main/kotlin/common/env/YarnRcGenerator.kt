@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import java.io.PrintWriter
+
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
 
@@ -31,12 +34,25 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
     companion object {
         /** The name of the configuration file created by this generator. */
         private const val TARGET = ".yarnrc.yml"
+
+        /**
+         * Print a line for the given [key] and [value] if the value is not null.
+         */
+        private fun PrintWriter.printOptionalSetting(key: String, value: String?) {
+            value?.let { println("$key: \"$value\"") }
+        }
     }
 
     override val environmentDefinitionType: Class<YarnDefinition> = YarnDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<YarnDefinition>) {
         builder.buildInUserHome(TARGET) {
+            printProxySettings { proxyConfig ->
+                printOptionalSetting("httpProxy", proxyConfig.httpProxy)
+                printOptionalSetting("httpsProxy", proxyConfig.httpsProxy)
+                println()
+            }
+
             println("npmRegistries:")
             definitions.forEachIndexed { index, definition ->
                 if (index > 0) {
