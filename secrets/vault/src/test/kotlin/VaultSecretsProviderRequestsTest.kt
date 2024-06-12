@@ -28,9 +28,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
-import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.core.test.TestCase
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret
@@ -40,48 +38,46 @@ import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
  * A test class for [VaultSecretsProvider] that tests specific requests against the Vault API which are not supported
  * by the Vault test-containers implementation. Therefore, a mock server is used here.
  */
-class VaultSecretsProviderRequestsTest : StringSpec() {
-    private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+class VaultSecretsProviderRequestsTest : StringSpec({
+    val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
 
-    override suspend fun beforeSpec(spec: Spec) {
+    beforeSpec {
         server.start()
     }
 
-    override suspend fun afterSpec(spec: Spec) {
+    afterSpec {
         server.stop()
     }
 
-    override suspend fun beforeEach(testCase: TestCase) {
+    beforeEach {
         server.prepare()
     }
 
-    init {
-        "The prefix path can be configured" {
-            val prefix = "customPrefix"
-            val path = "to/my/secret"
-            val config = VaultConfiguration(server.vaultUrl(), credentials, "", prefix = prefix)
-            val provider = VaultSecretsProvider(config)
+    "The prefix path can be configured" {
+        val prefix = "customPrefix"
+        val path = "to/my/secret"
+        val config = VaultConfiguration(server.vaultUrl(), credentials, "", prefix = prefix)
+        val provider = VaultSecretsProvider(config)
 
-            provider.writeSecret(Path(path), Secret("secret"))
+        provider.writeSecret(Path(path), Secret("secret"))
 
-            server.verify(postRequestedFor(urlPathEqualTo("/v1/$prefix/data/$path")))
-        }
-
-        "The namespace can be configured" {
-            val namespace = "custom/namespace"
-            val path = "my/secret/in/namespace"
-            val config = VaultConfiguration(server.vaultUrl(), credentials, "", namespace = namespace)
-            val provider = VaultSecretsProvider(config)
-
-            provider.writeSecret(Path(path), Secret("secretInNamespace"))
-
-            server.verify(
-                postRequestedFor(urlPathEqualTo("/v1/secret/data/$path"))
-                    .withHeader("X-Vault-Namespace", equalTo(namespace))
-            )
-        }
+        server.verify(postRequestedFor(urlPathEqualTo("/v1/$prefix/data/$path")))
     }
-}
+
+    "The namespace can be configured" {
+        val namespace = "custom/namespace"
+        val path = "my/secret/in/namespace"
+        val config = VaultConfiguration(server.vaultUrl(), credentials, "", namespace = namespace)
+        val provider = VaultSecretsProvider(config)
+
+        provider.writeSecret(Path(path), Secret("secretInNamespace"))
+
+        server.verify(
+            postRequestedFor(urlPathEqualTo("/v1/secret/data/$path"))
+                .withHeader("X-Vault-Namespace", equalTo(namespace))
+        )
+    }
+})
 
 /** Credentials to log in into the Vault server. */
 private val credentials = VaultCredentials("someRole", "someSecret")

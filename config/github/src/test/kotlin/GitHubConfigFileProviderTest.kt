@@ -35,9 +35,7 @@ import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.core.test.TestCase
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -63,165 +61,163 @@ import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Com
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_OWNER
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.TOKEN
 
-class GitHubConfigFileProviderTest : WordSpec() {
-    override suspend fun beforeSpec(spec: Spec) {
+class GitHubConfigFileProviderTest : WordSpec({
+    beforeSpec {
         server.start()
     }
 
-    override suspend fun afterSpec(spec: Spec) {
+    afterSpec {
         server.stop()
     }
 
-    override suspend fun beforeEach(testCase: TestCase) {
+    beforeEach {
         server.resetAll()
     }
 
-    init {
-        "resolveContext" should {
-            "resolve a context successfully" {
-                server.stubExistingRevision()
+    "resolveContext" should {
+        "resolve a context successfully" {
+            server.stubExistingRevision()
 
-                val provider = getProvider()
+            val provider = getProvider()
 
-                val resolvedContext = provider.resolveContext(Context(REVISION))
-                resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
-            }
-
-            "resolve the default context successfully" {
-                server.stubExistingRevision()
-
-                val provider = getProvider()
-
-                val resolvedContext = provider.resolveContext(ConfigManager.DEFAULT_CONTEXT)
-
-                resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
-            }
-
-            "throw exception if response doesn't contain SHA-1 commit ID" {
-                server.stubMissingRevision()
-
-                val provider = getProvider()
-
-                val exception = shouldThrow<NoSuchFieldException> {
-                    provider.resolveContext(Context(REVISION + 1))
-                }
-
-                exception.message shouldContain "SHA-1"
-                exception.message shouldContain "commit"
-                exception.message shouldContain "branch"
-                exception.message shouldContain REVISION + 1
-            }
-
-            "throw exception if the branch does not exist" {
-                server.stubRevisionNotFound()
-
-                val provider = getProvider()
-
-                val exception = shouldThrow<ConfigException> {
-                    provider.resolveContext(Context(REVISION + NOT_FOUND))
-                }
-
-                exception.message shouldContain "branch"
-                exception.message shouldContain REVISION + NOT_FOUND
-                exception.message shouldContain "repository"
-                exception.message shouldContain REPOSITORY
-            }
+            val resolvedContext = provider.resolveContext(Context(REVISION))
+            resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
 
-        "getFile" should {
-            "successfully retrieve a file" {
-                server.stubRawFile()
+        "resolve the default context successfully" {
+            server.stubExistingRevision()
 
-                val provider = getProvider()
+            val provider = getProvider()
 
-                val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
-                    .bufferedReader(Charsets.UTF_8)
-                    .use { it.readText() }
+            val resolvedContext = provider.resolveContext(ConfigManager.DEFAULT_CONTEXT)
 
-                fileContent shouldBe CONTENT
-            }
-
-            "throw an exception if the response has a wrong content type" {
-                server.stubUnexpectedJsonContentType()
-
-                val provider = getProvider()
-
-                val exception = shouldThrow<ConfigException> {
-                    provider.getFile(Context(REVISION), Path(CONFIG_PATH + 1))
-                }
-
-                exception.message shouldContain "content type"
-                exception.message shouldContain "application/json"
-            }
-
-            "throw an exception if the path refers a directory" {
-                server.stubDirectory()
-
-                val provider = getProvider()
-
-                val exception = shouldThrow<ConfigException> {
-                    provider.getFile(Context(REVISION), Path(DIRECTORY_PATH))
-                }
-
-                exception.message shouldContain DIRECTORY_PATH
-                exception.message shouldContain "directory"
-            }
+            resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
 
-        "contains" should {
-            "return `true` if the config file is present" {
-                server.stubJsonFileContentType()
+        "throw exception if response doesn't contain SHA-1 commit ID" {
+            server.stubMissingRevision()
 
-                val provider = getProvider()
+            val provider = getProvider()
 
-                provider.contains(Context(REVISION + 1), Path(CONFIG_PATH)) shouldBe true
+            val exception = shouldThrow<NoSuchFieldException> {
+                provider.resolveContext(Context(REVISION + 1))
             }
 
-            "return `false` if the path refers a directory" {
-                server.stubDirectory()
-
-                val provider = getProvider()
-
-                provider.contains(Context(REVISION), Path(DIRECTORY_PATH)) shouldBe false
-            }
-
-            "return `false` if a `NotFound` response is received" {
-                server.stubFileNotFound()
-
-                val provider = getProvider()
-
-                provider.contains(Context(REVISION), Path(CONFIG_PATH + NOT_FOUND)) shouldBe false
-            }
+            exception.message shouldContain "SHA-1"
+            exception.message shouldContain "commit"
+            exception.message shouldContain "branch"
+            exception.message shouldContain REVISION + 1
         }
 
-        "listFiles" should {
-            "return a list of files inside a given directory" {
-                server.stubDirectory()
+        "throw exception if the branch does not exist" {
+            server.stubRevisionNotFound()
 
-                val expectedPaths = setOf(Path(CONFIG_PATH + "1"), Path(CONFIG_PATH + "2"))
+            val provider = getProvider()
 
-                val provider = getProvider()
-
-                val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
-
-                listFiles shouldContainExactlyInAnyOrder expectedPaths
+            val exception = shouldThrow<ConfigException> {
+                provider.resolveContext(Context(REVISION + NOT_FOUND))
             }
 
-            "throw an exception if the path does not refer a directory" {
-                server.stubJsonFileContentType()
-
-                val provider = getProvider()
-
-                val exception = shouldThrow<ConfigException> {
-                    provider.listFiles(Context(REVISION + 1), Path(CONFIG_PATH))
-                }
-
-                exception.message shouldContain "`$CONFIG_PATH`"
-                exception.message shouldContain "does not refer a directory."
-            }
+            exception.message shouldContain "branch"
+            exception.message shouldContain REVISION + NOT_FOUND
+            exception.message shouldContain "repository"
+            exception.message shouldContain REPOSITORY
         }
     }
-}
+
+    "getFile" should {
+        "successfully retrieve a file" {
+            server.stubRawFile()
+
+            val provider = getProvider()
+
+            val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
+
+            fileContent shouldBe CONTENT
+        }
+
+        "throw an exception if the response has a wrong content type" {
+            server.stubUnexpectedJsonContentType()
+
+            val provider = getProvider()
+
+            val exception = shouldThrow<ConfigException> {
+                provider.getFile(Context(REVISION), Path(CONFIG_PATH + 1))
+            }
+
+            exception.message shouldContain "content type"
+            exception.message shouldContain "application/json"
+        }
+
+        "throw an exception if the path refers a directory" {
+            server.stubDirectory()
+
+            val provider = getProvider()
+
+            val exception = shouldThrow<ConfigException> {
+                provider.getFile(Context(REVISION), Path(DIRECTORY_PATH))
+            }
+
+            exception.message shouldContain DIRECTORY_PATH
+            exception.message shouldContain "directory"
+        }
+    }
+
+    "contains" should {
+        "return `true` if the config file is present" {
+            server.stubJsonFileContentType()
+
+            val provider = getProvider()
+
+            provider.contains(Context(REVISION + 1), Path(CONFIG_PATH)) shouldBe true
+        }
+
+        "return `false` if the path refers a directory" {
+            server.stubDirectory()
+
+            val provider = getProvider()
+
+            provider.contains(Context(REVISION), Path(DIRECTORY_PATH)) shouldBe false
+        }
+
+        "return `false` if a `NotFound` response is received" {
+            server.stubFileNotFound()
+
+            val provider = getProvider()
+
+            provider.contains(Context(REVISION), Path(CONFIG_PATH + NOT_FOUND)) shouldBe false
+        }
+    }
+
+    "listFiles" should {
+        "return a list of files inside a given directory" {
+            server.stubDirectory()
+
+            val expectedPaths = setOf(Path(CONFIG_PATH + "1"), Path(CONFIG_PATH + "2"))
+
+            val provider = getProvider()
+
+            val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+
+            listFiles shouldContainExactlyInAnyOrder expectedPaths
+        }
+
+        "throw an exception if the path does not refer a directory" {
+            server.stubJsonFileContentType()
+
+            val provider = getProvider()
+
+            val exception = shouldThrow<ConfigException> {
+                provider.listFiles(Context(REVISION + 1), Path(CONFIG_PATH))
+            }
+
+            exception.message shouldContain "`$CONFIG_PATH`"
+            exception.message shouldContain "does not refer a directory."
+        }
+    }
+})
 
 /** A mock for GitHub API to be used by tests. */
 private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
