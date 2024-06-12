@@ -62,7 +62,6 @@ import org.koin.test.mock.declareMock
 
 class OrchestratorEndpointTest : KoinTest, StringSpec() {
     private val msgHeader = MessageHeader(
-        token = "token",
         traceId = "traceId",
         ortRunId = 17
     )

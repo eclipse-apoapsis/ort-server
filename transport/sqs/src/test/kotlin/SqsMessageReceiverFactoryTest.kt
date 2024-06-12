@@ -48,10 +48,10 @@ class SqsMessageReceiverFactoryTest : StringSpec({
 
     lateinit var queueResponse: GetQueueUrlResponse
 
-    suspend fun GetQueueUrlResponse.sendMessage(token: String, traceId: String, ortRunId: Long, payload: String) {
+    suspend fun GetQueueUrlResponse.sendMessage(traceId: String, ortRunId: Long, payload: String) {
         val request = SendMessageRequest {
             queueUrl = this@sendMessage.queueUrl
-            messageAttributes = MessageHeader(token, traceId, ortRunId).toMessageAttributes()
+            messageAttributes = MessageHeader(traceId, ortRunId).toMessageAttributes()
             messageBody = payload
         }
 
@@ -70,34 +70,31 @@ class SqsMessageReceiverFactoryTest : StringSpec({
     "Messages can be received via the SQS transport" {
         val messageQueue = startReceiver(configManager)
 
-        val token1 = "token1"
         val traceId1 = "trace1"
         val ortRunId1 = 1L
         val payload1 = AnalyzerWorkerError(1)
 
-        val token2 = "token2"
         val traceId2 = "trace2"
         val ortRunId2 = 2L
         val payload2 = AnalyzerWorkerError(2)
 
-        queueResponse.sendMessage(token1, traceId1, ortRunId1, serializer.toJson(payload1))
-        queueResponse.sendMessage(token2, traceId2, ortRunId2, serializer.toJson(payload2))
+        queueResponse.sendMessage(traceId1, ortRunId1, serializer.toJson(payload1))
+        queueResponse.sendMessage(traceId2, ortRunId2, serializer.toJson(payload2))
 
-        messageQueue.checkMessage(token1, traceId1, ortRunId1, payload1)
-        messageQueue.checkMessage(token2, traceId2, ortRunId2, payload2)
+        messageQueue.checkMessage(traceId1, ortRunId1, payload1)
+        messageQueue.checkMessage(traceId2, ortRunId2, payload2)
     }
 
     "Exceptions during message receiving are handled" {
         val messageQueue = startReceiver(configManager)
 
-        val token = "validToken"
         val traceId = "validTraceId"
         val ortRunId = 10L
         val payload = AnalyzerWorkerResult(42)
 
-        queueResponse.sendMessage("invalidToken", "invalidTraceId", -1, "Invalid payload")
-        queueResponse.sendMessage(token, traceId, ortRunId, serializer.toJson(payload))
+        queueResponse.sendMessage("invalidTraceId", -1, "Invalid payload")
+        queueResponse.sendMessage(traceId, ortRunId, serializer.toJson(payload))
 
-        messageQueue.checkMessage(token, traceId, ortRunId, payload)
+        messageQueue.checkMessage(traceId, ortRunId, payload)
     }
 })

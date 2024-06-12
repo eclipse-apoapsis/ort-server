@@ -25,7 +25,6 @@ import com.rabbitmq.client.Delivery
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -38,7 +37,6 @@ internal object RabbitMqMessageConverter {
         .contentEncoding("UTF-8")
         .headers(
             mapOf(
-                TOKEN_PROPERTY to token,
                 TRACE_PROPERTY to traceId,
                 RUN_ID_PROPERTY to ortRunId
             )
@@ -54,7 +52,6 @@ internal object RabbitMqMessageConverter {
      */
     fun <T> toTransportMessage(delivery: Delivery, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
-            delivery.properties.headers[TOKEN_PROPERTY].toString(),
             delivery.properties.headers[TRACE_PROPERTY].toString(),
             delivery.properties.headers[RUN_ID_PROPERTY] as Long
         )

@@ -97,7 +97,6 @@ import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 @Suppress("LargeClass")
 class OrchestratorTest : WordSpec() {
     private val msgHeader = MessageHeader(
-        token = "token",
         traceId = "traceId",
         ortRunId = RUN_ID,
     )

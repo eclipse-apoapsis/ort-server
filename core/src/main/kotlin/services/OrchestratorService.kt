@@ -59,11 +59,9 @@ class OrchestratorService(
             ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels.orEmpty())
         }
 
-        // TODO: Set the correct token.
         orchestratorSender.send(
             Message(
                 header = MessageHeader(
-                    token = "",
                     traceId = UUID.randomUUID().toString(),
                     ortRunId = ortRun.id
                 ),

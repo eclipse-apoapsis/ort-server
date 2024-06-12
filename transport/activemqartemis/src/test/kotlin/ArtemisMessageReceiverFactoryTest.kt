@@ -30,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
@@ -49,20 +48,18 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
             val queue = session.createQueue(TEST_QUEUE_NAME)
             val producer = session.createProducer(queue)
 
-            val token1 = "token1"
             val traceId1 = "trace1"
             val runId1 = 1L
             val payload1 = AnalyzerWorkerError(21)
-            val token2 = "token2"
             val traceId2 = "trace2"
             val runId2 = 2L
             val payload2 = AnalyzerWorkerResult(42)
 
-            producer.send(serializer.createMessage(session, token1, traceId1, runId1, payload1))
-            producer.send(serializer.createMessage(session, token2, traceId2, runId2, payload2))
+            producer.send(serializer.createMessage(session, traceId1, runId1, payload1))
+            producer.send(serializer.createMessage(session, traceId2, runId2, payload2))
 
-            messageQueue.checkMessage(token1, traceId1, runId1, payload1)
-            messageQueue.checkMessage(token2, traceId2, runId2, payload2)
+            messageQueue.checkMessage(traceId1, runId1, payload1)
+            messageQueue.checkMessage(traceId2, runId2, payload2)
         }
     }
 
@@ -81,30 +78,27 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
             val jmsMessage = session.createTextMessage("Not a valid Orchestrator message.")
             producer.send(jmsMessage)
 
-            val token = "token"
             val traceId = "trace"
             val runId = 3L
             val payload = AnalyzerWorkerResult(42)
-            producer.send(serializer.createMessage(session, token, traceId, runId, payload))
+            producer.send(serializer.createMessage(session, traceId, runId, payload))
 
-            messageQueue.checkMessage(token, traceId, runId, payload)
+            messageQueue.checkMessage(traceId, runId, payload)
         }
     }
 })
 
 /**
- * Create a JMS messaging using this serializer and the given [session] with the provided [token], [traceId]
- * [runId], and [payload].
+ * Create a JMS messaging using this serializer and the given [session] with the provided [traceId], [runId]
+ * and [payload].
  */
 private fun <T> JsonSerializer<T>.createMessage(
     session: Session,
-    token: String,
     traceId: String,
     runId: Long,
     payload: T
 ): TextMessage =
     session.createTextMessage(toJson(payload)).apply {
-        setStringProperty(TOKEN_PROPERTY, token)
         setStringProperty(TRACE_PROPERTY, traceId)
         setLongProperty(RUN_ID_PROPERTY, runId)
     }

@@ -48,7 +48,6 @@ import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 
 class KubernetesMessageSenderTest : StringSpec({
@@ -183,13 +182,12 @@ private val annotationVariables = mapOf(
 
 private val traceId = "0123456789".repeat(20)
 private val payload = AnalyzerRequest(1)
-private val header = MessageHeader(token = "testToken", traceId = traceId, 9)
+private val header = MessageHeader(traceId = traceId, 9)
 private val message = Message(header, payload)
 
 private val envVars = mapOf(
     "SPECIFIC_PROPERTY" to "bar",
     "SHELL" to "/bin/bash",
-    TOKEN_PROPERTY to header.token,
     TRACE_PROPERTY to header.traceId,
     "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}",
     "ANALYZER_SPECIFIC_PROPERTY" to "foo"

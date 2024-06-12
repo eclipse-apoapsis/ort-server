@@ -25,7 +25,6 @@ import jakarta.jms.TextMessage
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -39,7 +38,6 @@ internal object ArtemisMessageConverter {
      */
     fun <T> toJmsMessage(message: Message<T>, serializer: JsonSerializer<T>, session: Session): TextMessage =
         session.createTextMessage(serializer.toJson(message.payload)).apply {
-            setStringProperty(TOKEN_PROPERTY, message.header.token)
             setStringProperty(TRACE_PROPERTY, message.header.traceId)
             setLongProperty(RUN_ID_PROPERTY, message.header.ortRunId)
         }
@@ -49,7 +47,6 @@ internal object ArtemisMessageConverter {
      */
     fun <T> toTransportMessage(jmsMessage: TextMessage, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
-            token = jmsMessage.getStringProperty(TOKEN_PROPERTY),
             traceId = jmsMessage.getStringProperty(TRACE_PROPERTY),
             ortRunId = jmsMessage.getLongProperty(RUN_ID_PROPERTY)
         )

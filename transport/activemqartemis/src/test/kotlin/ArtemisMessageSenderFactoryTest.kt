@@ -43,7 +43,6 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TOKEN_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
@@ -53,7 +52,7 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
         val config = startArtemisContainer("orchestrator", "sender")
 
         val payload = AnalyzerWorkerResult(42)
-        val header = MessageHeader(token = "1234567890", traceId = "dick.tracy", 11)
+        val header = MessageHeader(traceId = "dick.tracy", 11)
         val message = Message(header, payload)
 
         val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.sender.serverUri"))
@@ -67,7 +66,6 @@ class ArtemisMessageSenderFactoryTest : StringSpec({
 
             connection.start()
             val receivedMessage = consumer.receive(5000) as TextMessage
-            receivedMessage.getStringProperty(TOKEN_PROPERTY) shouldBe header.token
             receivedMessage.getStringProperty(TRACE_PROPERTY) shouldBe header.traceId
             receivedMessage.getLongProperty(RUN_ID_PROPERTY) shouldBe header.ortRunId
 
