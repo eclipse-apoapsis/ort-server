@@ -147,9 +147,9 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
         }
 
-        "The build environment should contain a settings.xml file" {
+        "The build environment should contain a .m2/settings.xml file" {
             runEnvironmentTest { homeFolder ->
-                val settingsFile = homeFolder.resolve("settings.xml")
+                val settingsFile = homeFolder.resolve(".m2/settings.xml")
                 val content = settingsFile.readText()
 
                 content shouldContain "<id>mainRepo</id>"

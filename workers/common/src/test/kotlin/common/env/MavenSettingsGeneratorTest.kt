@@ -51,7 +51,7 @@ class MavenSettingsGeneratorTest : WordSpec({
 
             MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            mockBuilder.homeFileName shouldBe "settings.xml"
+            mockBuilder.homeFileName shouldBe ".m2/settings.xml"
         }
 
         "generate correct blocks for the referenced services" {
