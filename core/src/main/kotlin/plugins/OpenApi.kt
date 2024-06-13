@@ -83,7 +83,7 @@ fun Application.configureOpenApi() {
             val fqdn = config.property("ktor.deployment.publicFqdn").getString()
             val port = config.property("ktor.deployment.publicPort").getString()
             url = "$scheme://$fqdn:$port"
-            description = "Local ORT server"
+            description = "ORT server"
         }
 
         // OpenAPI provides tags not only on operation level, but also on root level.
