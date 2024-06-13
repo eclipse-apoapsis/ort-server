@@ -122,11 +122,6 @@ data class AdvisorJobConfiguration(
 @Serializable
 data class ScannerJobConfiguration(
     /**
-     * Create archives for packages that have a stored scan result but no license archive yet.
-     */
-    val createMissingArchives: Boolean? = null,
-
-    /**
      * Mappings from licenses returned by the scanner to valid SPDX licenses. Note that these mappings are only applied
      * in new scans, stored scan results are not affected.
      */

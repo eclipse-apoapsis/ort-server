@@ -356,7 +356,6 @@ fun RepositoryProvenance.mapToOrt() = OrtRepositoryProvenance(vcsInfo.mapToOrt()
 fun ScannerConfiguration.mapToOrt() =
     OrtScannerConfiguration(
         skipConcluded = skipConcluded,
-        createMissingArchives = createMissingArchives,
         detectedLicenseMapping = detectedLicenseMappings,
         config = config.mapValues { it.value.mapToOrt() },
         ignorePatterns = ignorePatterns

@@ -34,7 +34,6 @@ object ScannerConfigurationsTable : LongIdTable("scanner_configurations") {
     val scannerRunId = reference("scanner_run_id", ScannerRunsTable)
 
     val skipConcluded = bool("skip_concluded").default(false)
-    val createMissingArchives = bool("create_missing_archives").default(false)
     val ignorePatterns = text("ignore_patterns").nullable()
 }
 
@@ -44,7 +43,6 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var scannerRun by ScannerRunDao referencedOn ScannerConfigurationsTable.scannerRunId
 
     var skipConcluded by ScannerConfigurationsTable.skipConcluded
-    var createMissingArchives by ScannerConfigurationsTable.createMissingArchives
     var ignorePatterns: List<String>? by ScannerConfigurationsTable.ignorePatterns
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var detectedLicenseMappings by DetectedLicenseMappingDao via
@@ -71,7 +69,6 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         return ScannerConfiguration(
             skipConcluded = skipConcluded,
-            createMissingArchives = createMissingArchives,
             detectedLicenseMappings = detectedLicenseMappings.associate { it.license to it.spdxLicense },
             config = config,
             ignorePatterns = ignorePatterns.orEmpty()

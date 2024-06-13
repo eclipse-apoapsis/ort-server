@@ -23,7 +23,6 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 
 data class ScannerConfiguration(
     val skipConcluded: Boolean,
-    val createMissingArchives: Boolean,
     val detectedLicenseMappings: Map<String, String>,
     val config: Map<String, PluginConfiguration>,
     val ignorePatterns: List<String>

@@ -360,7 +360,6 @@ class OrtServerMappingsTest : WordSpec({
 
             val scannerConfiguration = ScannerConfiguration(
                 skipConcluded = true,
-                createMissingArchives = true,
                 detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
                 config = mapOf(
                     "scanner-1" to PluginConfiguration(

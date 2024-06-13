@@ -76,7 +76,6 @@ class ScannerRunnerTest : WordSpec({
 
             val scannerConfig = ScannerJobConfiguration(
                 skipConcluded = true,
-                createMissingArchives = true,
                 detectedLicenseMappings = detectedLicenseMapping,
                 ignorePatterns = ignorePatterns
             )
@@ -87,7 +86,6 @@ class ScannerRunnerTest : WordSpec({
 
             result.scanner?.config shouldBe ScannerConfiguration(
                 skipConcluded = true,
-                createMissingArchives = true,
                 detectedLicenseMapping = detectedLicenseMapping,
                 ignorePatterns = ignorePatterns
             )
