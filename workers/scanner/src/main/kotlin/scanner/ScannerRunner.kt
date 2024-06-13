@@ -71,7 +71,6 @@ class ScannerRunner(
         val defaultScannerConfig = ScannerConfiguration()
         val scannerConfig = ScannerConfiguration(
             skipConcluded = config.skipConcluded ?: defaultScannerConfig.skipConcluded,
-            createMissingArchives = config.createMissingArchives ?: defaultScannerConfig.createMissingArchives,
             detectedLicenseMapping = config.detectedLicenseMappings ?: defaultScannerConfig.detectedLicenseMapping,
             ignorePatterns = config.ignorePatterns.takeUnless { it.isNullOrEmpty() }
                 ?: defaultScannerConfig.ignorePatterns,

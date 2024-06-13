@@ -407,7 +407,6 @@ fun ScannerJob.mapToApiSummary() =
     )
 
 fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
-    createMissingArchives,
     detectedLicenseMappings,
     ignorePatterns,
     projectScanners,
@@ -418,7 +417,6 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
-    createMissingArchives,
     detectedLicenseMappings,
     ignorePatterns,
     projectScanners,

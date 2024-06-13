@@ -428,7 +428,6 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
 fun OrtScannerConfiguration.mapToModel() =
     ScannerConfiguration(
         skipConcluded = skipConcluded,
-        createMissingArchives = createMissingArchives,
         detectedLicenseMappings = detectedLicenseMapping,
         config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
         ignorePatterns = ignorePatterns

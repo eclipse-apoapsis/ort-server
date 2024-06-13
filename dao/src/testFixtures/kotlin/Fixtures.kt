@@ -101,9 +101,7 @@ class Fixtures(private val db: Database) {
         advisor = AdvisorJobConfiguration(
             advisors = listOf("OSV")
         ),
-        scanner = ScannerJobConfiguration(
-            false
-        ),
+        scanner = ScannerJobConfiguration(),
         evaluator = EvaluatorJobConfiguration(
             ruleSet = "default"
         ),

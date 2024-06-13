@@ -178,7 +178,6 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
-                    createMissingArchives = true,
                     detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
                     config = emptyMap(),
                     ignorePatterns = listOf("pattern-1")
@@ -544,7 +543,6 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
-                    createMissingArchives = true,
                     detectedLicenseMappings = emptyMap(),
                     config = emptyMap(),
                     ignorePatterns = emptyList()

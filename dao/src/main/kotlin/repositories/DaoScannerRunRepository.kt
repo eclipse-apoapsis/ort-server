@@ -173,7 +173,6 @@ private fun createScannerConfiguration(
     val scannerConfigurationDao = ScannerConfigurationDao.new {
         this.scannerRun = scannerRunDao
         this.skipConcluded = scannerConfiguration.skipConcluded
-        this.createMissingArchives = scannerConfiguration.createMissingArchives
         this.ignorePatterns = scannerConfiguration.ignorePatterns
         this.detectedLicenseMappings = detectedLicenseMappings
     }
