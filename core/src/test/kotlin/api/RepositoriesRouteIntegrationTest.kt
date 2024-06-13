@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
@@ -39,6 +40,11 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
@@ -553,6 +559,33 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             ) {
                 val createRun = CreateOrtRun("main", null, ApiJobConfigurations(), labelsMap)
                 post("/api/v1/repositories/${createdRepository.id}/runs") { setBody(createRun) }
+            }
+        }
+
+        "handle concurrent requests to create runs for the same repository" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+                val runCount = 3
+                val analyzerJob = AnalyzerJobConfiguration(
+                    allowDynamicVersions = true
+                )
+
+                val responses = withContext(Dispatchers.IO) {
+                    (1..runCount).map { idx ->
+                        async {
+                            val createRun = CreateOrtRun(
+                                "branch-$idx",
+                                null,
+                                ApiJobConfigurations(analyzerJob)
+                            )
+                            superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                                setBody(createRun)
+                            }
+                        }
+                    }.awaitAll()
+                }
+
+                responses.forAll { it shouldHaveStatus HttpStatusCode.Created }
             }
         }
     }

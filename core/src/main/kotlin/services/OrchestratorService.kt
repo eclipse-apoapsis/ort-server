@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.services
 
+import java.sql.Connection
 import java.util.UUID
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -55,7 +56,7 @@ class OrchestratorService(
         jobConfigContext: String?,
         labels: Map<String, String>?
     ): OrtRun {
-        val ortRun = db.dbQuery {
+        val ortRun = db.dbQuery(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
             ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels.orEmpty())
         }
 
