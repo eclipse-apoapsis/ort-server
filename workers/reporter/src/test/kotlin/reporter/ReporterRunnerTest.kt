@@ -722,8 +722,8 @@ class ReporterRunnerTest : WordSpec({
             } returns mockHowToFixTextProvider
 
             every {
-                configManager.getFileAsString(any(), Path(howToFixTextProviderFile))
-            } returns howToFixTextProviderScript
+                configManager.getFile(any(), Path(howToFixTextProviderFile))
+            } returns howToFixTextProviderScript.byteInputStream()
 
             val resolvedContext = Context("theResolvedContext")
 
