@@ -69,7 +69,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
-private val fullJobConfigurations = JobConfigurations(
+internal val fullJobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(
         allowDynamicVersions = true,
         disabledPackageManagers = listOf("NPM", "SBT"),
