@@ -36,8 +36,10 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFile
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValue
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 class ExtensionsTest : WordSpec({
@@ -45,6 +47,7 @@ class ExtensionsTest : WordSpec({
 
     val path = "path"
     val defaultPath = "defaultPath"
+    val fallbackString = "fallback"
     val fallbackValue = ConfigClass(name = "fallback", value = "value")
 
     val configFile = ConfigClass("config", "value")
@@ -150,6 +153,87 @@ class ExtensionsTest : WordSpec({
             shouldThrow<MismatchedInputException> {
                 configManager.readConfigFileValue<ConfigClass>("path", null) shouldBe configFile
             }
+        }
+    }
+
+    "readConfigFileWithDefault" should {
+        "read the file at path if path is not null" {
+            val context = Context("resolvedContext")
+
+            val configManager = mockk<ConfigManager> {
+                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+            }
+
+            configManager.readConfigFileWithDefault(
+                path,
+                defaultPath,
+                fallbackString,
+                context
+            ) shouldBe configFileYaml
+        }
+
+        "throw an exception if the file at path cannot be read" {
+            val configManager = mockk<ConfigManager> {
+                every { getFile(any(), Path(path)) } throws configException
+            }
+
+            shouldThrow<ConfigException> {
+                configManager.readConfigFileWithDefault(path, defaultPath, fallbackString, null)
+            } shouldBe configException
+        }
+
+        "read the file at the default path if path is null" {
+            val context = Context("theContext")
+
+            val configManager = mockk<ConfigManager> {
+                every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
+            }
+
+            configManager.readConfigFileWithDefault(
+                null,
+                defaultPath,
+                fallbackString,
+                context
+            ) shouldBe configFileYaml
+        }
+
+        "return the fallback value if the file at default path cannot be read" {
+            val configManager = mockk<ConfigManager> {
+                every { getFile(any(), Path(defaultPath)) } throws configException
+            }
+
+            configManager.readConfigFileWithDefault(
+                null,
+                defaultPath,
+                fallbackString,
+                null
+            ) shouldBe fallbackString
+        }
+    }
+
+    "readConfigFile" should {
+        "read the config file" {
+            val context = Context("myConfigContext")
+
+            val configManager = mockk<ConfigManager> {
+                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+            }
+
+            configManager.readConfigFile(path, context) shouldBe configFileYaml
+        }
+
+        "call the exception handler if a ConfigException occurs" {
+            val configManager = mockk<ConfigManager> {
+                every { getFile(any(), Path(path)) } throws configException
+            }
+
+            var capturedException: ConfigException? = null
+            configManager.readConfigFile("path", null) {
+                capturedException = it
+                ""
+            }
+
+            capturedException shouldBe configException
         }
     }
 
