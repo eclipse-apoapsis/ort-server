@@ -35,36 +35,37 @@ import org.slf4j.LoggerFactory
 val logger: Logger = LoggerFactory.getLogger(ConfigManager::class.java)
 
 /**
- * If [path] is not `null`, read the file using the provided [context]. If a [ConfigException] occurs while reading the
- * file it is rethrown. If [path] is `null`, the file at [defaultPath] is read instead. If the file cannot be read, the
- * [fallbackValue] is returned.
+ * If [path] is not `null`, read the YAML configuration file using the provided [context] and deserialize its value. If
+ * a [ConfigException] occurs while reading the file it is rethrown. If [path] is `null`, the file at [defaultPath] is
+ * read instead. If the file cannot be read, the [fallbackValue] is returned.
+ *
  * This function realizes the contract that if a specific config file is requested, not being able to read it leads to
  * an exception, but the default file is allowed to not exist. Not being able to deserialize the file to the return type
  * [T] always leads to an exception.
  */
-inline fun <reified T> ConfigManager.readConfigFileWithDefault(
+inline fun <reified T> ConfigManager.readConfigFileValueWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
     context: Context?
 ): T = if (path != null) {
-    readConfigFile(path, context) {
+    readConfigFileValue(path, context) {
         logger.error("Could not read config file from path '$path'.")
         throw it
     }
 } else {
-    readConfigFile(defaultPath, context) {
+    readConfigFileValue(defaultPath, context) {
         logger.warn("Could not read config file from default path '$defaultPath'.")
         fallbackValue
     }
 }
 
 /**
- * Read the YAML configuration file at [path] using the provided [context]. If a [ConfigException] occurs while reading
- * the file, the [exceptionHandler] is invoked which rethrows the exception by default. If another exception occurs
- * while reading the file it is rethrown.
+ * Read the YAML configuration file at [path] using the provided [context] and deserialize its content. If a
+ * [ConfigException] occurs while reading the file, the [exceptionHandler] is invoked which rethrows the exception by
+ * default. If another exception occurs while reading the file, it is rethrown.
  */
-inline fun <reified T> ConfigManager.readConfigFile(
+inline fun <reified T> ConfigManager.readConfigFileValue(
     path: String,
     context: Context?,
     exceptionHandler: (ConfigException) -> T = { throw it }

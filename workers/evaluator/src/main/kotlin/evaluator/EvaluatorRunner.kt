@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.evaluator.Evaluator
@@ -78,14 +78,14 @@ class EvaluatorRunner(
             Path(ruleSetPath)
         )
 
-        val copyrightGarbage = workerContext.configManager.readConfigFileWithDefault(
+        val copyrightGarbage = workerContext.configManager.readConfigFileValueWithDefault(
             path = config.copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
             fallbackValue = CopyrightGarbage(),
             workerContext.resolvedConfigurationContext
         )
 
-        val licenseClassifications = workerContext.configManager.readConfigFileWithDefault(
+        val licenseClassifications = workerContext.configManager.readConfigFileValueWithDefault(
             path = config.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
             fallbackValue = LicenseClassifications(),
@@ -104,7 +104,7 @@ class EvaluatorRunner(
 
         val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
-        val resolutionsFromFile = workerContext.configManager.readConfigFileWithDefault(
+        val resolutionsFromFile = workerContext.configManager.readConfigFileValueWithDefault(
             path = config.resolutionsFile,
             defaultPath = ORT_RESOLUTIONS_FILENAME,
             fallbackValue = Resolutions(),
