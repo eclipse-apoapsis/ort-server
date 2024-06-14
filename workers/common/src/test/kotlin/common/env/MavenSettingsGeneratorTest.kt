@@ -20,8 +20,11 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
@@ -109,6 +112,127 @@ class MavenSettingsGeneratorTest : WordSpec({
             lines[3] shouldBe "            <id>repo</id>"
             lines[lines.size - 2] shouldBe "    </servers>"
             lines[lines.size - 1] shouldBe "</settings>"
+        }
+
+        "generates no proxy section if system properties are not set" {
+            withSystemProperties(
+                mapOf(
+                    "http.proxyHost" to null,
+                    "https.proxyPort" to null
+                ),
+                OverrideMode.SetOrOverride
+            ) {
+                val mockBuilder = MockConfigFileBuilder()
+                MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+                mockBuilder.generatedText() shouldNotContain "<proxies>"
+                mockBuilder.generatedText() shouldNotContain "</proxies>"
+            }
+        }
+
+        "generates a proxy section if only http proxy is defined in system properties" {
+            // Only http proxy defined in system properties
+            withSystemProperties(
+                mapOf(
+                    "http.proxyHost" to "http-proxy.example.com",
+                    "http.proxyPort" to "8080",
+                    "https.proxyHost" to null,
+                    "https.proxyPort" to null,
+                    "http.nonProxyHosts" to "*.example.com|*.cluster.local"
+                ),
+                OverrideMode.SetOrOverride
+            ) {
+                val mockBuilder = MockConfigFileBuilder()
+                MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+                val regexHttpProxyDefinition = "<proxies>\\s*" +
+                        "<proxy>\\s*" +
+                        "<id>.*?</id>\\s*" +
+                        "<active>true</active>\\s*" +
+                        "<protocol>http</protocol>\\s*" +
+                        "<host>http-proxy.example.com</host>\\s*" +
+                        "<port>8080</port>\\s*" +
+                        "<nonProxyHosts>\\*.example.com\\|\\*.cluster.local</nonProxyHosts>\\s*" +
+                        "</proxy>\\s*" +
+                        "</proxies>"
+
+                mockBuilder.generatedText() shouldContain (
+                    Regex(
+                        regexHttpProxyDefinition,
+                        setOf(RegexOption.DOT_MATCHES_ALL)
+                    )
+                )
+            }
+        }
+
+        "generates a proxy section if only https proxy is defined in system properties" {
+            // Only https proxy defined in system properties
+            withSystemProperties(
+                mapOf(
+                    "http.proxyHost" to null,
+                    "http.proxyPort" to null,
+                    "https.proxyHost" to "https-proxy.example.com",
+                    "https.proxyPort" to "8081",
+                    "http.nonProxyHosts" to "*.example.com|*.cluster.local"
+                ),
+                OverrideMode.SetOrOverride
+            ) {
+                val mockBuilder = MockConfigFileBuilder()
+                MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+                val regexHttpProxyDefinition = "<proxies>\\s*" +
+                        "<proxy>\\s*" +
+                        "<id>.*?</id>\\s*" +
+                        "<active>true</active>\\s*" +
+                        "<protocol>https</protocol>\\s*" +
+                        "<host>https-proxy.example.com</host>\\s*" +
+                        "<port>8081</port>\\s*" +
+                        "<nonProxyHosts>\\*.example.com\\|\\*.cluster.local</nonProxyHosts>\\s*" +
+                        "</proxy>\\s*" +
+                        "</proxies>"
+
+                mockBuilder.generatedText() shouldContain (
+                    Regex(
+                        regexHttpProxyDefinition,
+                        setOf(RegexOption.DOT_MATCHES_ALL)
+                    )
+                )
+            }
+        }
+
+        "generates a proxy section for both http and https if defined in system properties" {
+            // Both http and https proxy defined in system properties
+            withSystemProperties(
+                mapOf(
+                    "http.proxyHost" to "http-proxy.example.com",
+                    "http.proxyPort" to "8080",
+                    "https.proxyHost" to "https-proxy.example.com",
+                    "https.proxyPort" to "8081",
+                    "http.nonProxyHosts" to "*.example.com|*.cluster.local"
+                ),
+                OverrideMode.SetOrOverride
+            ) {
+                val mockBuilder = MockConfigFileBuilder()
+                MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+                // Just make sure that there are two <proxy> sections, one for http and one for https.
+                // Details of the <proxy> sections are covered already by other tests.
+                val regexHttpProxyDefinition = "<proxies>\\s*" +
+                        "<proxy>.*" +
+                        "<protocol>http</protocol>.*" +
+                        "</proxy>\\s*" +
+                        "<proxy>.*" +
+                        "<protocol>https</protocol>.*" +
+                        "</proxy>\\s*" +
+                        "</proxies>"
+
+                mockBuilder.generatedText() shouldContain (
+                    Regex(
+                        regexHttpProxyDefinition,
+                        setOf(RegexOption.DOT_MATCHES_ALL)
+                    )
+                )
+            }
         }
     }
 })

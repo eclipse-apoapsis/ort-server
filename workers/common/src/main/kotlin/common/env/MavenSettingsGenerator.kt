@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.PrintWriter
 
+import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettingsFromSystemProperties
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 /**
@@ -46,6 +47,20 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
         private fun PrintWriter.printTag(tag: String, content: String) {
             println("<$tag>$content</$tag>".prependIndent(INDENT_12_SPACES))
         }
+
+        private fun PrintWriter.printSingleProxy(
+            host: String, port: String, protocol: String, nonProxyHosts: String?
+        ) {
+            println("<proxy>".prependIndent(INDENT_8_SPACES))
+            printTag("id", "$protocol-proxy")
+            printTag("active", "true")
+            printTag("protocol", protocol)
+            printTag("host", host)
+            printTag("port", port)
+            nonProxyHosts?.let { printTag("nonProxyHosts", it) }
+
+            println("</proxy>".prependIndent(INDENT_8_SPACES))
+        }
     }
 
     override val environmentDefinitionType: Class<MavenDefinition> = MavenDefinition::class.java
@@ -64,6 +79,21 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
             }
 
             println("</servers>".prependIndent(INDENT_4_SPACES))
+
+            // Having the choice to get the proxy settings either from environment variables like HTTP_PROXY or
+            // from Java system like http.proxyHost, prefer the latter, because everything is already
+            // in the right format required for the <proxy> section.
+            printProxySettingsFromSystemProperties { proxyConfig ->
+                println("<proxies>".prependIndent(INDENT_4_SPACES))
+                proxyConfig.httpProxy?.let {
+                    printSingleProxy(it.host, it.port, "http", proxyConfig.nonProxyHosts)
+                }
+                proxyConfig.httpsProxy?.let {
+                    printSingleProxy(it.host, it.port, "https", proxyConfig.nonProxyHosts)
+                }
+                println("</proxies>".prependIndent(INDENT_4_SPACES))
+            }
+
             println("</settings>")
         }
     }
