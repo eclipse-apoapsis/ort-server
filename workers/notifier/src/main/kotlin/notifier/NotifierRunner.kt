@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.NotifierRun
@@ -84,7 +84,7 @@ class NotifierRunner {
 
             val resolutionsFromOrtResult = ortResult.repository.config.resolutions
 
-            val resolutionsFromFile = workerContext.configManager.readConfigFileWithDefault(
+            val resolutionsFromFile = workerContext.configManager.readConfigFileValueWithDefault(
                 path = config.resolutionsFile,
                 defaultPath = ORT_RESOLUTIONS_FILENAME,
                 fallbackValue = Resolutions(),

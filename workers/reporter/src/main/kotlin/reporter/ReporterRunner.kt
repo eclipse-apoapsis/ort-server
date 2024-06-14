@@ -42,7 +42,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.recombine
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -103,7 +103,7 @@ class ReporterRunner(
         return contextFactory.createContext(runId).use { context ->
             val copyrightGarbageFile =
                 if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
-            val copyrightGarbage = configManager.readConfigFileWithDefault(
+            val copyrightGarbage = configManager.readConfigFileValueWithDefault(
                 path = copyrightGarbageFile,
                 defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
                 fallbackValue = CopyrightGarbage(),
@@ -115,7 +115,7 @@ class ReporterRunner(
             } else {
                 config.licenseClassificationsFile
             }
-            val licenseClassifications = configManager.readConfigFileWithDefault(
+            val licenseClassifications = configManager.readConfigFileValueWithDefault(
                 path = licenseClassificationsFile,
                 defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
                 fallbackValue = LicenseClassifications(),
@@ -142,7 +142,7 @@ class ReporterRunner(
                 // Resolve resolutions if not already done by the evaluator.
                 val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
-                val resolutionsFromFile = configManager.readConfigFileWithDefault(
+                val resolutionsFromFile = configManager.readConfigFileValueWithDefault(
                     path = config.resolutionsFile,
                     defaultPath = ORT_RESOLUTIONS_FILENAME,
                     fallbackValue = Resolutions(),
