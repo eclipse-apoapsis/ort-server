@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.recombine
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -154,12 +155,12 @@ class ReporterRunner(
                 resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
             }
 
-            val howToFixTextProviderScript = config.howToFixTextProviderFile
-                ?.let { configManager.getFileAsString(context.resolvedConfigurationContext, Path(it)) }
-                ?: configManager.getFileAsString(
-                    context.resolvedConfigurationContext,
-                    Path(ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
-                )
+            val howToFixTextProviderScript = configManager.readConfigFileWithDefault(
+                path = config.howToFixTextProviderFile,
+                defaultPath = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
+                fallbackValue = "",
+                context = context.resolvedConfigurationContext
+            )
 
             val howToFixTextProvider = if (howToFixTextProviderScript.isNotEmpty()) {
                 HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, resolvedOrtResult)
