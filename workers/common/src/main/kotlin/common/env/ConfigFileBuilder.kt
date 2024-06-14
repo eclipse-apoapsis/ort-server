@@ -78,6 +78,39 @@ class ConfigFileBuilder(val context: WorkerContext) {
         }
 
         /**
+         * Execute the given [block] to generate a proxy configuration if necessary.
+         * This variant is based on system properties that define https(s) proxy settings rather than
+         * environment variables. It is typically used by tools that have a strong connection to the Java ecosystem.
+         * If one of httpProxyHost or httpsProxyHost is defined, the [block] is invoked with a corresponding
+         * [ProxyConfigFromSystemProperties].
+         */
+        fun PrintWriter.printProxySettingsFromSystemProperties(
+            block: PrintWriter.(ProxyConfigFromSystemProperties) -> Unit
+        ) {
+            val httpProxy = ProxySystemProperties.HTTP_PROXY_HOST.getValue()?.let { host ->
+                ProxySystemProperties.HTTP_PROXY_PORT.getValue()?.let { port ->
+                    ProxyFromSystemProperties(host, port)
+                }
+            }
+
+            val httpsProxy = ProxySystemProperties.HTTPS_PROXY_HOST.getValue()?.let { host ->
+                ProxySystemProperties.HTTPS_PROXY_PORT.getValue()?.let { port ->
+                    ProxyFromSystemProperties(host, port)
+                }
+            }
+
+            if (httpProxy != null || httpsProxy != null) {
+                block(
+                    ProxyConfigFromSystemProperties(
+                        httpProxy = httpProxy,
+                        httpsProxy = httpsProxy,
+                        nonProxyHosts = ProxySystemProperties.NON_PROXY_HOSTS.getValue()
+                    )
+                )
+            }
+        }
+
+        /**
          * Generate a unique name for a secret reference. The name is based on a random number. Therefore, it should
          * not appear in other parts of the generated file, and no escaping needs to be implemented.
          */
@@ -150,6 +183,19 @@ enum class ProxyVariables(private val variableName: String) {
 }
 
 /**
+ * An enumeration class to represent the typical system properties that define proxy settings.
+ */
+enum class ProxySystemProperties(private val propertyName: String) {
+    HTTP_PROXY_HOST("http.proxyHost"),
+    HTTP_PROXY_PORT("http.proxyPort"),
+    HTTPS_PROXY_HOST("https.proxyHost"),
+    HTTPS_PROXY_PORT("https.proxyPort"),
+    NON_PROXY_HOSTS("http.nonProxyHosts");
+
+    fun getValue(): String? = System.getProperty(propertyName)
+}
+
+/**
  * A data class holding the single properties to define a proxy server.
  *
  * Some of the configuration files created via [ConfigFileBuilder] can contain a proxy configuration. Therefore,
@@ -161,4 +207,26 @@ data class ProxyConfig(
     val httpProxy: String?,
     val httpsProxy: String?,
     val noProxy: String?
+)
+
+/**
+ * A data class holding proxy information taken vom system properties.
+ * In contrast to [ProxyConfig], which takes this information from environment variables, this class uses the
+ * standard Java system properties like http.proxyHost to get the proxy settings.
+ *
+ * Note that both [httpProxy] and [httpsProxy] are nullable, since a proxy configuration may be partially defined only,
+ * or there might be no proxy configuration at all.
+ */
+data class ProxyConfigFromSystemProperties(
+    val httpProxy: ProxyFromSystemProperties?,
+    val httpsProxy: ProxyFromSystemProperties?,
+    val nonProxyHosts: String?
+)
+
+/**
+ * A data class that defines a single proxy server with configuration taken from standard Java system properties.
+ */
+data class ProxyFromSystemProperties(
+    val host: String,
+    val port: String
 )
