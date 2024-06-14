@@ -91,32 +91,15 @@ fun Application.configureOpenApi() {
         // of the tags on root level also defines the order of appearance of the operations
         // (belonging to these tags) in the Swagger UI.
         // See https://swagger.io/docs/specification/grouping-operations-with-tags/ for details.
-        tag("Health") {
-        }
-
-        tag("Organizations") {
-        }
-
-        tag("Products") {
-        }
-
-        tag("Repositories") {
-        }
-
-        tag("Runs") {
-        }
-
-        tag("Secrets") {
-        }
-
-        tag("Infrastructure services") {
-        }
-
-        tag("Reports") {
-        }
-
-        tag("Logs") {
-        }
+        tag("Health") { }
+        tag("Organizations") { }
+        tag("Products") { }
+        tag("Repositories") { }
+        tag("Runs") { }
+        tag("Secrets") { }
+        tag("Infrastructure services") { }
+        tag("Reports") { }
+        tag("Logs") { }
 
         encoding {
             schemaEncoder { type ->
