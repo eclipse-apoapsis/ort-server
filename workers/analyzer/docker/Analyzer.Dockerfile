@@ -58,6 +58,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     locales \
     lzma \
     make \
+    maven \
     netbase \
     openssh-client \
     openssl \

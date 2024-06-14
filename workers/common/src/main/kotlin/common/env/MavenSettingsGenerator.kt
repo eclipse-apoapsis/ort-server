@@ -20,9 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.PrintWriter
-import java.net.URL
 
-import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 /**
@@ -49,32 +47,19 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
             println("<$tag>$content</$tag>".prependIndent(INDENT_12_SPACES))
         }
 
-        private fun PrintWriter.printSingleProxy(proxyUrl: String, protocol: String, noProxy: String?) {
+        private fun PrintWriter.printSingleProxy(host: String, protocol: String) {
             println("<proxy>".prependIndent(INDENT_8_SPACES))
             printTag("id", "$protocol-proxy")
             printTag("active", "true")
             printTag("protocol", protocol)
+            printTag("host", host)
+            printTag("port", System.getProperty("$protocol.proxyPort"))
 
-            val url = URL(proxyUrl)
-            printTag("host", url.host)
-            printTag(
-                "port",
-                url.port.takeIf { it != -1 }?.toString() ?: url.defaultPort.toString()
-            )
-            noProxy?.let { printTag("nonProxyHosts", convertFormatToMavenNonProxyHosts(it)) }
+            val nonProxyHosts = System.getProperty("http.nonProxyHosts")
+            nonProxyHosts?.let { printTag("nonProxyHosts", it) }
 
             println("</proxy>".prependIndent(INDENT_8_SPACES))
             println()
-        }
-
-        /**
-         * Convert the format of the noProxy string (used in environment variable NO_PROXY) into the
-         * format used by Java (property http.nonProxyHosts) and Maven.
-         */
-        private fun convertFormatToMavenNonProxyHosts(noProxy: String): String {
-            return noProxy.split(",")
-                .map { if (it.startsWith(".")) "*$it" else it }
-                .joinToString(separator = "|")
         }
     }
 
@@ -95,13 +80,17 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
 
             println("</servers>".prependIndent(INDENT_4_SPACES))
 
-            printProxySettings { proxyConfig ->
+            // Having the choice to get the proxy settings either from environment variables like HTTP_PROXY or
+            // from Java system like http.proxyHost, we prefer the latter, because everything is already
+            // in the right format required for the <proxy> section.
+            val httpProxyHost = System.getProperty("http.proxyHost")
+            val httpsProxyHost = System.getProperty("https.proxyHost")
+
+            if (httpProxyHost != null && httpsProxyHost != null) {
                 println()
                 println("<proxies>".prependIndent(INDENT_4_SPACES))
-
-                proxyConfig.httpProxy?.let { printSingleProxy(it, "http", proxyConfig.noProxy) }
-                proxyConfig.httpsProxy?.let { printSingleProxy(it, "https", proxyConfig.noProxy) }
-
+                httpProxyHost?.let { printSingleProxy(it, "http") }
+                httpsProxyHost?.let { printSingleProxy(it, "https") }
                 println("</proxies>".prependIndent(INDENT_4_SPACES))
             }
 
