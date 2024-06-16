@@ -35,7 +35,7 @@ shadowPlugin = "8.1.1"
 versionsPlugin = "0.51.0"
 
 # Gradle dependencies
-awsSdk = "1.2.29"
+awsSdk = "1.2.34"
 exposed = "0.51.1"
 flyway = "10.15.0"
 hikari = "5.1.0"
