@@ -23,8 +23,51 @@ import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+
+val getOrtRunById: OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRunById"
+    summary = "Get details of an ORT run."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The run's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<OrtRun> {
+                example(
+                    name = "Get ORT run",
+                    value = OrtRun(
+                        id = 1,
+                        index = 2,
+                        repositoryId = 1,
+                        revision = "main",
+                        createdAt = Clock.System.now(),
+                        jobConfigs = fullJobConfigurations,
+                        resolvedJobConfigs = fullJobConfigurations,
+                        jobs = jobs,
+                        status = OrtRunStatus.ACTIVE,
+                        finishedAt = null,
+                        labels = mapOf("label key" to "label value"),
+                        issues = emptyList(),
+                        jobConfigContext = null,
+                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                    )
+                )
+            }
+        }
+    }
+}
 
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
