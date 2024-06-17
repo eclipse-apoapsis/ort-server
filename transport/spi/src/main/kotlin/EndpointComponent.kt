@@ -66,6 +66,7 @@ abstract class EndpointComponent<T : Any>(
             modules(customModules())
         }
 
+        logger.logVersion()
         MessageReceiverFactory.createReceiver(endpoint, configManager, endpointHandler)
     }
 
