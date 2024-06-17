@@ -103,6 +103,9 @@ fun Application.configureOpenApi() {
         tag("Repositories") {
         }
 
+        tag("Runs") {
+        }
+
         tag("Secrets") {
         }
 

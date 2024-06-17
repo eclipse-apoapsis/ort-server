@@ -53,15 +53,20 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -76,6 +81,8 @@ import org.ossreviewtoolkit.utils.common.unpack
 
 class RunsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
+
+    lateinit var ortRunRepository: OrtRunRepository
 
     var repositoryId = -1L
 
@@ -103,6 +110,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
+        ortRunRepository = dbExtension.fixtures.ortRunRepository
+
         val orgId = organizationService.createOrganization(name = "name", description = "description").id
         val productId =
             organizationService.createProduct(name = "name", description = "description", organizationId = orgId).id
@@ -115,6 +124,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         LogFileProviderFactoryForTesting.reset()
     }
 
+    val labelsMap = mapOf("label1" to "value1", "label2" to "value2")
     val reportFile = "disclosure-document-pdf"
     val reportData = "Data of the report to download".toByteArray()
 
@@ -196,6 +206,54 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         checkLogArchive(downloadFile, sources)
+    }
+
+    "GET /runs/{runId}" should {
+        "return the requested ORT run" {
+            integrationTestApplication {
+                val run = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody run.mapToApi(Jobs())
+            }
+        }
+
+        "include job details" {
+            integrationTestApplication {
+                val run = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap
+                )
+
+                val jobs = dbExtension.fixtures.createJobs(run.id).mapToApi()
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody run.mapToApi(jobs)
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = ortRunRepository.create(repositoryId, "revision", null, JobConfigurations(), null, labelsMap)
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}")
+            }
+        }
     }
 
     "GET /runs/{runId}/report/{fileName}" should {

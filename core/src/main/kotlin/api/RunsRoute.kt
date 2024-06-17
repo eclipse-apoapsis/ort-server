@@ -37,7 +37,9 @@ import java.util.EnumSet
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
@@ -50,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 
 import org.koin.ktor.ext.inject
 
@@ -58,6 +61,19 @@ import org.koin.ktor.ext.inject
  */
 fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
+    val repositoryService by inject<RepositoryService>()
+
+    get(getOrtRunById) { _ ->
+        val ortRunId = call.requireIdParameter("runId")
+
+        ortRunRepository.get(ortRunId)?.let { ortRun ->
+            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+            repositoryService.getJobs(ortRun.repositoryId, ortRun.index)?.let { jobs ->
+                call.respond(HttpStatusCode.OK, ortRun.mapToApi(jobs.mapToApi()))
+            }
+        } ?: call.respond(HttpStatusCode.NotFound)
+    }
 
     route("reporter/{fileName}") {
         val reportStorageService by inject<ReportStorageService>()
