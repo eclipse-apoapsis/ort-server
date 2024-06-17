@@ -80,7 +80,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 associatedProvenances.single() shouldBe provenance
 
                 if (provenance is RepositoryProvenance) {
-                    runBlocking { cache.get(provenance) } shouldBe associatedProvenanceDaos.single().id.value
+                    runBlocking { cache.get(provenance).single() } shouldBe associatedProvenanceDaos.single().id.value
                 }
             }
         }
