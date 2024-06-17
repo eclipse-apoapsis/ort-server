@@ -47,10 +47,6 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ReporterComponent::class.java)
-
 class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
     companion object {
         /**

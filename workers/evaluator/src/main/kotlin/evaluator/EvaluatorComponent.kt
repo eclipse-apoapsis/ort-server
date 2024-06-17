@@ -43,10 +43,6 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
-
 class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint) {
     override val endpointHandler: EndpointHandler<EvaluatorRequest> = { message ->
         val evaluatorWorker by inject<EvaluatorWorker>()

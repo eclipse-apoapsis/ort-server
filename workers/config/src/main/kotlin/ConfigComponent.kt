@@ -39,10 +39,6 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ConfigComponent::class.java)
-
 /**
  * The central entry point into the Config worker. The class sets up the dependency injection framework and processes
  * incoming messages by delegating them to a [ConfigWorker] instance.
