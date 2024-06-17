@@ -35,19 +35,21 @@ import org.ossreviewtoolkit.model.VcsType
 
 class PackageProvenanceCacheTest : WordSpec({
     "get" should {
-        "return null for an unknown provenance" {
+        "return an empty list for an unknown provenance" {
             val cache = PackageProvenanceCache()
 
-            cache.get(rootProvenance) should beNull()
+            cache.get(rootProvenance) should beEmpty()
         }
 
-        "return the assigned database ID" {
-            val provenanceDaoId = 20240111153515L
+        "return the assigned database IDs" {
+            val provenanceDaoId1 = 20240111153515L
+            val provenanceDaoId2 = 20240617092022L
             val cache = PackageProvenanceCache()
 
-            cache.putAndGetNestedProvenance(rootProvenance, provenanceDaoId)
+            cache.putAndGetNestedProvenance(rootProvenance, provenanceDaoId1)
+            cache.putAndGetNestedProvenance(rootProvenance, provenanceDaoId2)
 
-            cache.get(rootProvenance) shouldBe provenanceDaoId
+            cache.get(rootProvenance) shouldContainExactlyInAnyOrder listOf(provenanceDaoId1, provenanceDaoId2)
         }
     }
 

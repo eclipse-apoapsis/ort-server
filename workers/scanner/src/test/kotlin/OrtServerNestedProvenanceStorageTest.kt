@@ -22,14 +22,17 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -75,7 +78,7 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
         ) {
             transaction {
                 val packageProvenanceId = runBlocking {
-                    packageProvenanceCache.get(provenance)!!
+                    packageProvenanceCache.get(provenance).first()
                 }
 
                 val associatedResult = PackageProvenanceDao[packageProvenanceId].nestedProvenance?.mapToOrt()
@@ -142,6 +145,34 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
 
                 listOf(subProvenance1, subProvenance2).forAll { provenance ->
                     verifyAssociatedProvenance(result, provenance)
+                }
+            }
+
+            "associate multiple identifiers with the same provenance with a nested provenance" {
+                val id1 = createIdentifier()
+                val id2 = id1.copy(name = "another-project")
+                val vcsInfo = createVcsInfo()
+                val provenance = createRepositoryProvenance(vcsInfo)
+                val repositoryProvenance = RepositoryProvenance(vcsInfo, vcsInfo.revision)
+
+                packageProvenanceStorage.writeProvenance(id1, vcsInfo, provenance)
+                packageProvenanceStorage.writeProvenance(id2, vcsInfo, provenance)
+
+                val result = NestedProvenanceResolutionResult(
+                    nestedProvenance = createNestedProvenance(repositoryProvenance),
+                    hasOnlyFixedRevisions = true
+                )
+
+                nestedProvenanceStorage.writeNestedProvenance(repositoryProvenance, result)
+
+                transaction {
+                    val packageProvenances = PackageProvenancesTable.selectAll().toList()
+                    packageProvenances shouldHaveSize 3
+
+                    packageProvenances.forAll { row ->
+                        val packageProvenanceDao = PackageProvenanceDao.wrapRow(row)
+                        packageProvenanceDao.nestedProvenance?.rootVcs?.mapToModel() shouldBe vcsInfo.mapToModel()
+                    }
                 }
             }
         }

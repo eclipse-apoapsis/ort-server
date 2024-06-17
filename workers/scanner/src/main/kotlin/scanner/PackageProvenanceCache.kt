@@ -37,10 +37,10 @@ private val logger = LoggerFactory.getLogger(PackageProvenanceCache::class.java)
  */
 class PackageProvenanceCache {
     /**
-     * A map of [RepositoryProvenance]s associated with the [Long] database id of the corresponding
-     * [PackageProvenanceDao].
+     * A map of [RepositoryProvenance]s associated with the [Long] database ids of the corresponding
+     * [PackageProvenanceDao]s.
      */
-    private val packageProvenances = mutableMapOf<RepositoryProvenance, Long>()
+    private val packageProvenances = mutableMapOf<RepositoryProvenance, MutableList<Long>>()
 
     /**
      * A map with root [RepositoryProvenance]s and the [Long] database ID of the [NestedProvenanceDao] that has been
@@ -58,11 +58,13 @@ class PackageProvenanceCache {
     private val mutex = Mutex()
 
     /**
-     * Return the [Long] database ID of the [PackageProvenanceDao] that belongs to the provided [provenance].
+     * Return the [Long] database IDs of the [PackageProvenanceDao]s that belong to the provided [provenance].
+     * In case there are multiple root projects in a repository, each of them has its own provenance; therefore,
+     * multiple results can be returned.
      */
-    suspend fun get(provenance: RepositoryProvenance): Long? = mutex.withLock {
+    suspend fun get(provenance: RepositoryProvenance): List<Long> = mutex.withLock {
         logger.debug("Querying provenance {}, result is {}.", provenance, packageProvenances[provenance])
-        return packageProvenances[provenance]
+        return packageProvenances[provenance].orEmpty()
     }
 
     /**
@@ -72,7 +74,7 @@ class PackageProvenanceCache {
      */
     suspend fun putAndGetNestedProvenance(provenance: RepositoryProvenance, id: Long): Long? = mutex.withLock {
         logger.debug("Storing provenance {} for ID {}.", provenance, id)
-        packageProvenances[provenance] = id
+        packageProvenances.getOrPut(provenance) { mutableListOf() } += id
 
         if (!provenance.isRootProvenance()) {
             pendingNestedAssignments.getOrPut(provenance.rootProvenance()) { mutableListOf() } += id

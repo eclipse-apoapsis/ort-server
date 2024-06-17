@@ -106,7 +106,7 @@ class OrtServerNestedProvenanceStorage(
         nestedProvenanceDao: NestedProvenanceDao
     ) {
         runBlocking {
-            packageProvenanceCache.get(provenance)?.let { packageProvenanceId ->
+            packageProvenanceCache.get(provenance).forEach { packageProvenanceId ->
                 PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
             }
         }
