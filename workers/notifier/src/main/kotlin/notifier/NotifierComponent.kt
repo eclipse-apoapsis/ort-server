@@ -37,10 +37,6 @@ import org.koin.core.component.inject
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(NotifierComponent::class.java)
-
 class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
     override val endpointHandler: EndpointHandler<NotifierRequest> = { message ->
         val notifierWorker by inject<NotifierWorker>()

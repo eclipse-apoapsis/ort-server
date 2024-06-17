@@ -44,10 +44,6 @@ import org.koin.dsl.module
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.utils.FileArchiver
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ScannerComponent::class.java)
-
 class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
     override val endpointHandler: EndpointHandler<ScannerRequest> = { message ->
         val scannerWorker by inject<ScannerWorker>()

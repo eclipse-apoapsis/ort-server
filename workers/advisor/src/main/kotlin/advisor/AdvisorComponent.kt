@@ -49,10 +49,6 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
-
 class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
     override val endpointHandler: EndpointHandler<AdvisorRequest> = { message ->
         val advisorWorker by inject<AdvisorWorker>()

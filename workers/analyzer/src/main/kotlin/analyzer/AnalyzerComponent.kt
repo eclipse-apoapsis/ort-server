@@ -41,10 +41,6 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AnalyzerComponent::class.java)
-
 /**
  * The central entry point into the Analyzer service. The class processes messages to analyze repositories by
  * delegating to helper objects.

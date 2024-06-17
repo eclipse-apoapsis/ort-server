@@ -30,6 +30,9 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  * An abstract base class providing functionality useful for components implementing endpoints in the ORT server.
  *
@@ -50,6 +53,8 @@ abstract class EndpointComponent<T : Any>(
     val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
     abstract val endpointHandler: EndpointHandler<T>
+
+    protected val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Start this endpoint and perform necessary initialization, so that incoming messages can be received and
