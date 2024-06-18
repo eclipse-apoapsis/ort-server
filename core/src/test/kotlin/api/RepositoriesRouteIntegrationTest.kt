@@ -143,14 +143,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         prodId: Long = productId
     ) = productService.createRepository(type, url, prodId)
 
-    fun createJobSummaries(ortRunId: Long): JobSummaries {
-        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId).mapToApiSummary()
-        val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId).mapToApiSummary()
-        val scannerJob = dbExtension.fixtures.createScannerJob(ortRunId).mapToApiSummary()
-        val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(ortRunId).mapToApiSummary()
-        val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId).mapToApiSummary()
-        return JobSummaries(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob)
-    }
+    fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
     val secretPath = "path"
     val secretName = "name"
