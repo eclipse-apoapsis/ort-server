@@ -52,20 +52,33 @@ sealed class Endpoint<T : Any>(
 ) {
     companion object {
         /**
+         * A map holding the existing [Endpoint] instances using their configuration prefixes as keys.
+         */
+        private val endpointsByConfigPrefix by lazy {
+            mapOf(
+                OrchestratorEndpoint.configPrefix to OrchestratorEndpoint,
+                ConfigEndpoint.configPrefix to ConfigEndpoint,
+                AnalyzerEndpoint.configPrefix to AnalyzerEndpoint,
+                AdvisorEndpoint.configPrefix to AdvisorEndpoint,
+                ScannerEndpoint.configPrefix to ScannerEndpoint,
+                EvaluatorEndpoint.configPrefix to EvaluatorEndpoint,
+                NotifierEndpoint.configPrefix to NotifierEndpoint,
+                ReporterEndpoint.configPrefix to ReporterEndpoint
+            )
+        }
+
+        /**
+         * Return a list containing all the existing [Endpoint] instances.
+         */
+        fun entries(): List<Endpoint<*>> = endpointsByConfigPrefix.values.toList()
+
+        /**
          * Return the [Endpoint] instance for the given configuration [prefix] or throw an exception if the prefix is
          * invalid.
          */
-        fun fromConfigPrefix(prefix: String): Endpoint<*> = when (prefix) {
-            OrchestratorEndpoint.configPrefix -> OrchestratorEndpoint
-            ConfigEndpoint.configPrefix -> ConfigEndpoint
-            AnalyzerEndpoint.configPrefix -> AnalyzerEndpoint
-            AdvisorEndpoint.configPrefix -> AdvisorEndpoint
-            ScannerEndpoint.configPrefix -> ScannerEndpoint
-            EvaluatorEndpoint.configPrefix -> EvaluatorEndpoint
-            NotifierEndpoint.configPrefix -> NotifierEndpoint
-            ReporterEndpoint.configPrefix -> ReporterEndpoint
-            else -> throw IllegalArgumentException("Unknown endpoint configuration prefix: $prefix")
-        }
+        fun fromConfigPrefix(prefix: String): Endpoint<*> =
+            endpointsByConfigPrefix[prefix]
+                ?: throw IllegalArgumentException("Unknown endpoint configuration prefix: $prefix")
     }
 }
 
