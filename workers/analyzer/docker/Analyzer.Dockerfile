@@ -21,6 +21,30 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+ARG ANDROID_CMD_VERSION=11076708
+ARG BOWER_VERSION=1.8.12
+ARG COCOAPODS_VERSION=1.14.2
+ARG COMPOSER_VERSION=2.2
+ARG CONAN_VERSION=1.61.0
+ARG DART_VERSION=2.18.4
+ARG DOTNET_VERSION=6.0
+ARG GO_DEP_VERSION=0.5.4
+ARG GO_VERSION=1.21.6
+ARG HASKELL_STACK_VERSION=2.13.1
+ARG NODEJS_VERSION=20.9.0
+ARG NPM_VERSION=10.1.0
+ARG NUGET_INSPECTOR_VERSION=0.9.12
+ARG PIPTOOL_VERSION=23.3.1
+ARG PYENV_GIT_TAG=v2.3.25
+ARG PYTHON_INSPECTOR_VERSION=0.11.0
+ARG PYTHON_PIPENV_VERSION=2023.10.24
+ARG PYTHON_POETRY_VERSION=1.7.0
+ARG PYTHON_VERSION=3.11.5
+ARG RUBY_VERSION=3.1.2
+ARG RUST_VERSION=1.72.0
+ARG SBT_VERSION=1.9.7
+ARG SWIFT_VERSION=5.9.2
+
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
 ARG TEMURIN_VERSION=17.0.11_9-jdk-jammy@sha256:ba73d59638124589ed6de7c8923b434e08e247908817434b96f4030f8fbfc67b
 
@@ -133,8 +157,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     tk-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG PYTHON_VERSION=3.11.5
-ARG PYENV_GIT_TAG=v2.3.25
+ARG PYTHON_VERSION
+ARG PYENV_GIT_TAG
 
 ENV PYENV_ROOT=/opt/python
 ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin
@@ -142,11 +166,11 @@ RUN curl -kSs https://pyenv.run | bash \
     && pyenv install -v $PYTHON_VERSION \
     && pyenv global $PYTHON_VERSION
 
-ARG CONAN_VERSION=1.61.0
-ARG PYTHON_INSPECTOR_VERSION=0.11.0
-ARG PYTHON_PIPENV_VERSION=2023.10.24
-ARG PYTHON_POETRY_VERSION=1.7.0
-ARG PIPTOOL_VERSION=23.3.1
+ARG CONAN_VERSION
+ARG PYTHON_INSPECTOR_VERSION
+ARG PYTHON_PIPENV_VERSION
+ARG PYTHON_POETRY_VERSION
+ARG PIPTOOL_VERSION
 
 RUN pip install --no-cache-dir -U \
     pip=="$PIPTOOL_VERSION" \
@@ -165,9 +189,9 @@ COPY --from=pythonbuild /opt/python /opt/python
 # NODEJS - Build NodeJS as a separate component with nvm
 FROM ort-base-image AS nodebuild
 
-ARG BOWER_VERSION=1.8.12
-ARG NODEJS_VERSION=20.9.0
-ARG NPM_VERSION=10.1.0
+ARG BOWER_VERSION
+ARG NODEJS_VERSION
+ARG NPM_VERSION
 
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
@@ -202,8 +226,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     zlib1g-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG COCOAPODS_VERSION=1.14.2
-ARG RUBY_VERSION=3.1.2
+ARG COCOAPODS_VERSION
+ARG RUBY_VERSION
 ENV RBENV_ROOT=/opt/rbenv
 ENV PATH=$RBENV_ROOT/bin:$RBENV_ROOT/shims/:$RBENV_ROOT/plugins/ruby-build/bin:$PATH
 
@@ -226,7 +250,7 @@ FROM ort-base-image AS rustbuild
 ARG RUST_HOME=/opt/rust
 ARG CARGO_HOME=$RUST_HOME/cargo
 ARG RUSTUP_HOME=$RUST_HOME/rustup
-ARG RUST_VERSION=1.72.0
+ARG RUST_VERSION
 RUN curl -ksSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION
 
 FROM scratch AS rust
@@ -236,8 +260,8 @@ COPY --from=rustbuild /opt/rust /opt/rust
 # GOLANG - Build as a separate component
 FROM ort-base-image AS gobuild
 
-ARG GO_DEP_VERSION=0.5.4
-ARG GO_VERSION=1.21.6
+ARG GO_DEP_VERSION
+ARG GO_VERSION
 ENV GOBIN=/opt/go/bin
 ENV PATH=$PATH:/opt/go/bin
 
@@ -260,7 +284,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     zlib1g-dev \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG HASKELL_STACK_VERSION=2.13.1
+ARG HASKELL_STACK_VERSION
 
 ENV HASKELL_HOME=/opt/haskell
 ENV PATH=$PATH:$HASKELL_HOME/bin
@@ -281,7 +305,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     unzip \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ARG ANDROID_CMD_VERSION=11076708
+ARG ANDROID_CMD_VERSION
 ENV ANDROID_HOME=/opt/android-sdk
 
 RUN --mount=type=tmpfs,target=/android \
@@ -306,7 +330,7 @@ COPY --from=androidbuild $ANDROID_HOME $ANDROID_HOME
 #  Dart
 FROM ort-base-image AS dartbuild
 
-ARG DART_VERSION=2.18.4
+ARG DART_VERSION
 WORKDIR /opt/
 
 ENV DART_SDK=/opt/dart-sdk
@@ -326,7 +350,7 @@ COPY --from=dartbuild $DART_SDK $DART_SDK
 # SBT
 FROM ort-base-image AS sbtbuild
 
-ARG SBT_VERSION=1.9.7
+ARG SBT_VERSION
 
 ENV SBT_HOME=/opt/sbt
 ENV PATH=$PATH:$SBT_HOME/bin
@@ -340,7 +364,7 @@ COPY --from=sbtbuild $DART_SDK $DART_SDK
 # SWIFT
 FROM ort-base-image AS swiftbuild
 
-ARG SWIFT_VERSION=5.9.2
+ARG SWIFT_VERSION
 
 ENV SWIFT_HOME=/opt/swift
 ENV PATH=$PATH:$SWIFT_HOME/bin
@@ -362,8 +386,8 @@ COPY --from=swiftbuild $SWIFT_HOME $SWIFT_HOME
 # DOTNET
 FROM ort-base-image AS dotnetbuild
 
-ARG DOTNET_VERSION=6.0
-ARG NUGET_INSPECTOR_VERSION=0.9.12
+ARG DOTNET_VERSION
+ARG NUGET_INSPECTOR_VERSION
 
 ENV DOTNET_HOME=/opt/dotnet
 ENV NUGET_INSPECTOR_HOME=$DOTNET_HOME
@@ -409,7 +433,7 @@ ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin
 COPY --from=python --chown=$USER:$USER $PYENV_ROOT $PYENV_ROOT
 
 # NodeJS
-ARG NODEJS_VERSION=20.9.0
+ARG NODEJS_VERSION
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
 COPY --from=node --chown=$USER:$USER $NVM_DIR $NVM_DIR
@@ -463,7 +487,7 @@ ENV PATH=$PATH:$DOTNET_HOME:$DOTNET_HOME/tools:$DOTNET_HOME/bin
 COPY --from=dotnet --chown=$USER:$USER $DOTNET_HOME $DOTNET_HOME
 
 # PHP composer
-ARG COMPOSER_VERSION=2.2
+ARG COMPOSER_VERSION
 
 ENV PATH=$PATH:/opt/php/bin
 RUN mkdir -p /opt/php/bin \
