@@ -71,7 +71,9 @@ export const App = () => {
       !auth.isLoading &&
       !hasTriedSignin
     ) {
-      auth.signinRedirect();
+      auth.signinRedirect({
+        redirect_uri: window.location.href,
+      });
       setHasTriedSignin(true);
     }
   }, [auth, hasTriedSignin]);
