@@ -142,6 +142,58 @@ to `latest`:
 ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose up
 ```
 
+#### Handling major version upgrades of PostgreSQL
+
+PostgreSQL does not support reading the data directory of a previous major version.
+When upgrading the PostgreSQL version in the Docker Compose setup, the database data directory must be manually
+migrated by following these steps:
+
+1. Stop the Docker Compose setup:
+
+   ```shell
+   docker compose stop
+   ```
+
+2. Start only the PostgreSQL service:
+
+   ```shell
+   docker compose up -d postgres
+   ```
+
+3. Make backups of the ORT Server and Keycloak databases:
+
+   ```shell
+   docker compose exec postgres pg_dump -Fc -U postgres -d ort_server -n public > keycloak.dump
+   docker compose exec postgres pg_dump -Fc -U postgres -d ort_server -n ort_server > ort-server.dump
+   ```
+
+4. Stop Docker Compose and delete the volumes:
+
+   ```shell
+   docker compose down -v
+   ```
+
+5. Update the PostgreSQL version in `docker-compose.yml`.
+
+6. Start the PostgreSQL service again:
+
+   ```shell
+   docker compose up -d postgres
+   ```
+
+7. Import the database backups:
+
+   ```shell
+   cat keycloak.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n public
+   cat ort-server.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n ort_server
+   ```
+
+8. Start all services:
+
+   ```shell
+   docker compose up -d
+   ```
+
 ### Accessing the services
 
 | Service        | URL                              | Credentials                                             |
