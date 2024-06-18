@@ -28,7 +28,6 @@ ARG COMPOSER_VERSION=2.2
 ARG CONAN_VERSION=1.64.1
 ARG DART_VERSION=2.18.4
 ARG DOTNET_VERSION=6.0
-ARG GO_DEP_VERSION=0.5.4
 ARG GO_VERSION=1.21.6
 ARG HASKELL_STACK_VERSION=2.13.1
 ARG NODEJS_VERSION=20.14.0
@@ -260,15 +259,13 @@ COPY --from=rustbuild /opt/rust /opt/rust
 # GOLANG - Build as a separate component
 FROM ort-base-image AS gobuild
 
-ARG GO_DEP_VERSION
 ARG GO_VERSION
 ENV GOBIN=/opt/go/bin
 ENV PATH=$PATH:/opt/go/bin
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN arch=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) \
-    && curl -L https://dl.google.com/go/go${GO_VERSION}.linux-${arch}.tar.gz | tar -C /opt -xz \
-    && curl -ksS https://raw.githubusercontent.com/golang/dep/v$GO_DEP_VERSION/install.sh | bash
+    && curl -L https://dl.google.com/go/go${GO_VERSION}.linux-${arch}.tar.gz | tar -C /opt -xz
 
 FROM scratch AS golang
 COPY --from=gobuild /opt/go /opt/go
