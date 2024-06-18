@@ -42,7 +42,7 @@ ARG PYTHON_POETRY_VERSION=1.8.3
 ARG PYTHON_VERSION=3.11.9
 ARG RUBY_VERSION=3.1.2
 ARG RUST_VERSION=1.72.0
-ARG SBT_VERSION=1.9.7
+ARG SBT_VERSION=1.10.0
 ARG SWIFT_VERSION=5.9.2
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
