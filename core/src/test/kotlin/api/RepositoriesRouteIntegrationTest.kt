@@ -442,10 +442,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     labelsMap
                 )
 
+                val jobs = dbExtension.fixtures.createJobs(run.id).mapToApi()
+
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody run.mapToApi(Jobs())
+                response shouldHaveBody run.mapToApi(jobs)
             }
         }
 
