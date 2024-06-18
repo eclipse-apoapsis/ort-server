@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
@@ -173,6 +174,17 @@ class Fixtures(private val db: Database) {
         ortRunId: Long = ortRun.id,
         configuration: NotifierJobConfiguration = jobConfigurations.notifier!!
     ) = notifierJobRepository.create(ortRunId, configuration)
+
+    fun createJobs(ortRunId: Long): Jobs {
+        val analyzerJob = createAnalyzerJob(ortRunId)
+        val advisorJob = createAdvisorJob(ortRunId)
+        val scannerJob = createScannerJob(ortRunId)
+        val evaluatorJob = createEvaluatorJob(ortRunId)
+        val reporterJob = createReporterJob(ortRunId)
+        val notifierJob = createNotifierJob(ortRunId)
+
+        return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
+    }
 
     fun createIdentifier() = db.blockingQuery {
         IdentifierDao.new {
