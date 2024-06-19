@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -38,6 +39,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
 
 import java.io.IOException
@@ -360,7 +362,7 @@ class JobHandlerTest : WordSpec({
                     null,
                     null,
                     null,
-                    null,
+                    any(),
                     null,
                     null,
                     null,
@@ -373,6 +375,63 @@ class JobHandlerTest : WordSpec({
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
             jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2, matchJob3)
+        }
+
+        "query only jobs for ORT Server workers" {
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val jobList = V1JobList().apply { items = listOf(createJob("testJob")) }
+            every {
+                jobApi.listNamespacedJob(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    null,
+                    any(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            } returns jobList
+
+            val handler = createJobHandler(jobApi, coreApi)
+            handler.findJobsCompletedBefore(OffsetDateTime.now())
+
+            val slotLabel = slot<String>()
+            verify {
+                jobApi.listNamespacedJob(
+                    NAMESPACE,
+                    null,
+                    null,
+                    null,
+                    null,
+                    capture(slotLabel),
+                    null,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            }
+
+            val labelSelectorRegex = Regex("""ort-worker in \((.+)\)""")
+            labelSelectorRegex.matchEntire(slotLabel.captured) shouldNotBeNull {
+                val workers = groupValues[1].split(",")
+                workers shouldContainExactlyInAnyOrder listOf(
+                    "advisor",
+                    "analyzer",
+                    "config",
+                    "evaluator",
+                    "notifier",
+                    "orchestrator",
+                    "reporter",
+                    "scanner"
+                )
+            }
         }
     }
 
