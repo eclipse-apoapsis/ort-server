@@ -18,8 +18,10 @@
 server {
   listen 80;
 
-  location / {
-    root /usr/share/nginx/html;
+  root /usr/share/nginx/html/;
+
+  location $UI_BASEPATH {
     try_files $uri /index.html;
+    alias /usr/share/nginx/html/;
   }
 }

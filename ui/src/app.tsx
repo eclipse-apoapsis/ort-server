@@ -39,6 +39,7 @@ export interface RouterContext {
 // Create a new router instance
 const router = createRouter({
   routeTree,
+  basepath: import.meta.env.VITE_BASEPATH || '/',
   context: {
     queryClient,
     breadcrumbs: {

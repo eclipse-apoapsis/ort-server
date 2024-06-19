@@ -23,7 +23,11 @@
 # Set the default value for UI_CLIENT_ID to use the Keycloak client with matching root and home URLs.
 : "${UI_CLIENT_ID:=ort-server-ui}"
 
+# Set the default value for UI_BASEPATH.
+: "${UI_BASEPATH:=/}"
+
 # Replace placeholders with actual environment variables in JavaScript files.
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_BASEPATH||\"/\"#VITE_BASEPATH||\"$UI_BASEPATH\"#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_CLIENT_ID||\"ort-server-ui-dev\"#VITE_CLIENT_ID||\"$UI_CLIENT_ID\"#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_UI_URL||\"http://localhost:5173/\"#VITE_UI_URL||\"$UI_URL\"#g" {} +
 
@@ -34,6 +38,14 @@ fi
 if [ -n "$UI_AUTHORITY" ]; then
   find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_AUTHORITY||\"http://localhost:8081/realms/master\"#VITE_AUTHORITY||\"$UI_AUTHORITY\"#g" {} +
 fi
+
+# Replace placeholders with actual environment variables in the nginx configuration.
+export UI_BASEPATH
+envsubst '${UI_BASEPATH}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+rm /etc/nginx/conf.d/default.conf.template
+
+# Add base path to assets references in index.html.
+sed -i "s|/assets/|${UI_BASEPATH}assets/|g" /usr/share/nginx/html/index.html
 
 # Start nginx.
 exec nginx -g 'daemon off;'
