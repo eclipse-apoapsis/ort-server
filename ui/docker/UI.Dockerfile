@@ -43,8 +43,8 @@ COPY docker/nginx.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose port 80.
-EXPOSE 80
+# Expose port 8080.
+EXPOSE 8080
 
 # Set the entrypoint script.
 ENTRYPOINT ["/entrypoint.sh"]

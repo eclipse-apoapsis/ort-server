@@ -446,7 +446,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "8082:80"
+      - "8082:8080"
 
 volumes:
   db:
