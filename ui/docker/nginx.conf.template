@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 server {
-  listen 80;
+  listen 8080;
 
   root /usr/share/nginx/html/;
 
