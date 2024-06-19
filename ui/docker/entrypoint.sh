@@ -34,9 +34,7 @@ if [ -n "$VITE_AUTHORITY" ]; then
   find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_AUTHORITY||\"http://localhost:8081/realms/master\"#VITE_AUTHORITY||\"$VITE_AUTHORITY\"#g" {} +
 fi
 
-if [ -n "$VITE_CLIENT_ID" ]; then
-  find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_CLIENT_ID||\"ort-server-ui-dev\"#VITE_CLIENT_ID||\"$VITE_CLIENT_ID\"#g" {} +
-fi
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_CLIENT_ID||\"ort-server-ui-dev\"#VITE_CLIENT_ID||\"$VITE_CLIENT_ID\"#g" {} +
 
 # Start nginx.
 exec nginx -g 'daemon off;'
