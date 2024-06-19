@@ -49,7 +49,7 @@ import {
 export const IndexPage = () => {
   const { data } = useSuspenseQuery({
     queryKey: [useOrganizationsServiceGetOrganizationsKey],
-    queryFn: () => OrganizationsService.getOrganizations(),
+    queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
   });
 
   return (
@@ -118,7 +118,7 @@ export const Route = createFileRoute('/_layout/')({
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [useOrganizationsServiceGetOrganizationsKey],
-      queryFn: () => OrganizationsService.getOrganizations(),
+      queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
     });
   },
   component: IndexPage,
