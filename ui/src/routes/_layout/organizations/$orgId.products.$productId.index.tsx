@@ -85,6 +85,7 @@ const ProductComponent = () => {
         queryFn: async () =>
           await RepositoriesService.getRepositoriesByProductId({
             productId: Number.parseInt(params.productId),
+            limit: 1000,
           }),
       },
     ],
@@ -265,6 +266,7 @@ export const Route = createFileRoute(
         queryFn: () =>
           RepositoriesService.getRepositoriesByProductId({
             productId: Number.parseInt(params.productId),
+            limit: 1000,
           }),
       }),
     ]);

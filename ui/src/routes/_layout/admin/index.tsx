@@ -202,7 +202,7 @@ const DataTable = <TData, TValue>({
 const OverviewContent = () => {
   const { data } = useSuspenseQuery({
     queryKey: [useOrganizationsServiceGetOrganizationsKey],
-    queryFn: () => OrganizationsService.getOrganizations(),
+    queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
   });
 
   return (

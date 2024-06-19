@@ -95,6 +95,7 @@ const RepoComponent = () => {
         queryFn: async () =>
           await RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
+            limit: 1000,
             sort: '-index',
           }),
         refetchInterval: pollInterval,
@@ -321,6 +322,7 @@ export const Route = createFileRoute(
         queryFn: () =>
           RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
+            limit: 1000,
             sort: '-index',
           }),
       }),

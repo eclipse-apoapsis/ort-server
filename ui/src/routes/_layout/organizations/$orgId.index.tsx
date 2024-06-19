@@ -86,6 +86,7 @@ const OrganizationComponent = () => {
         queryFn: async () =>
           await ProductsService.getOrganizationProducts({
             organizationId: Number.parseInt(params.orgId),
+            limit: 1000,
           }),
       },
     ],
@@ -252,6 +253,7 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
         queryFn: () =>
           ProductsService.getOrganizationProducts({
             organizationId: Number.parseInt(params.orgId),
+            limit: 1000,
           }),
       }),
     ]);
