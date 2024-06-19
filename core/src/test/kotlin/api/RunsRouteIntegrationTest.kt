@@ -256,46 +256,6 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "GET /runs/{runId}/reporter/{fileName}" should {
-        "download a report" {
-            integrationTestApplication {
-                val run = createReport()
-
-                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$reportFile")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response should haveHeader("Content-Type", "application/pdf")
-                response.body<ByteArray>() shouldBe reportData
-            }
-        }
-
-        "handle a missing report" {
-            integrationTestApplication {
-                val missingReportFile = "nonExistingReport.pdf"
-                val run = dbExtension.fixtures.createOrtRun(repositoryId)
-
-                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$missingReportFile")
-
-                response shouldHaveStatus HttpStatusCode.NotFound
-                response.body<ErrorResponse>().cause shouldContain missingReportFile
-            }
-        }
-
-        "respond with NotFound if the ORT run does not exist" {
-            integrationTestApplication {
-                superuserClient.get("/api/v1/runs/999/reporter/report.pdf") shouldHaveStatus HttpStatusCode.NotFound
-            }
-        }
-
-        "require RepositoryPermission.READ_ORT_RUNS" {
-            val run = createReport()
-
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
-                get("/api/v1/runs/${run.id}/reporter/$reportFile")
-            }
-        }
-    }
-
     "GET /runs/{runId}/logs/" should {
         "download an archive with all logs" {
             integrationTestApplication {
@@ -403,6 +363,46 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/logs")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/reporter/{fileName}" should {
+        "download a report" {
+            integrationTestApplication {
+                val run = createReport()
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$reportFile")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response should haveHeader("Content-Type", "application/pdf")
+                response.body<ByteArray>() shouldBe reportData
+            }
+        }
+
+        "handle a missing report" {
+            integrationTestApplication {
+                val missingReportFile = "nonExistingReport.pdf"
+                val run = dbExtension.fixtures.createOrtRun(repositoryId)
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}/reporter/$missingReportFile")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+                response.body<ErrorResponse>().cause shouldContain missingReportFile
+            }
+        }
+
+        "respond with NotFound if the ORT run does not exist" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/999/reporter/report.pdf") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = createReport()
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}/reporter/$reportFile")
             }
         }
     }
