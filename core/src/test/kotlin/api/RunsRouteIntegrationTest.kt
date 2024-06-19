@@ -256,7 +256,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "GET /runs/{runId}/report/{fileName}" should {
+    "GET /runs/{runId}/reporter/{fileName}" should {
         "download a report" {
             integrationTestApplication {
                 val run = createReport()
