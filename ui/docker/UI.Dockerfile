@@ -18,7 +18,7 @@
 # License-Filename: LICENSE
 
 # Stage 1: Build the UI.
-FROM node:20-slim AS build
+FROM node:20-slim@sha256:0ff3b9e24e805e08f2e4f822957d1deee86bb07927c70ba8440de79a6a885da6 AS build
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -31,7 +31,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # Stage 2: Serve the app with nginx.
-FROM nginx:alpine
+FROM nginx:1.27-alpine@sha256:69f8c2c72671490607f52122be2af27d4fc09657ff57e42045801aa93d2090f7
 
 # Copy the build output to the nginx html directory.
 COPY --from=build /app/dist /usr/share/nginx/html
