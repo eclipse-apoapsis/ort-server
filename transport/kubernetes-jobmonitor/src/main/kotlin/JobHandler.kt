@@ -80,6 +80,13 @@ internal class JobHandler(
         private const val TRACE_LABEL_PREFIX = "trace-id-"
 
         /**
+         * A label selector to find only jobs for ORT Server components. Only those are handled when looking for
+         * completed or failed jobs.
+         */
+        private val workerJobsLabelSelector = "ort-worker in " +
+                Endpoint.entries().joinToString(",", prefix = "(", postfix = ")") { it.configPrefix }
+
+        /**
          * Return a flag whether this job has failed. For jobs that are still running the result is *false*.
          */
         fun V1Job.isFailed(): Boolean = status?.conditions.orEmpty().any { it.type == FAILED_CONDITION }
@@ -135,7 +142,7 @@ internal class JobHandler(
      * Return a list with all currently existing jobs that have been completed before the given [time].
      */
     fun findJobsCompletedBefore(time: OffsetDateTime): List<V1Job> =
-        listJobs().filter { it.completedBefore(time) }
+        listJobs(workerJobsLabelSelector).filter { it.completedBefore(time) }
 
     /**
      * Return a list with all currently active jobs for the worker defined by the given [endpoint].
@@ -234,6 +241,6 @@ internal class JobHandler(
     /**
      * Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter.
      */
-    private fun listJobs(labelSelector: String? = null): List<V1Job> =
+    private fun listJobs(labelSelector: String?): List<V1Job> =
         jobApi.listNamespacedJob(namespace, null, null, null, null, labelSelector, null, null, null, null, false).items
 }
