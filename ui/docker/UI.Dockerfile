@@ -43,6 +43,10 @@ COPY docker/nginx.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Make sure the user executing the container has access rights to the directories required by nginx.
+RUN chgrp -R 0 /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d \
+    && chmod -R g+rwX /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d
+
 # Expose port 8080.
 EXPOSE 8080
 
