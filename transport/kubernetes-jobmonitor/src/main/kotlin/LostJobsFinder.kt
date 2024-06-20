@@ -26,6 +26,7 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
@@ -33,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
+import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
@@ -80,6 +82,9 @@ internal class LostJobsFinder(
     /** The repository for Reporter jobs. */
     reporterJobRepository: ReporterJobRepository,
 
+    /** The repository for Notifier jobs. */
+    notifierJobRepository: NotifierJobRepository,
+
     /** The clock to determine the current time and the age of jobs. */
     private val clock: Clock = Clock.System
 ) {
@@ -93,7 +98,8 @@ internal class LostJobsFinder(
         AdvisorEndpoint to advisorJobRepository,
         ScannerEndpoint to scannerJobRepository,
         EvaluatorEndpoint to evaluatorJobRepository,
-        ReporterEndpoint to reporterJobRepository
+        ReporterEndpoint to reporterJobRepository,
+        NotifierEndpoint to notifierJobRepository
     )
 
     /**

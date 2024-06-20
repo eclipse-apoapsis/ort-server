@@ -36,11 +36,13 @@ import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
@@ -145,6 +147,7 @@ internal class MonitorComponent(
             single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
             single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
             single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+            single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
 
             single { Scheduler() }
             single { JobWatchHelper.create(get(), namespace) }
@@ -157,6 +160,7 @@ internal class MonitorComponent(
                     get(),
                     get(),
                     configManager.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
+                    get(),
                     get(),
                     get(),
                     get(),
