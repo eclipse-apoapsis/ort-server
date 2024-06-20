@@ -173,7 +173,7 @@ internal class JobHandler(
      */
     private fun deleteJob(jobName: String) {
         runCatching {
-            jobApi.deleteNamespacedJob(jobName, namespace, null, null, null, null, null, null)
+            jobApi.deleteNamespacedJob(jobName, namespace).execute()
         }.onFailure { e ->
             logger.error("Could not remove job '$jobName': $e.")
         }
@@ -187,7 +187,7 @@ internal class JobHandler(
     private fun findPodsForJob(jobName: String): List<V1Pod> {
         val selector = "job-name=$jobName"
 
-        return api.listNamespacedPod(namespace, null, null, null, null, selector, null, null, null, null, false).items
+        return api.listNamespacedPod(namespace).labelSelector(selector).watch(false).execute().items
     }
 
     /**
@@ -198,7 +198,7 @@ internal class JobHandler(
         pod.metadata?.name?.let { podName ->
             logger.info("Deleting pod $podName.")
             runCatching {
-                api.deleteNamespacedPod(podName, namespace, null, null, null, null, null, null)
+                api.deleteNamespacedPod(podName, namespace).execute()
             }.onFailure { e ->
                 logger.error("Could not remove pod '$podName': $e.")
             }
@@ -235,5 +235,5 @@ internal class JobHandler(
      * Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter.
      */
     private fun listJobs(labelSelector: String? = null): List<V1Job> =
-        jobApi.listNamespacedJob(namespace, null, null, null, null, labelSelector, null, null, null, null, false).items
+        jobApi.listNamespacedJob(namespace).labelSelector(labelSelector).watch(false).execute().items
 }
