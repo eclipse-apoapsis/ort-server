@@ -141,7 +141,7 @@ internal class KubernetesMessageSender<T : Any>(
             .endSpec()
             .build()
 
-        api.createNamespacedJob(msgConfig.namespace, jobBody, null, null, null, null)
+        api.createNamespacedJob(msgConfig.namespace, jobBody).execute()
     }
 
     /**
