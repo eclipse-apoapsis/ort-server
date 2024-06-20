@@ -58,12 +58,14 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
+import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
@@ -231,6 +233,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 declareRepositoryMock<ScannerJob, ScannerJobRepository>()
                 declareRepositoryMock<EvaluatorJob, EvaluatorJobRepository>()
                 declareRepositoryMock<ReporterJob, ReporterJobRepository>()
+                declareRepositoryMock<NotifierJob, NotifierJobRepository>()
 
                 val scheduler = declareMock<Scheduler> {
                     initSchedulerMock(this)
