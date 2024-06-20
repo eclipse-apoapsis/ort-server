@@ -61,13 +61,13 @@ importers:
         version: 5.45.1(@tanstack/react-query@5.45.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.33.7
-        version: 1.39.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.39.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.17.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/router-devtools':
         specifier: ^1.33.7
-        version: 1.39.4(@tanstack/react-router@1.39.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.39.6(@tanstack/react-router@1.39.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1396,8 +1396,8 @@ packages:
     peerDependencies:
       react: ^18.0.0
 
-  '@tanstack/react-router@1.39.4':
-    resolution: {integrity: sha512-Pby5MI1NREiXcX532HqQIa9bzwqxFypnqDiPIbywNP1BXufvCuzRh1ZQX/IxxYLeqjANE2gjTmAGHeyrEoh1kg==}
+  '@tanstack/react-router@1.39.6':
+    resolution: {integrity: sha512-Frfq2Vusy0WZRVXpV36sVzLTyj5PTAMJKduGSrZzWp61glCMphSTf5yLBTWsLxsV7wl9Ci6u5wXwCMGTXM+1Cw==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=16.8'
@@ -1421,11 +1421,11 @@ packages:
     engines: {node: '>=12'}
     hasBin: true
 
-  '@tanstack/router-devtools@1.39.4':
-    resolution: {integrity: sha512-wOCx6CUaF/YEbKJXE/9iyT8kDmKb4528XtNaAm6nmCByi30+WPA6dVlqg2X8PNlbIBzeguz6DEg9X8YlyKf7qA==}
+  '@tanstack/router-devtools@1.39.6':
+    resolution: {integrity: sha512-2oWUWX3jLnS/ON5ijAo+L9BIGJmcolnXW+fVXcv5cBsQZXBtXHDK/Fa0b3K6hRQ+K1vIGJrcz7EXk8dTtt+lKw==}
     engines: {node: '>=12'}
     peerDependencies:
-      '@tanstack/react-router': ^1.39.4
+      '@tanstack/react-router': ^1.39.6
       react: '>=16.8'
       react-dom: '>=16.8'
 
@@ -3427,7 +3427,7 @@ snapshots:
 
   '@radix-ui/primitive@1.0.1':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
 
   '@radix-ui/primitive@1.1.0': {}
 
@@ -3517,7 +3517,7 @@ snapshots:
 
   '@radix-ui/react-compose-refs@1.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       react: 18.3.1
     optionalDependencies:
       '@types/react': 18.3.3
@@ -3530,7 +3530,7 @@ snapshots:
 
   '@radix-ui/react-context@1.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       react: 18.3.1
     optionalDependencies:
       '@types/react': 18.3.3
@@ -3594,7 +3594,7 @@ snapshots:
 
   '@radix-ui/react-dismissable-layer@1.0.5(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/primitive': 1.0.1
       '@radix-ui/react-compose-refs': 1.0.1(@types/react@18.3.3)(react@18.3.1)
       '@radix-ui/react-primitive': 1.0.3(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3636,7 +3636,7 @@ snapshots:
 
   '@radix-ui/react-focus-guards@1.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       react: 18.3.1
     optionalDependencies:
       '@types/react': 18.3.3
@@ -3649,7 +3649,7 @@ snapshots:
 
   '@radix-ui/react-focus-scope@1.0.4(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/react-compose-refs': 1.0.1(@types/react@18.3.3)(react@18.3.1)
       '@radix-ui/react-primitive': 1.0.3(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-use-callback-ref': 1.0.1(@types/react@18.3.3)(react@18.3.1)
@@ -3676,7 +3676,7 @@ snapshots:
 
   '@radix-ui/react-id@1.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/react-use-layout-effect': 1.0.1(@types/react@18.3.3)(react@18.3.1)
       react: 18.3.1
     optionalDependencies:
@@ -3767,7 +3767,7 @@ snapshots:
 
   '@radix-ui/react-portal@1.0.4(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/react-primitive': 1.0.3(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
@@ -3964,7 +3964,7 @@ snapshots:
 
   '@radix-ui/react-use-controllable-state@1.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/react-use-callback-ref': 1.0.1(@types/react@18.3.3)(react@18.3.1)
       react: 18.3.1
     optionalDependencies:
@@ -3979,7 +3979,7 @@ snapshots:
 
   '@radix-ui/react-use-escape-keydown@1.0.3(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
-      '@babel/runtime': 7.24.6
+      '@babel/runtime': 7.24.4
       '@radix-ui/react-use-callback-ref': 1.0.1(@types/react@18.3.3)(react@18.3.1)
       react: 18.3.1
     optionalDependencies:
@@ -4101,7 +4101,7 @@ snapshots:
       '@tanstack/query-core': 5.45.0
       react: 18.3.1
 
-  '@tanstack/react-router@1.39.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tanstack/react-router@1.39.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/history': 1.31.16
       '@tanstack/react-store': 0.2.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4129,9 +4129,9 @@ snapshots:
       chokidar: 3.6.0
       yargs: 17.7.2
 
-  '@tanstack/router-devtools@1.39.4(@tanstack/react-router@1.39.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tanstack/router-devtools@1.39.6(@tanstack/react-router@1.39.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@tanstack/react-router': 1.39.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router': 1.39.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       clsx: 2.1.1
       date-fns: 2.30.0
       goober: 2.1.14(csstype@3.1.3)
