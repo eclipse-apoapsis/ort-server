@@ -183,14 +183,7 @@ class KubernetesMessageSenderTest : StringSpec({
         sender.send(msg)
 
         verify(exactly = 2) {
-            client.createNamespacedJob(
-                "test-namespace",
-                capture(jobs),
-                null,
-                null,
-                null,
-                null
-            )
+            client.createNamespacedJob("test-namespace", capture(jobs))
         }
 
         val jobNames = jobs.mapNotNull { it.metadata?.name }.toSet()
@@ -241,14 +234,7 @@ private fun createJob(
 
     val job = slot<V1Job>()
     verify(exactly = 1) {
-        client.createNamespacedJob(
-            "test-namespace",
-            capture(job),
-            null,
-            null,
-            null,
-            null
-        )
+        client.createNamespacedJob("test-namespace", capture(job))
     }
 
     return job.captured
@@ -260,8 +246,12 @@ private fun createJob(
 private fun createClientAndSender(
     config: KubernetesSenderConfig
 ): Pair<BatchV1Api, KubernetesMessageSender<AnalyzerRequest>> {
+    val request = mockk<BatchV1Api.APIcreateNamespacedJobRequest> {
+        every { execute() } returns mockk()
+    }
+
     val client = mockk<BatchV1Api> {
-        every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+        every { createNamespacedJob(any(), any()) } returns request
     }
 
     val sender = KubernetesMessageSender(

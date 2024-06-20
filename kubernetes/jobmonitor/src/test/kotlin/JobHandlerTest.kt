@@ -71,23 +71,17 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val podList = V1PodList().apply { items = podNames.map(::createPod) }
-            every {
-                coreApi.listNamespacedPod(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "job-name=$jobName",
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns podList
-            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
-            every { jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                every { execute() } returns podList
+            }
+
+            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
+            every { request.labelSelector("job-name=$jobName") } returns request
+            every { request.watch(false) } returns request
+
+            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
+            every { jobApi.deleteNamespacedJob(any(), any()) } returns null
 
             val handler = createJobHandler(jobApi, coreApi)
 
@@ -95,10 +89,10 @@ class JobHandlerTest : WordSpec({
 
             verify {
                 podNames.forAll {
-                    coreApi.deleteNamespacedPod(it, NAMESPACE, null, null, null, null, null, null)
+                    coreApi.deleteNamespacedPod(it, NAMESPACE)
                 }
 
-                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
         }
 
@@ -111,7 +105,7 @@ class JobHandlerTest : WordSpec({
             handler.deleteAndNotifyIfFailed(V1Job())
 
             verify(exactly = 0) {
-                jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
+                jobApi.deleteNamespacedJob(any(), any())
             }
         }
 
@@ -124,27 +118,17 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val podList = V1PodList().apply { items = podNames.map(::createPod) }
-            every {
-                coreApi.listNamespacedPod(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "job-name=$jobName",
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns podList
-            every {
-                coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any())
-            } throws IOException("Test exception when deleting pod.")
-            every {
-                jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
-            } throws IOException("Test exception when deleting job.")
+
+            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                every { execute() } returns podList
+            }
+
+            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
+            every { request.labelSelector("job-name=$jobName") } returns request
+            every { request.watch(false) } returns request
+
+            every { coreApi.deleteNamespacedPod(any(), any()) } throws IOException("Test exception when deleting pod.")
+            every { jobApi.deleteNamespacedJob(any(), any()) } throws IOException("Test exception when deleting job.")
 
             val handler = createJobHandler(jobApi, coreApi)
 
@@ -152,10 +136,10 @@ class JobHandlerTest : WordSpec({
 
             verify {
                 podNames.forAll {
-                    coreApi.deleteNamespacedPod(it, NAMESPACE, null, null, null, null, null, null)
+                    coreApi.deleteNamespacedPod(it, NAMESPACE)
                 }
 
-                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
         }
 
@@ -173,23 +157,17 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val podList = V1PodList().apply { items = podNames.map(::createPod) }
-            every {
-                coreApi.listNamespacedPod(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "job-name=$jobName",
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns podList
-            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
-            every { jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                every { execute() } returns podList
+            }
+
+            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
+            every { request.labelSelector("job-name=$jobName") } returns request
+            every { request.watch(false) } returns request
+
+            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
+            every { jobApi.deleteNamespacedJob(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job) } just runs
@@ -203,10 +181,10 @@ class JobHandlerTest : WordSpec({
                 notifier.sendFailedJobNotification(job)
 
                 podNames.forAll {
-                    coreApi.deleteNamespacedPod(it, NAMESPACE, null, null, null, null, null, null)
+                    coreApi.deleteNamespacedPod(it, NAMESPACE)
                 }
 
-                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
         }
 
@@ -229,7 +207,7 @@ class JobHandlerTest : WordSpec({
             handler.deleteAndNotifyIfFailed(job)
 
             verify(exactly = 0) {
-                jobApi.deleteNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any())
+                jobApi.deleteNamespacedJob(any(), any())
             }
         }
 
@@ -246,22 +224,16 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val podList = V1PodList()
-            every {
-                coreApi.listNamespacedPod(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "job-name=$jobName",
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns podList
-            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                every { execute() } returns podList
+            }
+
+            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
+            every { request.labelSelector("job-name=$jobName") } returns request
+            every { request.watch(false) } returns request
+
+            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job) } just runs
@@ -275,7 +247,7 @@ class JobHandlerTest : WordSpec({
             verify(exactly = 1) {
                 notifier.sendFailedJobNotification(job)
 
-                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
         }
 
@@ -292,22 +264,16 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val podList = V1PodList()
-            every {
-                coreApi.listNamespacedPod(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    any(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns podList
-            every { coreApi.deleteNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any()) } returns null
+
+            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                every { execute() } returns podList
+            }
+
+            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
+            every { request.labelSelector(any()) } returns request
+            every { request.watch(false) } returns request
+
+            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job) } just runs
@@ -324,7 +290,7 @@ class JobHandlerTest : WordSpec({
             verify(exactly = 2) {
                 notifier.sendFailedJobNotification(job)
 
-                jobApi.deleteNamespacedJob(jobName, NAMESPACE, null, null, null, null, null, null)
+                jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
         }
     }
@@ -356,21 +322,14 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val jobList = V1JobList().apply { items = listOf(matchJob1, runningJob, youngJob, matchJob2, matchJob3) }
-            every {
-                jobApi.listNamespacedJob(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    any(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns jobList
+
+            val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
+                every { execute() } returns jobList
+            }
+
+            every { jobApi.listNamespacedJob(NAMESPACE) } returns request
+            every { request.labelSelector(any()) } returns request
+            every { request.watch(false) } returns request
 
             val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsCompletedBefore(referenceTime)
@@ -383,40 +342,22 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val jobList = V1JobList().apply { items = listOf(createJob("testJob")) }
-            every {
-                jobApi.listNamespacedJob(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    any(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns jobList
+
+            val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
+                every { execute() } returns jobList
+            }
+
+            every { jobApi.listNamespacedJob(NAMESPACE) } returns request
+            every { request.labelSelector(any()) } returns request
+            every { request.watch(false) } returns request
 
             val handler = createJobHandler(jobApi, coreApi)
             handler.findJobsCompletedBefore(OffsetDateTime.now())
 
             val slotLabel = slot<String>()
             verify {
-                jobApi.listNamespacedJob(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    capture(slotLabel),
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
+                jobApi.listNamespacedJob(NAMESPACE)
+                request.labelSelector(capture(slotLabel))
             }
 
             val labelSelectorRegex = Regex("""ort-worker in \((.+)\)""")
@@ -445,21 +386,14 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
 
             val jobList = V1JobList().apply { items = listOf(job1, job2) }
-            every {
-                jobApi.listNamespacedJob(
-                    NAMESPACE,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "ort-worker=analyzer",
-                    null,
-                    null,
-                    null,
-                    null,
-                    false
-                )
-            } returns jobList
+
+            val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
+                every { execute() } returns jobList
+            }
+
+            every { jobApi.listNamespacedJob(NAMESPACE) } returns request
+            every { request.labelSelector("ort-worker=analyzer") } returns request
+            every { request.watch(false) } returns request
 
             val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsForWorker(AnalyzerEndpoint)

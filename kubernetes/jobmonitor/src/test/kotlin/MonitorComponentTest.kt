@@ -56,6 +56,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import okhttp3.OkHttpClient
+
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -121,6 +123,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                             Duration::class,
                             Function0::class,
                             Function1::class,
+			    OkHttpClient::class,
                             TimeoutConfig::class,
                             ZoneOffset::class,
                         )
@@ -137,33 +140,28 @@ class MonitorComponentTest : KoinTest, StringSpec() {
             val runId = 27L
 
             runComponentTest(enableWatching = true) { component ->
+                val jobRequest = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
+                    every { buildCall(any()) } returns mockk(relaxed = true)
+                    every { execute() } returns V1JobList()
+                }
+
                 declareMock<BatchV1Api> {
                     every { apiClient } returns mockk(relaxed = true)
-                    every {
-                        listNamespacedJob(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
-                    } returns V1JobList()
-                    every {
-                        listNamespacedJobCall(
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any(),
-                            any()
-                        )
-                    } returns mockk(relaxed = true)
+                    every { listNamespacedJob(any()) } returns jobRequest
+                    every { jobRequest.allowWatchBookmarks(any()) } returns jobRequest
+                    every { jobRequest.limit(any()) } returns jobRequest
+                    every { jobRequest.resourceVersion(any()) } returns jobRequest
+                    every { jobRequest.watch(any()) } returns jobRequest
+                }
+
+                val podRequest = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+                    every { execute() } returns V1PodList()
                 }
 
                 val coreApi = declareMock<CoreV1Api> {
-                    every {
-                        listNamespacedPod(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
-                    } returns V1PodList()
+                    every { listNamespacedPod(any()) } returns podRequest
+                    every { podRequest.labelSelector(any()) } returns podRequest
+                    every { podRequest.watch(any()) } returns podRequest
                 }
 
                 val job = V1Job().apply {
@@ -186,19 +184,8 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 }
 
                 verify(timeout = 3000) {
-                    coreApi.listNamespacedPod(
-                        NAMESPACE,
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any()
-                    )
+                    coreApi.listNamespacedPod(NAMESPACE)
+                    podRequest.execute()
                 }
 
                 val notification = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)

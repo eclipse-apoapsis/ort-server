@@ -37,6 +37,9 @@ import io.mockk.unmockkAll
 
 import java.io.IOException
 
+import kotlin.reflect.KClass
+import kotlin.reflect.full.memberFunctions
+
 import okhttp3.Call
 
 private const val NAMESPACE = "someTestNamespace"
@@ -55,7 +58,8 @@ class JobWatchHelperTest : StringSpec({
         val jobApi = createApiMock()
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
         val watch = createWatchWithEvents(event)
-        mockWatchCreation(jobApi, resourceVersion, watch)
+        val request = mockWatchCreation(jobApi, resourceVersion, watch)
+        every { jobApi.listNamespacedJob(NAMESPACE) } returns request
 
         val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion)
 
@@ -68,7 +72,8 @@ class JobWatchHelperTest : StringSpec({
         val eventIgnored = Watch.Response("ADDED", createJobWithResourceVersion("rv1.1"))
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.2"))
         val watch = createWatchWithEvents(eventIgnored, event)
-        mockWatchCreation(jobApi, resourceVersion, watch)
+        val request = mockWatchCreation(jobApi, resourceVersion, watch)
+        every { jobApi.listNamespacedJob(NAMESPACE) } returns request
 
         val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion)
 
@@ -86,8 +91,12 @@ class JobWatchHelperTest : StringSpec({
 
         val watch1 = createWatchWithEvents(event1, bookmarkEvent)
         val watch2 = createWatchWithEvents(event2)
-        mockWatchCreation(jobApi, resourceVersion1, watch1)
-        mockWatchCreation(jobApi, resourceVersion2, watch2)
+
+        mockMultipleWatchCreation(
+            jobApi,
+            mockWatchCreation(jobApi, resourceVersion1, watch1),
+            mockWatchCreation(jobApi, resourceVersion2, watch2)
+        )
 
         val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion1)
 
@@ -115,11 +124,15 @@ class JobWatchHelperTest : StringSpec({
 
         val errorWatch = mockk<Watch<V1Job>>()
         every { errorWatch.iterator() } returns errorIterator
-        mockWatchCreation(jobApi, resourceVersion1, errorWatch)
 
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
         val watch = createWatchWithEvents(event)
-        mockWatchCreation(jobApi, resourceVersion2, watch)
+
+        mockMultipleWatchCreation(
+            jobApi,
+            mockWatchCreation(jobApi, resourceVersion1, errorWatch),
+            mockWatchCreation(jobApi, resourceVersion2, watch)
+        )
 
         val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion1)
 
@@ -134,7 +147,8 @@ class JobWatchHelperTest : StringSpec({
 
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
         val watch = createWatchWithEvents(event)
-        mockWatchCreation(jobApi, initialResourceVersion, watch)
+        val request = mockWatchCreation(jobApi, initialResourceVersion, watch)
+        every { jobApi.listNamespacedJob(NAMESPACE) } returns request
 
         val helper = JobWatchHelper.create(jobApi, createConfig())
 
@@ -150,11 +164,15 @@ class JobWatchHelperTest : StringSpec({
 
         val eventIgnored = Watch.Response("ignored", createJobWithResourceVersion("x1"))
         val watch1 = createWatchWithEvents(eventIgnored)
-        mockWatchCreation(jobApi, initialResourceVersion, watch1)
 
         val event = Watch.Response("MODIFIED", createJobWithResourceVersion("rv1.1"))
         val watch2 = createWatchWithEvents(event)
-        mockWatchCreation(jobApi, updatedResourceVersion, watch2)
+
+        mockMultipleWatchCreation(
+            jobApi,
+            mockWatchCreation(jobApi, initialResourceVersion, watch1),
+            mockWatchCreation(jobApi, updatedResourceVersion, watch2)
+        )
 
         val helper = JobWatchHelper.create(jobApi, createConfig())
 
@@ -190,31 +208,43 @@ private fun createWatchWithEvents(vararg events: Watch.Response<V1Job>): Watch<V
     }
 
 /**
- * Mock the creation of a [Watch] for jobs using the given [jobApi] and [resourceVersion]. Return the provided
- * [watch].
+ * Mock the creation of a [Watch] for jobs using the given [jobApi] and [resourceVersion]. Return the request that
+ * should be returned (mocked) by [jobApi].listNamespacedJob API call.
  */
-private fun mockWatchCreation(jobApi: BatchV1Api, resourceVersion: String, watch: Watch<V1Job>) {
+private fun mockWatchCreation(
+    jobApi: BatchV1Api,
+    resourceVersion: String,
+    watch: Watch<V1Job>
+): BatchV1Api.APIlistNamespacedJobRequest {
     val call = mockk<Call>()
-    every {
-        jobApi.listNamespacedJobCall(
-            NAMESPACE,
-            null,
-            true,
-            null,
-            null,
-            null,
-            null,
-            resourceVersion,
-            null,
-            null,
-            true,
-            null
-        )
-    } returns call
 
-    every {
-        Watch.createWatch<V1Job>(jobApi.apiClient, call, JobWatchHelper.JOB_TYPE.type)
-    } returns watch
+    // Mocks the two kinds of listNamespacedJob calls made by the JobWatchHelper, either with execute() or with call().
+    val request = mockkBuilder<BatchV1Api.APIlistNamespacedJobRequest> {
+        // Only stay inside this mock object if the expected "builder path" is called, otherwise "lock" builder calls
+        // inside the "dummyRequest".
+        every { allowWatchBookmarks(any()) } returns this
+        every { resourceVersion(resourceVersion) } returns this
+        every { watch(any()) } returns this
+        every { limit(1) } returns this
+
+        every { buildCall(null) } returns call
+        every { execute() } returns V1JobList()
+    }
+
+    every { Watch.createWatch<V1Job>(jobApi.apiClient, call, JobWatchHelper.JOB_TYPE.type) } returns watch
+
+    return request
+}
+
+/**
+ * Use several [requests] to mock the return values of the [jobApi].listNamespacedJob API call. The requests are
+ * returned in the order of the given parameter.
+ */
+fun mockMultipleWatchCreation(
+    jobApi: BatchV1Api,
+    vararg requests: BatchV1Api.APIlistNamespacedJobRequest
+) {
+    every { jobApi.listNamespacedJob(NAMESPACE) } returnsMany requests.toList()
 }
 
 /**
@@ -240,7 +270,42 @@ private fun BatchV1Api.expectJobListRequests(vararg jobListResourceVersions: Str
         }
     }
 
-    every {
-        listNamespacedJob(NAMESPACE, null, false, null, null, null, 1, null, null, null, false)
-    } returnsMany jobLists
+    val dummyRequest = mockkBuilder<BatchV1Api.APIlistNamespacedJobRequest> {
+        every { buildCall(null) } returns mockk()
+        every { execute() } returns mockk()
+    }
+
+    val requestForExecute = mockkBuilder<BatchV1Api.APIlistNamespacedJobRequest>(dummyRequest) {
+        every { allowWatchBookmarks(false) } returns this
+        every { limit(1) } returns this
+        every { watch(false) } returns this
+
+        every { execute() } returnsMany jobLists
+    }
+
+    every { listNamespacedJob(NAMESPACE) } returns requestForExecute
+}
+
+// See https://mockk.io/#reflection-matchers.
+private inline fun <reified T : Any> mockkBuilder(defaultAnswer: T? = null, block: T.() -> Unit = {}): T {
+    // Get all member functions that return the same type as the class itself.
+    val builderFunctions = T::class.memberFunctions.filter { it.returnType.classifier == T::class }
+
+    return mockk<T> {
+        builderFunctions.forEach { func ->
+            every {
+                // Replace the "this" parameter with the mock object for any other parameters.
+                val params = listOf<Any>(this@mockk) + func.parameters.drop(1).map {
+                    @Suppress("UNCHECKED_CAST")
+                    any(it.type.classifier as KClass<Any>)
+                }
+
+                func.call(*params.toTypedArray())
+            } answers {
+                defaultAnswer ?: this@mockk
+            }
+        }
+
+        block()
+    }
 }
