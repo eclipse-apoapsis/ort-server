@@ -29,7 +29,7 @@ kotlinPlugin = "2.0.0"
 kotlinxCoroutines = "1.8.1"
 kotlinxDatetime = "0.6.0"
 kotlinxSerialization = "1.7.0"
-mavenPublishPlugin = "0.28.0"
+mavenPublishPlugin = "0.29.0"
 rabbitMq = "5.21.0"
 versionsPlugin = "0.51.0"
 
