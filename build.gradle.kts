@@ -148,8 +148,8 @@ subprojects {
     detekt {
         // Only configure differences to the default.
         buildUponDefaultConfig = true
-        config.setFrom(files("$rootDir/.detekt.yml"))
-        basePath = rootProject.projectDir.path
+        config.from(files("$rootDir/.detekt.yml"))
+        basePath = rootDir.path
         source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
     }
 
