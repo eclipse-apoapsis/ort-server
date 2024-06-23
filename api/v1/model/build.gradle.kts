@@ -29,9 +29,8 @@ group = "org.eclipse.apoapsis.ortserver.api.v1"
 kotlin {
     jvm()
 
-    @Suppress("UnusedPrivateMember")
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(libs.kotlinxDatetime)
                 api(libs.konform)
@@ -40,7 +39,7 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(projects.utils.test)
             }

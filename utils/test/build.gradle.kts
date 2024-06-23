@@ -26,15 +26,14 @@ group = "org.eclipse.apoapsis.ortserver.utils"
 kotlin {
     jvm()
 
-    @Suppress("UnusedPrivateMember")
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(libs.kotestFrameworkApi)
             }
         }
 
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 // Transitively export this to consumers so they do not have to declare a logger implementation.
                 api(libs.logback)

@@ -28,16 +28,15 @@ group = "org.eclipse.apoapsis.ortserver.api.v1"
 kotlin {
     jvm()
 
-    @Suppress("UnusedPrivateMember")
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(projects.api.v1.apiV1Model)
                 api(projects.model)
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(projects.utils.test)
             }
