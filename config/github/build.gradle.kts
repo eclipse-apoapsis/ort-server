@@ -29,6 +29,7 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.utils.config)
 
+    implementation(libs.kotlinxDatetime)
     implementation(libs.ktorClientOkHttp)
     implementation(libs.ktorKotlinxSerialization)
 
