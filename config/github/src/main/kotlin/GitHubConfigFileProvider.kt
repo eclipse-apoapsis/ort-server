@@ -33,7 +33,10 @@ import io.ktor.http.HttpStatusCode
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -106,6 +109,18 @@ class GitHubConfigFileProvider(
         /** The default value for the default branch property. */
         private const val DEFAULT_REPOSITORY_BRANCH = "main"
 
+        /**
+         * The header used by the GitHub REST API to return the number of remaining requests before the rate limit in
+         * the current time range is exceeded.
+         */
+        private const val HEADER_RATE_LIMIT_REMAINING = "x-ratelimit-remaining"
+
+        /**
+         * The header used by the GitHub REST API that defines when the rate limit will be reset.
+         * See https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28.
+         */
+        private const val HEADER_RATE_LIMIT_RESET = "x-ratelimit-reset"
+
         private val logger = LoggerFactory.getLogger(GitHubConfigFileProvider::class.java)
 
         /**
@@ -137,6 +152,19 @@ class GitHubConfigFileProvider(
                     header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
                 }
             }
+        }
+
+        /**
+         * Check whether the given [response] indicates a request that failed because the current rate limit is
+         * exceeded. If so, return the time in seconds until the rate limit will be reset. Otherwise, return *null*.
+         */
+        private fun checkForRateLimitRetry(response: HttpResponse): Long? {
+            if (response.status != HttpStatusCode.Forbidden) return null
+
+            val remaining = response.headers[HEADER_RATE_LIMIT_REMAINING]?.toIntOrNull()
+            val reset = response.headers[HEADER_RATE_LIMIT_RESET]?.toLongOrNull()
+
+            return reset.takeIf { remaining != null && remaining <= 0 }
         }
     }
 
@@ -224,12 +252,32 @@ class GitHubConfigFileProvider(
     private fun sendHttpRequest(
         path: String,
         contentType: String
-    ) = runBlocking {
+    ): HttpResponse = runBlocking {
+        sendHttpRequestWithRetry(path, contentType)
+    }
+
+    /**
+     * Send a request to the GitHub REST API as defined by [baseUrl] with the provided [path] with a retry mechanism in
+     * case the request fails due to exceeded rate limits.
+     */
+    private tailrec suspend fun sendHttpRequestWithRetry(path: String, contentType: String): HttpResponse {
         val requestUrl = "$baseUrl$path"
         logger.debug("GET '{}'", requestUrl)
 
-        httpClient.get(requestUrl) {
+        val response = httpClient.get(requestUrl) {
             header("Accept", contentType)
+        }
+
+        val rateLimitReset = checkForRateLimitRetry(response)
+        return if (rateLimitReset != null) {
+            val resetAt = Instant.fromEpochSeconds(rateLimitReset)
+            val delay = resetAt - Clock.System.now()
+            logger.warn("Rate limit exceeded. Retrying in {} seconds.", delay)
+
+            delay(delay)
+            sendHttpRequestWithRetry(path, contentType)
+        } else {
+            response
         }
     }
 

@@ -31,12 +31,15 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.UrlPattern
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -47,6 +50,8 @@ import io.mockk.mockk
 
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+
+import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -215,6 +220,56 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             exception.message shouldContain "`$CONFIG_PATH`"
             exception.message shouldContain "does not refer a directory."
+        }
+    }
+
+    "GitHub rate limits" should {
+        "be handled by a retry" {
+            val scenario = "rateLimits"
+            val stateRetry = "retry"
+            val now = Clock.System.now().epochSeconds
+            val retryTime = now + 1
+
+            server.stubFor(
+                authorizedGet(
+                    urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$REVISION")
+                ).inScenario(scenario)
+                    .whenScenarioStateIs(STARTED)
+                    .willReturn(
+                        status(HttpStatusCode.Forbidden.value)
+                            .withHeader("x-ratelimit-remaining", "0")
+                            .withHeader("x-ratelimit-reset", (retryTime).toString())
+                    )
+                    .willSetStateTo(stateRetry)
+            )
+            server.stubFor(
+                authorizedGet(
+                    urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$REVISION")
+                ).inScenario(scenario)
+                    .whenScenarioStateIs(stateRetry)
+                    .willReturn(
+                        okJson(
+                            """
+                                {
+                                  "name": "app.config",
+                                  "commit": {
+                                    "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                                    "url": "https://www.example.org/some-commit-url"
+                                  }
+                                }
+                            """.trimIndent()
+                        )
+                    )
+            )
+
+            val provider = getProvider()
+
+            val resolvedContext = provider.resolveContext(Context(REVISION))
+            resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
+
+            val serveEvents = server.allServeEvents.sortedBy { it.request.loggedDate }
+            serveEvents shouldHaveSize 2
+            serveEvents[1].request.loggedDate.toInstant().epochSecond shouldBeGreaterThanOrEqual retryTime
         }
     }
 })
