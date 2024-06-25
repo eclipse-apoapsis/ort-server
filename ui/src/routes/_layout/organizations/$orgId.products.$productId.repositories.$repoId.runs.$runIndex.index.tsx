@@ -145,6 +145,12 @@ const RunComponent = () => {
                 <div className='font-medium'>{ortRun.revision}</div>
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell>Path</TableCell>
+              <TableCell>
+                <div className='font-medium'>{ortRun.path}</div>
+              </TableCell>
+            </TableRow>
             {ortRun.jobs.reporter?.reportFilenames && (
               <TableRow>
                 <TableCell>Reports</TableCell>
