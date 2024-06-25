@@ -37,6 +37,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
@@ -58,9 +59,11 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_DIRECTORY
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.DEFAULT_BRANCH
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.GITHUB_API_URL
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.JSON_CONTENT_TYPE_HEADER
+import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.LOCK_CHECK_INTERVAL_SEC
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.RAW_CONTENT_TYPE_HEADER
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_NAME
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.REPOSITORY_OWNER
@@ -141,6 +144,24 @@ class GitHubConfigFileProviderTest : WordSpec({
                 .use { it.readText() }
 
             fileContent shouldBe CONTENT
+        }
+
+        "use caching when configured" {
+            server.stubRawFile()
+            val cacheDir = tempdir()
+            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
+
+            val provider = getProvider(cacheConfig)
+            provider.getFile(Context(REVISION), Path(CONFIG_PATH)).close()
+
+            val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
+            fileContent shouldBe CONTENT
+
+            server.allServeEvents shouldHaveSize 1
+            val revisionCacheDir = cacheDir.resolve(REVISION)
+            revisionCacheDir.isDirectory shouldBe true
         }
 
         "throw an exception if the response has a wrong content type" {
@@ -287,9 +308,9 @@ internal const val NOT_FOUND = "NotFound"
 internal const val API_TOKEN = "test-api-token"
 
 /**
- * Returns a configured [GitHubConfigFileProvider] instance.
+ * Return a [GitHubConfigFileProvider] instance with a default configuration and optional additional [properties].
  */
-private fun getProvider(): GitHubConfigFileProvider {
+private fun getProvider(properties: Map<String, String> = emptyMap()): GitHubConfigFileProvider {
     val secretProvider = mockk<ConfigSecretProvider>()
 
     every { secretProvider.getSecret(TOKEN) } returns API_TOKEN
@@ -299,8 +320,9 @@ private fun getProvider(): GitHubConfigFileProvider {
             GITHUB_API_URL to server.baseUrl(),
             REPOSITORY_OWNER to OWNER,
             REPOSITORY_NAME to REPOSITORY,
-            DEFAULT_BRANCH to REVISION
-        )
+            DEFAULT_BRANCH to REVISION,
+            LOCK_CHECK_INTERVAL_SEC to "1"
+        ) + properties
     )
 
     return GitHubConfigFileProvider.create(config, secretProvider)

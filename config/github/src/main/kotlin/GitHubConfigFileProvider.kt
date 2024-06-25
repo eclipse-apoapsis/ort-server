@@ -28,10 +28,14 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.ByteReadChannel
 
-import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.InputStream
+
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -51,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 import org.slf4j.LoggerFactory
 
@@ -64,7 +69,10 @@ class GitHubConfigFileProvider(
     private val baseUrl: String,
 
     /** The default branch to be used if the default context is provided. */
-    private val defaultBranch: String
+    private val defaultBranch: String,
+
+    /** The cache for storing already fetched configuration data. */
+    private val cache: GitHubConfigCache
 ) : ConfigFileProvider {
     companion object {
         /**
@@ -92,6 +100,19 @@ class GitHubConfigFileProvider(
          * repository.
          */
         val TOKEN = Path("gitHubApiToken")
+
+        /**
+         * Configuration property that defines the root path of a file-based cache. If this is defined, the provider
+         * uses a [GitHubConfigFileCache] object to cache the fetched configuration files. Otherwise, caching is
+         * disabled.
+         */
+        const val CACHE_DIRECTORY = "gitHubCacheDirectory"
+
+        /**
+         * Configuration property that defines the interval for obtaining read locks (in seconds) when using the
+         * file-based configuration cache. This is only evaluated if a cache directory is defined.
+         */
+        const val LOCK_CHECK_INTERVAL_SEC = "gitHubCacheLockCheckIntervalSec"
 
         /**
          * The header value required to get the raw content of a file directly.
@@ -140,7 +161,12 @@ class GitHubConfigFileProvider(
             logger.debug("GitHub default branch: '{}'.", defaultBranch)
 
             val baseUrl = "$gitHubApiUrl/repos/$owner/$repository"
-            return GitHubConfigFileProvider(createClient(secretProvider), baseUrl, defaultBranch)
+            return GitHubConfigFileProvider(
+                createClient(secretProvider),
+                baseUrl,
+                defaultBranch,
+                createCache(config)
+            )
         }
 
         /**
@@ -153,6 +179,17 @@ class GitHubConfigFileProvider(
                 }
             }
         }
+
+        /**
+         * Create the cache for configuration data based on the given [config].
+         */
+        private fun createCache(config: Config): GitHubConfigCache =
+            config.getStringOrNull(CACHE_DIRECTORY)?.let { cacheDir ->
+                logger.debug("Using file-based cache in directory '{}'.", cacheDir)
+
+                val lockCheckInterval = config.getInt(LOCK_CHECK_INTERVAL_SEC)
+                GitHubConfigFileCache(File(cacheDir), lockCheckInterval.seconds)
+            } ?: GitHubConfigNoCache()
 
         /**
          * Check whether the given [response] indicates a request that failed because the current rate limit is
@@ -190,28 +227,8 @@ class GitHubConfigFileProvider(
      * the case when the returned 'Content Type' header is neither of raw file or json, or it is missing, a
      * [ConfigException] is thrown with the description of the cause.
      */
-    override fun getFile(context: Context, path: Path): InputStream {
-        val response = sendHttpRequest(
-            "/contents/${path.path}?ref=${context.name}",
-            RAW_CONTENT_TYPE_HEADER
-        )
-
-        response.headers["Content-Type"]?.let {
-            if (it.contains(RAW_CONTENT_TYPE_HEADER)) {
-                return runBlocking { ByteArrayInputStream(response.body<ByteArray>()) }
-            } else if (it.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
-                throw ConfigException(
-                    "The provided path `${path.path}` refers a directory rather than a file. An exact " +
-                            "configuration file path should be provided.",
-                    null
-                )
-            } else {
-                throw ConfigException(
-                    "The GitHub response has unsupported content type: '$it'",
-                    null
-                )
-            }
-        } ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
+    override fun getFile(context: Context, path: Path): InputStream = runBlocking {
+        cache.getOrPutFile(context.name, path.path) { downloadFile(context, path) }
     }
 
     override fun contains(context: Context, path: Path): Boolean {
@@ -279,6 +296,34 @@ class GitHubConfigFileProvider(
         } else {
             response
         }
+    }
+
+    /**
+     * Download the file for the given [context] and [path] and return a channel to its content. Throw a
+     * [ConfigException] if download fails.
+     */
+    private suspend fun downloadFile(context: Context, path: Path): ByteReadChannel {
+        val response = sendHttpRequest(
+            "/contents/${path.path}?ref=${context.name}",
+            RAW_CONTENT_TYPE_HEADER
+        )
+
+        response.headers["Content-Type"]?.let {
+            if (it.contains(RAW_CONTENT_TYPE_HEADER)) {
+                return response.bodyAsChannel()
+            } else if (it.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
+                throw ConfigException(
+                    "The provided path `${path.path}` refers a directory rather than a file. An exact " +
+                            "configuration file path should be provided.",
+                    null
+                )
+            } else {
+                throw ConfigException(
+                    "The GitHub response has unsupported content type: '$it'",
+                    null
+                )
+            }
+        } ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
     }
 
     private fun getJsonBody(response: HttpResponse): JsonElement {
