@@ -83,6 +83,7 @@ const formSchema = z.object({
       formats: z.array(z.string()),
     }),
   }),
+  jobConfigContext: z.string().optional(),
 });
 
 const advisors = [
@@ -233,6 +234,7 @@ const CreateRunPage = () => {
         formats: ['ortresult', 'WebApp'],
       },
     },
+    jobConfigContext: 'main',
   };
 
   // Default values for the form are either taken from "baseDefaults" or,
@@ -292,6 +294,8 @@ const CreateRunPage = () => {
               baseDefaults.jobConfigs.reporter.formats,
           },
         },
+        jobConfigContext:
+          ortRun.jobConfigContext || baseDefaults.jobConfigContext,
       }
     : baseDefaults;
 
@@ -348,6 +352,7 @@ const CreateRunPage = () => {
           evaluator: evaluatorConfig,
           reporter: reporterConfig,
         },
+        jobConfigContext: values.jobConfigContext,
       },
     });
   }
@@ -369,7 +374,28 @@ const CreateRunPage = () => {
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>Revision to run ORT on</FormDescription>
+                  <FormDescription>
+                    The repository revision used by this run
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='jobConfigContext'
+              render={({ field }) => (
+                <FormItem className='pt-4'>
+                  <FormLabel>Job configuration context</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    An optional context to be used when obtaining configuration
+                    for this run. The meaning of the context is up for
+                    interpretation by the implementation of the configuration
+                    provider.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
