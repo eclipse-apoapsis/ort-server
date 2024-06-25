@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.core.api.organizations
 import org.eclipse.apoapsis.ortserver.core.api.products
 import org.eclipse.apoapsis.ortserver.core.api.repositories
 import org.eclipse.apoapsis.ortserver.core.api.runs
+import org.eclipse.apoapsis.ortserver.core.api.versions
 
 fun Application.configureRouting() {
     routing {
@@ -41,6 +42,7 @@ fun Application.configureRouting() {
                 products()
                 repositories()
                 runs()
+                versions()
             }
         }
     }
