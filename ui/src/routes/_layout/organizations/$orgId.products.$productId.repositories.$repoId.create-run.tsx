@@ -57,6 +57,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   revision: z.string(),
+  path: z.string(),
   jobConfigs: z.object({
     analyzer: z.object({
       enabled: z.boolean(),
@@ -206,6 +207,7 @@ const CreateRunPage = () => {
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
     revision: 'main',
+    path: '',
     jobConfigs: {
       analyzer: {
         enabled: true,
@@ -240,6 +242,7 @@ const CreateRunPage = () => {
   const defaultValues = ortRun
     ? {
         revision: ortRun.revision || baseDefaults.revision,
+        path: ortRun.path || baseDefaults.path,
         jobConfigs: {
           analyzer: {
             enabled: baseDefaults.jobConfigs.analyzer.enabled,
@@ -337,6 +340,7 @@ const CreateRunPage = () => {
       repositoryId: Number.parseInt(params.repoId),
       requestBody: {
         revision: values.revision,
+        path: values.path,
         jobConfigs: {
           analyzer: analyzerConfig,
           advisor: advisorConfig,
@@ -366,6 +370,24 @@ const CreateRunPage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>Revision to run ORT on</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='path'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Path</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    An optional subpath to limit the analysis to, for example,
+                    'dir/subdir'.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
