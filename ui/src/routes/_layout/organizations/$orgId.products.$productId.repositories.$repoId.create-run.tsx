@@ -19,7 +19,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRepositoriesServicePostOrtRun } from '@/api/queries';
@@ -55,6 +56,11 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 
+const keyValueSchema = z.object({
+  key: z.string().min(1),
+  value: z.string(), // Allow empty values for now
+});
+
 const formSchema = z.object({
   revision: z.string(),
   path: z.string(),
@@ -82,7 +88,9 @@ const formSchema = z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
     }),
+    parameters: z.array(keyValueSchema).optional(),
   }),
+  labels: z.array(keyValueSchema).optional(),
   jobConfigContext: z.string().optional(),
 });
 
@@ -293,7 +301,22 @@ const CreateRunPage = () => {
               ortRun.jobConfigs.reporter?.formats ||
               baseDefaults.jobConfigs.reporter.formats,
           },
+          // Convert the parameters object map coming from the back-end to an array of key-value pairs.
+          // This needs to be done because the useFieldArray hook requires an array of objects.
+          parameters: ortRun.jobConfigs.parameters
+            ? Object.entries(ortRun.jobConfigs.parameters).map(([k, v]) => ({
+                key: k,
+                value: v,
+              }))
+            : [],
         },
+        // Convert the labels object map coming from the back-end to an array of key-value pairs.
+        labels: ortRun.labels
+          ? Object.entries(ortRun.labels).map(([k, v]) => ({
+              key: k,
+              value: v,
+            }))
+          : [],
         jobConfigContext:
           ortRun.jobConfigContext || baseDefaults.jobConfigContext,
       }
@@ -302,6 +325,24 @@ const CreateRunPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
+  });
+
+  const {
+    fields: parametersFields,
+    append: parametersAppend,
+    remove: parametersRemove,
+  } = useFieldArray({
+    name: 'jobConfigs.parameters',
+    control: form.control,
+  });
+
+  const {
+    fields: labelsFields,
+    append: labelsAppend,
+    remove: labelsRemove,
+  } = useFieldArray({
+    name: 'labels',
+    control: form.control,
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -340,20 +381,44 @@ const CreateRunPage = () => {
         }
       : undefined;
 
+    // Convert the parameters and labels arrays back to objects, as expected by the back-end.
+    const parameters = values.jobConfigs.parameters
+      ? values.jobConfigs.parameters.reduce(
+          (acc, param) => {
+            acc[param.key] = param.value;
+            return acc;
+          },
+          {} as { [key: string]: string }
+        )
+      : undefined;
+    const labels = values.labels
+      ? values.labels.reduce(
+          (acc, label) => {
+            acc[label.key] = label.value;
+            return acc;
+          },
+          {} as { [key: string]: string }
+        )
+      : undefined;
+
+    const requestBody = {
+      revision: values.revision,
+      path: values.path,
+      jobConfigs: {
+        analyzer: analyzerConfig,
+        advisor: advisorConfig,
+        scanner: scannerConfig,
+        evaluator: evaluatorConfig,
+        reporter: reporterConfig,
+        parameters: parameters,
+      },
+      labels: labels,
+      jobConfigContext: values.jobConfigContext,
+    };
+
     await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
-      requestBody: {
-        revision: values.revision,
-        path: values.path,
-        jobConfigs: {
-          analyzer: analyzerConfig,
-          advisor: advisorConfig,
-          scanner: scannerConfig,
-          evaluator: evaluatorConfig,
-          reporter: reporterConfig,
-        },
-        jobConfigContext: values.jobConfigContext,
-      },
+      requestBody: requestBody,
     });
   }
 
@@ -400,12 +465,11 @@ const CreateRunPage = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name='path'
               render={({ field }) => (
-                <FormItem>
+                <FormItem className='pt-4'>
                   <FormLabel>Path</FormLabel>
                   <FormControl>
                     <Input {...field} />
@@ -418,6 +482,132 @@ const CreateRunPage = () => {
                 </FormItem>
               )}
             />
+
+            <h3 className='mt-4'>Parameters</h3>
+            <div className='text-sm text-gray-500'>
+              A map with custom parameters for the whole run.
+            </div>
+            {parametersFields.map((field, index) => (
+              <div
+                key={field.id}
+                className='my-2 flex flex-row items-end space-x-2'
+              >
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Key</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`jobConfigs.parameters.${index}.key`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`jobConfigs.parameters.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    parametersRemove(index);
+                  }}
+                >
+                  <TrashIcon className='h-4 w-4' />
+                </Button>
+              </div>
+            ))}
+            <Button
+              size='sm'
+              className='mt-2'
+              variant='outline'
+              type='button'
+              onClick={() => {
+                parametersAppend({ key: '', value: '' });
+              }}
+            >
+              Add parameter
+              <PlusIcon className='ml-1 h-4 w-4' />
+            </Button>
+
+            <h3 className='mt-4'>Labels</h3>
+            <div className='text-sm text-gray-500'>The labels of this run.</div>
+            {labelsFields.map((field, index) => (
+              <div
+                key={field.id}
+                className='my-2 flex flex-row items-end space-x-2'
+              >
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Key</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`labels.${index}.key`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`labels.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    labelsRemove(index);
+                  }}
+                >
+                  <TrashIcon className='h-4 w-4' />
+                </Button>
+              </div>
+            ))}
+            <Button
+              size='sm'
+              className='mt-2'
+              variant='outline'
+              type='button'
+              onClick={() => {
+                labelsAppend({ key: '', value: '' });
+              }}
+            >
+              Add label
+              <PlusIcon className='ml-1 h-4 w-4' />
+            </Button>
 
             <h3 className='mt-4'>Enable and configure jobs</h3>
             <div className='text-sm text-gray-500'>
