@@ -115,8 +115,7 @@ const RunComponent = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Run parameter</TableHead>
-              <TableHead>Value</TableHead>
+              <TableHead>Run details</TableHead>
               <TableHead className='sr-only'>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -145,12 +144,22 @@ const RunComponent = () => {
                 <div className='font-medium'>{ortRun.revision}</div>
               </TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell>Path</TableCell>
-              <TableCell>
-                <div className='font-medium'>{ortRun.path}</div>
-              </TableCell>
-            </TableRow>
+            {ortRun.jobConfigContext && (
+              <TableRow>
+                <TableCell>Job configuration context</TableCell>
+                <TableCell>
+                  <div className='font-medium'>{ortRun.jobConfigContext}</div>
+                </TableCell>
+              </TableRow>
+            )}
+            {ortRun.path && (
+              <TableRow>
+                <TableCell>Path</TableCell>
+                <TableCell>
+                  <div className='font-medium'>{ortRun.path}</div>
+                </TableCell>
+              </TableRow>
+            )}
             {ortRun.jobs.reporter?.reportFilenames && (
               <TableRow>
                 <TableCell>Reports</TableCell>
@@ -177,6 +186,44 @@ const RunComponent = () => {
                   <pre>{JSON.stringify(ortRun.issues, null, 2)}</pre>
                 </TableCell>
               </TableRow>
+            )}
+            {ortRun.jobConfigs.parameters && (
+              <>
+                <TableRow>
+                  <TableCell
+                    colSpan={2}
+                    className='font-semibold text-blue-400'
+                  >
+                    Parameters:
+                  </TableCell>
+                </TableRow>
+                {Object.entries(ortRun.jobConfigs.parameters).map(
+                  ([key, value]) => (
+                    <TableRow key={key}>
+                      <TableCell>{key}</TableCell>
+                      <TableCell>{value}</TableCell>
+                    </TableRow>
+                  )
+                )}
+              </>
+            )}
+            {ortRun.labels && (
+              <>
+                <TableRow>
+                  <TableCell
+                    colSpan={2}
+                    className='font-semibold text-blue-400'
+                  >
+                    Labels:
+                  </TableCell>
+                </TableRow>
+                {Object.entries(ortRun.labels).map(([key, value]) => (
+                  <TableRow key={key}>
+                    <TableCell>{key}</TableCell>
+                    <TableCell>{value}</TableCell>
+                  </TableRow>
+                ))}
+              </>
             )}
           </TableBody>
         </Table>
