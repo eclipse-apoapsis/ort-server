@@ -37,4 +37,17 @@ class GitHubConfigNoCacheTest : WordSpec({
             stream.readAllBytes() shouldBe data
         }
     }
+
+    "getOrPutFolderContent" should {
+        "return the data obtained from the load function" {
+            val data = setOf("file1", "file2", "file3")
+            val cache = GitHubConfigNoCache()
+
+            val content = cache.getOrPutFolderContent("foo", "bar") {
+                data
+            }
+
+            content shouldBe data
+        }
+    }
 })

@@ -46,4 +46,10 @@ internal class GitHubConfigNoCache : GitHubConfigCache {
 
         return ByteArrayInputStream(bos.toByteArray())
     }
+
+    override suspend fun getOrPutFolderContent(
+        revision: String,
+        path: String,
+        load: suspend () -> Set<String>
+    ): Set<String> = load()
 }
