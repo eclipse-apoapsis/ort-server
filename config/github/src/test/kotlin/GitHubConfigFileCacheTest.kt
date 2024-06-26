@@ -39,14 +39,14 @@ class GitHubConfigFileCacheTest : WordSpec({
         "return the correct content of a file not yet present in the cache" {
             val cache = createCache()
 
-            val stream = cache.getOrPutFile(revision(1), TEST_PATH, loadFunc())
+            val stream = cache.getOrPutFile(revision(1), TEST_PATH, loadFileFunc())
 
             stream.verifyContent()
         }
 
         "return the correct content of a file already present in the cache" {
             val cache = createCache()
-            val loadFunc = loadFunc()
+            val loadFunc = loadFileFunc()
             cache.getOrPutFile(revision(1), TEST_PATH, loadFunc).close()
 
             val stream = cache.getOrPutFile(revision(1), TEST_PATH, loadFunc)
@@ -57,9 +57,9 @@ class GitHubConfigFileCacheTest : WordSpec({
         "support different revisions of a file" {
             val prefix = "otherRevision:\n"
             val cache = createCache()
-            cache.getOrPutFile(revision(1), TEST_PATH, loadFunc()).close()
+            cache.getOrPutFile(revision(1), TEST_PATH, loadFileFunc()).close()
 
-            val stream = cache.getOrPutFile(revision(2), TEST_PATH, loadFunc(prefix))
+            val stream = cache.getOrPutFile(revision(2), TEST_PATH, loadFileFunc(prefix))
 
             stream.verifyContent(prefix)
         }
@@ -71,13 +71,74 @@ class GitHubConfigFileCacheTest : WordSpec({
 
             repeat(revisionCount) { revisionIndex ->
                 val prefix = "rev$revisionIndex:\n"
-                val loadFunc = loadFunc(prefix)
+                val loadFunc = loadFileFunc(prefix)
 
                 repeat(accessCount) {
                     launch(Dispatchers.IO) {
                         val stream = cache.getOrPutFile(revision(revisionIndex), TEST_PATH, loadFunc)
 
                         stream.verifyContent(prefix)
+                    }
+                }
+            }
+        }
+    }
+
+    "getOrPutFolderContent" should {
+        "return the correct content of a folder not yet present in the cache" {
+            val name = "testFolder"
+            val revision = revision(1)
+            val cache = createCache()
+
+            val content = cache.getOrPutFolderContent(revision, name, loadFolderContentFunc(name, revision))
+
+            content shouldBe testFolderContent(name, revision)
+        }
+
+        "return the correct content of a folder already present in the cache" {
+            val name = "testFolder"
+            val revision = revision(1)
+            val cache = createCache()
+            val loadFunc = loadFolderContentFunc(name, revision)
+            cache.getOrPutFolderContent(revision, name, loadFunc)
+
+            val content = cache.getOrPutFolderContent(revision, name, loadFunc)
+
+            content shouldBe testFolderContent(name, revision)
+        }
+
+        "support different folders in different revisions" {
+            val folder1 = "someFolder"
+            val folder2 = "anotherFolder"
+            val revision1 = revision(1)
+            val revision2 = revision(11)
+            val cache = createCache()
+
+            suspend fun checkFolderContent(folder: String, revision: String) {
+                val content = cache.getOrPutFolderContent(revision, folder, loadFolderContentFunc(folder, revision))
+                content shouldBe testFolderContent(folder, revision)
+            }
+
+            checkFolderContent(folder1, revision1)
+            checkFolderContent(folder2, revision2)
+            checkFolderContent(folder1, revision2)
+            checkFolderContent(folder2, revision1)
+        }
+
+        "handle concurrent access" {
+            val folder = "testFolder"
+            val revisionCount = 4
+            val accessCount = 16
+            val cache = createCache()
+
+            repeat(revisionCount) { revisionIndex ->
+                val loadFunc = loadFolderContentFunc(folder, revision(revisionIndex))
+
+                repeat(accessCount) {
+                    launch(Dispatchers.IO) {
+                        val content = cache.getOrPutFolderContent(revision(revisionIndex), folder, loadFunc)
+
+                        content shouldBe testFolderContent(folder, revision(revisionIndex))
                     }
                 }
             }
@@ -105,7 +166,7 @@ private const val TEST_PATH = "test/config/test.txt"
  * Return a function that simulates loading a test file from GitHub. The function returns the test content with an
  * optional [prefix]. It checks that it is only invoked once.
  */
-private fun loadFunc(prefix: String? = null): suspend () -> ByteReadChannel {
+private fun loadFileFunc(prefix: String? = null): suspend () -> ByteReadChannel {
     val counter = AtomicInteger()
 
     return {
@@ -130,6 +191,31 @@ private fun InputStream.verifyContent(prefix: String? = null) {
         String(readAllBytes()) shouldBe testFileContent(prefix)
     }
 }
+
+/**
+ * Return a function that simulates obtaining the content of a test folder from GitHub. The folder content is generated
+ * using [testFolderContent]. The function checks that it is only invoked once for a given set of parameters.
+ */
+private fun loadFolderContentFunc(name: String, revision: String): suspend () -> Set<String> {
+    val counter = AtomicInteger()
+
+    return {
+        require(counter.getAndIncrement() == 0) {
+            "The load function must be called only once for '$name' at revision '$revision'."
+        }
+
+        testFolderContent(name, revision)
+    }
+}
+
+/**
+ * Generate the content of a test folder for the given [name] and [revision].
+ */
+private fun testFolderContent(name: String, revision: String): Set<String> = setOf(
+    "$name/file1-$revision.txt",
+    "$name/file2-$revision.doc",
+    "$name/file3-$revision.kt"
+)
 
 /**
  * Generate a revision based on the given [index].

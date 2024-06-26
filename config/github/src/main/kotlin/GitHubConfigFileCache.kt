@@ -46,6 +46,12 @@ private val logger = LoggerFactory.getLogger(GitHubConfigFileCache::class.java)
 private const val FILES_PATH = "tree"
 
 /**
+ * The path which stores files listing the content of folders in the cache. This is also a subdirectory under the
+ * folder for a specific revision.
+ */
+private const val FOLDERS_PATH = "folders"
+
+/**
  * A class implementing a file cache for data fetched from the GitHub configuration repository.
  *
  * Caching of content downloaded from GitHub should be rather effective, as the revision can be used as a criterion to
@@ -83,27 +89,48 @@ internal class GitHubConfigFileCache(
         revision: String,
         path: String,
         load: suspend () -> ByteReadChannel
-    ): InputStream =
+    ): InputStream {
+        logger.info("Request for file '{}' at revision '{}'.", path, revision)
+
+        val dataFile = resolveFileInCache(FILES_PATH, revision, path)
+        return getOrPutFileInCache(dataFile, load)
+    }
+
+    override suspend fun getOrPutFolderContent(
+        revision: String,
+        path: String,
+        load: suspend () -> Set<String>
+    ): Set<String> {
+        suspend fun loadFolderContent(): ByteReadChannel {
+            val content = load()
+            return ByteReadChannel(content.joinToString(System.lineSeparator()).toByteArray())
+        }
+
+        logger.info("Request for folder content '{}' at revision '{}'.", path, revision)
+
+        val dataFile = resolveFileInCache(FOLDERS_PATH, revision, path)
+
+        return getOrPutFileInCache(dataFile, ::loadFolderContent).use {
+            it.bufferedReader().readLines().toSet()
+        }
+    }
+
+    /**
+     * Handle the safe request and update of the given [dataFile] in the cache. If the file is not yet present,
+     * obtain its content via the given [load] function. Use file locks to make sure that the [load] function is
+     * invoked only once for a specific file and that the file is fully written before it is read.
+     */
+    private suspend fun getOrPutFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): InputStream =
         withContext(Dispatchers.IO) {
-            logger.info("Request for file '{}' at revision '{}'.", path, revision)
-
-            val revisionDir = cacheDir.resolve(revision)
-            val dataFile = revisionDir.resolve(FILES_PATH).resolve(path)
-
             val needRetry = if (!dataFile.isFile) {
-                logger.info(
-                    "File '{}' at revision '{}' not found in cache, downloading it to '{}'.",
-                    path,
-                    revision,
-                    dataFile
-                )
+                logger.info("File '{}' not found in cache, downloading it now.", dataFile)
                 downloadFile(dataFile, load)
             } else {
                 false
             }
 
             if (needRetry) {
-                getOrPutFile(revision, path, load)
+                getOrPutFileInCache(dataFile, load)
             } else {
                 dataFile.inputStream().waitForReadLock()
             }
@@ -165,4 +192,12 @@ internal class GitHubConfigFileCache(
             lock.close()
             this@waitForReadLock
         }
+
+    /**
+     * Resolve a file in the cache based on the given [subFolder], [revision], and [path].
+     */
+    private fun resolveFileInCache(subFolder: String, revision: String, path: String): File {
+        val revisionDir = cacheDir.resolve(revision)
+        return revisionDir.resolve(subFolder).resolve(path)
+    }
 }

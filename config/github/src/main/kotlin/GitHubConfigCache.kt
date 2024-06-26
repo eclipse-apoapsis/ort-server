@@ -45,4 +45,10 @@ interface GitHubConfigCache {
      * for files requested from a config file provider).
      */
     suspend fun getOrPutFile(revision: String, path: String, load: suspend () -> ByteReadChannel): InputStream
+
+    /**
+     * Return a [Set] with the names of the files contained in the folder at the given [path] from the given
+     * [revision]. Use the given [load] function to obtain the folder content if necessary.
+     */
+    suspend fun getOrPutFolderContent(revision: String, path: String, load: suspend () -> Set<String>): Set<String>
 }
