@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.Git
 
 import org.slf4j.LoggerFactory
 
@@ -69,7 +70,8 @@ class GitConfigFileProvider internal constructor(
     // Here, FQN is used deliberately to distinguish the regular top-level function from the extension function on Any.
     constructor(gitUrl: String) : this(gitUrl, org.ossreviewtoolkit.utils.ort.createOrtTempDir())
 
-    private lateinit var vcs: VersionControlSystem
+    private val vcs = Git()
+
     private lateinit var workingTree: WorkingTree
     private lateinit var unresolvedRevision: String
     private lateinit var resolvedRevision: String
@@ -108,10 +110,6 @@ class GitConfigFileProvider internal constructor(
     }
 
     private fun initWorkingTree(context: Context) {
-        vcs = checkNotNull(VersionControlSystem.forType(VcsType.GIT)) {
-            "No applicable VersionControlSystem implementation found for ${VcsType.GIT}."
-        }
-
         unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(gitUrl)
         val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
 
