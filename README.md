@@ -59,7 +59,14 @@ First, ensure to have [Docker BuildKit](https://docs.docker.com/build/buildkit/)
 }
 ```
 
-Then build the base images for the workers which contain the external tools and required configuration plus the image for the UI either via the Gradle task
+Then the Docker images containing the projects can be built via the Gradle task
+
+```shell
+# Build all images at once and any dependent base images:
+./gradlew buildAllImages
+```
+
+To only build the base images for the workers, which contain the external tools and required configuration, plus the image for the UI either via the Gradle task
 
 ```shell
 # Build all worker images at once:
@@ -78,13 +85,6 @@ with the desired target version, for instance for targeting Java 11:
 
 ```shell
 docker build --build-arg="TEMURIN_VERSION=11" . -f Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image:11-latest
-```
-
-Then the Docker images containing the projects can be built via the Gradle task
-
-```shell
-# Build all images at once and any dependent base images:
-./gradlew buildAllImages
 ```
 
 In case multiple base images have been created for the Analyzer supporting different Java versions, the tag of the base
