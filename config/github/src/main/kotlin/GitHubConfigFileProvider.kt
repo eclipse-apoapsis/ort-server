@@ -265,21 +265,8 @@ class GitHubConfigFileProvider(
         return !jsonBody.isDirectory() && jsonBody.isFile()
     }
 
-    override fun listFiles(context: Context, path: Path): Set<Path> {
-        val response = sendHttpRequest(
-            "/contents/${path.path}?ref=${context.name}",
-            JSON_CONTENT_TYPE_HEADER
-        )
-
-        val jsonBody = getJsonBody(response)
-
-        if (!jsonBody.isDirectory()) {
-            throw ConfigException("The provided path `${path.path}` does not refer a directory.", null)
-        }
-
-        return jsonBody.jsonArray
-            .filter { it.isFile() }
-            .mapNotNull { it.jsonObject["path"]?.jsonPrimitive?.content }
+    override fun listFiles(context: Context, path: Path): Set<Path> = runBlocking {
+        cache.getOrPutFolderContent(context.name, path.path) { downloadFolderContent(context, path) }
             .map { Path(it) }
             .toSet()
     }
@@ -345,6 +332,28 @@ class GitHubConfigFileProvider(
                 )
             }
         } ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
+    }
+
+    /**
+     * Query the GitHub REST API for the content of the folder at the given [path] at the revision specified by
+     * [context]. Throw a [ConfigException] if the path does not exist or is not a directory.
+     */
+    private fun downloadFolderContent(context: Context, path: Path): Set<String> {
+        val response = sendHttpRequest(
+            "/contents/${path.path}?ref=${context.name}",
+            JSON_CONTENT_TYPE_HEADER
+        )
+
+        val jsonBody = getJsonBody(response)
+
+        if (!jsonBody.isDirectory()) {
+            throw ConfigException("The provided path `${path.path}` does not refer a directory.", null)
+        }
+
+        return jsonBody.jsonArray
+            .filter { it.isFile() }
+            .mapNotNull { it.jsonObject["path"]?.jsonPrimitive?.content }
+            .toSet()
     }
 
     private fun getJsonBody(response: HttpResponse): JsonElement {

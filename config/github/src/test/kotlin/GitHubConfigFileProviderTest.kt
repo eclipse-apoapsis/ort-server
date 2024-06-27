@@ -289,6 +289,26 @@ class GitHubConfigFileProviderTest : WordSpec({
             exception.message shouldContain "`$CONFIG_PATH`"
             exception.message shouldContain "does not refer a directory."
         }
+
+        "use caching when configured" {
+            server.stubDirectory()
+
+            val expectedPaths = setOf(Path(CONFIG_PATH + "1"), Path(CONFIG_PATH + "2"))
+
+            val cacheDir = tempdir()
+            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
+
+            val provider = getProvider(cacheConfig)
+            provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+
+            val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+
+            listFiles shouldContainExactlyInAnyOrder expectedPaths
+
+            server.allServeEvents shouldHaveSize 1
+            val revisionCacheDir = cacheDir.resolve(REVISION)
+            revisionCacheDir.isDirectory shouldBe true
+        }
     }
 
     "GitHub rate limits" should {
