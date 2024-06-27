@@ -232,6 +232,8 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
         tasks.register<Exec>("build${name}Image") {
             val context = dockerfile.parentFile.parent
 
+            dependsOn(":core:generateOpenApiSpec")
+
             group = "Docker"
             description = "Builds the $name Docker image."
 
