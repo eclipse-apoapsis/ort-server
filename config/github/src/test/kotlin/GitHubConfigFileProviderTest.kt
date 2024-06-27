@@ -59,7 +59,9 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_CLEANUP_RATIO
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_DIRECTORY
+import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_MAX_AGE_DAYS
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.DEFAULT_BRANCH
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.GITHUB_API_URL
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.JSON_CONTENT_TYPE_HEADER
@@ -130,6 +132,51 @@ class GitHubConfigFileProviderTest : WordSpec({
             exception.message shouldContain REVISION + NOT_FOUND
             exception.message shouldContain "repository"
             exception.message shouldContain REPOSITORY
+        }
+
+        "clean up the cache" {
+            server.stubExistingRevision()
+
+            val cacheDir = tempdir()
+            val outdatedModifiedTime = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2
+
+            val oldRevisionDir = cacheDir.resolve("old-revision").apply {
+                mkdir()
+                setLastModified(outdatedModifiedTime)
+            }
+
+            val currentRevisionDir = cacheDir.resolve(REVISION_HASH).apply {
+                mkdir()
+                setLastModified(outdatedModifiedTime)
+            }
+
+            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
+
+            val provider = getProvider(cacheConfig)
+            provider.resolveContext(Context(REVISION))
+
+            oldRevisionDir.exists() shouldBe false
+            currentRevisionDir.isDirectory shouldBe true
+        }
+
+        "only clean up the cache when the default branch is processed" {
+            val revision = "other-branch"
+            server.stubExistingRevision(revision)
+
+            val cacheDir = tempdir()
+            val outdatedModifiedTime = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2
+
+            val oldRevisionDir = cacheDir.resolve("old-revision").apply {
+                mkdir()
+                setLastModified(outdatedModifiedTime)
+            }
+
+            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
+
+            val provider = getProvider(cacheConfig)
+            provider.resolveContext(Context(revision))
+
+            oldRevisionDir.exists() shouldBe true
         }
     }
 
@@ -301,6 +348,7 @@ private val server = WireMockServer(WireMockConfiguration.options().dynamicPort(
 internal const val OWNER = "owner"
 internal const val REPOSITORY = "repository"
 internal const val REVISION = "configs-branch"
+internal const val REVISION_HASH = "0a4721665650ba7143871b22ef878e5b81c8f8b5"
 internal const val CONFIG_PATH = "config/app.config"
 internal const val DIRECTORY_PATH = "config"
 internal const val CONTENT = "repository: repo, username: user, password: pass"
@@ -321,7 +369,9 @@ private fun getProvider(properties: Map<String, String> = emptyMap()): GitHubCon
             REPOSITORY_OWNER to OWNER,
             REPOSITORY_NAME to REPOSITORY,
             DEFAULT_BRANCH to REVISION,
-            LOCK_CHECK_INTERVAL_SEC to "1"
+            LOCK_CHECK_INTERVAL_SEC to "1",
+            CACHE_MAX_AGE_DAYS to "1",
+            CACHE_CLEANUP_RATIO to "0"
         ) + properties
     )
 
@@ -335,19 +385,19 @@ private fun authorizedGet(pattern: UrlPattern): MappingBuilder =
     get(pattern).withHeader("Authorization", equalTo("Bearer $API_TOKEN"))
 
 /**
- * A stub for successfully resolving a revision.
+ * A stub for successfully resolving a given [revision].
  */
-private fun WireMockServer.stubExistingRevision() {
+private fun WireMockServer.stubExistingRevision(revision: String = REVISION) {
     stubFor(
         authorizedGet(
-            urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$REVISION")
+            urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/$revision")
         ).willReturn(
             okJson(
                 """
                     {
                       "name": "app.config",
                       "commit": {
-                        "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                        "sha": "$REVISION_HASH",
                         "url": "https://www.example.org/some-commit-url"
                       }
                     }
