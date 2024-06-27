@@ -46,6 +46,16 @@ When using a different port, please make sure that it is not used by [another se
 
 #### Running with local images
 
+##### Quickstart
+
+Run:
+1. `./gradlew buildAllImages`
+2. `ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest ORT_SERVER_CORE_PORT=8090 docker compose up -d`
+3. Open http://localhost:8082/.
+4. Log in as "admin" / "admin".
+
+##### Detailed instructions
+
 During development, it is useful to run the ORT Server with locally built Docker images.
 
 First, ensure to have [Docker BuildKit](https://docs.docker.com/build/buildkit/) enabled by either using Docker version
