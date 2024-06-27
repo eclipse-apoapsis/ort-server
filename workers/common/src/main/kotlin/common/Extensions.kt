@@ -75,7 +75,7 @@ fun ConfigManager.readConfigFileWithDefault(
  * This function realizes the contract that if a specific config file is requested, not being able to read it leads to
  * an exception, but the default file is allowed to not exist.
  */
-inline fun <reified T> ConfigManager.getConfigFileWithDefault(
+inline fun <reified T> getConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
