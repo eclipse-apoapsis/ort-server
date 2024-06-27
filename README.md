@@ -69,17 +69,6 @@ Then build the base images for the workers which contain the external tools and 
 ./gradlew -PdockerBaseBuildArgs="TEMURIN_VERSION=11" buildAllWorkerImages
 ```
 
-*or* manually by running
-
-```shell
-docker build workers/analyzer/docker -f workers/analyzer/docker/Analyzer.Dockerfile -t ort-server-analyzer-worker-base-image
-docker build workers/config/docker -f workers/config/docker/Config.Dockerfile -t ort-server-config-worker-base-image
-docker build workers/evaluator/docker -f workers/evaluator/docker/Evaluator.Dockerfile -t ort-server-evaluator-worker-base-image
-docker build workers/notifier/docker -f workers/notifier/docker/Notifier.Dockerfile -t ort-server-notifier-worker-base-image
-docker build workers/reporter/docker -f workers/reporter/docker/Reporter.Dockerfile -t ort-server-reporter-worker-base-image
-docker build workers/scanner/docker -f workers/scanner/docker/Scanner.Dockerfile -t ort-server-scanner-worker-base-image
-```
-
 For analyzing Java projects, it must be ensured that the Java version used by the Analyzer worker is compatible with
 the JDK used by the project. If the project requires a newer Java version, you might see `UnsupportedClassVersionError`
 exceptions; projects running on an old Java version can cause problems as well. To deal with such problems, it is
@@ -96,16 +85,6 @@ Then the Docker images containing the projects can be built via the Gradle task
 ```shell
 # Build all images at once and any dependent base images:
 ./gradlew buildAllImages
-```
-
-*or* manually via [Jib](https://github.com/GoogleContainerTools/jib) tasks by running
-
-```shell
-# Build all images at once:
-./gradlew jibDockerBuild
-
-# Build one specific image, for example for the `core` module:
-./gradlew :core:jibDockerBuild
 ```
 
 In case multiple base images have been created for the Analyzer supporting different Java versions, the tag of the base
