@@ -560,7 +560,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "handle concurrent requests to create runs for the same repository" {
             integrationTestApplication {
                 val createdRepository = createRepository()
-                val runCount = 3
+                val runCount = 50
                 val analyzerJob = AnalyzerJobConfiguration(
                     allowDynamicVersions = true
                 )
