@@ -113,7 +113,7 @@ importers:
         version: 1.37.0
       '@tanstack/router-vite-plugin':
         specifier: ^1.32.17
-        version: 1.40.2(vite@5.3.1(@types/node@20.14.9))
+        version: 1.40.2(vite@5.3.2(@types/node@20.14.9))
       '@types/node':
         specifier: ^20.11.30
         version: 20.14.9
@@ -131,7 +131,7 @@ importers:
         version: 7.14.1(eslint@8.57.0)(typescript@5.5.2)
       '@vitejs/plugin-react':
         specifier: ^4.2.1
-        version: 4.3.1(vite@5.3.1(@types/node@20.14.9))
+        version: 4.3.1(vite@5.3.2(@types/node@20.14.9))
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
@@ -164,7 +164,7 @@ importers:
         version: 5.5.2
       vite:
         specifier: ^5.1.6
-        version: 5.3.1(@types/node@20.14.9)
+        version: 5.3.2(@types/node@20.14.9)
 
 packages:
 
@@ -2696,8 +2696,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  vite@5.3.1:
-    resolution: {integrity: sha512-XBmSKRLXLxiaPYamLv3/hnP/KXDai1NDexN0FpkTaZXTfycHvkRHoenpgl/fvuK/kPbB6xAgoyiryAhQNxYmAQ==}
+  vite@5.3.2:
+    resolution: {integrity: sha512-6lA7OBHBlXUxiJxbO5aAY2fsHHzDr1q7DvXYnyZycRs2Dz+dXBWuhpWHvmljTRTpQC2uvGmUFFkSHF2vGo90MA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -3953,7 +3953,7 @@ snapshots:
       prettier: 3.3.2
       zod: 3.23.8
 
-  '@tanstack/router-plugin@1.40.2(vite@5.3.1(@types/node@20.14.9))':
+  '@tanstack/router-plugin@1.40.2(vite@5.3.2(@types/node@20.14.9))':
     dependencies:
       '@babel/core': 7.24.7
       '@babel/generator': 7.24.7
@@ -3972,13 +3972,13 @@ snapshots:
       unplugin: 1.10.1
       zod: 3.23.8
     optionalDependencies:
-      vite: 5.3.1(@types/node@20.14.9)
+      vite: 5.3.2(@types/node@20.14.9)
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/router-vite-plugin@1.40.2(vite@5.3.1(@types/node@20.14.9))':
+  '@tanstack/router-vite-plugin@1.40.2(vite@5.3.2(@types/node@20.14.9))':
     dependencies:
-      '@tanstack/router-plugin': 1.40.2(vite@5.3.1(@types/node@20.14.9))
+      '@tanstack/router-plugin': 1.40.2(vite@5.3.2(@types/node@20.14.9))
     transitivePeerDependencies:
       - '@rsbuild/core'
       - supports-color
@@ -4118,14 +4118,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.1(vite@5.3.1(@types/node@20.14.9))':
+  '@vitejs/plugin-react@4.3.1(vite@5.3.2(@types/node@20.14.9))':
     dependencies:
       '@babel/core': 7.24.7
       '@babel/plugin-transform-react-jsx-self': 7.24.7(@babel/core@7.24.7)
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.24.7)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.3.1(@types/node@20.14.9)
+      vite: 5.3.2(@types/node@20.14.9)
     transitivePeerDependencies:
       - supports-color
 
@@ -5271,7 +5271,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@5.3.1(@types/node@20.14.9):
+  vite@5.3.2(@types/node@20.14.9):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.38
