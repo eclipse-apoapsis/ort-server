@@ -35,6 +35,7 @@ import io.ktor.utils.io.ByteReadChannel
 import java.io.File
 import java.io.InputStream
 
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
@@ -188,7 +189,7 @@ class GitHubConfigFileProvider(
                 logger.debug("Using file-based cache in directory '{}'.", cacheDir)
 
                 val lockCheckInterval = config.getInt(LOCK_CHECK_INTERVAL_SEC)
-                GitHubConfigFileCache(File(cacheDir), lockCheckInterval.seconds)
+                GitHubConfigFileCache(File(cacheDir), lockCheckInterval.seconds, 1, 1.days)
             } ?: GitHubConfigNoCache()
 
         /**

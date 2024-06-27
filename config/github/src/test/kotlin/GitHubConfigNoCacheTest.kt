@@ -50,4 +50,13 @@ class GitHubConfigNoCacheTest : WordSpec({
             content shouldBe data
         }
     }
+
+    "cleanup" should {
+        "do nothing" {
+            val cache = GitHubConfigNoCache()
+
+            // Only test that no exception is thrown.
+            cache.cleanup("foo")
+        }
+    }
 })

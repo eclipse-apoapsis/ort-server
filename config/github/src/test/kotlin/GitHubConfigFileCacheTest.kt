@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.config.github
 
+import io.kotest.assertions.retry
 import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -26,13 +27,21 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.utils.io.ByteReadChannel
 
+import java.io.File
 import java.io.InputStream
+import java.nio.file.attribute.FileTime
 import java.util.concurrent.atomic.AtomicInteger
 
+import kotlin.io.path.setLastModifiedTime
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
 
 class GitHubConfigFileCacheTest : WordSpec({
     "getOrPutFile" should {
@@ -144,6 +153,82 @@ class GitHubConfigFileCacheTest : WordSpec({
             }
         }
     }
+
+    "cleanup" should {
+        "remove revisions older than the specified max age" {
+            val now = Clock.System.now()
+            val cacheDir = tempdir()
+            val outdatedRevision = cacheDir.createChildDirAt(revision(1), now - 4.days)
+            val activeRevision = cacheDir.createChildDirAt(revision(2), now - 2.days)
+
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 3.days)
+            cache.cleanup("current")
+
+            outdatedRevision.exists() shouldBe false
+            activeRevision.isDirectory shouldBe true
+        }
+
+        "remove complete revision directories" {
+            val now = Clock.System.now()
+            val cacheDir = tempdir()
+            val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days) { revDir ->
+                revDir.createChildDirAt("tree", now) { filesDir ->
+                    repeat(8) {
+                        filesDir.writeTestFile("file$it.dat")
+                    }
+                    filesDir.createChildDirAt("subDir", now) { subDir ->
+                        repeat(4) {
+                            subDir.writeTestFile("sub-file$it.tst")
+                        }
+                    }
+                }
+            }
+
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 1.days)
+            cache.cleanup("current")
+
+            revisionDir.exists() shouldBe false
+        }
+
+        "not remove the current revision" {
+            val now = Clock.System.now()
+            val cacheDir = tempdir()
+            val revision = revision(42)
+            val currentRevision = cacheDir.createChildDirAt(revision, now - 2.days)
+
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 1.days)
+            cache.cleanup(revision)
+
+            currentRevision.exists() shouldBe true
+        }
+
+        "remove outdated revisions with the configured probability" {
+            val now = Clock.System.now()
+            val cacheDir = tempdir()
+            val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
+
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 5, 1.days)
+
+            retry(20, 1.minutes, delay = 1.milliseconds) {
+                cache.cleanup("current")
+                revisionDir.exists() shouldBe false
+            }
+        }
+
+        "not remove outdated revisions at every run" {
+            val cacheDir = tempdir()
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 10, 1.days)
+
+            retry(10, 1.minutes, delay = 1.milliseconds) {
+                val now = Clock.System.now()
+                val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
+
+                cache.cleanup("current")
+
+                revisionDir.exists() shouldBe true
+            }
+        }
+    }
 })
 
 /** The interval to check for the availability of read locks. */
@@ -226,4 +311,26 @@ private fun revision(index: Int): String = "rev$index"
  * Return a test instance of [GitHubConfigFileCache] backed by a managed temporary directory.
  */
 private fun TestConfiguration.createCache(): GitHubConfigFileCache =
-    GitHubConfigFileCache(tempdir(), lockCheckInterval)
+    GitHubConfigFileCache(tempdir(), lockCheckInterval, 1, 1.days)
+
+/**
+ * Create a child folder under this [File] with the given [name] and the given [time] as last modified time. Then
+ * execute the given [block] passing in the new directory which can populate it. Note: Populating the directory in
+ * [block] is necessary, since later modifications will change the last modified time again.
+ */
+private fun File.createChildDirAt(name: String, time: Instant, block: (File) -> Unit = {}): File =
+    resolve(name).apply {
+        mkdir() shouldBe true
+
+        block(this)
+
+        toPath().setLastModifiedTime(FileTime.from(time.toJavaInstant()))
+    }
+
+/**
+ * Create a file as a child of this [File] with the given [name] and some test content.
+ */
+private fun File.writeTestFile(name: String): File =
+    resolve(name).apply {
+        writeText("test file $name")
+    }
