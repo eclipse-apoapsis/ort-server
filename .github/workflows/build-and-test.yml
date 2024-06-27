@@ -104,6 +104,12 @@ jobs:
     - name: Run tests
       run: ./gradlew test -Dkotest.tags='!Integration'
 
+    - name: Create Test Summary
+      uses: test-summary/action@v2
+      with:
+        paths: "**/test-results/**/TEST-*.xml"
+      if: success() || failure()
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: success() || failure()
@@ -132,6 +138,12 @@ jobs:
 
     - name: Run integration tests
       run: ./gradlew test -Dkotest.tags='Integration'
+
+    - name: Create Test Summary
+      uses: test-summary/action@v2
+      with:
+        paths: "**/test-results/**/TEST-*.xml"
+      if: success() || failure()
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
