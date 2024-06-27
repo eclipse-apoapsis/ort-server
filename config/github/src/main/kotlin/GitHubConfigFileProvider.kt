@@ -116,6 +116,20 @@ class GitHubConfigFileProvider(
         const val LOCK_CHECK_INTERVAL_SEC = "gitHubCacheLockCheckIntervalSec"
 
         /**
+         * Configuration property that determines the maximum age of revisions stored in the cache (in days). Older
+         * revisions are cleaned up regularly.
+         */
+        const val CACHE_MAX_AGE_DAYS = "gitHubCacheMaxAgeDays"
+
+        /**
+         * Configuration property that determines how often a cleanup operation is performed on the cache. The integer
+         * value of this property is roughly the number of ORT runs after which a cleanup is done. Since no state can
+         * be stored over multiple ORT runs, this frequency is not enforced, but an approach based on probability is
+         * taken.
+         */
+        const val CACHE_CLEANUP_RATIO = "gitHubCacheCleanupRatio"
+
+        /**
          * The header value required to get the raw content of a file directly.
          */
         const val RAW_CONTENT_TYPE_HEADER = "application/vnd.github.raw"
@@ -189,7 +203,9 @@ class GitHubConfigFileProvider(
                 logger.debug("Using file-based cache in directory '{}'.", cacheDir)
 
                 val lockCheckInterval = config.getInt(LOCK_CHECK_INTERVAL_SEC)
-                GitHubConfigFileCache(File(cacheDir), lockCheckInterval.seconds, 1, 1.days)
+                val maxAge = config.getInt(CACHE_MAX_AGE_DAYS)
+                val cleanUpRatio = config.getInt(CACHE_CLEANUP_RATIO)
+                GitHubConfigFileCache(File(cacheDir), lockCheckInterval.seconds, cleanUpRatio, maxAge.days)
             } ?: GitHubConfigNoCache()
 
         /**
@@ -218,6 +234,10 @@ class GitHubConfigFileProvider(
 
         val commitId = jsonBody.jsonObject["commit"]?.jsonObject?.get("sha")?.jsonPrimitive?.content
             ?: throw NoSuchFieldException("Couldn't find SHA-1 commit ID for the branch ${context.name}")
+
+        if (branchName == defaultBranch) {
+            cache.cleanup(commitId)
+        }
 
         return Context(commitId)
     }
