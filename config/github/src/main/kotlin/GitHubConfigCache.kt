@@ -51,4 +51,12 @@ interface GitHubConfigCache {
      * [revision]. Use the given [load] function to obtain the folder content if necessary.
      */
     suspend fun getOrPutFolderContent(revision: String, path: String, load: suspend () -> Set<String>): Set<String>
+
+    /**
+     * Perform cleanup on this cache by removing outdated entries. This function is called regularly when the
+     * default branch of the GitHub repository has been resolved. The [currentRevision] of this branch is passed as
+     * argument, to make sure that this one does not get removed. It is up to a concrete implementation to decide
+     * which entries to remove.
+     */
+    fun cleanup(currentRevision: String)
 }

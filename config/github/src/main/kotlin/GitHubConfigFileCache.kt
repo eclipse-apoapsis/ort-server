@@ -34,6 +34,8 @@ import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -78,7 +80,19 @@ internal class GitHubConfigFileCache(
      * implementation suspends and checks periodically if the lock is available. So, the thread can be used more
      * effectively.
      */
-    private val lockCheckInterval: Duration
+    private val lockCheckInterval: Duration,
+
+    /**
+     * A numeric value which determines how often a cleanup of old cache entries should be performed. A value of
+     * *n* means that the cleanup is done roughly on every *nth* invocation of the [cleanup] function.
+     */
+    private val cleanupRatio: Int,
+
+    /**
+     * Defines the maximum age of cache entries before they are removed by a [cleanup] run. This value is compared to
+     * the date of the root folder for a specific revision; older revisions are then completely removed.
+     */
+    private val cleanupMaxAge: Duration
 ) : GitHubConfigCache {
     /**
      * Return an [InputStream] to access the file at the given [path] from the given [revision]. If the file is already
@@ -112,6 +126,33 @@ internal class GitHubConfigFileCache(
 
         return getOrPutFileInCache(dataFile, ::loadFolderContent).use {
             it.bufferedReader().readLines().toSet()
+        }
+    }
+
+    override fun cleanup(currentRevision: String) {
+        if (canCleanup()) {
+            val ageThresholdInstant = Clock.System.now() - cleanupMaxAge
+            val ageThreshold = ageThresholdInstant.toEpochMilliseconds()
+
+            logger.info(
+                "Performing cleanup of cache directory '{}' on revisions older than {}.",
+                cacheDir,
+                ageThresholdInstant
+            )
+
+            cacheDir.listFiles().orEmpty()
+                .filterNot { it.name == currentRevision }
+                .filter { it.lastModified() < ageThreshold }
+                .forEach { revisionDir ->
+                    logger.info(
+                        "Removing outdated cache entry for revision '{}' from {}.",
+                        revisionDir.name,
+                        Instant.fromEpochMilliseconds(revisionDir.lastModified())
+                    )
+                    if (!revisionDir.deleteRecursively()) {
+                        logger.warn("Failed to remove outdated cache entry for revision '{}'.", revisionDir.name)
+                    }
+                }
         }
     }
 
@@ -200,4 +241,14 @@ internal class GitHubConfigFileCache(
         val revisionDir = cacheDir.resolve(revision)
         return revisionDir.resolve(subFolder).resolve(path)
     }
+
+    /**
+     * Decide whether a cleanup run can now be performed. Since this class cannot hold a state over multiple ORT runs,
+     * it uses an approach based on probability to check whether a cleanup operation should be triggered. If the
+     * [cleanupRatio] is greater than 1, it generates a random number between 1 and [cleanupRatio]. Only if this number
+     * equals the upper bound, the cleanup is performed. For lower values of [cleanupRatio], the cleanup is always
+     * done.
+     */
+    private fun canCleanup(): Boolean =
+        cleanupRatio <= 1 || (1..cleanupRatio).random() == cleanupRatio
 }
