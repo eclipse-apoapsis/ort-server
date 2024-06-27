@@ -38,6 +38,7 @@ import io.mockk.verify
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -47,6 +48,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.transactionManager
 
 class InfrastructureServiceServiceTest : WordSpec({
@@ -284,9 +287,9 @@ private class TestHelper(
  */
 private fun createDatabaseMock(): Database =
     mockk {
-        coEvery { dbQuery(any(), any(), any<() -> Any>()) } answers {
-            val block = arg<() -> Any>(3)
-            block()
+        coEvery { dbQuery(any(), any(), any<Transaction.() -> Any>()) } answers {
+            val block = arg<Transaction.() -> Any>(3)
+            mockkTransaction { transaction { block() } }
         }
         every { transactionManager } returns mockk(relaxed = true)
     }
