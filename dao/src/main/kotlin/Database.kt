@@ -42,6 +42,7 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.transactionManager
 
@@ -111,7 +112,7 @@ fun databaseModule(startEager: Boolean = true): Module = module {
 suspend fun <T> Database.dbQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: () -> T
+    block: Transaction.() -> T
 ): T =
     dbQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
@@ -123,7 +124,7 @@ suspend fun <T> Database.dbQuery(
 suspend fun <T> Database.dbQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: () -> T
+    block: Transaction.() -> T
 ): Result<T> =
     runCatching {
         withContext(Dispatchers.IO) {
@@ -139,7 +140,7 @@ suspend fun <T> Database.dbQueryCatching(
 fun <T> Database.blockingQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: () -> T
+    block: Transaction.() -> T
 ): T =
     blockingQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
@@ -151,7 +152,7 @@ fun <T> Database.blockingQuery(
 fun <T> Database.blockingQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: () -> T
+    block: Transaction.() -> T
 ): Result<T> =
     runCatching { transaction(transactionIsolation, readOnly, this) { block() } }.mapExceptions()
 
@@ -162,7 +163,7 @@ fun <T> Database.blockingQueryCatching(
 fun <T> Database.entityQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: () -> T
+    block: Transaction.() -> T
 ): T? = blockingQueryCatching(transactionIsolation, readOnly, block).getOrElse {
     when (it) {
         is EntityNotFoundException -> null
