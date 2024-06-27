@@ -29,7 +29,6 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
-import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
@@ -70,7 +69,7 @@ class GitConfigFileProvider internal constructor(
     // Here, FQN is used deliberately to distinguish the regular top-level function from the extension function on Any.
     constructor(gitUrl: String) : this(gitUrl, org.ossreviewtoolkit.utils.ort.createOrtTempDir())
 
-    private val vcs = Git()
+    private val git = Git()
 
     private lateinit var workingTree: WorkingTree
     private lateinit var unresolvedRevision: String
@@ -78,7 +77,7 @@ class GitConfigFileProvider internal constructor(
 
     override fun resolveContext(context: Context): Context {
         initWorkingTree(context)
-        vcs.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
+        git.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
 
         resolvedRevision = workingTree.getRevision()
         return Context(resolvedRevision)
@@ -110,10 +109,10 @@ class GitConfigFileProvider internal constructor(
     }
 
     private fun initWorkingTree(context: Context) {
-        unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(gitUrl)
+        unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
         val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
 
-        workingTree = vcs.initWorkingTree(configDir, vcsInfo)
+        workingTree = git.initWorkingTree(configDir, vcsInfo)
     }
 
     private fun updateWorkingTree(requestedRevision: String) {
@@ -127,6 +126,6 @@ class GitConfigFileProvider internal constructor(
         }
 
         if (requestedRevision == resolvedRevision) return
-        vcs.updateWorkingTree(workingTree, requestedRevision, recursive = true)
+        git.updateWorkingTree(workingTree, requestedRevision, recursive = true)
     }
 }
