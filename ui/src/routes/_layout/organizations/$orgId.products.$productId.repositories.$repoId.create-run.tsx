@@ -83,6 +83,10 @@ const formSchema = z.object({
     }),
     evaluator: z.object({
       enabled: z.boolean(),
+      ruleSet: z.string().optional(),
+      licenseClassificationsFile: z.string().optional(),
+      copyrightGarbageFile: z.string().optional(),
+      resolutionsFile: z.string().optional(),
     }),
     reporter: z.object({
       enabled: z.boolean(),
@@ -292,6 +296,14 @@ const CreateRunPage = () => {
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
+            ruleSet: ortRun.jobConfigs.evaluator?.ruleSet || undefined,
+            licenseClassificationsFile:
+              ortRun.jobConfigs.evaluator?.licenseClassificationsFile ||
+              undefined,
+            copyrightGarbageFile:
+              ortRun.jobConfigs.evaluator?.copyrightGarbageFile || undefined,
+            resolutionsFile:
+              ortRun.jobConfigs.evaluator?.resolutionsFile || undefined,
           },
           reporter: {
             enabled:
@@ -373,7 +385,18 @@ const CreateRunPage = () => {
         }
       : undefined;
     const evaluatorConfig = values.jobConfigs.evaluator.enabled
-      ? {}
+      ? {
+          // Only include the config parameter structures if the corresponding form fields are not empty.
+          // In case they are empty, the default path from the config file provider will be used to
+          // resolve the corresponding files.
+          ruleSet: values.jobConfigs.evaluator.ruleSet || undefined,
+          licenseClassificationsFile:
+            values.jobConfigs.evaluator.licenseClassificationsFile || undefined,
+          copyrightGarbageFile:
+            values.jobConfigs.evaluator.copyrightGarbageFile || undefined,
+          resolutionsFile:
+            values.jobConfigs.evaluator.resolutionsFile || undefined,
+        }
       : undefined;
     const reporterConfig = values.jobConfigs.reporter.enabled
       ? {
@@ -987,7 +1010,82 @@ const CreateRunPage = () => {
                 <AccordionItem value='evaluator' className='flex-1'>
                   <AccordionTrigger>Evaluator</AccordionTrigger>
                   <AccordionContent>
-                    No job configurations yet implemented for Evaluator.
+                    <div className='text-sm text-gray-500'>
+                      In case any input field is left empty, the default path
+                      from the config file provider will be used for the
+                      corresponding file.
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.evaluator.ruleSet'
+                      render={({ field }) => (
+                        <FormItem className='pt-4'>
+                          <FormLabel>Evaluator rules</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            The path to the rules file to get from the
+                            configuration provider. Note: In case this field is
+                            left empty, the default path of the config file
+                            provider has to include a rules file, otherwise the
+                            Evaluator job will fail.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.evaluator.licenseClassificationsFile'
+                      render={({ field }) => (
+                        <FormItem className='pt-4'>
+                          <FormLabel>License classifications</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            The path to the license classifications file to get
+                            from the configuration provider.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.evaluator.copyrightGarbageFile'
+                      render={({ field }) => (
+                        <FormItem className='pt-4'>
+                          <FormLabel>Copyright garbage</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            The path to the copyright garbage file to get from
+                            the configuration provider.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='jobConfigs.evaluator.resolutionsFile'
+                      render={({ field }) => (
+                        <FormItem className='pt-4'>
+                          <FormLabel>Resolutions</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            The path to the resolutions file to get from the
+                            configuration provider.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </AccordionContent>
                 </AccordionItem>
               </div>
