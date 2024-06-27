@@ -222,7 +222,6 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
 
 rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.forEach { dockerfile ->
     val name = dockerfile.name.substringBeforeLast('.')
-    val context = dockerfile.parent
 
     val buildArgs = dockerBaseBuildArgs.takeUnless { it.isBlank() }
         ?.split(',')
@@ -231,13 +230,13 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
 
     if (name == "UI") {
         tasks.register<Exec>("build${name}Image") {
-            val uiContext = dockerfile.parentFile.parent
+            val context = dockerfile.parentFile.parent
 
             group = "Docker"
             description = "Builds the $name Docker image."
 
             inputs.file(dockerfile)
-            inputs.dir(uiContext)
+            inputs.dir(context)
 
             commandLine = listOf(
                 "docker", "build",
@@ -245,11 +244,13 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
                 *buildArgs.toTypedArray(),
                 "-t", "ort-server-${name.lowercase()}:$dockerBaseImageTag",
                 "-q",
-                uiContext
+                context
             )
         }
     } else {
         tasks.register<Exec>("build${name}WorkerImage") {
+            val context = dockerfile.parent
+
             group = "Docker"
             description = "Builds the $name worker Docker image."
 
