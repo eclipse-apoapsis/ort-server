@@ -30,6 +30,7 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 
 import java.io.File
@@ -255,7 +256,8 @@ class GitHubConfigFileProvider(
     override fun contains(context: Context, path: Path): Boolean {
         val response = sendHttpRequest(
             "/contents/${path.path}?ref=${context.name}",
-            JSON_CONTENT_TYPE_HEADER
+            JSON_CONTENT_TYPE_HEADER,
+            checkSuccess = false
         )
 
         if (!response.isPresent()) return false
@@ -272,13 +274,24 @@ class GitHubConfigFileProvider(
     }
 
     /**
-     * Send a request to the GitHub REST API as defined by [baseUrl] with the provided [path].
+     * Send a request to the GitHub REST API as defined by [baseUrl] with the provided [path]. If the [checkSuccess]
+     * flag is *true*, also check if the response is successful and throw a [ConfigException] if not.
      */
     private fun sendHttpRequest(
         path: String,
-        contentType: String
+        contentType: String,
+        checkSuccess: Boolean = true
     ): HttpResponse = runBlocking {
-        sendHttpRequestWithRetry(path, contentType)
+        val response = sendHttpRequestWithRetry(path, contentType)
+
+        if (checkSuccess && !response.status.isSuccess()) {
+            logger.error("Error response from GitHub API request: ${response.status}.")
+            logger.info("Response body: ${response.body<String>()}")
+
+            throw ConfigException("Error response from GitHub API request: ${response.status}.", null)
+        } else {
+            response
+        }
     }
 
     /**
