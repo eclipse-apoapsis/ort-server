@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.config.github
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.anyUrl
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.ok
@@ -128,10 +129,7 @@ class GitHubConfigFileProviderTest : WordSpec({
                 provider.resolveContext(Context(REVISION + NOT_FOUND))
             }
 
-            exception.message shouldContain "branch"
-            exception.message shouldContain REVISION + NOT_FOUND
-            exception.message shouldContain "repository"
-            exception.message shouldContain REPOSITORY
+            exception.message shouldContain "404"
         }
 
         "clean up the cache" {
@@ -235,6 +233,26 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             exception.message shouldContain DIRECTORY_PATH
             exception.message shouldContain "directory"
+        }
+
+        "throw an exception if the response is not successful" {
+            server.stubFor(
+                get(anyUrl())
+                    .willReturn(
+                        aResponse()
+                            .withStatus(HttpStatusCode.Unauthorized.value)
+                            .withBody(CONTENT)
+                            .withHeader("Content-Type", RAW_CONTENT_TYPE_HEADER)
+                    )
+            )
+
+            val provider = getProvider()
+
+            val exception = shouldThrow<ConfigException> {
+                provider.getFile(Context(REVISION), Path(CONFIG_PATH + 1))
+            }
+
+            exception.message shouldContain "401"
         }
     }
 
@@ -453,9 +471,7 @@ private fun WireMockServer.stubMissingRevision() {
  */
 private fun WireMockServer.stubRevisionNotFound() {
     stubFor(
-        authorizedGet(
-            urlEqualTo("/repos/$OWNER/$REPOSITORY/branches/${REVISION + NOT_FOUND}")
-        ).willReturn(
+        get(anyUrl()).willReturn(
             status(
                 HttpStatusCode.NotFound.value
             ).withBody(
