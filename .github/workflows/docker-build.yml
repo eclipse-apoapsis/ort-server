@@ -27,6 +27,8 @@ jobs:
         # image: Name of the image, used for the Docker image name.
         # context: Path to the Docker context directory.
         # dockerfile: Path of the Dockerfile to use, relative to context.
+        # imageVariant (optional): Variant of the image, used for the Docker image tag.
+        # buildArgs (optional): Build arguments to pass to the Docker build.
         #
         # If the image is built with Jib:
         # jibImage: Name of the image built by Jib.
@@ -43,6 +45,14 @@ jobs:
           task: :transport:kubernetes-jobmonitor:jibDockerBuild
         - jibImage: advisor-worker
           task: :workers:advisor:jibDockerBuild
+        - image: analyzer-worker-base-image
+          buildArgs: TEMURIN_VERSION=21
+          context: workers/analyzer/docker
+          dockerfile: Analyzer.Dockerfile
+          jibImage: analyzer-worker
+          imageVariant: jdk21
+          task: :workers:analyzer:jibDockerBuild
+          freeDiskSpace: true
         - image: analyzer-worker-base-image
           context: workers/analyzer/docker
           dockerfile: Analyzer.Dockerfile
@@ -111,6 +121,16 @@ jobs:
       if: ${{ matrix.docker.preparationTask != '' }}
       run: ./gradlew ${{ matrix.docker.preparationTask }}
 
+    - name: Compute the tags
+      run: |
+        VARIANT=${{ matrix.docker.imageVariant || '' }}
+        DOCKER_IMAGE_TAG=${{ env.ORT_SERVER_VERSION }}
+
+        if [[ -n $VARIANT ]]; then
+          DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG-${{ matrix.docker.imageVariant }}
+        fi
+        echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
+
     - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
@@ -118,17 +138,18 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
-          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
           type=ref,event=branch
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build ${{ matrix.docker.image }} Image
+    - name: Build ${{ matrix.docker.image }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
       if: ${{ matrix.docker.dockerfile != '' }}
       uses: docker/build-push-action@v5
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
+        build-args: ${{ matrix.docker.buildArgs }}
         push: true
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
@@ -141,19 +162,19 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         tags: |
-          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
           type=ref,event=branch
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build ${{ matrix.docker.jibImage }} Image
+    - name: Build ${{ matrix.docker.jibImage }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
       if: ${{ matrix.docker.task != '' }}
       run: |
         ./gradlew \
           -PdockerBaseImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
-          -PdockerBaseImageTag=${{ env.ORT_SERVER_VERSION }} \
+          -PdockerBaseImageTag=${{ env.DOCKER_IMAGE_TAG }} \
           -PdockerImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
-          -PdockerImageTag=${{ env.ORT_SERVER_VERSION }} \
+          -PdockerImageTag=${{ env.DOCKER_IMAGE_TAG }} \
           ${{ matrix.docker.task }} \
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
