@@ -213,7 +213,7 @@ class ConfigWorkerTest : StringSpec({
 
         mockkTransaction {
             val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
-            worker.testRun() shouldBe RunResult.Ignored
+            worker.testRun() shouldBe RunResult.Success
 
             val expectedJobConfigs = context.ortRun.jobConfigs
 
