@@ -111,7 +111,7 @@ class ConfigWorker(
         } else {
             logger.info("Skipping validation as no script exists.")
 
-            RunResult.Ignored to Triple(
+            RunResult.Success to Triple(
                 context.ortRun.jobConfigs.asPresent(),
                 OptionalValue.Absent,
                 OptionalValue.Absent
