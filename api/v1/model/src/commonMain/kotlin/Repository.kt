@@ -110,6 +110,5 @@ enum class RepositoryType {
     GIT,
     GIT_REPO,
     MERCURIAL,
-    SUBVERSION,
-    CVS
+    SUBVERSION
 }
