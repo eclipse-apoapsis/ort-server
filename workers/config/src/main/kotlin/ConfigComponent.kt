@@ -61,7 +61,7 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
             }
 
             else -> {
-                logger.error("Unexpected result of Config worker: $result")
+                logger.error("Unexpected result of Config worker for run '$runId': $result")
                 ConfigWorkerError(runId)
             }
         }

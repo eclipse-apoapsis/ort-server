@@ -69,6 +69,8 @@ class ConfigWorker(
      * Execute the config validation on the ORT run with the given [ortRunId].
      */
     suspend fun run(ortRunId: Long): RunResult = runCatching {
+        logger.info("Running config worker for run '$ortRunId'.")
+
         val context = contextFactory.createContext(ortRunId)
 
         val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
@@ -83,6 +85,8 @@ class ConfigWorker(
         // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it configurable.
         val validationScriptExists = configManager.containsFile(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
         val (result, validationResult) = if (validationScriptExists) {
+            logger.info("Running validation script.")
+
             val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
             val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
             val validationResult = validator.validate(validationScript)
@@ -105,6 +109,8 @@ class ConfigWorker(
                 )
             }
         } else {
+            logger.info("Skipping validation as no script exists.")
+
             RunResult.Ignored to Triple(
                 context.ortRun.jobConfigs.asPresent(),
                 OptionalValue.Absent,
