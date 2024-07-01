@@ -173,7 +173,16 @@ internal class GitHubConfigFileCache(
             if (needRetry) {
                 getOrPutFileInCache(dataFile, load)
             } else {
-                dataFile.inputStream().waitForReadLock()
+                val stream = dataFile.inputStream().waitForReadLock()
+                // There can be the race condition that a process obtains a read lock first before the downloading
+                // process acquires the write lock. So, it has to be checked whether the file actually contains data.
+                // Otherwise, the operation has to be retried.
+                if (dataFile.length() > 0) {
+                    stream
+                } else {
+                    stream.close()
+                    getOrPutFileInCache(dataFile, load)
+                }
             }
         }
 
