@@ -187,6 +187,7 @@ migrated by following these steps:
 | PostgreSQL     | http://localhost:5433            | postgres:postgres                                       |
 | RabbitMQ       | http://localhost:15672           | admin:admin                                             |
 | Graphite       | http://localhost:8888            | root:root                                               |
+| Grafana        | http://localhost:3200            | admin:1234                                              |
 
 #### HTTP request collections
 
