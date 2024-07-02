@@ -36,10 +36,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-
-import java.util.concurrent.atomic.AtomicReference
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -66,6 +65,9 @@ private const val SECRET_ACCESS_PREFIX = "data"
 
 /** The URL prefix to delete all the versions of a secret. */
 private const val SECRET_DELETE_PREFIX = "metadata"
+
+/** The path to log into vault and obtain a token. */
+private const val LOGIN_PATH = "/v1/auth/approle/login"
 
 /**
  * An implementation of the [SecretsProvider] interface for [HashiCorp Vault](https://developer.hashicorp.com/vault).
@@ -153,27 +155,37 @@ class VaultSecretsProvider(
      * bearer-authentication offered by KTor cannot be used here.
      */
     private fun configureTokenHandling(client: HttpClient) {
-        val token = runBlocking { AtomicReference(fetchToken(client)) }
+        // The token to authenticate against Vault. This is fetched and updated on demand. Since this data is shared
+        // among all callers and can therefore be accessed concurrently, it needs to be guarded by a mutex.
+        var token: String? = null
         val mutex = Mutex()
 
         client.plugin(HttpSend).intercept { request ->
-            val currentToken = token.get()
-            request.header(TOKEN_HEADER, currentToken)
-            val call = execute(request)
-
-            if (call.response.status == HttpStatusCode.Forbidden) {
-                // Synchronize, since theoretically there could be multiple callers at the same time.
-                mutex.withLock {
-                    // Check that no other caller has already renewed the token.
-                    if (token.get() == currentToken) {
-                        token.set(fetchToken(client))
-                    }
-                }
-
-                request.headers[TOKEN_HEADER] = token.get()
+            if (request.url.encodedPath == LOGIN_PATH) {
+                // This is the login request; execute it directly.
                 execute(request)
             } else {
-                call
+                val currentToken = mutex.withLock { token }
+                val call = currentToken?.let {
+                    request.header(TOKEN_HEADER, it)
+                    execute(request)
+                }
+
+                if (call == null || call.response.status == HttpStatusCode.Forbidden) {
+                    val updatedToken = mutex.withLock {
+                        // Check that no other caller has already renewed the token.
+                        if (token == currentToken) {
+                            token = fetchToken(client)
+                        }
+
+                        token
+                    }
+
+                    request.header(TOKEN_HEADER, updatedToken)
+                    execute(request)
+                } else {
+                    call
+                }
             }
         }
     }
@@ -184,7 +196,7 @@ class VaultSecretsProvider(
      */
     private suspend fun fetchToken(client: HttpClient): String {
         logger.info("Requesting new Vault token.")
-        val loginResponse: VaultLoginResponse = client.post("/v1/auth/approle/login") {
+        val loginResponse: VaultLoginResponse = client.post(LOGIN_PATH) {
             setBody(config.credentials)
         }.body()
 
