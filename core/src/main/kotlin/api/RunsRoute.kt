@@ -75,34 +75,6 @@ fun Route.runs() = route("runs/{runId}") {
         } ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    route("reporter/{fileName}") {
-        val reportStorageService by inject<ReportStorageService>()
-
-        get(getReportByRunIdAndFileName) {
-            call.forRun(ortRunRepository) { ortRun ->
-                val fileName = call.requireParameter("fileName")
-
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
-
-                call.response.header(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.Attachment.withParameter(
-                        ContentDisposition.Parameters.FileName,
-                        fileName
-                    ).toString()
-                )
-
-                call.respondOutputStream(
-                    downloadData.contentType,
-                    producer = downloadData.loader,
-                    contentLength = downloadData.contentLength
-                )
-            }
-        }
-    }
-
     route("logs") {
         val logFileService by inject<LogFileService>()
 
@@ -131,6 +103,34 @@ fun Route.runs() = route("runs/{runId}") {
                 } finally {
                     logArchive.delete()
                 }
+            }
+        }
+    }
+
+    route("reporter/{fileName}") {
+        val reportStorageService by inject<ReportStorageService>()
+
+        get(getReportByRunIdAndFileName) {
+            call.forRun(ortRunRepository) { ortRun ->
+                val fileName = call.requireParameter("fileName")
+
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
+
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.Attachment.withParameter(
+                        ContentDisposition.Parameters.FileName,
+                        fileName
+                    ).toString()
+                )
+
+                call.respondOutputStream(
+                    downloadData.contentType,
+                    producer = downloadData.loader,
+                    contentLength = downloadData.contentLength
+                )
             }
         }
     }
