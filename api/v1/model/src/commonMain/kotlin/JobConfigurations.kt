@@ -155,6 +155,12 @@ data class ScannerJobConfiguration(
     val skipExcluded: Boolean = false,
 
     /**
+     * The source code origins to use, ordered by priority. The list must not be empty or contain any duplicates. If
+     * `null`, the default order of [SourceCodeOrigin.ARTIFACT] and [SourceCodeOrigin.VCS] is used.
+     */
+    val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
+
+    /**
      * A map of plugin configurations that are specific to a concrete scanner.
      */
     val config: Map<String, PluginConfiguration>? = null

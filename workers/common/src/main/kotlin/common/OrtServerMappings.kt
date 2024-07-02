@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
@@ -142,6 +143,7 @@ import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.Snippet as OrtSnippet
 import org.ossreviewtoolkit.model.SnippetFinding as OrtSnippetFinding
+import org.ossreviewtoolkit.model.SourceCodeOrigin as OrtSourceCodeOrigin
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
@@ -688,3 +690,9 @@ fun JiraRestClientConfiguration.mapToOrt() =
         username = username,
         password = password
     )
+
+fun SourceCodeOrigin.mapToOrt() =
+    when (this) {
+        SourceCodeOrigin.ARTIFACT -> OrtSourceCodeOrigin.ARTIFACT
+        SourceCodeOrigin.VCS -> OrtSourceCodeOrigin.VCS
+    }
