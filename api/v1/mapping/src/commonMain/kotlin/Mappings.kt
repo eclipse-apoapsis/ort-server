@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as Ap
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -99,6 +100,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -413,6 +415,7 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     scanners,
     skipConcluded,
     skipExcluded,
+    sourceCodeOrigins?.map { it.mapToApi() },
     config?.mapValues { it.value.mapToApi() }
 )
 
@@ -423,6 +426,7 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     scanners,
     skipConcluded,
     skipExcluded,
+    sourceCodeOrigins?.map { it.mapToModel() },
     config?.mapValues { it.value.mapToModel() }
 )
 
@@ -584,4 +588,16 @@ fun ApiSortDirection.mapToModel() =
     when (this) {
         ApiSortDirection.ASCENDING -> OrderDirection.ASCENDING
         ApiSortDirection.DESCENDING -> OrderDirection.DESCENDING
+    }
+
+fun SourceCodeOrigin.mapToApi() =
+    when (this) {
+        SourceCodeOrigin.ARTIFACT -> ApiSourceCodeOrigin.ARTIFACT
+        SourceCodeOrigin.VCS -> ApiSourceCodeOrigin.VCS
+    }
+
+fun ApiSourceCodeOrigin.mapToModel() =
+    when (this) {
+        ApiSourceCodeOrigin.ARTIFACT -> SourceCodeOrigin.ARTIFACT
+        ApiSourceCodeOrigin.VCS -> SourceCodeOrigin.VCS
     }
