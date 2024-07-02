@@ -27,6 +27,10 @@
     {
       "matchPackageNames": ["eslint"],
       "rangeStrategy": "in-range-only"
+    },
+    {
+      "matchPackageNames": ["node"],
+      "schedule": ["after 9pm on sunday"]
     }
   ],
   "prHourlyLimit": 5
