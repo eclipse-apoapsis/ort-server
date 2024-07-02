@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
@@ -122,7 +123,8 @@ internal val fullJobConfigurations = JobConfigurations(
         projectScanners = listOf("SCANOSS"),
         scanners = listOf("ScanCode"),
         skipConcluded = true,
-        skipExcluded = true
+        skipExcluded = true,
+        sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
     ),
     evaluator = EvaluatorJobConfiguration(
         copyrightGarbageFile = "copyright-garbage.yml",

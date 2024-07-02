@@ -79,8 +79,8 @@ class ScannerRunner(
         )
 
         val downloaderConfig = DownloaderConfiguration(
-            // TODO: Make the source code origin priority configurable via the ScannerJobConfiguration.
-            sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+            sourceCodeOrigins = config.sourceCodeOrigins?.distinct()?.map { it.mapToOrt() }
+                ?: listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
         )
 
         val workingTreeCache = DefaultWorkingTreeCache()
