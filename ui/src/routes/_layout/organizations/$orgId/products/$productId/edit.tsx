@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -70,7 +71,7 @@ const EditProductPage = () => {
       }),
   });
 
-  const { mutateAsync } = useProductsServicePatchProductById({
+  const { mutateAsync, isPending } = useProductsServicePatchProductById({
     onSuccess() {
       toast({
         title: 'Edit Product',
@@ -160,10 +161,20 @@ const EditProductPage = () => {
                     params.productId,
                 })
               }
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type='submit'>Submit</Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>Editing product...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Submit'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>
