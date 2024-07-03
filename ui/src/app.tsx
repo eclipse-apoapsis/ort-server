@@ -19,10 +19,11 @@
 
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { hasAuthParams, useAuth } from 'react-oidc-context';
+import { hasAuthParams } from 'react-oidc-context';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OpenAPI } from './api/requests/index.ts';
+import { useUser } from './hooks/useUser.ts';
 import { queryClient } from './lib/query-client.ts';
 import { routeTree } from './routeTree.gen';
 
@@ -34,7 +35,7 @@ export interface RouterContext {
     repo: string | undefined;
     run: string | undefined;
   };
-  auth: ReturnType<typeof useAuth>;
+  auth: ReturnType<typeof useUser>;
 }
 
 // Create a new router instance
@@ -60,7 +61,7 @@ declare module '@tanstack/react-router' {
   }
 }
 export const App = () => {
-  const auth = useAuth();
+  const auth = useUser();
   const [hasTriedSignin, setHasTriedSignin] = useState(false);
   const [tokenIsSet, setTokenIsSet] = useState(false);
 

@@ -19,7 +19,6 @@
 
 import { Link, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
-import { useAuth } from 'react-oidc-context';
 
 import { useUser } from '@/hooks/useUser';
 import {
@@ -39,7 +38,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
 export const Header = () => {
-  const auth = useAuth();
   const user = useUser();
 
   const matches = useRouterState({ select: (state) => state.matches });
@@ -179,7 +177,7 @@ export const Header = () => {
             )}
             <DropdownMenuItem
               onClick={async () => {
-                await auth.signoutRedirect();
+                await user.signoutRedirect();
               }}
             >
               Logout
