@@ -612,6 +612,14 @@ class OrtServerMappingsTest : WordSpec({
 
             mappedOrtResult shouldBe OrtTestData.result
         }
+
+        "map an undefined VcsInfo to ORT's VcsInfo.EMPTY" {
+            val vcsInfo = VcsInfo(RepositoryType.UNKNOWN, "", "", "")
+
+            val ortVcsInfo = vcsInfo.mapToOrt()
+
+            ortVcsInfo shouldBe org.ossreviewtoolkit.model.VcsInfo.EMPTY
+        }
     }
 
     "VcsType" should {
