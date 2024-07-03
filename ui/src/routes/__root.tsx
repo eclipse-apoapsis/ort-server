@@ -18,15 +18,26 @@
  */
 
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import React, { Suspense } from 'react';
 
 import { RouterContext } from '@/app';
+
+// Don't use Router devtools in production.
+const TanStackRouterDevtools = import.meta.env.PROD
+  ? () => null
+  : React.lazy(() =>
+      import('@tanstack/router-devtools').then((res) => ({
+        default: res.TanStackRouterDevtools,
+      }))
+    );
 
 const RootComponent = () => {
   return (
     <>
       <Outlet />
-      <TanStackRouterDevtools />
+      <Suspense>
+        <TanStackRouterDevtools />
+      </Suspense>
     </>
   );
 };
