@@ -19,17 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssuesTable
 
 import org.jetbrains.exposed.sql.Table
 
 /**
- * An intermediate table to store references from [AdvisorResultsTable] and [OrtIssuesTable].
+ * An intermediate table to store references from [AdvisorResultsTable] and [IssuesTable].
  */
 object AdvisorResultsIssuesTable : Table("advisor_results_issues") {
     val advisorResultId = reference("advisor_result_id", AdvisorResultsTable)
-    val ortIssueId = reference("ort_issue_id", OrtIssuesTable)
+    val issueId = reference("issue_id", IssuesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(advisorResultId, ortIssueId, name = "${tableName}_pkey")
+        get() = PrimaryKey(advisorResultId, issueId, name = "${tableName}_pkey")
 }

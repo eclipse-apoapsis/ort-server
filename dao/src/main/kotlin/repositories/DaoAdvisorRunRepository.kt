@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.DefectDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.VulnerabilityDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -81,7 +81,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
             }
 
             results.forEach { result ->
-                val issues = mapAndDeduplicate(result.issues, OrtIssueDao::createByIssue)
+                val issues = mapAndDeduplicate(result.issues, IssueDao::createByIssue)
                 val defects = mapAndDeduplicate(result.defects, DefectDao::getOrPut)
                 val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {

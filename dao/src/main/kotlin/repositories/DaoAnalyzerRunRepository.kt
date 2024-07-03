@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersOrtIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AuthorDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.MappedDeclaredLicenseDao
@@ -50,8 +50,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.UnmappedDeclaredL
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicenseDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierOrtIssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
@@ -279,14 +279,14 @@ private fun createProcessedDeclaredLicense(
     }
 }
 
-private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: Issue): OrtIssueDao {
-    val issueDao = OrtIssueDao.createByIssue(issue)
+private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: Issue): IssueDao {
+    val issueDao = IssueDao.createByIssue(issue)
 
-    val identifiersOrtIssueDao = IdentifierOrtIssueDao.getOrPut(identifier, issueDao)
+    val identifiersIssueDao = IdentifierIssueDao.getOrPut(identifier, issueDao)
 
-    AnalyzerRunsIdentifiersOrtIssuesTable.insert {
+    AnalyzerRunsIdentifiersIssuesTable.insert {
         it[analyzerRunId] = analyzerRun.id
-        it[identifierOrtIssueId] = identifiersOrtIssueDao.id
+        it[identifierIssueId] = identifiersIssueDao.id
     }
 
     return issueDao

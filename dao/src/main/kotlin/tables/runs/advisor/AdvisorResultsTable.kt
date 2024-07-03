@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
@@ -54,14 +54,14 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
 
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
     var defects by DefectDao via AdvisorResultsDefectsTable
-    var issues by OrtIssueDao via AdvisorResultsIssuesTable
+    var issues by IssueDao via AdvisorResultsIssuesTable
 
     fun mapToModel() = AdvisorResult(
         advisorName = advisorName,
         capabilities = capabilities.filter(String::isNotEmpty),
         startTime = startTime,
         endTime = endTime,
-        issues = issues.map(OrtIssueDao::mapToModel),
+        issues = issues.map(IssueDao::mapToModel),
         defects = defects.map(DefectDao::mapToModel),
         vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel)
     )

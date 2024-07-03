@@ -26,28 +26,28 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
 /**
- * An intermediate table to store references from [IdentifiersTable] and [OrtIssuesTable].
+ * An intermediate table to store references from [IdentifiersTable] and [IssuesTable].
  */
-object IdentifiersOrtIssuesTable : LongIdTable("identifiers_ort_issues") {
+object IdentifiersIssuesTable : LongIdTable("identifiers_issues") {
     val identifierId = reference("identifier_id", IdentifiersTable)
-    val ortIssueId = reference("ort_issue_id", OrtIssuesTable)
+    val issueId = reference("issue_id", IssuesTable)
 }
 
-class IdentifierOrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<IdentifierOrtIssueDao>(IdentifiersOrtIssuesTable) {
-        fun findByIdentifierAndIssue(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao? =
+class IdentifierIssueDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<IdentifierIssueDao>(IdentifiersIssuesTable) {
+        fun findByIdentifierAndIssue(identifier: IdentifierDao, issue: IssueDao): IdentifierIssueDao? =
             find {
-                IdentifiersOrtIssuesTable.identifierId eq identifier.id and
-                        (IdentifiersOrtIssuesTable.ortIssueId eq issue.id)
+                IdentifiersIssuesTable.identifierId eq identifier.id and
+                        (IdentifiersIssuesTable.issueId eq issue.id)
             }.singleOrNull()
 
-        fun getOrPut(identifier: IdentifierDao, issue: OrtIssueDao): IdentifierOrtIssueDao =
+        fun getOrPut(identifier: IdentifierDao, issue: IssueDao): IdentifierIssueDao =
             findByIdentifierAndIssue(identifier, issue) ?: new {
                 this.identifier = identifier
-                this.ortIssueDao = issue
+                this.issueDao = issue
             }
     }
 
-    var identifier by IdentifierDao referencedOn IdentifiersOrtIssuesTable.identifierId
-    var ortIssueDao by OrtIssueDao referencedOn IdentifiersOrtIssuesTable.ortIssueId
+    var identifier by IdentifierDao referencedOn IdentifiersIssuesTable.identifierId
+    var issueDao by IssueDao referencedOn IdentifiersIssuesTable.issueId
 }
