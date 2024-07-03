@@ -209,18 +209,9 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
 
 fun OrtCopyrightFinding.mapToModel() = CopyrightFinding(statement = statement, location = location.mapToModel())
 
-fun OrtSnippetFinding.mapToModel() = SnippetFinding(
-    location = sourceLocation.mapToModel(),
-    snippets = snippets.mapTo(mutableSetOf(), OrtSnippet::mapToModel)
-)
-
-fun OrtSnippet.mapToModel() = Snippet(
-    purl = purl,
-    provenance = provenance.mapToModel(),
-    location = location.mapToModel(),
-    score = score,
-    spdxLicense = licenses.toString(),
-    additionalData = additionalData
+fun OrtCurations.mapToModel() = Curations(
+    packages = packages.map(OrtPackageCuration::mapToModel),
+    licenseFindings = licenseFindings.map(OrtLicenseFindingCuration::mapToModel)
 )
 
 fun OrtDefect.mapToModel() =
@@ -261,12 +252,6 @@ fun OrtDependencyGraphNode.mapToModel() =
         issues = issues.map { it.mapToModel() }
     )
 
-fun OrtRootDependencyIndex.mapToModel() =
-    DependencyGraphRoot(
-        root = root,
-        fragment = fragment
-    )
-
 fun OrtEnvironment.mapToModel() =
     Environment(
         ortVersion = ortVersion,
@@ -278,7 +263,28 @@ fun OrtEnvironment.mapToModel() =
         toolVersions = toolVersions
     )
 
+fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
+    EvaluatorRun(
+        id = -1,
+        evaluatorJobId = evaluatorJobId,
+        startTime = startTime.toKotlinInstant(),
+        endTime = endTime.toKotlinInstant(),
+        violations = violations.map(OrtRuleViolation::mapToModel)
+    )
+
+fun OrtExcludes.mapToModel() = Excludes(
+    paths = paths.map(OrtPathExclude::mapToModel),
+    scopes = scopes.map(OrtScopeExclude::mapToModel)
+)
+
 fun OrtIdentifier.mapToModel() = Identifier(type, namespace, name, version)
+
+fun OrtIssueResolution.mapToModel() = IssueResolution(message, reason.name, comment)
+
+fun OrtLicenseChoices.mapToModel() = LicenseChoices(
+    repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),
+    packageLicenseChoices = packageLicenseChoices.map(OrtPackageLicenseChoice::mapToModel)
+)
 
 fun OrtLicenseFinding.mapToModel() =
     LicenseFinding(
@@ -286,6 +292,16 @@ fun OrtLicenseFinding.mapToModel() =
         location = location.mapToModel(),
         score = score
     )
+
+fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
+    path = path,
+    startLines = startLines,
+    lineCount = lineCount,
+    detectedLicense = detectedLicense?.toString(),
+    concludedLicense = concludedLicense.toString(),
+    reason = reason.name,
+    comment = comment
+)
 
 fun OrtOrtIssue.mapToModel() =
     OrtIssue(
@@ -313,13 +329,51 @@ fun OrtPackage.mapToModel() =
         isModified = isModified
     )
 
+fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
+    id = id.mapToModel(),
+    sourceArtifactUrl = sourceArtifactUrl,
+    vcs = vcs?.mapToModel(),
+    pathExcludes = pathExcludes.map(OrtPathExclude::mapToModel),
+    licenseFindingCurations = licenseFindingCurations.map(OrtLicenseFindingCuration::mapToModel)
+)
+
+fun OrtPackageCuration.mapToModel() = PackageCuration(
+    id = id.mapToModel(),
+    data = data.mapToModel()
+)
+
+fun OrtPackageCurationData.mapToModel() = PackageCurationData(
+    comment = comment,
+    purl = purl,
+    cpe = cpe,
+    authors = authors,
+    concludedLicense = concludedLicense?.toString(),
+    description = description,
+    homepageUrl = homepageUrl,
+    binaryArtifact = binaryArtifact?.mapToModel(),
+    sourceArtifact = sourceArtifact?.mapToModel(),
+    vcs = vcs?.mapToModel(),
+    isMetadataOnly = isMetadataOnly,
+    isModified = isModified,
+    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() }
+)
+
 fun OrtPackageCurationProvider.mapToModel() = PackageCurationProviderConfig(name = id)
+
+fun OrtPackageLicenseChoice.mapToModel() = PackageLicenseChoice(
+    identifier = packageId.mapToModel(),
+    licenseChoices = licenseChoices.map(OrtSpdxLicenseChoice::mapToModel)
+)
 
 fun OrtPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(
         mustRunAfter = mustRunAfter,
         options = options
     )
+
+fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
+
+fun OrtPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)
 
 fun OrtProcessedDeclaredLicense.mapToModel() =
     ProcessedDeclaredLicense(
@@ -369,10 +423,62 @@ fun OrtRemoteArtifact.mapToModel() =
         hashAlgorithm = hash.algorithm.toString()
     )
 
+fun OrtRepositoryAnalyzerConfiguration.mapToModel() = RepositoryAnalyzerConfiguration(
+    allowDynamicVersions = allowDynamicVersions,
+    enabledPackageManagers = enabledPackageManagers,
+    disabledPackageManagers = disabledPackageManagers,
+    packageManagers = packageManagers?.mapValues { it.value.mapToModel() },
+    skipExcluded = skipExcluded
+)
+
+fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfiguration(
+    id = -1L,
+    ortRunId = ortRunId,
+    analyzerConfig = analyzer?.mapToModel(),
+    excludes = excludes.mapToModel(),
+    resolutions = resolutions.mapToModel(),
+    curations = curations.mapToModel(),
+    packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
+    licenseChoices = licenseChoices.mapToModel(),
+    provenanceSnippetChoices = snippetChoices.map(OrtSnippetChoices::mapToModel)
+)
+
+fun OrtResolutions.mapToModel() = Resolutions(
+    issues = issues.map(OrtIssueResolution::mapToModel),
+    ruleViolations = ruleViolations.map(OrtRuleViolationResolution::mapToModel),
+    vulnerabilities = vulnerabilities.map(OrtVulnerabilityResolution::mapToModel)
+)
+
 fun OrtResolvedPackageCurations.mapToModel() =
     ResolvedPackageCurations(
         provider = provider.mapToModel(),
         curations = curations.map { it.mapToModel() }
+    )
+
+fun OrtRootDependencyIndex.mapToModel() =
+    DependencyGraphRoot(
+        root = root,
+        fragment = fragment
+    )
+
+fun OrtRuleViolation.mapToModel() = RuleViolation(
+    rule = rule,
+    packageId = pkg?.mapToModel(),
+    severity = severity.name,
+    message = message,
+    howToFix = howToFix,
+    license = license?.toString(),
+    licenseSource = licenseSource?.name
+)
+
+fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(message, reason.name, comment)
+
+fun OrtScannerConfiguration.mapToModel() =
+    ScannerConfiguration(
+        skipConcluded = skipConcluded,
+        detectedLicenseMappings = detectedLicenseMapping,
+        config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
+        ignorePatterns = ignorePatterns
     )
 
 fun OrtScannerDetails.mapToModel() =
@@ -380,36 +486,6 @@ fun OrtScannerDetails.mapToModel() =
         name = name,
         version = version,
         configuration = configuration
-    )
-
-fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLine, endLine = endLine)
-
-fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
-
-fun OrtVcsType.mapToModel() = RepositoryType.forName(aliases.first())
-
-fun OrtVulnerability.mapToModel() =
-    Vulnerability(
-        externalId = id,
-        summary = summary,
-        description = description,
-        references = references.map { it.mapToModel() }
-    )
-
-fun OrtVulnerabilityReference.mapToModel() =
-    VulnerabilityReference(
-        url = url.toString(),
-        scoringSystem = scoringSystem,
-        severity = severity
-    )
-
-fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
-    EvaluatorRun(
-        id = -1,
-        evaluatorJobId = evaluatorJobId,
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
-        violations = violations.map(OrtRuleViolation::mapToModel)
     )
 
 fun OrtScannerRun.mapToModel(scannerJobId: Long) =
@@ -423,14 +499,6 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
         provenances = provenances.mapTo(mutableSetOf(), OrtProvenanceResolutionResult::mapToModel),
         scanResults = scanResults.mapTo(mutableSetOf(), OrtScanResult::mapToModel),
         scanners = scanners.mapKeys { it.key.mapToModel() }
-    )
-
-fun OrtScannerConfiguration.mapToModel() =
-    ScannerConfiguration(
-        skipConcluded = skipConcluded,
-        detectedLicenseMappings = detectedLicenseMapping,
-        config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
-        ignorePatterns = ignorePatterns
     )
 
 fun OrtScanResult.mapToModel() =
@@ -451,101 +519,15 @@ fun OrtScanSummary.mapToModel() =
         issues = issues.map(OrtOrtIssue::mapToModel)
     )
 
-fun OrtRuleViolation.mapToModel() = RuleViolation(
-    rule = rule,
-    packageId = pkg?.mapToModel(),
-    severity = severity.name,
-    message = message,
-    howToFix = howToFix,
-    license = license?.toString(),
-    licenseSource = licenseSource?.name
-)
+fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
 
-fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfiguration(
-    id = -1L,
-    ortRunId = ortRunId,
-    analyzerConfig = analyzer?.mapToModel(),
-    excludes = excludes.mapToModel(),
-    resolutions = resolutions.mapToModel(),
-    curations = curations.mapToModel(),
-    packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
-    licenseChoices = licenseChoices.mapToModel(),
-    provenanceSnippetChoices = snippetChoices.map(OrtSnippetChoices::mapToModel)
-)
-
-fun OrtRepositoryAnalyzerConfiguration.mapToModel() = RepositoryAnalyzerConfiguration(
-    allowDynamicVersions = allowDynamicVersions,
-    enabledPackageManagers = enabledPackageManagers,
-    disabledPackageManagers = disabledPackageManagers,
-    packageManagers = packageManagers?.mapValues { it.value.mapToModel() },
-    skipExcluded = skipExcluded
-)
-
-fun OrtExcludes.mapToModel() = Excludes(
-    paths = paths.map(OrtPathExclude::mapToModel),
-    scopes = scopes.map(OrtScopeExclude::mapToModel)
-)
-
-fun OrtResolutions.mapToModel() = Resolutions(
-    issues = issues.map(OrtIssueResolution::mapToModel),
-    ruleViolations = ruleViolations.map(OrtRuleViolationResolution::mapToModel),
-    vulnerabilities = vulnerabilities.map(OrtVulnerabilityResolution::mapToModel)
-)
-
-fun OrtCurations.mapToModel() = Curations(
-    packages = packages.map(OrtPackageCuration::mapToModel),
-    licenseFindings = licenseFindings.map(OrtLicenseFindingCuration::mapToModel)
-)
-
-fun OrtPackageCuration.mapToModel() = PackageCuration(
-    id = id.mapToModel(),
-    data = data.mapToModel()
-)
-
-fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
-    path = path,
-    startLines = startLines,
-    lineCount = lineCount,
-    detectedLicense = detectedLicense?.toString(),
-    concludedLicense = concludedLicense.toString(),
-    reason = reason.name,
-    comment = comment
-)
-
-fun OrtPackageCurationData.mapToModel() = PackageCurationData(
-    comment = comment,
+fun OrtSnippet.mapToModel() = Snippet(
     purl = purl,
-    cpe = cpe,
-    authors = authors,
-    concludedLicense = concludedLicense?.toString(),
-    description = description,
-    homepageUrl = homepageUrl,
-    binaryArtifact = binaryArtifact?.mapToModel(),
-    sourceArtifact = sourceArtifact?.mapToModel(),
-    vcs = vcs?.mapToModel(),
-    isMetadataOnly = isMetadataOnly,
-    isModified = isModified,
-    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() }
-)
-
-fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
-    type = type?.mapToModel(),
-    url = url,
-    revision = revision,
-    path = path
-)
-
-fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
-    id = id.mapToModel(),
-    sourceArtifactUrl = sourceArtifactUrl,
-    vcs = vcs?.mapToModel(),
-    pathExcludes = pathExcludes.map(OrtPathExclude::mapToModel),
-    licenseFindingCurations = licenseFindingCurations.map(OrtLicenseFindingCuration::mapToModel)
-)
-
-fun OrtSnippetChoices.mapToModel() = ProvenanceSnippetChoices(
-    Provenance(provenance.url),
-    choices.map(OrtSnippetChoice::mapToModel)
+    provenance = provenance.mapToModel(),
+    location = location.mapToModel(),
+    score = score,
+    spdxLicense = licenses.toString(),
+    additionalData = additionalData
 )
 
 fun OrtSnippetChoice.mapToModel() = SnippetChoice(
@@ -555,28 +537,46 @@ fun OrtSnippetChoice.mapToModel() = SnippetChoice(
 
 fun OrtSnippetChoiceReason.mapToOrt() = SnippetChoiceReason.valueOf(name)
 
-fun OrtLicenseChoices.mapToModel() = LicenseChoices(
-    repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),
-    packageLicenseChoices = packageLicenseChoices.map(OrtPackageLicenseChoice::mapToModel)
+fun OrtSnippetChoices.mapToModel() = ProvenanceSnippetChoices(
+    Provenance(provenance.url),
+    choices.map(OrtSnippetChoice::mapToModel)
+)
+
+fun OrtSnippetFinding.mapToModel() = SnippetFinding(
+    location = sourceLocation.mapToModel(),
+    snippets = snippets.mapTo(mutableSetOf(), OrtSnippet::mapToModel)
 )
 
 fun OrtSpdxLicenseChoice.mapToModel() = SpdxLicenseChoice(given?.toString(), choice.toString())
 
-fun OrtPackageLicenseChoice.mapToModel() = PackageLicenseChoice(
-    identifier = packageId.mapToModel(),
-    licenseChoices = licenseChoices.map(OrtSpdxLicenseChoice::mapToModel)
+fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLine, endLine = endLine)
+
+fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
+
+fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
+    type = type?.mapToModel(),
+    url = url,
+    revision = revision,
+    path = path
 )
 
 fun OrtVcsMatcher.mapToModel() = VcsMatcher(type.mapToModel(), url, revision)
 
-fun OrtIssueResolution.mapToModel() = IssueResolution(message, reason.name, comment)
+fun OrtVcsType.mapToModel() = RepositoryType.forName(aliases.first())
 
-fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(message, reason.name, comment)
+fun OrtVulnerability.mapToModel() =
+    Vulnerability(
+        externalId = id,
+        summary = summary,
+        description = description,
+        references = references.map { it.mapToModel() }
+    )
+
+fun OrtVulnerabilityReference.mapToModel() =
+    VulnerabilityReference(
+        url = url.toString(),
+        scoringSystem = scoringSystem,
+        severity = severity
+    )
 
 fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(id, reason.name, comment)
-
-fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
-
-fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
-
-fun OrtPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)
