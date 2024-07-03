@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -170,7 +170,7 @@ val identifier = Identifier(
     version = "version"
 )
 
-val issue = OrtIssue(
+val issue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
     source = "source",
     message = "message",

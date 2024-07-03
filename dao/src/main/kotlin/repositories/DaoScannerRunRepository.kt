@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.KnownProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
@@ -121,7 +121,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
             if (packageProvenance !is KnownProvenance) {
                 val result = ProvenanceResolutionResult(
                     id = identifier,
-                    packageProvenanceResolutionIssue = OrtIssue(
+                    packageProvenanceResolutionIssue = Issue(
                         timestamp = Clock.System.now(),
                         source = "scanner",
                         message = "Could not resolve provenance for package '$identifier': " +
@@ -139,7 +139,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                 val result = ProvenanceResolutionResult(
                     id = identifier,
                     packageProvenance = packageProvenance,
-                    nestedProvenanceResolutionIssue = OrtIssue(
+                    nestedProvenanceResolutionIssue = Issue(
                         timestamp = Clock.System.now(),
                         source = "scanner",
                         message = "Could not resolve nested provenance for provenance '$packageProvenance'.",

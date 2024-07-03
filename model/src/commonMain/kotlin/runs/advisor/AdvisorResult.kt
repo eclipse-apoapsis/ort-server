@@ -21,14 +21,14 @@ package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
 import kotlinx.datetime.Instant
 
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 data class AdvisorResult(
     val advisorName: String,
     val capabilities: List<String>,
     val startTime: Instant,
     val endTime: Instant,
-    val issues: List<OrtIssue>,
+    val issues: List<Issue>,
     val defects: List<Defect>,
     val vulnerabilities: List<Vulnerability>
 )

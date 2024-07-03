@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
 import kotlinx.datetime.Instant
 
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 data class ScanSummary(
     val startTime: Instant,
@@ -29,5 +29,5 @@ data class ScanSummary(
     val licenseFindings: Set<LicenseFinding>,
     val copyrightFindings: Set<CopyrightFinding>,
     val snippetFindings: Set<SnippetFinding>,
-    val issues: List<OrtIssue> = emptyList()
+    val issues: List<Issue> = emptyList()
 )

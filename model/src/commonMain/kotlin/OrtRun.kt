@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 @Serializable
 data class OrtRun(
@@ -109,7 +109,7 @@ data class OrtRun(
      * A list with issues that have been found for this run and that are not related to one of the processing steps.
      * Such issues are created for instance during validation of the run parameters.
      */
-    val issues: List<OrtIssue>,
+    val issues: List<Issue>,
 
     /**
      * An optional context to be used when obtaining configuration for this ORT run. This context is passed to the

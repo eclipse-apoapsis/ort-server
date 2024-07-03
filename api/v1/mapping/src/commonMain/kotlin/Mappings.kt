@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaratio
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
+import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration as ApiJiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JiraRestClientConfiguration as ApiJiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
@@ -46,7 +47,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.OrtIssue as ApiOrtIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
@@ -101,7 +101,7 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -213,6 +213,8 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         ruleSet
     )
 
+fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity)
+
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
 
 fun ApiJobStatus.mapToModel() = JobStatus.valueOf(name)
@@ -259,8 +261,6 @@ fun Jobs.mapToApiSummary() =
     )
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
-
-fun OrtIssue.mapToApi() = ApiOrtIssue(timestamp, source, message, severity)
 
 fun OrtRun.mapToApi(jobs: ApiJobs) =
     ApiOrtRun(

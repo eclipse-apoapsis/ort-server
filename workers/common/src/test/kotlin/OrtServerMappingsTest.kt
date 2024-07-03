@@ -44,7 +44,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphNode
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue as OrtServerIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -116,7 +116,7 @@ class OrtServerMappingsTest : WordSpec({
                 toolVersions = emptyMap()
             )
 
-            val runIssue = OrtServerIssue(
+            val runIssue = Issue(
                 timestamp = Instant.parse("2023-08-02T07:59:38Z"),
                 source = "test-tool",
                 message = "Some problem with this run",
@@ -263,7 +263,7 @@ class OrtServerMappingsTest : WordSpec({
                 isModified = true
             )
 
-            val issue = OrtServerIssue(
+            val issue = Issue(
                 timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 source = "tool-x",
                 message = "An issue occurred.",

@@ -20,7 +20,7 @@
 // A test validation script that returns a success result with the same resolved configuration as passed in and
 // an issue with severity "Hint".
 
-val issue = OrtIssue(
+val issue = Issue(
     time,
     "validation",
     "Current repository is ${context.hierarchy.repository.url}",

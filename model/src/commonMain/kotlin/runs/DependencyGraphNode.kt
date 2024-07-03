@@ -26,5 +26,5 @@ data class DependencyGraphNode(
     val pkg: Int,
     val fragment: Int,
     val linkage: String,
-    val issues: List<OrtIssue>
+    val issues: List<Issue>
 )

@@ -19,7 +19,7 @@
 
 // A test validation script that returns a failure and an issue with severity "Error".
 
-val issue = OrtIssue(
+val issue = Issue(
     time,
     "validation",
     "Current repository is ${context.hierarchy.repository.url}; invalid parameters.",
