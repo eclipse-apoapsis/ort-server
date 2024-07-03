@@ -18,7 +18,7 @@
  */
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ColumnDef,
   flexRender,
@@ -96,7 +96,15 @@ const columns: ColumnDef<Organization>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => row.original.name,
+    cell: ({ row }) => (
+      <Link
+        className='font-semibold text-blue-400 hover:underline'
+        to='/organizations/$orgId'
+        params={{ orgId: row.original.id.toString() }}
+      >
+        {row.original.name}
+      </Link>
+    ),
   },
 ];
 

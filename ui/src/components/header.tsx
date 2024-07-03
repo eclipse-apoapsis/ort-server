@@ -17,13 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 
 import { useUser } from '@/hooks/useUser';
-import { SideBar } from './sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -108,12 +106,6 @@ export const Header = () => {
                 <Home className='h-6 w-6' />
                 <span className='sr-only'>Home</span>
               </Link>
-              {user.hasRole('superuser') && (
-                <>
-                  <Separator />
-                  <SideBar />
-                </>
-              )}
             </nav>
           </SheetContent>
         </Sheet>
@@ -180,6 +172,11 @@ export const Header = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
+            {user.hasRole('superuser') && (
+              <Link to='/admin'>
+                <DropdownMenuItem>Admin</DropdownMenuItem>
+              </Link>
+            )}
             <DropdownMenuItem
               onClick={async () => {
                 await auth.signoutRedirect();
