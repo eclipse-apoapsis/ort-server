@@ -59,23 +59,21 @@ export const IndexPage = () => {
         <CardHeader>
           <CardTitle>Organizations</CardTitle>
           <CardDescription>
-            <div className='flex flex-col'>
-              <div>Browse your organizations or create a new one</div>
-            </div>
-            <div className='py-2'>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild size='sm' className='ml-auto gap-1'>
-                    <Link to='/create-organization'>
-                      New organization
-                      <PlusIcon className='h-4 w-4' />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Create a new organization</TooltipContent>
-              </Tooltip>
-            </div>
+            Browse your organizations or create a new one
           </CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link to='/create-organization'>
+                    New organization
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Create a new organization</TooltipContent>
+            </Tooltip>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
