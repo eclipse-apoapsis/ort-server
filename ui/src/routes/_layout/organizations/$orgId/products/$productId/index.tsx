@@ -176,32 +176,28 @@ const ProductComponent = () => {
               </AlertDialogContent>
             </AlertDialog>
           </CardTitle>
-          <CardDescription>
-            <div className='flex flex-col'>
-              <div>{product.description}</div>
-              <div className='py-2'>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button asChild size='sm' className='ml-auto gap-1'>
-                      <Link
-                        to='/organizations/$orgId/products/$productId/create-repository'
-                        params={{
-                          orgId: params.orgId,
-                          productId: params.productId,
-                        }}
-                      >
-                        New repository
-                        <PlusIcon className='h-4 w-4' />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Add a new repository for this product
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </CardDescription>
+          <CardDescription>{product.description}</CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/products/$productId/create-repository'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                    }}
+                  >
+                    New repository
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Add a new repository for this product
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

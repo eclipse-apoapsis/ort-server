@@ -174,29 +174,25 @@ const OrganizationComponent = () => {
               </AlertDialogContent>
             </AlertDialog>
           </CardTitle>
-          <CardDescription>
-            <div className='flex flex-col'>
-              <div>{organization.description}</div>
-              <div className='py-2'>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button asChild size='sm' className='ml-auto gap-1'>
-                      <Link
-                        to='/organizations/$orgId/create-product'
-                        params={{ orgId: organization.id.toString() }}
-                      >
-                        New product
-                        <PlusIcon className='h-4 w-4' />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Create a new product for this organization
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </CardDescription>
+          <CardDescription>{organization.description}</CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/create-product'
+                    params={{ orgId: organization.id.toString() }}
+                  >
+                    New product
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new product for this organization
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
