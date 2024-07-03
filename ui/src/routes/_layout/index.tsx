@@ -23,6 +23,7 @@ import { PlusIcon } from 'lucide-react';
 
 import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -122,4 +123,5 @@ export const Route = createFileRoute('/_layout/')({
     });
   },
   component: IndexPage,
+  pendingComponent: LoadingIndicator,
 });

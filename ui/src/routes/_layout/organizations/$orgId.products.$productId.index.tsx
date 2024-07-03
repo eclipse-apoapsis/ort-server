@@ -27,6 +27,7 @@ import {
   useRepositoriesServiceGetRepositoriesByProductIdKey,
 } from '@/api/queries';
 import { ApiError, ProductsService, RepositoriesService } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import {
   AlertDialog,
@@ -272,4 +273,5 @@ export const Route = createFileRoute(
     ]);
   },
   component: ProductComponent,
+  pendingComponent: LoadingIndicator,
 });
