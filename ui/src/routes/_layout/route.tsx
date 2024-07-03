@@ -20,27 +20,13 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { Header } from '@/components/header';
-import { SideBar } from '@/components/sidebar';
-import { useUser } from '@/hooks/useUser';
-import { cn } from '@/lib/utils';
 
 const Layout = () => {
-  const user = useUser();
   return (
     <div className='flex min-h-screen w-full flex-col'>
       <Header />
       <div>
-        {user.hasRole('superuser') && (
-          <SideBar className='hidden h-full p-4 md:fixed md:float-left md:block md:w-[230px]' />
-        )}
-        <main
-          className={cn(
-            user.hasRole('superuser')
-              ? 'md:float-right md:w-[calc(100%-230px)]'
-              : 'md:w-full',
-            'flex flex-col gap-4 p-4 md:gap-8 md:p-8'
-          )}
-        >
+        <main className='flex flex-col gap-4 p-4 md:w-full md:gap-8 md:p-8'>
           <Outlet />
         </main>
       </div>
