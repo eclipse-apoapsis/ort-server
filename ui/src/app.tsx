@@ -21,6 +21,7 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { hasAuthParams, useAuth } from 'react-oidc-context';
 
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { OpenAPI } from './api/requests/index.ts';
 import { queryClient } from './lib/query-client.ts';
 import { routeTree } from './routeTree.gen';
@@ -89,7 +90,7 @@ export const App = () => {
   }, [auth.user]);
 
   if (auth.isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingIndicator />;
   }
 
   if (!auth.isAuthenticated) {
