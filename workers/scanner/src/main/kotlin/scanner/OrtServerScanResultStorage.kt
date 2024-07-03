@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
@@ -33,36 +32,21 @@ import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
-import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.CopyrightFinding
-import org.ossreviewtoolkit.model.Hash
-import org.ossreviewtoolkit.model.HashAlgorithm
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance
-import org.ossreviewtoolkit.model.LicenseFinding
-import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
-import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
-import org.ossreviewtoolkit.model.Severity
-import org.ossreviewtoolkit.model.Snippet
-import org.ossreviewtoolkit.model.SnippetFinding
-import org.ossreviewtoolkit.model.TextLocation
-import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.scanner.ScannerMatcher
-import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 /**
  * A class providing access to scan results.
@@ -101,7 +85,7 @@ class OrtServerScanResultStorage(
                         version = it.scannerVersion,
                         configuration = it.scannerConfiguration
                     ),
-                    summary = it.scanSummary.mapToOrt(),
+                    summary = it.scanSummary.mapToModel().mapToOrt(),
                     additionalData = it.additionalScanResultData?.data.orEmpty()
                 )
             }.filterValues { scannerMatcher?.matches(it.scanner) != false }
@@ -201,68 +185,3 @@ class OrtServerScanResultStorage(
         )
     }
 }
-
-private fun ScanSummaryDao.mapToOrt() = ScanSummary(
-    this.startTime.toJavaInstant(),
-    this.endTime.toJavaInstant(),
-    this.licenseFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
-    this.copyrightFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
-    this.snippetFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
-    this.issues.map {
-        OrtIssue(
-            it.timestamp.toJavaInstant(),
-            it.source,
-            it.message,
-            Severity.valueOf(it.severity)
-        )
-    }
-)
-
-private fun LicenseFindingDao.mapToOrt() = LicenseFinding(
-    this.license,
-    TextLocation(this.path, this.startLine, this.endLine),
-    this.score
-)
-
-private fun CopyrightFindingDao.mapToOrt() = CopyrightFinding(
-    this.statement,
-    TextLocation(this.path, this.startLine, this.endLine)
-)
-
-private fun SnippetFindingDao.mapToOrt() = SnippetFinding(
-    sourceLocation = TextLocation(path, startLine, endLine),
-    snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
-)
-
-private fun SnippetDao.mapToOrt(): Snippet {
-    val provenance = artifact?.mapToOrt()?.let { ArtifactProvenance(it) }
-        ?: vcs?.mapToOrt()?.let { RepositoryProvenance(it, it.revision) }
-
-    checkNotNull(provenance)
-
-    return Snippet(
-        purl = purl,
-        provenance = provenance,
-        score = score,
-        location = TextLocation(path, startLine, endLine),
-        licenses = license.toSpdx(),
-        additionalData = additionalData?.data.orEmpty()
-    )
-}
-
-private fun RemoteArtifactDao.mapToOrt() = RemoteArtifact(
-    url = url,
-    hash = Hash(
-        value = hashValue,
-        algorithm = HashAlgorithm.fromString(hashAlgorithm)
-    )
-)
-
-private fun VcsInfoDao.mapToOrt() = VcsInfo(VcsType.forName(type), url, revision, path)
-
-private fun OrtIssue.mapToModel() = Issue(
-    timestamp = this.timestamp.toKotlinInstant(),
-    source = this.source,
-    message = this.message,
-    severity = this.severity.name
-)
