@@ -17,15 +17,25 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+/**
+ * A data class describing an issue that occurred during an ORT run.
+ */
 @Serializable
-data class OrtIssue(
+data class Issue(
+    /** The timestamp when this issue occurred. */
     val timestamp: Instant,
+
+    /** The source where this issue occurred. */
     val source: String,
+
+    /** A message describing the issue. */
     val message: String,
+
+    /** The severity, such as ERROR, HINT, etc. */
     val severity: String
 )

@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ConfigValidatorTest : StringSpec({
@@ -58,7 +58,7 @@ class ConfigValidatorTest : StringSpec({
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
 
-        val expectedIssue = OrtIssue(
+        val expectedIssue = Issue(
             Clock.System.now(),
             "validation",
             "Current repository is ${testHierarchy.repository.url}",
@@ -78,7 +78,7 @@ class ConfigValidatorTest : StringSpec({
         val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
-        val expectedIssue = OrtIssue(
+        val expectedIssue = Issue(
             Clock.System.now(),
             "validation",
             "Current repository is ${testHierarchy.repository.url}; invalid parameters.",
@@ -121,7 +121,7 @@ private fun loadScript(name: String): String =
  * Check whether the given [issue][actual] corresponds to the given [expected] issue. This function does not do an
  * exact match on the timestamp, but accepts a certain deviation.
  */
-private fun checkIssue(expected: OrtIssue, actual: OrtIssue) {
+private fun checkIssue(expected: Issue, actual: Issue) {
     actual.copy(timestamp = expected.timestamp) shouldBe expected
     val deltaT = actual.timestamp - expected.timestamp
     abs(deltaT.inWholeMilliseconds) shouldBeLessThan 30000

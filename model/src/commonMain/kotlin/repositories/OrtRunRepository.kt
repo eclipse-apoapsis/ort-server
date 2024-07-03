@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
@@ -40,7 +40,7 @@ interface OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String? = null,
         labels: Map<String, String>,
-        issues: Collection<OrtIssue> = emptyList()
+        issues: Collection<Issue> = emptyList()
     ): OrtRun
 
     /**
@@ -71,7 +71,7 @@ interface OrtRunRepository {
         jobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
         resolvedJobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
         resolvedJobConfigContext: OptionalValue<String?> = OptionalValue.Absent,
-        issues: OptionalValue<Collection<OrtIssue>> = OptionalValue.Absent,
+        issues: OptionalValue<Collection<Issue>> = OptionalValue.Absent,
         labels: OptionalValue<Map<String, String>> = OptionalValue.Absent
     ): OrtRun
 

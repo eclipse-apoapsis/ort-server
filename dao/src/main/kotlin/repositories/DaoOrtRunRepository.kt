@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
@@ -59,7 +59,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>,
-        issues: Collection<OrtIssue>
+        issues: Collection<Issue>
     ): OrtRun = db.blockingQuery {
         val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
 
@@ -100,7 +100,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigContext: OptionalValue<String?>,
-        issues: OptionalValue<Collection<OrtIssue>>,
+        issues: OptionalValue<Collection<Issue>>,
         labels: OptionalValue<Map<String, String>>
     ): OrtRun = db.blockingQuery {
         val ortRun = OrtRunDao[id]

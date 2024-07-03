@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanRes
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 
 import org.jetbrains.exposed.sql.Database
@@ -45,7 +45,7 @@ import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding
 import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.HashAlgorithm
-import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.LicenseFinding
 import org.ossreviewtoolkit.model.RemoteArtifact
@@ -141,7 +141,7 @@ class OrtServerScanResultStorage(
                 }
 
                 val issues = mapAndDeduplicate(
-                    scanResult.summary.issues.map(Issue::mapToModel),
+                    scanResult.summary.issues.map(OrtIssue::mapToModel),
                     OrtIssueDao::createByIssue
                 )
 
@@ -209,7 +209,7 @@ private fun ScanSummaryDao.mapToOrt() = ScanSummary(
     this.copyrightFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     this.snippetFindings.mapTo(mutableSetOf()) { it.mapToOrt() },
     this.issues.map {
-        Issue(
+        OrtIssue(
             it.timestamp.toJavaInstant(),
             it.source,
             it.message,
@@ -260,7 +260,7 @@ private fun RemoteArtifactDao.mapToOrt() = RemoteArtifact(
 
 private fun VcsInfoDao.mapToOrt() = VcsInfo(VcsType.forName(type), url, revision, path)
 
-private fun Issue.mapToModel() = OrtIssue(
+private fun OrtIssue.mapToModel() = Issue(
     timestamp = this.timestamp.toKotlinInstant(),
     source = this.source,
     message = this.message,

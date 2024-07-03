@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -40,7 +40,7 @@ object OrtIssuesTable : LongIdTable("ort_issues") {
 
 class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable) {
-        fun createByIssue(issue: OrtIssue): OrtIssueDao =
+        fun createByIssue(issue: Issue): OrtIssueDao =
             new {
                 timestamp = issue.timestamp
                 source = issue.source
@@ -54,5 +54,5 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
     var message by OrtIssuesTable.message
     var severity by OrtIssuesTable.severity
 
-    fun mapToModel() = OrtIssue(timestamp = timestamp, source = source, message = message, severity = severity)
+    fun mapToModel() = Issue(timestamp = timestamp, source = source, message = message, severity = severity)
 }

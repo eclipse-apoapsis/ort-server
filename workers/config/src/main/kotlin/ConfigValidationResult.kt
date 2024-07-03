@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 /**
  * An interface defining the validation result of the configuration of an ORT run.
@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
  */
 sealed interface ConfigValidationResult {
     /** A (possibly empty) list with issues detected during validation. */
-    val issues: List<OrtIssue>
+    val issues: List<Issue>
 }
 
 /**
@@ -42,7 +42,7 @@ data class ConfigValidationResultSuccess(
     val resolvedConfigurations: JobConfigurations,
 
     /** A list with issues that have been detected during validation. */
-    override val issues: List<OrtIssue> = emptyList(),
+    override val issues: List<Issue> = emptyList(),
 
     /** A map with labels to be added to the ORT run. */
     val labels: Map<String, String> = emptyMap()
@@ -53,5 +53,5 @@ data class ConfigValidationResultSuccess(
  */
 data class ConfigValidationResultFailure(
     /** A list with issues that were the cause of the failed validation. */
-    override val issues: List<OrtIssue>
+    override val issues: List<Issue>
 ) : ConfigValidationResult

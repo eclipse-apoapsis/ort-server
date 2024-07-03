@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobPluginOptions
 import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -223,7 +223,7 @@ class ReporterRunner(
 
                 logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
 
-                OrtIssue(
+                Issue(
                     timestamp = Clock.System.now(),
                     source = "Reporter",
                     message = "Could not create report for '$reporter': '${e.message}'",
@@ -286,7 +286,7 @@ data class ReporterRunnerResult(
     val reports: Map<String, List<String>>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
     val resolvedResolutions: Resolutions?,
-    val issues: List<OrtIssue> = emptyList()
+    val issues: List<Issue> = emptyList()
 )
 
 /** Regular expression to split multiple template paths. */

@@ -53,7 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
@@ -954,13 +954,13 @@ class OrtRunServiceTest : WordSpec({
     "storeIssues" should {
         "store the issues" {
             val issues = listOf(
-                OrtIssue(
+                Issue(
                     Instant.parse("2024-02-20T13:51:00Z"),
                     "issueSource",
                     "Some test issue",
                     "HINT"
                 ),
-                OrtIssue(
+                Issue(
                     Instant.parse("2024-02-20T13:52:00Z"),
                     "differentIssueSource",
                     "Some problematic issue",

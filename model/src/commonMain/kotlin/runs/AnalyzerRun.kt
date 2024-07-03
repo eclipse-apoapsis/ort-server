@@ -30,6 +30,6 @@ data class AnalyzerRun(
     val config: AnalyzerConfiguration,
     val projects: Set<Project>,
     val packages: Set<Package>,
-    val issues: Map<Identifier, List<OrtIssue>>,
+    val issues: Map<Identifier, List<Issue>>,
     val dependencyGraphs: Map<String, DependencyGraph>
 )

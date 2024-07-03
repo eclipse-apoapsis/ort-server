@@ -61,7 +61,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
@@ -81,7 +81,7 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
-        issues: Map<Identifier, List<OrtIssue>>,
+        issues: Map<Identifier, List<Issue>>,
         dependencyGraphs: Map<String, DependencyGraph>
     ): AnalyzerRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
@@ -279,7 +279,7 @@ private fun createProcessedDeclaredLicense(
     }
 }
 
-private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: OrtIssue): OrtIssueDao {
+private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: Issue): OrtIssueDao {
     val issueDao = OrtIssueDao.createByIssue(issue)
 
     val identifiersOrtIssueDao = IdentifierOrtIssueDao.getOrPut(identifier, issueDao)

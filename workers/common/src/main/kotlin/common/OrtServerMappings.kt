@@ -45,7 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue as OrtServerIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation as RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
@@ -118,7 +118,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
-import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance as OrtKnownProvenance
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.LicenseSource
@@ -207,7 +207,7 @@ fun AdvisorResult.mapToOrt() =
         summary = OrtAdvisorSummary(
             startTime = startTime.toJavaInstant(),
             endTime = endTime.toJavaInstant(),
-            issues = issues.map(OrtServerIssue::mapToOrt)
+            issues = issues.map(Issue::mapToOrt)
         ),
         defects = defects.map(Defect::mapToOrt),
         vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
@@ -244,7 +244,7 @@ fun AnalyzerRun.mapToOrt() =
             projects = projects.mapTo(mutableSetOf(), Project::mapToOrt),
             // TODO: Currently, curations are not stored at all, therefore the mapping just creates the OrtPackage.
             packages = packages.mapTo(mutableSetOf()) { it.mapToOrt() },
-            issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(OrtServerIssue::mapToOrt) },
+            issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(Issue::mapToOrt) },
             dependencyGraphs = dependencyGraphs.mapValues { it.value.mapToOrt() }
         )
     )
@@ -289,7 +289,7 @@ fun DependencyGraphNode.mapToOrt() =
         pkg = pkg,
         fragment = fragment,
         linkage = OrtPackageLinkage.valueOf(linkage),
-        issues = issues.map(OrtServerIssue::mapToOrt)
+        issues = issues.map(Issue::mapToOrt)
     )
 
 fun DependencyGraphRoot.mapToOrt() = OrtRootDependencyIndex(root, fragment)
@@ -315,6 +315,8 @@ fun EvaluatorRun.mapToOrt() =
 fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.map(ScopeExclude::mapToOrt))
 
 fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
+
+fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
 
@@ -393,8 +395,6 @@ fun OrtRun.mapToOrt(
     labels = labels,
     resolvedConfiguration = resolvedConfiguration
 )
-
-fun OrtServerIssue.mapToOrt() = Issue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
 
 fun Package.mapToOrt() =
     OrtPackage(
@@ -630,7 +630,7 @@ fun ScanSummary.mapToOrt() =
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFinding::mapToOrt),
-        issues = issues.map(OrtServerIssue::mapToOrt)
+        issues = issues.map(Issue::mapToOrt)
     )
 
 fun ScopeExclude.mapToOrt() = OrtScopeExclude(pattern, OrtScopeExcludeReason.valueOf(reason), comment)

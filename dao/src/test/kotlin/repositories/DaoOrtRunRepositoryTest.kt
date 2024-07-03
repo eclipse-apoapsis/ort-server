@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -159,9 +159,9 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "update should update an entry in the database" {
-        val issue1 = OrtIssue(Instant.parse("2023-08-02T06:16:10Z"), "existing", "An initial issue", "WARNING")
-        val issue2 = OrtIssue(Instant.parse("2023-08-02T06:17:16Z"), "new1", "An new issue", "HINT")
-        val issue3 = OrtIssue(Instant.parse("2023-08-02T06:17:36Z"), "new2", "Another new issue", "ERROR")
+        val issue1 = Issue(Instant.parse("2023-08-02T06:16:10Z"), "existing", "An initial issue", "WARNING")
+        val issue2 = Issue(Instant.parse("2023-08-02T06:17:16Z"), "new1", "An new issue", "HINT")
+        val issue3 = Issue(Instant.parse("2023-08-02T06:17:36Z"), "new2", "Another new issue", "ERROR")
 
         val label2Value = "new value for label2"
         val label3Value = "a newly added label"

@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation as RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
@@ -102,7 +102,7 @@ import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
-import org.ossreviewtoolkit.model.Issue as OrtOrtIssue
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
@@ -303,8 +303,8 @@ fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
     comment = comment
 )
 
-fun OrtOrtIssue.mapToModel() =
-    OrtIssue(
+fun OrtIssue.mapToModel() =
+    Issue(
         timestamp = timestamp.toKotlinInstant(),
         source = source,
         message = message,
@@ -516,7 +516,7 @@ fun OrtScanSummary.mapToModel() =
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), OrtSnippetFinding::mapToModel),
-        issues = issues.map(OrtOrtIssue::mapToModel)
+        issues = issues.map(OrtIssue::mapToModel)
     )
 
 fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)

@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 
@@ -45,7 +45,7 @@ interface AnalyzerRunRepository {
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
-        issues: Map<Identifier, List<OrtIssue>>,
+        issues: Map<Identifier, List<Issue>>,
         dependencyGraphs: Map<String, DependencyGraph>
     ): AnalyzerRun
 

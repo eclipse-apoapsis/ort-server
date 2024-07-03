@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -244,7 +244,7 @@ private const val PARAMETERS_SCRIPT = "Script to validate parameters"
 
 /** A list with validation issues to be returned by the mock validator. */
 private val validationIssues = listOf(
-    OrtIssue(Clock.System.now(), "ConfigWorkerTest", "Test message", "TEST")
+    Issue(Clock.System.now(), "ConfigWorkerTest", "Test message", "TEST")
 )
 
 /** A map with labels to be returned by the mock validator. */

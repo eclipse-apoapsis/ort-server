@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtIssue
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 /**
@@ -47,15 +47,15 @@ data class ProvenanceResolutionResult(
     val subRepositories: Map<String, VcsInfo> = emptyMap(),
 
     /**
-     * An [OrtIssue] describing an error during the resolution of the [packageProvenance], or null if there was no
+     * An [Issue] describing an error during the resolution of the [packageProvenance], or null if there was no
      * error.
      */
-    val packageProvenanceResolutionIssue: OrtIssue? = null,
+    val packageProvenanceResolutionIssue: Issue? = null,
 
     /**
-     * An [OrtIssue] describing an error during the resolution of the [subRepositories], or null if there was no error.
+     * An [Issue] describing an error during the resolution of the [subRepositories], or null if there was no error.
      */
-    val nestedProvenanceResolutionIssue: OrtIssue? = null
+    val nestedProvenanceResolutionIssue: Issue? = null
 ) {
     /**
      * Get all [KnownProvenance]s from the [packageProvenance] and [subRepositories].
