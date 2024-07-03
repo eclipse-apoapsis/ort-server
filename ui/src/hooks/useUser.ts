@@ -32,5 +32,6 @@ export const useUser = () => {
 
   return {
     hasRole,
+    ...auth,
   };
 };
