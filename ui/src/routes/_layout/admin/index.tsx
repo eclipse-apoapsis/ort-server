@@ -34,7 +34,7 @@ import {
   ChevronUpIcon,
   ExternalLink,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 
 import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
@@ -50,7 +50,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useUser } from '@/hooks/useUser';
 import { cn } from '@/lib/utils';
 
 const columns: ColumnDef<Organization>[] = [
@@ -327,17 +326,8 @@ const UserMgmtContent = () => {
 };
 
 const AdminDashboard = () => {
-  const user = useUser();
   const navigate = useNavigate();
   const search = Route.useSearch();
-
-  useEffect(() => {
-    if (!user.hasRole('superuser')) {
-      navigate({
-        to: '/403',
-      });
-    }
-  }, [user, navigate]);
 
   return (
     <>
