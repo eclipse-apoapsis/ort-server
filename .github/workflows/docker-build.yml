@@ -152,7 +152,8 @@ jobs:
           type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
           type=ref,event=branch
           type=sha
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
+          type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
 
     - name: Build ${{ matrix.docker.image }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -176,7 +177,8 @@ jobs:
           type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
           type=ref,event=branch
           type=sha
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
+          type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
 
     - name: Build ${{ matrix.docker.jibImage }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
       if: ${{ matrix.docker.task != '' }}
