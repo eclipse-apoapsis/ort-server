@@ -196,54 +196,21 @@ import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice as OrtSpdxLicenseChoice
 import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
-fun OrtRun.mapToOrt(
-    repository: OrtRepository,
-    analyzerRun: OrtAnalyzerRun? = null,
-    advisorRun: OrtAdvisorRun? = null,
-    scannerRun: OrtScannerRun? = null,
-    evaluatorRun: OrtEvaluatorRun? = null,
-    resolvedConfiguration: OrtResolvedConfiguration
-) = OrtResult(
-    repository = repository,
-    analyzer = analyzerRun,
-    advisor = advisorRun,
-    scanner = scannerRun,
-    evaluator = evaluatorRun,
-    labels = labels,
-    resolvedConfiguration = resolvedConfiguration
-)
+fun AdvisorConfiguration.mapToOrt() =
+    OrtAdvisorConfiguration(
+        config = config.mapValues { it.value.mapToOrt() }
+    )
 
-fun Repository.mapToOrt(revision: String, path: String = "", repositoryConfig: OrtRepositoryConfiguration) =
-    OrtRepository(
-        vcs = OrtVcsInfo(
-            type = OrtVcsType.forName(type.name),
-            url = url,
-            revision = revision,
-            // TODO: The path of the repository is not stored at all.
-            path = path
+fun AdvisorResult.mapToOrt() =
+    OrtAdvisorResult(
+        advisor = OrtAdvisorDetails(advisorName, capabilities.mapTo(enumSetOf(), OrtAdvisorCapability::valueOf)),
+        summary = OrtAdvisorSummary(
+            startTime = startTime.toJavaInstant(),
+            endTime = endTime.toJavaInstant(),
+            issues = issues.map(OrtServerIssue::mapToOrt)
         ),
-        // TODO: Nested repositories are not stored in the current implementation of the ORT server repository.
-        nestedRepositories = emptyMap(),
-        // TODO: The repository configuration is not stored at all.
-        config = repositoryConfig
-    )
-
-fun EvaluatorRun.mapToOrt() =
-    OrtEvaluatorRun(
-        startTime = startTime.toJavaInstant(),
-        endTime = endTime.toJavaInstant(),
-        violations = violations.map(RuleViolation::mapToOrt)
-    )
-
-fun RuleViolation.mapToOrt() =
-    OrtRuleViolation(
-        rule = rule,
-        pkg = packageId?.mapToOrt(),
-        license = license?.let { SpdxSingleLicenseExpression.parse(it) },
-        licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
-        severity = OrtSeverity.valueOf(severity),
-        message = message,
-        howToFix = howToFix
+        defects = defects.map(Defect::mapToOrt),
+        vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
     )
 
 fun AdvisorRun.mapToOrt() =
@@ -259,121 +226,37 @@ fun AdvisorRun.mapToOrt() =
         )
     )
 
-fun ScannerRun.mapToOrt() =
-    OrtScannerRun(
-        startTime = startTime?.toJavaInstant() ?: Instant.EPOCH,
-        endTime = endTime?.toJavaInstant() ?: Instant.EPOCH,
-        environment = environment?.mapToOrt() ?: OrtEnvironment(),
-        config = config?.mapToOrt() ?: OrtScannerConfiguration(),
-        provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
-        scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
-        files = emptySet(),
-        scanners = scanners.mapKeys { it.key.mapToOrt() }
+fun AnalyzerConfiguration.mapToOrt() =
+    OrtAnalyzerConfiguration(
+        allowDynamicVersions = allowDynamicVersions,
+        enabledPackageManagers = enabledPackageManagers,
+        disabledPackageManagers = disabledPackageManagers,
+        packageManagers = packageManagers?.mapValues { it.value.mapToOrt() }
     )
 
-fun ProvenanceResolutionResult.mapToOrt() =
-    OrtProvenanceResolutionResult(
-        id = id.mapToOrt(),
-        packageProvenance = packageProvenance?.mapToOrt(),
-        subRepositories = subRepositories.mapValues { it.value.mapToOrt() },
-        packageProvenanceResolutionIssue = packageProvenanceResolutionIssue?.mapToOrt(),
-        nestedProvenanceResolutionIssue = nestedProvenanceResolutionIssue?.mapToOrt()
-    )
-
-fun NestedProvenanceScanResult.mapToOrt() =
-    OrtNestedProvenanceScanResult(
-        nestedProvenance = nestedProvenance.mapToOrt(),
-        scanResults = scanResults.entries.associate { (provenance, results) ->
-            provenance.mapToOrt() to results.map(ScanResult::mapToOrt)
-        }
-    )
-
-fun ScanResult.mapToOrt() =
-    OrtScanResult(
-        provenance = provenance.mapToOrt(),
-        scanner = scanner.mapToOrt(),
-        summary = summary.mapToOrt(),
-        additionalData = additionalData
-    )
-
-fun ScannerDetail.mapToOrt() = OrtScannerDetails(name, version, configuration)
-
-fun ScanSummary.mapToOrt() =
-    OrtScanSummary(
+fun AnalyzerRun.mapToOrt() =
+    OrtAnalyzerRun(
         startTime = startTime.toJavaInstant(),
         endTime = endTime.toJavaInstant(),
-        licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
-        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
-        snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFinding::mapToOrt),
-        issues = issues.map(OrtServerIssue::mapToOrt)
+        environment = environment.mapToOrt(),
+        config = config.mapToOrt(),
+        result = OrtAnalyzerResult(
+            projects = projects.mapTo(mutableSetOf(), Project::mapToOrt),
+            // TODO: Currently, curations are not stored at all, therefore the mapping just creates the OrtPackage.
+            packages = packages.mapTo(mutableSetOf()) { it.mapToOrt() },
+            issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(OrtServerIssue::mapToOrt) },
+            dependencyGraphs = dependencyGraphs.mapValues { it.value.mapToOrt() }
+        )
     )
-
-fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement, location.mapToOrt())
-
-fun LicenseFinding.mapToOrt() = OrtLicenseFinding(
-    license = SpdxExpression.Companion.parse(spdxLicense),
-    location = location.mapToOrt(),
-    score = score
-)
-
-fun Snippet.mapToOrt() = OrtSnippet(
-    score = score,
-    location = location.mapToOrt(),
-    provenance = provenance.mapToOrt() as OrtKnownProvenance,
-    purl = purl,
-    licenses = spdxLicense.toSpdx(),
-    additionalData = additionalData
-)
-
-fun SnippetFinding.mapToOrt() = OrtSnippetFinding(
-    sourceLocation = location.mapToOrt(),
-    snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
-)
-
-fun TextLocation.mapToOrt() = OrtTextLocation(path, startLine, endLine)
-
-fun Provenance.mapToOrt() =
-    when (this) {
-        is ArtifactProvenance -> this.mapToOrt()
-        is RepositoryProvenance -> this.mapToOrt()
-        UnknownProvenance -> OrtUnknownProvenance
-    }
-
-fun NestedProvenance.mapToOrt() =
-    OrtNestedProvenance(
-        root = root.mapToOrt(),
-        subRepositories = subRepositories.mapValues { it.value.mapToOrt() }
-    )
-
-fun KnownProvenance.mapToOrt() =
-    when (this) {
-        is ArtifactProvenance -> this.mapToOrt()
-        is RepositoryProvenance -> this.mapToOrt()
-    }
 
 fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact.mapToOrt())
 
-fun RepositoryProvenance.mapToOrt() = OrtRepositoryProvenance(vcsInfo.mapToOrt(), resolvedRevision)
+fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement, location.mapToOrt())
 
-fun ScannerConfiguration.mapToOrt() =
-    OrtScannerConfiguration(
-        skipConcluded = skipConcluded,
-        detectedLicenseMapping = detectedLicenseMappings,
-        config = config.mapValues { it.value.mapToOrt() },
-        ignorePatterns = ignorePatterns
-    )
-
-fun AdvisorResult.mapToOrt() =
-    OrtAdvisorResult(
-        advisor = OrtAdvisorDetails(advisorName, capabilities.mapTo(enumSetOf(), OrtAdvisorCapability::valueOf)),
-        summary = OrtAdvisorSummary(
-            startTime = startTime.toJavaInstant(),
-            endTime = endTime.toJavaInstant(),
-            issues = issues.map(OrtServerIssue::mapToOrt)
-        ),
-        defects = defects.map(Defect::mapToOrt),
-        vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
-    )
+fun Curations.mapToOrt() = OrtCurations(
+    packages = packages.map(PackageCuration::mapToOrt),
+    licenseFindings = licenseFindings.map(LicenseFindingCuration::mapToOrt)
+)
 
 fun Defect.mapToOrt() =
     OrtDefect(
@@ -391,30 +274,25 @@ fun Defect.mapToOrt() =
         labels = labels
     )
 
-fun Vulnerability.mapToOrt() =
-    OrtVulnerability(
-        id = externalId,
-        summary = summary,
-        description = description,
-        references = references.map(VulnerabilityReference::mapToOrt)
+fun DependencyGraph.mapToOrt() =
+    OrtDependencyGraph(
+        packages = packages.map(Identifier::mapToOrt),
+        scopes = scopes.mapValues { it.value.map(DependencyGraphRoot::mapToOrt) },
+        nodes = nodes.map(DependencyGraphNode::mapToOrt),
+        edges = edges.mapTo(mutableSetOf(), DependencyGraphEdge::mapToOrt)
     )
 
-fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(URI.create(url), scoringSystem, severity)
+fun DependencyGraphEdge.mapToOrt() = OrtDependencyGraphEdge(from, to)
 
-fun AnalyzerRun.mapToOrt() =
-    OrtAnalyzerRun(
-        startTime = startTime.toJavaInstant(),
-        endTime = endTime.toJavaInstant(),
-        environment = environment.mapToOrt(),
-        config = config.mapToOrt(),
-        result = OrtAnalyzerResult(
-            projects = projects.mapTo(mutableSetOf(), Project::mapToOrt),
-            // TODO: Currently, curations are not stored at all, therefore the mapping just creates the OrtPackage.
-            packages = packages.mapTo(mutableSetOf()) { it.mapToOrt() },
-            issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(OrtServerIssue::mapToOrt) },
-            dependencyGraphs = dependencyGraphs.mapValues { it.value.mapToOrt() }
-        )
+fun DependencyGraphNode.mapToOrt() =
+    OrtDependencyGraphNode(
+        pkg = pkg,
+        fragment = fragment,
+        linkage = OrtPackageLinkage.valueOf(linkage),
+        issues = issues.map(OrtServerIssue::mapToOrt)
     )
+
+fun DependencyGraphRoot.mapToOrt() = OrtRootDependencyIndex(root, fragment)
 
 fun Environment.mapToOrt() =
     OrtEnvironment(
@@ -427,54 +305,94 @@ fun Environment.mapToOrt() =
         toolVersions = toolVersions
     )
 
-fun AnalyzerConfiguration.mapToOrt() =
-    OrtAnalyzerConfiguration(
-        allowDynamicVersions = allowDynamicVersions,
-        enabledPackageManagers = enabledPackageManagers,
-        disabledPackageManagers = disabledPackageManagers,
-        packageManagers = packageManagers?.mapValues { it.value.mapToOrt() }
+fun EvaluatorRun.mapToOrt() =
+    OrtEvaluatorRun(
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
+        violations = violations.map(RuleViolation::mapToOrt)
     )
 
-fun AdvisorConfiguration.mapToOrt() =
-    OrtAdvisorConfiguration(
-        config = config.mapValues { it.value.mapToOrt() }
+fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.map(ScopeExclude::mapToOrt))
+
+fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
+
+fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
+
+fun JiraRestClientConfiguration.mapToOrt() =
+    OrtJiraConfiguration(
+        host = serverUrl,
+        username = username,
+        password = password
     )
 
-fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(mustRunAfter, options)
+fun KnownProvenance.mapToOrt() =
+    when (this) {
+        is ArtifactProvenance -> this.mapToOrt()
+        is RepositoryProvenance -> this.mapToOrt()
+    }
 
-fun DependencyGraph.mapToOrt() =
-    OrtDependencyGraph(
-        packages = packages.map(Identifier::mapToOrt),
-        scopes = scopes.mapValues { it.value.map(DependencyGraphRoot::mapToOrt) },
-        nodes = nodes.map(DependencyGraphNode::mapToOrt),
-        edges = edges.mapTo(mutableSetOf(), DependencyGraphEdge::mapToOrt)
+fun LicenseChoices.mapToOrt() =
+    OrtLicenseChoices(
+        repositoryLicenseChoices = repositoryLicenseChoices.map(SpdxLicenseChoice::mapToOrt),
+        packageLicenseChoices = packageLicenseChoices.map(PackageLicenseChoice::mapToOrt)
     )
 
-fun DependencyGraphRoot.mapToOrt() = OrtRootDependencyIndex(root, fragment)
+fun LicenseFinding.mapToOrt() = OrtLicenseFinding(
+    license = SpdxExpression.Companion.parse(spdxLicense),
+    location = location.mapToOrt(),
+    score = score
+)
 
-fun DependencyGraphEdge.mapToOrt() = OrtDependencyGraphEdge(from, to)
+fun LicenseFindingCuration.mapToOrt() = OrtLicenseFindingCuration(
+    path = path,
+    startLines = startLines,
+    lineCount = lineCount,
+    detectedLicense = detectedLicense?.toSpdx(),
+    concludedLicense = concludedLicense.toSpdx(),
+    reason = OrtLicenseFindingCurationReason.valueOf(reason),
+    comment = comment
+)
 
-fun DependencyGraphNode.mapToOrt() =
-    OrtDependencyGraphNode(
-        pkg = pkg,
-        fragment = fragment,
-        linkage = OrtPackageLinkage.valueOf(linkage),
-        issues = issues.map(OrtServerIssue::mapToOrt)
+fun MailServerConfiguration.mapToOrt() =
+    OrtSendMailConfiguration(
+        hostName = hostName,
+        port = port,
+        username = username,
+        password = password,
+        useSsl = useSsl,
+        fromAddress = fromAddress
     )
 
-fun Project.mapToOrt() =
-    OrtProject(
-        id = identifier.mapToOrt(),
-        cpe = cpe,
-        definitionFilePath = definitionFilePath,
-        authors = authors,
-        declaredLicenses = declaredLicenses,
-        declaredLicensesProcessed = processedDeclaredLicense.mapToOrt(),
-        vcs = vcs.mapToOrt(),
-        vcsProcessed = vcsProcessed.mapToOrt(),
-        homepageUrl = homepageUrl,
-        scopeNames = scopeNames.toSortedSet()
+fun NestedProvenance.mapToOrt() =
+    OrtNestedProvenance(
+        root = root.mapToOrt(),
+        subRepositories = subRepositories.mapValues { it.value.mapToOrt() }
     )
+
+fun NestedProvenanceScanResult.mapToOrt() =
+    OrtNestedProvenanceScanResult(
+        nestedProvenance = nestedProvenance.mapToOrt(),
+        scanResults = scanResults.entries.associate { (provenance, results) ->
+            provenance.mapToOrt() to results.map(ScanResult::mapToOrt)
+        }
+    )
+
+fun OrtRun.mapToOrt(
+    repository: OrtRepository,
+    analyzerRun: OrtAnalyzerRun? = null,
+    advisorRun: OrtAdvisorRun? = null,
+    scannerRun: OrtScannerRun? = null,
+    evaluatorRun: OrtEvaluatorRun? = null,
+    resolvedConfiguration: OrtResolvedConfiguration
+) = OrtResult(
+    repository = repository,
+    analyzer = analyzerRun,
+    advisor = advisorRun,
+    scanner = scannerRun,
+    evaluator = evaluatorRun,
+    labels = labels,
+    resolvedConfiguration = resolvedConfiguration
+)
 
 fun OrtServerIssue.mapToOrt() = Issue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
 
@@ -496,77 +414,14 @@ fun Package.mapToOrt() =
         isModified = isModified
     )
 
-fun ProcessedDeclaredLicense.mapToOrt() =
-    OrtProcessedDeclaredLicense(
-        spdxExpression = spdxExpression?.toSpdx(),
-        mapped = mappedLicenses.mapValues { it.value.toSpdx() },
-        unmapped = unmappedLicenses
+fun PackageConfiguration.mapToOrt() =
+    OrtPackageConfiguration(
+        id = id.mapToOrt(),
+        sourceArtifactUrl = sourceArtifactUrl,
+        vcs = vcs?.mapToOrt(),
+        pathExcludes = pathExcludes.map(PathExclude::mapToOrt),
+        licenseFindingCurations = licenseFindingCurations.map(LicenseFindingCuration::mapToOrt)
     )
-
-fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
-
-fun RemoteArtifact.mapToOrt() =
-    OrtRemoteArtifact(
-        url = url,
-        hash = OrtHash(
-            // Convert hash values to lowercase as this is required by the SpdxDocument reporter.
-            value = hashValue.lowercase(),
-            algorithm = OrtHashAlgorithm.fromString(hashAlgorithm)
-        )
-    )
-
-fun VcsInfo.mapToOrt() = OrtVcsInfo(OrtVcsType.forName(type.name), url, revision, path)
-
-fun RepositoryConfiguration.mapToOrt() = OrtRepositoryConfiguration(
-    analyzer = analyzerConfig?.mapToOrt(),
-    excludes = excludes.mapToOrt(),
-    resolutions = resolutions.mapToOrt(),
-    curations = curations.mapToOrt(),
-    packageConfigurations = packageConfigurations.map(PackageConfiguration::mapToOrt),
-    licenseChoices = licenseChoices.mapToOrt(),
-    snippetChoices = provenanceSnippetChoices.map(ProvenanceSnippetChoices::mapToOrt)
-)
-
-fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.map(ScopeExclude::mapToOrt))
-
-fun PathExclude.mapToOrt() = OrtPathExclude(pattern, OrtPathExcludeReason.valueOf(reason), comment)
-
-fun ScopeExclude.mapToOrt() = OrtScopeExclude(pattern, OrtScopeExcludeReason.valueOf(reason), comment)
-
-fun RepositoryAnalyzerConfiguration.mapToOrt() = OrtRepositoryAnalyzerConfiguration(
-    allowDynamicVersions = allowDynamicVersions,
-    enabledPackageManagers = enabledPackageManagers,
-    disabledPackageManagers = disabledPackageManagers,
-    packageManagers = packageManagers?.mapValues { it.value.mapToOrt() },
-    skipExcluded = skipExcluded
-)
-
-fun Resolutions.mapToOrt() =
-    OrtResolutions(
-        issues = issues.map(IssueResolution::mapToOrt),
-        ruleViolations = ruleViolations.map(RuleViolationResolution::mapToOrt),
-        vulnerabilities = vulnerabilities.map(VulnerabilityResolution::mapToOrt)
-    )
-
-fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
-
-fun RuleViolationResolution.mapToOrt() =
-    OrtRuleViolationResolution(
-        message = message,
-        reason = OrtRuleViolationResolutionReason.valueOf(reason),
-        comment = comment
-    )
-
-fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
-    id = externalId,
-    reason = OrtVulnerabilityResolutionReason.valueOf(reason),
-    comment = comment
-)
-
-fun Curations.mapToOrt() = OrtCurations(
-    packages = packages.map(PackageCuration::mapToOrt),
-    licenseFindings = licenseFindings.map(LicenseFindingCuration::mapToOrt)
-)
 
 fun PackageCuration.mapToOrt() = OrtPackageCuration(id.mapToOrt(), data.mapToOrt())
 
@@ -586,43 +441,207 @@ fun PackageCurationData.mapToOrt() = OrtPackageCurationData(
     declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toSpdx() }
 )
 
-fun VcsInfoCurationData.mapToOrt() = OrtVcsInfoCurationData(
-    type = type?.name?.let { OrtVcsType.forName(it) },
-    url = url,
-    revision = revision,
-    path = path
-)
+fun PackageCurationProviderConfig.mapToOrt() = OrtResolvedPackageCurations.Provider(id = name)
 
-fun LicenseFindingCuration.mapToOrt() = OrtLicenseFindingCuration(
-    path = path,
-    startLines = startLines,
-    lineCount = lineCount,
-    detectedLicense = detectedLicense?.toSpdx(),
-    concludedLicense = concludedLicense.toSpdx(),
-    reason = OrtLicenseFindingCurationReason.valueOf(reason),
-    comment = comment
-)
-
-fun PackageConfiguration.mapToOrt() =
-    OrtPackageConfiguration(
-        id = id.mapToOrt(),
-        sourceArtifactUrl = sourceArtifactUrl,
-        vcs = vcs?.mapToOrt(),
-        pathExcludes = pathExcludes.map(PathExclude::mapToOrt),
-        licenseFindingCurations = licenseFindingCurations.map(LicenseFindingCuration::mapToOrt)
+fun PackageLicenseChoice.mapToOrt() =
+    OrtPackageLicenseChoice(
+        packageId = identifier.mapToOrt(),
+        licenseChoices = licenseChoices.map(SpdxLicenseChoice::mapToOrt)
     )
 
-fun VcsMatcher.mapToOrt() = OrtVcsMatcher(OrtVcsType.forName(type.name), url, revision)
+fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(mustRunAfter, options)
 
-fun LicenseChoices.mapToOrt() =
-    OrtLicenseChoices(
-        repositoryLicenseChoices = repositoryLicenseChoices.map(SpdxLicenseChoice::mapToOrt),
-        packageLicenseChoices = packageLicenseChoices.map(PackageLicenseChoice::mapToOrt)
+fun PathExclude.mapToOrt() = OrtPathExclude(pattern, OrtPathExcludeReason.valueOf(reason), comment)
+
+fun PluginConfiguration.mapToOrt() =
+    OrtPluginConfiguration(
+        options = options,
+        secrets = secrets
+    )
+
+fun ProcessedDeclaredLicense.mapToOrt() =
+    OrtProcessedDeclaredLicense(
+        spdxExpression = spdxExpression?.toSpdx(),
+        mapped = mappedLicenses.mapValues { it.value.toSpdx() },
+        unmapped = unmappedLicenses
+    )
+
+fun Project.mapToOrt() =
+    OrtProject(
+        id = identifier.mapToOrt(),
+        cpe = cpe,
+        definitionFilePath = definitionFilePath,
+        authors = authors,
+        declaredLicenses = declaredLicenses,
+        declaredLicensesProcessed = processedDeclaredLicense.mapToOrt(),
+        vcs = vcs.mapToOrt(),
+        vcsProcessed = vcsProcessed.mapToOrt(),
+        homepageUrl = homepageUrl,
+        scopeNames = scopeNames.toSortedSet()
+    )
+
+fun Provenance.mapToOrt() =
+    when (this) {
+        is ArtifactProvenance -> this.mapToOrt()
+        is RepositoryProvenance -> this.mapToOrt()
+        UnknownProvenance -> OrtUnknownProvenance
+    }
+
+fun ProvenanceResolutionResult.mapToOrt() =
+    OrtProvenanceResolutionResult(
+        id = id.mapToOrt(),
+        packageProvenance = packageProvenance?.mapToOrt(),
+        subRepositories = subRepositories.mapValues { it.value.mapToOrt() },
+        packageProvenanceResolutionIssue = packageProvenanceResolutionIssue?.mapToOrt(),
+        nestedProvenanceResolutionIssue = nestedProvenanceResolutionIssue?.mapToOrt()
     )
 
 fun ProvenanceSnippetChoices.mapToOrt() = OrtSnippetChoices(
     OrtProvenance(provenance.url),
     choices.map(SnippetChoice::mapToOrt)
+)
+
+fun ProviderPluginConfiguration.mapToOrt() =
+    OrtProviderPluginConfiguration(
+        type = type,
+        id = id,
+        enabled = enabled,
+        options = options,
+        secrets = secrets
+    )
+
+fun RemoteArtifact.mapToOrt() =
+    OrtRemoteArtifact(
+        url = url,
+        hash = OrtHash(
+            // Convert hash values to lowercase as this is required by the SpdxDocument reporter.
+            value = hashValue.lowercase(),
+            algorithm = OrtHashAlgorithm.fromString(hashAlgorithm)
+        )
+    )
+
+fun Repository.mapToOrt(revision: String, path: String = "", repositoryConfig: OrtRepositoryConfiguration) =
+    OrtRepository(
+        vcs = OrtVcsInfo(
+            type = OrtVcsType.forName(type.name),
+            url = url,
+            revision = revision,
+            // TODO: The path of the repository is not stored at all.
+            path = path
+        ),
+        // TODO: Nested repositories are not stored in the current implementation of the ORT server repository.
+        nestedRepositories = emptyMap(),
+        // TODO: The repository configuration is not stored at all.
+        config = repositoryConfig
+    )
+
+fun RepositoryAnalyzerConfiguration.mapToOrt() = OrtRepositoryAnalyzerConfiguration(
+    allowDynamicVersions = allowDynamicVersions,
+    enabledPackageManagers = enabledPackageManagers,
+    disabledPackageManagers = disabledPackageManagers,
+    packageManagers = packageManagers?.mapValues { it.value.mapToOrt() },
+    skipExcluded = skipExcluded
+)
+
+fun RepositoryConfiguration.mapToOrt() = OrtRepositoryConfiguration(
+    analyzer = analyzerConfig?.mapToOrt(),
+    excludes = excludes.mapToOrt(),
+    resolutions = resolutions.mapToOrt(),
+    curations = curations.mapToOrt(),
+    packageConfigurations = packageConfigurations.map(PackageConfiguration::mapToOrt),
+    licenseChoices = licenseChoices.mapToOrt(),
+    snippetChoices = provenanceSnippetChoices.map(ProvenanceSnippetChoices::mapToOrt)
+)
+
+fun RepositoryProvenance.mapToOrt() = OrtRepositoryProvenance(vcsInfo.mapToOrt(), resolvedRevision)
+
+fun Resolutions.mapToOrt() =
+    OrtResolutions(
+        issues = issues.map(IssueResolution::mapToOrt),
+        ruleViolations = ruleViolations.map(RuleViolationResolution::mapToOrt),
+        vulnerabilities = vulnerabilities.map(VulnerabilityResolution::mapToOrt)
+    )
+
+fun ResolvedConfiguration.mapToOrt() =
+    OrtResolvedConfiguration(
+        packageConfigurations = packageConfigurations.map { it.mapToOrt() },
+        packageCurations = packageCurations.map { it.mapToOrt() },
+        resolutions = resolutions.mapToOrt()
+    )
+
+fun ResolvedPackageCurations.mapToOrt() =
+    OrtResolvedPackageCurations(
+        provider = provider.mapToOrt(),
+        curations = curations.map { it.mapToOrt() }
+    )
+
+fun RuleViolation.mapToOrt() =
+    OrtRuleViolation(
+        rule = rule,
+        pkg = packageId?.mapToOrt(),
+        license = license?.let { SpdxSingleLicenseExpression.parse(it) },
+        licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
+        severity = OrtSeverity.valueOf(severity),
+        message = message,
+        howToFix = howToFix
+    )
+
+fun RuleViolationResolution.mapToOrt() =
+    OrtRuleViolationResolution(
+        message = message,
+        reason = OrtRuleViolationResolutionReason.valueOf(reason),
+        comment = comment
+    )
+
+fun ScannerConfiguration.mapToOrt() =
+    OrtScannerConfiguration(
+        skipConcluded = skipConcluded,
+        detectedLicenseMapping = detectedLicenseMappings,
+        config = config.mapValues { it.value.mapToOrt() },
+        ignorePatterns = ignorePatterns
+    )
+
+fun ScannerDetail.mapToOrt() = OrtScannerDetails(name, version, configuration)
+
+fun ScannerRun.mapToOrt() =
+    OrtScannerRun(
+        startTime = startTime?.toJavaInstant() ?: Instant.EPOCH,
+        endTime = endTime?.toJavaInstant() ?: Instant.EPOCH,
+        environment = environment?.mapToOrt() ?: OrtEnvironment(),
+        config = config?.mapToOrt() ?: OrtScannerConfiguration(),
+        provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
+        scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
+        files = emptySet(),
+        scanners = scanners.mapKeys { it.key.mapToOrt() }
+    )
+
+fun ScanResult.mapToOrt() =
+    OrtScanResult(
+        provenance = provenance.mapToOrt(),
+        scanner = scanner.mapToOrt(),
+        summary = summary.mapToOrt(),
+        additionalData = additionalData
+    )
+
+fun ScanSummary.mapToOrt() =
+    OrtScanSummary(
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
+        licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
+        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
+        snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFinding::mapToOrt),
+        issues = issues.map(OrtServerIssue::mapToOrt)
+    )
+
+fun ScopeExclude.mapToOrt() = OrtScopeExclude(pattern, OrtScopeExcludeReason.valueOf(reason), comment)
+
+fun Snippet.mapToOrt() = OrtSnippet(
+    score = score,
+    location = location.mapToOrt(),
+    provenance = provenance.mapToOrt() as OrtKnownProvenance,
+    purl = purl,
+    licenses = spdxLicense.toSpdx(),
+    additionalData = additionalData
 )
 
 fun SnippetChoice.mapToOrt() = OrtSnippetChoice(
@@ -636,63 +655,44 @@ fun SnippetChoice.mapToOrt() = OrtSnippetChoice(
 
 fun SnippetChoiceReason.mapToOrt() = OrtSnippetChoiceReason.valueOf(name)
 
+fun SnippetFinding.mapToOrt() = OrtSnippetFinding(
+    sourceLocation = location.mapToOrt(),
+    snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
+)
+
 fun SpdxLicenseChoice.mapToOrt() = OrtSpdxLicenseChoice(given?.toSpdx(), choice.toSpdx())
-
-fun PackageLicenseChoice.mapToOrt() =
-    OrtPackageLicenseChoice(
-        packageId = identifier.mapToOrt(),
-        licenseChoices = licenseChoices.map(SpdxLicenseChoice::mapToOrt)
-    )
-
-fun PackageCurationProviderConfig.mapToOrt() = OrtResolvedPackageCurations.Provider(id = name)
-
-fun ResolvedPackageCurations.mapToOrt() =
-    OrtResolvedPackageCurations(
-        provider = provider.mapToOrt(),
-        curations = curations.map { it.mapToOrt() }
-    )
-
-fun ResolvedConfiguration.mapToOrt() =
-    OrtResolvedConfiguration(
-        packageConfigurations = packageConfigurations.map { it.mapToOrt() },
-        packageCurations = packageCurations.map { it.mapToOrt() },
-        resolutions = resolutions.mapToOrt()
-    )
-
-fun PluginConfiguration.mapToOrt() =
-    OrtPluginConfiguration(
-        options = options,
-        secrets = secrets
-    )
-
-fun ProviderPluginConfiguration.mapToOrt() =
-    OrtProviderPluginConfiguration(
-        type = type,
-        id = id,
-        enabled = enabled,
-        options = options,
-        secrets = secrets
-    )
-
-fun MailServerConfiguration.mapToOrt() =
-    OrtSendMailConfiguration(
-        hostName = hostName,
-        port = port,
-        username = username,
-        password = password,
-        useSsl = useSsl,
-        fromAddress = fromAddress
-    )
-
-fun JiraRestClientConfiguration.mapToOrt() =
-    OrtJiraConfiguration(
-        host = serverUrl,
-        username = username,
-        password = password
-    )
 
 fun SourceCodeOrigin.mapToOrt() =
     when (this) {
         SourceCodeOrigin.ARTIFACT -> OrtSourceCodeOrigin.ARTIFACT
         SourceCodeOrigin.VCS -> OrtSourceCodeOrigin.VCS
     }
+
+fun TextLocation.mapToOrt() = OrtTextLocation(path, startLine, endLine)
+
+fun VcsInfo.mapToOrt() = OrtVcsInfo(OrtVcsType.forName(type.name), url, revision, path)
+
+fun VcsInfoCurationData.mapToOrt() = OrtVcsInfoCurationData(
+    type = type?.name?.let { OrtVcsType.forName(it) },
+    url = url,
+    revision = revision,
+    path = path
+)
+
+fun VcsMatcher.mapToOrt() = OrtVcsMatcher(OrtVcsType.forName(type.name), url, revision)
+
+fun Vulnerability.mapToOrt() =
+    OrtVulnerability(
+        id = externalId,
+        summary = summary,
+        description = description,
+        references = references.map(VulnerabilityReference::mapToOrt)
+    )
+
+fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(URI.create(url), scoringSystem, severity)
+
+fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
+    id = externalId,
+    reason = OrtVulnerabilityResolutionReason.valueOf(reason),
+    comment = comment
+)
