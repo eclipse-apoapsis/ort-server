@@ -114,7 +114,7 @@ import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.RepositoryProvenance as OrtRepositoryProvenance
 import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.ResolvedPackageCurations.Provider as OrtPackageCurationProvider
-import org.ossreviewtoolkit.model.RootDependencyIndex
+import org.ossreviewtoolkit.model.RootDependencyIndex as OrtRootDependencyIndex
 import org.ossreviewtoolkit.model.RuleViolation as OrtRuleViolation
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
@@ -126,7 +126,7 @@ import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData as OrtVcsInfoCurationData
-import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.VcsType as OrtVcsType
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.Curations as OrtCurations
@@ -261,7 +261,7 @@ fun OrtDependencyGraphNode.mapToModel() =
         issues = issues.map { it.mapToModel() }
     )
 
-fun RootDependencyIndex.mapToModel() =
+fun OrtRootDependencyIndex.mapToModel() =
     DependencyGraphRoot(
         root = root,
         fragment = fragment
@@ -386,7 +386,7 @@ fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLi
 
 fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
 
-fun VcsType.mapToModel() = RepositoryType.forName(aliases.first())
+fun OrtVcsType.mapToModel() = RepositoryType.forName(aliases.first())
 
 fun OrtVulnerability.mapToModel() =
     Vulnerability(
