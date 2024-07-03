@@ -19,6 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -55,7 +56,7 @@ const CreateProductPage = () => {
   const params = Route.useParams();
   const { toast } = useToast();
 
-  const { mutateAsync } = useProductsServicePostProduct({
+  const { mutateAsync, isPending } = useProductsServicePostProduct({
     onSuccess() {
       toast({
         title: 'Create Product',
@@ -131,7 +132,16 @@ const CreateProductPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type='submit'>Create</Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>Creating product...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Create'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

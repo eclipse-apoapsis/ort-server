@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { PlusIcon, TrashIcon } from 'lucide-react';
+import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -193,7 +193,7 @@ const CreateRunPage = () => {
   const { toast } = useToast();
   const ortRun = Route.useLoaderData();
 
-  const { mutateAsync } = useRepositoriesServicePostOrtRun({
+  const { mutateAsync, isPending } = useRepositoriesServicePostOrtRun({
     onSuccess() {
       toast({
         title: 'Create ORT Run',
@@ -1204,7 +1204,16 @@ const CreateRunPage = () => {
             </Accordion>
           </CardContent>
           <CardFooter>
-            <Button type='submit'>Create</Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>Creating run...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Create'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

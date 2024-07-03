@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -84,7 +85,7 @@ const EditRepositoryPage = () => {
       }),
   });
 
-  const { mutateAsync } = useRepositoriesServicePatchRepositoryById({
+  const { mutateAsync, isPending } = useRepositoriesServicePatchRepositoryById({
     onSuccess() {
       toast({
         title: 'Edit repository',
@@ -192,10 +193,20 @@ const EditRepositoryPage = () => {
                     params.productId,
                 })
               }
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type='submit'>Submit</Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>Editing repository...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Submit'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

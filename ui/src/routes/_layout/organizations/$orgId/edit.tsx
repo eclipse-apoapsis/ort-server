@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -66,25 +67,26 @@ const EditOrganizationPage = () => {
       }),
   });
 
-  const { mutateAsync } = useOrganizationsServicePatchOrganizationById({
-    onSuccess() {
-      toast({
-        title: 'Edit Organization',
-        description: 'Organization updated successfully.',
-      });
-      navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
-      });
-    },
-    onError(error: ApiError) {
-      toast({
-        title: error.message,
-        description: <ToastError error={error} />,
-        variant: 'destructive',
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useOrganizationsServicePatchOrganizationById({
+      onSuccess() {
+        toast({
+          title: 'Edit Organization',
+          description: 'Organization updated successfully.',
+        });
+        navigate({
+          to: '/organizations/$orgId',
+          params: { orgId: params.orgId },
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -148,10 +150,20 @@ const EditOrganizationPage = () => {
               className='m-1'
               variant='outline'
               onClick={() => navigate({ to: '/organizations/' + params.orgId })}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type='submit'>Submit</Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>Editing organization...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Submit'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>
