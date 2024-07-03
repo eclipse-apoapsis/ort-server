@@ -19,17 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersOrtIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersIssuesTable
 
 import org.jetbrains.exposed.sql.Table
 
 /**
- * An intermediate table to store references from [AnalyzerRunsTable] and [IdentifiersOrtIssuesTable].
+ * An intermediate table to store references from [AnalyzerRunsTable] and [IdentifiersIssuesTable].
  */
-object AnalyzerRunsIdentifiersOrtIssuesTable : Table("analyzer_runs_identifiers_ort_issues") {
+object AnalyzerRunsIdentifiersIssuesTable : Table("analyzer_runs_identifiers_issues") {
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
-    val identifierOrtIssueId = reference("identifier_ort_issue_id", IdentifiersOrtIssuesTable)
+    val identifierIssueId = reference("identifier_issue_id", IdentifiersIssuesTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(analyzerRunId, identifierOrtIssueId, name = "${tableName}_pkey")
+        get() = PrimaryKey(analyzerRunId, identifierIssueId, name = "${tableName}_pkey")
 }

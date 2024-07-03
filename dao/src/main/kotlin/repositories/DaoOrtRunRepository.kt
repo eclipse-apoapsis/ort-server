@@ -30,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -73,7 +73,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
-            this.issues = mapAndDeduplicate(issues, OrtIssueDao::createByIssue)
+            this.issues = mapAndDeduplicate(issues, IssueDao::createByIssue)
         }.mapToModel()
     }
 
@@ -119,7 +119,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
 
         issues.ifPresent { issues ->
-            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, OrtIssueDao::createByIssue))
+            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, IssueDao::createByIssue))
         }
 
         labels.ifPresent { labels ->

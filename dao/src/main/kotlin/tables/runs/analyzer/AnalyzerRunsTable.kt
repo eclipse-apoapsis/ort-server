@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierOrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -60,7 +60,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
     var packages by PackageDao via PackagesAnalyzerRunsTable
-    var issues by IdentifierOrtIssueDao via AnalyzerRunsIdentifiersOrtIssuesTable
+    var issues by IdentifierIssueDao via AnalyzerRunsIdentifiersIssuesTable
 
     fun mapToModel() = AnalyzerRun(
         id = id.value,
@@ -73,7 +73,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
         packages = packages.mapTo(mutableSetOf(), PackageDao::mapToModel),
         issues = issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
             identifier.mapToModel() to
-                    idToIssues.filter { it.identifier == identifier }.map { it.ortIssueDao.mapToModel() }
+                    idToIssues.filter { it.identifier == identifier }.map { it.issueDao.mapToModel() }
         }.toMap(),
         dependencyGraphs = dependencyGraphsWrapper.dependencyGraphs
     )

@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.OrtIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -142,7 +142,7 @@ class OrtServerScanResultStorage(
 
                 val issues = mapAndDeduplicate(
                     scanResult.summary.issues.map(OrtIssue::mapToModel),
-                    OrtIssueDao::createByIssue
+                    IssueDao::createByIssue
                 )
 
                 this.scannerName = scanResult.scanner.name

@@ -31,16 +31,16 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 /**
  * A table to represent an ort issue.
  */
-object OrtIssuesTable : LongIdTable("ort_issues") {
+object IssuesTable : LongIdTable("issues") {
     val timestamp = timestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = text("severity")
 }
 
-class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<OrtIssueDao>(OrtIssuesTable) {
-        fun createByIssue(issue: Issue): OrtIssueDao =
+class IssueDao(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<IssueDao>(IssuesTable) {
+        fun createByIssue(issue: Issue): IssueDao =
             new {
                 timestamp = issue.timestamp
                 source = issue.source
@@ -49,10 +49,10 @@ class OrtIssueDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    var timestamp by OrtIssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })
-    var source by OrtIssuesTable.issueSource
-    var message by OrtIssuesTable.message
-    var severity by OrtIssuesTable.severity
+    var timestamp by IssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })
+    var source by IssuesTable.issueSource
+    var message by IssuesTable.message
+    var severity by IssuesTable.severity
 
     fun mapToModel() = Issue(timestamp = timestamp, source = source, message = message, severity = severity)
 }
