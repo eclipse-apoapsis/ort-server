@@ -33,6 +33,7 @@ import {
   useRepositoriesServiceGetRepositoryByIdKey,
 } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { ToastError } from '@/components/toast-error';
 import {
@@ -329,4 +330,5 @@ export const Route = createFileRoute(
     ]);
   },
   component: RepoComponent,
+  pendingComponent: LoadingIndicator,
 });

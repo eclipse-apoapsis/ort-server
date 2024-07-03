@@ -31,6 +31,7 @@ import {
   OrganizationsService,
   ProductsService,
 } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import {
   AlertDialog,
@@ -259,4 +260,5 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
     ]);
   },
   component: OrganizationComponent,
+  pendingComponent: LoadingIndicator,
 });

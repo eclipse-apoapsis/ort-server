@@ -22,6 +22,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { OpenAPI, RepositoriesService } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Accordion,
   AccordionContent,
@@ -300,4 +301,5 @@ export const Route = createFileRoute(
     });
   },
   component: RunComponent,
+  pendingComponent: LoadingIndicator,
 });
