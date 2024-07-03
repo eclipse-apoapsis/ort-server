@@ -138,5 +138,5 @@ jobs:
 
     - name: Check REUSE Compliance
       run: |
-        pip install --user reuse
+        pip install --user reuse==3.0.2
         ~/.local/bin/reuse lint
