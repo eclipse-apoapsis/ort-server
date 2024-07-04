@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.transport.sqs
 
 import aws.sdk.kotlin.services.sqs.model.DeleteMessageRequest
 import aws.sdk.kotlin.services.sqs.model.GetQueueUrlRequest
-import aws.sdk.kotlin.services.sqs.model.MessageAttributeValue
 import aws.sdk.kotlin.services.sqs.model.ReceiveMessageRequest
 
 import kotlinx.coroutines.isActive
@@ -31,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.Message
-import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
@@ -111,16 +109,4 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
             }
         }
     }
-}
-
-internal fun Map<String, MessageAttributeValue>.toMessageHeader(): MessageHeader {
-    val traceId = checkNotNull(get(TRACE_PROPERTY)?.stringValue) {
-        "The trace ID attribute is not a valid string value."
-    }
-
-    val ortRunId = checkNotNull(get(RUN_ID_PROPERTY)?.stringValue?.toLongOrNull()) {
-        "The ORT run ID attribute is not a valid long value."
-    }
-
-    return MessageHeader(traceId, ortRunId)
 }
