@@ -22,6 +22,7 @@
 # License-Filename: LICENSE
 
 ARG ANDROID_CMD_VERSION=11076708
+ARG BAZEL_VERSION=7.0.1
 ARG BOWER_VERSION=1.8.14
 ARG COCOAPODS_VERSION=1.15.2
 ARG COMPOSER_VERSION=2.2
@@ -409,6 +410,25 @@ FROM scratch AS dotnet
 COPY --from=dotnetbuild /opt/dotnet /opt/dotnet
 
 #------------------------------------------------------------------------
+# BAZEL
+FROM ort-base-image as bazelbuild
+
+ARG BAZEL_VERSION
+
+ENV BAZEL_HOME=/opt/bazel
+
+RUN mkdir -p $BAZEL_HOME/bin \
+    && if [ "$(arch)" = "aarch64" ]; then \
+    curl -L https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-linux-arm64 -o $BAZEL_HOME/bin/bazel; \
+    else \
+    curl -L https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-linux-x86_64 -o $BAZEL_HOME/bin/bazel; \
+    fi \
+    && chmod a+x $BAZEL_HOME/bin/bazel
+
+FROM scratch as bazel
+COPY --from=bazelbuild /opt/bazel /opt/bazel
+
+#------------------------------------------------------------------------
 # Components container
 FROM ort-base-image as components
 
@@ -494,6 +514,12 @@ RUN mkdir -p /opt/php/bin \
 ENV HASKELL_HOME=/opt/haskell
 ENV PATH=$PATH:$HASKELL_HOME/bin
 COPY --from=haskell --chown=$USER:$USER $HASKELL_HOME $HASKELL_HOME
+
+# Bazel
+ENV BAZEL_HOME=/opt/bazel
+ENV PATH=$PATH:$BAZEL_HOME/bin
+
+COPY --from=bazel $BAZEL_HOME $BAZEL_HOME
 
 # Make sure the user executing the container has access rights in the home directory.
 RUN sudo chgrp -R 0 /home/ort && sudo chmod -R g+rwX /home/ort
