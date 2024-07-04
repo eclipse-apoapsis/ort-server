@@ -25,10 +25,12 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 
+internal const val EMPTY_VALUE = "<empty-value>"
+
 internal fun MessageHeader.toMessageAttributes() =
     mapOf(
         TRACE_PROPERTY to MessageAttributeValue {
-            stringValue = traceId
+            stringValue = traceId.ifEmpty { EMPTY_VALUE }
             dataType = "String"
         },
         RUN_ID_PROPERTY to MessageAttributeValue {
@@ -46,5 +48,5 @@ internal fun Map<String, MessageAttributeValue>.toMessageHeader(): MessageHeader
         "The ORT run ID attribute is not a valid long value."
     }
 
-    return MessageHeader(traceId, ortRunId)
+    return MessageHeader(traceId.takeUnless { it == EMPTY_VALUE }.orEmpty(), ortRunId)
 }
