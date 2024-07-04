@@ -27,6 +27,8 @@ import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
+import org.ossreviewtoolkit.utils.ort.Environment
+
 class VersionsIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
@@ -36,7 +38,10 @@ class VersionsIntegrationTest : AbstractIntegrationTest({
                 val response = testUserClient.get("/api/v1/versions")
 
                 response shouldHaveStatus 200
-                response shouldHaveBody mapOf("ORT Server" to ORT_SERVER_VERSION)
+                response shouldHaveBody mapOf(
+                    "ORT Server" to ORT_SERVER_VERSION,
+                    "ORT Core" to Environment.ORT_VERSION
+                )
             }
         }
 

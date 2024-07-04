@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.ktorSwaggerUi)
     implementation(libs.ktorValidation)
     implementation(libs.micrometerRegistryGraphite)
+    implementation(libs.ortUtils)
 
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.logaccess.loki)

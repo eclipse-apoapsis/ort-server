@@ -28,10 +28,13 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVersions
 import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
+import org.ossreviewtoolkit.utils.ort.Environment
+
 fun Route.versions() = get("versions", getVersions) {
     call.respond(
         mapOf(
-            "ORT Server" to ORT_SERVER_VERSION
+            "ORT Server" to ORT_SERVER_VERSION,
+            "ORT Core" to Environment.ORT_VERSION
         )
     )
 }
