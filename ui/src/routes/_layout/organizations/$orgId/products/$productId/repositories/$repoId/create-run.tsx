@@ -55,6 +55,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
+import { advisors, packageManagers, reportFormats } from './-types';
 
 const keyValueSchema = z.object({
   key: z.string().min(1),
@@ -97,95 +98,6 @@ const formSchema = z.object({
   labels: z.array(keyValueSchema).optional(),
   jobConfigContext: z.string().optional(),
 });
-
-const advisors = [
-  {
-    id: 'OssIndex',
-    label: 'OSS Index',
-  },
-  {
-    id: 'OSV',
-    label: 'OSV',
-  },
-  {
-    id: 'VulnerableCode',
-    label: 'VulnerableCode',
-  },
-] as const;
-
-const packageManagers = [
-  {
-    id: 'Bundler',
-    label: 'Bundler (Ruby)',
-  },
-  {
-    id: 'Cargo',
-    label: 'Cargo (Rust)',
-  },
-  {
-    id: 'GoMod',
-    label: 'GoMod (Go)',
-  },
-  {
-    id: 'GradleInspector',
-    label: 'Gradle (Java)',
-  },
-  {
-    id: 'Maven',
-    label: 'Maven (Java)',
-  },
-  {
-    id: 'NPM',
-    label: 'NPM (JavaScript / Node.js)',
-  },
-  {
-    id: 'PIP',
-    label: 'PIP (Python)',
-  },
-  {
-    id: 'Pipenv',
-    label: 'Pipenv (Python)',
-  },
-  {
-    id: 'PNPM',
-    label: 'PNPM (JavaScript / Node.js)',
-  },
-  {
-    id: 'Poetry',
-    label: 'Poetry (Python)',
-  },
-  {
-    id: 'Yarn',
-    label: 'Yarn 1 (JavaScript / Node.js)',
-  },
-  {
-    id: 'Yarn2',
-    label: 'Yarn 2+ (JavaScript / Node.js)',
-  },
-] as const;
-
-const reportFormats = [
-  {
-    id: 'AsciiDocTemplate',
-    label: 'AsciiDoc Template',
-  },
-  {
-    id: 'ortresult',
-    label: 'ORT Result',
-  },
-  {
-    id: 'PlainTextTemplate',
-    label: 'NOTICE file',
-  },
-  {
-    id: 'SpdxDocument',
-    label: 'SPDX Document',
-  },
-  {
-    id: 'WebApp',
-    label: 'Web App',
-  },
-] as const;
 
 const CreateRunPage = () => {
   const navigate = useNavigate();
