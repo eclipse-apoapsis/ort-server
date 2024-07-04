@@ -35,7 +35,8 @@ val getVersions: OpenApiRoute.() -> Unit = {
                 example(
                     name = "Versions",
                     value = mapOf(
-                        "ORT Server" to "1.0.0"
+                        "ORT Server" to "1.0.0",
+                        "ORT Core" to "25.1.0"
                     )
                 )
             }

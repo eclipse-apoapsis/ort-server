@@ -145,6 +145,7 @@ ortScanner = { module = "org.ossreviewtoolkit:scanner", version.ref = "ort" }
 ortScanners = { module = "org.ossreviewtoolkit.plugins:scanners", version.ref = "ort" }
 ortScriptingUtils = { module = "org.ossreviewtoolkit.utils:scripting-utils", version.ref = "ort" }
 ortTestUtils = { module = "org.ossreviewtoolkit.utils:test-utils", version.ref = "ort" }
+ortUtils = { module = "org.ossreviewtoolkit.utils:ort-utils", version.ref = "ort" }
 ortVersionControlSystems = { module = "org.ossreviewtoolkit.plugins:version-control-systems", version.ref = "ort" }
 ortVersionControlSystemGit = { module = "org.ossreviewtoolkit.plugins.versioncontrolsystems:git-version-control-system", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
