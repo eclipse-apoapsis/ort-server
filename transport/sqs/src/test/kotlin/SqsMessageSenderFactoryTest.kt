@@ -27,6 +27,7 @@ import aws.smithy.kotlin.runtime.io.IOException
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -67,39 +68,41 @@ class SqsMessageSenderFactoryTest : StringSpec({
     }
 
     "Messages can be sent via the sender" {
-        val header = MessageHeader("traceId", 47)
-        val payload = AnalyzerWorkerResult(11)
-        val message = Message(header, payload)
+        listOf("traceId", "").forAll { traceId ->
+            val header = MessageHeader(traceId, 47)
+            val payload = AnalyzerWorkerResult(11)
+            val message = Message(header, payload)
 
-        client.createQueue(CreateQueueRequest { queueName = TEST_QUEUE_NAME })
+            client.createQueue(CreateQueueRequest { queueName = TEST_QUEUE_NAME })
 
-        val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, configManager)
-        sender.send(message)
+            val sender = MessageSenderFactory.createSender(OrchestratorEndpoint, configManager)
+            sender.send(message)
 
-        val queueResponse = client.getQueueUrl(GetQueueUrlRequest { queueName = TEST_QUEUE_NAME })
+            val queueResponse = client.getQueueUrl(GetQueueUrlRequest { queueName = TEST_QUEUE_NAME })
 
-        val receiveRequest = ReceiveMessageRequest {
-            queueUrl = queueResponse.queueUrl
+            val receiveRequest = ReceiveMessageRequest {
+                queueUrl = queueResponse.queueUrl
 
-            // Opt-in to the message attributes to receive.
-            messageAttributeNames = org.eclipse.apoapsis.ortserver.transport.sqs.messageAttributeNames
+                // Opt-in to the message attributes to receive.
+                messageAttributeNames = org.eclipse.apoapsis.ortserver.transport.sqs.messageAttributeNames
 
-            // Enable "long polling" to eliminate empty responses, see
-            // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/working-with-messages.html#setting-up-long-polling
-            waitTimeSeconds = 1
-        }
-
-        val receiveResponse = client.receiveMessage(receiveRequest)
-
-        receiveResponse.messages shouldNotBeNull {
-            shouldHaveSize(1)
-
-            first().messageAttributes shouldNotBeNull {
-                toMessageHeader() shouldBe header
+                // Enable "long polling" to eliminate empty responses, see
+                // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/working-with-messages.html#setting-up-long-polling
+                waitTimeSeconds = 1
             }
 
-            first().body shouldNotBeNull {
-                serializer.fromJson(this) shouldBe payload
+            val receiveResponse = client.receiveMessage(receiveRequest)
+
+            receiveResponse.messages shouldNotBeNull {
+                shouldHaveSize(1)
+
+                first().messageAttributes shouldNotBeNull {
+                    toMessageHeader() shouldBe header
+                }
+
+                first().body shouldNotBeNull {
+                    serializer.fromJson(this) shouldBe payload
+                }
             }
         }
     }

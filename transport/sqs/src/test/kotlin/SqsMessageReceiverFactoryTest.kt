@@ -97,4 +97,16 @@ class SqsMessageReceiverFactoryTest : StringSpec({
 
         messageQueue.checkMessage(traceId, ortRunId, payload)
     }
+
+    "Messages can have empty trace IDs" {
+        val messageQueue = startReceiver(configManager)
+
+        val traceId = EMPTY_VALUE
+        val ortRunId = 10L
+        val payload = AnalyzerWorkerResult(42)
+
+        queueResponse.sendMessage(traceId, ortRunId, serializer.toJson(payload))
+
+        messageQueue.checkMessage("", ortRunId, payload)
+    }
 })
