@@ -29,8 +29,6 @@ import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
-import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
-import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 /**
@@ -54,15 +52,3 @@ class SqsMessageSender<T : Any>(
         runBlocking { client.sendMessage(request) }
     }
 }
-
-internal fun MessageHeader.toMessageAttributes() =
-    mapOf(
-        TRACE_PROPERTY to MessageAttributeValue {
-            stringValue = traceId
-            dataType = "String"
-        },
-        RUN_ID_PROPERTY to MessageAttributeValue {
-            stringValue = ortRunId.toString()
-            dataType = "Number"
-        }
-    )
