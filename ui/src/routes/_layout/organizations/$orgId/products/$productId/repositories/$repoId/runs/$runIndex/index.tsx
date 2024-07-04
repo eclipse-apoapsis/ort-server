@@ -122,6 +122,12 @@ const RunComponent = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
+              <TableCell>Global run ID</TableCell>
+              <TableCell>
+                <div className='font-medium'>{ortRun.id}</div>
+              </TableCell>
+            </TableRow>
+            <TableRow>
               <TableCell>Created at</TableCell>
               <TableCell>
                 <div className='font-medium'>
