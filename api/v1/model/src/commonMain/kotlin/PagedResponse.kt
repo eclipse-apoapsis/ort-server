@@ -33,6 +33,18 @@ data class PagedResponse<E>(
     val options: PagingOptions
 )
 
+/**
+ * A response object for returning paged lists of entities.
+ */
+@Serializable
+data class PagedResponse2<E>(
+    /** The list of returned entities. */
+    val data: List<E>,
+
+    /** The pagination information for the result set. */
+    val pagination: PagingData
+)
+
 @Serializable
 data class PagingOptions(
     /** An optional limit for the number of items to return. */
