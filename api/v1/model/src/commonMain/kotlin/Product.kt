@@ -34,6 +34,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.validation.optionalPattern
 data class Product(
     val id: Long,
 
+    /** The id of the [Organization] this product belongs to. */
+    val organizationId: Long,
+
     /** The name of the product which has to be unique within an organization. */
     val name: String,
 

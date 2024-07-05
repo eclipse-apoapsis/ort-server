@@ -299,7 +299,7 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
-fun Product.mapToApi() = ApiProduct(id, name, description)
+fun Product.mapToApi() = ApiProduct(id, organizationId, name, description)
 
 fun Repository.mapToApi() = ApiRepository(id, type.mapToApi(), url)
 
