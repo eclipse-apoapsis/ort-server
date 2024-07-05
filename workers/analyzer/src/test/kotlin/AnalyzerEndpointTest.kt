@@ -318,6 +318,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 every { ortRun } returns OrtRun(
                     20230627071600L,
                     27,
+                    organization.id,
+                    product.id,
                     repository.id,
                     "main",
                     null,

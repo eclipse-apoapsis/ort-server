@@ -126,6 +126,8 @@ class OrtServerMappingsTest : WordSpec({
             val ortRun = OrtRun(
                 id = 1L,
                 index = 1L,
+                organizationId = 1L,
+                productId = 1L,
                 repositoryId = repository.id,
                 revision = OrtTestData.projectRevision,
                 path = null,

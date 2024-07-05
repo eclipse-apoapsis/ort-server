@@ -37,6 +37,16 @@ data class OrtRun(
     val index: Long,
 
     /**
+     * The id of the [Organization] this run belongs to.
+     */
+    val organizationId: Long,
+
+    /**
+     * The id of the [Product] this run belongs to.
+     */
+    val productId: Long,
+
+    /**
      * The id of the repository for this run.
      */
     val repositoryId: Long,

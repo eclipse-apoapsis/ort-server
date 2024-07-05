@@ -176,6 +176,8 @@ class OrchestratorTest : WordSpec() {
     private val ortRun = OrtRun(
         id = RUN_ID,
         index = 12,
+        organizationId = 1L,
+        productId = 1L,
         repositoryId = repository.id,
         revision = "main",
         path = null,
@@ -208,6 +210,8 @@ class OrchestratorTest : WordSpec() {
     private val ortRunAnalyzerAndReporter = OrtRun(
         id = RUN_ID,
         index = 12,
+        organizationId = 1L,
+        productId = 1L,
         repositoryId = repository.id,
         revision = "main",
         path = null,
