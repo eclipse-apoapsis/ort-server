@@ -138,7 +138,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody Product(createdProduct.id, productName, productDescription)
+                response shouldHaveBody Product(createdProduct.id, orgId, productName, productDescription)
             }
         }
 
@@ -166,6 +166,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Product(
                     createdProduct.id,
+                    orgId,
                     updatedProduct.name.valueOrThrow,
                     updatedProduct.description.valueOrThrow
                 )

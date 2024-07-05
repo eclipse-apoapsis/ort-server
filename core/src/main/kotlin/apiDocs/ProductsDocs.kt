@@ -56,7 +56,7 @@ val getProductById: OpenApiRoute.() -> Unit = {
             jsonBody<Product> {
                 example(
                     name = "Create Product",
-                    value = Product(id = 1, name = "My Product", description = "Description")
+                    value = Product(id = 1, organizationId = 2, name = "My Product", description = "Description")
                 )
             }
         }
@@ -87,7 +87,12 @@ val patchProductById: OpenApiRoute.() -> Unit = {
             jsonBody<Product> {
                 example(
                     name = "Update Product",
-                    value = Product(id = 1, name = "My updated product", description = "Updated product.")
+                    value = Product(
+                        id = 1,
+                        organizationId = 2,
+                        name = "My updated product",
+                        description = "Updated product."
+                    )
                 )
             }
         }

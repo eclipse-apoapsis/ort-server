@@ -475,9 +475,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody Product(1, product.name, product.description)
+                response shouldHaveBody Product(1, orgId, product.name, product.description)
 
-                productService.getProduct(1)?.mapToApi() shouldBe Product(1, product.name, product.description)
+                productService.getProduct(1)?.mapToApi() shouldBe Product(1, orgId, product.name, product.description)
             }
         }
 
@@ -551,8 +551,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Product(createdProduct1.id, name1, description),
-                        Product(createdProduct2.id, name2, description)
+                        Product(createdProduct1.id, orgId, name1, description),
+                        Product(createdProduct2.id, orgId, name2, description)
                     ),
                     PagingOptions(
                         limit = DEFAULT_LIMIT,
@@ -579,7 +579,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(Product(createdProduct2.id, name2, description)),
+                    listOf(Product(createdProduct2.id, orgId, name2, description)),
                     PagingOptions(
                         limit = 1,
                         offset = 0,

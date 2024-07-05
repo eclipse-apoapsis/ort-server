@@ -196,8 +196,8 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
                     name = "Get products of an organization",
                     value = PagedResponse(
                         listOf(
-                            Product(id = 1, name = "My first product", description = "Description"),
-                            Product(id = 2, name = "My second product")
+                            Product(id = 1, organizationId = 2, name = "My first product", description = "Description"),
+                            Product(id = 2, organizationId = 2, name = "My second product")
                         ),
                         PagingOptions(
                             limit = 20,
@@ -234,7 +234,7 @@ val postProduct: OpenApiRoute.() -> Unit = {
             jsonBody<Product> {
                 example(
                     name = "Create product",
-                    value = Product(id = 1, name = "My product", description = "Description")
+                    value = Product(id = 1, organizationId = 2, name = "My product", description = "Description")
                 )
             }
         }
