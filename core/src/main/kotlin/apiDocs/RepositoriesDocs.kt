@@ -347,6 +347,8 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                             OrtRunSummary(
                                 id = 2,
                                 index = 1,
+                                organizationId = 1,
+                                productId = 1,
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now() - 15.minutes,
@@ -366,6 +368,8 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                             OrtRunSummary(
                                 id = 3,
                                 index = 2,
+                                organizationId = 1,
+                                productId = 1,
                                 repositoryId = 1,
                                 revision = "main",
                                 createdAt = Clock.System.now() - 15.minutes,

@@ -287,6 +287,8 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
     ApiOrtRunSummary(
         id = id,
         index = index,
+        organizationId = organizationId,
+        productId = productId,
         repositoryId = repositoryId,
         revision = revision,
         path = path,
