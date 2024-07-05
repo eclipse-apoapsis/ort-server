@@ -25,7 +25,9 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.should
@@ -47,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -311,7 +314,7 @@ class WorkerContextFactoryTest : WordSpec({
 
             val resolvedConfig = helper.context().resolvePluginConfigSecrets(null)
 
-            resolvedConfig should beEmpty()
+            resolvedConfig should beEmptyMap()
         }
 
         "return plugin configurations with resolved secrets" {
@@ -346,6 +349,52 @@ class WorkerContextFactoryTest : WordSpec({
             val resolvedConfig = helper.context().resolvePluginConfigSecrets(config)
 
             resolvedConfig shouldBe expectedConfig
+        }
+    }
+
+    "resolveProviderPluginConfigSecrets" should {
+        "return an empty Map for null input" {
+            val helper = ContextFactoryTestHelper()
+
+            val resolvedConfig = helper.context().resolveProviderPluginConfigSecrets(null)
+
+            resolvedConfig should beEmpty()
+        }
+
+        "return provider plugin configurations with resolved secrets" {
+            val pluginConfig1 = ProviderPluginConfiguration(
+                type = "type1",
+                options = mapOf("plugin1Option1" to "v1", "plugin1Option2" to "v2"),
+                secrets = mapOf("plugin1User" to "dbUser", "plugin1Password" to "dbPassword")
+            )
+            val pluginConfig2 = ProviderPluginConfiguration(
+                type = "type2",
+                options = mapOf("plugin2Option" to "v3"),
+                secrets = mapOf(
+                    "plugin2ServiceUser" to "serviceUser",
+                    "plugin2ServicePassword" to "servicePassword",
+                    "plugin2DBAccess" to "dbPassword"
+                )
+            )
+            val config = listOf(pluginConfig1, pluginConfig2)
+
+            val resolvedConfig1 = pluginConfig1.copy(
+                secrets = mapOf("plugin1User" to "scott", "plugin1Password" to "tiger")
+            )
+            val resolvedConfig2 = pluginConfig2.copy(
+                secrets = mapOf(
+                    "plugin2ServiceUser" to "svcUser",
+                    "plugin2ServicePassword" to "svcPass",
+                    "plugin2DBAccess" to "tiger"
+                )
+            )
+            val expectedConfig = listOf(resolvedConfig1, resolvedConfig2)
+
+            val helper = ContextFactoryTestHelper()
+
+            val resolvedConfig = helper.context().resolveProviderPluginConfigSecrets(config)
+
+            resolvedConfig shouldContainExactly expectedConfig
         }
     }
 
