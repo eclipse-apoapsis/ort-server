@@ -72,7 +72,7 @@ interface WorkerContext : AutoCloseable {
      * in contrast to [resolveSecrets], this function deals with secrets from the configuration instead of secrets
      * managed on behalf of customers.
      */
-    suspend fun resolveConfigSecrets(config: Map<String, PluginConfiguration>?): Map<String, PluginConfiguration>
+    suspend fun resolvePluginConfigSecrets(config: Map<String, PluginConfiguration>?): Map<String, PluginConfiguration>
 
     /**
      * Download the configuration file at the specified [path] from the resolved configuration context to the given

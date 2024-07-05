@@ -104,7 +104,7 @@ internal class WorkerContextImpl(
         return parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
     }
 
-    override suspend fun resolveConfigSecrets(
+    override suspend fun resolvePluginConfigSecrets(
         config: Map<String, PluginConfiguration>?
     ): Map<String, PluginConfiguration> =
         config?.let { c ->

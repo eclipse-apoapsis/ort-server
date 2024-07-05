@@ -99,7 +99,7 @@ class ReporterRunnerTest : WordSpec({
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
-            coEvery { resolveConfigSecrets(any()) } answers {
+            coEvery { resolvePluginConfigSecrets(any()) } answers {
                 val pluginConfigs: Map<String, PluginConfiguration>? = firstArg()
                 pluginConfigs.orEmpty().mapValues { entry ->
                     val resolvedSecrets = entry.value.secrets.mapValues { secretEntry ->

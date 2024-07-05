@@ -181,5 +181,5 @@ private fun mockContext(
     resolvedPluginConfig: Map<String, PluginConfiguration> = emptyMap()
 ): WorkerContext =
     mockk {
-        coEvery { resolveConfigSecrets(jobConfig.config) } returns resolvedPluginConfig
+        coEvery { resolvePluginConfigSecrets(jobConfig.config) } returns resolvedPluginConfig
     }

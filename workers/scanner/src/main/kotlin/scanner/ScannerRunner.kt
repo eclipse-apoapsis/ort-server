@@ -54,7 +54,7 @@ class ScannerRunner(
         config: ScannerJobConfiguration,
         scannerRunId: Long
     ): OrtResult {
-        val pluginConfigs = runBlocking { context.resolveConfigSecrets(config.config) }
+        val pluginConfigs = runBlocking { context.resolvePluginConfigSecrets(config.config) }
 
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)

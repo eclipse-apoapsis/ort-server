@@ -278,7 +278,7 @@ class ReporterRunner(
         launch { context.downloadAssetDirectories(config.assetDirectories, templateDir) }
 
         val transformedPluginOptions = config.config?.recombine(transformedOptions.await())
-        context.resolveConfigSecrets(transformedPluginOptions)
+        context.resolvePluginConfigSecrets(transformedPluginOptions)
     }
 }
 
