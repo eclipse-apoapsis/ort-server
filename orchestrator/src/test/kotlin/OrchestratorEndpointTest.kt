@@ -91,6 +91,8 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                 OrtRun(
                     id = 1,
                     index = 12,
+                    organizationId = 1,
+                    productId = 1,
                     repositoryId = 120,
                     revision = "main",
                     path = null,

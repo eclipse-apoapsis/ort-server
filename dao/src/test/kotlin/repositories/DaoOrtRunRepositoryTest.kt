@@ -45,6 +45,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
     lateinit var ortRunRepository: DaoOrtRunRepository
 
+    var organizationId = -1L
+    var productId = -1L
     var repositoryId = -1L
 
     val jobConfigurations = JobConfigurations(
@@ -64,6 +66,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
     beforeEach {
         ortRunRepository = dbExtension.fixtures.ortRunRepository
+        organizationId = dbExtension.fixtures.organization.id
+        productId = dbExtension.fixtures.product.id
         repositoryId = dbExtension.fixtures.repository.id
     }
 
@@ -81,6 +85,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
         dbEntry shouldBe OrtRun(
             id = createdOrtRun.id,
             index = createdOrtRun.id,
+            organizationId = organizationId,
+            productId = productId,
             repositoryId = repositoryId,
             revision = revision,
             path = path,

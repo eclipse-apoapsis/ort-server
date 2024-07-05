@@ -90,6 +90,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     fun mapToModel() = OrtRun(
         id = id.value,
         index = index,
+        organizationId = repository.product.organization.id.value,
+        productId = repository.product.id.value,
         repositoryId = repository.id.value,
         revision = revision,
         path = path,
