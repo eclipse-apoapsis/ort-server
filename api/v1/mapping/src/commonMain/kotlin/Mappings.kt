@@ -301,7 +301,7 @@ fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
 fun Product.mapToApi() = ApiProduct(id, organizationId, name, description)
 
-fun Repository.mapToApi() = ApiRepository(id, type.mapToApi(), url)
+fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.mapToApi(), url)
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 

@@ -252,7 +252,13 @@ val getRepositoryById: OpenApiRoute.() -> Unit = {
             jsonBody<Repository> {
                 example(
                     name = "Get Repository",
-                    value = Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/org/repo.git")
+                    value = Repository(
+                        id = 1,
+                        organizationId = 2,
+                        productId = 3,
+                        type = RepositoryType.GIT,
+                        url = "https://example.com/org/repo.git"
+                    )
                 )
             }
         }
@@ -288,6 +294,8 @@ val patchRepositoryById: OpenApiRoute.() -> Unit = {
                     name = "Update Repository",
                     value = Repository(
                         id = 1,
+                        organizationId = 2,
+                        productId = 3,
                         type = RepositoryType.GIT_REPO,
                         url = "https://example.com/org/updated-repo.git"
                     )

@@ -138,9 +138,19 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
                     name = "Get repositories of a product",
                     value = PagedResponse(
                         listOf(
-                            Repository(id = 1, type = GIT, url = "https://example.com/first/repo.git"),
                             Repository(
-                                id = 2, type = SUBVERSION, url = "https://example.com/second/repo"
+                                id = 1,
+                                organizationId = 2,
+                                productId = 3,
+                                type = GIT,
+                                url = "https://example.com/first/repo.git"
+                            ),
+                            Repository(
+                                id = 2,
+                                organizationId = 3,
+                                productId = 4,
+                                type = SUBVERSION,
+                                url = "https://example.com/second/repo"
                             )
                         ),
                         PagingOptions(
@@ -181,7 +191,13 @@ val postRepository: OpenApiRoute.() -> Unit = {
             jsonBody<Repository> {
                 example(
                     name = "Create repository",
-                    value = Repository(id = 1, type = RepositoryType.GIT, url = "https://example.com/namspace/repo.git")
+                    value = Repository(
+                        id = 1,
+                        organizationId = 2,
+                        productId = 3,
+                        type = RepositoryType.GIT,
+                        url = "https://example.com/namspace/repo.git"
+                    )
                 )
             }
         }
