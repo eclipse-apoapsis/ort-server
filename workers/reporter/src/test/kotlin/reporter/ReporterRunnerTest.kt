@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
@@ -62,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.Issue
@@ -70,6 +72,7 @@ import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterInput
@@ -77,6 +80,7 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 private const val RUN_ID = 20230522093727L
 private val configurationContext = Context("theConfigContext")
 
+@Suppress("LargeClass")
 class ReporterRunnerTest : WordSpec({
     afterEach {
         unmockkAll()
@@ -94,7 +98,10 @@ class ReporterRunnerTest : WordSpec({
      * Return a pair of a mock context factory and a mock context. The factory is prepared to return the context. The
      * context mock is prepared to create a temporary directory.
      */
-    fun mockContext(): Pair<WorkerContextFactory, WorkerContext> {
+    fun mockContext(
+        providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
+        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs
+    ): Pair<WorkerContextFactory, WorkerContext> {
         val context = mockk<WorkerContext> {
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
@@ -108,6 +115,7 @@ class ReporterRunnerTest : WordSpec({
                     PluginConfiguration(entry.value.options, resolvedSecrets)
                 }
             }
+            coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
         }
         val factory = mockk<WorkerContextFactory> {
             every { createContext(RUN_ID) } returns context
@@ -487,6 +495,72 @@ class ReporterRunnerTest : WordSpec({
 
             result.resolvedPackageConfigurations should
                     containExactlyInAnyOrder(OrtTestData.result.repository.config.packageConfigurations)
+        }
+
+        "resolve secrets in the package configuration provider configurations" {
+            mockkObject(PackageConfigurationProviderFactory)
+            every { PackageConfigurationProviderFactory.create(any()) } returns mockk(relaxed = true)
+
+            val packageConfigurationProviderConfigs = listOf(
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path1"),
+                    secrets = mapOf("secret1" to "ref1")
+                ),
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path2"),
+                    secrets = mapOf("secret2" to "ref2")
+                )
+            )
+
+            val resolvedPackageConfigurationProviderConfigs = listOf(
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path1"),
+                    secrets = mapOf("secret1" to "value1")
+                ),
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path2"),
+                    secrets = mapOf("secret2" to "value2")
+                )
+            )
+
+            val (contextFactory, _) = mockContext(
+                packageConfigurationProviderConfigs,
+                resolvedPackageConfigurationProviderConfigs
+            )
+
+            val runner = ReporterRunner(
+                mockk(relaxed = true),
+                contextFactory,
+                OptionsTransformerFactory(),
+                configManager,
+                mockk()
+            )
+
+            val format = "format"
+            val reporter = reporterMock(format)
+            every { reporter.generateReport(any(), any(), any()) } returns emptyList()
+
+            mockReportersAll(format to reporter)
+
+            runner.run(
+                runId = RUN_ID,
+                ortResult = OrtTestData.result,
+                config = ReporterJobConfiguration(
+                    formats = listOf(format),
+                    packageConfigurationProviders = packageConfigurationProviderConfigs
+                ),
+                evaluatorConfig = null
+            )
+
+            verify(exactly = 1) {
+                PackageConfigurationProviderFactory.create(
+                    resolvedPackageConfigurationProviderConfigs.map { it.mapToOrt() }
+                )
+            }
         }
 
         "use the resolutions resolved by the evaluator" {
