@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -112,6 +113,16 @@ internal class WorkerContextImpl(
             val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
 
             c.mapValues { (_, pluginConfig) -> pluginConfig.resolveSecrets(resolvedSecrets) }
+        }.orEmpty()
+
+    override suspend fun resolveProviderPluginConfigSecrets(
+        config: List<ProviderPluginConfiguration>?
+    ): List<ProviderPluginConfiguration> =
+        config?.let { c ->
+            val secrets = c.flatMap { it.secrets.values }
+            val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
+
+            c.map { providerPluginConfig -> providerPluginConfig.resolveSecrets(resolvedSecrets) }
         }.orEmpty()
 
     override suspend fun downloadConfigurationFile(
@@ -247,6 +258,14 @@ private fun extractDownloadFileKey(directory: String, targetName: String?): (Con
  * Return a [PluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
  */
 private fun PluginConfiguration.resolveSecrets(secretValues: Map<String, String>): PluginConfiguration {
+    val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value) }
+    return copy(secrets = resolvedSecrets)
+}
+
+/**
+ * Return a [ProviderPluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
+ */
+private fun ProviderPluginConfiguration.resolveSecrets(secretValues: Map<String, String>): ProviderPluginConfiguration {
     val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value) }
     return copy(secrets = resolvedSecrets)
 }
