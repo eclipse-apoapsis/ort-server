@@ -142,6 +142,16 @@ jobs:
         fi
         echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
 
+    - name: Compute Tag Suffix
+      id: compute-tag-suffix
+      run: |
+        if [[ "${{ matrix.docker.imageVariant }}" == "jdk17" || "${{ matrix.docker.imageVariant }}" == "" ]]; then
+          # No suffix.
+          echo "::set-output name=suffix::"
+        else
+          echo "::set-output name=suffix::-${{ matrix.docker.imageVariant }}"
+        fi
+
     - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
@@ -150,8 +160,8 @@ jobs:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
           type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
-          type=ref,event=branch
-          type=sha
+          type=ref,event=branch,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
+          type=sha,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
           type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
           type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
 
@@ -175,8 +185,8 @@ jobs:
       with:
         tags: |
           type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
-          type=ref,event=branch
-          type=sha
+          type=ref,event=branch,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
+          type=sha,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
           type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
           type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
 
