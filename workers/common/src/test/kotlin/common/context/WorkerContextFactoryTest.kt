@@ -305,7 +305,7 @@ class WorkerContextFactoryTest : WordSpec({
         }
     }
 
-    "resolveConfigFiles" should {
+    "resolvePluginConfigSecrets" should {
         "return an empty Map for null input" {
             val helper = ContextFactoryTestHelper()
 
