@@ -29,8 +29,12 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import io.mockk.verify
 
 import java.io.File
 
@@ -42,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
@@ -50,6 +55,7 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -65,6 +71,8 @@ private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 private val resolvedConfigContext = Context("resolvedContext")
 
 class EvaluatorRunnerTest : WordSpec({
+    afterEach { unmockkAll() }
+
     val runner = EvaluatorRunner(mockk())
 
     "run" should {
@@ -140,21 +148,23 @@ class EvaluatorRunnerTest : WordSpec({
                 )
             )
 
+            val packageConfigurationProviderConfigs = listOf(
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf(
+                        "path" to "src/test/resources/package-configurations",
+                        "mustExist" to "true"
+                    )
+                )
+            )
+
             val result = runner.run(
                 ortResult,
                 EvaluatorJobConfiguration(
                     ruleSet = PACKAGE_CONFIGURATION_RULES,
-                    packageConfigurationProviders = listOf(
-                        ProviderPluginConfiguration(
-                            type = "Dir",
-                            options = mapOf(
-                                "path" to "src/test/resources/package-configurations",
-                                "mustExist" to "true"
-                            )
-                        )
-                    )
+                    packageConfigurationProviders = packageConfigurationProviderConfigs
                 ),
-                createWorkerContext()
+                createWorkerContext(packageConfigurationProviderConfigs)
             )
 
             // The test data contains a package with a LicenseRef-detected1 and a LicenseRef-detected2 license finding
@@ -183,6 +193,52 @@ class EvaluatorRunnerTest : WordSpec({
                     )
                 )
             )
+        }
+
+        "resolve secrets in the package configuration provider configurations" {
+            mockkObject(PackageConfigurationProviderFactory)
+            every { PackageConfigurationProviderFactory.create(any()) } returns mockk(relaxed = true)
+
+            val packageConfigurationProviderConfigs = listOf(
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path1"),
+                    secrets = mapOf("secret1" to "ref1")
+                ),
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path2"),
+                    secrets = mapOf("secret2" to "ref2")
+                )
+            )
+
+            val resolvedPackageConfigurationProviderConfigs = listOf(
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path1"),
+                    secrets = mapOf("secret1" to "value1")
+                ),
+                ProviderPluginConfiguration(
+                    type = "Dir",
+                    options = mapOf("path" to "path2"),
+                    secrets = mapOf("secret2" to "value2")
+                )
+            )
+
+            runner.run(
+                OrtTestData.result,
+                EvaluatorJobConfiguration(
+                    ruleSet = SCRIPT_FILE,
+                    packageConfigurationProviders = packageConfigurationProviderConfigs
+                ),
+                createWorkerContext(packageConfigurationProviderConfigs, resolvedPackageConfigurationProviderConfigs)
+            )
+
+            verify(exactly = 1) {
+                PackageConfigurationProviderFactory.create(
+                    resolvedPackageConfigurationProviderConfigs.map { it.mapToOrt() }
+                )
+            }
         }
 
         "use the resolutions from the repository configuration and resolutions file" {
@@ -233,11 +289,15 @@ private fun createConfigManager(): ConfigManager {
     return configManager
 }
 
-private fun createWorkerContext(): WorkerContext {
+private fun createWorkerContext(
+    providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
+    resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs
+): WorkerContext {
     val configManagerMock = createConfigManager()
 
     return mockk {
         every { configManager } returns configManagerMock
         every { ortRun.resolvedJobConfigContext } returns resolvedConfigContext.name
+        coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
     }
 }

@@ -23,6 +23,7 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
@@ -125,6 +126,7 @@ class EvaluatorWorkerTest : StringSpec({
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
             every { this@mockk.configManager } returns configManager
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(ORT_RUN_ID) } returns context
