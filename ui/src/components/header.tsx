@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { Link, useRouterState } from '@tanstack/react-router';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useUser } from '@/hooks/useUser';
 import {
   Breadcrumb,
@@ -35,10 +39,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { Input } from './ui/input';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+
+const formSchema = z.object({
+  id: z.string().min(1),
+});
 
 export const Header = () => {
   const user = useUser();
+  const navigate = useNavigate();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    navigate({ to: `/runs/$runId`, params: { runId: values.id } });
+  }
 
   const matches = useRouterState({ select: (state) => state.matches });
 
@@ -158,6 +176,28 @@ export const Header = () => {
         </Breadcrumb>
       </div>
       <div className='flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name='id'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type='text'
+                      name='runId'
+                      placeholder='Enter run ID'
+                      className='w-25 text-xs'
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <input type='submit' hidden />
+          </form>
+        </Form>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
