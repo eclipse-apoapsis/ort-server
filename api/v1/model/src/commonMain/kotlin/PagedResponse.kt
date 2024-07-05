@@ -51,6 +51,21 @@ data class PagingOptions(
 )
 
 @Serializable
+data class PagingData(
+    /** The limit for the number of items to return. */
+    val limit: Int,
+
+    /** The offset for the items to return. */
+    val offset: Long,
+
+    /** The total count of items. */
+    val totalCount: Long,
+
+    /** The properties by which the result set was sorted. */
+    val sortProperties: List<SortProperty>
+)
+
+@Serializable
 /**
  * A data class defining a property by which a query result should be sorted.
  */
