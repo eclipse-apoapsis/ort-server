@@ -72,10 +72,10 @@ const EditProductPage = () => {
   });
 
   const { mutateAsync, isPending } = useProductsServicePatchProductById({
-    onSuccess() {
+    onSuccess(data) {
       toast({
         title: 'Edit Product',
-        description: 'Product updated successfully.',
+        description: `Product "${data.name}" updated successfully.`,
       });
       navigate({
         to: '/organizations/$orgId/products/$productId',

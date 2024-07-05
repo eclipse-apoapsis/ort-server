@@ -86,10 +86,10 @@ const EditRepositoryPage = () => {
   });
 
   const { mutateAsync, isPending } = useRepositoriesServicePatchRepositoryById({
-    onSuccess() {
+    onSuccess(data) {
       toast({
         title: 'Edit repository',
-        description: 'Repository updated successfully.',
+        description: `Repository "${data.url}" updated successfully.`,
       });
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',

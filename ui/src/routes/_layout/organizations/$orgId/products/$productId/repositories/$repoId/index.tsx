@@ -109,7 +109,7 @@ const RepoComponent = () => {
       onSuccess() {
         toast({
           title: 'Delete Repository',
-          description: 'Repository deleted successfully.',
+          description: `Repository "${repo.url}" deleted successfully.`,
         });
         navigate({
           to: '/organizations/$orgId/products/$productId',

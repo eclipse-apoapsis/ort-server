@@ -98,7 +98,7 @@ const OrganizationComponent = () => {
       onSuccess() {
         toast({
           title: 'Delete Organization',
-          description: 'Organization deleted successfully.',
+          description: `Organization "${organization.name}" deleted successfully.`,
         });
         navigate({
           to: '/',

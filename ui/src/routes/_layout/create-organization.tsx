@@ -55,10 +55,10 @@ const CreateOrganizationPage = () => {
   const { toast } = useToast();
 
   const { mutateAsync, isPending } = useOrganizationsServicePostOrganizations({
-    onSuccess() {
+    onSuccess(data) {
       toast({
         title: 'Create Organization',
-        description: 'New organization created successfully.',
+        description: `New organization "${data.name}" created successfully.`,
       });
       navigate({
         to: '/',

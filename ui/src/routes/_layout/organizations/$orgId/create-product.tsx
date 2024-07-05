@@ -57,10 +57,10 @@ const CreateProductPage = () => {
   const { toast } = useToast();
 
   const { mutateAsync, isPending } = useProductsServicePostProduct({
-    onSuccess() {
+    onSuccess(data) {
       toast({
         title: 'Create Product',
-        description: 'New product created successfully.',
+        description: `New product "${data.name}" created successfully.`,
       });
       navigate({
         to: '/organizations/$orgId',
