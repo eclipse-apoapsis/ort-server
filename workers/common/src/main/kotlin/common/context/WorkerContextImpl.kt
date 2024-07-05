@@ -111,7 +111,7 @@ internal class WorkerContextImpl(
             val secrets = c.values.flatMap { it.secrets.values }
             val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
 
-            c.mapValues { entry -> entry.value.resolveSecrets(resolvedSecrets) }
+            c.mapValues { (_, pluginConfig) -> pluginConfig.resolveSecrets(resolvedSecrets) }
         }.orEmpty()
 
     override suspend fun downloadConfigurationFile(
