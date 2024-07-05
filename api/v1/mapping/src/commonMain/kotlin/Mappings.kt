@@ -266,6 +266,8 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
     ApiOrtRun(
         id = id,
         index = index,
+        organizationId,
+        productId,
         repositoryId,
         revision,
         path,
