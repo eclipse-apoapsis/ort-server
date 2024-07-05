@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import kotlinx.coroutines.runBlocking
+
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -96,7 +98,10 @@ class EvaluatorRunner(
             val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
             add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
 
-            val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
+            val packageConfigurationProviderConfigs = runBlocking {
+                workerContext.resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                    .map { it.mapToOrt() }
+            }
             addAll(PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second })
         }.let { CompositePackageConfigurationProvider(it) }
 
