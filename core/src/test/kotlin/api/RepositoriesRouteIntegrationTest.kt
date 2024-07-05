@@ -98,6 +98,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var secretRepository: SecretRepository
 
+    var orgId = -1L
     var productId = -1L
 
     beforeEach {
@@ -127,7 +128,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         ortRunRepository = dbExtension.fixtures.ortRunRepository
         secretRepository = dbExtension.fixtures.secretRepository
 
-        val orgId = organizationService.createOrganization(name = "name", description = "description").id
+        orgId = organizationService.createOrganization(name = "name", description = "description").id
         productId =
             organizationService.createProduct(name = "name", description = "description", organizationId = orgId).id
     }
@@ -164,7 +165,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody Repository(createdRepository.id, repositoryType.mapToApi(), repositoryUrl)
+                response shouldHaveBody
+                        Repository(createdRepository.id, orgId, productId, repositoryType.mapToApi(), repositoryUrl)
             }
         }
 
@@ -193,6 +195,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Repository(
                     createdRepository.id,
+                    orgId,
+                    productId,
                     updateRepository.type.valueOrThrow,
                     updateRepository.url.valueOrThrow
                 )

@@ -34,6 +34,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 data class Repository(
     val id: Long,
 
+    /** The id of the [Organization] this repository belongs to. */
+    val organizationId: Long,
+
+    /** The id of the [Product] this repository belongs to. */
+    val productId: Long,
+
     /** The type of the repository. */
     val type: RepositoryType,
 

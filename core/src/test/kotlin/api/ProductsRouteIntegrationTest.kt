@@ -258,8 +258,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, type.mapToApi(), url1),
-                        Repository(createdRepository2.id, type.mapToApi(), url2)
+                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1),
+                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)
                     ),
                     PagingOptions(
                         limit = DEFAULT_LIMIT,
@@ -287,7 +287,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(Repository(createdRepository2.id, type.mapToApi(), url2)),
+                    listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)),
                     PagingOptions(
                         limit = 1,
                         offset = 0,
@@ -316,7 +316,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody Repository(1, repository.type, repository.url)
+                response shouldHaveBody Repository(1, orgId, createdProduct.id, repository.type, repository.url)
             }
         }
 
