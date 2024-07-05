@@ -131,7 +131,10 @@ class ReporterRunner(
                     val repositoryPackageConfigurations = resolvedOrtResult.repository.config.packageConfigurations
                     add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
 
-                    val packageConfigurationProviderConfigs = config.packageConfigurationProviders.map { it.mapToOrt() }
+                    val packageConfigurationProviderConfigs = runBlocking {
+                        context.resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                            .map { it.mapToOrt() }
+                    }
                     addAll(
                         PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
                             .map { it.second }
