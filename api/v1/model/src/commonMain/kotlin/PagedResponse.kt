@@ -60,7 +60,19 @@ data class PagingOptions(
      * An optional list of properties by which the result set should be sorted.
      */
     val sortProperties: List<SortProperty>? = null
-)
+) {
+    /**
+     * Convert this object to [PagingData] with the provided [totalCount]. This requires that all properties of this
+     * object are not `null`, an exception is thrown otherwise.
+     */
+    fun toPagingData(totalCount: Long): PagingData {
+        checkNotNull(limit)
+        checkNotNull(offset)
+        checkNotNull(sortProperties)
+
+        return PagingData(limit, offset, totalCount, sortProperties)
+    }
+}
 
 @Serializable
 data class PagingData(

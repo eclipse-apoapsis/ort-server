@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
@@ -82,13 +83,17 @@ fun Route.organizations() = route("organizations") {
     get(getOrganizations) { _ ->
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-        val organizations = organizationService
+        val filteredOrganizations = organizationService
             .listOrganizations(pagingOptions.copy(limit = null, offset = null).mapToModel())
             .filter { hasPermission(it.id, OrganizationPermission.READ) }
-            .paginate(pagingOptions)
+
+        val pagedOrganizations = filteredOrganizations.paginate(pagingOptions)
             .map { it.mapToApi() }
 
-        val pagedResponse = PagedResponse(organizations, pagingOptions)
+        val pagedResponse = PagedResponse2(
+            pagedOrganizations,
+            pagingOptions.toPagingData(filteredOrganizations.size.toLong())
+        )
 
         call.respond(HttpStatusCode.OK, pagedResponse)
     }

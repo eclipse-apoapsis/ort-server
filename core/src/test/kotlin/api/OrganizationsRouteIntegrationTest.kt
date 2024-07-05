@@ -52,6 +52,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiI
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -144,12 +146,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(org1.mapToApi(), org2.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -175,11 +178,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = testUserClient.get("/api/v1/organizations")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(org2.mapToApi(), org4.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                     )
                 )
@@ -194,11 +198,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(org2.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING)),
                     )
                 )
