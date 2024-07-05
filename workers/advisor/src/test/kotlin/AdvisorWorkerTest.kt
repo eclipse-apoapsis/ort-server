@@ -109,7 +109,7 @@ class AdvisorWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
-            coEvery { resolveConfigSecrets(any()) } returns emptyMap()
+            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
         }
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(ORT_RUN_ID) } returns context

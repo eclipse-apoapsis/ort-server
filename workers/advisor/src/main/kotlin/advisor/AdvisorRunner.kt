@@ -47,7 +47,7 @@ internal class AdvisorRunner {
                 logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
             }
 
-            val pluginConfigs = context.resolveConfigSecrets(config.config)
+            val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
             val advisorConfig = AdvisorConfiguration(
                 config.skipExcluded,
                 pluginConfigs.mapValues { it.value.mapToOrt() }

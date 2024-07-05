@@ -309,7 +309,7 @@ class WorkerContextFactoryTest : WordSpec({
         "return an empty Map for null input" {
             val helper = ContextFactoryTestHelper()
 
-            val resolvedConfig = helper.context().resolveConfigSecrets(null)
+            val resolvedConfig = helper.context().resolvePluginConfigSecrets(null)
 
             resolvedConfig should beEmpty()
         }
@@ -343,7 +343,7 @@ class WorkerContextFactoryTest : WordSpec({
 
             val helper = ContextFactoryTestHelper()
 
-            val resolvedConfig = helper.context().resolveConfigSecrets(config)
+            val resolvedConfig = helper.context().resolvePluginConfigSecrets(config)
 
             resolvedConfig shouldBe expectedConfig
         }
