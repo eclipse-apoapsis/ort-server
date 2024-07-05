@@ -96,7 +96,7 @@ const ProductComponent = () => {
     onSuccess() {
       toast({
         title: 'Delete Product',
-        description: 'Product deleted successfully.',
+        description: `Product "${product.name}" deleted successfully.`,
       });
       navigate({
         to: '/organizations/$orgId',

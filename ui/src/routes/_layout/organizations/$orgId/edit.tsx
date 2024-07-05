@@ -69,10 +69,10 @@ const EditOrganizationPage = () => {
 
   const { mutateAsync, isPending } =
     useOrganizationsServicePatchOrganizationById({
-      onSuccess() {
+      onSuccess(data) {
         toast({
           title: 'Edit Organization',
-          description: 'Organization updated successfully.',
+          description: `Organization "${data.name}" updated successfully.`,
         });
         navigate({
           to: '/organizations/$orgId',
