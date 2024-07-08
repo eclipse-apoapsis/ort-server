@@ -63,8 +63,8 @@ const CreateProductPage = () => {
         description: `New product "${data.name}" created successfully.`,
       });
       navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: data.id.toString() },
       });
     },
     onError(error: ApiError) {

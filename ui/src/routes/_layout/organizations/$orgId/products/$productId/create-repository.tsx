@@ -70,8 +70,12 @@ const CreateRepositoryPage = () => {
         description: `New repository "${data.url}" created successfully.`,
       });
       navigate({
-        to: '/organizations/$orgId/products/$productId',
-        params: { orgId: params.orgId, productId: params.productId },
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: data.id.toString(),
+        },
       });
     },
     onError(error: ApiError) {

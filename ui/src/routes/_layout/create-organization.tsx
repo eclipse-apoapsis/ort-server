@@ -61,7 +61,8 @@ const CreateOrganizationPage = () => {
         description: `New organization "${data.name}" created successfully.`,
       });
       navigate({
-        to: '/',
+        to: '/organizations/$orgId',
+        params: { orgId: data.id.toString() },
       });
     },
     onError(error: ApiError) {
