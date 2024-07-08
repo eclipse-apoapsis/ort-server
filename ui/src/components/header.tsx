@@ -210,6 +210,9 @@ export const Header = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
+            <Link to='/about'>
+              <DropdownMenuItem>About</DropdownMenuItem>
+            </Link>
             {user.hasRole('superuser') && (
               <Link to='/admin'>
                 <DropdownMenuItem>Admin</DropdownMenuItem>
