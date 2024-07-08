@@ -37,6 +37,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Input } from './ui/input';
@@ -218,6 +219,7 @@ export const Header = () => {
                 <DropdownMenuItem>Admin</DropdownMenuItem>
               </Link>
             )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
                 await user.signoutRedirect();
