@@ -726,9 +726,10 @@ class ReporterRunnerTest : WordSpec({
             downloadedAssets.keys shouldHaveSize 2
             downloadedAssets[Path("data")] shouldBe configDirectory
 
-            val imageDir = downloadedAssets[Path("images")].shouldNotBeNull()
-            imageDir.parentFile shouldBe configDirectory
-            imageDir.name shouldBe "imgs"
+            downloadedAssets[Path("images")] shouldNotBeNull {
+                parentFile shouldBe configDirectory
+                name shouldBe "imgs"
+            }
         }
 
         "download custom license text files" {

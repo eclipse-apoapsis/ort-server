@@ -541,7 +541,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 }
 
-                with(run.jobConfigs.reporter.shouldNotBeNull()) {
+                run.jobConfigs.reporter shouldNotBeNull {
                     copyrightGarbageFile shouldBe "COPYRIGHT_GARBAGE"
                     customLicenseTextDir shouldBe "LICENSE_TEXTS"
                 }

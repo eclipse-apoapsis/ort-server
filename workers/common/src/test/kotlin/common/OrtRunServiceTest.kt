@@ -560,8 +560,7 @@ class OrtRunServiceTest : WordSpec({
 
     "startAdvisorJob" should {
         "start the job" {
-            with(service.startAdvisorJob(fixtures.advisorJob.id)) {
-                this.shouldNotBeNull()
+            service.startAdvisorJob(fixtures.advisorJob.id) shouldNotBeNull {
                 startedAt shouldNot beNull()
                 status shouldBe JobStatus.RUNNING
             }
@@ -582,8 +581,7 @@ class OrtRunServiceTest : WordSpec({
 
     "startAnalyzerJob" should {
         "start the job" {
-            with(service.startAnalyzerJob(fixtures.analyzerJob.id)) {
-                this.shouldNotBeNull()
+            service.startAnalyzerJob(fixtures.analyzerJob.id) shouldNotBeNull {
                 startedAt shouldNot beNull()
                 status shouldBe JobStatus.RUNNING
             }
@@ -604,8 +602,7 @@ class OrtRunServiceTest : WordSpec({
 
     "startEvaluatorJob" should {
         "start the job" {
-            with(service.startEvaluatorJob(fixtures.evaluatorJob.id)) {
-                this.shouldNotBeNull()
+            service.startEvaluatorJob(fixtures.evaluatorJob.id) shouldNotBeNull {
                 startedAt shouldNot beNull()
                 status shouldBe JobStatus.RUNNING
             }
@@ -626,8 +623,7 @@ class OrtRunServiceTest : WordSpec({
 
     "startReporterJob" should {
         "start the job" {
-            with(service.startReporterJob(fixtures.reporterJob.id)) {
-                this.shouldNotBeNull()
+            service.startReporterJob(fixtures.reporterJob.id) shouldNotBeNull {
                 startedAt shouldNot beNull()
                 status shouldBe JobStatus.RUNNING
             }
@@ -648,8 +644,7 @@ class OrtRunServiceTest : WordSpec({
 
     "startScannerJob" should {
         "start the job" {
-            with(service.startScannerJob(fixtures.scannerJob.id)) {
-                this.shouldNotBeNull()
+            service.startScannerJob(fixtures.scannerJob.id) shouldNotBeNull {
                 startedAt shouldNot beNull()
                 status shouldBe JobStatus.RUNNING
             }

@@ -84,8 +84,7 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
 
             updateResult should beNull()
 
-            with(getJobRepository().get(job.id)) {
-                this.shouldNotBeNull()
+            getJobRepository().get(job.id) shouldNotBeNull {
                 startedAt shouldBe updatedStartedAt.toDatabasePrecision()
                 status shouldBe JobStatus.RUNNING
             }
@@ -139,8 +138,7 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
 
             updateResult should beNull()
 
-            with(getJobRepository().get(job.id)) {
-                this.shouldNotBeNull()
+            getJobRepository().get(job.id) shouldNotBeNull {
                 finishedAt shouldBe updatedFinishedAt.toDatabasePrecision()
                 status shouldBe updateStatus
             }
