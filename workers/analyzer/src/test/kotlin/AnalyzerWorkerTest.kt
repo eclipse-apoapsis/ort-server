@@ -129,7 +129,10 @@ class AnalyzerWorkerTest : StringSpec({
             every { downloadRepository(any(), any()) } returns projectDir
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(analyzerJob.ortRunId) } returns context
         }
@@ -187,7 +190,10 @@ class AnalyzerWorkerTest : StringSpec({
             every { downloadRepository(any(), any()) } returns projectDir
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(analyzerJob.ortRunId) } returns context
         }
@@ -244,7 +250,10 @@ class AnalyzerWorkerTest : StringSpec({
             every { downloadRepository(any(), any()) } returns projectDir
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
         val contextFactory = mockk<WorkerContextFactory> {
             every { createContext(analyzerJob.ortRunId) } returns context
         }
