@@ -81,13 +81,12 @@ class RepositoryServiceTest : WordSpec({
         "return the existing jobs" {
             val service = createService()
 
-            service.getJobs(fixtures.repository.id, fixtures.ortRun.index).let { jobs ->
-                jobs.shouldNotBeNull()
-                jobs.analyzer should beNull()
-                jobs.advisor should beNull()
-                jobs.scanner should beNull()
-                jobs.evaluator should beNull()
-                jobs.reporter should beNull()
+            service.getJobs(fixtures.repository.id, fixtures.ortRun.index) shouldNotBeNull {
+                analyzer should beNull()
+                advisor should beNull()
+                scanner should beNull()
+                evaluator should beNull()
+                reporter should beNull()
             }
 
             val analyzerJob = fixtures.createAnalyzerJob()
@@ -106,13 +105,12 @@ class RepositoryServiceTest : WordSpec({
             val evaluatorJob = fixtures.createEvaluatorJob()
             val reporterJob = fixtures.createReporterJob()
 
-            service.getJobs(fixtures.repository.id, fixtures.ortRun.index).let { jobs ->
-                jobs.shouldNotBeNull()
-                jobs.analyzer shouldBe analyzerJob
-                jobs.advisor shouldBe advisorJob
-                jobs.scanner shouldBe scannerJob
-                jobs.evaluator shouldBe evaluatorJob
-                jobs.reporter shouldBe reporterJob
+            service.getJobs(fixtures.repository.id, fixtures.ortRun.index) shouldNotBeNull {
+                analyzer shouldBe analyzerJob
+                advisor shouldBe advisorJob
+                scanner shouldBe scannerJob
+                evaluator shouldBe evaluatorJob
+                reporter shouldBe reporterJob
             }
         }
 

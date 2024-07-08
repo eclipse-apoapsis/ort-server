@@ -53,9 +53,10 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
 
-            val scannerRun = result.scanner.shouldNotBeNull()
-            scannerRun.provenances shouldBe emptySet()
-            scannerRun.scanResults shouldBe emptySet()
+            result.scanner shouldNotBeNull {
+                provenances shouldBe emptySet()
+                scanResults shouldBe emptySet()
+            }
         }
 
         "pass all the scanner job configuration properties to the scanner" {
