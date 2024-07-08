@@ -26,6 +26,7 @@ import java.io.File
 import java.io.IOException
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -143,10 +144,15 @@ class AnalyzerRunner(
         config: AnalyzerJobConfiguration,
         environmentConfig: ResolvedEnvironmentConfig
     ): OrtResult {
+        val packageCurationProviderConfigs = runBlocking {
+            context.resolveProviderPluginConfigSecrets(config.packageCurationProviders)
+        }
+        val resolvedConfig = config.copy(packageCurationProviders = packageCurationProviderConfigs)
+
         return if (environmentConfig.environmentVariables.isEmpty()) {
-            runInProcess(inputDir, config)
+            runInProcess(inputDir, resolvedConfig)
         } else {
-            runForked(context, inputDir, config, environmentConfig)
+            runForked(context, inputDir, resolvedConfig, environmentConfig)
         }
     }
 
@@ -195,7 +201,7 @@ class AnalyzerRunner(
      * [project directory][inputDir], and [config]. This function is used if custom environment variables need to be
      * set.
      */
-    private suspend fun runForked(
+    internal suspend fun runForked(
         context: WorkerContext,
         inputDir: File,
         config: AnalyzerJobConfiguration,
@@ -235,7 +241,7 @@ class AnalyzerRunner(
      * This function is used if no custom environment variables need to be set, and therefore, the Analyzer can be
      * invoked directly.
      */
-    private fun runInProcess(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
+    internal fun runInProcess(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
         val ortPackageManagerOptions =
             config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
 
