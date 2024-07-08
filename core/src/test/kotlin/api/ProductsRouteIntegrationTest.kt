@@ -210,7 +210,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/${createdProduct.id}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                organizationService.listProductsForOrganization(orgId) shouldBe emptyList()
+                organizationService.listProductsForOrganization(orgId).data shouldBe emptyList()
             }
         }
 

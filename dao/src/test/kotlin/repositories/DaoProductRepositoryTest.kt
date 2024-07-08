@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -111,9 +112,13 @@ class DaoProductRepositoryTest : StringSpec({
         val createdProduct2 = productRepository.create(name2, description2, orgId)
         productRepository.create(name1, description1, otherOrgId)
 
-        productRepository.listForOrganization(orgId) shouldBe listOf(
-            Product(createdProduct1.id, orgId, name1, description1),
-            Product(createdProduct2.id, orgId, name2, description2)
+        productRepository.listForOrganization(orgId) shouldBe ListQueryResult(
+            data = listOf(
+                Product(createdProduct1.id, orgId, name1, description1),
+                Product(createdProduct2.id, orgId, name2, description2)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
         )
     }
 
@@ -135,8 +140,10 @@ class DaoProductRepositoryTest : StringSpec({
         val createdProduct2 = productRepository.create(name2, description2, orgId)
         productRepository.create(name1, description1, otherOrgId)
 
-        productRepository.listForOrganization(orgId, parameters) shouldBe listOf(
-            Product(createdProduct2.id, orgId, name2, description2)
+        productRepository.listForOrganization(orgId, parameters) shouldBe ListQueryResult(
+            data = listOf(Product(createdProduct2.id, orgId, name2, description2)),
+            params = parameters,
+            totalCount = 2
         )
     }
 
@@ -168,7 +175,11 @@ class DaoProductRepositoryTest : StringSpec({
 
         productRepository.delete(createdProduct.id)
 
-        productRepository.listForOrganization(orgId) shouldBe emptyList()
+        productRepository.listForOrganization(orgId) shouldBe ListQueryResult(
+            data = emptyList(),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 0
+        )
     }
 
     "get should return null" {
