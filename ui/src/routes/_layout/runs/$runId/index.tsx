@@ -17,19 +17,33 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
-import { RunsService } from '@/api/requests';
+import { ApiError, RunsService } from '@/api/requests';
 
 export const Route = createFileRoute('/_layout/runs/$runId/')({
   beforeLoad: async ({ params }) => {
-    const { organizationId, productId, repositoryId, index } =
-      await RunsService.getOrtRunById({
+    let organizationId, productId, repositoryId, index;
+    try {
+      const ortRun = await RunsService.getOrtRunById({
         runId: Number.parseInt(params.runId),
       });
-
-    throw redirect({
-      to: `/organizations/${organizationId}/products/${productId}/repositories/${repositoryId}/runs/${index}`,
-    });
+      organizationId = ortRun.organizationId;
+      productId = ortRun.productId;
+      repositoryId = ortRun.repositoryId;
+      index = ortRun.index;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw notFound();
+      }
+    }
+    if (organizationId && productId && repositoryId && index) {
+      throw redirect({
+        to: `/organizations/${organizationId}/products/${productId}/repositories/${repositoryId}/runs/${index}`,
+      });
+    }
+  },
+  notFoundComponent: () => {
+    return <div>ORT run not found!</div>;
   },
 });
