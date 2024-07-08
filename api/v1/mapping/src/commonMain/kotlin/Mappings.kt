@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2 as ApiPagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
@@ -104,6 +105,7 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -361,7 +363,7 @@ fun NotifierJob.mapToApi() =
         finishedAt,
         configuration.mapToApi(),
         status.mapToApi()
-      )
+    )
 
 fun NotifierJobConfiguration.mapToApi() =
     ApiNotifierJobConfiguration(
@@ -586,12 +588,33 @@ fun ApiPagingOptions.mapToModel() =
         offset = offset
     )
 
+fun <T, E> ListQueryResult<T>.mapToApi(mapValues: (T) -> E) =
+    ApiPagedResponse2(
+        data = data.map(mapValues),
+        pagination = params.mapToApi().toPagingData(totalCount)
+    )
+
+fun ListQueryParameters.mapToApi() =
+    ApiPagingOptions(
+        limit = limit,
+        offset = offset,
+        sortProperties = sortFields.map { it.mapToApi() }
+    )
+
 fun ApiSortProperty.mapToModel() = OrderField(name, direction.mapToModel())
+
+fun OrderField.mapToApi() = ApiSortProperty(name, direction.mapToApi())
 
 fun ApiSortDirection.mapToModel() =
     when (this) {
         ApiSortDirection.ASCENDING -> OrderDirection.ASCENDING
         ApiSortDirection.DESCENDING -> OrderDirection.DESCENDING
+    }
+
+fun OrderDirection.mapToApi() =
+    when (this) {
+        OrderDirection.ASCENDING -> ApiSortDirection.ASCENDING
+        OrderDirection.DESCENDING -> ApiSortDirection.DESCENDING
     }
 
 fun SourceCodeOrigin.mapToApi() =

@@ -554,14 +554,15 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(
                         Product(createdProduct1.id, orgId, name1, description),
                         Product(createdProduct2.id, orgId, name2, description)
                     ),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
@@ -583,11 +584,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(Product(createdProduct2.id, orgId, name2, description)),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
