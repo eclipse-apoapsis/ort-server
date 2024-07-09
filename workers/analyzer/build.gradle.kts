@@ -25,8 +25,13 @@ val dockerBaseImagePrefix: String by project
 val dockerBaseImageTag: String by project
 
 plugins {
+    // Apply core plugins.
     application
 
+    // Apply precompiled plugins.
+    id("ort-server-base-conventions")
+
+    // Apply third-party plugins.
     alias(libs.plugins.jib)
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)

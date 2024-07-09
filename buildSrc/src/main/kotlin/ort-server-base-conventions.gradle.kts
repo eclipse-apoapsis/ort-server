@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,16 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-base-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinJvm)
+tasks.withType<AbstractArchiveTask>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }
 
-group = "org.eclipse.apoapsis.ortserver.utils"
-
-dependencies {
-    implementation(libs.typesafeConfig)
-
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
-    testImplementation(libs.kotestRunnerJunit5)
+tasks.withType<Jar>().configureEach {
+    manifest {
+        attributes["Implementation-Version"] = version
+    }
 }
+
+if (project != rootProject) version = rootProject.version
