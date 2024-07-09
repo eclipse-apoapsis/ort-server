@@ -23,8 +23,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 
-group = "org.ossreviewtoolkit.server"
-version = "0.0.1"
+group = "org.eclipse.apoapsis.ortserver.storage"
 
 dependencies {
     api(projects.storage.storageSpi)
