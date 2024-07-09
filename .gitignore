@@ -1,6 +1,6 @@
-/.gradle/
 /.idea/
 /.kotlin/
+.gradle/
 build/
 out/
 /*.iml
