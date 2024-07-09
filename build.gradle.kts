@@ -57,12 +57,6 @@ if (version == Project.DEFAULT_VERSION) {
 logger.lifecycle("Building ORT Server version $version.")
 
 allprojects {
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-    }
-
     apply(plugin = rootProject.libs.plugins.mavenPublish.get().pluginId)
 
     repositories {
