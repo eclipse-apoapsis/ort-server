@@ -17,27 +17,16 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply core plugins.
-    `java-test-fixtures`
+import io.gitlab.arturbosch.detekt.Detekt
 
+plugins {
     // Apply precompiled plugins.
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-conventions")
+
+    // Apply third-party plugins.
+    id("org.jetbrains.kotlin.multiplatform")
 }
 
-group = "org.eclipse.apoapsis.ortserver.storage"
-
-dependencies {
-    api(projects.storage.storageSpi)
-
-    implementation(projects.utils.config)
-
-    implementation(libs.s3)
-
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.testContainersLocalStack)
-
-    testFixturesRuntimeOnly(libs.testContainers)
+tasks.named<Detekt>("detekt") {
+    dependsOn("detektMetadataMain")
 }

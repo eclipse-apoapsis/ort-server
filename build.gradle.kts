@@ -27,11 +27,8 @@ val dockerBaseImageTag: String by project
 
 plugins {
     alias(libs.plugins.dependencyAnalysis)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.gitSemver)
     alias(libs.plugins.jib) apply false
-    alias(libs.plugins.kotlinJvm) apply false
-    alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.versions)
 }
@@ -101,22 +98,6 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = "io.gitlab.arturbosch.detekt")
-
-    dependencies {
-        "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
-
-        "detektPlugins"("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
-    }
-
-    detekt {
-        // Only configure differences to the default.
-        buildUponDefaultConfig = true
-        config.from(files("$rootDir/.detekt.yml"))
-        basePath = rootDir.path
-        source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
-    }
-
     val javaVersion = JavaVersion.current()
     val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaVersion.majorVersion) }
         .getOrDefault(enumValues<JvmTarget>().max())

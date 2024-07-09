@@ -19,10 +19,7 @@
 
 plugins {
     // Apply precompiled plugins.
-    id("ort-server-base-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinMultiplatform)
+    id("ort-server-kotlin-multiplatform-conventions")
 }
 
 group = "org.eclipse.apoapsis.ortserver.utils"

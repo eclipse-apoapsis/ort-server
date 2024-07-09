@@ -17,27 +17,31 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply core plugins.
-    `java-test-fixtures`
+import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
 
+private val Project.libs: LibrariesForLibs
+    get() = extensions.getByType()
+
+plugins {
     // Apply precompiled plugins.
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-base-conventions")
+
+    // Apply third-party plugins.
+    id("io.gitlab.arturbosch.detekt")
 }
 
-group = "org.eclipse.apoapsis.ortserver.storage"
-
 dependencies {
-    api(projects.storage.storageSpi)
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
+    detektPlugins("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
+}
 
-    implementation(projects.utils.config)
+detekt {
+    // Only configure differences to the default.
+    buildUponDefaultConfig = true
+    config.from(files("$rootDir/.detekt.yml"))
 
-    implementation(libs.s3)
+    source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.testContainersLocalStack)
-
-    testFixturesRuntimeOnly(libs.testContainers)
+    basePath = rootDir.path
 }
