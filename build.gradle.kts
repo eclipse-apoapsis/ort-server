@@ -66,8 +66,8 @@ allprojects {
             forRepository {
                 maven("https://jitpack.io")
             }
+
             filter {
-                includeGroup("com.github.oss-review-toolkit.ort")
                 includeModule("com.github.Ricky12Awesome", "json-schema-serialization")
             }
         }
