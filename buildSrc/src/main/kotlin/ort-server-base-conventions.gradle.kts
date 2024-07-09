@@ -17,6 +17,31 @@
  * License-Filename: LICENSE
  */
 
+repositories {
+    mavenCentral()
+
+    exclusiveContent {
+        forRepository {
+            maven("https://jitpack.io")
+        }
+
+        filter {
+            includeModule("com.github.Ricky12Awesome", "json-schema-serialization")
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven("https://packages.atlassian.com/maven-external")
+        }
+
+        filter {
+            includeGroupByRegex("com\\.atlassian\\..*")
+            includeVersionByRegex("log4j", "log4j", ".*-atlassian-.*")
+        }
+    }
+}
+
 tasks.withType<AbstractArchiveTask>().configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     isPreserveFileTimestamps = false
