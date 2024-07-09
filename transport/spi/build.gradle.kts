@@ -22,10 +22,9 @@ plugins {
     `java-test-fixtures`
 
     // Apply precompiled plugins.
-    id("ort-server-base-conventions")
+    id("ort-server-kotlin-jvm-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }
 

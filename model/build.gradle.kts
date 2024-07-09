@@ -17,14 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import io.gitlab.arturbosch.detekt.Detekt
-
 plugins {
     // Apply precompiled plugins.
-    id("ort-server-base-conventions")
+    id("ort-server-kotlin-multiplatform-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
 }
 
@@ -49,8 +46,4 @@ kotlin {
             }
         }
     }
-}
-
-tasks.named<Detekt>("detekt") {
-    dependsOn("detektMetadataMain")
 }
