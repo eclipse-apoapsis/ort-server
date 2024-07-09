@@ -125,7 +125,7 @@ jobs:
 
     - name: Get ORT-Server Version
       run: |
-        ORT_SERVER_VERSION=$(./gradlew -q properties --property version | sed -nr 's/version: (.+)/\1/p' | sed 's/+/-/')
+        ORT_SERVER_VERSION=$(./gradlew -q properties --property version | sed -nr 's/version: (.+)/\1/p')
         echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
 
     - name: Run Preparation Task ${{ matrix.docker.preparationTask }}
