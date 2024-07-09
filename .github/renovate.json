@@ -29,6 +29,10 @@
       "rangeStrategy": "in-range-only"
     },
     {
+      "matchPackageNames": ["lucide-react"],
+      "schedule": ["after 9pm on sunday"]
+    },
+    {
       "matchPackageNames": ["node"],
       "schedule": ["after 9pm on sunday"]
     }
