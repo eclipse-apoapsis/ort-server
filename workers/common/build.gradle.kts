@@ -18,9 +18,14 @@
  */
 
 plugins {
+    // Apply core plugins.
     application
     `java-test-fixtures`
 
+    // Apply precompiled plugins.
+    id("ort-server-base-conventions")
+
+    // Apply third-party plugins.
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinxSerialization)
 }

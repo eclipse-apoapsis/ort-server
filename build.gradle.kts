@@ -90,16 +90,6 @@ allprojects {
         }
     }
 
-    tasks.withType<Jar> {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        isPreserveFileTimestamps = false
-        isReproducibleFileOrder = true
-
-        manifest {
-            attributes["Implementation-Version"] = version
-        }
-    }
-
     mavenPublishing {
         pom {
             name = project.name
@@ -142,8 +132,6 @@ allprojects {
 }
 
 subprojects {
-    version = rootProject.version
-
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     dependencies {
