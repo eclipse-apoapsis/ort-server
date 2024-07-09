@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("Filename", "MatchingDeclarationName")
+
 package org.eclipse.apoapsis.ortserver.utils.test
 
 import io.kotest.core.Tag
