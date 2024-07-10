@@ -43,6 +43,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     }
 
     override fun get(id: Long) = db.entityQuery { RepositoryDao[id].mapToModel() }
+
     override fun getHierarchy(id: Long): Hierarchy = db.blockingQuery {
         val repository = RepositoryDao[id]
         val product = repository.product
