@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.SecretService
@@ -109,10 +110,8 @@ fun Route.products() = route("products/{productId}") {
 
             val repositoriesForProduct =
                 productService.listRepositoriesForProduct(productId, pagingOptions.mapToModel())
-            val pagedResponse = PagedResponse(
-                repositoriesForProduct.map { it.mapToApi() },
-                pagingOptions
-            )
+
+            val pagedResponse = repositoriesForProduct.mapToApi(Repository::mapToApi)
 
             call.respond(HttpStatusCode.OK, pagedResponse)
         }

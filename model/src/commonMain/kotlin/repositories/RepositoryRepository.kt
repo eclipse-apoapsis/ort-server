@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
@@ -56,7 +57,7 @@ interface RepositoryRepository {
     fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Repository>
+    ): ListQueryResult<Repository>
 
     /**
      * Update a repository by [id] with the [present][OptionalValue.Present] values.

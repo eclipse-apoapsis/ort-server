@@ -265,7 +265,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/${createdRepository.id}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                productService.listRepositoriesForProduct(productId) shouldBe emptyList()
+                productService.listRepositoriesForProduct(productId).data shouldBe emptyList()
             }
         }
 

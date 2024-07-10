@@ -116,7 +116,7 @@ class ListQueryTest : StringSpec() {
                 repositoryRepository.listForProduct(product.id, parameters)
             }
 
-            repositories shouldContainExactly listOf(repo2, repo1, repo3)
+            repositories.data shouldContainExactly listOf(repo2, repo1, repo3)
         }
 
         "Sorting is only allowed for properties marked as sortable" {

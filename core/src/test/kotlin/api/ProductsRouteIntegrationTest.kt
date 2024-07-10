@@ -43,6 +43,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -256,14 +258,15 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(
                         Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1),
                         Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)
                     ),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
                     )
                 )
@@ -286,11 +289,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("url", SortDirection.DESCENDING))
                     )
                 )

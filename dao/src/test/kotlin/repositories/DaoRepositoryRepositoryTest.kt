@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -114,10 +115,15 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val createdRepository1 = repositoryRepository.create(type, url1, productId)
         val createdRepository2 = repositoryRepository.create(type, url2, productId)
 
-        repositoryRepository.listForProduct(productId) shouldBe listOf(
-            Repository(createdRepository1.id, orgId, productId, type, url1),
-            Repository(createdRepository2.id, orgId, productId, type, url2)
-        )
+        repositoryRepository.listForProduct(productId) shouldBe
+                ListQueryResult(
+                    data = listOf(
+                        Repository(createdRepository1.id, orgId, productId, type, url1),
+                        Repository(createdRepository2.id, orgId, productId, type, url2)
+                    ),
+                    params = ListQueryParameters.DEFAULT,
+                    totalCount = 2
+                )
     }
 
     "listForProduct should apply query parameters" {
@@ -134,9 +140,12 @@ class DaoRepositoryRepositoryTest : StringSpec({
         repositoryRepository.create(type, url1, productId)
         val createdRepository2 = repositoryRepository.create(type, url2, productId)
 
-        repositoryRepository.listForProduct(productId, parameters) shouldBe listOf(
-            Repository(createdRepository2.id, orgId, productId, type, url2)
-        )
+        repositoryRepository.listForProduct(productId, parameters) shouldBe
+                ListQueryResult(
+                    data = listOf(Repository(createdRepository2.id, orgId, productId, type, url2)),
+                    params = parameters,
+                    totalCount = 2
+                )
     }
 
     "update should update an entry in the database" {
@@ -188,7 +197,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         repositoryRepository.delete(createdRepository.id)
 
-        repositoryRepository.listForProduct(productId) shouldBe emptyList()
+        repositoryRepository.listForProduct(productId).data shouldBe emptyList()
     }
 
     "get should return null" {
