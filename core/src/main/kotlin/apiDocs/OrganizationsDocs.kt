@@ -30,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -76,17 +78,18 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<Organization>> {
+            jsonBody<PagedResponse2<Organization>> {
                 example(
                     name = "List all organizations",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             Organization(id = 1, name = "First Organization", description = "Description"),
                             Organization(id = 2, name = "Second Organization")
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
@@ -191,17 +194,18 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<Product>> {
+            jsonBody<PagedResponse2<Product>> {
                 example(
                     name = "Get products of an organization",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             Product(id = 1, organizationId = 2, name = "My first product", description = "Description"),
                             Product(id = 2, organizationId = 2, name = "My second product")
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )
