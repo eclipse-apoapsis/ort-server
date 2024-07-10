@@ -25,10 +25,14 @@ import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 
 /**
  * Convert an instance to microsecond precision which is stored in the database. This function should always be used
@@ -36,6 +40,22 @@ import org.jetbrains.exposed.sql.SortOrder
  * database.
  */
 fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
+
+/**
+ * Run the provided [query] with the given [parameters] to create a [ListQueryResult]. The entities are mapped to the
+ * corresponding model objects using the provided [entityMapper].
+ */
+internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
+    parameters: ListQueryParameters,
+    entityMapper: (E) -> M,
+    query: SqlExpressionBuilder.() -> Op<Boolean>
+): ListQueryResult<M> {
+    val filterQuery = find(query)
+    val totalCount = filterQuery.count()
+    val data = filterQuery.apply(sortableTable, parameters).map(entityMapper)
+
+    return ListQueryResult(data, parameters, totalCount)
+}
 
 /**
  * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.

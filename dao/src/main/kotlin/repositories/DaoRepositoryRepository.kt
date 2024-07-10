@@ -24,12 +24,11 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -56,11 +55,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         db.blockingQuery { RepositoryDao.list(parameters).map { it.mapToModel() } }
 
     override fun listForProduct(productId: Long, parameters: ListQueryParameters) = db.blockingQuery {
-        val filterQuery = RepositoryDao.find { RepositoriesTable.productId eq productId }
-        val totalCount = filterQuery.count()
-        val data = filterQuery.apply(RepositoriesTable, parameters).map { it.mapToModel() }
-
-        ListQueryResult(data, parameters, totalCount)
+        RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) { RepositoriesTable.productId eq productId }
     }
 
     override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = db.blockingQuery {
