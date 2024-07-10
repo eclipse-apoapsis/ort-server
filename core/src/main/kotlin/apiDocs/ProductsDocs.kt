@@ -26,6 +26,8 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -133,10 +135,10 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<Repository>> {
+            jsonBody<PagedResponse2<Repository>> {
                 example(
                     name = "Get repositories of a product",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             Repository(
                                 id = 1,
@@ -153,9 +155,10 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
                                 url = "https://example.com/second/repo"
                             )
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING)),
                         )
                     )
