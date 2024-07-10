@@ -147,29 +147,32 @@ fun Route.organizations() = route("organizations") {
             call.respond(HttpStatusCode.NoContent)
         }
 
-        get("products", getOrganizationProducts) { _ ->
-            requirePermission(OrganizationPermission.READ_PRODUCTS)
+        route("products") {
+            get(getOrganizationProducts) { _ ->
+                requirePermission(OrganizationPermission.READ_PRODUCTS)
 
-            val orgId = call.requireIdParameter("organizationId")
-            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
+                val orgId = call.requireIdParameter("organizationId")
+                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-            val productsForOrganization =
-                organizationService.listProductsForOrganization(orgId, pagingOptions.mapToModel())
+                val productsForOrganization =
+                    organizationService.listProductsForOrganization(orgId, pagingOptions.mapToModel())
 
-            val pagedResponse = productsForOrganization.mapToApi(Product::mapToApi)
+                val pagedResponse = productsForOrganization.mapToApi(Product::mapToApi)
 
-            call.respond(HttpStatusCode.OK, pagedResponse)
-        }
+                call.respond(HttpStatusCode.OK, pagedResponse)
+            }
 
-        post("products", postProduct) {
-            requirePermission(OrganizationPermission.CREATE_PRODUCT)
+            post(postProduct) {
+                requirePermission(OrganizationPermission.CREATE_PRODUCT)
 
-            val createProduct = call.receive<CreateProduct>()
-            val orgId = call.requireIdParameter("organizationId")
+                val createProduct = call.receive<CreateProduct>()
+                val orgId = call.requireIdParameter("organizationId")
 
-            val createdProduct = organizationService.createProduct(createProduct.name, createProduct.description, orgId)
+                val createdProduct =
+                    organizationService.createProduct(createProduct.name, createProduct.description, orgId)
 
-            call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
+                call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
+            }
         }
 
         route("secrets") {
