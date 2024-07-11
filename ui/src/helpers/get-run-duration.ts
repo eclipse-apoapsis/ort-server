@@ -17,6 +17,11 @@
  * License-Filename: LICENSE
  */
 
+function divmod(a: number, b: number): [number, number] {
+  const remainder = a % b;
+  return [(a - remainder) / b, remainder];
+}
+
 export function calculateDuration(
   createdAt: string,
   finishedAt: string
@@ -29,12 +34,11 @@ export function calculateDuration(
   const durationMs = finishedAtDate.getTime() - createdAtDate.getTime();
 
   // Convert the duration from milliseconds to seconds
-  const durationSec = Math.floor(durationMs / 1000);
+  const [durationSec] = divmod(durationMs, 1000);
 
   // Calculate hours, minutes, and seconds
-  const hours = Math.floor(durationSec / 3600);
-  const minutes = Math.floor((durationSec % 3600) / 60);
-  const seconds = durationSec % 60;
+  const [durationMin, seconds] = divmod(durationSec, 60);
+  const [hours, minutes] = divmod(durationMin, 60);
 
   // Format the duration as "xh ym zs", omitting zero values except:
   // - when the duration is 0 -> "0s"
@@ -58,6 +62,17 @@ export function calculateDuration(
 
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
+
+  it('divmod', () => {
+    expect(divmod(10, 3)).toStrictEqual([3, 1]);
+    expect(divmod(8, 2)).toStrictEqual([4, 0]);
+    expect(divmod(1, 1)).toStrictEqual([1, 0]);
+    expect(divmod(1, 0)).toStrictEqual([NaN, NaN]);
+    expect(divmod(-10, 3)).toStrictEqual([-3, -1]);
+    expect(divmod(10, -3)).toStrictEqual([-3, 1]);
+    expect(divmod(-10, -3)).toStrictEqual([3, -1]);
+  });
+
   it('calculateDuration', () => {
     expect(
       calculateDuration('2024-06-11T13:07:45Z', '2024-06-11T13:08:15Z')
