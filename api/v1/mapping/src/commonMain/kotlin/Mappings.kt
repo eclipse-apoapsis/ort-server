@@ -51,7 +51,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2 as ApiPagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct

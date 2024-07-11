@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse2_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_ } from '@/api/requests';
+import { org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_ } from '@/api/requests';
 import {
   Tooltip,
   TooltipContent,
@@ -30,7 +30,7 @@ import {
 } from '@/helpers/get-status-colors';
 
 type OrtRunJobStatusProps = {
-  jobs: org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse2_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_['data'][0]['jobs'];
+  jobs: org_eclipse_apoapsis_ortserver_api_v1_model_PagedResponse_org_eclipse_apoapsis_ortserver_api_v1_model_OrtRunSummary_['data'][0]['jobs'];
 };
 
 export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {

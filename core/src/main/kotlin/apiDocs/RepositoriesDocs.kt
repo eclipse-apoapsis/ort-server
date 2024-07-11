@@ -53,7 +53,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
@@ -339,10 +339,10 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<OrtRunSummary>> {
+            jsonBody<PagedResponse<OrtRunSummary>> {
                 example(
                     name = "Get ORT runs",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             OrtRunSummary(
                                 id = 2,
@@ -521,10 +521,10 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "Get all secrets of a repository",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Secret(name = "rsa", description = "ssh rsa certificate"),
                             Secret(name = "secret", description = "another secret")

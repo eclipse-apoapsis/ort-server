@@ -51,7 +51,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredent
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -144,7 +144,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(org1.mapToApi(), org2.mapToApi()),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -176,7 +176,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = testUserClient.get("/api/v1/organizations")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(org2.mapToApi(), org4.mapToApi()),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -196,7 +196,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(org2.mapToApi()),
                     PagingData(
                         limit = 1,
@@ -552,7 +552,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(
                         Product(createdProduct1.id, orgId, name1, description),
                         Product(createdProduct2.id, orgId, name2, description)
@@ -582,7 +582,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(Product(createdProduct2.id, orgId, name2, description)),
                     PagingData(
                         limit = 1,
@@ -613,7 +613,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -635,7 +635,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret.mapToApi()),
                     PagingData(
                         limit = 1,
@@ -934,7 +934,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse2<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
+                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
                         apiServices
             }
         }
@@ -974,7 +974,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse2<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
+                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
                         apiServices
             }
         }

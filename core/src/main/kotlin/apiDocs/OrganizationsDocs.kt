@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -76,10 +76,10 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Organization>> {
+            jsonBody<PagedResponse<Organization>> {
                 example(
                     name = "List all organizations",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Organization(id = 1, name = "First Organization", description = "Description"),
                             Organization(id = 2, name = "Second Organization")
@@ -192,10 +192,10 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Product>> {
+            jsonBody<PagedResponse<Product>> {
                 example(
                     name = "Get products of an organization",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Product(id = 1, organizationId = 2, name = "My first product", description = "Description"),
                             Product(id = 2, organizationId = 2, name = "My second product")
@@ -258,10 +258,10 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "Get all secrets of an organization",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Secret(name = "rsa", description = "rsa certificate"),
                             Secret(name = "secret", description = "another secret")
@@ -411,10 +411,10 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<InfrastructureService>> {
+            jsonBody<PagedResponse<InfrastructureService>> {
                 example(
                     name = "List all infrastructure services for an organization",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             InfrastructureService(
                                 name = "Artifactory",
