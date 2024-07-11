@@ -25,7 +25,7 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -133,10 +133,10 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Repository>> {
+            jsonBody<PagedResponse<Repository>> {
                 example(
                     name = "Get repositories of a product",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Repository(
                                 id = 1,
@@ -220,10 +220,10 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse2<Secret>> {
+            jsonBody<PagedResponse<Secret>> {
                 example(
                     name = "List all secrets of a product",
-                    value = PagedResponse2(
+                    value = PagedResponse(
                         listOf(
                             Secret(name = "rsa", description = "ssh rsa certificate"),
                             Secret(name = "secret", description = "another secret")

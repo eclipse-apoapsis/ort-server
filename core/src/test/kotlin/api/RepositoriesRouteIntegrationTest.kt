@@ -59,7 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobCo
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -322,7 +322,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApiSummary(JobSummaries()), run2.mapToApiSummary(JobSummaries())),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -362,7 +362,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(run1.mapToApiSummary(jobs1), run2.mapToApiSummary(jobs2)),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -392,7 +392,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs$query")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(run2.mapToApiSummary(JobSummaries())),
                     PagingData(
                         limit = 1,
@@ -603,7 +603,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -625,7 +625,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret.mapToApi()),
                     PagingData(
                         limit = 1,

@@ -42,7 +42,7 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -256,7 +256,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(
                         Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1),
                         Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)
@@ -287,7 +287,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)),
                     PagingData(
                         limit = 1,
@@ -399,7 +399,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
                     PagingData(
                         limit = 20,
@@ -421,7 +421,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse2(
+                response shouldHaveBody PagedResponse(
                     listOf(secret.mapToApi()),
                     PagingData(
                         limit = 1,
