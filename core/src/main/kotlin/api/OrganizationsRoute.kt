@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
@@ -262,10 +263,8 @@ fun Route.organizations() = route("organizations") {
 
                 val infrastructureServicesForOrganization =
                     infrastructureServiceService.listForOrganization(orgId, pagingOptions.mapToModel())
-                val pagedResponse = PagedResponse(
-                    infrastructureServicesForOrganization.map { it.mapToApi() },
-                    pagingOptions
-                )
+
+                val pagedResponse = infrastructureServicesForOrganization.mapToApi(InfrastructureService::mapToApi)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }

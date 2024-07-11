@@ -82,7 +82,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 val organizationServices =
                     infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
-                organizationServices shouldContainOnly listOf(service)
+                organizationServices.data shouldContainOnly listOf(service)
             }
 
             "create an infrastructure service for a product" {
@@ -108,7 +108,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 val services = infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
 
-                services shouldContainExactlyInAnyOrder listOf(orgService1, orgService2)
+                services.data shouldContainExactlyInAnyOrder listOf(orgService1, orgService2)
             }
 
             "apply list query parameters" {
@@ -123,7 +123,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val services =
                     infrastructureServicesRepository.listForOrganization(fixtures.organization.id, parameters)
 
-                services shouldContainExactly expectedServices.take(4)
+                services.data shouldContainExactly expectedServices.take(4)
             }
         }
 
@@ -401,7 +401,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 infrastructureServicesRepository.deleteForOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
 
                 val orgServices = infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
-                orgServices shouldContainOnly listOf(service2)
+                orgServices.data shouldContainOnly listOf(service2)
             }
 
             "fail for a non-existing service" {
