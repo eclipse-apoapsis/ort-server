@@ -470,13 +470,19 @@ private class TestHelper(
     private fun initSecretRepository() {
         every {
             secretRepository.listForRepository(repository.id)
-        } returns secrets.filter { it.repository != null }
+        } returns mockk<ListQueryResult<Secret>> {
+            every { data } returns secrets.filter { it.repository != null }
+        }
         every {
             secretRepository.listForProduct(product.id)
-        } returns secrets.filter { it.product != null }
+        } returns mockk<ListQueryResult<Secret>> {
+            every { data } returns secrets.filter { it.product != null }
+        }
         every {
             secretRepository.listForOrganization(organization.id)
-        } returns secrets.filter { it.organization != null }
+        } returns mockk<ListQueryResult<Secret>> {
+            every { data } returns secrets.filter { it.organization != null }
+        }
     }
 
     /**

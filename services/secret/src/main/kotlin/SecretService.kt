@@ -24,6 +24,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
@@ -132,7 +133,7 @@ class SecretService(
     suspend fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret> = db.dbQuery {
+    ): ListQueryResult<Secret> = db.dbQuery {
         secretRepository.listForOrganization(organizationId, parameters)
     }
 
@@ -142,7 +143,7 @@ class SecretService(
     suspend fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret> = db.dbQuery {
+    ): ListQueryResult<Secret> = db.dbQuery {
         secretRepository.listForProduct(productId, parameters)
     }
 
@@ -152,7 +153,7 @@ class SecretService(
     suspend fun listForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret> = db.dbQuery {
+    ): ListQueryResult<Secret> = db.dbQuery {
         secretRepository.listForRepository(repositoryId, parameters)
     }
 

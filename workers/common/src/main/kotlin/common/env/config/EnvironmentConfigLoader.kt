@@ -197,9 +197,9 @@ class EnvironmentConfigLoader(
             }
         }
 
-        fetchSecrets { secretRepository.listForRepository(hierarchy.repository.id) }
-        fetchSecrets { secretRepository.listForProduct(hierarchy.product.id) }
-        fetchSecrets { secretRepository.listForOrganization(hierarchy.organization.id) }
+        fetchSecrets { secretRepository.listForRepository(hierarchy.repository.id).data }
+        fetchSecrets { secretRepository.listForProduct(hierarchy.product.id).data }
+        fetchSecrets { secretRepository.listForOrganization(hierarchy.organization.id).data }
 
         if (allSecretsNames.isNotEmpty()) {
             val message = "Invalid secret names. The following names cannot be resolved: $allSecretsNames"

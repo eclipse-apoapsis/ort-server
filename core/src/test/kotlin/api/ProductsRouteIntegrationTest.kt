@@ -42,10 +42,8 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
@@ -401,11 +399,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = 20,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
@@ -422,11 +421,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(secret.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
@@ -617,7 +617,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForProduct(productId) shouldBe emptyList()
+                secretRepository.listForProduct(productId).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()

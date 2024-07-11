@@ -147,7 +147,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             secretRepository.deleteForRepositoryAndName(repositoryId, name)
 
-            secretRepository.listForRepository(repositoryId) shouldBe emptyList()
+            secretRepository.listForRepository(repositoryId).data shouldBe emptyList()
         }
 
         "adding an ambiguous secret should cause an exception" {
@@ -169,7 +169,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("productSecret1", null, productId, null)
                 createSecret("repositorySecret1", null, null, repositoryId)
 
-                secretRepository.listForOrganization(organizationId) should containExactlyInAnyOrder(
+                secretRepository.listForOrganization(organizationId).data should containExactlyInAnyOrder(
                     organizationSecret1,
                     organizationSecret2
                 )
@@ -187,7 +187,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("organizationSecret1", organizationId, null, null)
                 createSecret("repositorySecret2", null, null, repositoryId)
 
-                secretRepository.listForProduct(productId) should containExactlyInAnyOrder(
+                secretRepository.listForProduct(productId).data should containExactlyInAnyOrder(
                     productSecret1,
                     productSecret2
                 )
@@ -205,7 +205,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 createSecret("organizationSecret2", organizationId, null, null)
                 createSecret("productSecret2", organizationId, null, null)
 
-                secretRepository.listForRepository(repositoryId) should containExactlyInAnyOrder(
+                secretRepository.listForRepository(repositoryId).data should containExactlyInAnyOrder(
                     repositorySecret1,
                     repositorySecret2
                 )

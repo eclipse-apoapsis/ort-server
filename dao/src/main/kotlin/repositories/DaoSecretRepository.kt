@@ -29,10 +29,11 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SecretsTable
-import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -74,29 +75,23 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
     }
 
     override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.blockingQueryCatching {
-        SecretDao.find { SecretsTable.organizationId eq organizationId }
-            .apply(SecretsTable, parameters)
-            .map { it.mapToModel() }
+        SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.organizationId eq organizationId }
     }.getOrElse {
         logger.error("Cannot list secrets for organization id $organizationId.", it)
         throw it
     }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<Secret> =
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters): ListQueryResult<Secret> =
         db.blockingQueryCatching {
-            SecretDao.find { SecretsTable.productId eq productId }
-                .apply(SecretsTable, parameters)
-                .map { it.mapToModel() }
+            SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.productId eq productId }
         }.getOrElse {
             logger.error("Cannot list secrets for product id $productId.", it)
             throw it
         }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<Secret> =
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<Secret> =
         db.blockingQueryCatching {
-            SecretDao.find { SecretsTable.repositoryId eq repositoryId }
-                .apply(SecretsTable, parameters)
-                .map { it.mapToModel() }
+            SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.repositoryId eq repositoryId }
         }.getOrElse {
             logger.error("Cannot list secrets for repository id $repositoryId.", it)
             throw it

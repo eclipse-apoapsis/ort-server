@@ -51,10 +51,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredent
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
@@ -615,11 +613,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
@@ -636,11 +635,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(secret.mapToApi()),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
@@ -831,7 +831,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForOrganization(organizationId) shouldBe emptyList()
+                secretRepository.listForOrganization(organizationId).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()

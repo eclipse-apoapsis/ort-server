@@ -63,6 +63,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
@@ -302,7 +304,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             val usernameSecret = Secret(20230627040646L, "p1", "repositoryUsername", null, null, null, repository)
             val passwordSecret = Secret(20230627070543L, "p2", "repositoryPassword", null, null, null, repository)
             declareMock<SecretRepository> {
-                every { listForRepository(repository.id) } returns listOf(usernameSecret, passwordSecret)
+                every { listForRepository(repository.id) } returns
+                        ListQueryResult(listOf(usernameSecret, passwordSecret), ListQueryParameters.DEFAULT, 2)
             }
 
             declareMock<InfrastructureServiceRepository> {
