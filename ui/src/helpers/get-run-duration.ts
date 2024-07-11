@@ -38,14 +38,19 @@ export function calculateDuration(
 
   // Calculate hours, minutes, and seconds
   const [durationMin, seconds] = divmod(durationSec, 60);
-  const [hours, minutes] = divmod(durationMin, 60);
+  const [durationHours, minutes] = divmod(durationMin, 60);
+  const [days, hours] = divmod(durationHours, 24);
 
-  // Format the duration as "xh ym zs", omitting zero values except:
+  // Format the duration as "<D>d <H>h <M>m <S>s", omitting zero values except:
   // - when the duration is 0 -> "0s"
   // - when minutes are 0 but hours or seconds are not -> "1h 0m 26s"
   const formattedDuration: string[] = [];
 
-  if (hours > 0) {
+  if (days > 0) {
+    formattedDuration.push(`${days}d`);
+  }
+
+  if (hours > 0 || (days > 0 && minutes > 0)) {
     formattedDuration.push(`${hours}h`);
   }
 
@@ -53,7 +58,7 @@ export function calculateDuration(
     formattedDuration.push(`${minutes}m`);
   }
 
-  if (seconds > 0 || (hours == 0 && minutes == 0)) {
+  if (seconds > 0 || (days == 0 && hours == 0 && minutes == 0)) {
     formattedDuration.push(`${seconds}s`);
   }
 
@@ -85,6 +90,6 @@ if (import.meta.vitest) {
     ).toBe('1h 0m 1s');
     expect(
       calculateDuration('2024-06-11T13:00:00Z', '2024-06-22T14:42:01Z')
-    ).toBe('265h 42m 1s');
+    ).toBe('11d 1h 42m 1s');
   });
 }
