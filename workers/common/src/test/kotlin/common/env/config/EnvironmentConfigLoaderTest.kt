@@ -49,6 +49,8 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
@@ -483,7 +485,8 @@ private class TestHelper(
      */
     private fun initServiceRepository() {
         every { serviceRepository.listForProduct(hierarchy.product.id) } returns productServices
-        every { serviceRepository.listForOrganization(hierarchy.organization.id) } returns organizationServices
+        every { serviceRepository.listForOrganization(hierarchy.organization.id) } returns
+                ListQueryResult(organizationServices, ListQueryParameters.DEFAULT, organizationServices.size.toLong())
     }
 }
 

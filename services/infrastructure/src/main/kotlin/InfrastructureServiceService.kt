@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
@@ -122,7 +123,7 @@ class InfrastructureServiceService(
     suspend fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<InfrastructureService> = db.dbQuery {
+    ): ListQueryResult<InfrastructureService> = db.dbQuery {
         infrastructureServiceRepository.listForOrganization(organizationId, parameters)
     }
 

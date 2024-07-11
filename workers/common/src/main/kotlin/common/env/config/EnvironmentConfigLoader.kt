@@ -338,7 +338,7 @@ private class ServiceResolver(
 
     /** A map with the services defined for the current organization. */
     private val organizationServices by lazy {
-        serviceRepository.listForOrganization(hierarchy.organization.id).associateByName()
+        serviceRepository.listForOrganization(hierarchy.organization.id).data.associateByName()
     }
 
     /**

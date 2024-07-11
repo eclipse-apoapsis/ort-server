@@ -934,7 +934,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
+                response.body<PagedResponse2<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
+                        apiServices
             }
         }
 
@@ -973,7 +974,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
+                response.body<PagedResponse2<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
+                        apiServices
             }
         }
 
@@ -1201,7 +1203,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForOrganization(orgId) should beEmpty()
+                infrastructureServiceRepository.listForOrganization(orgId).data should beEmpty()
             }
         }
 

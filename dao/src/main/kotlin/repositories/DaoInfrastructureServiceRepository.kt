@@ -31,11 +31,13 @@ import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -108,8 +110,11 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     override fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters
-    ): List<InfrastructureService> =
-        listBlocking(parameters) { InfrastructureServicesTable.organizationId eq organizationId }
+    ): ListQueryResult<InfrastructureService> = db.blockingQuery {
+        InfrastructureServicesDao.listQuery(parameters, InfrastructureServicesDao::mapToModel) {
+            InfrastructureServicesTable.organizationId eq organizationId
+        }
+    }
 
     override fun getByOrganizationAndName(organizationId: Long, name: String): InfrastructureService? =
         listBlocking(ListQueryParameters.DEFAULT, selectByOrganizationAndName(organizationId, name)).singleOrNull()

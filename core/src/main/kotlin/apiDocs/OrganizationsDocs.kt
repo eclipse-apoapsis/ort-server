@@ -412,10 +412,10 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<InfrastructureService>> {
+            jsonBody<PagedResponse2<InfrastructureService>> {
                 example(
                     name = "List all infrastructure services for an organization",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             InfrastructureService(
                                 name = "Artifactory",
@@ -432,9 +432,10 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
                                 passwordSecretRef = "gitHubPassword"
                             )
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )

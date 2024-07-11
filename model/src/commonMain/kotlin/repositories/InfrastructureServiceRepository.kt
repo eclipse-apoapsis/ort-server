@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
@@ -60,7 +61,7 @@ interface InfrastructureServiceRepository {
     fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<InfrastructureService>
+    ): ListQueryResult<InfrastructureService>
 
     /**
      * Return the [InfrastructureService] with the given [name] that is assigned to the given

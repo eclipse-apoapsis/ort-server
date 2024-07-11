@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
@@ -218,13 +219,14 @@ class InfrastructureServiceServiceTest : WordSpec({
         "return a list with the infrastructure services of the organization" {
             val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
             val parameters = ListQueryParameters(limit = 7, offset = 11)
+            val expectedResult = ListQueryResult(services, parameters, services.size.toLong())
 
             testWithHelper {
-                every { repository.listForOrganization(ORGANIZATION_ID, parameters) } returns services
+                every { repository.listForOrganization(ORGANIZATION_ID, parameters) } returns expectedResult
 
                 val result = service.listForOrganization(ORGANIZATION_ID, parameters)
 
-                result shouldBe services
+                result shouldBe expectedResult
             }
         }
     }
