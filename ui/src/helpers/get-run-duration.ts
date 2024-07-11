@@ -39,19 +39,21 @@ export function calculateDuration(
   // Format the duration as "xh ym zs", omitting zero values except:
   // - when the duration is 0 -> "0s"
   // - when minutes are 0 but hours or seconds are not -> "1h 0m 26s"
-  let formattedDuration = '';
+  const formattedDuration: string[] = [];
+
   if (hours > 0) {
-    formattedDuration += `${hours}h `;
-  }
-  if (minutes > 0 || (hours > 0 && seconds > 0)) {
-    formattedDuration += `${minutes}m `;
-  }
-  if (seconds > 0 || (hours == 0 && minutes == 0)) {
-    formattedDuration += `${seconds}s`;
+    formattedDuration.push(`${hours}h`);
   }
 
-  // Trim any trailing space and return
-  return formattedDuration.trim();
+  if (minutes > 0 || (hours > 0 && seconds > 0)) {
+    formattedDuration.push(`${minutes}m`);
+  }
+
+  if (seconds > 0 || (hours == 0 && minutes == 0)) {
+    formattedDuration.push(`${seconds}s`);
+  }
+
+  return formattedDuration.join(' ');
 }
 
 if (import.meta.vitest) {
