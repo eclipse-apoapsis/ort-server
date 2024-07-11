@@ -90,7 +90,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
                 .apply(OrtRunsTable, parameters)
                 .map { it.mapToModel() }
         }.getOrElse {
-            logger.error("Cannot list repository for id $repositoryId.", it)
+            logger.error("Cannot list ORT runs for repository $repositoryId.", it)
             emptyList()
         }
 
