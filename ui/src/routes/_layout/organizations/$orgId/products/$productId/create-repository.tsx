@@ -24,7 +24,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRepositoriesServiceCreateRepository } from '@/api/queries';
-import { $CreateRepository, ApiError } from '@/api/requests';
+import { $RepositoryType, ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,7 +55,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   url: z.string(),
-  type: z.enum($CreateRepository.properties.type.enum),
+  type: z.enum($RepositoryType.enum),
 });
 
 const CreateRepositoryPage = () => {
@@ -139,9 +139,7 @@ const CreateRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(
-                        $CreateRepository.properties.type.enum
-                      ).map((type) => (
+                      {Object.values($RepositoryType.enum).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>

@@ -19,10 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktorswaggerui.dsl.delete
-import io.github.smiley4.ktorswaggerui.dsl.get
-import io.github.smiley4.ktorswaggerui.dsl.patch
-import io.github.smiley4.ktorswaggerui.dsl.post
+import io.github.smiley4.ktorswaggerui.dsl.routing.delete
+import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktorswaggerui.dsl.routing.patch
+import io.github.smiley4.ktorswaggerui.dsl.routing.post
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call

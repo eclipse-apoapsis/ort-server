@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.ktorValidation)
     implementation(libs.micrometerRegistryGraphite)
     implementation(libs.ortUtils)
+    implementation(libs.bundles.schemaKenerator)
 
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.logaccess.loki)

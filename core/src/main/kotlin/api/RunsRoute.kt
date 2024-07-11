@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktorswaggerui.dsl.get
+import io.github.smiley4.ktorswaggerui.dsl.routing.get
 
 import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders

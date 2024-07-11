@@ -19,21 +19,21 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.OpenApiRequest
-import io.github.smiley4.ktorswaggerui.dsl.OpenApiResponse
-import io.github.smiley4.ktorswaggerui.dsl.OpenApiSimpleBody
+import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRequest
+import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiResponse
+import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiSimpleBody
 
 import io.ktor.http.ContentType
 
 inline fun <reified T> OpenApiRequest.jsonBody(noinline block: OpenApiSimpleBody.() -> Unit) =
     body<T> {
-        mediaType(ContentType.Application.Json)
+        mediaTypes = setOf(ContentType.Application.Json)
         block()
     }
 
 inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiSimpleBody.() -> Unit) =
     body<T> {
-        mediaType(ContentType.Application.Json)
+        mediaTypes = setOf(ContentType.Application.Json)
         block()
     }
 

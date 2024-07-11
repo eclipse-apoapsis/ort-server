@@ -51,7 +51,7 @@ kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
 ktor = "2.3.12"
-ktorSwaggerUi = "2.10.1"
+ktorSwaggerUi = "3.2.0"
 kubernetesClient = "18.0.1"
 log4j = "2.23.1"
 logback = "1.5.6"
@@ -60,6 +60,7 @@ mockk = "1.13.12"
 ort = "26.0.0"
 postgres = "42.7.3"
 qpidJmsClient = "2.5.0"
+schemaKenerator = "1.0.1"
 slf4j = "2.0.13"
 testContainers = "1.19.8"
 typesafeConfig = "1.4.3"
@@ -153,6 +154,10 @@ postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
 s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
+schemaKeneratorCore = { module = "io.github.smiley4:schema-kenerator-core", version.ref = "schemaKenerator" }
+schemaKeneratorJsonschema = { module = "io.github.smiley4:schema-kenerator-jsonschema", version.ref = "schemaKenerator" }
+schemaKeneratorReflection = { module = "io.github.smiley4:schema-kenerator-reflection", version.ref = "schemaKenerator" }
+schemaKeneratorSwagger = { module = "io.github.smiley4:schema-kenerator-swagger", version.ref = "schemaKenerator" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
@@ -166,3 +171,4 @@ wiremockStandalone = { module = "com.github.tomakehurst:wiremock-standalone", ve
 
 [bundles]
 flyway = ["flywayCore", "flywayPostgresql"]
+schemaKenerator = ["schemaKeneratorCore", "schemaKeneratorJsonschema", "schemaKeneratorReflection", "schemaKeneratorSwagger"]
