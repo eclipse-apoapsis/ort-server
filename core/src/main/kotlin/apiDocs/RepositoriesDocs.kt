@@ -53,10 +53,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
@@ -523,17 +521,18 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<Secret>> {
+            jsonBody<PagedResponse2<Secret>> {
                 example(
                     name = "Get all secrets of a repository",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             Secret(name = "rsa", description = "ssh rsa certificate"),
                             Secret(name = "secret", description = "another secret")
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
                         )
                     )

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
@@ -61,7 +62,7 @@ interface SecretRepository {
     fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
+    ): ListQueryResult<Secret>
 
     /**
      * List all secrets for a [product][productId] according to the given [parameters].
@@ -69,7 +70,7 @@ interface SecretRepository {
     fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
+    ): ListQueryResult<Secret>
 
     /**
      * List all secrets for a [repository][repositoryId] according to the given [parameters].
@@ -77,7 +78,7 @@ interface SecretRepository {
     fun listForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Secret>
+    ): ListQueryResult<Secret>
 
     /**
      * Update a secret by [organizationId] and name with the [present][OptionalValue.Present] values.

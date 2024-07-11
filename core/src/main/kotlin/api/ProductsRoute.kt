@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
@@ -55,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.SecretService
@@ -138,10 +138,8 @@ fun Route.products() = route("products/{productId}") {
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
             val secretsForProduct = secretService.listForProduct(productId, pagingOptions.mapToModel())
-            val pagedResponse = PagedResponse(
-                secretsForProduct.map { it.mapToApi() },
-                pagingOptions
-            )
+
+            val pagedResponse = secretsForProduct.mapToApi(Secret::mapToApi)
 
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
