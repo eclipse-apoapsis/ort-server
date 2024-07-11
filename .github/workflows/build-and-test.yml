@@ -83,6 +83,9 @@ jobs:
     - name: Build UI
       run: pnpm -C ui build
 
+    - name: Test UI
+      run: pnpm -C ui test
+
   test:
     needs: build
     runs-on: ubuntu-latest
