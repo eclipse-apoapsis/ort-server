@@ -49,6 +49,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { AdvisorFields } from './-components/advisor-fields';
 import { AnalyzerFields } from './-components/analyzer-fields';
 import { EvaluatorFields } from './-components/evaluator-fields';
+import { NotifierFields } from './-components/notifier-fields';
 import { ReporterFields } from './-components/reporter-fields';
 import { ScannerFields } from './-components/scanner-fields';
 import { packageManagers } from './-types';
@@ -88,6 +89,29 @@ const formSchema = z.object({
     reporter: z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
+    }),
+    notifier: z.object({
+      enabled: z.boolean(),
+      notifierRules: z.string().optional(),
+      resolutionsFile: z.string().optional(),
+      mail: z.object({
+        recipientAddresses: z.array(z.object({ email: z.string() })),
+        mailServerConfiguration: z.object({
+          hostName: z.string(),
+          port: z.coerce.number().int(),
+          username: z.string(),
+          password: z.string(),
+          useSsl: z.boolean(),
+          fromAddress: z.string(),
+        }),
+      }),
+      jira: z.object({
+        jiraRestClientConfiguration: z.object({
+          serverUrl: z.string(),
+          username: z.string(),
+          password: z.string(),
+        }),
+      }),
     }),
     parameters: z.array(keyValueSchema).optional(),
   }),
@@ -154,6 +178,27 @@ const CreateRunPage = () => {
       reporter: {
         enabled: true,
         formats: ['ortresult', 'WebApp'],
+      },
+      notifier: {
+        enabled: false,
+        mail: {
+          recipientAddresses: [{ email: '' }],
+          mailServerConfiguration: {
+            hostName: 'localhost',
+            port: 587,
+            username: '',
+            password: '',
+            useSsl: true,
+            fromAddress: '',
+          },
+        },
+        jira: {
+          jiraRestClientConfiguration: {
+            serverUrl: '',
+            username: '',
+            password: '',
+          },
+        },
       },
     },
     jobConfigContext: 'main',
@@ -223,6 +268,69 @@ const CreateRunPage = () => {
               ortRun.jobConfigs.reporter?.formats ||
               baseDefaults.jobConfigs.reporter.formats,
           },
+          notifier: {
+            enabled:
+              ortRun.jobConfigs.notifier !== undefined &&
+              ortRun.jobConfigs.notifier !== null,
+            notifierRules:
+              ortRun.jobConfigs.notifier?.notifierRules || undefined,
+            resolutionsFile:
+              ortRun.jobConfigs.notifier?.resolutionsFile || undefined,
+            mail: {
+              recipientAddresses: [{ email: '' }],
+              mailServerConfiguration: {
+                hostName:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.hostName ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .hostName,
+                port:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.port ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .port,
+                username:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.username ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .username,
+                password:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.password ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .password,
+                useSsl:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.useSsl ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .useSsl,
+                fromAddress:
+                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
+                    ?.fromAddress ||
+                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
+                    .fromAddress,
+              },
+            },
+            jira: {
+              jiraRestClientConfiguration: {
+                serverUrl:
+                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
+                    ?.serverUrl ||
+                  baseDefaults.jobConfigs.notifier.jira
+                    .jiraRestClientConfiguration.serverUrl,
+                username:
+                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
+                    ?.username ||
+                  baseDefaults.jobConfigs.notifier.jira
+                    .jiraRestClientConfiguration.username,
+                password:
+                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
+                    ?.password ||
+                  baseDefaults.jobConfigs.notifier.jira
+                    .jiraRestClientConfiguration.password,
+              },
+            },
+          },
           // Convert the parameters object map coming from the back-end to an array of key-value pairs.
           // This needs to be done because the useFieldArray hook requires an array of objects.
           parameters: ortRun.jobConfigs.parameters
@@ -281,12 +389,14 @@ const CreateRunPage = () => {
             values.jobConfigs.analyzer.enabledPackageManagers,
         }
       : undefined;
+
     const advisorConfig = values.jobConfigs.advisor.enabled
       ? {
           skipExcluded: values.jobConfigs.advisor.skipExcluded,
           advisors: values.jobConfigs.advisor.advisors,
         }
       : undefined;
+
     const scannerConfig = values.jobConfigs.scanner.enabled
       ? {
           createMissingArchives: true,
@@ -294,6 +404,7 @@ const CreateRunPage = () => {
           skipExcluded: values.jobConfigs.scanner.skipExcluded,
         }
       : undefined;
+
     const evaluatorConfig = values.jobConfigs.evaluator.enabled
       ? {
           // Only include the config parameter structures if the corresponding form fields are not empty.
@@ -308,9 +419,58 @@ const CreateRunPage = () => {
             values.jobConfigs.evaluator.resolutionsFile || undefined,
         }
       : undefined;
+
     const reporterConfig = values.jobConfigs.reporter.enabled
       ? {
           formats: values.jobConfigs.reporter.formats,
+        }
+      : undefined;
+
+    // Convert the recipient addresses back to an array of strings, as expected by the back-end.
+    const addresses = values.jobConfigs.notifier.mail.recipientAddresses
+      ? values.jobConfigs.notifier.mail.recipientAddresses.map(
+          (recipient) => recipient.email
+        )
+      : undefined;
+    const notifierConfig = values.jobConfigs.notifier.enabled
+      ? {
+          notifierRules: values.jobConfigs.notifier.notifierRules || undefined,
+          resolutionsFile:
+            values.jobConfigs.notifier.resolutionsFile || undefined,
+          mail: {
+            recipientAddresses: addresses,
+            mailServerConfiguration: {
+              hostName:
+                values.jobConfigs.notifier.mail.mailServerConfiguration
+                  .hostName,
+              port: values.jobConfigs.notifier.mail.mailServerConfiguration
+                .port,
+              username:
+                values.jobConfigs.notifier.mail.mailServerConfiguration
+                  .username,
+              password:
+                values.jobConfigs.notifier.mail.mailServerConfiguration
+                  .password,
+              useSsl:
+                values.jobConfigs.notifier.mail.mailServerConfiguration.useSsl,
+              fromAddress:
+                values.jobConfigs.notifier.mail.mailServerConfiguration
+                  .fromAddress,
+            },
+          },
+          jira: {
+            jiraRestClientConfiguration: {
+              serverUrl:
+                values.jobConfigs.notifier.jira.jiraRestClientConfiguration
+                  .serverUrl,
+              username:
+                values.jobConfigs.notifier.jira.jiraRestClientConfiguration
+                  .username,
+              password:
+                values.jobConfigs.notifier.jira.jiraRestClientConfiguration
+                  .password,
+            },
+          },
         }
       : undefined;
 
@@ -343,6 +503,7 @@ const CreateRunPage = () => {
         scanner: scannerConfig,
         evaluator: evaluatorConfig,
         reporter: reporterConfig,
+        notifier: notifierConfig,
         parameters: parameters,
       },
       labels: labels,
@@ -556,6 +717,7 @@ const CreateRunPage = () => {
               <ScannerFields form={form} />
               <EvaluatorFields form={form} />
               <ReporterFields form={form} />
+              <NotifierFields form={form} />
             </Accordion>
           </CardContent>
           <CardFooter>
