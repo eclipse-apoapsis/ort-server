@@ -60,6 +60,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -322,11 +324,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(run1.mapToApiSummary(JobSummaries()), run2.mapToApiSummary(JobSummaries())),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("index", SortDirection.ASCENDING))
                     )
                 )
@@ -361,11 +364,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(run1.mapToApiSummary(jobs1), run2.mapToApiSummary(jobs2)),
-                    PagingOptions(
+                    PagingData(
                         limit = DEFAULT_LIMIT,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(SortProperty("index", SortDirection.ASCENDING))
                     )
                 )
@@ -390,11 +394,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs$query")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedResponse2(
                     listOf(run2.mapToApiSummary(JobSummaries())),
-                    PagingOptions(
+                    PagingData(
                         limit = 1,
                         offset = 0,
+                        totalCount = 2,
                         sortProperties = listOf(
                             SortProperty("revision", SortDirection.DESCENDING),
                             SortProperty("createdAt", SortDirection.DESCENDING)
@@ -525,7 +530,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 runResponse.jobConfigs.analyzer.environmentConfig shouldBe envConfig
                 runResponse.jobConfigs.parameters shouldBe parameters
 
-                val run = ortRunRepository.listForRepository(createdRepository.id).single()
+                val run = ortRunRepository.listForRepository(createdRepository.id).data.single()
 
                 val orchestratorMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 orchestratorMessage.header.ortRunId shouldBe run.id

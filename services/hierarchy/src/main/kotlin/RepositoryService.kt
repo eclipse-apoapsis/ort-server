@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -97,7 +98,7 @@ class RepositoryService(
     suspend fun getOrtRuns(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<OrtRun> = db.dbQuery {
+    ): ListQueryResult<OrtRun> = db.dbQuery {
         ortRunRepository.listForRepository(repositoryId, parameters)
     }
 

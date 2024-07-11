@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -149,7 +150,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
         val ortRun1 = ortRunRepository.create(repositoryId, "revision1", null, jobConfigurations, null, labelsMap)
         val ortRun2 = ortRunRepository.create(repositoryId, "revision2", null, jobConfigurations, null, labelsMap)
 
-        ortRunRepository.listForRepository(repositoryId) shouldBe listOf(ortRun1, ortRun2)
+        ortRunRepository.listForRepository(repositoryId) shouldBe
+                ListQueryResult(listOf(ortRun1, ortRun2), ListQueryParameters.DEFAULT, 2)
     }
 
     "listForRepositories should apply query parameters" {
@@ -161,7 +163,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             limit = 1
         )
 
-        ortRunRepository.listForRepository(repositoryId, parameters) shouldBe listOf(ortRun2)
+        ortRunRepository.listForRepository(repositoryId, parameters) shouldBe
+                ListQueryResult(listOf(ortRun2), parameters, 2)
     }
 
     "update should update an entry in the database" {
@@ -245,7 +248,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
         ortRunRepository.delete(ortRun.id)
 
-        ortRunRepository.listForRepository(repositoryId) shouldBe emptyList()
+        ortRunRepository.listForRepository(repositoryId).data shouldBe emptyList()
     }
 })
 

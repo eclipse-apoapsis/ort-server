@@ -24,6 +24,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
@@ -59,7 +60,7 @@ interface OrtRunRepository {
     fun listForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<OrtRun>
+    ): ListQueryResult<OrtRun>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are

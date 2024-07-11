@@ -54,6 +54,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
@@ -339,10 +341,10 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<OrtRunSummary>> {
+            jsonBody<PagedResponse2<OrtRunSummary>> {
                 example(
                     name = "Get ORT runs",
-                    value = PagedResponse(
+                    value = PagedResponse2(
                         listOf(
                             OrtRunSummary(
                                 id = 2,
@@ -386,9 +388,10 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                                 resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
                             )
                         ),
-                        PagingOptions(
+                        PagingData(
                             limit = 20,
                             offset = 0,
+                            totalCount = 2,
                             sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING)),
                         )
                     )
