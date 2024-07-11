@@ -31,4 +31,7 @@ data class ListQueryResult<T>(
 
     /** The total number of items, without applying the [params]. */
     val totalCount: Long
-)
+) {
+    suspend fun <R> mapData(transform: suspend (T) -> R): ListQueryResult<R> =
+        ListQueryResult(data.map { transform(it) }, params, totalCount)
+}

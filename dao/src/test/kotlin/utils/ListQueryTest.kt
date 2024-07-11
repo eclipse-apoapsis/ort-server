@@ -153,7 +153,7 @@ class ListQueryTest : StringSpec() {
                 ortRunRepository.listForRepository(repo.id, parameters)
             }
 
-            runsFromQuery shouldContainExactly runs
+            runsFromQuery.data shouldContainExactly runs
         }
 
         "A limit can be set for queries" {

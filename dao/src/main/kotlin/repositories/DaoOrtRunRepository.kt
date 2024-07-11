@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
-import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -61,7 +62,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         labels: Map<String, String>,
         issues: Collection<Issue>
     ): OrtRun = db.blockingQuery {
-        val nextIndex = (listForRepository(repositoryId).maxByOrNull { it.index }?.index ?: 0) + 1
+        val nextIndex = (listForRepository(repositoryId).data.maxByOrNull { it.index }?.index ?: 0) + 1
 
         OrtRunDao.new {
             this.index = nextIndex
@@ -84,14 +85,12 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             .firstOrNull()?.mapToModel()
     }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): List<OrtRun> =
+    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
         db.blockingQueryCatching {
-            OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId }
-                .apply(OrtRunsTable, parameters)
-                .map { it.mapToModel() }
+            OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
             logger.error("Cannot list ORT runs for repository $repositoryId.", it)
-            emptyList()
+            ListQueryResult(emptyList(), parameters, 0L)
         }
 
     override fun update(
