@@ -1,6 +1,6 @@
-# This Dockerfile is the base image for the Evaluator Docker image.
+# syntax=docker/dockerfile:1.9
 
-# syntax=docker/dockerfile:1.4
+# This Dockerfile is the base image for the Evaluator Docker image.
 
 # Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 #

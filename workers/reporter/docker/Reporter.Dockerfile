@@ -1,6 +1,6 @@
-# This Dockerfile is the base image for the Reporter Docker image.
+# syntax=docker/dockerfile:1.9
 
-# syntax=docker/dockerfile:1.4
+# This Dockerfile is the base image for the Reporter Docker image.
 
 # Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 #

@@ -1,7 +1,7 @@
+# syntax=docker/dockerfile:1.9
+
 # This Dockerfile is the base image for the Scanner Docker image. It contains all the tooling required to run the
 # Scanner.
-
-# syntax=docker/dockerfile:1.3
 
 # Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 #
