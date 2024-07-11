@@ -56,7 +56,7 @@ class OpenApiIntegrationTest : WordSpec({
 
                 val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
 
-                json["openapi"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe "3.0.1"
+                json["openapi"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe "3.1.0"
 
                 val info = json["info"].shouldNotBeNull().jsonObject
                 info["title"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe "ORT Server API"

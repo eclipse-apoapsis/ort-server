@@ -398,14 +398,11 @@ const CreateRunPage = () => {
     // in the request body. If a job is disabled in the UI, we pass "undefined"
     // as the configuration for that job in the request body, in effect leaving
     // it empty, and thus disabling the job.
-    const analyzerConfig = values.jobConfigs.analyzer.enabled
-      ? {
-          allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
-          skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-          enabledPackageManagers:
-            values.jobConfigs.analyzer.enabledPackageManagers,
-        }
-      : undefined;
+    const analyzerConfig = {
+      allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
+      skipExcluded: values.jobConfigs.analyzer.skipExcluded,
+      enabledPackageManagers: values.jobConfigs.analyzer.enabledPackageManagers,
+    };
 
     const advisorConfig = values.jobConfigs.advisor.enabled
       ? {

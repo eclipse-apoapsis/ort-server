@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
+import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
@@ -34,10 +34,9 @@ val getLiveness: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Liveness> {
-                example(
-                    name = "Liveness",
+                example("Liveness") {
                     value = Liveness("ORT Server running")
-                )
+                }
             }
         }
     }

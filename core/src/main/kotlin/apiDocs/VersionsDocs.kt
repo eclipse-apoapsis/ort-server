@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.OpenApiRoute
+import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
@@ -32,13 +32,12 @@ val getVersions: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Map<String, String>> {
-                example(
-                    name = "Versions",
+                example("Versions") {
                     value = mapOf(
                         "ORT Server" to "1.0.0",
                         "ORT Core" to "25.1.0"
                     )
-                )
+                }
             }
         }
     }
