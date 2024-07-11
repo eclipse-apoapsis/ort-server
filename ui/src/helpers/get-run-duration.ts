@@ -53,3 +53,21 @@ export function calculateDuration(
   // Trim any trailing space and return
   return formattedDuration.trim();
 }
+
+if (import.meta.vitest) {
+  const { it, expect } = import.meta.vitest;
+  it('calculateDuration', () => {
+    expect(
+      calculateDuration('2024-06-11T13:07:45Z', '2024-06-11T13:08:15Z')
+    ).toBe('30s');
+    expect(
+      calculateDuration('2024-06-11T13:07:45Z', '2024-06-11T13:12:15Z')
+    ).toBe('4m 30s');
+    expect(
+      calculateDuration('2024-06-11T13:00:00Z', '2024-06-11T14:00:01Z')
+    ).toBe('1h 0m 1s');
+    expect(
+      calculateDuration('2024-06-11T13:00:00Z', '2024-06-22T14:42:01Z')
+    ).toBe('265h 42m 1s');
+  });
+}
