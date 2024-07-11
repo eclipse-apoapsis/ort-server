@@ -25,18 +25,6 @@ import kotlinx.serialization.Serializable
  * A response object for returning paged lists of entities.
  */
 @Serializable
-data class PagedResponse<E>(
-    /** The list of entities to return. */
-    val data: List<E>,
-
-    /** The [PagingOptions] used for the request. */
-    val options: PagingOptions
-)
-
-/**
- * A response object for returning paged lists of entities.
- */
-@Serializable
 data class PagedResponse2<E>(
     /** The list of returned entities. */
     val data: List<E>,
