@@ -277,7 +277,12 @@ const CreateRunPage = () => {
             resolutionsFile:
               ortRun.jobConfigs.notifier?.resolutionsFile || undefined,
             mail: {
-              recipientAddresses: [{ email: '' }],
+              // Convert the recipient addresses string array coming from the back-end to an array of objects.
+              // This needs to be done because the useFieldArray hook requires an array of objects.
+              recipientAddresses:
+                ortRun.jobConfigs.notifier?.mail?.recipientAddresses?.map(
+                  (email) => ({ email })
+                ) || baseDefaults.jobConfigs.notifier.mail.recipientAddresses,
               mailServerConfiguration: {
                 hostName:
                   ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
