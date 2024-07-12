@@ -19,10 +19,16 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
 import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
-import { OrganizationsService } from '@/api/requests';
+import { Organization, OrganizationsService } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,24 +39,63 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<Organization>[] = [
+  {
+    accessorKey: 'organization',
+    header: () => <div>Organizations</div>,
+    cell: ({ row }) => (
+      <>
+        <Link
+          className='block font-semibold text-blue-400 hover:underline'
+          to={`/organizations/$orgId`}
+          params={{ orgId: row.original.id.toString() }}
+        >
+          {row.original.name}
+        </Link>
+
+        <div className='hidden text-sm text-muted-foreground md:inline'>
+          {row.original.description}
+        </div>
+      </>
+    ),
+  },
+];
 
 export const IndexPage = () => {
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+
   const { data } = useSuspenseQuery({
-    queryKey: [useOrganizationsServiceGetOrganizationsKey],
-    queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
+    queryKey: [useOrganizationsServiceGetOrganizationsKey, pageIndex, pageSize],
+    queryFn: () =>
+      OrganizationsService.getOrganizations({
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+      }),
+  });
+
+  const table = useReactTable({
+    data: data?.data || [],
+    columns,
+    pageCount: Math.ceil(data.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
   });
 
   return (
@@ -76,37 +121,7 @@ export const IndexPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
-                  Organizations
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.data.map((org) => {
-                return (
-                  <TableRow key={org.id}>
-                    <TableCell>
-                      <div>
-                        <Link
-                          className='font-semibold text-blue-400 hover:underline'
-                          to={`/organizations/$orgId`}
-                          params={{ orgId: org.id.toString() }}
-                        >
-                          {org.name}
-                        </Link>
-                      </div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        {org.description as unknown as string}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataTable table={table} />
         </CardContent>
       </Card>
     </TooltipProvider>
@@ -114,10 +129,16 @@ export const IndexPage = () => {
 };
 
 export const Route = createFileRoute('/_layout/')({
-  loader: async ({ context }) => {
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, deps: { page, pageSize } }) => {
     await context.queryClient.ensureQueryData({
-      queryKey: [useOrganizationsServiceGetOrganizationsKey],
-      queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
+      queryKey: [useOrganizationsServiceGetOrganizationsKey, page, pageSize],
+      queryFn: () =>
+        OrganizationsService.getOrganizations({
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }),
     });
   },
   component: IndexPage,
