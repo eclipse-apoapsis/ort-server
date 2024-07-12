@@ -81,6 +81,7 @@ const RepoComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const locale = navigator.language;
 
   const [{ data: repo }, { data: runs }] = useSuspenseQueries({
     queries: [
@@ -249,7 +250,7 @@ const RepoComponent = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(run.createdAt).toLocaleString().split(',')[0]}
+                      {new Date(run.createdAt).toLocaleString(locale)}
                     </TableCell>
                     <TableCell>
                       <Badge
