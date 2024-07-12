@@ -25,6 +25,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue.Present
+
 /**
  * A property type that can be used in PATCH requests. It represents two different states:
  * * [OptionalValue.Present]
@@ -62,15 +64,6 @@ sealed interface OptionalValue<out T> {
     object Absent : OptionalValue<Nothing>
 
     /**
-     * Return the [value][Present.value] if this [OptionalValue] is [Present], otherwise throw an
-     * [IllegalArgumentException].
-     */
-    val valueOrThrow: T get() {
-        require(this is Present)
-        return value
-    }
-
-    /**
      * Execute [function] if this value is [Present].
      */
     fun ifPresent(function: (T) -> Unit) {
@@ -95,6 +88,15 @@ sealed interface OptionalValue<out T> {
             is Present -> Present(transform(value))
             else -> Absent
         }
+}
+
+/**
+ * Return the [value][Present.value] if this [OptionalValue] is [Present], otherwise throw an
+ * [IllegalArgumentException].
+ */
+val <T> OptionalValue<T>.valueOrThrow: T get() {
+    require(this is Present)
+    return value
 }
 
 class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : KSerializer<OptionalValue<T>> {
