@@ -19,6 +19,11 @@
 
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
 
 import {
@@ -26,7 +31,13 @@ import {
   useProductsServiceGetProductByIdKey,
   useRepositoriesServiceGetRepositoriesByProductIdKey,
 } from '@/api/queries';
-import { ApiError, ProductsService, RepositoriesService } from '@/api/requests';
+import {
+  ApiError,
+  ProductsService,
+  RepositoriesService,
+  Repository,
+} from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import {
@@ -49,25 +60,48 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<Repository>[] = [
+  {
+    accessorKey: 'repository',
+    header: () => <div>Repositories</div>,
+    cell: ({ row }) => (
+      <>
+        <Link
+          className='block font-semibold text-blue-400 hover:underline'
+          to={'/organizations/$orgId/products/$productId/repositories/$repoId'}
+          params={{
+            orgId: row.original.organizationId.toString(),
+            productId: row.original.productId.toString(),
+            repoId: row.original.id.toString(),
+          }}
+        >
+          {row.original.url}
+        </Link>
+        <div className='text-sm text-muted-foreground md:inline'>
+          {row.original.type}
+        </div>
+      </>
+    ),
+  },
+];
 
 const ProductComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
   const [{ data: product }, { data: repositories }] = useSuspenseQueries({
     queries: [
@@ -82,11 +116,14 @@ const ProductComponent = () => {
         queryKey: [
           useRepositoriesServiceGetRepositoriesByProductIdKey,
           params.productId,
+          pageIndex,
+          pageSize,
         ],
         queryFn: async () =>
           await RepositoriesService.getRepositoriesByProductId({
             productId: Number.parseInt(params.productId),
-            limit: 1000,
+            limit: pageSize,
+            offset: pageIndex * pageSize,
           }),
       },
     ],
@@ -117,6 +154,20 @@ const ProductComponent = () => {
       productId: Number.parseInt(params.productId),
     });
   }
+
+  const table = useReactTable({
+    data: repositories?.data || [],
+    columns,
+    pageCount: Math.ceil(repositories.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
 
   return (
     <TooltipProvider>
@@ -200,43 +251,7 @@ const ProductComponent = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
-                  Repositories
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {repositories?.data.map((repo) => {
-                return (
-                  <TableRow key={repo.id}>
-                    <TableCell>
-                      <div>
-                        <Link
-                          to={
-                            '/organizations/$orgId/products/$productId/repositories/$repoId'
-                          }
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                            repoId: repo.id.toString(),
-                          }}
-                          className='font-semibold text-blue-400 hover:underline'
-                        >
-                          {repo.url}
-                        </Link>
-                      </div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        {repo.type}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataTable table={table} />
         </CardContent>
       </Card>
     </TooltipProvider>
@@ -246,7 +261,9 @@ const ProductComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/'
 )({
-  loader: async ({ context, params }) => {
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
         queryKey: [useProductsServiceGetProductByIdKey, params.productId],
@@ -259,11 +276,14 @@ export const Route = createFileRoute(
         queryKey: [
           useRepositoriesServiceGetRepositoriesByProductIdKey,
           params.productId,
+          page,
+          pageSize,
         ],
         queryFn: () =>
           RepositoriesService.getRepositoriesByProductId({
             productId: Number.parseInt(params.productId),
-            limit: 1000,
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
           }),
       }),
     ]);
