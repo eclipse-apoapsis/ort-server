@@ -95,7 +95,7 @@ const formSchema = z.object({
       notifierRules: z.string().optional(),
       resolutionsFile: z.string().optional(),
       mail: z.object({
-        recipientAddresses: z.array(z.object({ email: z.string() })),
+        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
         mailServerConfiguration: z.object({
           hostName: z.string(),
           port: z.coerce.number().int(),
@@ -174,6 +174,10 @@ const CreateRunPage = () => {
       },
       evaluator: {
         enabled: true,
+        ruleSet: '',
+        licenseClassificationsFile: '',
+        copyrightGarbageFile: '',
+        resolutionsFile: '',
       },
       reporter: {
         enabled: true,
@@ -181,8 +185,10 @@ const CreateRunPage = () => {
       },
       notifier: {
         enabled: false,
+        notifierRules: '',
+        resolutionsFile: '',
         mail: {
-          recipientAddresses: [{ email: '' }],
+          recipientAddresses: [{}],
           mailServerConfiguration: {
             hostName: 'localhost',
             port: 587,
@@ -201,7 +207,7 @@ const CreateRunPage = () => {
         },
       },
     },
-    jobConfigContext: 'main',
+    jobConfigContext: '',
   };
 
   // Default values for the form are either taken from "baseDefaults" or,
@@ -251,14 +257,18 @@ const CreateRunPage = () => {
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
-            ruleSet: ortRun.jobConfigs.evaluator?.ruleSet || undefined,
+            ruleSet:
+              ortRun.jobConfigs.evaluator?.ruleSet ||
+              baseDefaults.jobConfigs.evaluator.ruleSet,
             licenseClassificationsFile:
               ortRun.jobConfigs.evaluator?.licenseClassificationsFile ||
-              undefined,
+              baseDefaults.jobConfigs.evaluator.licenseClassificationsFile,
             copyrightGarbageFile:
-              ortRun.jobConfigs.evaluator?.copyrightGarbageFile || undefined,
+              ortRun.jobConfigs.evaluator?.copyrightGarbageFile ||
+              baseDefaults.jobConfigs.evaluator.copyrightGarbageFile,
             resolutionsFile:
-              ortRun.jobConfigs.evaluator?.resolutionsFile || undefined,
+              ortRun.jobConfigs.evaluator?.resolutionsFile ||
+              baseDefaults.jobConfigs.evaluator.resolutionsFile,
           },
           reporter: {
             enabled:
@@ -273,9 +283,11 @@ const CreateRunPage = () => {
               ortRun.jobConfigs.notifier !== undefined &&
               ortRun.jobConfigs.notifier !== null,
             notifierRules:
-              ortRun.jobConfigs.notifier?.notifierRules || undefined,
+              ortRun.jobConfigs.notifier?.notifierRules ||
+              baseDefaults.jobConfigs.notifier.notifierRules,
             resolutionsFile:
-              ortRun.jobConfigs.notifier?.resolutionsFile || undefined,
+              ortRun.jobConfigs.notifier?.resolutionsFile ||
+              baseDefaults.jobConfigs.notifier.resolutionsFile,
             mail: {
               // Convert the recipient addresses string array coming from the back-end to an array of objects.
               // This needs to be done because the useFieldArray hook requires an array of objects.
@@ -443,7 +455,7 @@ const CreateRunPage = () => {
           resolutionsFile:
             values.jobConfigs.notifier.resolutionsFile || undefined,
           mail: {
-            recipientAddresses: addresses,
+            recipientAddresses: addresses || undefined,
             mailServerConfiguration: {
               hostName:
                 values.jobConfigs.notifier.mail.mailServerConfiguration
