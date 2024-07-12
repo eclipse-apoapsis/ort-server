@@ -19,6 +19,11 @@
 
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
 
 import {
@@ -29,8 +34,10 @@ import {
 import {
   ApiError,
   OrganizationsService,
+  Product,
   ProductsService,
 } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import {
@@ -53,25 +60,47 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<Product>[] = [
+  {
+    accessorKey: 'product',
+    header: () => <div>Products</div>,
+    cell: ({ row }) => (
+      <>
+        <Link
+          className='block font-semibold text-blue-400 hover:underline'
+          to={`/organizations/$orgId/products/$productId`}
+          params={{
+            orgId: row.original.organizationId.toString(),
+            productId: row.original.id.toString(),
+          }}
+        >
+          {row.original.name}
+        </Link>
+        <div className='text-sm text-muted-foreground md:inline'>
+          {row.original.description}
+        </div>
+      </>
+    ),
+  },
+];
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
   const [{ data: organization }, { data: products }] = useSuspenseQueries({
     queries: [
@@ -83,11 +112,17 @@ const OrganizationComponent = () => {
           }),
       },
       {
-        queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
+        queryKey: [
+          useProductsServiceGetOrganizationProductsKey,
+          params.orgId,
+          pageIndex,
+          pageSize,
+        ],
         queryFn: async () =>
           await ProductsService.getOrganizationProducts({
             organizationId: Number.parseInt(params.orgId),
-            limit: 1000,
+            limit: pageSize,
+            offset: pageIndex * pageSize,
           }),
       },
     ],
@@ -118,6 +153,20 @@ const OrganizationComponent = () => {
       organizationId: Number.parseInt(params.orgId),
     });
   }
+
+  const table = useReactTable({
+    data: products?.data || [],
+    columns,
+    pageCount: Math.ceil(products.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
 
   return (
     <TooltipProvider>
@@ -195,40 +244,7 @@ const OrganizationComponent = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className='flex flex-row items-center justify-between pb-1.5 pr-0'>
-                  Products
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products?.data.map((product) => {
-                return (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div>
-                        <Link
-                          to={`/organizations/$orgId/products/$productId`}
-                          params={{
-                            orgId: organization.id.toString(),
-                            productId: product.id.toString(),
-                          }}
-                          className='font-semibold text-blue-400 hover:underline'
-                        >
-                          {product.name}
-                        </Link>
-                      </div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        {product.description}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataTable table={table} />
         </CardContent>
       </Card>
     </TooltipProvider>
@@ -236,7 +252,9 @@ const OrganizationComponent = () => {
 };
 
 export const Route = createFileRoute('/_layout/organizations/$orgId/')({
-  loader: async ({ context, params }) => {
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
         queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
@@ -246,11 +264,17 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
           }),
       }),
       context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetOrganizationProductsKey, params.orgId],
+        queryKey: [
+          useProductsServiceGetOrganizationProductsKey,
+          params.orgId,
+          page,
+          pageSize,
+        ],
         queryFn: () =>
           ProductsService.getOrganizationProducts({
             organizationId: Number.parseInt(params.orgId),
-            limit: 1000,
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
           }),
       }),
     ]);
