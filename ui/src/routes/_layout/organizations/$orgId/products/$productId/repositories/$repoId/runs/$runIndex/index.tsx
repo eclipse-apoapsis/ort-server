@@ -46,6 +46,7 @@ import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 const RunComponent = () => {
   const params = Route.useParams();
+  const locale = navigator.language;
 
   const { data: ortRun } = useSuspenseQuery({
     queryKey: [
@@ -131,7 +132,7 @@ const RunComponent = () => {
               <TableCell>Created at</TableCell>
               <TableCell>
                 <div className='font-medium'>
-                  {new Date(ortRun.createdAt).toLocaleString()}
+                  {new Date(ortRun.createdAt).toLocaleString(locale)}
                 </div>
               </TableCell>
             </TableRow>
@@ -140,7 +141,7 @@ const RunComponent = () => {
                 <TableCell>Finished at</TableCell>
                 <TableCell>
                   <div className='font-medium'>
-                    {new Date(ortRun.finishedAt).toLocaleString()}
+                    {new Date(ortRun.finishedAt).toLocaleString(locale)}
                   </div>
                 </TableCell>
               </TableRow>
