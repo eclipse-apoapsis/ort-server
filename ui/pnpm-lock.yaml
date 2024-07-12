@@ -61,13 +61,13 @@ importers:
         version: 5.51.1(@tanstack/react-query@5.51.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.33.7
-        version: 1.44.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.44.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.19.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/router-devtools':
         specifier: ^1.33.7
-        version: 1.44.4(@tanstack/react-router@1.44.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.44.5(@tanstack/react-router@1.44.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1313,8 +1313,8 @@ packages:
     peerDependencies:
       react: ^18.0.0
 
-  '@tanstack/react-router@1.44.4':
-    resolution: {integrity: sha512-3iDOUB8/7ocHmIIYMxASkiV43oraA7/j0RuGvHsmkYFZM/4seMGMOra78BWOHZtQa1Yts+6wydCM7a7WHbjh1A==}
+  '@tanstack/react-router@1.44.5':
+    resolution: {integrity: sha512-ijzsjLRCFQOYZlKb2b25AQr+2TuP3TPKeWM8iF7FHLq8vldnG5ygiDruwO1reyxf52pmx16Lcgc2R+7cDXjtgA==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=18'
@@ -1338,11 +1338,11 @@ packages:
     engines: {node: '>=12'}
     hasBin: true
 
-  '@tanstack/router-devtools@1.44.4':
-    resolution: {integrity: sha512-sw6OFuBURAkC5W8AtfgTXqwQkuWGNKH6/vKv/9TG6rIFtFOOsewLmY6K2gQLi7MU4tu1SBWLqyMQfXW6Muwrvw==}
+  '@tanstack/router-devtools@1.44.5':
+    resolution: {integrity: sha512-bCxNt2+r5UZu4l9m08R5UOFNVljwDEObbYIQy6sfB6IC8YMUMcpmi4f8gqV+/seEa+UxuoszAEUFFoFwoLdl7g==}
     engines: {node: '>=12'}
     peerDependencies:
-      '@tanstack/react-router': ^1.44.4
+      '@tanstack/react-router': ^1.44.5
       react: '>=18'
       react-dom: '>=18'
 
@@ -4025,7 +4025,7 @@ snapshots:
       '@tanstack/query-core': 5.51.1
       react: 18.3.1
 
-  '@tanstack/react-router@1.44.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tanstack/react-router@1.44.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/history': 1.44.2
       '@tanstack/react-store': 0.5.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4053,9 +4053,9 @@ snapshots:
       chokidar: 3.6.0
       yargs: 17.7.2
 
-  '@tanstack/router-devtools@1.44.4(@tanstack/react-router@1.44.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tanstack/router-devtools@1.44.5(@tanstack/react-router@1.44.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@tanstack/react-router': 1.44.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router': 1.44.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       clsx: 2.1.1
       date-fns: 2.30.0
       goober: 2.1.14(csstype@3.1.3)
