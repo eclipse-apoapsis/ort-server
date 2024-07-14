@@ -18,7 +18,7 @@
 # License-Filename: LICENSE
 
 # Stage 1: Build the UI.
-FROM node:20-slim@sha256:b5e567dc37677a1485cec21e2f0c0df517c7afe40c1ebc28248c41520c77b3d0 AS build
+FROM node:20-slim@sha256:8d5c168087c841ac367468f77935aa78eff3195b48bf9eb05cbc761e6b9db507 AS build
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
