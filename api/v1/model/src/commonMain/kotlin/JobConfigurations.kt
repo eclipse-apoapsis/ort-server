@@ -318,14 +318,14 @@ data class ReporterJobConfiguration(
      * A list with [ReporterAsset]s pointing to files that must be downloaded before the generation of reports is
      * started.
      */
-    val assetFiles: List<ReporterAsset> = emptyList(),
+    val assetFiles: List<ReporterAsset>? = null,
 
     /**
      * A list with [ReporterAsset]s pointing to directories that must be downloaded before the generation of reports
      * is started. This is analogous to [assetFiles], but all the files contained in the specified directory are
      * downloaded.
      */
-    val assetDirectories: List<ReporterAsset> = emptyList(),
+    val assetDirectories: List<ReporterAsset>? = null,
 
     /**
      * A map of configuration options that are specific to a concrete reporter.
