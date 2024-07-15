@@ -57,7 +57,7 @@ class OrchestratorService(
         labels: Map<String, String>?
     ): OrtRun {
         val ortRun = db.dbQuery(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
-            maxAttempts = 20
+            maxAttempts = 25
             ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels.orEmpty())
         }
 
