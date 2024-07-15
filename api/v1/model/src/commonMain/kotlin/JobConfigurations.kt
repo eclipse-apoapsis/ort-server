@@ -75,7 +75,7 @@ data class AnalyzerJobConfiguration(
     /**
      * The list of package curation providers to use.
      */
-    val packageCurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageCurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
      * Package manager specific configurations. The key needs to match the name of the package manager class, e.g.
