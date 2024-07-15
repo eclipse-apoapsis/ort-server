@@ -20,6 +20,11 @@
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import {
   EditIcon,
   OctagonAlert,
   PlusIcon,
@@ -32,7 +37,12 @@ import {
   useRepositoriesServiceGetOrtRunsKey,
   useRepositoriesServiceGetRepositoryByIdKey,
 } from '@/api/queries';
-import { ApiError, RepositoriesService } from '@/api/requests';
+import {
+  ApiError,
+  GetOrtRunsResponse,
+  RepositoriesService,
+} from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { ToastError } from '@/components/toast-error';
@@ -57,14 +67,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -73,15 +75,104 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
 
 const pollInterval =
   Number.parseInt(import.meta.env.VITE_RUN_POLL_INTERVAL) || 10000;
+
+const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
+  {
+    accessorKey: 'runIndex',
+    header: () => <div>Run</div>,
+    cell: ({ row }) => (
+      <Link
+        className='font-semibold text-blue-400 hover:underline'
+        to={
+          '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+        }
+        params={{
+          orgId: row.original.organizationId.toString(),
+          productId: row.original.productId.toString(),
+          repoId: row.original.repositoryId.toString(),
+          runIndex: row.original.index.toString(),
+        }}
+      >
+        {row.original.index}
+      </Link>
+    ),
+    size: 50,
+  },
+  {
+    accessorKey: 'createdAt',
+    header: () => <div>Created At</div>,
+    cell: ({ row }) => (
+      <div>
+        {new Date(row.original.createdAt).toLocaleString(navigator.language)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'runStatus',
+    header: () => <div>Run Status</div>,
+    cell: ({ row }) => (
+      <Badge
+        className={`border ${getStatusBackgroundColor(row.original.status)}`}
+      >
+        {row.original.status}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: 'jobStatuses',
+    header: () => <div>Job Status</div>,
+    cell: ({ row }) => <OrtRunJobStatus jobs={row.original.jobs} />,
+  },
+  {
+    accessorKey: 'duration',
+    header: () => <div>Duration</div>,
+    cell: ({ row }) =>
+      row.original.finishedAt
+        ? calculateDuration(row.original.createdAt, row.original.finishedAt)
+        : '-',
+  },
+  {
+    accessorKey: 'actions',
+    header: () => <div>Actions</div>,
+    cell: ({ row }) => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant='outline' asChild size='sm'>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.productId.toString(),
+                repoId: row.original.repositoryId.toString(),
+              }}
+              search={{
+                rerunIndex: row.original.index,
+              }}
+            >
+              Rerun
+              <Redo2 className='ml-1 h-4 w-4' />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Create a new ORT run based on this run</TooltipContent>
+      </Tooltip>
+    ),
+  },
+];
 
 const RepoComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const locale = navigator.language;
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
   const [{ data: repo }, { data: runs }] = useSuspenseQueries({
     queries: [
@@ -93,11 +184,17 @@ const RepoComponent = () => {
           }),
       },
       {
-        queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
+        queryKey: [
+          useRepositoriesServiceGetOrtRunsKey,
+          params.repoId,
+          pageIndex,
+          pageSize,
+        ],
         queryFn: async () =>
           await RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
-            limit: 1000,
+            limit: pageSize,
+            offset: pageIndex * pageSize,
             sort: '-index',
           }),
         refetchInterval: pollInterval,
@@ -131,6 +228,20 @@ const RepoComponent = () => {
       repositoryId: Number.parseInt(params.repoId),
     });
   }
+
+  const table = useReactTable({
+    data: runs.data || [],
+    columns,
+    pageCount: Math.ceil(runs.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
 
   return (
     <TooltipProvider>
@@ -216,87 +327,7 @@ const RepoComponent = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Run</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Run Status</TableHead>
-                <TableHead>Job Statuses</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {runs?.data.map((run) => {
-                return (
-                  <TableRow key={run.id}>
-                    <TableCell>
-                      <div>
-                        <Link
-                          to={
-                            '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                          }
-                          params={{
-                            orgId: params.orgId,
-                            productId: params.productId,
-                            repoId: repo.id.toString(),
-                            runIndex: run.index.toString(),
-                          }}
-                          className='font-semibold text-blue-400 hover:underline'
-                        >
-                          {run.index}
-                        </Link>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(run.createdAt).toLocaleString(locale)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`border ${getStatusBackgroundColor(run.status)}`}
-                      >
-                        {run.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <OrtRunJobStatus jobs={run.jobs} />
-                    </TableCell>
-                    <TableCell>
-                      {run.finishedAt
-                        ? calculateDuration(run.createdAt, run.finishedAt)
-                        : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant='outline' asChild size='sm'>
-                            <Link
-                              to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                              params={{
-                                orgId: params.orgId,
-                                productId: params.productId,
-                                repoId: params.repoId,
-                              }}
-                              search={{
-                                rerunIndex: run.index,
-                              }}
-                            >
-                              Rerun
-                              <Redo2 className='ml-1 h-4 w-4' />
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Create a new ORT run based on this run
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataTable table={table} />
         </CardContent>
       </Card>
     </TooltipProvider>
@@ -306,7 +337,9 @@ const RepoComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
-  loader: async ({ context, params }) => {
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
         queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
@@ -316,11 +349,17 @@ export const Route = createFileRoute(
           }),
       }),
       context.queryClient.ensureQueryData({
-        queryKey: [useRepositoriesServiceGetOrtRunsKey, params.repoId],
+        queryKey: [
+          useRepositoriesServiceGetOrtRunsKey,
+          params.repoId,
+          page,
+          pageSize,
+        ],
         queryFn: () =>
           RepositoriesService.getOrtRuns({
             repositoryId: Number.parseInt(params.repoId),
-            limit: 1000,
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
             sort: '-index',
           }),
       }),
