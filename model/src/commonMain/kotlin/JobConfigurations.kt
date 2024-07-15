@@ -135,7 +135,7 @@ data class ScannerJobConfiguration(
     /**
      * A list of glob expressions that match file paths which are to be excluded from scan results.
      */
-    val ignorePatterns: List<String>? = emptyList(),
+    val ignorePatterns: List<String>? = null,
 
     /**
      * The list of the names of the scanners to use to scan projects. If this is null, projects are scanned with the
