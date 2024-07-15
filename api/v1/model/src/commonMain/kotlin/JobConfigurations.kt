@@ -37,7 +37,7 @@ data class JobConfigurations(
      * A map with custom parameters for the whole ORT run. These parameters are subject for validation performed by a
      * validation script, which can then map modify the `CreateOrtRun` request based on the provided parameters.
      */
-    val parameters: Options = emptyMap()
+    val parameters: Options? = null
 )
 
 /**
