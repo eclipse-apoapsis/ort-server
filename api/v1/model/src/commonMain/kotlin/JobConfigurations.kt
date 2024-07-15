@@ -186,7 +186,7 @@ data class EvaluatorJobConfiguration(
     /**
      * The list of package configuration providers to use.
      */
-    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
      * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
@@ -296,7 +296,7 @@ data class ReporterJobConfiguration(
      * [value from the evaluator job configuration][EvaluatorJobConfiguration.packageConfigurationProviders] is used to
      * ensure consistency.**
      */
-    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
      * The path to the resolutions file which is resolved from the configured configuration source. If this is null,

@@ -210,7 +210,7 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
     EvaluatorJobConfiguration(
         copyrightGarbageFile,
         licenseClassificationsFile,
-        packageConfigurationProviders.map { it.mapToModel() },
+        packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
         resolutionsFile,
         ruleSet
     )
@@ -387,7 +387,7 @@ fun ApiReporterJobConfiguration.mapToModel() =
         formats,
         howToFixTextProviderFile,
         licenseClassificationsFile,
-        packageConfigurationProviders.map { it.mapToModel() },
+        packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
         resolutionsFile,
         customLicenseTextDir,
         assetFiles.map { it.mapToModel() },
