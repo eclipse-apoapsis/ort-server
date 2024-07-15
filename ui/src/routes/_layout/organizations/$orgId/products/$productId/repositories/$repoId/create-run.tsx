@@ -188,7 +188,7 @@ const CreateRunPage = () => {
         notifierRules: '',
         resolutionsFile: '',
         mail: {
-          recipientAddresses: [{}],
+          recipientAddresses: [],
           mailServerConfiguration: {
             hostName: 'localhost',
             port: 587,
