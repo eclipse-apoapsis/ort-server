@@ -172,7 +172,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         disabledPackageManagers,
         enabledPackageManagers,
         environmentConfig?.mapToModel(),
-        packageCurationProviders.map { it.mapToModel() },
+        packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
         packageManagerOptions?.mapValues { it.value.mapToModel() },
         repositoryConfigPath,
         skipExcluded
