@@ -390,8 +390,8 @@ fun ApiReporterJobConfiguration.mapToModel() =
         packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
         resolutionsFile,
         customLicenseTextDir,
-        assetFiles.map { it.mapToModel() },
-        assetDirectories.map { it.mapToModel() },
+        assetFiles?.map { it.mapToModel() }.orEmpty(),
+        assetDirectories?.map { it.mapToModel() }.orEmpty(),
         config?.mapValues { it.value.mapToModel() }
     )
 
