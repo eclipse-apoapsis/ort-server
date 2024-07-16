@@ -62,7 +62,8 @@ data class AnalyzerJobConfiguration(
 
     /**
      * A list of the case-insensitive names of package managers that are enabled. Disabling a package manager in
-     * [disabledPackageManagers] overrides enabling it here.
+     * [disabledPackageManagers] overrides enabling it here. If this is `null`, all package manager plugins that have
+     * `isEnabledByDefault` set to `true` are used.
      */
     val enabledPackageManagers: List<String>? = null,
 
