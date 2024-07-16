@@ -91,6 +91,12 @@ export const Header = () => {
       '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
   );
 
+  const run2Match = matches.find(
+    (match) =>
+      match.routeId ===
+      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex'
+  );
+
   return (
     <header className='sticky top-0 z-50 flex h-16 justify-between gap-4 border-b bg-background px-4 md:px-6'>
       <div className='flex flex-row items-center gap-4'>
@@ -168,6 +174,18 @@ export const Header = () => {
                   <BreadcrumbLink asChild>
                     <Link to={runMatch.pathname}>
                       {runMatch.context.breadcrumbs.run}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            {run2Match?.context && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={run2Match.pathname}>
+                      {run2Match.context.breadcrumbs.run}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
