@@ -366,9 +366,3 @@ data class NotifierJobConfiguration(
      */
     val jira: JiraNotificationConfiguration? = null
 )
-
-/**
- * A type for storing key-value pairs of job configuration parameters. These parameters are subject for validation
- * performed by a validation script, which can then map them to [Options].
- */
-typealias Parameters = Map<String, String>
