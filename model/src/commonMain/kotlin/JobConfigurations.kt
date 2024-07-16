@@ -55,7 +55,7 @@ data class AnalyzerJobConfiguration(
     /**
      * Enable the analysis of projects that use version ranges to declare their dependencies. If set to true,
      * dependencies of exactly the same project might change with another scan done at a later time if any of the
-     * (transitive) dependencies are declared using version ranges and a new version of such a dependency was
+     * (transitive) dependencies are declared using version ranges, and a new version of such a dependency was
      * published in the meantime. If set to false, analysis of projects that use version ranges will fail. Defaults to
      * false.
      */
@@ -109,7 +109,7 @@ data class AnalyzerJobConfiguration(
 @Serializable
 data class AdvisorJobConfiguration(
     /**
-     * The Advisors to use (e.g. NexusIQ, VulnerableCode, DefectDB).
+     * The Advisors to use (e.g., NexusIQ, VulnerableCode, DefectDB).
      */
     val advisors: List<String> = emptyList(),
 
@@ -294,7 +294,7 @@ data class ReporterJobConfiguration(
     /**
      * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
      * will be used to instantiate an instance of HowToFixTextProvider, which injects how-to-fix texts for ORT issues.
-     * If this is null, default path from ORT will be used.
+     * If this is null, the default path from ORT will be used.
      */
     val howToFixTextProviderFile: String? = null,
 
