@@ -34,8 +34,8 @@ data class JobConfigurations(
     val notifier: NotifierJobConfiguration? = null,
 
     /**
-     * A map with custom parameters for the whole ORT run. These parameters are subject for validation performed by a
-     * validation script, which can then map modify the `CreateOrtRun` request based on the provided parameters.
+     * A map with custom parameters for the whole ORT run. The parameters can be evaluated by the validation script
+     * executed by the Config worker. The script can convert these parameters to specific job configurations.
      */
     val parameters: Options? = null
 )

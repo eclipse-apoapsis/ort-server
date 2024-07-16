@@ -42,8 +42,7 @@ data class JobConfigurations(
 
     /**
      * A map with custom parameters for the whole ORT run. The parameters can be evaluated by the validation script
-     * executed by the Config worker. The script can convert these parameters to specific job configurations
-     * understood by ORT Server.
+     * executed by the Config worker. The script can convert these parameters to specific job configurations.
      */
     val parameters: Parameters = emptyMap()
 )
