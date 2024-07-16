@@ -134,7 +134,7 @@ data class ScannerJobConfiguration(
     val ignorePatterns: List<String>? = null,
 
     /**
-     * The list of the names of the scanners to use to scan projects. If this is null, projects are scanned with the
+     * The list of the names of the scanners to use to scan projects. If this is `null`, projects are scanned with the
      * configured [scanners].
      */
     val projectScanners: List<String>? = null,
@@ -174,13 +174,13 @@ data class ScannerJobConfiguration(
 data class EvaluatorJobConfiguration(
     /**
      * The path to the copyright garbage file which is resolved from the configured configuration source. If this is
-     * null, the default path from ORT will be used.
+     * `null`, the default path from ORT will be used.
      */
     val copyrightGarbageFile: String? = null,
 
     /**
      * The path to the license classifications file which is resolved from the configured configuration source. If this
-     * is null, the default path from ORT will be used.
+     * is `null`, the default path from ORT will be used.
      */
     val licenseClassificationsFile: String? = null,
 
@@ -190,7 +190,7 @@ data class EvaluatorJobConfiguration(
     val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
      * the default path from ORT will be used.
      */
     val resolutionsFile: String? = null,
@@ -222,7 +222,7 @@ data class ReporterAsset(
     /**
      * A path (relative to the location of reporter template files) where this asset should be placed. Typically,
      * assets are referenced via relative paths from reporter templates, e.g. _./images/logo.png_. Using this
-     * property, such a relative path can be specified. If it is *null*, the root folder of the reporter worker
+     * property, such a relative path can be specified. If it is `null`, the root folder of the reporter worker
      * (which also contains the downloaded templates) is used.
      */
     val targetFolder: String? = null,
@@ -260,7 +260,7 @@ data class ReportNameMapping(
 data class ReporterJobConfiguration(
     /**
      * The path to the copyright garbage file which is resolved from the configured configuration source. If this is
-     * null, the default path from ORT will be used.
+     * `null`, the default path from ORT will be used.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
      * [value from the evaluator job configuration][EvaluatorJobConfiguration.copyrightGarbageFile] is used to ensure
@@ -276,13 +276,13 @@ data class ReporterJobConfiguration(
     /**
      * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
      * will be used to instantiate an instance of HowToFixTextProvider, which injects how-to-fix texts for ORT issues.
-     * If this is null, the default path from ORT will be used.
+     * If this is `null`, the default path from ORT will be used.
      */
     val howToFixTextProviderFile: String? = null,
 
     /**
      * The path to the license classifications file which is resolved from the configured configuration source. If this
-     * is null, the default path from ORT will be used.
+     * is `null`, the default path from ORT will be used.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
      * [value from the evaluator job configuration][EvaluatorJobConfiguration.licenseClassificationsFile] is used to
@@ -300,7 +300,7 @@ data class ReporterJobConfiguration(
     val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
      * the default path from ORT will be used.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
@@ -346,23 +346,23 @@ data class ReporterJobConfiguration(
 @Serializable
 data class NotifierJobConfiguration(
     /**
-     * The notifier script to use. If this is null, the configured default notification will be used.
+     * The notifier script to use. If this is `null`, the configured default notification will be used.
      */
     val notifierRules: String? = null,
 
     /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is null,
+     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
      * the default path from ORT will be used.
      */
     val resolutionsFile: String? = null,
 
     /**
-     * The configuration for Email notifications. If this is null, no email notifications will be sent.
+     * The configuration for Email notifications. If this is `null`, no email notifications will be sent.
      */
     val mail: MailNotificationConfiguration? = null,
 
     /**
-     * The configuration for Jira notifications. If this is null, no Jira notifications will be sent.
+     * The configuration for Jira notifications. If this is `null`, no Jira notifications will be sent.
      */
     val jira: JiraNotificationConfiguration? = null
 )
