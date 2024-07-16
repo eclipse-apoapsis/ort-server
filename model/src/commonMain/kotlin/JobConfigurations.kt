@@ -44,7 +44,7 @@ data class JobConfigurations(
      * A map with custom parameters for the whole ORT run. The parameters can be evaluated by the validation script
      * executed by the Config worker. The script can convert these parameters to specific job configurations.
      */
-    val parameters: Parameters = emptyMap()
+    val parameters: Options = emptyMap()
 )
 
 /**
@@ -381,9 +381,3 @@ data class NotifierJobConfiguration(
      */
     val jira: JiraNotificationConfiguration? = null
 )
-
-/**
- * A type for storing key-value pairs of job configuration parameters. These parameters are subject for validation
- * performed by a validation script, which can then map them to [Options].
- */
-typealias Parameters = Map<String, String>
