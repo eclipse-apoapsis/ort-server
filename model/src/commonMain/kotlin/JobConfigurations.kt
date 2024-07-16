@@ -74,7 +74,10 @@ data class AnalyzerJobConfiguration(
      */
     val enabledPackageManagers: List<String>? = null,
 
-    /** The explicit environment configuration to be used for this run. */
+    /**
+     * An optional [EnvironmentConfig] to be used for this run. If this configuration is defined, it replaces the
+     * configuration defined in the repository (if any).
+     */
     val environmentConfig: EnvironmentConfig? = null,
 
     /**
