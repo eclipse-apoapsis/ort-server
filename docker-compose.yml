@@ -169,8 +169,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
       ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
       ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
-      SECRETS_PROVIDER_NAME: fileBasedSecretsProvider
-      FILE_BASED_PATH: "/mnt/secrets.properties"
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
       GRAPHITE_HOST: "graphite"
       GRAPHITE_PORT: 2003
       GRAPHITE_PROTOCOL: PLAINTEXT
@@ -180,6 +180,9 @@ services:
       - type: bind
         source: ./scripts/compose/secrets.properties
         target: /mnt/secrets.properties
+      - type: bind
+        source: ./scripts/compose/secrets-provider
+        target: /mnt/secrets-provider
     logging:
       driver: gelf
       options:
@@ -322,6 +325,8 @@ services:
       ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
       ANALYZER_SECRET_PROVIDER: secret-file
       ANALYZER_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
@@ -329,6 +334,9 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
+    - type: bind
+      source: ./scripts/compose/secrets-provider
+      target: /mnt/secrets-provider
     logging:
       driver: gelf
       options:
@@ -450,6 +458,8 @@ services:
       REPORTER_RECEIVER_TRANSPORT_PASSWORD: admin
       REPORTER_SECRET_PROVIDER: secret-file
       REPORTER_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
@@ -457,6 +467,9 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
+    - type: bind
+      source: ./scripts/compose/secrets-provider
+      target: /mnt/secrets-provider
     logging:
       driver: gelf
       options:
@@ -493,6 +506,8 @@ services:
       SCANNER_RECEIVER_TRANSPORT_PASSWORD: admin
       SCANNER_SECRET_PROVIDER: secret-file
       SCANNER_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
@@ -500,6 +515,9 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
+    - type: bind
+      source: ./scripts/compose/secrets-provider
+      target: /mnt/secrets-provider
     logging:
       driver: gelf
       options:

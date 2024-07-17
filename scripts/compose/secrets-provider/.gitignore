@@ -1,0 +1,2 @@
+# Ignore the file that contains the secrets.
+secrets.store
