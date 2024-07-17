@@ -62,7 +62,7 @@ postgres = "42.7.3"
 qpidJmsClient = "2.5.0"
 schemaKenerator = "1.0.1"
 slf4j = "2.0.13"
-testContainers = "1.19.8"
+testContainers = "1.20.0"
 typesafeConfig = "1.4.3"
 wiremock = "3.0.1"
 
