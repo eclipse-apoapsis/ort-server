@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.orchestrator
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.kotlinx.datetime.shouldBeBetween
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -82,6 +83,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -364,7 +366,7 @@ class OrchestratorTest : WordSpec() {
         "handleConfigWorkerError" should {
             "update the ORT run in the database" {
                 val ortRunRepository = mockk<OrtRunRepository> {
-                    every { update(ortRun.id, any()) } returns mockk()
+                    every { update(ortRun.id, issues = any()) } returns mockk()
                 }
 
                 val publisher = mockk<MessagePublisher>()
@@ -380,8 +382,11 @@ class OrchestratorTest : WordSpec() {
 
                 verify(exactly = 1) {
                     ortRunRepository.update(
-                        id = withArg { it shouldBe advisorJob.ortRunId },
-                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
+                        id = withArg { it shouldBe configWorkerError.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", ConfigEndpoint.configPrefix) }
+                        }
                     )
                 }
             }
@@ -650,7 +655,9 @@ class OrchestratorTest : WordSpec() {
                     every { complete(analyzerJob.id, any(), any()) } returns analyzerJob
                 }
                 val repositoryRepository = mockk<RepositoryRepository>()
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, issues = any()) } returns mockk()
+                }
                 val reporterJobRepository = expectReporterJob()
                 val publisher = createMessagePublisher()
 
@@ -672,6 +679,13 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe analyzerJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe analyzerJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", AnalyzerEndpoint.configPrefix) }
+                        }
                     )
                 }
                 verify(exactly = 0) {
@@ -849,7 +863,9 @@ class OrchestratorTest : WordSpec() {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
 
                 val reporterJobRepository = expectReporterJob()
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, issues = any()) } returns mockk()
+                }
                 val publisher = createMessagePublisher()
 
                 val advisorWorkerError = AdvisorWorkerError(advisorJob.id)
@@ -869,6 +885,13 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe advisorJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe advisorJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", AdvisorEndpoint.configPrefix) }
+                        }
                     )
                 }
                 verify(exactly = 0) {
@@ -931,7 +954,9 @@ class OrchestratorTest : WordSpec() {
                 val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
                 val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository = expectReporterJob()
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, issues = any()) } returns mockk()
+                }
                 val publisher = createMessagePublisher()
 
                 mockkTransaction {
@@ -951,6 +976,13 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe evaluatorJob.id },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe evaluatorJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", EvaluatorEndpoint.configPrefix) }
+                        }
                     )
                 }
 
@@ -1073,7 +1105,9 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val notifierJobRepository = expectNotifierJob()
 
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, issues = any()) } returns mockk()
+                }
 
                 val publisher = createMessagePublisher()
 
@@ -1095,6 +1129,13 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe reporterWorkerError.jobId },
                         finishedAt = withArg { it.verifyTimeRange(10.seconds) },
                         status = withArg { it shouldBe JobStatus.FAILED }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe reporterJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", ReporterEndpoint.configPrefix) }
+                        }
                     )
                 }
 
@@ -1200,7 +1241,9 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, any(), any(), issues = any()) } returns mockk()
+                }
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1224,6 +1267,12 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe notifierJob.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe notifierJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", NotifierEndpoint.configPrefix) }
+                        }
+                    )
                 }
             }
 
@@ -1241,7 +1290,9 @@ class OrchestratorTest : WordSpec() {
                 val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
                 val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
 
-                val ortRunRepository = createOrtRunRepository()
+                val ortRunRepository = createOrtRunRepository {
+                    every { update(ortRun.id, any(), any(), issues = any()) } returns mockk()
+                }
 
                 mockkTransaction {
                     createOrchestrator(
@@ -1274,6 +1325,13 @@ class OrchestratorTest : WordSpec() {
 
                     // Verify the deletion of the email addresses from the notifier jobs table.
                     notifierJobRepository.deleteMailRecipients(notifierJob.id)
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe notifierJob.ortRunId },
+                        issues = withArg {
+                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", NotifierEndpoint.configPrefix) }
+                        }
+                    )
                 }
             }
         }
@@ -1730,4 +1788,19 @@ private fun <T> OptionalValue<T>.verifyOptionalValue(expectedValue: T) {
     shouldBeTypeOf<OptionalValue.Present<T>>()
 
     value shouldBe expectedValue
+}
+
+fun verifyIssues(
+    issues: OptionalValue<Collection<Issue>>,
+    validate: Collection<Issue>.() -> Unit
+) {
+    val issuesList = issues.shouldBeTypeOf<OptionalValue.Present<Collection<Issue>>>().value
+    issuesList.validate()
+}
+
+fun Collection<Issue>.verifyWorkerErrorIssues(severity: String, source: String) {
+    shouldBeSingleton { issue ->
+        issue.severity shouldBe severity
+        issue.source shouldBe source
+    }
 }

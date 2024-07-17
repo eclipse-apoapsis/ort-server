@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
@@ -127,7 +128,8 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             ortRunRepository.update(
                 id = configWorkerError.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent()
+                status = OrtRunStatus.FAILED.asPresent(),
+                issues = listOf(ConfigEndpoint.createErrorIssue()).asPresent()
             )
         }.onFailure {
             log.warn("Failed to handle 'ConfigWorkerError' message.", it)
@@ -258,19 +260,21 @@ class Orchestrator(
      * Handle the given [error] message with the given [header] from a worker of the given [endpoint].
      */
     private fun handleWorkerError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
-        handleCompletedJob(endpoint, header, error, JobStatus.FAILED)
+        handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue()))
     }
 
     /**
      * Handle a [message] with the given [header] about a worker job for the given [endpoint] that completed in the
-     * given [status]. This is the central scheduling function. It determines the current job execution state of the
-     * affected ORT run, schedules the next job(s) if possible, or decides that the ORT run is now finished.
+     * given [status] with optional [issues]. This is the central scheduling function. It determines the current job
+     * execution state of the affected ORT run, schedules the next job(s) if possible, or decides that the ORT run is
+     * now finished.
      */
     private fun handleCompletedJob(
         endpoint: Endpoint<*>,
         header: MessageHeader,
         message: WorkerMessage,
-        status: JobStatus
+        status: JobStatus,
+        issues: List<Issue> = emptyList()
     ) {
         log.info(
             "Job {} for endpoint '{}' completed in status '{}'.",
@@ -281,6 +285,7 @@ class Orchestrator(
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val job = workerJobRepositories.updateJobStatus(endpoint, message.jobId, status)
+            if (issues.isNotEmpty()) ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
 
             nextJobsToSchedule(endpoint, job.ortRunId, header)
         }.onSuccess { (context, schedules) ->
@@ -404,3 +409,13 @@ class Orchestrator(
  * Type definition to represent a list of jobs that have been created and must be scheduled.
  */
 typealias CreatedJobs = List<JobScheduleFunc>
+
+/**
+ * Create an [Issue] object representing an error that occurred in any [Endpoint].
+ */
+fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
+    timestamp = Clock.System.now(),
+    source = configPrefix,
+    message = "The $configPrefix worker failed due to an unexpected error.",
+    severity = "ERROR"
+)
