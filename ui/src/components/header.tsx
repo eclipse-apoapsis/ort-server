@@ -128,7 +128,7 @@ export const Header = () => {
         </Sheet>
         <Breadcrumb>
           <BreadcrumbList>
-            {organizationMatch && (
+            {organizationMatch?.context && (
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link to={organizationMatch.pathname}>
@@ -137,7 +137,7 @@ export const Header = () => {
                 </BreadcrumbLink>
               </BreadcrumbItem>
             )}
-            {productMatch && (
+            {productMatch?.context && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
@@ -149,7 +149,7 @@ export const Header = () => {
                 </BreadcrumbItem>
               </>
             )}
-            {repoMatch && (
+            {repoMatch?.context && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
@@ -161,7 +161,7 @@ export const Header = () => {
                 </BreadcrumbItem>
               </>
             )}
-            {runMatch && (
+            {runMatch?.context && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
