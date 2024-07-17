@@ -15,3 +15,29 @@ Content-Type: application/json
   "name": "Example Organization",
   "description": "This is an example organization"
 }
+
+### Get all Secrets for an Organization
+GET {{host}}/organizations/1/secrets
+Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Create a Secret for an Organization
+POST {{host}}/organizations/1/secrets
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "secret",
+  "value": "secret-value",
+  "description": "An organization secret"
+}
+
+### Update a Secret for an Organization
+PATCH {{host}}/organizations/1/secrets/secret
+Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "secret",
+  "value": "updated-secret-value",
+  "description": "An updated organization secret"
+}
