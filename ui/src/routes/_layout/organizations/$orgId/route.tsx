@@ -17,11 +17,44 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { Suspense } from 'react';
 
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
+import { Sidebar } from '@/components/sidebar';
+import { useUser } from '@/hooks/use-user';
+
+const Layout = () => {
+  const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
+  const user = useUser();
+
+  const navItems = [
+    {
+      title: 'Overview',
+      to: '/organizations/$orgId',
+    },
+    {
+      title: 'Secrets',
+      to: '/organizations/$orgId/secrets',
+      visible: user.hasRole([
+        'superuser',
+        `permission_organization_${orgId}_write_secrets`,
+      ]),
+    },
+  ];
+
+  return (
+    <div className='flex'>
+      {!productId && !repoId && !runIndex && (
+        <Sidebar sections={[{ items: navItems }]} />
+      )}
+      <Suspense fallback={<div>Loading...</div>}>
+        <Outlet />
+      </Suspense>
+    </div>
+  );
+};
 
 export const Route = createFileRoute('/_layout/organizations/$orgId')({
   loader: async ({ context, params }) => {
@@ -34,9 +67,5 @@ export const Route = createFileRoute('/_layout/organizations/$orgId')({
     });
     context.breadcrumbs.organization = organization.name;
   },
-  component: () => (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Outlet />
-    </Suspense>
-  ),
+  component: Layout,
 });
