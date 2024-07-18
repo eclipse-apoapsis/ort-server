@@ -24,7 +24,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/use-user';
 import {
   Breadcrumb,
   BreadcrumbItem,
