@@ -180,7 +180,7 @@ fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
         endTime = endTime.toKotlinInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
-        advisorRecords = results.advisorResults.entries.associate { (k, v) ->
+        results = results.entries.associate { (k, v) ->
             k.mapToModel() to v.map { it.mapToModel() }
         }
     )

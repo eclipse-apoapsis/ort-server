@@ -235,7 +235,7 @@ class OrtRunServiceTest : WordSpec({
                     toolVersions = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
-                advisorRecords = emptyMap()
+                results = emptyMap()
             )
 
             service.getAdvisorRunForOrtRun(fixtures.ortRun.id) shouldBe createdAdvisorRun
@@ -680,7 +680,7 @@ class OrtRunServiceTest : WordSpec({
                     toolVersions = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
-                advisorRecords = emptyMap()
+                results = emptyMap()
             )
 
             service.storeAdvisorRun(advisorRun)

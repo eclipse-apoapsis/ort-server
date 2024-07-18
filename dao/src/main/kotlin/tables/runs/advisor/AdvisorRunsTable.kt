@@ -53,7 +53,7 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     var endTime by AdvisorRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
 
     val advisorConfiguration by AdvisorConfigurationDao backReferencedOn AdvisorConfigurationsTable.advisorRunId
-    val advisorRecords by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId
+    val results by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId
 
     fun mapToModel() = AdvisorRun(
         id = id.value,
@@ -62,6 +62,6 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
         endTime = endTime,
         environment = environment.mapToModel(),
         config = advisorConfiguration.mapToModel(),
-        advisorRecords = advisorRecords.associate(AdvisorRunIdentifierDao::mapToModel)
+        results = results.associate(AdvisorRunIdentifierDao::mapToModel)
     )
 }

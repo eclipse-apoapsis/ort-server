@@ -102,7 +102,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
 import org.ossreviewtoolkit.model.AdvisorCapability as OrtAdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails as OrtAdvisorDetails
-import org.ossreviewtoolkit.model.AdvisorRecord as OrtAdvisorRecord
 import org.ossreviewtoolkit.model.AdvisorResult as OrtAdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary as OrtAdvisorSummary
@@ -219,11 +218,9 @@ fun AdvisorRun.mapToOrt() =
         endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
-        results = OrtAdvisorRecord(
-            advisorRecords.entries.associateTo(sortedMapOf()) {
-                it.key.mapToOrt() to it.value.map(AdvisorResult::mapToOrt)
-            }
-        )
+        results = results.entries.associateTo(sortedMapOf()) {
+            it.key.mapToOrt() to it.value.map(AdvisorResult::mapToOrt)
+        }
     )
 
 fun AnalyzerConfiguration.mapToOrt() =

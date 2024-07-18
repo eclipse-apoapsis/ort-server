@@ -40,7 +40,7 @@ interface AdvisorRunRepository {
         endTime: Instant,
         environment: Environment,
         config: AdvisorConfiguration,
-        advisorRecords: Map<Identifier, List<AdvisorResult>>
+        results: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun
 
     /**

@@ -108,7 +108,7 @@ fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) =
     endTime = advisorRun.endTime,
     environment = advisorRun.environment,
     config = advisorRun.config,
-    advisorRecords = advisorRun.advisorRecords
+    results = advisorRun.results
 )
 
 val variables = mapOf(
@@ -222,5 +222,5 @@ val advisorRun = AdvisorRun(
     endTime = Clock.System.now().toDatabasePrecision(),
     environment = environment,
     config = advisorConfiguration,
-    advisorRecords = mapOf(identifier to listOf(advisorResult))
+    results = mapOf(identifier to listOf(advisorResult))
 )

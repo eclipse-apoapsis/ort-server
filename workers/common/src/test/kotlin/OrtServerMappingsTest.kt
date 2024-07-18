@@ -357,7 +357,7 @@ class OrtServerMappingsTest : WordSpec({
                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 environment = environment,
                 config = advisorConfiguration,
-                advisorRecords = mapOf(pkgIdentifier to listOf(advisorResult))
+                results = mapOf(pkgIdentifier to listOf(advisorResult))
             )
 
             val scannerConfiguration = ScannerConfiguration(

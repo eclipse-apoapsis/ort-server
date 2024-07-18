@@ -31,5 +31,5 @@ data class AdvisorRun(
     val endTime: Instant,
     val environment: Environment,
     val config: AdvisorConfiguration,
-    val advisorRecords: Map<Identifier, List<AdvisorResult>>
+    val results: Map<Identifier, List<AdvisorResult>>
 )
