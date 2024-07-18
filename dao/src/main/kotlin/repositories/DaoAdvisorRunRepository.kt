@@ -59,7 +59,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
         endTime: Instant,
         environment: Environment,
         config: AdvisorConfiguration,
-        advisorRecords: Map<Identifier, List<AdvisorResult>>
+        results: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
 
@@ -72,7 +72,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
 
         createAdvisorConfiguration(advisorRunDao, config)
 
-        advisorRecords.forEach { (id, results) ->
+        results.forEach { (id, advisorResults) ->
             val identifierDao = IdentifierDao.getOrPut(id)
 
             val advisorRunIdentifierDao = AdvisorRunIdentifierDao.new {
@@ -80,7 +80,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
                 this.identifier = identifierDao
             }
 
-            results.forEach { result ->
+            advisorResults.forEach { result ->
                 val issues = mapAndDeduplicate(result.issues, IssueDao::createByIssue)
                 val defects = mapAndDeduplicate(result.defects, DefectDao::getOrPut)
                 val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)

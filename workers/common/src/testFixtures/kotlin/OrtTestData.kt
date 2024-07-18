@@ -27,7 +27,6 @@ import kotlinx.datetime.toJavaInstant
 
 import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails
-import org.ossreviewtoolkit.model.AdvisorRecord
 import org.ossreviewtoolkit.model.AdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun
 import org.ossreviewtoolkit.model.AdvisorSummary
@@ -443,22 +442,20 @@ object OrtTestData {
         )
     )
 
-    val advisorRecord = AdvisorRecord(
-        advisorResults = sortedMapOf(
-            pkgIdentifier to listOf(
-                AdvisorResult(
-                    advisor = AdvisorDetails(
-                        name = "VulnerableCode",
-                        capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
-                    ),
-                    summary = AdvisorSummary(
-                        startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-                        endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
-                        issues = listOf(issue)
-                    ),
-                    defects = emptyList(),
-                    vulnerabilities = listOf(vulnerability)
-                )
+    val advisorResults = sortedMapOf(
+        pkgIdentifier to listOf(
+            AdvisorResult(
+                advisor = AdvisorDetails(
+                    name = "VulnerableCode",
+                    capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
+                ),
+                summary = AdvisorSummary(
+                    startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                    endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                    issues = listOf(issue)
+                ),
+                defects = emptyList(),
+                vulnerabilities = listOf(vulnerability)
             )
         )
     )
@@ -468,7 +465,7 @@ object OrtTestData {
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         environment = environment,
         config = advisorConfiguration,
-        results = advisorRecord
+        results = advisorResults
     )
 
     val fileStorageConfiguration = FileStorageConfiguration(
