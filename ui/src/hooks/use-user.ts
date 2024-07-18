@@ -21,13 +21,13 @@ import { useAuth } from 'react-oidc-context';
 
 export const useUser = () => {
   const auth = useAuth();
-
   const serverClientId = import.meta.env.VITE_CLIENT_ID_SERVER || 'ort-server';
+  const userRoles =
+    auth?.user?.profile?.resource_access?.[serverClientId]?.roles || [];
 
-  const hasRole = (role: string) => {
-    return auth?.user?.profile?.resource_access?.[
-      serverClientId
-    ]?.roles?.includes(role);
+  // Check if the user has any of the given roles.
+  const hasRole = (roles: string[]) => {
+    return roles.some((role) => userRoles.includes(role));
   };
 
   return {
