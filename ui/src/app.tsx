@@ -23,7 +23,7 @@ import { hasAuthParams } from 'react-oidc-context';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OpenAPI } from './api/requests/index.ts';
-import { useUser } from './hooks/useUser.ts';
+import { useUser } from './hooks/use-user.ts';
 import { queryClient } from './lib/query-client.ts';
 import { routeTree } from './routeTree.gen';
 
