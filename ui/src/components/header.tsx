@@ -232,7 +232,7 @@ export const Header = () => {
             <Link to='/about'>
               <DropdownMenuItem>About</DropdownMenuItem>
             </Link>
-            {user.hasRole('superuser') && (
+            {user.hasRole(['superuser']) && (
               <Link to='/admin'>
                 <DropdownMenuItem>Admin</DropdownMenuItem>
               </Link>

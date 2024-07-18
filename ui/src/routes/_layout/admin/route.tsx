@@ -22,7 +22,7 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 export const Route = createFileRoute('/_layout/admin')({
   component: () => <Outlet />,
   beforeLoad: ({ context }) => {
-    if (!context.auth.hasRole('superuser')) {
+    if (!context.auth.hasRole(['superuser'])) {
       throw redirect({
         to: '/403',
       });
