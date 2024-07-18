@@ -17,6 +17,10 @@
       "enabled": false
     },
     {
+      "matchPackagePrefixes": ["@tanstack/"],
+      "schedule": ["after 9pm on sunday"]
+    },
+    {
       "matchPackagePrefixes": ["aws.sdk.kotlin:"],
       "schedule": ["after 9pm on sunday"]
     },
