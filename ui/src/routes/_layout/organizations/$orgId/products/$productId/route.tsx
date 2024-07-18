@@ -17,11 +17,42 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { Suspense } from 'react';
 
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
 import { ProductsService } from '@/api/requests';
+import { Sidebar } from '@/components/sidebar';
+import { useUser } from '@/hooks/use-user';
+
+const Layout = () => {
+  const { productId, repoId, runIndex } = useParams({ strict: false });
+  const user = useUser();
+
+  const navItems = [
+    {
+      title: 'Overview',
+      to: '/organizations/$orgId/products/$productId',
+    },
+    {
+      title: 'Secrets',
+      to: '/organizations/$orgId//products/$productId/secrets',
+      visible: user.hasRole([
+        'superuser',
+        `permission_product_${productId}_write_secrets`,
+      ]),
+    },
+  ];
+
+  return (
+    <>
+      {!runIndex && !repoId && <Sidebar sections={[{ items: navItems }]} />}
+      <Suspense fallback={<div>Loading...</div>}>
+        <Outlet />
+      </Suspense>
+    </>
+  );
+};
 
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId'
@@ -36,9 +67,5 @@ export const Route = createFileRoute(
     });
     context.breadcrumbs.product = product.name;
   },
-  component: () => (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Outlet />
-    </Suspense>
-  ),
+  component: Layout,
 });

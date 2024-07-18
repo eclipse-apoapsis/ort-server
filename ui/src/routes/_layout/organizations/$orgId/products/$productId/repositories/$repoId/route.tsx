@@ -17,11 +17,42 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { Suspense } from 'react';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
+import { Sidebar } from '@/components/sidebar';
+import { useUser } from '@/hooks/use-user';
+
+const Layout = () => {
+  const { repoId, runIndex } = useParams({ strict: false });
+  const user = useUser();
+
+  const navItems = [
+    {
+      title: 'Overview',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+    },
+    {
+      title: 'Secrets',
+      to: '/organizations/$orgId//products/$productId/repositories/$repoId/secrets',
+      visible: user.hasRole([
+        'superuser',
+        `permission_repository_${repoId}_write_secrets`,
+      ]),
+    },
+  ];
+
+  return (
+    <>
+      {!runIndex && <Sidebar sections={[{ items: navItems }]} />}
+      <Suspense fallback={<div>Loading...</div>}>
+        <Outlet />
+      </Suspense>
+    </>
+  );
+};
 
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId'
@@ -36,9 +67,5 @@ export const Route = createFileRoute(
     });
     context.breadcrumbs.repo = repo.url;
   },
-  component: () => (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Outlet />
-    </Suspense>
-  ),
+  component: Layout,
 });
