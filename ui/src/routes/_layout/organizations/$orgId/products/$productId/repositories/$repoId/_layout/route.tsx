@@ -23,7 +23,7 @@ import { Sidebar } from './runs2/$runIndex/-components/sidebar';
 
 const Layout = () => {
   return (
-    <div className='flex h-full w-full flex-row gap-2'>
+    <div className='flex h-[calc(100vh-4rem-2rem)] w-full gap-2 md:h-[calc(100vh-4rem-4rem)]'>
       <Sidebar />
       <Outlet />
     </div>

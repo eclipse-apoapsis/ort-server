@@ -168,39 +168,55 @@ const RunComponent = () => {
             </CardContent>
           </Card>
         </div>
-        <div className='flex flex-1'>
-          <Card className='flex-1'>
-            <CardHeader>
-              <CardTitle>Issues</CardTitle>
-              <CardContent className='space-y-2'>
-                <p>
-                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                  Possimus nobis necessitatibus amet deleniti quia quis
-                  consequuntur cumque impedit accusantium dolorem, eos inventore
-                  in sed magni dolorum nemo repellendus voluptates velit.
-                </p>
-                <p>
-                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                  Possimus nobis necessitatibus amet deleniti quia quis
-                  consequuntur cumque impedit accusantium dolorem, eos inventore
-                  in sed magni dolorum nemo repellendus voluptates velit.
-                </p>
-                <p>
-                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                  Possimus nobis necessitatibus amet deleniti quia quis
-                  consequuntur cumque impedit accusantium dolorem, eos inventore
-                  in sed magni dolorum nemo repellendus voluptates velit.
-                </p>
-                <p>
-                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                  Possimus nobis necessitatibus amet deleniti quia quis
-                  consequuntur cumque impedit accusantium dolorem, eos inventore
-                  in sed magni dolorum nemo repellendus voluptates velit.
-                </p>
-              </CardContent>
-            </CardHeader>
-          </Card>
-        </div>
+        <Card className='flex flex-1 overflow-hidden'>
+          <CardHeader>
+            <CardTitle>Issues</CardTitle>
+            <CardContent className='space-y-2 overflow-auto'>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+              <p>
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Possimus nobis necessitatibus amet deleniti quia quis
+                consequuntur cumque impedit accusantium dolorem, eos inventore
+                in sed magni dolorum nemo repellendus voluptates velit.
+              </p>
+            </CardContent>
+          </CardHeader>
+        </Card>
       </div>
       <div className='flex w-4/12'>
         <Tabs defaultValue={searchParams.job}>
