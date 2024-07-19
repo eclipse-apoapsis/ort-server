@@ -597,7 +597,7 @@ val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     tags = listOf("Secrets")
 
     request {
-        pathParameter<Long>("repositoryIdId") {
+        pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
         pathParameter<String>("secretName") {
