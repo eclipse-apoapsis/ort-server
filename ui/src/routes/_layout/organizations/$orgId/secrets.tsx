@@ -17,8 +17,21 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
+import {
+  useOrganizationsServiceGetOrganizationByIdKey,
+  useSecretsServiceGetSecretsByOrganizationId,
+} from '@/api/queries';
+import { OrganizationsService, Secret, SecretsService } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
   CardContent,
@@ -26,22 +39,110 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<Secret>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Description',
+  },
+];
 
 const OrganizationSecrets = () => {
+  const params = Route.useParams();
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+
+  const [{ data: organization }, { data: secrets }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryFn: async () =>
+          await OrganizationsService.getOrganizationById({
+            organizationId: Number.parseInt(params.orgId),
+          }),
+      },
+      {
+        queryKey: [
+          useSecretsServiceGetSecretsByOrganizationId,
+          params.orgId,
+          pageIndex,
+          pageSize,
+        ],
+        queryFn: async () =>
+          await SecretsService.getSecretsByOrganizationId({
+            organizationId: Number.parseInt(params.orgId),
+            limit: pageSize,
+            offset: pageIndex * pageSize,
+          }),
+      },
+    ],
+  });
+
+  const table = useReactTable({
+    data: secrets?.data || [],
+    columns,
+    pageCount: Math.ceil(secrets.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Secrets</CardTitle>
-        <CardDescription>Manage secrets for this organization.</CardDescription>
+        <CardDescription>
+          Manage secrets for {organization.name}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div>Content here.</div>
+        <DataTable table={table} />
       </CardContent>
     </Card>
   );
 };
 
 export const Route = createFileRoute('/_layout/organizations/$orgId/secrets')({
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, params, deps: { page, pageSize } }) => {
+    await Promise.allSettled([
+      context.queryClient.ensureQueryData({
+        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+        queryFn: () =>
+          OrganizationsService.getOrganizationById({
+            organizationId: Number.parseInt(params.orgId),
+          }),
+      }),
+      context.queryClient.ensureQueryData({
+        queryKey: [
+          useSecretsServiceGetSecretsByOrganizationId,
+          params.orgId,
+          page,
+          pageSize,
+        ],
+        queryFn: () =>
+          SecretsService.getSecretsByOrganizationId({
+            organizationId: Number.parseInt(params.orgId),
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          }),
+      }),
+    ]);
+  },
   component: OrganizationSecrets,
   beforeLoad: ({ context, params }) => {
     if (
@@ -55,4 +156,5 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/secrets')({
       });
     }
   },
+  pendingComponent: LoadingIndicator,
 });
