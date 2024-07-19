@@ -565,6 +565,9 @@ val postSecretForRepository: OpenApiRoute.() -> Unit = {
     tags = listOf("Secrets")
 
     request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
         jsonBody<CreateSecret> {
             example("Create Secret") {
                 value = CreateSecret(
