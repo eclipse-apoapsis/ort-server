@@ -18,12 +18,13 @@
  */
 
 import { useSuspenseQueries } from '@tanstack/react-query';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import {
   ColumnDef,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
 
 import {
   useOrganizationsServiceGetOrganizationByIdKey,
@@ -32,6 +33,7 @@ import {
 import { OrganizationsService, Secret, SecretsService } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -39,6 +41,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -101,17 +109,37 @@ const OrganizationSecrets = () => {
   });
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>
-        <CardTitle>Secrets</CardTitle>
-        <CardDescription>
-          Manage secrets for {organization.name}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DataTable table={table} />
-      </CardContent>
-    </Card>
+    <TooltipProvider>
+      <Card className='mx-auto w-full max-w-4xl'>
+        <CardHeader>
+          <CardTitle>Secrets</CardTitle>
+          <CardDescription>
+            Manage secrets for {organization.name}
+          </CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/create-secret'
+                    params={{ orgId: params.orgId }}
+                  >
+                    New secret
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new secret for this organization
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable table={table} />
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 
