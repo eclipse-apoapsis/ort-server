@@ -17,8 +17,21 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
+import {
+  useRepositoriesServiceGetRepositoryByIdKey,
+  useSecretsServiceGetSecretsByRepositoryId,
+} from '@/api/queries';
+import { RepositoriesService, Secret, SecretsService } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
   CardContent,
@@ -26,16 +39,75 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { paginationSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<Secret>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Description',
+  },
+];
 
 const RepositorySecrets = () => {
+  const params = Route.useParams();
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+
+  const [{ data: repo }, { data: secrets }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
+        queryFn: async () =>
+          await RepositoriesService.getRepositoryById({
+            repositoryId: Number.parseInt(params.repoId),
+          }),
+      },
+      {
+        queryKey: [
+          useSecretsServiceGetSecretsByRepositoryId,
+          params.repoId,
+          pageIndex,
+          pageSize,
+        ],
+        queryFn: async () =>
+          await SecretsService.getSecretsByRepositoryId({
+            repositoryId: Number.parseInt(params.repoId),
+            limit: pageSize,
+            offset: pageIndex * pageSize,
+          }),
+      },
+    ],
+  });
+
+  const table = useReactTable({
+    data: secrets?.data || [],
+    columns,
+    pageCount: Math.ceil(secrets.pagination.totalCount / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Secrets</CardTitle>
-        <CardDescription>Manage secrets for this repository.</CardDescription>
+        <CardDescription>Manage secrets for {repo.url}.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div>Content here.</div>
+        <DataTable table={table} />
       </CardContent>
     </Card>
   );
@@ -44,6 +116,33 @@ const RepositorySecrets = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets'
 )({
+  validateSearch: paginationSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loader: async ({ context, params, deps: { page, pageSize } }) => {
+    await Promise.allSettled([
+      context.queryClient.ensureQueryData({
+        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
+        queryFn: async () =>
+          await RepositoriesService.getRepositoryById({
+            repositoryId: Number.parseInt(params.repoId),
+          }),
+      }),
+      context.queryClient.ensureQueryData({
+        queryKey: [
+          useSecretsServiceGetSecretsByRepositoryId,
+          params.repoId,
+          page,
+          pageSize,
+        ],
+        queryFn: async () =>
+          await SecretsService.getSecretsByRepositoryId({
+            repositoryId: Number(params.repoId),
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          }),
+      }),
+    ]);
+  },
   component: RepositorySecrets,
   beforeLoad: ({ context, params }) => {
     if (
@@ -57,4 +156,5 @@ export const Route = createFileRoute(
       });
     }
   },
+  pendingComponent: LoadingIndicator,
 });
