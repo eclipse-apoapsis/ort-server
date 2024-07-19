@@ -266,6 +266,9 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
     tags = listOf("Secrets")
 
     request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
         jsonBody<CreateSecret> {
             example("Create Secret") {
                 value = CreateSecret(
