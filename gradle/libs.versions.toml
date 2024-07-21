@@ -34,7 +34,7 @@ rabbitMq = "5.21.0"
 versionsPlugin = "0.51.0"
 
 # Gradle dependencies
-awsSdk = "1.2.51"
+awsSdk = "1.2.52"
 exposed = "0.52.0"
 flyway = "10.16.0"
 hikari = "5.1.0"
