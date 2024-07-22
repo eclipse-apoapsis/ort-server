@@ -1,0 +1,14 @@
+name: Optima
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  OptimaAnalyzer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vwdfive/optima-actions@dev
+        with:
+          toolstation-token: ${{ secrets.OPTIMA_TOKEN }}
