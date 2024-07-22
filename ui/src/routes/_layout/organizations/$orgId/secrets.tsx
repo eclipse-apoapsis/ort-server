@@ -17,22 +17,36 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQueries } from '@tanstack/react-query';
+import {
+  useQueryClient,
+  useSuspenseQueries,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import {
+  CellContext,
   ColumnDef,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   useOrganizationsServiceGetOrganizationByIdKey,
+  useSecretsServiceDeleteSecretByOrganizationIdAndName,
   useSecretsServiceGetSecretsByOrganizationId,
 } from '@/api/queries';
-import { OrganizationsService, Secret, SecretsService } from '@/api/requests';
+import {
+  ApiError,
+  OrganizationsService,
+  Secret,
+  SecretsService,
+} from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,9 +61,63 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
+
+const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
+  const params = Route.useParams();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [openDelDialog, setOpenDelDialog] = useState(false);
+
+  const { data: organization } = useSuspenseQuery({
+    queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+    queryFn: async () =>
+      await OrganizationsService.getOrganizationById({
+        organizationId: Number.parseInt(params.orgId),
+      }),
+  });
+
+  const { mutateAsync: delSecret, isPending: delIsPending } =
+    useSecretsServiceDeleteSecretByOrganizationIdAndName({
+      onSuccess() {
+        setOpenDelDialog(false);
+        toast({
+          title: 'Delete Secret',
+          description: `Secret "${row.original.name}" deleted successfully.`,
+        });
+        queryClient.invalidateQueries({
+          queryKey: [useSecretsServiceGetSecretsByOrganizationId],
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    });
+
+  return (
+    <div className='flex justify-end gap-1'>
+      <DeleteDialog
+        open={openDelDialog}
+        setOpen={setOpenDelDialog}
+        item={{ descriptor: 'secret', name: row.original.name }}
+        onDelete={() =>
+          delSecret({
+            organizationId: organization.id,
+            secretName: row.original.name,
+          })
+        }
+        isPending={delIsPending}
+      />
+    </div>
+  );
+};
 
 const columns: ColumnDef<Secret>[] = [
   {
@@ -59,6 +127,10 @@ const columns: ColumnDef<Secret>[] = [
   {
     accessorKey: 'description',
     header: 'Description',
+  },
+  {
+    id: 'actions',
+    cell: ActionCell,
   },
 ];
 
