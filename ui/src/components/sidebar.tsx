@@ -32,6 +32,11 @@ interface SidebarNavProps {
       params?: Record<string, string | undefined>;
       title: string;
       visible?: boolean; // default: true
+      activeOptions?: {
+        exact?: boolean; // default: true
+        includeSearch?: boolean; // default: false
+        includeHash?: boolean; // default: false
+      };
     }[];
     visible?: boolean; // default: true
   }[];
@@ -66,7 +71,20 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                     inactiveProps={{
                       className: 'hover:bg-transparent hover:underline',
                     }}
-                    activeOptions={{ exact: true }}
+                    activeOptions={{
+                      exact:
+                        item.activeOptions?.exact === undefined
+                          ? true
+                          : item.activeOptions.exact,
+                      includeSearch:
+                        item.activeOptions?.includeSearch === undefined
+                          ? false
+                          : item.activeOptions.includeSearch,
+                      includeHash:
+                        item.activeOptions?.includeHash === undefined
+                          ? false
+                          : item.activeOptions.includeHash,
+                    }}
                     className={cn(
                       buttonVariants({ variant: 'ghost' }),
                       'w-full justify-start'
