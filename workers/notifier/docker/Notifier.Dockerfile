@@ -20,7 +20,7 @@
 # License-Filename: LICENSE
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-FROM eclipse-temurin:17.0.11_9-jdk-jammy@sha256:1e8288a2706582b01e889a372465b91b17eb674fda5facb2f67f30a3cd93c448
+FROM eclipse-temurin:17.0.12_7-jdk-jammy@sha256:e9c12fb8f206a1f8a3ee222fc97659dce0840e558d0ef837d3d4632d7685abc6
 
 ARG USERNAME=ort
 ARG USER_ID=1000
