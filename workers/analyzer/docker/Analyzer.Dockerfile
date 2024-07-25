@@ -22,7 +22,7 @@
 # License-Filename: LICENSE
 
 ARG ANDROID_CMD_VERSION=11076708
-ARG BAZEL_VERSION=7.0.1
+ARG BAZELISK_VERSION=1.20.0
 ARG BOWER_VERSION=1.8.14
 ARG COCOAPODS_VERSION=1.15.2
 ARG COMPOSER_VERSION=2.2
@@ -413,15 +413,15 @@ COPY --from=dotnetbuild /opt/dotnet /opt/dotnet
 # BAZEL
 FROM ort-base-image as bazelbuild
 
-ARG BAZEL_VERSION
+ARG BAZELISK_VERSION
 
 ENV BAZEL_HOME=/opt/bazel
 
 RUN mkdir -p $BAZEL_HOME/bin \
     && if [ "$(arch)" = "aarch64" ]; then \
-    curl -L https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-linux-arm64 -o $BAZEL_HOME/bin/bazel; \
+    curl -L https://github.com/bazelbuild/bazelisk/releases/download/v$BAZELISK_VERSION/bazelisk-linux-arm64 -o $BAZEL_HOME/bin/bazel; \
     else \
-    curl -L https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-linux-x86_64 -o $BAZEL_HOME/bin/bazel; \
+    curl -L https://github.com/bazelbuild/bazelisk/releases/download/v$BAZELISK_VERSION/bazelisk-linux-amd64 -o $BAZEL_HOME/bin/bazel; \
     fi \
     && chmod a+x $BAZEL_HOME/bin/bazel
 
