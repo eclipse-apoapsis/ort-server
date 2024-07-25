@@ -592,7 +592,7 @@ val postSecretForRepository: OpenApiRoute.() -> Unit = {
 }
 
 val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
-    operationId = "PatchSecretByRepositoryIdIdAndName"
+    operationId = "PatchSecretByRepositoryIdAndName"
     summary = "Update a secret of a repository."
     tags = listOf("Secrets")
 

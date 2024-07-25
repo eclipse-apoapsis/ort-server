@@ -293,7 +293,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
 }
 
 val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
-    operationId = "PatchSecretByProductIdIdAndName"
+    operationId = "PatchSecretByProductIdAndName"
     summary = "Update a secret of a product."
     tags = listOf("Secrets")
 
