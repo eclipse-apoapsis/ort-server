@@ -437,6 +437,9 @@ val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
     tags = listOf("Infrastructure services")
 
     request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
         jsonBody<CreateInfrastructureService> {
             example("Create infrastructure service") {
                 value = CreateInfrastructureService(
