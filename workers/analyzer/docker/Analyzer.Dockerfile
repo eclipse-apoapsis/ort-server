@@ -46,7 +46,7 @@ ARG SBT_VERSION=1.10.0
 ARG SWIFT_VERSION=5.9.2
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-ARG TEMURIN_VERSION=17.0.12_7-jdk-jammy@sha256:e9c12fb8f206a1f8a3ee222fc97659dce0840e558d0ef837d3d4632d7685abc6
+ARG TEMURIN_VERSION=17.0.12_7-jdk-jammy@sha256:ce0a5e721358f85156dce1aff73d3a7da516f2a7785b1cac9cd37226de3fe1dd
 
 FROM eclipse-temurin:$TEMURIN_VERSION as ort-base-image
 
