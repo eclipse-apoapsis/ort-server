@@ -45,7 +45,7 @@ const Layout = () => {
   ];
 
   return (
-    <div className='flex'>
+    <div className='flex flex-col md:flex-row'>
       {!productId && !repoId && !runIndex && (
         <Sidebar sections={[{ items: navItems }]} />
       )}

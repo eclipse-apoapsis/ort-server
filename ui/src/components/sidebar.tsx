@@ -45,7 +45,10 @@ interface SidebarNavProps {
 
 export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
   return (
-    <nav className={cn('w-52', className)} {...props}>
+    <nav
+      className={cn('mb-4 w-full md:mb-0 md:mr-2 md:w-52', className)}
+      {...props}
+    >
       <div className='flex flex-col items-start'>
         {sections.map((section) => {
           if (section.visible === false) {
