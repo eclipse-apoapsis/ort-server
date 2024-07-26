@@ -42,6 +42,11 @@ const Layout = () => {
         `permission_organization_${orgId}_write_secrets`,
       ]),
     },
+    {
+      title: 'Infrastructure Services',
+      to: '/organizations/$orgId/infrastructure-services',
+      visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
+    },
   ];
 
   return (
