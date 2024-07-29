@@ -191,7 +191,7 @@ const RepositorySecrets = () => {
               <TooltipTrigger asChild>
                 <Button asChild size='sm' className='ml-auto gap-1'>
                   <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-secret'
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
                     params={{
                       orgId: params.orgId,
                       productId: params.productId,
@@ -218,7 +218,7 @@ const RepositorySecrets = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/'
 )({
   validateSearch: paginationSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
