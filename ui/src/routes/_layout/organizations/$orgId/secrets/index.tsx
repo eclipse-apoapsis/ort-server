@@ -29,7 +29,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { EditIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -48,6 +48,7 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import {
   Card,
   CardContent,
@@ -62,6 +63,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -103,6 +105,14 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
 
   return (
     <div className='flex justify-end gap-1'>
+      <Link
+        to='/organizations/$orgId/secrets/$secretName/edit'
+        params={{ orgId: params.orgId, secretName: row.original.name }}
+        className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+      >
+        <span className='sr-only'>Edit</span>
+        <EditIcon size={16} />
+      </Link>
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
