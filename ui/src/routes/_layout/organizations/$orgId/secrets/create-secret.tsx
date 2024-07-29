@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostSecretForRepository } from '@/api/queries';
+import { useSecretsServicePostSecretForOrganization } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -51,34 +51,32 @@ const formSchema = z.object({
   description: z.string().optional(),
 });
 
-const CreateRepositorySecretPage = () => {
+const CreateOrganizationSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { toast } = useToast();
 
-  const { mutateAsync, isPending } = useSecretsServicePostSecretForRepository({
-    onSuccess(data) {
-      toast({
-        title: 'Create Repository Secret',
-        description: `New repository secret "${data.name}" created successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: params.repoId,
-        },
-      });
-    },
-    onError(error: ApiError) {
-      toast({
-        title: error.message,
-        description: <ToastError error={error} />,
-        variant: 'destructive',
-      });
-    },
-  });
+  const { mutateAsync, isPending } = useSecretsServicePostSecretForOrganization(
+    {
+      onSuccess(data) {
+        toast({
+          title: 'Create Organization Secret',
+          description: `New organization secret "${data.name}" created successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/secrets',
+          params: { orgId: params.orgId },
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    }
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,7 +84,7 @@ const CreateRepositorySecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
+      organizationId: Number.parseInt(params.orgId),
       requestBody: {
         name: values.name,
         value: values.value,
@@ -97,7 +95,7 @@ const CreateRepositorySecretPage = () => {
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>Create Repository Secret</CardHeader>
+      <CardHeader>Create Organization Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
@@ -154,7 +152,9 @@ const CreateRepositorySecretPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating repository secret...</span>
+                  <span className='sr-only'>
+                    Creating organization secret...
+                  </span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -169,7 +169,7 @@ const CreateRepositorySecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-secret'
+  '/_layout/organizations/$orgId/secrets/create-secret'
 )({
-  component: CreateRepositorySecretPage,
+  component: CreateOrganizationSecretPage,
 });

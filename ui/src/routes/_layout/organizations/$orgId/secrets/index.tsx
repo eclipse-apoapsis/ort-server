@@ -193,7 +193,7 @@ const OrganizationSecrets = () => {
               <TooltipTrigger asChild>
                 <Button asChild size='sm' className='ml-auto gap-1'>
                   <Link
-                    to='/organizations/$orgId/create-secret'
+                    to='/organizations/$orgId/secrets/create-secret'
                     params={{ orgId: params.orgId }}
                   >
                     New secret
@@ -215,7 +215,7 @@ const OrganizationSecrets = () => {
   );
 };
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/secrets')({
+export const Route = createFileRoute('/_layout/organizations/$orgId/secrets/')({
   validateSearch: paginationSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {

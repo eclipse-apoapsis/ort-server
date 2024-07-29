@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostSecretForOrganization } from '@/api/queries';
+import { useSecretsServicePostSecretForProduct } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -51,32 +51,30 @@ const formSchema = z.object({
   description: z.string().optional(),
 });
 
-const CreateOrganizationSecretPage = () => {
+const CreateProductSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { toast } = useToast();
 
-  const { mutateAsync, isPending } = useSecretsServicePostSecretForOrganization(
-    {
-      onSuccess(data) {
-        toast({
-          title: 'Create Organization Secret',
-          description: `New organization secret "${data.name}" created successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/secrets',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast({
-          title: error.message,
-          description: <ToastError error={error} />,
-          variant: 'destructive',
-        });
-      },
-    }
-  );
+  const { mutateAsync, isPending } = useSecretsServicePostSecretForProduct({
+    onSuccess(data) {
+      toast({
+        title: 'Create Product Secret',
+        description: `New product secret "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/secrets',
+        params: { orgId: params.orgId, productId: params.productId },
+      });
+    },
+    onError(error: ApiError) {
+      toast({
+        title: error.message,
+        description: <ToastError error={error} />,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,7 +82,7 @@ const CreateOrganizationSecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      organizationId: Number.parseInt(params.orgId),
+      productId: Number.parseInt(params.productId),
       requestBody: {
         name: values.name,
         value: values.value,
@@ -95,7 +93,7 @@ const CreateOrganizationSecretPage = () => {
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>Create Organization Secret</CardHeader>
+      <CardHeader>Create Product Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
@@ -152,9 +150,7 @@ const CreateOrganizationSecretPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>
-                    Creating organization secret...
-                  </span>
+                  <span className='sr-only'>Creating product secret...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -169,7 +165,7 @@ const CreateOrganizationSecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/create-secret'
+  '/_layout/organizations/$orgId/products/$productId/secrets/create-secret'
 )({
-  component: CreateOrganizationSecretPage,
+  component: CreateProductSecretPage,
 });

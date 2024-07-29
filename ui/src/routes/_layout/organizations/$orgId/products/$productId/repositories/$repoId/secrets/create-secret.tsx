@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostSecretForProduct } from '@/api/queries';
+import { useSecretsServicePostSecretForRepository } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -51,20 +51,24 @@ const formSchema = z.object({
   description: z.string().optional(),
 });
 
-const CreateProductSecretPage = () => {
+const CreateRepositorySecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { toast } = useToast();
 
-  const { mutateAsync, isPending } = useSecretsServicePostSecretForProduct({
+  const { mutateAsync, isPending } = useSecretsServicePostSecretForRepository({
     onSuccess(data) {
       toast({
-        title: 'Create Product Secret',
-        description: `New product secret "${data.name}" created successfully.`,
+        title: 'Create Repository Secret',
+        description: `New repository secret "${data.name}" created successfully.`,
       });
       navigate({
-        to: '/organizations/$orgId/products/$productId/secrets',
-        params: { orgId: params.orgId, productId: params.productId },
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
       });
     },
     onError(error: ApiError) {
@@ -82,7 +86,7 @@ const CreateProductSecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      productId: Number.parseInt(params.productId),
+      repositoryId: Number.parseInt(params.repoId),
       requestBody: {
         name: values.name,
         value: values.value,
@@ -93,7 +97,7 @@ const CreateProductSecretPage = () => {
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>Create Product Secret</CardHeader>
+      <CardHeader>Create Repository Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent>
@@ -150,7 +154,7 @@ const CreateProductSecretPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating product secret...</span>
+                  <span className='sr-only'>Creating repository secret...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -165,7 +169,7 @@ const CreateProductSecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/create-secret'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
 )({
-  component: CreateProductSecretPage,
+  component: CreateRepositorySecretPage,
 });
