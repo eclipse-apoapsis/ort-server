@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
@@ -61,7 +62,7 @@ class DefaultAuthorizationService(
      * A prefix for Keycloak group names, to be used when multiple instances of ORT Server share the same Keycloak
      * realm.
      */
-    private val keycloakGroupPrefix: String
+    private val     keycloakGroupPrefix: String
 ) : AuthorizationService {
     override suspend fun createOrganizationPermissions(organizationId: Long) {
         OrganizationPermission.getRolesForOrganization(organizationId).forEach { roleName ->
@@ -730,5 +731,31 @@ class DefaultAuthorizationService(
         actualGroupRoles.filter { it.name.value.startsWith(groupPrefix) }.filter { it.name.value != roleName }.forEach {
             keycloakClient.removeGroupClientRole(group.id, it)
         }
+    }
+
+    override suspend fun addUserToGroup(
+        username: String,
+        organizationId: Long,
+        groupName: String
+    ) {
+        val organization = checkNotNull(organizationRepository.get(organizationId))
+        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+
+        keycloakClient.addUserToGroup(UserName(username), GroupName(group))
+
+        // TODO: Convert the various exceptions to some standard ones
+    }
+
+    override suspend fun removeUserFromGroup(
+        username: String,
+        organizationId: Long,
+        groupName: String
+    ) {
+        val organization = checkNotNull(organizationRepository.get(organizationId))
+        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+
+        keycloakClient.removeUserToGroup(UserName(username), GroupName(group))
+
+        // TODO: Convert the various exceptions to some standard ones
     }
 }

@@ -157,4 +157,14 @@ interface KeycloakClient {
      * Get all client [roles][Role] for the [user][User] with the given [id].
      */
     suspend fun getUserClientRoles(id: UserId): Set<Role>
+
+    /**
+     * Add a user [username] to the group [groupName].
+     */
+    suspend fun addUserToGroup(username: UserName, groupName: GroupName)
+
+    /**
+     * Remove a user [username] from the group [groupName].
+     */
+    suspend fun removeUserToGroup(username: UserName, groupName: GroupName)
 }

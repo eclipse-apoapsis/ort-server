@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -119,5 +120,21 @@ class OrganizationService(
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Organization = db.dbQuery {
         organizationRepository.update(organizationId, name, description)
+    }
+
+    suspend fun addUserToGroup(
+        username: String,
+        organizationId: Long,
+        organizationRole: OrganizationRole
+    ) {
+        authorizationService.addUserToGroup(username, organizationId, organizationRole.groupName(organizationId))
+    }
+
+    suspend fun removeUserFromGroup(
+        username: String,
+        organizationId: Long,
+        organizationRole: OrganizationRole
+    ) {
+        authorizationService.removeUserFromGroup(username, organizationId, organizationRole.groupName(organizationId))
     }
 }
