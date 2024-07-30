@@ -56,15 +56,25 @@ class OrchestratorService(
         jobConfigContext: String?,
         labels: Map<String, String>?
     ): OrtRun {
+        val traceId = UUID.randomUUID().toString()
+
         val ortRun = db.dbQuery(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
             maxAttempts = 25
-            ortRunRepository.create(repositoryId, revision, path, jobConfig, jobConfigContext, labels.orEmpty())
+            ortRunRepository.create(
+                repositoryId,
+                revision,
+                path,
+                jobConfig,
+                jobConfigContext,
+                labels.orEmpty(),
+                traceId = traceId
+            )
         }
 
         orchestratorSender.send(
             Message(
                 header = MessageHeader(
-                    traceId = UUID.randomUUID().toString(),
+                    traceId = traceId,
                     ortRunId = ortRun.id
                 ),
                 payload = CreateOrtRun(ortRun)

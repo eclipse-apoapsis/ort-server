@@ -56,6 +56,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val status = enumerationByName<OrtRunStatus>("status", 128)
     val finishedAt = timestamp("finished_at").nullable()
     val path = text("path").nullable()
+    val traceId = text("trace_id").nullable()
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -66,6 +67,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var index by OrtRunsTable.index
     var revision by OrtRunsTable.revision
     var path by OrtRunsTable.path
+    var traceId by OrtRunsTable.traceId
     var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
     var jobConfigs by OrtRunsTable.jobConfigs
     var resolvedJobConfigs by OrtRunsTable.resolvedJobConfigs
@@ -107,6 +109,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         repositoryConfigId = repositoryConfig?.id?.value,
         issues = issues.map { it.mapToModel() },
         jobConfigContext = jobConfigContext,
-        resolvedJobConfigContext = resolvedJobConfigContext
+        resolvedJobConfigContext = resolvedJobConfigContext,
+        traceId = traceId
     )
 }

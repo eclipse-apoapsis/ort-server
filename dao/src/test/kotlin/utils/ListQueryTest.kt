@@ -139,8 +139,16 @@ class ListQueryTest : StringSpec() {
             val product = productRepository.create("Run Product", null, organization.id)
             val repo =
                 repositoryRepository.create(RepositoryType.GIT, "https://repo.example.org/run.git", product.id)
-            val runs = (1..3).map {
-                ortRunRepository.create(repo.id, "test", null, JobConfigurations(), null, mapOf("label1" to "label1"))
+            val runs = (1..3).map { idx ->
+                ortRunRepository.create(
+                    repo.id,
+                    "test",
+                    null,
+                    JobConfigurations(),
+                    null,
+                    mapOf("label1" to "label1"),
+                    traceId = "trace-$idx"
+                )
             }
 
             val parameters = ListQueryParameters(

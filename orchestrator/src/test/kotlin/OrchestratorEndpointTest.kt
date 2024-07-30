@@ -108,7 +108,8 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     null,
                     emptyList(),
                     null,
-                    null
+                    null,
+                    "trace-id"
                 )
             )
             val message = Message(msgHeader, createOrtRun)

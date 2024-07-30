@@ -60,7 +60,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>,
-        issues: Collection<Issue>
+        issues: Collection<Issue>,
+        traceId: String?
     ): OrtRun = db.blockingQuery {
         val nextIndex = (listForRepository(repositoryId).data.maxByOrNull { it.index }?.index ?: 0) + 1
 
@@ -75,6 +76,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
             this.issues = mapAndDeduplicate(issues, IssueDao::createByIssue)
+            this.traceId = traceId
         }.mapToModel()
     }
 

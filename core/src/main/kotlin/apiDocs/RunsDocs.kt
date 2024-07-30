@@ -62,7 +62,8 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,
-                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
+                        traceId = "35b67724-a85a-4cc4-b2a4-60fd914634e7"
                     )
                 }
             }

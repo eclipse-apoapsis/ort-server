@@ -309,7 +309,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     null,
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace1"
                 )
                 val run2 = ortRunRepository.create(
                     createdRepository.id,
@@ -317,7 +318,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     "test",
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace2"
                 )
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs")
@@ -346,6 +348,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     dbExtension.fixtures.jobConfigurations,
                     null,
                     labelsMap,
+                    traceId = "trace1"
                 )
 
                 val run2 = ortRunRepository.create(
@@ -354,7 +357,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     dbExtension.fixtures.jobConfigurations,
                     "test",
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace2"
                 )
 
                 val jobs1 = createJobSummaries(run1.id)
@@ -379,14 +383,23 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                ortRunRepository.create(createdRepository.id, "branch-1", null, JobConfigurations(), null, labelsMap)
+                ortRunRepository.create(
+                    createdRepository.id,
+                    "branch-1",
+                    null,
+                    JobConfigurations(),
+                    null,
+                    labelsMap,
+                    traceId = "test-trace-id"
+                )
                 val run2 = ortRunRepository.create(
                     createdRepository.id,
                     "branch-2",
                     null,
                     JobConfigurations(),
                     "testContext",
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace"
                 )
 
                 val query = "?sort=-revision,-createdAt&limit=1"
@@ -427,7 +440,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     "jobConfigContext",
-                    labelsMap
+                    labelsMap,
+                    traceId = "some-trace-id"
                 )
 
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
@@ -447,7 +461,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     "testContext",
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace-id"
                 )
 
                 val jobs = dbExtension.fixtures.createJobs(run.id).mapToApi()
@@ -462,7 +477,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "require RepositoryPermission.READ_ORT_RUNS" {
             val createdRepository = createRepository()
             val run =
-                ortRunRepository.create(createdRepository.id, "revision", null, JobConfigurations(), null, labelsMap)
+                ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    null,
+                    labelsMap,
+                    traceId = "test-trace-id"
+                )
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(createdRepository.id)) {
                 get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
@@ -533,6 +556,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val orchestratorMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 orchestratorMessage.header.ortRunId shouldBe run.id
+                orchestratorMessage.header.traceId shouldBe run.traceId
 
                 with(run.jobConfigs.analyzer) {
                     allowDynamicVersions shouldBe true

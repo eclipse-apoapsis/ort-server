@@ -76,9 +76,17 @@ class DaoOrtRunRepositoryTest : StringSpec({
         val revision = "revision"
         val path = "somePath"
         val jobConfigContext = "someConfigContext"
+        val traceId = "trace-1234"
 
-        val createdOrtRun =
-            ortRunRepository.create(repositoryId, revision, path, jobConfigurations, jobConfigContext, labelsMap)
+        val createdOrtRun = ortRunRepository.create(
+            repositoryId,
+            revision,
+            path,
+            jobConfigurations,
+            jobConfigContext,
+            labelsMap,
+            traceId = traceId
+        )
 
         val dbEntry = ortRunRepository.get(createdOrtRun.id)
 
@@ -103,21 +111,22 @@ class DaoOrtRunRepositoryTest : StringSpec({
             vcsProcessedId = null,
             nestedRepositoryIds = emptyMap(),
             repositoryConfigId = null,
-            issues = emptyList()
+            issues = emptyList(),
+            traceId = traceId
         )
     }
 
     "create should create sequential indexes for different repositories" {
         val otherRepository = dbExtension.fixtures.createRepository(url = "https://example.com/repo2.git")
 
-        ortRunRepository.create(repositoryId, "revision", null, jobConfigurations, null, labelsMap).index shouldBe 1
         ortRunRepository.create(
-            otherRepository.id,
+            repositoryId,
             "revision",
             null,
             jobConfigurations,
             null,
-            labelsMap
+            labelsMap,
+            traceId = null
         ).index shouldBe 1
         ortRunRepository.create(
             otherRepository.id,
@@ -125,13 +134,39 @@ class DaoOrtRunRepositoryTest : StringSpec({
             null,
             jobConfigurations,
             null,
-            labelsMap
+            labelsMap,
+            traceId = null
+        ).index shouldBe 1
+        ortRunRepository.create(
+            otherRepository.id,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "some-trace-id"
         ).index shouldBe 2
-        ortRunRepository.create(repositoryId, "revision", null, jobConfigurations, null, labelsMap).index shouldBe 2
+        ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = null
+        ).index shouldBe 2
     }
 
     "getByIndex should return the correct run" {
-        val ortRun = ortRunRepository.create(repositoryId, "revision", null, jobConfigurations, null, labelsMap)
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "some-trace-id"
+        )
 
         ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
     }
@@ -141,22 +176,54 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "get should return the run" {
-        val ortRun = ortRunRepository.create(repositoryId, "revision", null, jobConfigurations, null, labelsMap)
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "some-trace-id"
+        )
 
         ortRunRepository.get(ortRun.id) shouldBe ortRun
     }
 
     "listForRepositories should return all runs for a repository" {
-        val ortRun1 = ortRunRepository.create(repositoryId, "revision1", null, jobConfigurations, null, labelsMap)
-        val ortRun2 = ortRunRepository.create(repositoryId, "revision2", null, jobConfigurations, null, labelsMap)
+        val ortRun1 = ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "the-first-trace-id"
+        )
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "the-second-trace-id"
+        )
 
         ortRunRepository.listForRepository(repositoryId) shouldBe
                 ListQueryResult(listOf(ortRun1, ortRun2), ListQueryParameters.DEFAULT, 2)
     }
 
     "listForRepositories should apply query parameters" {
-        ortRunRepository.create(repositoryId, "revision1", null, jobConfigurations, null, labelsMap)
-        val ortRun2 = ortRunRepository.create(repositoryId, "revision2", null, jobConfigurations, null, labelsMap)
+        ortRunRepository.create(repositoryId, "revision1", null, jobConfigurations, null, labelsMap, traceId = "t")
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "trace-id"
+        )
 
         val parameters = ListQueryParameters(
             sortFields = listOf(OrderField("revision", OrderDirection.DESCENDING)),
@@ -182,7 +249,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            listOf(issue1)
+            listOf(issue1),
+            "theTraceId"
         )
 
         val resolvedContext = "theResolvedConfigContext"
@@ -217,7 +285,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            emptyList()
+            emptyList(),
+            "theTraceId"
         )
 
         val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FINISHED.asPresent())
@@ -234,7 +303,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            emptyList()
+            emptyList(),
+            "traceIT"
         )
 
         val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FAILED.asPresent())
@@ -244,7 +314,15 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "delete should delete the database entry" {
-        val ortRun = ortRunRepository.create(repositoryId, "revision", null, jobConfigurations, null, labelsMap)
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "delete-without-trace"
+        )
 
         ortRunRepository.delete(ortRun.id)
 

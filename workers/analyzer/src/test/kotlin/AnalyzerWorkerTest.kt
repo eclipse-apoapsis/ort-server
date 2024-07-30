@@ -93,7 +93,8 @@ private val ortRun = OrtRun(
     repositoryConfigId = 1L,
     issues = emptyList(),
     jobConfigContext = "context",
-    resolvedJobConfigContext = "context"
+    resolvedJobConfigContext = "context",
+    traceId = "trace-id"
 )
 
 private val analyzerJob = AnalyzerJob(

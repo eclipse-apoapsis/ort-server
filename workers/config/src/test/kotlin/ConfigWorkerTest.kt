@@ -275,7 +275,8 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         repositoryConfigId = null,
         issues = emptyList(),
         jobConfigContext = orgConfigContext,
-        resolvedJobConfigContext = null
+        resolvedJobConfigContext = null,
+        traceId = "trace-id"
     )
 
     val context = mockk<WorkerContext> {

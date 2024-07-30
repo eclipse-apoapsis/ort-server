@@ -217,7 +217,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     "jobConfigContext",
-                    labelsMap
+                    labelsMap,
+                    traceId = "t1"
                 )
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}")
@@ -235,7 +236,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     null,
                     JobConfigurations(),
                     "testContext",
-                    labelsMap
+                    labelsMap,
+                    traceId = "trace"
                 )
 
                 val jobs = dbExtension.fixtures.createJobs(run.id).mapToApi()
@@ -248,7 +250,15 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require RepositoryPermission.READ_ORT_RUNS" {
-            val run = ortRunRepository.create(repositoryId, "revision", null, JobConfigurations(), null, labelsMap)
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                null,
+                labelsMap,
+                traceId = "test-trace-id"
+            )
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}")
