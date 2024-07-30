@@ -44,7 +44,9 @@ import org.ossreviewtoolkit.downloader.DownloadException
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageReference
+import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.Scope
 import org.ossreviewtoolkit.model.VcsInfo
@@ -75,7 +77,15 @@ private const val TEST_CONTENT_POM = "testContentPom"
 class SourceCodeBundleReporterTest : WordSpec({
     "The SourceCodeBundleReporter" should {
         "download source files and create a bundle with a correct name" {
-            val downloader = mockDownloader()
+            val projectContent = mapOf(
+                "src" to TEST_CONTENT_SRC,
+                ".gitignore" to TEST_CONTENT_IGNORE,
+                ".travis.yml" to TEST_CONTENT_TRAVIS,
+                "CHANGELOG.md" to TEST_CONTENT_CHANGELOG,
+                "pom.xml" to TEST_CONTENT_POM
+            )
+            val downloader = mockk<Downloader>()
+            downloader.expectDownload(project.toPackage(), projectContent)
 
             val reporter = SourceCodeBundleReporter(downloader)
 
@@ -92,15 +102,12 @@ class SourceCodeBundleReporterTest : WordSpec({
             val codeBundleFile = reportFiles.single()
             codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
 
-            codeBundleFile.unpackZip(outputDir)
-            outputDir shouldContainNFiles 2
-            outputDir shouldContainFile PROJECT_ID_FILENAME
-
-            outputDir.resolve(PROJECT_ID_FILENAME).unpackZip(outputDir)
-            outputDir shouldContainFile PROJECT_NAME
-            outputDir.resolve(PROJECT_NAME) shouldContainFile PROJECT_VERSION
-
-            val projectContents = outputDir.resolve(PROJECT_NAME).resolve(PROJECT_VERSION)
+            val projectContents = codeBundleFile.checkAndUnpackBundle(
+                outputDir,
+                PROJECT_ID_FILENAME,
+                PROJECT_NAME,
+                PROJECT_VERSION
+            )
             projectContents shouldContainNFiles 5
             projectContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
             projectContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
@@ -149,7 +156,15 @@ class SourceCodeBundleReporterTest : WordSpec({
         }
 
         "add only included sources from packages from included license categories" {
-            val downloader = mockDownloader()
+            val pkgContent = mapOf(
+                "src" to TEST_CONTENT_SRC,
+                ".gitignore" to TEST_CONTENT_IGNORE,
+                ".travis.yml" to TEST_CONTENT_TRAVIS,
+                "CHANGELOG.md" to TEST_CONTENT_CHANGELOG,
+                "pom.xml" to TEST_CONTENT_POM
+            )
+            val downloader = mockk<Downloader>()
+            downloader.expectDownload(pkg, pkgContent)
 
             val reporter = SourceCodeBundleReporter(downloader)
 
@@ -169,15 +184,12 @@ class SourceCodeBundleReporterTest : WordSpec({
 
             codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
 
-            codeBundleFile.unpackZip(outputDir)
-            outputDir shouldContainNFiles 2
-            outputDir shouldContainFile PACKAGE_ID_FILENAME
-
-            outputDir.resolve(PACKAGE_ID_FILENAME).unpackZip(outputDir)
-            outputDir shouldContainFile PACKAGE_NAME
-            outputDir.resolve(PACKAGE_NAME) shouldContainFile PACKAGE_VERSION
-
-            val packageContents = outputDir.resolve(PACKAGE_NAME).resolve(PACKAGE_VERSION)
+            val packageContents = codeBundleFile.checkAndUnpackBundle(
+                outputDir,
+                PACKAGE_ID_FILENAME,
+                PACKAGE_NAME,
+                PACKAGE_VERSION
+            )
             packageContents shouldContainNFiles 5
             packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
             packageContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
@@ -185,38 +197,139 @@ class SourceCodeBundleReporterTest : WordSpec({
             packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
             packageContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
         }
+
+        "handle a path to a sub folder in VCS info correctly" {
+            val subPath = "includeOnlyThis"
+            val pkgContent = mapOf(
+                "test" to "someTestContent",
+                "$subPath/src" to TEST_CONTENT_SRC,
+                "$subPath/CHANGELOG.md" to TEST_CONTENT_CHANGELOG,
+                "foo" to "bar"
+            )
+            val repoProvenance = RepositoryProvenance(
+                vcsInfoPackage.copy(path = subPath),
+                "some-resolved-revision"
+            )
+            val downloader = mockk<Downloader>()
+            downloader.expectDownload(pkg, pkgContent, repoProvenance)
+
+            val reporter = SourceCodeBundleReporter(downloader)
+
+            val input = getReporterInput()
+            val outputDir = tempdir()
+
+            val codeBundleFile = reporter.generateReport(
+                input,
+                outputDir,
+                PluginConfiguration(
+                    options = mapOf(
+                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
+                    )
+                )
+            ).single()
+
+            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+
+            val packageContents = codeBundleFile.checkAndUnpackBundle(
+                outputDir,
+                PACKAGE_ID_FILENAME,
+                PACKAGE_NAME,
+                PACKAGE_VERSION
+            ).resolve(subPath)
+            packageContents shouldContainNFiles 2
+            packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
+            packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+        }
+
+        "handle a path to a single file in VCS info correctly" {
+            val subPath = "this/is/the/only/relevant/file.txt"
+            val pkgContent = mapOf(
+                "test" to "someTestContent",
+                subPath to TEST_CONTENT_SRC,
+                "foo" to "bar"
+            )
+            val repoProvenance = RepositoryProvenance(
+                vcsInfoPackage.copy(path = subPath),
+                "some-resolved-revision"
+            )
+            val downloader = mockk<Downloader>()
+            downloader.expectDownload(pkg, pkgContent, repoProvenance)
+
+            val reporter = SourceCodeBundleReporter(downloader)
+
+            val input = getReporterInput()
+            val outputDir = tempdir()
+
+            val codeBundleFile = reporter.generateReport(
+                input,
+                outputDir,
+                PluginConfiguration(
+                    options = mapOf(
+                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
+                    )
+                )
+            ).single()
+
+            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+
+            val packageContents = codeBundleFile.checkAndUnpackBundle(
+                outputDir,
+                PACKAGE_ID_FILENAME,
+                PACKAGE_NAME,
+                PACKAGE_VERSION
+            )
+            packageContents shouldContainNFiles 1
+            packageContents.resolve(subPath).readText() shouldBe TEST_CONTENT_SRC
+        }
     }
 })
 
+/**
+ * Unpack this source code bundle file to the given [outputDir] and check whether it has the expected folder structure
+ * containing components for the [pkgFile], [pkgName], and [pkgVersion]. Return the sub folder with the actual
+ * content.
+ */
+private fun File.checkAndUnpackBundle(outputDir: File, pkgFile: String, pkgName: String, pkgVersion: String): File {
+    unpackZip(outputDir)
+    outputDir shouldContainNFiles 2
+    outputDir shouldContainFile pkgFile
+
+    outputDir.resolve(pkgFile).unpackZip(outputDir)
+    outputDir shouldContainFile pkgName
+    outputDir.resolve(pkgName) shouldContainFile pkgVersion
+
+    return outputDir.resolve(pkgName).resolve(pkgVersion)
+}
+
+private val vcsInfoPackage = VcsInfo(
+    type = VcsType.GIT,
+    url = "https://github.com/jettison-json/jettison.git",
+    revision = "1.5.4",
+    path = ""
+)
+
+private val pkg = OrtTestData.pkg.copy(
+    id = Identifier("Maven:org.codehaus.jettison:jettison:1.5.4"),
+    vcs = vcsInfoPackage,
+    vcsProcessed = vcsInfoPackage
+)
+
+private val vcsInfoProject = VcsInfo(
+    type = VcsType.GIT,
+    url = "https://github.com/vdurmont/semver4j.git",
+    revision = "master",
+    path = ""
+)
+
+private val project = OrtTestData.project.copy(
+    id = Identifier("Maven:com.vdurmont:semver4j:2.0.1"),
+    vcs = vcsInfoProject,
+    vcsProcessed = vcsInfoProject,
+    scopeNames = null,
+    scopeDependencies = setOf(Scope("compile", setOf(PackageReference(pkg.id))))
+)
+
 private fun getReporterInput(): ReporterInput {
-    val vcsInfoPackage = VcsInfo(
-        type = VcsType.GIT,
-        url = "https://github.com/jettison-json/jettison.git",
-        revision = "1.5.4",
-        path = ""
-    )
-
-    val pkg = OrtTestData.pkg.copy(
-        id = Identifier("Maven:org.codehaus.jettison:jettison:1.5.4"),
-        vcs = vcsInfoPackage,
-        vcsProcessed = vcsInfoPackage
-    )
-
-    val vcsInfoProject = VcsInfo(
-        type = VcsType.GIT,
-        url = "https://github.com/vdurmont/semver4j.git",
-        revision = "master",
-        path = ""
-    )
-
-    val project = OrtTestData.project.copy(
-        id = Identifier("Maven:com.vdurmont:semver4j:2.0.1"),
-        vcs = vcsInfoProject,
-        vcsProcessed = vcsInfoProject,
-        scopeNames = null,
-        scopeDependencies = setOf(Scope("compile", setOf(PackageReference(pkg.id))))
-    )
-
     val repository = OrtTestData.repository.copy(vcs = vcsInfoProject, vcsProcessed = vcsInfoProject)
 
     val result = AnalyzerResult(
@@ -247,25 +360,20 @@ private fun getReporterInput(): ReporterInput {
     return input
 }
 
-private fun mockDownloader(): Downloader {
-    val downloader = mockk<Downloader>()
+/**
+ * Prepare this mock [Downloader] to expect an invocation of the [Downloader.download] function with the given [pkg].
+ * The mock reacts by populating the download directory with the given [content] and returns the given [provenance].
+ */
+private fun Downloader.expectDownload(pkg: Package, content: Map<String, String>, provenance: Provenance = mockk()) {
+    every { download(pkg, any()) } answers {
+        val projectDir = secondArg<File>()
 
-    val downloaderDirSlot = slot<File>()
+        content.forEach { (path, fileContent) ->
+            val file = projectDir.resolve(path)
+            file.parentFile.mkdirs()
+            file.writeText(fileContent)
+        }
 
-    every {
-        downloader.download(any(), outputDirectory = capture(downloaderDirSlot))
-    } answers {
-        val projectDir = downloaderDirSlot.captured
-        Files.createDirectories(projectDir.toPath())
-
-        projectDir.resolve("src").writeBytes(TEST_CONTENT_SRC.toByteArray())
-        projectDir.resolve(".gitignore").writeBytes(TEST_CONTENT_IGNORE.toByteArray())
-        projectDir.resolve(".travis.yml").writeBytes(TEST_CONTENT_TRAVIS.toByteArray())
-        projectDir.resolve("CHANGELOG.md").writeBytes(TEST_CONTENT_CHANGELOG.toByteArray())
-        projectDir.resolve("pom.xml").writeBytes(TEST_CONTENT_POM.toByteArray())
-
-        mockk<RepositoryProvenance>()
+        provenance
     }
-
-    return downloader
 }
