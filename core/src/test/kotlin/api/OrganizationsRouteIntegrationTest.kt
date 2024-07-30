@@ -20,10 +20,15 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.data.forAll
+import io.kotest.data.row
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -37,7 +42,9 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
@@ -48,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
+import org.eclipse.apoapsis.ortserver.api.v1.model.IdentifyUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
@@ -62,12 +70,16 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.addUserRole
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.ADMIN
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.READER
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.WRITER
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
@@ -135,6 +147,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         name: String = secretName,
         description: String = secretDescription,
     ) = secretRepository.create(path, name, description, organizationId, null, null)
+
+    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
+        organizationService.addUserToGroup(username, organizationId, groupId)
 
     "GET /organizations" should {
         "return all existing organizations for the superuser" {
@@ -1226,6 +1241,249 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
                 delete("/api/v1/organizations/${createdOrg.id}/infrastructure-services/${service.name}")
+            }
+        }
+    }
+
+    "PUT/DELETE /organizations/{orgId}/groups/{groupId}" should {
+        // Do a systematic matrix test for methods put/delete and groups readers/writers/admins
+        forAll(
+            row(HttpMethod.Put, "readers"),
+            row(HttpMethod.Put, "writers"),
+            row(HttpMethod.Put, "admins"),
+            row(HttpMethod.Delete, "readers"),
+            row(HttpMethod.Delete, "writers"),
+            row(HttpMethod.Delete, "admins")
+        ) { method, groupId ->
+            "require OrganizationPermission.WRITE for group '$groupId' and '${method.value}'" {
+                val createdOrg = createOrganization()
+                val user = IdentifyUser(TEST_USER.username.value)
+
+                requestShouldRequireRole(
+                    OrganizationPermission.WRITE.roleName(createdOrg.id),
+                    HttpStatusCode.NoContent
+                ) {
+                    when (method) {
+                        HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/$groupId") {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> delete("/api/v1/organizations/${createdOrg.id}/groups/$groupId") {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put, "readers"),
+            row(HttpMethod.Put, "writers"),
+            row(HttpMethod.Put, "admins"),
+            row(HttpMethod.Delete, "readers"),
+            row(HttpMethod.Delete, "writers"),
+            row(HttpMethod.Delete, "admins")
+        ) { method, groupId ->
+            "respond with 'NotFound' if the user does not exist for group '$groupId' and '${method.value}'" {
+                integrationTestApplication {
+                    val createdOrg = createOrganization()
+                    val user = IdentifyUser("non-existing-username")
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.InternalServerError
+
+                    val body = response.body<ErrorResponse>()
+                    body.cause shouldContain "Could not find user"
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put, "readers"),
+            row(HttpMethod.Put, "writers"),
+            row(HttpMethod.Put, "admins"),
+            row(HttpMethod.Delete, "readers"),
+            row(HttpMethod.Delete, "writers"),
+            row(HttpMethod.Delete, "admins")
+        ) { method, groupId ->
+            "respond with 'NotFound' if the organization does not exist for group '$groupId' and '${method.value}'" {
+                integrationTestApplication {
+                    val user = IdentifyUser(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/organizations/999999/groups/$groupId"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/organizations/999999/groups/$groupId"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    println(body)
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put, "readers"),
+            row(HttpMethod.Put, "writers"),
+            row(HttpMethod.Put, "admins"),
+            row(HttpMethod.Delete, "readers"),
+            row(HttpMethod.Delete, "writers"),
+            row(HttpMethod.Delete, "admins")
+        ) { method, groupId ->
+            "respond with 'BadRequest' if the request body is invalid for group '$groupId' and '${method.value}'" {
+                integrationTestApplication {
+                    val createdOrg = createOrganization()
+                    val org = CreateOrganization(name = "name", description = "description") // Wrong request body
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                        ) {
+                            setBody(org)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                        ) {
+                            setBody(org)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.BadRequest
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdOrg = createOrganization()
+                    val user = IdentifyUser(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+    }
+
+    "PUT /organizations/{orgId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "add a user to the '$groupId' group" {
+                integrationTestApplication {
+                    val createdOrg = createOrganization()
+                    val user = IdentifyUser(TEST_USER.username.value)
+
+                    val response = superuserClient.put(
+                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdOrg.id)
+                        "writers" -> WRITER.groupName(createdOrg.id)
+                        "admins" -> ADMIN.groupName(createdOrg.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val group = keycloakClient.getGroup(GroupName(groupName))
+                    group.shouldNotBeNull()
+
+                    val members = keycloakClient.getGroupMembers(group.name)
+                    members shouldHaveSize 1
+                    members.map { it.username } shouldContain TEST_USER.username
+                }
+            }
+        }
+    }
+
+    "DELETE /organizations/{orgId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "remove a user from the '$groupId' group" {
+                integrationTestApplication {
+                    val createdOrg = createOrganization()
+                    val user = IdentifyUser(TEST_USER.username.value)
+                    addUserToGroup(user.username, createdOrg.id, groupId)
+
+                    // Check pre-condition
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdOrg.id)
+                        "writers" -> WRITER.groupName(createdOrg.id)
+                        "admins" -> ADMIN.groupName(createdOrg.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
+                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
+                    membersBefore shouldHaveSize 1
+                    membersBefore.map { it.username } shouldContain TEST_USER.username
+
+                    val response = superuserClient.delete(
+                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
+                    groupAfter.shouldNotBeNull()
+
+                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    membersAfter.shouldBeEmpty()
+                }
             }
         }
     }

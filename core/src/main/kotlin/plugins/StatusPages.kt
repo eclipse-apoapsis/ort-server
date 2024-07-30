@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
+import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
@@ -76,6 +77,9 @@ fun Application.configureStatusPages() {
         }
         exception<ReportNotFoundException> { call, e ->
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Report could not be resolved.", e.message))
+        }
+        exception<ResourceNotFoundException> { call, e ->
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("Resource not found.", e.message))
         }
         exception<RequestValidationException> { call, e ->
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Request validation has failed.", e.message))

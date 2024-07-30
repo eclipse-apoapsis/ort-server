@@ -383,6 +383,43 @@ class DefaultKeycloakClient(
         }.getOrElse {
             throw KeycloakClientException("Failed to load client roles for user '${id.value}'.", it)
         }.body()
+
+    override suspend fun addUserToGroup(username: UserName, groupName: GroupName) {
+        val user = getUser(username)
+        val group = getGroup(groupName)
+
+        runCatching {
+            httpClient.put("$apiUrl/users/${user.id.value}/groups/${group.id.value}")
+        }.onFailure {
+            throw KeycloakClientException(
+                "Failed to add user '{$username.value}' to group '{$groupName}'.",
+                it
+            )
+        }
+    }
+
+    override suspend fun removeUserFromGroup(username: UserName, groupName: GroupName) {
+        val user = getUser(username)
+        val group = getGroup(groupName)
+
+        runCatching {
+            httpClient.delete("$apiUrl/users/${user.id.value}/groups/${group.id.value}")
+        }.onFailure {
+            throw KeycloakClientException(
+                "Failed to remove user '${username.value}' from group {'$groupName.value}'.",
+                it
+            )
+        }
+    }
+
+    override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
+        val group = getGroup(groupName)
+        return runCatching {
+            httpClient.get("$apiUrl/groups/${group.id.value}/members")
+        }.getOrElse {
+            throw KeycloakClientException("Failed to get members of group '${groupName.value}'.", it)
+        }.body()
+    }
 }
 
 /**
