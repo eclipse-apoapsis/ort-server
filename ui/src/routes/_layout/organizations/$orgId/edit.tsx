@@ -92,7 +92,7 @@ const EditOrganizationPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: organization.name,
-      description: organization.description as unknown as string,
+      description: organization.description,
     },
   });
 
