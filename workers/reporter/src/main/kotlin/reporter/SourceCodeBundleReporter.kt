@@ -32,6 +32,8 @@ import org.ossreviewtoolkit.downloader.consolidateProjectPackagesByVcs
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageType
+import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.licenses.LicenseCategorization
@@ -74,7 +76,35 @@ class SourceCodeBundleReporter(
          */
         const val REPORTER_NAME = "SourceCodeBundle"
 
+        /** A file filter that simply includes all files. */
+        private val includeAllFilter: (File) -> Boolean = { true }
+
         private val log = LoggerFactory.getLogger(SourceCodeBundleReporter::class.java)
+
+        /**
+         * Return a file filter for the source of a specific package based on the given [provenance] that has been
+         * downloaded to the given [outputDir]. If the package has been downloaded from a repository and has the
+         * `path` attribute set, only files below that path are included.
+         */
+        private fun fileFilterForProvenance(provenance: Provenance, outputDir: File): (File) -> Boolean =
+            when (provenance) {
+                is RepositoryProvenance ->
+                    includeAllFilter.takeIf { provenance.vcsInfo.path.isEmpty() }
+                        ?: createSubPathFilter(provenance.vcsInfo.path, outputDir)
+
+                else -> includeAllFilter
+            }
+
+        /**
+         * Return a filter that includes only files below the given [subPath] under the given [outputDir].
+         */
+        private fun createSubPathFilter(subPath: String, outputDir: File): (File) -> Boolean {
+            val subPathDir = outputDir.resolve(subPath).toPath()
+
+            return { file ->
+                file.toPath().startsWith(subPathDir)
+            }
+        }
     }
 
     override val type = REPORTER_NAME
@@ -169,13 +199,22 @@ class SourceCodeBundleReporter(
         }
     }
 
+    /**
+     * Download the source code of the given [pkg] to the given temporary [dir]. Then generate an archive with it in
+     * the given [outputDir].
+     */
     private fun downloadPackage(pkg: Package, dir: File, outputDir: File) {
-        downloader.download(pkg, dir)
+        val provenance = downloader.download(pkg, dir)
 
+        val filter = fileFilterForProvenance(provenance, dir)
         val zipFile = outputDir.resolve("${pkg.id.toPath("-")}.zip")
 
         log.info("Archiving directory '$dir' to '$zipFile'.")
-        dir.packZip(zipFile, "${pkg.id.name.encodeOrUnknown()}/${pkg.id.version.encodeOrUnknown()}/")
+        dir.packZip(
+            zipFile,
+            "${pkg.id.name.encodeOrUnknown()}/${pkg.id.version.encodeOrUnknown()}/",
+            fileFilter = filter
+        )
     }
 
     private fun provideCodeBundleDownloadDir(outputDir: File): File {
