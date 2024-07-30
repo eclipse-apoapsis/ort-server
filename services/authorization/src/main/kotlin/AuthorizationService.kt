@@ -102,4 +102,14 @@ interface AuthorizationService {
      *   database entities are not correct anymore.
      */
     suspend fun synchronizeRoles()
+
+    /**
+     * Add a user [username] to a group for the given [organizationId].
+     */
+    suspend fun addUserToGroup(username: String, organizationId: Long, groupName: String)
+
+    /**
+     * Remove a user [username] from a group for the given [organizationId].
+     */
+    suspend fun removeUserFromGroup(username: String, organizationId: Long, groupName: String)
 }

@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.IdentifyUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
@@ -531,6 +532,68 @@ val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+    }
+}
+
+val putUserToGroup: OpenApiRoute.() -> Unit = {
+    operationId = "PutUserToGroup"
+    summary = "Add a user to a group on Organization level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<IdentifyUser> {
+            example("Add user identified by username 'abc123'.") {
+                value = IdentifyUser(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully added the user to the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Organization or group not found."
+        }
+    }
+}
+
+val deleteUserFromGroup: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteUserFromGroup"
+    summary = "Remove a user from a group on Organization level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<IdentifyUser> {
+            example("Remove user identified by username 'abc123'.") {
+                value = IdentifyUser(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully removed the user to the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Organization or group not found."
         }
     }
 }
