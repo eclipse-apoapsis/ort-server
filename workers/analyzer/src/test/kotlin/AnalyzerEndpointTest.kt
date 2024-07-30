@@ -338,7 +338,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     null,
                     emptyList(),
                     null,
-                    null
+                    null,
+                    "trace-id"
                 )
             }
 

@@ -142,7 +142,8 @@ class Fixtures(private val db: Database) {
         null,
         jobConfigurations,
         null,
-        mapOf("label key" to "label value")
+        mapOf("label key" to "label value"),
+        traceId = "trace-this-run"
     )
 
     fun createAnalyzerJob(

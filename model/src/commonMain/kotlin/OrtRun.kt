@@ -132,7 +132,13 @@ data class OrtRun(
      * The resolved configuration context. When an ORT run is started, the configuration context is resolved once and
      * then stored, so that all workers access the same set of configuration properties.
      */
-    val resolvedJobConfigContext: String?
+    val resolvedJobConfigContext: String?,
+
+    /**
+     * The trace ID that is assigned to this run. This is generated when the run is created. It can be used to
+     * correlate the logs from different components that are taking part in processing of the run.
+     */
+    val traceId: String?
 )
 
 enum class OrtRunStatus(

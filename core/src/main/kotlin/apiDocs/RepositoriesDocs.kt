@@ -446,7 +446,8 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,
-                        resolvedJobConfigContext = null
+                        resolvedJobConfigContext = null,
+                        traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
                     )
                 }
             }
@@ -490,7 +491,8 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,
-                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
+                        traceId = "35b67725-a85b-4cc3-b2a4-60fd914634e7"
                     )
                 }
             }

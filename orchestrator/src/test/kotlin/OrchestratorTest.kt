@@ -206,7 +206,8 @@ class OrchestratorTest : WordSpec() {
         null,
         emptyList(),
         null,
-        null
+        null,
+        traceId = "test-trace-id"
     )
 
     private val ortRunAnalyzerAndReporter = OrtRun(
@@ -235,7 +236,8 @@ class OrchestratorTest : WordSpec() {
         null,
         emptyList(),
         null,
-        null
+        null,
+        traceId = null
     )
 
     init {
