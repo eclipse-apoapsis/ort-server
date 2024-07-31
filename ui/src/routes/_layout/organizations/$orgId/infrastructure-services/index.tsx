@@ -17,26 +17,32 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQueries } from '@tanstack/react-query';
+import { useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
+  CellContext,
   ColumnDef,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { Pencil, PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import {
+  useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName,
   useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
   useOrganizationsServiceGetOrganizationByIdKey,
 } from '@/api/queries';
 import {
+  ApiError,
   InfrastructureService,
   InfrastructureServicesService,
   OrganizationsService,
 } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -51,9 +57,59 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
+
+const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
+  const params = Route.useParams();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [openDelDialog, setOpenDelDialog] = useState(false);
+
+  const { mutateAsync: delService, isPending: delIsPending } =
+    useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName(
+      {
+        onSuccess() {
+          setOpenDelDialog(false);
+          toast({
+            title: 'Delete Infrastructure Service',
+            description: `Infrastructure service "${row.original.name}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: [
+              useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+            ],
+          });
+        },
+        onError(error: ApiError) {
+          toast({
+            title: error.message,
+            description: <ToastError error={error} />,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+
+  return (
+    <div className='flex justify-end gap-1'>
+      <DeleteDialog
+        open={openDelDialog}
+        setOpen={setOpenDelDialog}
+        item={{ descriptor: 'infrastructure service', name: row.original.name }}
+        onDelete={() =>
+          delService({
+            organizationId: Number.parseInt(params.orgId),
+            serviceName: row.original.name,
+          })
+        }
+        isPending={delIsPending}
+      />
+    </div>
+  );
+};
 
 const InfrastructureServices = () => {
   const params = Route.useParams();
@@ -171,6 +227,10 @@ const InfrastructureServices = () => {
 
         return inFiles?.join(', ');
       },
+    },
+    {
+      id: 'actions',
+      cell: ActionCell,
     },
   ];
 
