@@ -24,7 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Pencil } from 'lucide-react';
+import { Pencil, PlusIcon } from 'lucide-react';
 
 import {
   useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
@@ -37,6 +37,7 @@ import {
 } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -188,17 +189,37 @@ const InfrastructureServices = () => {
   });
 
   return (
-    <Card className='mx-auto w-full max-w-7xl'>
-      <CardHeader>
-        <CardTitle>Infrastructure Services</CardTitle>
-        <CardDescription>
-          Manage infrastructure services for {organization.name}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DataTable table={table} />
-      </CardContent>
-    </Card>
+    <TooltipProvider>
+      <Card className='mx-auto w-full max-w-7xl'>
+        <CardHeader>
+          <CardTitle>Infrastructure Services</CardTitle>
+          <CardDescription>
+            Manage infrastructure services for {organization.name}
+          </CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/infrastructure-services/create'
+                    params={{ orgId: params.orgId }}
+                  >
+                    New infrastructure service
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new infrastructure service for this organization
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable table={table} />
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 
