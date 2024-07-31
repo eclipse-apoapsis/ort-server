@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 type MultiSelectFieldProps<
   TFieldValues extends FieldValues,
@@ -46,6 +47,7 @@ type MultiSelectFieldProps<
   label?: string;
   description?: React.ReactNode;
   options: readonly { id: string; label: string }[];
+  className?: string;
 };
 
 export const MultiSelectField = <
@@ -57,13 +59,19 @@ export const MultiSelectField = <
   label,
   description,
   options,
+  className,
 }: MultiSelectFieldProps<TFieldValues, TName>) => {
   return (
     <FormField
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem className='mb-4 flex flex-col justify-between rounded-lg border p-4'>
+        <FormItem
+          className={cn(
+            'mb-4 flex flex-col justify-between rounded-lg border p-4',
+            className
+          )}
+        >
           <FormLabel>{label}</FormLabel>
           <FormDescription className='pb-4'>{description}</FormDescription>
           <div className='flex items-center space-x-3'>
