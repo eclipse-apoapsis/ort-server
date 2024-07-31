@@ -102,7 +102,7 @@ const FormDescription = React.forwardRef<
   const { formDescriptionId } = useFormField();
 
   return (
-    <p
+    <div
       ref={ref}
       id={formDescriptionId}
       className={cn('text-[0.8rem] text-muted-foreground', className)}
