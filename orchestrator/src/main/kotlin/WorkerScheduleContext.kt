@@ -71,10 +71,14 @@ internal class WorkerScheduleContext(
     /**
      * Create a message based on the given [payload] and publish it to the given [endpoint].
      * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
-     * current ORT run.
+     * current ORT run. Also make sure that a trace ID is available.
      */
     fun <T : Any> publish(endpoint: Endpoint<T>, payload: T) {
-        val headerWithProperties = header.copy(transportProperties = ortRun.labels.selectByPrefix("transport"))
+        val traceId = header.traceId.takeUnless { it.isEmpty() } ?: ortRun.traceId.orEmpty()
+        val headerWithProperties = header.copy(
+            traceId = traceId,
+            transportProperties = ortRun.labels.selectByPrefix("transport")
+        )
 
         publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }

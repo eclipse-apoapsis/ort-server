@@ -207,7 +207,7 @@ class OrchestratorTest : WordSpec() {
         emptyList(),
         null,
         null,
-        traceId = "test-trace-id"
+        traceId = msgHeader.traceId
     )
 
     private val ortRunAnalyzerAndReporter = OrtRun(
@@ -1621,6 +1621,43 @@ class OrchestratorTest : WordSpec() {
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
                     )
                 }
+            }
+
+            "use the trace ID from the ORT run if none is available in the error message" {
+                val workerError = WorkerError("analyzer")
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FAILED, analyzerJob.id) {
+                    every {
+                        tryComplete(analyzerJob.id, any(), any())
+                    } returns createJob<AnalyzerJob>(JobStatus.FAILED, analyzerJob.id)
+                }
+
+                val reporterJobRepository = expectReporterJob()
+                val ortRunRepository = createOrtRunRepository()
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleWorkerError(msgHeader.copy(traceId = ""), workerError)
+                }
+
+                verify(exactly = 1) {
+                    analyzerJobRepository.tryComplete(
+                        id = withArg { it shouldBe analyzerJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FAILED }
+                    )
+                }
+                verify(exactly = 0) {
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe msgHeader.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) }
+                    )
+                }
+                verifyReporterJobCreated(reporterJobRepository, publisher)
             }
         }
     }
