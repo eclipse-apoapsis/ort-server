@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -233,17 +233,5 @@ export const Route = createFileRoute(
     ]);
   },
   component: EditRepositorySecretPage,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_repository_${params.repoId}_write_secrets`,
-      ])
-    ) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
   pendingComponent: LoadingIndicator,
 });
