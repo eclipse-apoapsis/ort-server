@@ -22,7 +22,7 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
   ColumnDef,
@@ -261,17 +261,5 @@ export const Route = createFileRoute(
     ]);
   },
   component: ProductSecrets,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_product_${params.productId}_write_secrets`,
-      ])
-    ) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
   pendingComponent: LoadingIndicator,
 });

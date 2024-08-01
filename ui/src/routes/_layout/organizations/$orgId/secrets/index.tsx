@@ -22,7 +22,7 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
   ColumnDef,
@@ -254,17 +254,5 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/secrets/')({
     ]);
   },
   component: OrganizationSecrets,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_organization_${params.orgId}_write_secrets`,
-      ])
-    ) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
   pendingComponent: LoadingIndicator,
 });
