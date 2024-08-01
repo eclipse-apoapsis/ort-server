@@ -25,7 +25,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Pencil, PlusIcon } from 'lucide-react';
+import { EditIcon, Pencil, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -44,6 +44,7 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import {
   Card,
   CardContent,
@@ -58,6 +59,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -95,6 +97,21 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
 
   return (
     <div className='flex justify-end gap-1'>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to='/organizations/$orgId/infrastructure-services/$serviceName/edit'
+              params={{ orgId: params.orgId, serviceName: row.original.name }}
+              className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+            >
+              <span className='sr-only'>Edit</span>
+              <EditIcon size={16} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Edit this infrastructure service</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
