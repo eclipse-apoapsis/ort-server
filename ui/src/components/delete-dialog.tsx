@@ -30,6 +30,12 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface DeleteDialogProps {
@@ -54,17 +60,25 @@ export const DeleteDialog = ({
 }: DeleteDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button
-          size='sm'
-          variant='outline'
-          className={cn('h-9 px-2', className)}
-        >
-          <span className='sr-only'>Delete</span>
-          <TrashIcon size={16} />
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <Button
+                size='sm'
+                variant='outline'
+                className={cn('h-9 px-2', className)}
+              >
+                <span className='sr-only'>Delete</span>
+                <TrashIcon size={16} />
+              </Button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Delete this {item.descriptor}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {/* Adding the preventDefault will prevent focusing on the trigger after closing the modal (which would cause the tooltip to show) */}
+      <AlertDialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <AlertDialogHeader>
           <div className='flex items-center'>
             <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
