@@ -105,14 +105,21 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
 
   return (
     <div className='flex justify-end gap-1'>
-      <Link
-        to='/organizations/$orgId/secrets/$secretName/edit'
-        params={{ orgId: params.orgId, secretName: row.original.name }}
-        className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
-      >
-        <span className='sr-only'>Edit</span>
-        <EditIcon size={16} />
-      </Link>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to='/organizations/$orgId/secrets/$secretName/edit'
+              params={{ orgId: params.orgId, secretName: row.original.name }}
+              className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+            >
+              <span className='sr-only'>Edit</span>
+              <EditIcon size={16} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Edit this secret</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
