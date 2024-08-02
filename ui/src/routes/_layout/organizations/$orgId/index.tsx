@@ -24,7 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
   useOrganizationsServiceDeleteOrganizationById,
@@ -38,19 +38,9 @@ import {
   ProductsService,
 } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -128,7 +118,7 @@ const OrganizationComponent = () => {
     ],
   });
 
-  const { mutateAsync: deleteOrganization } =
+  const { mutateAsync: deleteOrganization, isPending } =
     useOrganizationsServiceDeleteOrganizationById({
       onSuccess() {
         toast({
@@ -194,34 +184,14 @@ const OrganizationComponent = () => {
                 <TooltipContent>Edit this organization</TooltipContent>
               </Tooltip>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size='sm' variant='outline' className='px-2'>
-                  <TrashIcon className='h-4 w-4' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <div className='flex items-center'>
-                    <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
-                    <AlertDialogTitle>Delete organization</AlertDialogTitle>
-                  </div>
-                </AlertDialogHeader>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this organization:{' '}
-                  <span className='font-bold'>{organization.name}</span>?
-                </AlertDialogDescription>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    className='bg-red-500'
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DeleteDialog
+              item={{
+                descriptor: 'organization',
+                name: organization.name,
+              }}
+              onDelete={handleDelete}
+              isPending={isPending}
+            />
           </CardTitle>
           <CardDescription>{organization.description}</CardDescription>
           <div className='py-2'>
