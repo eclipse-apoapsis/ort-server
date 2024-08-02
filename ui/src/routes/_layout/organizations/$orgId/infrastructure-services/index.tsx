@@ -190,6 +190,9 @@ const InfrastructureServices = () => {
                     orgId: params.orgId,
                     secretName: row.original.usernameSecretRef,
                   }}
+                  search={{
+                    returnTo: '/organizations/$orgId/infrastructure-services',
+                  }}
                   className='px-2'
                 >
                   <span className='sr-only'>Edit</span>
@@ -218,6 +221,9 @@ const InfrastructureServices = () => {
                   params={{
                     orgId: params.orgId,
                     secretName: row.original.passwordSecretRef,
+                  }}
+                  search={{
+                    returnTo: '/organizations/$orgId/infrastructure-services',
                   }}
                   className='px-2'
                 >
