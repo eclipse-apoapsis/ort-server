@@ -61,6 +61,7 @@ export type EditSecretFormValues = z.infer<typeof editSecretFormSchema>;
 const EditOrganizationSecretPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { toast } = useToast();
 
   const { data: secret } = useSuspenseQuery({
@@ -93,7 +94,7 @@ const EditOrganizationSecretPage = () => {
           description: `Secret "${data.name}" updated successfully.`,
         });
         navigate({
-          to: '/organizations/$orgId/secrets',
+          to: search.returnTo || '/organizations/$orgId/secrets',
           params: { orgId: params.orgId },
         });
       },
@@ -180,7 +181,7 @@ const EditOrganizationSecretPage = () => {
               variant='outline'
               onClick={() =>
                 navigate({
-                  to: '/organizations/$orgId/secrets',
+                  to: search.returnTo || '/organizations/$orgId/secrets',
                   params: { orgId: params.orgId },
                 })
               }
@@ -205,9 +206,19 @@ const EditOrganizationSecretPage = () => {
   );
 };
 
+const searchParamsSchema = z.object({
+  returnTo: z
+    .enum([
+      '/organizations/$orgId/secrets',
+      '/organizations/$orgId/infrastructure-services',
+    ])
+    .optional(),
+});
+
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/secrets/$secretName/edit'
 )({
+  validateSearch: searchParamsSchema,
   loader: async ({ context, params }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
