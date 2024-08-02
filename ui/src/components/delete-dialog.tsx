@@ -39,8 +39,8 @@ import {
 import { cn } from '@/lib/utils';
 
 interface DeleteDialogProps {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  open?: boolean;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   item: {
     descriptor: string;
     name: string;

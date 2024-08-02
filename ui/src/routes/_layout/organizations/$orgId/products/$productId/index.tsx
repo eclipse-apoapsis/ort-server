@@ -24,7 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, OctagonAlert, PlusIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
   useProductsServiceDeleteProductById,
@@ -38,19 +38,9 @@ import {
   Repository,
 } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -129,25 +119,26 @@ const ProductComponent = () => {
     ],
   });
 
-  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
-    onSuccess() {
-      toast({
-        title: 'Delete Product',
-        description: `Product "${product.name}" deleted successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
-      });
-    },
-    onError(error: ApiError) {
-      toast({
-        title: error.message,
-        description: <ToastError error={error} />,
-        variant: 'destructive',
-      });
-    },
-  });
+  const { mutateAsync: deleteProduct, isPending } =
+    useProductsServiceDeleteProductById({
+      onSuccess() {
+        toast({
+          title: 'Delete Product',
+          description: `Product "${product.name}" deleted successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId',
+          params: { orgId: params.orgId },
+        });
+      },
+      onError(error: ApiError) {
+        toast({
+          title: error.message,
+          description: <ToastError error={error} />,
+          variant: 'destructive',
+        });
+      },
+    });
 
   async function handleDelete() {
     await deleteProduct({
@@ -198,34 +189,14 @@ const ProductComponent = () => {
                 <TooltipContent>Edit this product</TooltipContent>
               </Tooltip>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size='sm' variant='outline' className='px-2'>
-                  <TrashIcon className='h-4 w-4' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <div className='flex items-center'>
-                    <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
-                    <AlertDialogTitle>Delete product</AlertDialogTitle>
-                  </div>
-                </AlertDialogHeader>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this product:{' '}
-                  <span className='font-bold'>{product.name}</span>?
-                </AlertDialogDescription>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    className='bg-red-500'
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DeleteDialog
+              item={{
+                descriptor: 'product',
+                name: product.name,
+              }}
+              onDelete={handleDelete}
+              isPending={isPending}
+            />
           </CardTitle>
           <CardDescription>{product.description}</CardDescription>
           <div className='py-2'>

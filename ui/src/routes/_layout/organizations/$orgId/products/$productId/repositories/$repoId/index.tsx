@@ -24,13 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  EditIcon,
-  OctagonAlert,
-  PlusIcon,
-  Redo2,
-  TrashIcon,
-} from 'lucide-react';
+import { EditIcon, PlusIcon, Redo2 } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
@@ -43,20 +37,10 @@ import {
   RepositoriesService,
 } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { ToastError } from '@/components/toast-error';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -202,7 +186,7 @@ const RepoComponent = () => {
     ],
   });
 
-  const { mutateAsync: deleteRepository } =
+  const { mutateAsync: deleteRepository, isPending } =
     useRepositoriesServiceDeleteRepositoryById({
       onSuccess() {
         toast({
@@ -273,34 +257,14 @@ const RepoComponent = () => {
                 <TooltipContent>Edit this repository</TooltipContent>
               </Tooltip>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size='sm' variant='outline' className='px-2'>
-                  <TrashIcon className='h-4 w-4' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <div className='flex items-center'>
-                    <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
-                    <AlertDialogTitle>Delete repository</AlertDialogTitle>
-                  </div>
-                </AlertDialogHeader>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this repository:{' '}
-                  <span className='font-bold'>{repo.url}</span>?
-                </AlertDialogDescription>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    className='bg-red-500'
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DeleteDialog
+              item={{
+                descriptor: 'repository',
+                name: repo.url,
+              }}
+              onDelete={handleDelete}
+              isPending={isPending}
+            />
           </CardTitle>
           <CardDescription>{repo.type}</CardDescription>
           <div className='py-2'>
