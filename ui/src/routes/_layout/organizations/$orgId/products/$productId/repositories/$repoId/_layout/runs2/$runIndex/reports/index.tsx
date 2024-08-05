@@ -17,15 +17,125 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute } from '@tanstack/react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
+import { OpenAPI, RepositoriesService } from '@/api/requests';
+import { LoadingIndicator } from '@/components/loading-indicator';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+const ReportComponent = () => {
+  const params = Route.useParams();
+
+  const { data: ortRun } = useSuspenseQuery({
+    queryKey: [
+      useRepositoriesServiceGetOrtRunByIndexKey,
+      params.orgId,
+      params.productId,
+      params.repoId,
+      params.runIndex,
+    ],
+    queryFn: async () =>
+      await RepositoriesService.getOrtRunByIndex({
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }),
+  });
+
+  const downloadZipFile = async ({
+    runId,
+    fileName,
+  }: {
+    runId: number;
+    fileName: string;
+  }) => {
+    try {
+      const response = await fetch(
+        `${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`,
+        {
+          headers: {
+            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+          },
+        }
+      );
+      // Convert the response to a Blob
+      const blob = await response.blob();
+      // Create a temporary URL for the Blob
+      const url = window.URL.createObjectURL(blob);
+      // Create an anchor element
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      // Programmatically trigger a click event on the anchor element
+      a.click();
+      // Clean up by revoking the URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  async function handleDownload(runId: number, filename: string) {
+    await downloadZipFile({
+      runId: runId,
+      fileName: filename,
+    });
+  }
+
+  return (
+    <Card className='mx-auto w-full max-w-4xl'>
+      <CardHeader>
+        <CardTitle>Reports from run {ortRun.index}</CardTitle>
+        <CardDescription>Click the file to download.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {ortRun.jobs.reporter?.reportFilenames &&
+        ortRun.jobs.reporter?.reportFilenames.length > 0
+          ? ortRun.jobs.reporter.reportFilenames.map((filename) => (
+              <div key={filename} className='flex flex-col pb-2'>
+                <Link onClick={() => handleDownload(ortRun.id, filename)}>
+                  <Button
+                    variant='outline'
+                    className='font-semibold text-blue-400'
+                  >
+                    {filename}
+                  </Button>
+                </Link>
+              </div>
+            ))
+          : 'No reports available.'}
+      </CardContent>
+    </Card>
+  );
+};
 
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex/reports/'
 )({
-  component: () => (
-    <div>
-      Hello
-      /_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex/reports/!
-    </div>
-  ),
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData({
+      queryKey: [
+        useRepositoriesServiceGetOrtRunByIndexKey,
+        params.orgId,
+        params.productId,
+        params.repoId,
+        params.runIndex,
+      ],
+      queryFn: () =>
+        RepositoriesService.getOrtRunByIndex({
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        }),
+    });
+  },
+  component: ReportComponent,
+  pendingComponent: LoadingIndicator,
 });
