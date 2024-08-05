@@ -19,12 +19,23 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { Sidebar } from './runs2/$runIndex/-components/sidebar';
+import { Sidebar } from '@/components/sidebar';
 
 const Layout = () => {
+  const navItems = [
+    {
+      title: 'Overview',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex',
+    },
+    {
+      title: 'Reports',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/reports',
+    },
+  ];
+
   return (
     <div className='flex h-[calc(100vh-4rem-2rem)] w-full gap-2 md:h-[calc(100vh-4rem-4rem)]'>
-      <Sidebar />
+      <Sidebar sections={[{ items: navItems }]} />
       <Outlet />
     </div>
   );
