@@ -28,6 +28,8 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+import kotlinx.coroutines.runBlocking
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.Message
@@ -69,7 +71,9 @@ fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<Orc
     }
 
     Thread {
-        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
+        runBlocking {
+            MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
+        }
     }.start()
 
     return queue

@@ -102,13 +102,13 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
                 declareMock<AdvisorWorker> {
                     every { run(ADVISOR_JOB_ID, TRACE_ID) } returns
                             RunResult.Failed(IllegalStateException("Test exception"))
-
-                    sendAdvisorRequest()
-
-                    val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
-                    resultMessage.header shouldBe messageHeader
-                    resultMessage.payload shouldBe AdvisorWorkerError(ADVISOR_JOB_ID)
                 }
+
+                sendAdvisorRequest()
+
+                val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+                resultMessage.header shouldBe messageHeader
+                resultMessage.payload shouldBe AdvisorWorkerError(ADVISOR_JOB_ID)
             }
         }
 
@@ -128,7 +128,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
     /**
      * Simulate an incoming request to advice a project.
      */
-    private fun sendAdvisorRequest() {
+    private suspend fun sendAdvisorRequest() {
         mockkTransaction {
             val message = Message(messageHeader, advisorRequest)
             MessageReceiverFactoryForTesting.receive(AdvisorEndpoint, message)
@@ -139,7 +139,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Analyzer endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the given [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ADVISOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

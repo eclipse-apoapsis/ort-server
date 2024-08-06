@@ -125,7 +125,7 @@ class EvaluatorEndpointTest : KoinTest, StringSpec() {
     /**
      * Simulate an incoming request to evaluate a project.
      */
-    private fun sendEvaluatorRequest() {
+    private suspend fun sendEvaluatorRequest() {
         mockkTransaction {
             val message = Message(messageHeader, evaluatorRequest)
             MessageReceiverFactoryForTesting.receive(EvaluatorEndpoint, message)
@@ -136,7 +136,7 @@ class EvaluatorEndpointTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Evaluator endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the given [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "EVALUATOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

@@ -122,14 +122,14 @@ class NotifierEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    private fun sendNotifierRequest() {
+    private suspend fun sendNotifierRequest() {
         mockkTransaction {
             val message = Message(messageHeader, notifierRequest)
             MessageReceiverFactoryForTesting.receive(NotifierEndpoint, message)
         }
     }
 
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "NOTIFIER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

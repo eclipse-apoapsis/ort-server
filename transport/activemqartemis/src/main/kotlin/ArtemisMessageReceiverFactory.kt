@@ -54,7 +54,7 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = ArtemisConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(
+    override suspend fun <T : Any> createReceiver(
         from: Endpoint<T>,
         configManager: ConfigManager,
         handler: EndpointHandler<T>

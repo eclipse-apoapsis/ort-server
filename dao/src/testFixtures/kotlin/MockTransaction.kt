@@ -63,9 +63,10 @@ fun unmockkTransaction() {
 
 /**
  * Create a static mock for [transaction] that does not actually create a transaction. Can be used to mock database
- * access for functions that call [transaction]. Clears the mock after executing [block].
+ * access for functions that call [transaction]. Clears the mock after executing [block]. Note that this is an
+ * *inline* function which makes it possible to invoke *suspend* functions in [block].
  */
-fun <T> mockkTransaction(block: () -> T): T {
+inline fun <T> mockkTransaction(block: () -> T): T {
     mockkTransaction()
     return try {
         block()

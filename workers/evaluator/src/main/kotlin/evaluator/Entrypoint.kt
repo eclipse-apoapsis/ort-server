@@ -29,7 +29,7 @@ private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
  * This is the entry point of the Evaluator worker. It calls the Evaluator from ORT programmatically by
  * interfacing on its APIs.
  */
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT-Server Evaluator endpoint.")
 
     enableOrtStackTraces()

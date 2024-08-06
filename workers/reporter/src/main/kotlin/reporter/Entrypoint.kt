@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(::main::class.java)
 
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT-Server Reporter endpoint.")
 
     enableOrtStackTraces()

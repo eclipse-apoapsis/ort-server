@@ -139,7 +139,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
     /**
      * Simulate an incoming request to create a project report.
      */
-    private fun sendReporterRequest() {
+    private suspend fun sendReporterRequest() {
         val message = Message(messageHeader, reporterRequest)
         MessageReceiverFactoryForTesting.receive(ReporterEndpoint, message)
     }
@@ -148,7 +148,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Reporter endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "REPORTER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

@@ -60,7 +60,7 @@ abstract class EndpointComponent<T : Any>(
      * Start this endpoint and perform necessary initialization, so that incoming messages can be received and
      * processed.
      */
-    fun start() {
+    suspend fun start() {
         startKoin {
             modules(baseModule())
             modules(customModules())

@@ -28,7 +28,7 @@ private val logger = LoggerFactory.getLogger(ConfigComponent::class.java)
  * The worker checks and transforms the configuration/parameters passed to the current ORT run using a validation
  * script.
  */
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT Server Config endpoint.")
 
     ConfigComponent().start()

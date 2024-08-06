@@ -83,9 +83,10 @@ fun KoinTest.verifyDatabaseModuleIncluded() {
 
 /**
  * Run [block] with a [mocked database module][mockDatabaseModule]. Afterward do cleanup by calling
- * [unmockDatabaseModule].
+ * [unmockDatabaseModule]. Note that this is an *inline* function which makes it possible to invoke *suspend* functions
+ * in [block].
  */
-fun withMockDatabaseModule(block: () -> Unit) {
+inline fun withMockDatabaseModule(block: () -> Unit) {
     mockDatabaseModule()
     try {
         block()
