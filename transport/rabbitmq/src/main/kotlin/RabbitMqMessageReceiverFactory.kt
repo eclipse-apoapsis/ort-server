@@ -27,13 +27,17 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.Envelope
 
-import java.util.concurrent.CountDownLatch
-
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
@@ -54,6 +58,17 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         configManager: ConfigManager,
         handler: EndpointHandler<T>
     ) {
+        createMessageFlow(from, configManager).collect(handler)
+    }
+
+    /**
+     * Return a [Flow] with messages received from a RabbitMQ message queue for the given [endpoint][from]. Use the
+     * given [configManager] to set up the connection to RabbitMQ.
+     */
+    private fun <T : Any> createMessageFlow(
+        from: Endpoint<T>,
+        configManager: ConfigManager
+    ): Flow<Message<T>> = callbackFlow {
         val serializer = JsonSerializer.forClass(from.messageClass)
         val rabbitMqConfig = RabbitMqConfig.createConfig(configManager)
 
@@ -67,9 +82,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         }
         connectionFactory.newConnection().use { connection ->
             val channel = connection.createChannel()
-            val latchCanceled = CountDownLatch(1)
-
-            val consumer = createConsumer(channel, serializer, handler, latchCanceled)
+            val consumer = createConsumer(channel, serializer)
             channel.basicConsume(
                 /* queue = */ rabbitMqConfig.queueName,
                 /* autoAck = */ true,
@@ -77,34 +90,30 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
             )
 
             // basicConsume() immediately returns; incoming messages are passed to the consumer's callback.
-            // Since the receiver factory is expected to not return until message processing is done, the current
-            // thread is blocked until the consumer is canceled.
-            latchCanceled.await()
-
-            logger.error("Message consumer was canceled.")
+            // Since the receiver factory is expected to not return until message processing is done, suspend the
+            // current thread until the consumer is canceled.
+            awaitClose { logger.error("Message consumer was canceled.") }
         }
     }
 
     /**
-     * Create a [Consumer] for processing the messages received via the given [channel] by invoking the given
-     * [handler]. Use the provided [serializer] to de-serialize messages. Trigger the given [latch][latchCanceled]
-     * when the consumer is canceled. The thread that started the consumer waits on this latch until the cancellation.
+     * Create a [Consumer] for processing the messages received via the given [channel]. Use the provided [serializer]
+     * to de-serialize messages. Use the functionality of this [ProducerScope] to send the received messages and to
+     * cancel message processing when the consumer is canceled.
      */
-    private fun <T : Any> createConsumer(
+    private fun <T : Any> ProducerScope<Message<T>>.createConsumer(
         channel: Channel,
-        serializer: JsonSerializer<T>,
-        handler: EndpointHandler<T>,
-        latchCanceled: CountDownLatch
+        serializer: JsonSerializer<T>
     ): Consumer {
         return object : DefaultConsumer(channel) {
             override fun handleCancelOk(consumerTag: String?) {
                 logger.info("handleCancelOk() callback.")
-                latchCanceled.countDown()
+                cancel("handleCancelOk() callback was invoked.")
             }
 
             override fun handleCancel(consumerTag: String?) {
                 logger.info("handleCancel() callback.")
-                latchCanceled.countDown()
+                cancel("handleCancel() callback was invoked.")
             }
 
             override fun handleDelivery(
@@ -124,8 +133,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                         )
                     }
 
-                    // TODO: Find a better alternative to runBlocking().
-                    runBlocking { handler(message) }
+                    trySendBlocking(message)
                 }.onFailure {
                     logger.error("Error during message processing.", it)
                 }
