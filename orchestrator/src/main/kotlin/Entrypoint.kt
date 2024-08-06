@@ -69,7 +69,7 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("org.eclipse.apoapsis.ortserver.orchestrator.EntrypointKt")
 
-fun main() {
+suspend fun main() {
     log.info("Starting ORT-Server Orchestrator.")
 
     OrchestratorComponent().start()

@@ -48,7 +48,7 @@ internal val messageAttributeNames = listOf(TRACE_PROPERTY, RUN_ID_PROPERTY)
 class SqsMessageReceiverFactory : MessageReceiverFactory {
     override val name: String = SqsConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(
+    override suspend fun <T : Any> createReceiver(
         from: Endpoint<T>,
         configManager: ConfigManager,
         handler: EndpointHandler<T>

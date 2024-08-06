@@ -251,7 +251,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Orchestrator endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the given [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

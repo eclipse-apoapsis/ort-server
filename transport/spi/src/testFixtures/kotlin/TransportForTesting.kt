@@ -136,7 +136,7 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
          * Invoke the recorded [EndpointHandler] for the given [endpoint] with the given [message]. Fail if no handler
          * or a handler to a different endpoint was registered.
          */
-        fun <T : Any> receive(endpoint: Endpoint<T>, message: Message<T>) {
+        suspend fun <T : Any> receive(endpoint: Endpoint<T>, message: Message<T>) {
             createdEndpoint shouldBe endpoint
 
             @Suppress("UNCHECKED_CAST")
@@ -147,7 +147,7 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
 
     override val name: String = TEST_TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(
+    override suspend fun <T : Any> createReceiver(
         from: Endpoint<T>,
         configManager: ConfigManager,
         handler: EndpointHandler<T>

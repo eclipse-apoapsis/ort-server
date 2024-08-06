@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 /**
  * Definition of a message handler function of an endpoint. The function is passed the message it should handle.
  */
-typealias EndpointHandler<T> = (Message<T>) -> Unit
+typealias EndpointHandler<T> = suspend (Message<T>) -> Unit
 
 /**
  * Factory interface for setting up a receiver for an [Endpoint].
@@ -68,7 +68,11 @@ interface MessageReceiverFactory {
          * based on the provided [configManager]. The concrete implementation of the [MessageSenderFactory] is
          * determined from the [CONFIG_PREFIX].[TYPE_PROPERTY] configuration using the Java Service Loader mechanism.
          */
-        fun <T : Any> createReceiver(from: Endpoint<T>, configManager: ConfigManager, handler: EndpointHandler<T>) {
+        suspend fun <T : Any> createReceiver(
+            from: Endpoint<T>,
+            configManager: ConfigManager,
+            handler: EndpointHandler<T>
+        ) {
             val receiverConfig = configManager.subConfig(Path("${from.configPrefix}.$CONFIG_PREFIX"))
             val factoryName = receiverConfig.getString(TYPE_PROPERTY)
             log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
@@ -92,5 +96,5 @@ interface MessageReceiverFactory {
      * [handler] function with the received messages. Use [configManager] as source of configuration settings for this
      * infrastructure.
      */
-    fun <T : Any> createReceiver(from: Endpoint<T>, configManager: ConfigManager, handler: EndpointHandler<T>)
+    suspend fun <T : Any> createReceiver(from: Endpoint<T>, configManager: ConfigManager, handler: EndpointHandler<T>)
 }

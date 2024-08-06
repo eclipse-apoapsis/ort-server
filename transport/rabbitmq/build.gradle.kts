@@ -27,6 +27,7 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     implementation(projects.transport.transportSpi)
 
+    implementation(libs.kotlinxCoroutines)
     implementation(libs.rabbitMqAmqpClient)
 
     runtimeOnly(libs.logback)

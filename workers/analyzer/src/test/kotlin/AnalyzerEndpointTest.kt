@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import com.typesafe.config.Config
 
-import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
@@ -253,7 +252,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
     /**
      * Simulate an incoming request to analyze a project.
      */
-    private fun sendAnalyzerRequest() {
+    private suspend fun sendAnalyzerRequest() {
         mockkTransaction {
             val message = Message(messageHeader, analyzerRequest)
             MessageReceiverFactoryForTesting.receive(AnalyzerEndpoint, message)
@@ -264,7 +263,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Analyzer endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the given [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ANALYZER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
@@ -288,7 +287,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
      * should create the configuration files declared for the environment. The specified [test][block] can then
      * check whether these files have been created correctly.
      */
-    private fun runEnvironmentTest(block: (File) -> Unit) {
+    private suspend fun runEnvironmentTest(block: (File) -> Unit) {
         runEndpointTest {
             val organization = Organization(20230627065854L, "Test organization")
             val product = Product(20230627065917L, organization.id, "Test product")
@@ -351,10 +350,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
             val environmentService by inject<EnvironmentService>()
 
-            runBlocking {
-                withSystemProperties(properties, mode = OverrideMode.SetOrOverride) {
-                    environmentService.setUpEnvironment(context, repositoryFolder, null)
-                }
+            withSystemProperties(properties, mode = OverrideMode.SetOrOverride) {
+                environmentService.setUpEnvironment(context, repositoryFolder, null)
             }
 
             block(homeFolder)

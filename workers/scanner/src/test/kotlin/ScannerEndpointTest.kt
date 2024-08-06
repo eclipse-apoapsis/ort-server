@@ -127,7 +127,7 @@ class ScannerEndpointTest : KoinTest, StringSpec() {
     /**
      * Simulate an incoming request to scan a project.
      */
-    private fun sendScannerRequest() {
+    private suspend fun sendScannerRequest() {
         mockkTransaction {
             val message = Message(messageHeader, scannerRequest)
             MessageReceiverFactoryForTesting.receive(ScannerEndpoint, message)
@@ -138,7 +138,7 @@ class ScannerEndpointTest : KoinTest, StringSpec() {
      * Run [block] as a test for the Scanner endpoint. Start the endpoint with a configuration that selects the
      * testing transport. Then execute the given [block].
      */
-    private fun runEndpointTest(block: () -> Unit) {
+    private suspend fun runEndpointTest(block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "SCANNER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,

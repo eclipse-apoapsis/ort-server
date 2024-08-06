@@ -29,7 +29,7 @@ private val logger = LoggerFactory.getLogger(AnalyzerComponent::class.java)
  * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
  * interfacing on its APIs.
  */
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT-Server Analyzer endpoint.")
 
     enableOrtStackTraces()

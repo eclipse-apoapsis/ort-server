@@ -29,7 +29,7 @@ private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
  * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
  * interfacing on its APIs.
  */
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT-Server Advisor endpoint.")
 
     enableOrtStackTraces()

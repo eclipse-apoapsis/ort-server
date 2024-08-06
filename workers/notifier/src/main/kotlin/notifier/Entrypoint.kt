@@ -29,7 +29,7 @@ private val logger = LoggerFactory.getLogger(NotifierComponent::class.java)
  * This is the entry point of the Notifier worker. It calls the Notifier from ORT programmatically by
  * interfacing on its APIs.
  */
-fun main() {
+suspend fun main() {
     logger.info("Starting ORT-Server Notifier endpoint.")
 
     enableOrtStackTraces()

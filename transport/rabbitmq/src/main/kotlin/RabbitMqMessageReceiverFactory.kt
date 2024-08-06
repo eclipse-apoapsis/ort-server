@@ -29,6 +29,8 @@ import com.rabbitmq.client.Envelope
 
 import java.util.concurrent.CountDownLatch
 
+import kotlinx.coroutines.runBlocking
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -47,7 +49,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
     override val name = RabbitMqConfig.TRANSPORT_NAME
 
-    override fun <T : Any> createReceiver(
+    override suspend fun <T : Any> createReceiver(
         from: Endpoint<T>,
         configManager: ConfigManager,
         handler: EndpointHandler<T>
@@ -122,7 +124,8 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                         )
                     }
 
-                    handler(message)
+                    // TODO: Find a better alternative to runBlocking().
+                    runBlocking { handler(message) }
                 }.onFailure {
                     logger.error("Error during message processing.", it)
                 }
