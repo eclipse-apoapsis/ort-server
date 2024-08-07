@@ -25,7 +25,7 @@ plugins {
     id("ort-server-kotlin-jvm-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver"

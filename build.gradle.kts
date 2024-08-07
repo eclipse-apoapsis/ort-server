@@ -109,7 +109,7 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile>().configureEach {
-        val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinxSerialization.get().pluginId)
+        val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
 
         compilerOptions {
             allWarningsAsErrors = true

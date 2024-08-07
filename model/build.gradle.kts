@@ -22,7 +22,7 @@ plugins {
     id("ort-server-kotlin-multiplatform-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver"
