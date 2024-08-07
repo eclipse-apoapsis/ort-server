@@ -108,7 +108,7 @@ subprojects {
         targetCompatibility = maxKotlinJvmTarget.target
     }
 
-    tasks.withType<KotlinCompile>().configureEach {
+    tasks.named<KotlinCompile>("compileKotlin") {
         val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
 
         val optInRequirements = listOfNotNull(
