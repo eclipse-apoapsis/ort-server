@@ -107,7 +107,7 @@ importers:
     devDependencies:
       '@7nohe/openapi-react-query-codegen':
         specifier: ^1.0.0
-        version: 1.5.0(commander@12.0.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.5.4)
+        version: 1.5.1(commander@12.0.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.5.4)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.3.1(prettier@3.3.3)
@@ -174,8 +174,8 @@ importers:
 
 packages:
 
-  '@7nohe/openapi-react-query-codegen@1.5.0':
-    resolution: {integrity: sha512-li2XeFMgKPqV7FPm3Tmk33HvtFF/R0JoZT4Ztukj9d4NvyZPs+mtob2KfU/j3V4Q2CAcst/0mQcXsENxynfWyA==}
+  '@7nohe/openapi-react-query-codegen@1.5.1':
+    resolution: {integrity: sha512-EmQYylfISPeB3BHRr0Epmnisw8ebwVpsR+tDk9/0rqRCTyAIxVHYKxu+rjKPi3wcOdYtDrffLUSeCBffgF3z+A==}
     engines: {node: '>=14', pnpm: '>=9'}
     hasBin: true
     peerDependencies:
@@ -2945,7 +2945,7 @@ packages:
 
 snapshots:
 
-  '@7nohe/openapi-react-query-codegen@1.5.0(commander@12.0.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.5.4)':
+  '@7nohe/openapi-react-query-codegen@1.5.1(commander@12.0.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.5.4)':
     dependencies:
       '@hey-api/openapi-ts': 0.45.1(typescript@5.5.4)
       commander: 12.0.0
