@@ -63,7 +63,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { isDefault } from '@/helpers/defaults-helpers';
+import { decodePropertyPath, isDefault } from '@/helpers/defaults-helpers';
 import { cn } from '@/lib/utils';
 import { paginationSchema } from '@/schemas';
 
@@ -88,8 +88,8 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
       onSuccess() {
         setOpenDelDialog(false);
         toast({
-          title: 'Delete Secret',
-          description: `Secret "${row.original.name}" deleted successfully.`,
+          title: 'Delete Default',
+          description: `Default value "${decodePropertyPath(row.original.name).property}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
           queryKey: [useSecretsServiceGetSecretsByOrganizationId],
@@ -110,21 +110,24 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              to='/organizations/$orgId/secrets/$secretName/edit'
-              params={{ orgId: params.orgId, secretName: row.original.name }}
+              to='/organizations/$orgId/defaults/$defaultName/edit'
+              params={{ orgId: params.orgId, defaultName: row.original.name }}
               className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
             >
               <span className='sr-only'>Edit</span>
               <EditIcon size={16} />
             </Link>
           </TooltipTrigger>
-          <TooltipContent>Edit this secret</TooltipContent>
+          <TooltipContent>Edit this default run property</TooltipContent>
         </Tooltip>
       </TooltipProvider>
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
-        item={{ descriptor: 'secret', name: row.original.name }}
+        item={{
+          descriptor: 'default run property',
+          name: decodePropertyPath(row.original.name).property,
+        }}
         onDelete={() =>
           delSecret({
             organizationId: organization.id,
@@ -140,11 +143,19 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
 const columns: ColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: 'Run property',
+    // Do not show the property encoding prefix in the table
+    cell: ({ row }) => decodePropertyPath(row.original.name).property,
   },
   {
     accessorKey: 'description',
-    header: 'Description',
+    header: 'Value',
+  },
+  {
+    accessorKey: 'locked',
+    header: 'Locked?',
+    cell: ({ row }) =>
+      decodePropertyPath(row.original.name).locked ? 'Yes' : 'No',
   },
   {
     id: 'actions',
@@ -152,7 +163,7 @@ const columns: ColumnDef<Secret>[] = [
   },
 ];
 
-const OrganizationSecrets = () => {
+const OrganizationDefaults = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
@@ -184,8 +195,8 @@ const OrganizationSecrets = () => {
     ],
   });
 
-  // Only show secrets which are not encoded as default properties
-  const tableData = secrets?.data.filter((secret) => !isDefault(secret.name));
+  // Only show secrets which are encoded as default properties
+  const tableData = secrets?.data.filter((secret) => isDefault(secret.name));
 
   const table = useReactTable({
     data: tableData || [],
@@ -205,25 +216,25 @@ const OrganizationSecrets = () => {
     <TooltipProvider>
       <Card className='mx-auto w-full max-w-4xl'>
         <CardHeader>
-          <CardTitle>Secrets</CardTitle>
+          <CardTitle>Default Run Properties</CardTitle>
           <CardDescription>
-            Manage secrets for {organization.name}
+            Manage default run properties for {organization.name}
           </CardDescription>
           <div className='py-2'>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild size='sm' className='ml-auto gap-1'>
                   <Link
-                    to='/organizations/$orgId/secrets/create-secret'
+                    to='/organizations/$orgId/defaults/create-default'
                     params={{ orgId: params.orgId }}
                   >
-                    New secret
+                    New default property
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                Create a new secret for this organization
+                Create a new default run property for this organization
               </TooltipContent>
             </Tooltip>
           </div>
@@ -236,34 +247,39 @@ const OrganizationSecrets = () => {
   );
 };
 
-export const Route = createFileRoute('/_layout/organizations/$orgId/secrets/')({
-  validateSearch: paginationSchema,
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
-    await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: () =>
-          OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
-      }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretsByOrganizationId,
-          params.orgId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretsByOrganizationId({
-            organizationId: Number.parseInt(params.orgId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
-      }),
-    ]);
-  },
-  component: OrganizationSecrets,
-  pendingComponent: LoadingIndicator,
-});
+export const Route = createFileRoute('/_layout/organizations/$orgId/defaults/')(
+  {
+    validateSearch: paginationSchema,
+    loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+    loader: async ({ context, params, deps: { page, pageSize } }) => {
+      await Promise.allSettled([
+        context.queryClient.ensureQueryData({
+          queryKey: [
+            useOrganizationsServiceGetOrganizationByIdKey,
+            params.orgId,
+          ],
+          queryFn: () =>
+            OrganizationsService.getOrganizationById({
+              organizationId: Number.parseInt(params.orgId),
+            }),
+        }),
+        context.queryClient.ensureQueryData({
+          queryKey: [
+            useSecretsServiceGetSecretsByOrganizationId,
+            params.orgId,
+            page,
+            pageSize,
+          ],
+          queryFn: () =>
+            SecretsService.getSecretsByOrganizationId({
+              organizationId: Number.parseInt(params.orgId),
+              limit: pageSize || defaultPageSize,
+              offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+            }),
+        }),
+      ]);
+    },
+    component: OrganizationDefaults,
+    pendingComponent: LoadingIndicator,
+  }
+);
