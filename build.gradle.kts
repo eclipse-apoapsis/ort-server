@@ -97,63 +97,6 @@ allprojects {
     }
 }
 
-subprojects {
-    val javaVersion = JavaVersion.current()
-    val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaVersion.majorVersion) }
-        .getOrDefault(enumValues<JvmTarget>().max())
-
-    tasks.withType<JavaCompile>().configureEach {
-        // Align this with Kotlin to avoid errors, see https://youtrack.jetbrains.com/issue/KT-48745.
-        sourceCompatibility = maxKotlinJvmTarget.target
-        targetCompatibility = maxKotlinJvmTarget.target
-    }
-
-    tasks.named<KotlinCompile>("compileKotlin") {
-        val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
-
-        val optInRequirements = listOfNotNull(
-            "kotlinx.serialization.ExperimentalSerializationApi".takeIf { hasSerializationPlugin }
-        )
-
-        compilerOptions {
-            allWarningsAsErrors = true
-            jvmTarget = maxKotlinJvmTarget
-            optIn = optInRequirements
-        }
-    }
-
-    tasks.withType<Test>().configureEach {
-        useJUnitPlatform()
-
-        // Required since Java 17, see: https://kotest.io/docs/next/extensions/system_extensions.html#system-environment
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")
-        }
-
-        val testSystemProperties = mutableListOf("gradle.build.dir" to project.layout.buildDirectory.get().toString())
-
-        listOf(
-            "kotest.assertions.multi-line-diff",
-            "kotest.tags"
-        ).mapNotNullTo(testSystemProperties) { key ->
-            System.getProperty(key)?.let { key to it }
-        }
-
-        systemProperties = testSystemProperties.toMap()
-
-        testLogging {
-            events = setOf(
-                org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED,
-                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
-                org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED,
-                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
-            )
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-            showStandardStreams = false
-        }
-    }
-}
-
 tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
     gradleReleaseChannel = "current"
     outputFormatter = "json"
