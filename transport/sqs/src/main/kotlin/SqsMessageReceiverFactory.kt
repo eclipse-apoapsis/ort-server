@@ -23,8 +23,9 @@ import aws.sdk.kotlin.services.sqs.model.DeleteMessageRequest
 import aws.sdk.kotlin.services.sqs.model.GetQueueUrlRequest
 import aws.sdk.kotlin.services.sqs.model.ReceiveMessageRequest
 
+import kotlin.coroutines.coroutineContext
+
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -52,7 +53,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
         from: Endpoint<T>,
         configManager: ConfigManager,
         handler: EndpointHandler<T>
-    ) = runBlocking {
+    ) {
         logger.info("Creating SQS receiver for endpoint '${from.configPrefix}'.")
 
         val serializer = JsonSerializer.forClass(from.messageClass)
@@ -79,7 +80,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
             waitTimeSeconds = 20
         }
 
-        while (isActive) {
+        while (coroutineContext.isActive) {
             val receiveResponse = client.receiveMessage(receiveRequest)
 
             receiveResponse.messages?.forEach { sqsMessage ->
