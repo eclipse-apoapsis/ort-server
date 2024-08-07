@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.models.V1Job
 
@@ -38,21 +37,9 @@ import io.mockk.verify
 import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -138,35 +125,6 @@ class ReaperTest : WordSpec({
                     jobHandler.deleteAndNotifyIfFailed(job)
                 }
             }
-        }
-    }
-
-    "tickerFlow" should {
-        "produce a flow with tick events" {
-            val ticker = tickerFlow(10.milliseconds)
-            val queue = LinkedBlockingQueue<String>()
-
-            CoroutineScope(Dispatchers.IO).launch {
-                ticker.take(10)
-                    .map { "tick" }
-                    .onEach(queue::offer)
-                    .collect()
-            }
-
-            (1..10).toList().forAll {
-                queue.poll(100, TimeUnit.MILLISECONDS) shouldBe "tick"
-            }
-        }
-
-        "take the interval into account" {
-            val ticker = tickerFlow(100.milliseconds)
-            val latch = CountDownLatch(1)
-
-            CoroutineScope(Dispatchers.IO).launch {
-                ticker.onEach { latch.countDown() }.first()
-            }
-
-            latch.await(10, TimeUnit.MILLISECONDS) shouldBe false
         }
     }
 })

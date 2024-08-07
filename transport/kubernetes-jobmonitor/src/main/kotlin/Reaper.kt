@@ -25,9 +25,6 @@ import java.time.ZoneOffset
 
 import kotlin.time.Duration
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock
 
 import org.slf4j.LoggerFactory
@@ -75,16 +72,5 @@ internal class Reaper(
         logger.debug("Found {} completed jobs.", completeJobs.size)
 
         completeJobs.forEach { jobHandler.deleteAndNotifyIfFailed(it) }
-    }
-}
-
-/**
- * Return a [Flow] that produces periodic tick events in the given [interval]. This is used as the timer for triggering
- * [Reaper] runs periodically.
- */
-internal fun tickerFlow(interval: Duration): Flow<Unit> = flow {
-    while (true) {
-        delay(interval)
-        emit(Unit)
     }
 }
