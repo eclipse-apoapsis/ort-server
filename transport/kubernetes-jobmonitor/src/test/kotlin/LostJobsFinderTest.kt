@@ -33,7 +33,6 @@ import io.mockk.verify
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -99,7 +98,7 @@ class LostJobsFinderTest : StringSpec({
             evaluatorJobRepo,
             reporterJobRepo,
             notifierJobRepo,
-            testClock
+            testTimeHelper
         )
 
         val interval = 3.minutes
@@ -131,7 +130,7 @@ private val jobCreationTime = Instant.parse("2024-03-15T12:28:17Z")
 private val minJobAge = 1.minutes
 
 /** The clock used by the component under test. It always returns a constant time. */
-private val testClock = createClock()
+private val testTimeHelper = createTimeHelper()
 
 /**
  * Prepare this [JobHandler] mock to expect a query for the active jobs of the given [endpoint]. For each endpoint,
@@ -182,8 +181,8 @@ private fun createKubernetesJob(runId: Long, name: String): V1Job =
     }
 
 /**
- * Return a mock clock that returns the [currentTime].
+ * Return a mock [TimeHelper] that returns the [currentTime].
  */
-private fun createClock(): Clock = mockk {
+private fun createTimeHelper(): TimeHelper = mockk {
     every { now() } returns currentTime
 }

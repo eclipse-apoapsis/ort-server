@@ -112,6 +112,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                     .verify(
                         extraTypes = listOf(
                             Boolean::class,
+                            Clock::class,
                             Config::class,
                             Duration::class,
                             Function0::class,
@@ -240,7 +241,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 }
 
                 val referenceTime = Instant.parse("2024-03-18T10:04:42Z")
-                declareMock<Clock> {
+                declareMock<TimeHelper> {
                     every { now() } returns referenceTime
                 }
 

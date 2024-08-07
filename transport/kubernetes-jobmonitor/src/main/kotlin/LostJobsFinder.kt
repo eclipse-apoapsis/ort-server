@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import kotlin.time.Duration
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -85,8 +83,8 @@ internal class LostJobsFinder(
     /** The repository for Notifier jobs. */
     notifierJobRepository: NotifierJobRepository,
 
-    /** The clock to determine the current time and the age of jobs. */
-    private val clock: Clock = Clock.System
+    /** The object to determine the current time and the age of jobs. */
+    private val timeHelper: TimeHelper
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(LostJobsFinder::class.java)
@@ -123,7 +121,7 @@ internal class LostJobsFinder(
      * Perform a check for lost jobs for the given worker [endpoint] using its [jobRepository].
      */
     private fun checkForLostWorkerJobs(endpoint: Endpoint<*>, jobRepository: WorkerJobRepository<*>) {
-        val currentTime = clock.now()
+        val currentTime = timeHelper.now()
 
         val kubeJobs = jobHandler.findJobsForWorker(endpoint).associateBy { it.ortRunId }
 

@@ -19,13 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
-import java.time.Instant
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-
 import kotlin.time.Duration
-
-import kotlinx.datetime.Clock
 
 import org.slf4j.LoggerFactory
 
@@ -43,11 +37,8 @@ internal class Reaper(
     /** The maximum age of a completed job before it gets removed. */
     private val maxJobAge: Duration,
 
-    /** The clock to determine the current time and the age of jobs. */
-    private val clock: Clock = Clock.System,
-
-    /** The default zone offset for this system. */
-    private val systemZoneOffset: ZoneOffset = OffsetDateTime.now().offset
+    /** The object for time calculations. */
+    private val timeHelper: TimeHelper
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(Reaper::class.java)
@@ -64,7 +55,7 @@ internal class Reaper(
      * Perform a reap run.
      */
     private suspend fun reap() {
-        val time = Instant.ofEpochSecond(clock.now().minus(maxJobAge).epochSeconds).atOffset(systemZoneOffset)
+        val time = timeHelper.before(maxJobAge)
         logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
 
         val completeJobs = jobHandler.findJobsCompletedBefore(time)
