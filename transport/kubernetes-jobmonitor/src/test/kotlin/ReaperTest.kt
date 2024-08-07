@@ -40,9 +40,6 @@ import java.time.ZoneOffset
 
 import kotlin.time.Duration.Companion.minutes
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
 
 /** Constant for the maximum age of a job before it gets deleted. */
@@ -65,45 +62,42 @@ class ReaperTest : WordSpec({
     "Reaper" should {
         "periodically query completed jobs" {
             val zoneOffset = ZoneOffset.ofHours(2)
-            val clock = mockk<Clock>()
-            every { clock.now() } returnsMany listOf(
-                Instant.parse("2023-05-03T10:18:11Z"),
-                Instant.parse("2023-05-03T10:21:15Z")
+            val date1 = OffsetDateTime.of(
+                2023,
+                Month.MAY.value,
+                3,
+                12,
+                8,
+                11,
+                0,
+                zoneOffset
             )
+            val date2 = OffsetDateTime.of(
+                2023,
+                Month.MAY.value,
+                3,
+                12,
+                11,
+                15,
+                0,
+                zoneOffset
+            )
+
+            val timeHelper = mockk<TimeHelper> {
+                every { before(maxJobAge) } returnsMany listOf(date1, date2)
+            }
 
             val jobHandler = mockk<JobHandler>()
             every { jobHandler.findJobsCompletedBefore(any()) } returns emptyList()
 
-            val reaper = Reaper(jobHandler, maxJobAge, clock, zoneOffset)
+            val reaper = Reaper(jobHandler, maxJobAge, timeHelper)
             val helper = SchedulerTestHelper()
             reaper.run(helper.scheduler, reaperInterval)
             helper.expectSchedule(reaperInterval).triggerAction(times = 2)
 
             verify {
-                jobHandler.findJobsCompletedBefore(
-                    OffsetDateTime.of(
-                        2023,
-                        Month.MAY.value,
-                        3,
-                        12,
-                        8,
-                        11,
-                        0,
-                        zoneOffset
-                    )
-                )
-                jobHandler.findJobsCompletedBefore(
-                    OffsetDateTime.of(
-                        2023,
-                        Month.MAY.value,
-                        3,
-                        12,
-                        11,
-                        15,
-                        0,
-                        zoneOffset
-                    )
-                )
+                jobHandler.findJobsCompletedBefore(date1)
+                jobHandler.findJobsCompletedBefore(date2)
             }
         }
 
@@ -115,7 +109,7 @@ class ReaperTest : WordSpec({
                 coEvery { jobHandler.deleteAndNotifyIfFailed(it) } just runs
             }
 
-            val reaper = Reaper(jobHandler, maxJobAge)
+            val reaper = Reaper(jobHandler, maxJobAge, TimeHelper())
             val helper = SchedulerTestHelper()
             reaper.run(helper.scheduler, reaperInterval)
             helper.expectSchedule(reaperInterval).triggerAction()

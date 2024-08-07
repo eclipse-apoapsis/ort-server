@@ -29,7 +29,6 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
@@ -134,7 +133,7 @@ internal class MonitorComponent(
         val namespace = configManager.getString(NAMESPACE_PROPERTY)
 
         return module {
-            single<Clock> { Clock.System }
+            single { TimeHelper() }
             single { configManager }
             single { ClientBuilder.defaultClient() }
             single { BatchV1Api(get()) }
@@ -154,7 +153,7 @@ internal class MonitorComponent(
             single { JobHandler(get(), get(), get(), namespace) }
             single { FailedJobNotifier(get()) }
             singleOf(::JobMonitor)
-            single { Reaper(get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds) }
+            single { Reaper(get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds, get()) }
             single {
                 LostJobsFinder(
                     get(),
