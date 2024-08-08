@@ -177,6 +177,18 @@ class KeycloakTestClient(
         userClientRoles[id]?.flatMapTo(mutableSetOf()) { getCompositeRolesRecursive(it) + getRole(it) }
             ?: throw KeycloakClientException("")
 
+    override suspend fun addUserToGroup(username: UserName, groupName: GroupName) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun removeUserFromGroup(username: UserName, groupName: GroupName) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
+        TODO("Not yet implemented")
+    }
+
     private fun getNextGroupId() = GroupId("group-id-${groupCounter++}")
 
     private fun getNextRoleId() = RoleId("role-id-${roleCounter++}")

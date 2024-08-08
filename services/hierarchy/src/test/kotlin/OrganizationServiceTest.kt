@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 
 import io.mockk.coEvery
@@ -26,11 +27,13 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.Organization
 
 import org.jetbrains.exposed.sql.Database
 
@@ -96,6 +99,126 @@ class OrganizationServiceTest : WordSpec({
             coVerify(exactly = 1) {
                 authorizationService.deleteOrganizationPermissions(fixtures.organization.id)
                 authorizationService.deleteOrganizationRoles(fixtures.organization.id)
+            }
+        }
+    }
+
+    "addUserToGroup" should {
+        "throw an exception if the organization does not exist" {
+            val service = OrganizationService(db, organizationRepository, productRepository, mockk())
+
+            shouldThrow<ResourceNotFoundException> {
+                service.addUserToGroup("username", 1, "readers")
+            }
+        }
+
+        "throw an exception if the group does not exist" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                OrganizationService(
+                    db,
+                    organizationRepository,
+                    productRepository,
+                    authorizationService
+                )
+            ) {
+                coEvery { getOrganization(any()) } returns Organization(1, "name", "description")
+            }
+
+            shouldThrow<ResourceNotFoundException> {
+                service.addUserToGroup("username", 1, "viewers")
+            }
+        }
+
+        "generate the Keycloak group name" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                OrganizationService(
+                    db,
+                    organizationRepository,
+                    productRepository,
+                    authorizationService
+                )
+            ) {
+                coEvery { getOrganization(any()) } returns Organization(1, "name", "description")
+            }
+
+            service.addUserToGroup("username", 1, "readers")
+
+            coVerify(exactly = 1) {
+                authorizationService.addUserToGroup(
+                    "username",
+                    1,
+                    "ORGANIZATION_1_READERS"
+                )
+            }
+        }
+    }
+
+    "removeUsersFromGroup" should {
+        "throw an exception if the organization does not exist" {
+            val service = OrganizationService(db, organizationRepository, productRepository, mockk())
+
+            shouldThrow<ResourceNotFoundException> {
+                service.removeUserFromGroup("username", 1, "readers")
+            }
+        }
+
+        "throw an exception if the group does not exist" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                OrganizationService(
+                    db,
+                    organizationRepository,
+                    productRepository,
+                    authorizationService
+                )
+            ) {
+                coEvery { getOrganization(any()) } returns Organization(1, "name", "description")
+            }
+
+            shouldThrow<ResourceNotFoundException> {
+                service.removeUserFromGroup("username", 1, "viewers")
+            }
+        }
+
+        "generate the Keycloak group name" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { removeUserFromGroup(any(), any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                OrganizationService(
+                    db,
+                    organizationRepository,
+                    productRepository,
+                    authorizationService
+                )
+            ) {
+                coEvery { getOrganization(any()) } returns Organization(1, "name", "description")
+            }
+
+            service.removeUserFromGroup("username", 1, "readers")
+
+            coVerify(exactly = 1) {
+                authorizationService.removeUserFromGroup(
+                    "username",
+                    1,
+                    "ORGANIZATION_1_READERS"
+                )
             }
         }
     }

@@ -19,9 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import kotlin.enums.EnumEntries
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -120,4 +123,56 @@ class OrganizationService(
     ): Organization = db.dbQuery {
         organizationRepository.update(organizationId, name, description)
     }
+
+    /**
+     * Add a user to one of the three groups that grant roles and permissions on organization level.
+     */
+    suspend fun addUserToGroup(
+        username: String,
+        organizationId: Long,
+        groupId: String
+    ) {
+        getOrganization(organizationId)
+            ?: throw ResourceNotFoundException("Organization with organizationId '$organizationId' not found.")
+
+        val organizationRole = try {
+            OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
+        } catch (e: IllegalArgumentException) {
+            throw ResourceNotFoundException(
+                "Group with groupId '$groupId' not found. Must be one of ${OrganizationRole.entries.toJoinedString()}",
+                e
+            )
+        }
+
+        val groupName = organizationRole.groupName(organizationId)
+        authorizationService.addUserToGroup(username, organizationId, groupName)
+    }
+
+    /**
+     * Remove a user from a group that grant roles and permissions on organization level.
+     */
+    suspend fun removeUserFromGroup(
+        username: String,
+        organizationId: Long,
+        groupId: String
+    ) {
+        getOrganization(organizationId)
+            ?: throw ResourceNotFoundException("Organization with organizationId '$organizationId' not found.")
+
+        val organizationRole = try {
+            OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
+        } catch (e: IllegalArgumentException) {
+            throw ResourceNotFoundException(
+                "Group with groupId '$groupId' not found. Must be one of ${OrganizationRole.entries.toJoinedString()}",
+                e
+            )
+        }
+
+        val groupName = organizationRole.groupName(organizationId)
+        authorizationService.removeUserFromGroup(username, organizationId, groupName)
+    }
+
+    private fun EnumEntries<OrganizationRole>.toJoinedString(): String =
+        this.dropLast(1).joinToString(", ", transform = { "'${it.name.lowercase()}s'" })
+            .let { "$it or '${this.last().name.lowercase()}s'" }
 }

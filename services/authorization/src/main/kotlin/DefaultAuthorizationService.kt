@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
@@ -730,5 +731,23 @@ class DefaultAuthorizationService(
         actualGroupRoles.filter { it.name.value.startsWith(groupPrefix) }.filter { it.name.value != roleName }.forEach {
             keycloakClient.removeGroupClientRole(group.id, it)
         }
+    }
+
+    override suspend fun addUserToGroup(
+        username: String,
+        organizationId: Long,
+        groupName: String
+    ) {
+        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+        keycloakClient.addUserToGroup(UserName(username), GroupName(group))
+    }
+
+    override suspend fun removeUserFromGroup(
+        username: String,
+        organizationId: Long,
+        groupName: String
+    ) {
+        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+        keycloakClient.removeUserFromGroup(UserName(username), GroupName(group))
     }
 }

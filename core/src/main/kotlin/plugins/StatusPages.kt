@@ -27,6 +27,7 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserNotFoundException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
 import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
@@ -36,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
+import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
@@ -76,6 +78,12 @@ fun Application.configureStatusPages() {
         }
         exception<ReportNotFoundException> { call, e ->
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Report could not be resolved.", e.message))
+        }
+        exception<ResourceNotFoundException> { call, e ->
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("Resource not found.", e.message))
+        }
+        exception<UserNotFoundException> { call, e ->
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("User not found.", e.message))
         }
         exception<RequestValidationException> { call, e ->
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Request validation has failed.", e.message))
