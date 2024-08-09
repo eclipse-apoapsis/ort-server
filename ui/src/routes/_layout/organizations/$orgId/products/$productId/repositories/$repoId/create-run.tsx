@@ -18,13 +18,19 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostOrtRun } from '@/api/queries';
-import { ApiError, RepositoriesService } from '@/api/requests';
+import {
+  useRepositoriesServicePostOrtRun,
+  useSecretsServiceGetSecretsByOrganizationIdKey,
+  useSecretsServiceGetSecretsByProductIdKey,
+  useSecretsServiceGetSecretsByRepositoryIdKey,
+} from '@/api/queries';
+import { ApiError, RepositoriesService, SecretsService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -46,78 +52,20 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { isDefault } from '@/helpers/defaults-helpers';
+import { updateBaseDefaults } from '@/helpers/get-defaults';
+import { useUser } from '@/hooks/use-user';
+import { formSchema } from '@/schemas';
 import { AdvisorFields } from './-components/advisor-fields';
 import { AnalyzerFields } from './-components/analyzer-fields';
+import { DisplayDefaults } from './-components/display-defaults';
 import { EvaluatorFields } from './-components/evaluator-fields';
 import { NotifierFields } from './-components/notifier-fields';
 import { ReporterFields } from './-components/reporter-fields';
 import { ScannerFields } from './-components/scanner-fields';
 import { packageManagers } from './-types';
 
-const keyValueSchema = z.object({
-  key: z.string().min(1),
-  value: z.string(), // Allow empty values for now
-});
-
-const formSchema = z.object({
-  revision: z.string(),
-  path: z.string(),
-  jobConfigs: z.object({
-    analyzer: z.object({
-      enabled: z.boolean(),
-      allowDynamicVersions: z.boolean(),
-      skipExcluded: z.boolean(),
-      enabledPackageManagers: z.array(z.string()),
-    }),
-    advisor: z.object({
-      enabled: z.boolean(),
-      skipExcluded: z.boolean(),
-      advisors: z.array(z.string()),
-    }),
-    scanner: z.object({
-      enabled: z.boolean(),
-      skipConcluded: z.boolean(),
-      skipExcluded: z.boolean(),
-    }),
-    evaluator: z.object({
-      enabled: z.boolean(),
-      ruleSet: z.string().optional(),
-      licenseClassificationsFile: z.string().optional(),
-      copyrightGarbageFile: z.string().optional(),
-      resolutionsFile: z.string().optional(),
-    }),
-    reporter: z.object({
-      enabled: z.boolean(),
-      formats: z.array(z.string()),
-    }),
-    notifier: z.object({
-      enabled: z.boolean(),
-      notifierRules: z.string().optional(),
-      resolutionsFile: z.string().optional(),
-      mail: z.object({
-        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
-        mailServerConfiguration: z.object({
-          hostName: z.string(),
-          port: z.coerce.number().int(),
-          username: z.string(),
-          password: z.string(),
-          useSsl: z.boolean(),
-          fromAddress: z.string(),
-        }),
-      }),
-      jira: z.object({
-        jiraRestClientConfiguration: z.object({
-          serverUrl: z.string(),
-          username: z.string(),
-          password: z.string(),
-        }),
-      }),
-    }),
-    parameters: z.array(keyValueSchema).optional(),
-  }),
-  labels: z.array(keyValueSchema).optional(),
-  jobConfigContext: z.string().optional(),
-});
+const defaultPageSize = 1000;
 
 export type CreateRunFormValues = ReturnType<typeof formSchema.parse>;
 
@@ -126,6 +74,60 @@ const CreateRunPage = () => {
   const params = Route.useParams();
   const { toast } = useToast();
   const ortRun = Route.useLoaderData();
+  const user = useUser();
+
+  const [{ data: orgSecrets }, { data: prodSecrets }, { data: repoSecrets }] =
+    useSuspenseQueries({
+      queries: [
+        {
+          queryKey: [
+            useSecretsServiceGetSecretsByOrganizationIdKey,
+            params.orgId,
+            defaultPageSize,
+          ],
+          queryFn: async () =>
+            await SecretsService.getSecretsByOrganizationId({
+              organizationId: Number.parseInt(params.orgId),
+              limit: defaultPageSize,
+            }),
+        },
+        {
+          queryKey: [
+            useSecretsServiceGetSecretsByProductIdKey,
+            params.productId,
+            defaultPageSize,
+          ],
+          queryFn: async () =>
+            await SecretsService.getSecretsByProductId({
+              productId: Number.parseInt(params.productId),
+              limit: defaultPageSize,
+            }),
+        },
+        {
+          queryKey: [
+            useSecretsServiceGetSecretsByRepositoryIdKey,
+            params.repoId,
+            defaultPageSize,
+          ],
+          queryFn: async () =>
+            await SecretsService.getSecretsByRepositoryId({
+              repositoryId: Number.parseInt(params.repoId),
+              limit: defaultPageSize,
+            }),
+        },
+      ],
+    });
+
+  // Keep the secrets that are encoded as default run properties
+  const orgDefaults = orgSecrets?.data?.filter((secret) =>
+    isDefault(secret.name)
+  );
+  const prodDefaults = prodSecrets?.data.filter((secret) =>
+    isDefault(secret.name)
+  );
+  const repoDefaults = repoSecrets?.data.filter((secret) =>
+    isDefault(secret.name)
+  );
 
   const { mutateAsync, isPending } = useRepositoriesServicePostOrtRun({
     onSuccess() {
@@ -152,7 +154,7 @@ const CreateRunPage = () => {
   });
 
   // Default values for the form: edit only these, not the defaultValues object.
-  const baseDefaults = {
+  let baseDefaults = {
     revision: 'main',
     path: '',
     jobConfigs: {
@@ -206,9 +208,19 @@ const CreateRunPage = () => {
           },
         },
       },
+      parameters: [],
     },
     jobConfigContext: '',
   };
+
+  // Insert/replace default values into base defaults. These values come from
+  // the secrets set up by the organization, product, and repository owners.
+  baseDefaults = updateBaseDefaults(
+    baseDefaults,
+    orgDefaults,
+    prodDefaults,
+    repoDefaults
+  );
 
   // Default values for the form are either taken from "baseDefaults" or,
   // when a rerun action has been taken, fetched from the ORT Run that is
@@ -355,7 +367,7 @@ const CreateRunPage = () => {
                 key: k,
                 value: v,
               }))
-            : [],
+            : baseDefaults.jobConfigs.parameters,
         },
         // Convert the labels object map coming from the back-end to an array of key-value pairs.
         labels: ortRun.labels
@@ -591,6 +603,24 @@ const CreateRunPage = () => {
               )}
             />
 
+            {(orgDefaults.length > 0 ||
+              prodDefaults.length > 0 ||
+              repoDefaults.length > 0) &&
+              user.hasRole(['superuser']) && (
+                <>
+                  <h3 className='mt-4'>Default Run Properties</h3>
+                  <div className='text-sm text-gray-500'>
+                    These are the default run properties set up by your
+                    organization, product, and repository owners.
+                  </div>
+                  <DisplayDefaults
+                    orgDefaults={orgDefaults}
+                    prodDefaults={prodDefaults}
+                    repoDefaults={repoDefaults}
+                  />
+                </>
+              )}
+
             <h3 className='mt-4'>Parameters</h3>
             <div className='text-sm text-gray-500'>
               A map with custom parameters for the whole run.
@@ -766,7 +796,37 @@ export const Route = createFileRoute(
   // It is important to notice that if no rerunIndex is provided to this route,
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
-  loader: async ({ params, deps: { rerunIndex } }) => {
+  loader: async ({ context, params, deps: { rerunIndex } }) => {
+    await Promise.allSettled([
+      context.queryClient.ensureQueryData({
+        queryKey: [
+          useSecretsServiceGetSecretsByOrganizationIdKey,
+          params.orgId,
+        ],
+        queryFn: () =>
+          SecretsService.getSecretsByOrganizationId({
+            organizationId: Number.parseInt(params.orgId),
+            limit: defaultPageSize,
+          }),
+      }),
+      context.queryClient.ensureQueryData({
+        queryKey: [useSecretsServiceGetSecretsByProductIdKey, params.productId],
+        queryFn: () =>
+          SecretsService.getSecretsByProductId({
+            productId: Number.parseInt(params.productId),
+            limit: defaultPageSize,
+          }),
+      }),
+      context.queryClient.ensureQueryData({
+        queryKey: [useSecretsServiceGetSecretsByRepositoryIdKey, params.repoId],
+        queryFn: () =>
+          SecretsService.getSecretsByRepositoryId({
+            repositoryId: Number.parseInt(params.repoId),
+            limit: defaultPageSize,
+          }),
+      }),
+    ]);
+
     if (rerunIndex === undefined) {
       return null;
     }
