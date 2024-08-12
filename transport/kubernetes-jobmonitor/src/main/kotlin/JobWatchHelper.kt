@@ -55,12 +55,12 @@ internal class JobWatchHelper(
         val JOB_TYPE = object : TypeToken<Watch.Response<V1Job>>() {}
 
         /**
-         * Create a new [JobWatchHelper] instance that watches jobs in the given [namespace] using the given
-         * [jobApi]. Watching starts at the provided [resourceVersion] if it is defined. Otherwise, the initial
-         * resource version is obtained by listing the current job state.
+         * Create a new [JobWatchHelper] instance based on the given [config] using the given [jobApi]. Watching starts
+         * at the provided [resourceVersion] if it is defined. Otherwise, the initial resource version is obtained by
+         * listing the current job state.
          */
-        fun create(jobApi: BatchV1Api, namespace: String, resourceVersion: String? = null): JobWatchHelper =
-            JobWatchHelper(jobApi, namespace, resourceVersion)
+        fun create(jobApi: BatchV1Api, config: MonitorConfig, resourceVersion: String? = null): JobWatchHelper =
+            JobWatchHelper(jobApi, config.namespace, resourceVersion)
 
         /**
          * Obtain the current resource version for starting watching on [namespace] by querying the list of current

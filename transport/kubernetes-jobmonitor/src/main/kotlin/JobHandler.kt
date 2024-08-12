@@ -27,9 +27,6 @@ import io.kubernetes.client.openapi.models.V1Pod
 import java.time.OffsetDateTime
 import java.util.TreeMap
 
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
@@ -52,14 +49,8 @@ internal class JobHandler(
     /** The object to send notifications about failed jobs. */
     private val notifier: FailedJobNotifier,
 
-    /** The namespace that contains the objects of interest. */
-    private val namespace: String,
-
-    /**
-     * A duration that defines an interval in which a job should be considered as recently processed. This component
-     * keeps a list of the jobs that have been deleted during this interval to prevent duplicate processing of jobs.
-     */
-    private val recentlyProcessedInterval: Duration = 60.seconds,
+    /** The configuration. */
+    private val config: MonitorConfig,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(JobHandler::class.java)
@@ -180,7 +171,7 @@ internal class JobHandler(
      */
     private fun deleteJob(jobName: String) {
         runCatching {
-            jobApi.deleteNamespacedJob(jobName, namespace, null, null, null, null, null, null)
+            jobApi.deleteNamespacedJob(jobName, config.namespace, null, null, null, null, null, null)
         }.onFailure { e ->
             logger.error("Could not remove job '$jobName': $e.")
         }
@@ -194,7 +185,19 @@ internal class JobHandler(
     private fun findPodsForJob(jobName: String): List<V1Pod> {
         val selector = "job-name=$jobName"
 
-        return api.listNamespacedPod(namespace, null, null, null, null, selector, null, null, null, null, false).items
+        return api.listNamespacedPod(
+            config.namespace,
+            null,
+            null,
+            null,
+            null,
+            selector,
+            null,
+            null,
+            null,
+            null,
+            false
+        ).items
     }
 
     /**
@@ -205,7 +208,7 @@ internal class JobHandler(
         pod.metadata?.name?.let { podName ->
             logger.info("Deleting pod $podName.")
             runCatching {
-                api.deleteNamespacedPod(podName, namespace, null, null, null, null, null, null)
+                api.deleteNamespacedPod(podName, config.namespace, null, null, null, null, null, null)
             }.onFailure { e ->
                 logger.error("Could not remove pod '$podName': $e.")
             }
@@ -218,7 +221,7 @@ internal class JobHandler(
      */
     private suspend fun canProcess(jobName: String): Boolean {
         val now = Clock.System.now()
-        val recentThreshold = now - recentlyProcessedInterval
+        val recentThreshold = now - config.recentlyProcessedInterval
 
         return recentJobsMutex.withLock {
             // Remove older entries from the data structures.
@@ -242,5 +245,17 @@ internal class JobHandler(
      * Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter.
      */
     private fun listJobs(labelSelector: String?): List<V1Job> =
-        jobApi.listNamespacedJob(namespace, null, null, null, null, labelSelector, null, null, null, null, false).items
+        jobApi.listNamespacedJob(
+            config.namespace,
+            null,
+            null,
+            null,
+            null,
+            labelSelector,
+            null,
+            null,
+            null,
+            null,
+            false
+        ).items
 }

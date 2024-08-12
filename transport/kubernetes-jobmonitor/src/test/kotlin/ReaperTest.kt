@@ -46,7 +46,7 @@ import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler
 private val maxJobAge = 10.minutes
 
 /** The interval how frequently the reaper should run. */
-private val reaperInterval = 7.minutes
+private val runInterval = 7.minutes
 
 class ReaperTest : WordSpec({
     beforeSpec {
@@ -63,23 +63,23 @@ class ReaperTest : WordSpec({
         "periodically query completed jobs" {
             val zoneOffset = ZoneOffset.ofHours(2)
             val date1 = OffsetDateTime.of(
-                2023,
-                Month.MAY.value,
-                3,
-                12,
-                8,
-                11,
-                0,
+                /* year = */ 2023,
+                /* month = */ Month.MAY.value,
+                /* dayOfMonth = */ 3,
+                /* hour = */ 12,
+                /* minute = */ 8,
+                /* second = */ 11,
+                /* nanoOfSecond = */ 0,
                 zoneOffset
             )
             val date2 = OffsetDateTime.of(
-                2023,
-                Month.MAY.value,
-                3,
-                12,
-                11,
-                15,
-                0,
+                /* year = */ 2023,
+                /* month = */ Month.MAY.value,
+                /* dayOfMonth = */ 3,
+                /* hour = */ 12,
+                /* minute = */ 11,
+                /* second = */ 15,
+                /* nanoOfSecond = */ 0,
                 zoneOffset
             )
 
@@ -90,10 +90,10 @@ class ReaperTest : WordSpec({
             val jobHandler = mockk<JobHandler>()
             every { jobHandler.findJobsCompletedBefore(any()) } returns emptyList()
 
-            val reaper = Reaper(jobHandler, maxJobAge, timeHelper)
+            val reaper = Reaper(jobHandler, createConfig(), timeHelper)
             val helper = SchedulerTestHelper()
-            reaper.run(helper.scheduler, reaperInterval)
-            helper.expectSchedule(reaperInterval).triggerAction(times = 2)
+            reaper.run(helper.scheduler)
+            helper.expectSchedule(runInterval).triggerAction(times = 2)
 
             verify {
                 jobHandler.findJobsCompletedBefore(date1)
@@ -109,10 +109,10 @@ class ReaperTest : WordSpec({
                 coEvery { jobHandler.deleteAndNotifyIfFailed(it) } just runs
             }
 
-            val reaper = Reaper(jobHandler, maxJobAge, TimeHelper())
+            val reaper = Reaper(jobHandler, createConfig(), TimeHelper())
             val helper = SchedulerTestHelper()
-            reaper.run(helper.scheduler, reaperInterval)
-            helper.expectSchedule(reaperInterval).triggerAction()
+            reaper.run(helper.scheduler)
+            helper.expectSchedule(runInterval).triggerAction()
 
             jobs.forAll { job ->
                 coVerify {
@@ -122,6 +122,15 @@ class ReaperTest : WordSpec({
         }
     }
 })
+
+/**
+ * Create a test configuration for the reaper.
+ */
+private fun createConfig(): MonitorConfig =
+    mockk {
+        every { reaperMaxAge } returns maxJobAge
+        every { reaperInterval } returns runInterval
+    }
 
 /**
  * Create a job with the given [failure status][failed].

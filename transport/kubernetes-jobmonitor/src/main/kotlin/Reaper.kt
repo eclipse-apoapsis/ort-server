@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
-import kotlin.time.Duration
-
 import org.slf4j.LoggerFactory
 
 /**
@@ -34,8 +32,8 @@ internal class Reaper(
     /** The object to query and manipulate jobs. */
     private val jobHandler: JobHandler,
 
-    /** The maximum age of a completed job before it gets removed. */
-    private val maxJobAge: Duration,
+    /** The configuration. */
+    private val config: MonitorConfig,
 
     /** The object for time calculations. */
     private val timeHelper: TimeHelper
@@ -45,17 +43,17 @@ internal class Reaper(
     }
 
     /**
-     * Run reaper jobs periodically in the given [interval] using the provided [scheduler].
+     * Run reaper jobs periodically according to the configuration using the provided [scheduler].
      */
-    fun run(scheduler: Scheduler, interval: Duration) {
-        scheduler.schedule(interval) { reap() }
+    fun run(scheduler: Scheduler) {
+        scheduler.schedule(config.reaperInterval) { reap() }
     }
 
     /**
      * Perform a reap run.
      */
     private suspend fun reap() {
-        val time = timeHelper.before(maxJobAge)
+        val time = timeHelper.before(config.reaperMaxAge)
         logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
 
         val completeJobs = jobHandler.findJobsCompletedBefore(time)

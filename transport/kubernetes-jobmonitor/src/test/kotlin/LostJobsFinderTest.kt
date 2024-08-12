@@ -88,10 +88,15 @@ class LostJobsFinderTest : StringSpec({
             every { sendLostJobNotification(any(), any()) } just runs
         }
 
+        val config = mockk<MonitorConfig> {
+            every { lostJobsMinAge } returns minJobAge
+            every { lostJobsInterval } returns runInterval
+        }
+
         val finder = LostJobsFinder(
             jobHandler,
             notifier,
-            minJobAge,
+            config,
             analyzerJobRepo,
             advisorJobRepo,
             scannerJobRepo,
@@ -101,10 +106,9 @@ class LostJobsFinderTest : StringSpec({
             testTimeHelper
         )
 
-        val interval = 3.minutes
         val helper = SchedulerTestHelper()
-        finder.run(helper.scheduler, interval)
-        helper.expectSchedule(interval).triggerAction()
+        finder.run(helper.scheduler)
+        helper.expectSchedule(runInterval).triggerAction()
 
         verify {
             notifier.sendLostJobNotification(RUN_ID, AnalyzerEndpoint)
@@ -128,6 +132,9 @@ private val jobCreationTime = Instant.parse("2024-03-15T12:28:17Z")
 
 /** The configuration setting for the minimum job age. */
 private val minJobAge = 1.minutes
+
+/** The interval in which the lost jobs component should run. */
+private val runInterval = 3.minutes
 
 /** The clock used by the component under test. It always returns a constant time. */
 private val testTimeHelper = createTimeHelper()
