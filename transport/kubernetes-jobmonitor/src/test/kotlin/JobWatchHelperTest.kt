@@ -57,7 +57,7 @@ class JobWatchHelperTest : StringSpec({
         val watch = createWatchWithEvents(event)
         mockWatchCreation(jobApi, resourceVersion, watch)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE, resourceVersion)
+        val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion)
 
         helper.nextEvent() shouldBe event
     }
@@ -70,7 +70,7 @@ class JobWatchHelperTest : StringSpec({
         val watch = createWatchWithEvents(eventIgnored, event)
         mockWatchCreation(jobApi, resourceVersion, watch)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE, resourceVersion)
+        val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion)
 
         helper.nextEvent() shouldBe event
     }
@@ -89,7 +89,7 @@ class JobWatchHelperTest : StringSpec({
         mockWatchCreation(jobApi, resourceVersion1, watch1)
         mockWatchCreation(jobApi, resourceVersion2, watch2)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE, resourceVersion1)
+        val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion1)
 
         helper.nextEvent() shouldBe event1
         helper.nextEvent() shouldBe event2
@@ -121,7 +121,7 @@ class JobWatchHelperTest : StringSpec({
         val watch = createWatchWithEvents(event)
         mockWatchCreation(jobApi, resourceVersion2, watch)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE, resourceVersion1)
+        val helper = JobWatchHelper.create(jobApi, createConfig(), resourceVersion1)
 
         helper.nextEvent() shouldBe event
     }
@@ -136,7 +136,7 @@ class JobWatchHelperTest : StringSpec({
         val watch = createWatchWithEvents(event)
         mockWatchCreation(jobApi, initialResourceVersion, watch)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE)
+        val helper = JobWatchHelper.create(jobApi, createConfig())
 
         helper.nextEvent() shouldBe event
     }
@@ -156,11 +156,19 @@ class JobWatchHelperTest : StringSpec({
         val watch2 = createWatchWithEvents(event)
         mockWatchCreation(jobApi, updatedResourceVersion, watch2)
 
-        val helper = JobWatchHelper.create(jobApi, NAMESPACE)
+        val helper = JobWatchHelper.create(jobApi, createConfig())
 
         helper.nextEvent() shouldBe event
     }
 })
+
+/**
+ * Create mock for the [MonitorConfig] that returns the test namespace.
+ */
+private fun createConfig(): MonitorConfig =
+    mockk {
+        every { namespace } returns NAMESPACE
+    }
 
 /**
  * Create a mock for the jobs API.

@@ -25,8 +25,6 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.util.ClientBuilder
 
-import kotlin.time.Duration.Companion.seconds
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -65,30 +63,6 @@ internal class MonitorComponent(
     private val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
     companion object {
-        /** The prefix for all configuration properties. */
-        private const val CONFIG_PREFIX = "jobMonitor"
-
-        /** The configuration property that selects the namespace to watch. */
-        private const val NAMESPACE_PROPERTY = "$CONFIG_PREFIX.namespace"
-
-        /** The configuration property defining the interval in which the reaper runs. */
-        private const val REAPER_INTERVAL_PROPERTY = "$CONFIG_PREFIX.reaperInterval"
-
-        /** The configuration property defining the interval in which the lost jobs detection should run. */
-        private const val LOST_JOBS_INTERVAL_PROPERTY = "$CONFIG_PREFIX.lostJobsInterval"
-
-        /** The configuration property defining the minimum age of a job (in seconds) to be considered lost. */
-        private const val LOST_JOBS_MIN_AGE_PROPERTY = "$CONFIG_PREFIX.lostJobsMinAge"
-
-        /** The configuration property to enable or disable the watching component. */
-        private const val WATCHING_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableWatching"
-
-        /** The configuration property to enable or disable the Reaper component. */
-        private const val REAPER_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableReaper"
-
-        /** The configuration property to enable or disable the detection of lost jobs. */
-        private const val LOST_JOBS_ENABLED_PROPERTY = "$CONFIG_PREFIX.enableLostJobs"
-
         private val logger = LoggerFactory.getLogger(MonitorComponent::class.java)
     }
 
@@ -102,23 +76,25 @@ internal class MonitorComponent(
     suspend fun start() = withContext(Dispatchers.Default) {
         logger.info("Starting Kubernetes Job Monitor Component.")
 
-        if (configManager.getBoolean(REAPER_ENABLED_PROPERTY)) {
+        val monitorConfig by inject<MonitorConfig>()
+
+        if (monitorConfig.reaperEnabled) {
             logger.info("Starting Reaper component.")
 
             val scheduler by inject<Scheduler>()
             val reaper by inject<Reaper>()
-            reaper.run(scheduler, configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds)
+            reaper.run(scheduler)
         }
 
-        if (configManager.getBoolean(LOST_JOBS_ENABLED_PROPERTY)) {
+        if (monitorConfig.lostJobsEnabled) {
             logger.info("Starting lost jobs detection component.")
 
             val scheduler by inject<Scheduler>()
             val lostJobsFinder by inject<LostJobsFinder>()
-            lostJobsFinder.run(scheduler, configManager.getInt(LOST_JOBS_INTERVAL_PROPERTY).seconds)
+            lostJobsFinder.run(scheduler)
         }
 
-        if (configManager.getBoolean(WATCHING_ENABLED_PROPERTY)) {
+        if (monitorConfig.watchingEnabled) {
             logger.info("Starting watcher component.")
 
             val monitor by inject<JobMonitor>()
@@ -130,11 +106,10 @@ internal class MonitorComponent(
      * Return a [Module] with the components used by this application.
      */
     internal fun monitoringModule(): Module {
-        val namespace = configManager.getString(NAMESPACE_PROPERTY)
-
         return module {
             single { TimeHelper() }
             single { configManager }
+            single { MonitorConfig.create(get()) }
             single { ClientBuilder.defaultClient() }
             single { BatchV1Api(get()) }
             single { CoreV1Api(get()) }
@@ -149,25 +124,12 @@ internal class MonitorComponent(
             single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
 
             single { Scheduler() }
-            single { JobWatchHelper.create(get(), namespace) }
-            single { JobHandler(get(), get(), get(), namespace) }
+            single { JobWatchHelper.create(get(), get()) }
+            single { JobHandler(get(), get(), get(), get()) }
             single { FailedJobNotifier(get()) }
             singleOf(::JobMonitor)
-            single { Reaper(get(), configManager.getInt(REAPER_INTERVAL_PROPERTY).seconds, get()) }
-            single {
-                LostJobsFinder(
-                    get(),
-                    get(),
-                    configManager.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
-                    get(),
-                    get(),
-                    get(),
-                    get(),
-                    get(),
-                    get(),
-                    get()
-                )
-            }
+            singleOf(::Reaper)
+            singleOf(::LostJobsFinder)
         }
     }
 }

@@ -552,7 +552,16 @@ private fun createJobHandler(
     notifier: FailedJobNotifier = mockk(),
     recentlyProcessedInterval: Duration = 30.seconds
 ): JobHandler =
-    JobHandler(jobApi, api, notifier, NAMESPACE, recentlyProcessedInterval)
+    JobHandler(jobApi, api, notifier, createMonitorConfig(recentlyProcessedInterval))
+
+/**
+ * Create a [MonitorConfig] with default values and the given [processedInterval].
+ */
+private fun createMonitorConfig(processedInterval: Duration): MonitorConfig =
+    mockk {
+        every { namespace } returns NAMESPACE
+        every { recentlyProcessedInterval } returns processedInterval
+    }
 
 /**
  * Create a [V1Job] with the given [name] and [status].

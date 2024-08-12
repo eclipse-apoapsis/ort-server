@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
-import kotlin.time.Duration
-
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -59,11 +57,8 @@ internal class LostJobsFinder(
     /** The object to send notifications to the orchestrator. */
     private val notifier: FailedJobNotifier,
 
-    /**
-     * The minimum age of a job in the database to be taken into account. This is needed to prevent certain race
-     * conditions with jobs that have just been added to the database, but are not yet propagated to Kubernetes.
-     */
-    private val minJobAge: Duration,
+    /** The configuration. */
+    private val monitorConfig: MonitorConfig,
 
     /** The repository for Analyzer jobs. */
     analyzerJobRepository: AnalyzerJobRepository,
@@ -101,10 +96,10 @@ internal class LostJobsFinder(
     )
 
     /**
-     * Schedule an action to periodically check for lost jobs on the given [scheduler] using the given [interval].
+     * Schedule an action to periodically check for lost jobs on the given [scheduler] according to the configuration.
      */
-    fun run(scheduler: Scheduler, interval: Duration) {
-        scheduler.schedule(interval, this::checkForLostJobs)
+    fun run(scheduler: Scheduler) {
+        scheduler.schedule(monitorConfig.lostJobsInterval, this::checkForLostJobs)
     }
 
     /**
@@ -132,7 +127,7 @@ internal class LostJobsFinder(
             kubeJobs.values.map { it.metadata?.name }
         )
 
-        val lostJobs = jobRepository.listActive(currentTime - minJobAge)
+        val lostJobs = jobRepository.listActive(currentTime - monitorConfig.lostJobsMinAge)
             .filterNot { it.ortRunId in kubeJobs }
 
         if (lostJobs.isNotEmpty()) {
