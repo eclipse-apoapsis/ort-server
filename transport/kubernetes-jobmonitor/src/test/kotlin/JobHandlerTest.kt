@@ -56,6 +56,7 @@ import kotlinx.coroutines.delay
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isFailed
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.isTimeout
 
 private const val NAMESPACE = "EventHandlerNamespace"
 
@@ -539,6 +540,48 @@ class JobHandlerTest : WordSpec({
             val failedJob = createJob("failedJob", status)
 
             failedJob.isCompleted() shouldBe true
+        }
+    }
+
+    "isTimeout" should {
+        "return false for a completed job" {
+            val startTime = OffsetDateTime.now().minusMinutes(10)
+            val threshold = OffsetDateTime.now().minusMinutes(5)
+            val completionTime = OffsetDateTime.now()
+
+            val status = V1JobStatus().apply {
+                this.startTime = startTime
+                this.completionTime = completionTime
+            }
+            val job = createJob("completedJob", status)
+
+            job.isTimeout(threshold) shouldBe false
+        }
+
+        "return true if the timeout was reached" {
+            val startTime = OffsetDateTime.now().minusMinutes(10)
+            val threshold = OffsetDateTime.now().minusMinutes(5)
+
+            val status = V1JobStatus().apply { this.startTime = startTime }
+            val job = createJob("timeoutJob", status)
+
+            job.isTimeout(threshold) shouldBe true
+        }
+
+        "return false if the job was not created before the threshold" {
+            val startTime = OffsetDateTime.now().minusMinutes(10)
+            val threshold = OffsetDateTime.now().minusMinutes(11)
+
+            val status = V1JobStatus().apply { this.startTime = startTime }
+            val job = createJob("runningJob", status)
+
+            job.isTimeout(threshold) shouldBe false
+        }
+
+        "return false for a job without a start time" {
+            val job = createJob("strangeJob")
+
+            job.isTimeout(OffsetDateTime.now()) shouldBe false
         }
     }
 })
