@@ -35,6 +35,14 @@ const Layout = () => {
       to: '/organizations/$orgId/products/$productId',
     },
     {
+      title: 'Default Run Properties',
+      to: '/organizations/$orgId/products/$productId/defaults',
+      visible: user.hasRole([
+        'superuser',
+        `permission_organization_${productId}_write_secrets`,
+      ]),
+    },
+    {
       title: 'Secrets',
       to: '/organizations/$orgId//products/$productId/secrets',
       visible: user.hasRole([
