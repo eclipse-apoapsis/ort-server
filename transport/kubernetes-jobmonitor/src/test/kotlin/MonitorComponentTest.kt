@@ -117,6 +117,7 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                             Duration::class,
                             Function0::class,
                             Function1::class,
+                            TimeoutConfig::class,
                             ZoneOffset::class,
                         )
                     )
