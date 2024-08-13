@@ -91,6 +91,13 @@ internal class JobHandler(
                     status?.conditions.orEmpty().any { it.type in COMPLETED_CONDITIONS }
 
         /**
+         * Return a flag whether this job has run into a timeout according to the given [threshold]. This means that
+         * the job was started before the given date and is not yet completed.
+         */
+        fun V1Job.isTimeout(threshold: OffsetDateTime): Boolean =
+            !isCompleted() && status?.startTime?.isBefore(threshold) == true
+
+        /**
          * Obtain the ID of the ORT run from this job from the label used for this purpose. If the label is not set,
          * return *null*.
          */
