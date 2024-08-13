@@ -20,12 +20,11 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
-import kotlin.script.experimental.api.providedProperties
+import kotlin.script.experimental.api.constructorArgs
 import kotlin.script.experimental.api.scriptsInstancesSharing
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -76,12 +75,10 @@ class ConfigValidator private constructor(private val context: WorkerContext) : 
             }
     }
 
-    override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate> {
-        providedProperties("context" to WorkerContext::class, "time" to Instant::class)
-    }
+    override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
 
     override val evalConfig = ScriptEvaluationConfiguration {
-        providedProperties("context" to context, "time" to Clock.System.now())
+        constructorArgs(context, Clock.System.now())
         scriptsInstancesSharing(true)
     }
 
