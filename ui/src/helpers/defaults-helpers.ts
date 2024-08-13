@@ -29,6 +29,8 @@ import {
   ZodType,
 } from 'zod';
 
+const PREFIX = '-DEF-';
+
 type PropertyPathWithType = {
   path: string;
   type: string;
@@ -134,50 +136,27 @@ export const getPropertyPaths = (
 };
 
 /**
- * Encode the property path based on the locked status.
+ * Encode the property path.
  *
  * @param property The property path to encode.
- * @param locked The locked status.
  * @returns The encoded string.
  */
-export const encodePropertyPath = (
-  property: string,
-  locked: boolean
-): string => {
+export const encodePropertyPath = (property: string): string => {
   // Replace dots with hyphens
   const encodedProperty = property.replace(/\./g, '-');
-  // Prefix based on locked status
-  const prefix = locked ? '-DEFLOCK-' : '-DEF-';
-  return `${prefix}${encodedProperty}`;
+  // Add prefix
+  return `${PREFIX}${encodedProperty}`;
 };
 
 /**
- * Decode the encoded property path to the original path and locked status.
+ * Decode the encoded property path to the original path.
  *
  * @param encoded The encoded property path.
- * @returns An object containing the original property path and locked status.
+ * @returns The original property path.
  */
-export const decodePropertyPath = (
-  encoded: string
-): { property: string; locked: boolean } => {
-  // Determine the prefix and locked status
-  let prefix: string;
-  let locked: boolean;
-
-  if (encoded.startsWith('-DEFLOCK-')) {
-    prefix = '-DEFLOCK-';
-    locked = true;
-  } else if (encoded.startsWith('-DEF-')) {
-    prefix = '-DEF-';
-    locked = false;
-  } else {
-    throw new Error('Invalid encoded property path');
-  }
-
+export const decodePropertyPath = (encoded: string): string => {
   // Remove the prefix and replace hyphens with dots
-  const property = encoded.substring(prefix.length).replace(/-/g, '.');
-
-  return { property, locked };
+  return encoded.substring(PREFIX.length).replace(/-/g, '.');
 };
 
 /**
@@ -187,6 +166,5 @@ export const decodePropertyPath = (
  * @returns True if the name has a default prefix, otherwise false.
  */
 export const isDefault = (name: string): boolean => {
-  const defaultPrefixes = ['-DEF-', '-DEFLOCK-'];
-  return defaultPrefixes.some((prefix) => name.startsWith(prefix));
+  return name.startsWith(PREFIX);
 };

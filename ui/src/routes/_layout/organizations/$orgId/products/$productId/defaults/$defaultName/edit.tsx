@@ -64,7 +64,6 @@ const paths = getPropertyPaths(runFormSchema, [
 const editDefaultFormSchema = z.object({
   property: z.string().optional(),
   value: z.string().min(1).or(z.number()).or(z.boolean()),
-  locked: z.boolean(),
 });
 
 export type EditDefaultFormValues = z.infer<typeof editDefaultFormSchema>;
@@ -88,15 +87,14 @@ const EditProductDefaultPage = () => {
   });
 
   const selectionType = paths.find(
-    (path) => path.path === decodePropertyPath(secret.name).property
+    (path) => path.path === decodePropertyPath(secret.name)
   )?.type;
 
   const form = useForm<EditDefaultFormValues>({
     resolver: zodResolver(editDefaultFormSchema),
     values: {
-      property: decodePropertyPath(secret.name).property,
+      property: decodePropertyPath(secret.name),
       value: secret.description || '',
-      locked: decodePropertyPath(secret.name).locked,
     },
   });
 
@@ -105,7 +103,7 @@ const EditProductDefaultPage = () => {
       onSuccess(data) {
         toast({
           title: 'Edit product default property',
-          description: `Default property "${decodePropertyPath(data.name).property}" updated successfully.`,
+          description: `Default property "${decodePropertyPath(data.name)}" updated successfully.`,
         });
         navigate({
           to: '/organizations/$orgId/products/$productId/defaults',
@@ -211,28 +209,6 @@ const EditProductDefaultPage = () => {
                 }
               />
             )}
-            <FormField
-              control={form.control}
-              name='locked'
-              render={({ field }) => (
-                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel>Lock the value</FormLabel>
-                    <FormDescription>
-                      Lock the value of the property to prevent changing it in
-                      ORT run creation form (cannot be changed)
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </CardContent>
           <CardFooter>
             <Button

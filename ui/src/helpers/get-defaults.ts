@@ -38,7 +38,7 @@ function getDefaultValues(defaults: Secret[]): { [key: string]: string } {
   const defaultValuesMap: { [key: string]: string } = {};
 
   defaults.forEach((def) => {
-    const decoded = decodePropertyPath(def.name).property;
+    const decoded = decodePropertyPath(def.name);
     if (def.description !== undefined) {
       defaultValuesMap[decoded] = def.description;
     }

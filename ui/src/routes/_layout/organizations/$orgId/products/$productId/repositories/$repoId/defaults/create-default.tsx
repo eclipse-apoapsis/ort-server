@@ -71,7 +71,6 @@ const paths = getPropertyPaths(runFormSchema, [
 const formSchema = z.object({
   property: z.string().min(1),
   value: z.string().min(1).or(z.number()).or(z.boolean()),
-  locked: z.boolean(),
 });
 
 const CreateRepositoryDefaultPage = () => {
@@ -84,7 +83,7 @@ const CreateRepositoryDefaultPage = () => {
     onSuccess(data) {
       toast({
         title: 'Create default run property',
-        description: `New repository default run property "${decodePropertyPath(data.name).property}" created successfully.`,
+        description: `New repository default run property "${decodePropertyPath(data.name)}" created successfully.`,
       });
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId/defaults',
@@ -109,7 +108,6 @@ const CreateRepositoryDefaultPage = () => {
     defaultValues: {
       property: '',
       value: true,
-      locked: false,
     },
   });
 
@@ -117,7 +115,7 @@ const CreateRepositoryDefaultPage = () => {
     await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
       requestBody: {
-        name: encodePropertyPath(values.property, values.locked),
+        name: encodePropertyPath(values.property),
         value: 'xyx',
         description: values.value.toString(),
       },
@@ -222,27 +220,6 @@ const CreateRepositoryDefaultPage = () => {
                 }
               />
             )}
-            <FormField
-              control={form.control}
-              name='locked'
-              render={({ field }) => (
-                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel>Lock the value</FormLabel>
-                    <FormDescription>
-                      Lock the value of the property to prevent changing it in
-                      ORT run creation form
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </CardContent>
           <CardFooter>
             <Button type='submit' disabled={isPending}>

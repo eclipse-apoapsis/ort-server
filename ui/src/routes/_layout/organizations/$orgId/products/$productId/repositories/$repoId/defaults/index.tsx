@@ -89,7 +89,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         setOpenDelDialog(false);
         toast({
           title: 'Delete Default',
-          description: `Default value "${decodePropertyPath(row.original.name).property}" deleted successfully.`,
+          description: `Default value "${decodePropertyPath(row.original.name)}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
           queryKey: [useSecretsServiceGetSecretsByRepositoryId],
@@ -131,7 +131,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         setOpen={setOpenDelDialog}
         item={{
           descriptor: 'default run property',
-          name: decodePropertyPath(row.original.name).property,
+          name: decodePropertyPath(row.original.name),
         }}
         onDelete={() =>
           delSecret({
@@ -150,17 +150,11 @@ const columns: ColumnDef<Secret>[] = [
     accessorKey: 'name',
     header: 'Run property',
     // Do not show the property encoding prefix in the table
-    cell: ({ row }) => decodePropertyPath(row.original.name).property,
+    cell: ({ row }) => decodePropertyPath(row.original.name),
   },
   {
     accessorKey: 'description',
     header: 'Value',
-  },
-  {
-    accessorKey: 'locked',
-    header: 'Locked?',
-    cell: ({ row }) =>
-      decodePropertyPath(row.original.name).locked ? 'Yes' : 'No',
   },
   {
     id: 'actions',
