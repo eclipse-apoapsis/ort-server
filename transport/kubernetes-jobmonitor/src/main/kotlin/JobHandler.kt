@@ -176,7 +176,7 @@ internal class JobHandler(
     /**
      * Delete the job with the given [jobName]. Log occurring exceptions, but ignore them otherwise.
      */
-    private fun deleteJob(jobName: String) {
+    fun deleteJob(jobName: String) {
         runCatching {
             jobApi.deleteNamespacedJob(jobName, config.namespace, null, null, null, null, null, null)
         }.onFailure { e ->
