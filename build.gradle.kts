@@ -164,12 +164,18 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
 }
 
 val buildAllWorkerImages by tasks.registering {
+    group = "Docker"
+    description = "Builds all worker Docker images."
+
     val workerImageTaskRegex = Regex("build[A-Z][a-z]+WorkerImage")
     val workerImageTasks = tasks.matching { it.name.matches(workerImageTaskRegex) }
     dependsOn(workerImageTasks)
 }
 
 tasks.register("buildAllImages") {
+    group = "Docker"
+    description = "Builds all Docker images for the backend and frontend."
+
     val jibDockerBuilds = getTasksByName("jibDockerBuild", /* recursive = */ true).onEach {
         it.mustRunAfter(buildAllWorkerImages)
     }
