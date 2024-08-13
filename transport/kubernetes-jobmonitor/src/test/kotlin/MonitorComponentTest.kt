@@ -44,6 +44,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 import kotlin.time.Duration
@@ -70,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
@@ -89,6 +91,7 @@ private const val NAMESPACE = "test-namespace"
 private const val REAPER_INTERVAL = 654321
 private const val LOST_JOBS_INTERVAL = 123456
 private const val LOST_JOBS_MIN_AGE = 33
+private const val LONG_RUNNING_JOBS_INTERVAL = 33471
 
 @OptIn(KoinExperimentalAPI::class)
 class MonitorComponentTest : KoinTest, StringSpec() {
@@ -257,17 +260,44 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 }
             }
         }
+
+        "The long-running jobs finder component is started" {
+            runComponentTest(enableLongRunning = true) { component ->
+                val handler = declareMock<JobHandler> {
+                    every { findJobsForWorker(any()) } returns emptyList()
+                }
+
+                val scheduler = declareMock<Scheduler> {
+                    initSchedulerMock(this)
+                }
+
+                val referenceTime = OffsetDateTime.now()
+                declareMock<TimeHelper> {
+                    every { before(any()) } returns referenceTime
+                }
+
+                component.start()
+
+                val longRunningJobsFinderAction = fetchScheduledAction(scheduler, LONG_RUNNING_JOBS_INTERVAL.seconds)
+                longRunningJobsFinderAction()
+
+                verify {
+                    handler.findJobsForWorker(ConfigEndpoint)
+                }
+            }
+        }
     }
 
     /**
      * Run a test on a test instance of [MonitorComponent] that executes the given [block]. In the configuration, set
-     * the flags to enable [watching][enableWatching], [the reaper][enableReaper], and
-     * [lost job detection][enableLostJobs].
+     * the flags to enable [watching][enableWatching], [the reaper][enableReaper], the
+     * [lost job detection][enableLostJobs], and [long-running job detection][enableLongRunning].
      */
     private suspend fun runComponentTest(
         enableWatching: Boolean = false,
         enableReaper: Boolean = false,
         enableLostJobs: Boolean = false,
+        enableLongRunning: Boolean = false,
         block: suspend (MonitorComponent) -> Unit
     ) {
         val environment = mapOf(
@@ -275,10 +305,12 @@ class MonitorComponentTest : KoinTest, StringSpec() {
             "MONITOR_NAMESPACE" to NAMESPACE,
             "MONITOR_REAPER_INTERVAL" to REAPER_INTERVAL.toString(),
             "MONITOR_LOST_JOBS_INTERVAL" to LOST_JOBS_INTERVAL.toString(),
+            "MONITOR_LONG_RUNNING_JOBS_INTERVAL" to LONG_RUNNING_JOBS_INTERVAL.toString(),
             "MONITOR_LOST_JOBS_MIN_AGE" to LOST_JOBS_MIN_AGE.toString(),
             "MONITOR_WATCHING_ENABLED" to enableWatching.toString(),
             "MONITOR_REAPER_ENABLED" to enableReaper.toString(),
-            "MONITOR_LOST_JOBS_ENABLED" to enableLostJobs.toString()
+            "MONITOR_LOST_JOBS_ENABLED" to enableLostJobs.toString(),
+            "MONITOR_LONG_RUNNING_JOBS_ENABLED" to enableLongRunning.toString()
         )
 
         withEnvironment(environment) {

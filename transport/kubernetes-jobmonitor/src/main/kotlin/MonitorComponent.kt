@@ -94,6 +94,14 @@ internal class MonitorComponent(
             lostJobsFinder.run(scheduler)
         }
 
+        if (monitorConfig.longRunningJobsEnabled) {
+            logger.info("Starting long-running jobs detection component.")
+
+            val scheduler by inject<Scheduler>()
+            val longRunningJobsFinder by inject<LongRunningJobsFinder>()
+            longRunningJobsFinder.run(scheduler)
+        }
+
         if (monitorConfig.watchingEnabled) {
             logger.info("Starting watcher component.")
 
@@ -130,6 +138,7 @@ internal class MonitorComponent(
             singleOf(::JobMonitor)
             singleOf(::Reaper)
             singleOf(::LostJobsFinder)
+            singleOf(::LongRunningJobsFinder)
         }
     }
 }
