@@ -20,10 +20,40 @@
 package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
+
+/**
+ * A class that holds configuration settings related to timeouts for the single workers. The idea is that workers
+ * that are running longer than a configured time are considered as stuck and are terminated. Since the execution
+ * times for workers vary greatly depending on their type, timeouts can be configured for each worker type
+ * separately.
+ */
+data class TimeoutConfig(
+    /** The timeout for the Config worker. */
+    val configTimeout: Duration,
+
+    /** The timeout for the Analyzer worker. */
+    val analyzerTimeout: Duration,
+
+    /** The timeout for the Advisor worker. */
+    val advisorTimeout: Duration,
+
+    /** The timeout for the Scanner worker. */
+    val scannerTimeout: Duration,
+
+    /** The timeout for the Evaluator worker. */
+    val evaluatorTimeout: Duration,
+
+    /** The timeout for the Reporter worker. */
+    val reporterTimeout: Duration,
+
+    /** The timeout for the Notifier worker. */
+    val notifierTimeout: Duration
+)
 
 /**
  * A class collecting the configuration options supported by the Kubernetes Job Monitor component.
@@ -57,6 +87,12 @@ data class MonitorConfig(
      */
     val recentlyProcessedInterval: Duration,
 
+    /** The interval in which the detection for long-running jobs should run. */
+    val longRunningJobsInterval: Duration,
+
+    /** The configuration of the timeouts for the single workers. */
+    val timeoutConfig: TimeoutConfig,
+
     /** Flag whether the watcher component should be active. */
     val watchingEnabled: Boolean,
 
@@ -64,7 +100,10 @@ data class MonitorConfig(
     val reaperEnabled: Boolean,
 
     /** Flag whether the lost jobs detection component should be active. */
-    val lostJobsEnabled: Boolean
+    val lostJobsEnabled: Boolean,
+
+    /** Flag whether the detection of long-running jobs should be active. */
+    val longRunningJobsEnabled: Boolean
 ) {
     companion object {
         /** The prefix for all configuration properties. */
@@ -96,6 +135,12 @@ data class MonitorConfig(
          */
         private const val RECENTLY_PROCESSED_INTERVAL_PROPERTY = "recentlyProcessedInterval"
 
+        /**
+         * The configuration property defining the interval in which the detection for long-running jobs should run
+         * (in seconds).
+         */
+        private const val LONG_RUNNING_JOBS_INTERVAL_PROPERTY = "longRunningJobsInterval"
+
         /** The configuration property to enable or disable the watcher component. */
         private const val WATCHING_ENABLED_PROPERTY = "enableWatching"
 
@@ -104,6 +149,33 @@ data class MonitorConfig(
 
         /** The configuration property to enable or disable the detection of lost jobs. */
         private const val LOST_JOBS_ENABLED_PROPERTY = "enableLostJobs"
+
+        /** The configuration property to enable or disable the detection of long-running jobs. */
+        private const val LONG_RUNNING_JOBS_ENABLED_PROPERTY = "enableLongRunningJobs"
+
+        /** The section that defines the timeouts for the single workers. */
+        private const val TIMEOUTS_SECTION = "timeouts"
+
+        /** The configuration property defining the timeout for the Config worker. */
+        private const val TIMEOUT_CONFIG_PROPERTY = "config"
+
+        /** The configuration property defining the timeout for the Analyzer worker. */
+        private const val TIMEOUT_ANALYZER_PROPERTY = "analyzer"
+
+        /** The configuration property defining the timeout for the Advisor worker. */
+        private const val TIMEOUT_ADVISOR_PROPERTY = "advisor"
+
+        /** The configuration property defining the timeout for the Scanner worker. */
+        private const val TIMEOUT_SCANNER_PROPERTY = "scanner"
+
+        /** The configuration property defining the timeout for the Evaluator worker. */
+        private const val TIMEOUT_EVALUATOR_PROPERTY = "evaluator"
+
+        /** The configuration property defining the timeout for the Reporter worker. */
+        private const val TIMEOUT_REPORTER_PROPERTY = "reporter"
+
+        /** The configuration property defining the timeout for the Notifier worker. */
+        private const val TIMEOUT_NOTIFIER_PROPERTY = "notifier"
 
         /**
          * Create a [MonitorConfig] from the settings stored in the given [configManager].
@@ -118,9 +190,29 @@ data class MonitorConfig(
                 lostJobsInterval = config.getInt(LOST_JOBS_INTERVAL_PROPERTY).seconds,
                 lostJobsMinAge = config.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
                 recentlyProcessedInterval = config.getInt(RECENTLY_PROCESSED_INTERVAL_PROPERTY).seconds,
+                longRunningJobsInterval = config.getInt(LONG_RUNNING_JOBS_INTERVAL_PROPERTY).seconds,
                 watchingEnabled = config.getBoolean(WATCHING_ENABLED_PROPERTY),
                 reaperEnabled = config.getBoolean(REAPER_ENABLED_PROPERTY),
-                lostJobsEnabled = config.getBoolean(LOST_JOBS_ENABLED_PROPERTY)
+                lostJobsEnabled = config.getBoolean(LOST_JOBS_ENABLED_PROPERTY),
+                longRunningJobsEnabled = config.getBoolean(LONG_RUNNING_JOBS_ENABLED_PROPERTY),
+                timeoutConfig = createTimeoutConfig(config)
+            )
+        }
+
+        /**
+         * Create a [TimeoutConfig] from the corresponding subsection of the given [config].
+         */
+        private fun createTimeoutConfig(config: ConfigManager): TimeoutConfig {
+            val timeouts = config.subConfig(Path(TIMEOUTS_SECTION))
+
+            return TimeoutConfig(
+                configTimeout = timeouts.getInt(TIMEOUT_CONFIG_PROPERTY).minutes,
+                analyzerTimeout = timeouts.getInt(TIMEOUT_ANALYZER_PROPERTY).minutes,
+                advisorTimeout = timeouts.getInt(TIMEOUT_ADVISOR_PROPERTY).minutes,
+                scannerTimeout = timeouts.getInt(TIMEOUT_SCANNER_PROPERTY).minutes,
+                evaluatorTimeout = timeouts.getInt(TIMEOUT_EVALUATOR_PROPERTY).minutes,
+                reporterTimeout = timeouts.getInt(TIMEOUT_REPORTER_PROPERTY).minutes,
+                notifierTimeout = timeouts.getInt(TIMEOUT_NOTIFIER_PROPERTY).minutes
             )
         }
     }
