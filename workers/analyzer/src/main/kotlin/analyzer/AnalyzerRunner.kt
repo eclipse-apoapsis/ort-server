@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.analyzer.Analyzer
@@ -186,11 +188,16 @@ class AnalyzerRunner(
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
 
-        val allSecrets = environmentConfig.environmentVariables.map { it.valueSecret }
+        val allSecrets = environmentConfig.environmentVariables
+            .filterIsInstance<SecretVariableDefinition>()
+            .map { it.valueSecret }
         val resolvedSecrets = context.resolveSecrets(*allSecrets.toTypedArray())
         val environment = processBuilder.environment()
         environmentConfig.environmentVariables.forEach { variable ->
-            environment[variable.name] = resolvedSecrets[variable.valueSecret]
+            when (variable) {
+                is SecretVariableDefinition -> environment[variable.name] = resolvedSecrets[variable.valueSecret]
+                is SimpleVariableDefinition -> environment[variable.name] = variable.value
+            }
         }
 
         return processBuilder

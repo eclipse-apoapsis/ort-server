@@ -57,7 +57,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.AnalyzerResult
@@ -308,8 +309,8 @@ class AnalyzerRunnerTest : WordSpec({
             val secret2 = mockk<Secret>()
             val environmentConfig = ResolvedEnvironmentConfig(
                 environmentVariables = setOf(
-                    EnvironmentVariableDefinition("MY_ENV_VAR", secret1),
-                    EnvironmentVariableDefinition("ANOTHER_ENV_VAR", secret2)
+                    SecretVariableDefinition("MY_ENV_VAR", secret1),
+                    SecretVariableDefinition("ANOTHER_ENV_VAR", secret2)
                 )
             )
 
@@ -388,7 +389,7 @@ class AnalyzerRunnerTest : WordSpec({
             } returns processBuilder
 
             val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(EnvironmentVariableDefinition("MY_ENV_VAR", mockk()))
+                environmentVariables = setOf(SecretVariableDefinition("MY_ENV_VAR", mockk()))
             )
 
             val forkError = "test.ForkException: Something went terribly wrong."
@@ -422,7 +423,7 @@ class AnalyzerRunnerTest : WordSpec({
             } returns processBuilder
 
             val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(EnvironmentVariableDefinition("MY_ENV_VAR", mockk()))
+                environmentVariables = setOf(SecretVariableDefinition("MY_ENV_VAR", mockk()))
             )
 
             val exception = shouldThrow<IOException> {
@@ -514,7 +515,7 @@ class AnalyzerRunnerTest : WordSpec({
 
             val environmentConfig = ResolvedEnvironmentConfig(
                 environmentVariables = setOf(
-                    EnvironmentVariableDefinition("ENV_VAR", mockk())
+                    SecretVariableDefinition("ENV_VAR", mockk())
                 )
             )
 
@@ -565,8 +566,10 @@ class AnalyzerRunnerTest : WordSpec({
             val secret2 = mockk<Secret>()
             val environmentConfig = ResolvedEnvironmentConfig(
                 environmentVariables = setOf(
-                    EnvironmentVariableDefinition("MY_ENV_VAR", secret1),
-                    EnvironmentVariableDefinition("ANOTHER_ENV_VAR", secret2)
+                    SecretVariableDefinition("MY_ENV_VAR", secret1),
+                    SecretVariableDefinition("ANOTHER_ENV_VAR", secret2),
+                    SimpleVariableDefinition("SIMPLE_ENV_VAR", "simpleValue"),
+                    SimpleVariableDefinition("ANOTHER_SIMPLE_ENV_VAR", "anotherSimpleValue")
                 )
             )
 
@@ -596,7 +599,9 @@ class AnalyzerRunnerTest : WordSpec({
 
             processBuilder.environment() shouldContainAll mapOf(
                 "MY_ENV_VAR" to "mySecret",
-                "ANOTHER_ENV_VAR" to "anotherSecret"
+                "ANOTHER_ENV_VAR" to "anotherSecret",
+                "SIMPLE_ENV_VAR" to "simpleValue",
+                "ANOTHER_SIMPLE_ENV_VAR" to "anotherSimpleValue"
             )
 
             processBuilder.command() shouldContainExactly expectedCommands

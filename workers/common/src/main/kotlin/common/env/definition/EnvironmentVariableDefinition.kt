@@ -22,15 +22,35 @@ package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 import org.eclipse.apoapsis.ortserver.model.Secret
 
 /**
- * A class defining an environment variable which needs to be present when analyzing a repository.
+ * An interface representing an environment variable definition.
  *
  * This is typically used to provide credentials or other values to external tools called during the analysis. The
- * variable can have an arbitrary name. Its value is obtained from a [Secret].
+ * variable can have an arbitrary name. Its value can be obtained from a [Secret] or be a fixed value.
  */
-data class EnvironmentVariableDefinition(
+sealed interface EnvironmentVariableDefinition {
+    val name: String
+}
+
+/**
+ * Concrete implementation of the [EnvironmentVariableDefinition] Interface that obtains the value of the variable from
+ * a Secret.
+ */
+data class SecretVariableDefinition(
     /** The name of the environment variable. */
-    val name: String,
+    override val name: String,
 
     /** The secret defining the value of the variable. */
-    val valueSecret: Secret
-)
+    val valueSecret: Secret,
+) : EnvironmentVariableDefinition
+
+/**
+ * Concrete implementation of the [EnvironmentVariableDefinition] Interface that obtains the value of the variable from
+ * a plaintext value.
+ */
+data class SimpleVariableDefinition(
+    /** The name of the environment variable. */
+    override val name: String,
+
+    /** The value of the environment variable. */
+    val value: String
+) : EnvironmentVariableDefinition

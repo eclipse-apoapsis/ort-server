@@ -32,5 +32,8 @@ internal data class RepositoryEnvironmentVariableDefinition(
     val name: String,
 
     /** The name of the secret from which the value of the variable is obtained. */
-    val secretName: String
+    val secretName: String? = null,
+
+    /** The value of the environment variable. */
+    val value: String? = null
 )
