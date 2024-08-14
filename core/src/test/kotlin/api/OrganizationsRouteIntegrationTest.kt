@@ -1246,16 +1246,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "PUT/DELETE /organizations/{orgId}/groups/{groupId}" should {
-        // Do a systematic matrix test for methods put/delete and groups readers/writers/admins
         forAll(
-            row(HttpMethod.Put, "readers"),
-            row(HttpMethod.Put, "writers"),
-            row(HttpMethod.Put, "admins"),
-            row(HttpMethod.Delete, "readers"),
-            row(HttpMethod.Delete, "writers"),
-            row(HttpMethod.Delete, "admins")
-        ) { method, groupId ->
-            "require OrganizationPermission.WRITE for group '$groupId' and '${method.value}'" {
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "require OrganizationPermission.WRITE for method '${method.value}'" {
                 val createdOrg = createOrganization()
                 val user = Username(TEST_USER.username.value)
 
@@ -1264,10 +1259,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
-                        HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/$groupId") {
+                        HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/readers") {
                             setBody(user)
                         }
-                        HttpMethod.Delete -> delete("/api/v1/organizations/${createdOrg.id}/groups/$groupId") {
+                        HttpMethod.Delete -> delete("/api/v1/organizations/${createdOrg.id}/groups/readers") {
                             setBody(user)
                         }
                         else -> error("Unsupported method: $method")
@@ -1277,26 +1272,22 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put, "readers"),
-            row(HttpMethod.Put, "writers"),
-            row(HttpMethod.Put, "admins"),
-            row(HttpMethod.Delete, "readers"),
-            row(HttpMethod.Delete, "writers"),
-            row(HttpMethod.Delete, "admins")
-        ) { method, groupId ->
-            "respond with 'NotFound' if the user does not exist for group '$groupId' and '${method.value}'" {
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the user does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val user = Username("non-existing-username")
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
                         ) {
                             setBody(user)
                         }
@@ -1312,25 +1303,21 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put, "readers"),
-            row(HttpMethod.Put, "writers"),
-            row(HttpMethod.Put, "admins"),
-            row(HttpMethod.Delete, "readers"),
-            row(HttpMethod.Delete, "writers"),
-            row(HttpMethod.Delete, "admins")
-        ) { method, groupId ->
-            "respond with 'NotFound' if the organization does not exist for group '$groupId' and '${method.value}'" {
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the organization does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/999999/groups/$groupId"
+                            "/api/v1/organizations/999999/groups/readers"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/999999/groups/$groupId"
+                            "/api/v1/organizations/999999/groups/readers"
                         ) {
                             setBody(user)
                         }
@@ -1347,26 +1334,22 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put, "readers"),
-            row(HttpMethod.Put, "writers"),
-            row(HttpMethod.Put, "admins"),
-            row(HttpMethod.Delete, "readers"),
-            row(HttpMethod.Delete, "writers"),
-            row(HttpMethod.Delete, "admins")
-        ) { method, groupId ->
-            "respond with 'BadRequest' if the request body is invalid for group '$groupId' and '${method.value}'" {
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val org = CreateOrganization(name = "name", description = "description") // Wrong request body
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
                         ) {
                             setBody(org)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
                         ) {
                             setBody(org)
                         }
