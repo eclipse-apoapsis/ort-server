@@ -56,8 +56,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfi
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 class EnvironmentConfigLoaderTest : StringSpec() {
     init {
@@ -225,19 +226,6 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
         }
 
-        "Environment variable definitions are processed" {
-            val helper = TestHelper()
-            val secret1 = helper.createSecret("testSecret1", repository = repository)
-            val secret2 = helper.createSecret("testSecret2", repository = repository)
-
-            val config = loadConfig(".ort.env.variables.yml", helper)
-
-            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-                EnvironmentVariableDefinition("variable1", secret1),
-                EnvironmentVariableDefinition("variable2", secret2)
-            )
-        }
-
         "Environment variable definitions with missing secrets cause exceptions" {
             val helper = TestHelper()
             helper.createSecret("testSecret1", repository = repository)
@@ -249,6 +237,19 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             exception.message shouldContain "testSecret2"
         }
 
+        "Environment variable definitions are processed" {
+            val helper = TestHelper()
+            val secret1 = helper.createSecret("testSecret1", repository = repository)
+            val secret2 = helper.createSecret("testSecret2", repository = repository)
+
+            val config = loadConfig(".ort.env.variables.yml", helper)
+
+            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+                SecretVariableDefinition("variable1", secret1),
+                SecretVariableDefinition("variable2", secret2)
+            )
+        }
+
         "Environment variable definitions with missing secrets are ignored in non-strict mode" {
             val helper = TestHelper()
             val secret1 = helper.createSecret("testSecret1", repository = repository)
@@ -256,7 +257,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val config = loadConfig(".ort.env.variables-non-strict.yml", helper)
 
             config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-                EnvironmentVariableDefinition("variable1", secret1),
+                SecretVariableDefinition("variable1", secret1),
             )
         }
 
@@ -298,8 +299,8 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 createTestService(2, userSecret, pass2Secret)
             )
             val expectedVariables = listOf(
-                EnvironmentVariableDefinition("USERNAME", userSecret),
-                EnvironmentVariableDefinition("PASSWORD", pass1Secret)
+                SecretVariableDefinition("USERNAME", userSecret),
+                SecretVariableDefinition("PASSWORD", pass1Secret)
             )
 
             val config = helper.loader().resolve(envConfig, hierarchy)
@@ -339,7 +340,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 EnvironmentConfig(serviceDeclarations, environmentVariables = variableDeclarations, strict = false)
 
             val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
-            val expectedVariables = listOf(EnvironmentVariableDefinition("USERNAME", userSecret))
+            val expectedVariables = listOf(SecretVariableDefinition("USERNAME", userSecret))
 
             val config = helper.loader().resolve(envConfig, hierarchy)
 
@@ -377,6 +378,17 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             shouldThrow<EnvironmentConfigException> {
                 helper.loader().resolve(envConfig, hierarchy)
             }
+        }
+
+        "Simple environment variable definitions are processed" {
+            val helper = TestHelper()
+
+            val config = loadConfig(".ort.env.direct-variables.yml", helper)
+
+            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+                SimpleVariableDefinition("variable1", value = "testValue1"),
+                SimpleVariableDefinition("variable2", value = "testValue2")
+            )
         }
     }
 

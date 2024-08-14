@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 import org.slf4j.LoggerFactory
 
@@ -179,7 +181,7 @@ class EnvironmentConfigLoader(
      */
     private fun resolveSecrets(config: RepositoryEnvironmentConfig, hierarchy: Hierarchy): Map<String, Secret> {
         val allSecretsNames = mutableSetOf<String>()
-        allSecretsNames += config.environmentVariables.map { it.secretName }
+        allSecretsNames += config.environmentVariables.mapNotNull { it.secretName }
         config.infrastructureServices.forEach { service ->
             allSecretsNames += service.usernameSecret
             allSecretsNames += service.passwordSecret
@@ -276,12 +278,31 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         secrets: Map<String, Secret>
     ): Set<EnvironmentVariableDefinition> {
-        val (validVariables, invalidVariables) = config.environmentVariables.partition { it.secretName in secrets }
+        fun isValidVariable(variable: RepositoryEnvironmentVariableDefinition): Boolean {
+            return when {
+                !variable.secretName.isNullOrEmpty() && !variable.value.isNullOrEmpty() -> false
+                !variable.secretName.isNullOrEmpty() -> variable.secretName in secrets
+                !variable.value.isNullOrEmpty() -> true
+                else -> false
+            }
+        }
+        val (validVariables, invalidVariables) = config.environmentVariables.partition { isValidVariable(it) }
 
         handleInvalidVariables(config, invalidVariables)
 
         return validVariables.map { definition ->
-            EnvironmentVariableDefinition(definition.name, secrets.getValue(definition.secretName))
+            when {
+                definition.value != null -> {
+                    SimpleVariableDefinition(definition.name, definition.value)
+                }
+                definition.secretName != null -> {
+                    val secret = secrets[definition.secretName] ?: throw EnvironmentConfigException(
+                        "Unknown secret: '${definition.secretName}'."
+                    )
+                    SecretVariableDefinition(definition.name, secret)
+                }
+                else -> throw EnvironmentConfigException("Invalid environment variable definition: $definition")
+            }
         }.toSet()
     }
 
@@ -373,4 +394,4 @@ private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryIn
  * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].
  */
 private fun EnvironmentVariableDeclaration.toRepositoryVariable(): RepositoryEnvironmentVariableDefinition =
-    RepositoryEnvironmentVariableDefinition(name, secretName)
+    RepositoryEnvironmentVariableDefinition(name, secretName, value)
