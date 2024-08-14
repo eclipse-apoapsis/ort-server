@@ -31,7 +31,7 @@ data class User(
 )
 
 /**
- * Request object for identification of a user by username.
+ * Request object for identifying a user by name.
  */
 @Serializable
 data class IdentifyUser(
