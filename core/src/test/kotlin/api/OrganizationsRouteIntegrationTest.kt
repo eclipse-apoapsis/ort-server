@@ -55,7 +55,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
-import org.eclipse.apoapsis.ortserver.api.v1.model.IdentifyUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
@@ -68,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
@@ -1257,7 +1257,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         ) { method, groupId ->
             "require OrganizationPermission.WRITE for group '$groupId' and '${method.value}'" {
                 val createdOrg = createOrganization()
-                val user = IdentifyUser(TEST_USER.username.value)
+                val user = Username(TEST_USER.username.value)
 
                 requestShouldRequireRole(
                     OrganizationPermission.WRITE.roleName(createdOrg.id),
@@ -1287,7 +1287,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "respond with 'NotFound' if the user does not exist for group '$groupId' and '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
-                    val user = IdentifyUser("non-existing-username")
+                    val user = Username("non-existing-username")
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
@@ -1321,7 +1321,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         ) { method, groupId ->
             "respond with 'NotFound' if the organization does not exist for group '$groupId' and '${method.value}'" {
                 integrationTestApplication {
-                    val user = IdentifyUser(TEST_USER.username.value)
+                    val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
@@ -1385,7 +1385,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
-                    val user = IdentifyUser(TEST_USER.username.value)
+                    val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
@@ -1419,7 +1419,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "add a user to the '$groupId' group" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
-                    val user = IdentifyUser(TEST_USER.username.value)
+                    val user = Username(TEST_USER.username.value)
 
                     val response = superuserClient.put(
                         "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
@@ -1455,7 +1455,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "remove a user from the '$groupId' group" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
-                    val user = IdentifyUser(TEST_USER.username.value)
+                    val user = Username(TEST_USER.username.value)
                     addUserToGroup(user.username, createdOrg.id, groupId)
 
                     // Check pre-condition
