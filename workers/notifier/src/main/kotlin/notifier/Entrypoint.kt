@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
+import org.ossreviewtoolkit.utils.common.Os
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(NotifierComponent::class.java)
@@ -33,5 +35,6 @@ suspend fun main() {
     logger.info("Starting ORT-Server Notifier endpoint.")
 
     enableOrtStackTraces()
+    Os.fixupUserHomeProperty()
     NotifierComponent().start()
 }

@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
+import org.ossreviewtoolkit.utils.common.Os
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(::main::class.java)
@@ -29,5 +31,6 @@ suspend fun main() {
     logger.info("Starting ORT-Server Reporter endpoint.")
 
     enableOrtStackTraces()
+    Os.fixupUserHomeProperty()
     ReporterComponent().start()
 }
