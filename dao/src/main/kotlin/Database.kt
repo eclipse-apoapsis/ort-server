@@ -49,6 +49,10 @@ import org.jetbrains.exposed.sql.transactions.transactionManager
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(DataSource::class.java)
+
 /**
  * Connect the database.
  */
@@ -91,7 +95,11 @@ fun createDataSource(config: DatabaseConfig): DataSource {
 
     dataSourceConfig.validate()
 
-    return HikariDataSource(dataSourceConfig)
+    return runCatching {
+        HikariDataSource(dataSourceConfig)
+    }.onFailure {
+        logger.error("Failed to create data source.", it)
+    }.getOrThrow()
 }
 
 /**
