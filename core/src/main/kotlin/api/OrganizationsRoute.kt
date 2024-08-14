@@ -38,13 +38,13 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.IdentifyUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
@@ -331,7 +331,7 @@ fun Route.organizations() = route("organizations") {
                 put(putUserToGroup) {
                     requirePermission(OrganizationPermission.WRITE)
 
-                    val user = call.receive<IdentifyUser>()
+                    val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
                     val groupId = call.requireParameter("groupId")
 
@@ -342,7 +342,7 @@ fun Route.organizations() = route("organizations") {
                 delete(deleteUserFromGroup) {
                     requirePermission(OrganizationPermission.WRITE)
 
-                    val user = call.receive<IdentifyUser>()
+                    val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
                     val groupId = call.requireParameter("groupId")
 

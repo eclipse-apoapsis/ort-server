@@ -34,6 +34,6 @@ data class User(
  * Request object for identifying a user by name.
  */
 @Serializable
-data class IdentifyUser(
+data class Username(
     val username: String
 )

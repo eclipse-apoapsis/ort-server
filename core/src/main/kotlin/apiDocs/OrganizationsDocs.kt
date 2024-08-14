@@ -27,7 +27,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.IdentifyUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
@@ -39,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
@@ -549,9 +549,9 @@ val putUserToGroup: OpenApiRoute.() -> Unit = {
             description = "One of 'readers', 'writers' or 'admins'."
         }
 
-        jsonBody<IdentifyUser> {
+        jsonBody<Username> {
             example("Add user identified by username 'abc123'.") {
-                value = IdentifyUser(username = "abc123")
+                value = Username(username = "abc123")
             }
         }
     }
@@ -580,9 +580,9 @@ val deleteUserFromGroup: OpenApiRoute.() -> Unit = {
             description = "One of 'readers', 'writers' or 'admins'."
         }
 
-        jsonBody<IdentifyUser> {
+        jsonBody<Username> {
             example("Remove user identified by username 'abc123'.") {
-                value = IdentifyUser(username = "abc123")
+                value = Username(username = "abc123")
             }
         }
     }
