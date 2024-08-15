@@ -43,6 +43,9 @@ import io.ktor.server.routing.routing
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
 import org.koin.ktor.ext.inject
@@ -114,6 +117,15 @@ fun Application.configureOpenApi() {
                         // This might later be replaced with a proper schema for dates.
                         redirect<Instant, String>()
                         redirect<Instant?, String?>()
+
+                        // Replace OptionalValue with its type argument in the generated schema as the class is only
+                        // required in Kotlin code to model the difference between not present and null. Data classes
+                        // using OptionalValue must provide a default value to properly mark the element as not required
+                        // in the generated schema.
+                        redirect<OptionalValue<String>, String>()
+                        redirect<OptionalValue<String?>, String?>()
+                        redirect<OptionalValue<RepositoryType>, RepositoryType>()
+                        redirect<OptionalValue<Set<CredentialsType>>, Set<CredentialsType>>()
                     }
                     .connectSubTypes()
                     .handleNameAnnotation()
