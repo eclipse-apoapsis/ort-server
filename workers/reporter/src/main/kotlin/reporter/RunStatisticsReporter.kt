@@ -34,10 +34,15 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 class RunStatisticsReporter : Reporter {
     override val type = "RunStatistics"
 
-    override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
-        val outputFile = outputDir.resolve("statistics.json")
-        val statistics = input.statistics
-        outputFile.writeValue(statistics)
+    override fun generateReport(
+        input: ReporterInput,
+        outputDir: File,
+        config: PluginConfiguration
+    ): List<Result<File>> {
+        val outputFile = runCatching {
+            outputDir.resolve("statistics.json").apply { writeValue(input.statistics) }
+        }
+
         return listOf(outputFile)
     }
 }

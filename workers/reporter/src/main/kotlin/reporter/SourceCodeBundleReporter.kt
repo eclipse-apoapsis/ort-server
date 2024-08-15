@@ -109,16 +109,22 @@ class SourceCodeBundleReporter(
 
     override val type = REPORTER_NAME
 
-    override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
+    override fun generateReport(
+        input: ReporterInput,
+        outputDir: File,
+        config: PluginConfiguration
+    ): List<Result<File>> {
         log.info("Preparing a source code bundle for repository '${input.ortResult.repository.vcsProcessed.url}'")
 
-        val outputFile = downloadSourceCode(
-            input.ortResult,
-            outputDir,
-            input.licenseClassifications,
-            config.options[INCLUDED_LICENSE_CATEGORIES_PROPERTY]?.takeUnless { it.isEmpty() }?.split(",").orEmpty(),
-            config.options.getOrDefault(PACKAGE_TYPE_PROPERTY, "PROJECT")
-        )
+        val outputFile = runCatching {
+            downloadSourceCode(
+                input.ortResult,
+                outputDir,
+                input.licenseClassifications,
+                config.options[INCLUDED_LICENSE_CATEGORIES_PROPERTY]?.takeUnless { it.isEmpty() }?.split(",").orEmpty(),
+                config.options.getOrDefault(PACKAGE_TYPE_PROPERTY, "PROJECT")
+            )
+        }
 
         return listOf(outputFile)
     }

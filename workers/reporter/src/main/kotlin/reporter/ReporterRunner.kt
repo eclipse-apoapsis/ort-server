@@ -212,9 +212,16 @@ class ReporterRunner(
                                 PluginConfiguration(options.options, options.secrets)
                             } ?: PluginConfiguration.EMPTY
 
-                            val reportFiles = reporter.generateReport(reporterInput, outputDir, reporterOptions)
+                            val reportFileResults = reporter.generateReport(reporterInput, outputDir, reporterOptions)
 
-                            reporter to reportFiles
+                            val reportFiles = reportFileResults.mapNotNull { result ->
+                                result.getOrElse {
+                                    issues += createAndLogReporterIssue(format, it)
+                                    null
+                                }
+                            }
+
+                            reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
                         }.onFailure {
                             issues += createAndLogReporterIssue(format, it)
                         }

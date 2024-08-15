@@ -44,20 +44,24 @@ class OrtResultReporter : Reporter {
 
     override val type = "OrtResult"
 
-    override fun generateReport(input: ReporterInput, outputDir: File, config: PluginConfiguration): List<File> {
+    override fun generateReport(
+        input: ReporterInput,
+        outputDir: File,
+        config: PluginConfiguration
+    ): List<Result<File>> {
         val compressed = config.options.getOrDefault(COMPRESSED_PROPERTY, "true").toBooleanStrict()
 
-        val targetDir = outputDir.resolve("ort-result")
-        targetDir.mkdir()
-        val outputFile = targetDir.resolve(RESULT_FILE_NAME)
-        outputFile.writeValue(input.ortResult)
+        val reportFile = runCatching {
+            val targetDir = outputDir.resolve("ort-result").apply { mkdir() }
+            val outputFile = targetDir.resolve(RESULT_FILE_NAME).apply { writeValue(input.ortResult) }
 
-        val reportFile = if (compressed) {
-            val archiveFile = outputDir.resolve(ARCHIVE_FILE_NAME)
-            targetDir.packZip(archiveFile)
-            archiveFile
-        } else {
-            outputFile
+            if (compressed) {
+                val archiveFile = outputDir.resolve(ARCHIVE_FILE_NAME)
+                targetDir.packZip(archiveFile)
+                archiveFile
+            } else {
+                outputFile
+            }
         }
 
         return listOf(reportFile)
