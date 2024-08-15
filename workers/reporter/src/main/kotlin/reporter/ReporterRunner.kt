@@ -209,11 +209,11 @@ class ReporterRunner(
                             val reporterOptions = transformedOptions[reporter.type]?.let { options ->
                                 PluginConfiguration(options.options, options.secrets)
                             } ?: PluginConfiguration.EMPTY
-                            val nameMapper = ReportNameMapper.create(config, reporter.type)
 
-                            nameMapper.mapReportNames(
-                                reporter.generateReport(reporterInput, outputDir, reporterOptions)
-                            ).also { reportStorage.storeReportFiles(runId, it) }
+                            val nameMapper = ReportNameMapper.create(config, reporter.type)
+                            val reportFiles = reporter.generateReport(reporterInput, outputDir, reporterOptions)
+
+                            nameMapper.mapReportNames(reportFiles).also { reportStorage.storeReportFiles(runId, it) }
                         }
                     }
                 }.awaitAll()
