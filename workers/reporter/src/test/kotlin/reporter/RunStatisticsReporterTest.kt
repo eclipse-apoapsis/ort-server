@@ -21,8 +21,9 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.maps.containAnyKeys
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
@@ -42,13 +43,15 @@ class RunStatisticsReporterTest : WordSpec({
 
             val input = ReporterInput(ortResult = ortResult)
 
-            val reportFiles = reporter.generateReport(input, tempdir())
-            reportFiles should haveSize(1)
+            val reportFileResults = reporter.generateReport(input, tempdir())
 
-            val runStatisticsFile = reportFiles.single()
-            runStatisticsFile.name shouldBe "statistics.json"
-            val actualResult = runStatisticsFile.readValue<Statistics>()
-            actualResult shouldBe input.statistics
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { runStatisticsFile ->
+                    runStatisticsFile.name shouldBe "statistics.json"
+                    val actualResult = runStatisticsFile.readValue<Statistics>()
+                    actualResult shouldBe input.statistics
+                }
+            }
         }
 
         "be found by the service loader" {

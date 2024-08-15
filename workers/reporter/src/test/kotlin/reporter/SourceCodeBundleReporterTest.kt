@@ -19,13 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.file.shouldContainFile
 import io.kotest.matchers.file.shouldContainNFiles
 import io.kotest.matchers.maps.containAnyKeys
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.sequences.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -92,28 +93,31 @@ class SourceCodeBundleReporterTest : WordSpec({
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val reportFiles = reporter.generateReport(
+            val reportFileResults = reporter.generateReport(
                 input,
                 outputDir,
                 PluginConfiguration(options = mapOf(SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT"))
             )
-            reportFiles should haveSize(1)
 
-            val codeBundleFile = reportFiles.single()
-            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { codeBundleFile ->
+                    codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
 
-            val projectContents = codeBundleFile.checkAndUnpackBundle(
-                outputDir,
-                PROJECT_ID_FILENAME,
-                PROJECT_NAME,
-                PROJECT_VERSION
-            )
-            projectContents shouldContainNFiles 5
-            projectContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
-            projectContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
-            projectContents.resolve(".travis.yml").readText() shouldBe TEST_CONTENT_TRAVIS
-            projectContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
-            projectContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
+                    val projectContents = codeBundleFile.checkAndUnpackBundle(
+                        outputDir,
+                        PROJECT_ID_FILENAME,
+                        PROJECT_NAME,
+                        PROJECT_VERSION
+                    )
+
+                    projectContents shouldContainNFiles 5
+                    projectContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
+                    projectContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
+                    projectContents.resolve(".travis.yml").readText() shouldBe TEST_CONTENT_TRAVIS
+                    projectContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+                    projectContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
+                }
+            }
         }
 
         "delete all the downloaded files even in case of a failure" {
@@ -136,12 +140,14 @@ class SourceCodeBundleReporterTest : WordSpec({
             val outputDir = tempdir()
             val bundleTmpOutputDir = outputDir.resolve(SOURCE_BUNDLE_SUB_DIR)
 
-            shouldThrow<DownloadException> {
-                reporter.generateReport(
-                    input,
-                    outputDir,
-                    PluginConfiguration(options = mapOf(SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT"))
-                )
+            val reportFileResults = reporter.generateReport(
+                input,
+                outputDir,
+                PluginConfiguration(options = mapOf(SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT"))
+            )
+
+            reportFileResults.shouldBeSingleton {
+                it.shouldBeFailure<DownloadException>()
             }
 
             bundleTmpOutputDir.exists() shouldBe false
@@ -171,7 +177,7 @@ class SourceCodeBundleReporterTest : WordSpec({
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val codeBundleFile = reporter.generateReport(
+            val reportFileResults = reporter.generateReport(
                 input,
                 outputDir,
                 PluginConfiguration(
@@ -180,22 +186,27 @@ class SourceCodeBundleReporterTest : WordSpec({
                         SourceCodeBundleReporter.INCLUDED_LICENSE_CATEGORIES_PROPERTY to "include-in-source-code-bundle"
                     )
                 )
-            ).single()
-
-            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
-
-            val packageContents = codeBundleFile.checkAndUnpackBundle(
-                outputDir,
-                PACKAGE_ID_FILENAME,
-                PACKAGE_NAME,
-                PACKAGE_VERSION
             )
-            packageContents shouldContainNFiles 5
-            packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
-            packageContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
-            packageContents.resolve(".travis.yml").readText() shouldBe TEST_CONTENT_TRAVIS
-            packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
-            packageContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
+
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { codeBundleFile ->
+                    codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+
+                    val packageContents = codeBundleFile.checkAndUnpackBundle(
+                        outputDir,
+                        PACKAGE_ID_FILENAME,
+                        PACKAGE_NAME,
+                        PACKAGE_VERSION
+                    )
+
+                    packageContents shouldContainNFiles 5
+                    packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
+                    packageContents.resolve(".gitignore").readText() shouldBe TEST_CONTENT_IGNORE
+                    packageContents.resolve(".travis.yml").readText() shouldBe TEST_CONTENT_TRAVIS
+                    packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+                    packageContents.resolve("pom.xml").readText() shouldBe TEST_CONTENT_POM
+                }
+            }
         }
 
         "handle a path to a sub folder in VCS info correctly" {
@@ -218,7 +229,7 @@ class SourceCodeBundleReporterTest : WordSpec({
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val codeBundleFile = reporter.generateReport(
+            val reportFileResults = reporter.generateReport(
                 input,
                 outputDir,
                 PluginConfiguration(
@@ -226,19 +237,24 @@ class SourceCodeBundleReporterTest : WordSpec({
                         SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
                     )
                 )
-            ).single()
+            )
 
-            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { codeBundleFile ->
+                    codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
 
-            val packageContents = codeBundleFile.checkAndUnpackBundle(
-                outputDir,
-                PACKAGE_ID_FILENAME,
-                PACKAGE_NAME,
-                PACKAGE_VERSION
-            ).resolve(subPath)
-            packageContents shouldContainNFiles 2
-            packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
-            packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+                    val packageContents = codeBundleFile.checkAndUnpackBundle(
+                        outputDir,
+                        PACKAGE_ID_FILENAME,
+                        PACKAGE_NAME,
+                        PACKAGE_VERSION
+                    ).resolve(subPath)
+
+                    packageContents shouldContainNFiles 2
+                    packageContents.resolve("src").readText() shouldBe TEST_CONTENT_SRC
+                    packageContents.resolve("CHANGELOG.md").readText() shouldBe TEST_CONTENT_CHANGELOG
+                }
+            }
         }
 
         "handle a path to a single file in VCS info correctly" {
@@ -260,7 +276,7 @@ class SourceCodeBundleReporterTest : WordSpec({
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val codeBundleFile = reporter.generateReport(
+            val reportFileResults = reporter.generateReport(
                 input,
                 outputDir,
                 PluginConfiguration(
@@ -268,18 +284,23 @@ class SourceCodeBundleReporterTest : WordSpec({
                         SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
                     )
                 )
-            ).single()
-
-            codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
-
-            val packageContents = codeBundleFile.checkAndUnpackBundle(
-                outputDir,
-                PACKAGE_ID_FILENAME,
-                PACKAGE_NAME,
-                PACKAGE_VERSION
             )
-            packageContents shouldContainNFiles 1
-            packageContents.resolve(subPath).readText() shouldBe TEST_CONTENT_SRC
+
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { codeBundleFile ->
+                    codeBundleFile.name shouldBe SOURCE_BUNDLE_FILE_NAME
+
+                    val packageContents = codeBundleFile.checkAndUnpackBundle(
+                        outputDir,
+                        PACKAGE_ID_FILENAME,
+                        PACKAGE_NAME,
+                        PACKAGE_VERSION
+                    )
+
+                    packageContents shouldContainNFiles 1
+                    packageContents.resolve(subPath).readText() shouldBe TEST_CONTENT_SRC
+                }
+            }
         }
     }
 })

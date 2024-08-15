@@ -21,8 +21,9 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.maps.containAnyKeys
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
@@ -59,17 +60,19 @@ class OrtResultReporterTest : WordSpec({
 
             val input = ReporterInput(ortResult = ortResult)
 
-            val reportFiles = reporter.generateReport(
+            val reportFileResults = reporter.generateReport(
                 input,
                 tempdir(),
                 PluginConfiguration(options = mapOf(OrtResultReporter.COMPRESSED_PROPERTY to "false"))
             )
-            reportFiles should haveSize(1)
 
-            val ortResultFile = reportFiles.single()
-            ortResultFile.name shouldBe "ort-result.yml"
-            val actualResult = ortResultFile.readValue<OrtResult>()
-            actualResult shouldBe expectedOrtResult
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { reportFile ->
+                    reportFile.name shouldBe "ort-result.yml"
+                    val actualResult = reportFile.readValue<OrtResult>()
+                    actualResult shouldBe expectedOrtResult
+                }
+            }
         }
 
         "create a compressed ORT result file" {
@@ -91,15 +94,16 @@ class OrtResultReporterTest : WordSpec({
             val input = ReporterInput(ortResult = ortResult)
 
             val outputDir = tempdir()
-            val reportFiles = reporter.generateReport(input, outputDir)
-            reportFiles should haveSize(1)
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
-            val archiveFile = reportFiles.single()
-            archiveFile.unpack(outputDir)
-
-            val ortResultFile = outputDir.resolve("ort-result.yml")
-            val actualResult = ortResultFile.readValue<OrtResult>()
-            actualResult shouldBe expectedOrtResult
+            reportFileResults.shouldBeSingleton {
+                it shouldBeSuccess { archiveFile ->
+                    archiveFile.unpack(outputDir)
+                    val ortResultFile = outputDir.resolve("ort-result.yml")
+                    val actualResult = ortResultFile.readValue<OrtResult>()
+                    actualResult shouldBe expectedOrtResult
+                }
+            }
         }
 
         "be found by the service loader" {
