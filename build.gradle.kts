@@ -112,6 +112,22 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
     }
 }
 
+// Gradle's "dependencies" task selector only executes on a single / the current project [1]. However, sometimes viewing
+// all dependencies at once is beneficial, e.g. for debugging version conflict resolution.
+// [1]: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing_dependencies
+tasks.register("allDependencies") {
+    group = "Help"
+    description = "Displays all dependencies declared in all projects."
+
+    val dependenciesTasks = getTasksByName("dependencies", /* recursive = */ true).sorted()
+    dependsOn(dependenciesTasks)
+
+    // Ensure deterministic output by requiring to run tasks after each other in always the same order.
+    dependenciesTasks.zipWithNext().forEach { (a, b) ->
+        b.mustRunAfter(a)
+    }
+}
+
 rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.forEach { dockerfile ->
     val name = dockerfile.name.substringBeforeLast('.')
 
