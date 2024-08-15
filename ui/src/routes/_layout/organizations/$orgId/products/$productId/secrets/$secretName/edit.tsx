@@ -209,20 +209,18 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/secrets/$secretName/edit'
 )({
   loader: async ({ context, params }) => {
-    await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretByProductIdAndNameKey,
-          params.productId,
-          params.secretName,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretByProductIdAndName({
-            productId: Number.parseInt(params.productId),
-            secretName: params.secretName,
-          }),
-      }),
-    ]);
+    await context.queryClient.ensureQueryData({
+      queryKey: [
+        useSecretsServiceGetSecretByProductIdAndNameKey,
+        params.productId,
+        params.secretName,
+      ],
+      queryFn: () =>
+        SecretsService.getSecretByProductIdAndName({
+          productId: Number.parseInt(params.productId),
+          secretName: params.secretName,
+        }),
+    });
   },
   component: EditProductSecretPage,
   pendingComponent: LoadingIndicator,

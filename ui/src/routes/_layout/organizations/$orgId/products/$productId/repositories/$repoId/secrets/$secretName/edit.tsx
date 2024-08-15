@@ -217,20 +217,18 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/$secretName/edit'
 )({
   loader: async ({ context, params }) => {
-    await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretByRepositoryIdAndNameKey,
-          params.repoId,
-          params.secretName,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretByRepositoryIdAndName({
-            repositoryId: Number.parseInt(params.repoId),
-            secretName: params.secretName,
-          }),
-      }),
-    ]);
+    await context.queryClient.ensureQueryData({
+      queryKey: [
+        useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+        params.repoId,
+        params.secretName,
+      ],
+      queryFn: () =>
+        SecretsService.getSecretByRepositoryIdAndName({
+          repositoryId: Number.parseInt(params.repoId),
+          secretName: params.secretName,
+        }),
+    });
   },
   component: EditRepositorySecretPage,
   pendingComponent: LoadingIndicator,
