@@ -220,20 +220,18 @@ export const Route = createFileRoute(
 )({
   validateSearch: searchParamsSchema,
   loader: async ({ context, params }) => {
-    await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretByOrganizationIdAndNameKey,
-          params.orgId,
-          params.secretName,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretByOrganizationIdAndName({
-            organizationId: Number.parseInt(params.orgId),
-            secretName: params.secretName,
-          }),
-      }),
-    ]);
+    await context.queryClient.ensureQueryData({
+      queryKey: [
+        useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+        params.orgId,
+        params.secretName,
+      ],
+      queryFn: () =>
+        SecretsService.getSecretByOrganizationIdAndName({
+          organizationId: Number.parseInt(params.orgId),
+          secretName: params.secretName,
+        }),
+    });
   },
   component: EditOrganizationSecretPage,
   pendingComponent: LoadingIndicator,

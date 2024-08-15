@@ -312,21 +312,19 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/infrastructure-services/$serviceName/edit'
 )({
   loader: async ({ context, params }) => {
-    await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-          params.orgId,
-        ],
-        queryFn: () =>
-          InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
-            {
-              organizationId: Number.parseInt(params.orgId),
-              limit: 1000,
-            }
-          ),
-      }),
-    ]);
+    await context.queryClient.ensureQueryData({
+      queryKey: [
+        useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
+        params.orgId,
+      ],
+      queryFn: () =>
+        InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
+          {
+            organizationId: Number.parseInt(params.orgId),
+            limit: 1000,
+          }
+        ),
+    });
   },
   component: EditInfrastructureServicePage,
   pendingComponent: LoadingIndicator,
