@@ -60,11 +60,7 @@ const EditProductPage = () => {
   const { toast } = useToast();
 
   const { data: product } = useSuspenseQuery({
-    queryKey: [
-      useProductsServiceGetProductByIdKey,
-      params.orgId,
-      params.productId,
-    ],
+    queryKey: [useProductsServiceGetProductByIdKey, params.productId],
     queryFn: async () =>
       await ProductsService.getProductById({
         productId: Number.parseInt(params.productId),

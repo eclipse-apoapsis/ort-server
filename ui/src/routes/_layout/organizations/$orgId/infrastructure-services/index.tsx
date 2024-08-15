@@ -30,7 +30,7 @@ import { useState } from 'react';
 
 import {
   useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName,
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
   useOrganizationsServiceGetOrganizationByIdKey,
 } from '@/api/queries';
 import {
@@ -81,7 +81,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+              useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
             ],
           });
         },
@@ -145,7 +145,7 @@ const InfrastructureServices = () => {
       },
       {
         queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
           params.orgId,
           pageIndex,
           pageSize,
@@ -322,7 +322,7 @@ export const Route = createFileRoute(
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
           params.orgId,
           page,
           pageSize,

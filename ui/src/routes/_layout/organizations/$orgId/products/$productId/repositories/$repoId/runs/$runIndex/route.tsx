@@ -30,8 +30,6 @@ export const Route = createFileRoute(
     const run = await context.queryClient.ensureQueryData({
       queryKey: [
         useRepositoriesServiceGetOrtRunByIndexKey,
-        params.orgId,
-        params.productId,
         params.repoId,
         params.runIndex,
       ],

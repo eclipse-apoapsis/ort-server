@@ -20,14 +20,14 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useVersionsServiceGetVersions } from '@/api/queries';
+import { useVersionsServiceGetVersionsKey } from '@/api/queries';
 import { VersionsService } from '@/api/requests';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 export const About = () => {
   const { data: versionData } = useSuspenseQuery({
-    queryKey: [useVersionsServiceGetVersions],
+    queryKey: [useVersionsServiceGetVersionsKey],
     queryFn: () => VersionsService.getVersions(),
   });
   return (

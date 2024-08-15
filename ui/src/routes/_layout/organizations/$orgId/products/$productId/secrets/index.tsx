@@ -35,7 +35,7 @@ import { useState } from 'react';
 import {
   useProductsServiceGetProductByIdKey,
   useSecretsServiceDeleteSecretByProductIdAndName,
-  useSecretsServiceGetSecretsByProductId,
+  useSecretsServiceGetSecretsByProductIdKey,
 } from '@/api/queries';
 import {
   ApiError,
@@ -91,7 +91,10 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByProductId],
+          queryKey: [
+            useSecretsServiceGetSecretsByProductIdKey,
+            params.productId,
+          ],
         });
       },
       onError(error: ApiError) {
@@ -172,7 +175,7 @@ const ProductSecrets = () => {
       },
       {
         queryKey: [
-          useSecretsServiceGetSecretsByProductId,
+          useSecretsServiceGetSecretsByProductIdKey,
           params.productId,
           pageIndex,
           pageSize,
@@ -245,7 +248,7 @@ export const Route = createFileRoute(
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetProductByIdKey, params.orgId],
+        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
         queryFn: () =>
           ProductsService.getProductById({
             productId: Number(params.productId),
@@ -253,8 +256,8 @@ export const Route = createFileRoute(
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
-          useSecretsServiceGetSecretsByProductId,
-          params.orgId,
+          useSecretsServiceGetSecretsByProductIdKey,
+          params.productId,
           page,
           pageSize,
         ],
