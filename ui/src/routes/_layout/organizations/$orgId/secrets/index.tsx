@@ -35,7 +35,7 @@ import { useState } from 'react';
 import {
   useOrganizationsServiceGetOrganizationByIdKey,
   useSecretsServiceDeleteSecretByOrganizationIdAndName,
-  useSecretsServiceGetSecretsByOrganizationId,
+  useSecretsServiceGetSecretsByOrganizationIdKey,
 } from '@/api/queries';
 import {
   ApiError,
@@ -91,7 +91,10 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByOrganizationId],
+          queryKey: [
+            useSecretsServiceGetSecretsByOrganizationIdKey,
+            params.orgId,
+          ],
         });
       },
       onError(error: ApiError) {
@@ -168,7 +171,7 @@ const OrganizationSecrets = () => {
       },
       {
         queryKey: [
-          useSecretsServiceGetSecretsByOrganizationId,
+          useSecretsServiceGetSecretsByOrganizationIdKey,
           params.orgId,
           pageIndex,
           pageSize,
@@ -246,7 +249,7 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/secrets/')({
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
-          useSecretsServiceGetSecretsByOrganizationId,
+          useSecretsServiceGetSecretsByOrganizationIdKey,
           params.orgId,
           page,
           pageSize,

@@ -35,7 +35,7 @@ import { useState } from 'react';
 import {
   useRepositoriesServiceGetRepositoryByIdKey,
   useSecretsServiceDeleteSecretByRepositoryIdAndName,
-  useSecretsServiceGetSecretsByRepositoryId,
+  useSecretsServiceGetSecretsByRepositoryIdKey,
 } from '@/api/queries';
 import {
   ApiError,
@@ -91,7 +91,10 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByRepositoryId],
+          queryKey: [
+            useSecretsServiceGetSecretsByRepositoryIdKey,
+            params.repoId,
+          ],
         });
       },
       onError(error: ApiError) {
@@ -173,7 +176,7 @@ const RepositorySecrets = () => {
       },
       {
         queryKey: [
-          useSecretsServiceGetSecretsByRepositoryId,
+          useSecretsServiceGetSecretsByRepositoryIdKey,
           params.repoId,
           pageIndex,
           pageSize,
@@ -255,7 +258,7 @@ export const Route = createFileRoute(
       }),
       context.queryClient.ensureQueryData({
         queryKey: [
-          useSecretsServiceGetSecretsByRepositoryId,
+          useSecretsServiceGetSecretsByRepositoryIdKey,
           params.repoId,
           page,
           pageSize,

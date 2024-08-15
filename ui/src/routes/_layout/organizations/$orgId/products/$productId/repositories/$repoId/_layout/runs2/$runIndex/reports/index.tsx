@@ -38,8 +38,6 @@ const ReportComponent = () => {
   const { data: ortRun } = useSuspenseQuery({
     queryKey: [
       useRepositoriesServiceGetOrtRunByIndexKey,
-      params.orgId,
-      params.productId,
       params.repoId,
       params.runIndex,
     ],
@@ -124,8 +122,6 @@ export const Route = createFileRoute(
     await context.queryClient.ensureQueryData({
       queryKey: [
         useRepositoriesServiceGetOrtRunByIndexKey,
-        params.orgId,
-        params.productId,
         params.repoId,
         params.runIndex,
       ],

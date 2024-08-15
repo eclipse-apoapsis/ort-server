@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByProductIdAndName,
+  useSecretsServiceGetSecretByProductIdAndNameKey,
   useSecretsServicePatchSecretByProductIdAndName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
@@ -65,7 +65,7 @@ const EditProductSecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByProductIdAndName,
+      useSecretsServiceGetSecretByProductIdAndNameKey,
       params.productId,
       params.secretName,
     ],
@@ -212,7 +212,7 @@ export const Route = createFileRoute(
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
         queryKey: [
-          useSecretsServiceGetSecretByProductIdAndName,
+          useSecretsServiceGetSecretByProductIdAndNameKey,
           params.productId,
           params.secretName,
         ],

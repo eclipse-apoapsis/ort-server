@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
   useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName,
 } from '@/api/queries';
 import { ApiError, InfrastructureServicesService } from '@/api/requests';
@@ -74,7 +74,7 @@ const EditInfrastructureServicePage = () => {
    */
   const { data: infrastructureServices } = useSuspenseQuery({
     queryKey: [
-      useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+      useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
       params.orgId,
     ],
     queryFn: () =>
@@ -315,7 +315,7 @@ export const Route = createFileRoute(
     await Promise.allSettled([
       context.queryClient.ensureQueryData({
         queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
           params.orgId,
         ],
         queryFn: () =>
