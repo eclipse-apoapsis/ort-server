@@ -222,16 +222,7 @@ class ReporterRunner(
             val issues = failures.mapNotNull { (reporter, failure) ->
                 failure.exceptionOrNull()?.let { reporter to it }
             }.map { (reporter, e) ->
-                e.showStackTrace()
-
-                logger.error("Could not create report for '$reporter' due to '${e.javaClass.name}'.")
-
-                Issue(
-                    timestamp = Clock.System.now(),
-                    source = "Reporter",
-                    message = "Could not create report for '$reporter': '${e.message}'",
-                    severity = "ERROR",
-                )
+                createAndLogReporterIssue(reporter, e)
             }
 
             val reports = successes.associate { (name, report) ->
@@ -382,4 +373,20 @@ private suspend fun createLicenseTextProvider(
     }.orEmpty()
 
     return DefaultLicenseTextProvider(licenseTextDirectories)
+}
+
+/**
+ * Create an issue for the given report [format] with information derived from the given [throwable][e] and also log it.
+ */
+private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
+    e.showStackTrace()
+
+    logger.error("Could not create report for '$format' due to '${e.javaClass.name}'.")
+
+    return Issue(
+        timestamp = Clock.System.now(),
+        source = "Reporter",
+        message = "Could not create report for '$format': '${e.message}'",
+        severity = "ERROR",
+    )
 }
