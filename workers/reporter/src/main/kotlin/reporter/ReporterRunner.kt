@@ -172,8 +172,9 @@ class ReporterRunner(
             }
 
             val outputDir = context.createTempDir()
+            val issues = mutableListOf<Issue>()
 
-            val (successes, failures) = runBlocking(Dispatchers.IO) {
+            val successes = runBlocking(Dispatchers.IO) {
                 val deferredTransformedOptions = async { processReporterOptions(context, config) }
 
                 val deferredReporterInput = async {
@@ -201,7 +202,8 @@ class ReporterRunner(
                 config.formats.map { format ->
                     async {
                         logger.info("Generating the '$format' report...")
-                        format to runCatching {
+
+                        val result = runCatching {
                             val reporter = requireNotNull(Reporter.ALL[format]) {
                                 "No reporter found for the configured format '$format'."
                             }
@@ -210,24 +212,25 @@ class ReporterRunner(
                                 PluginConfiguration(options.options, options.secrets)
                             } ?: PluginConfiguration.EMPTY
 
-                            val nameMapper = ReportNameMapper.create(config, reporter.type)
                             val reportFiles = reporter.generateReport(reporterInput, outputDir, reporterOptions)
 
-                            nameMapper.mapReportNames(reportFiles).also { reportStorage.storeReportFiles(runId, it) }
+                            reporter to reportFiles
+                        }.onFailure {
+                            issues += createAndLogReporterIssue(format, it)
+                        }
+
+                        result.getOrNull()?.let { (reporter, reportFiles) ->
+                            val nameMapper = ReportNameMapper.create(config, reporter.type)
+                            format to nameMapper.mapReportNames(reportFiles)
+                                .also { reportStorage.storeReportFiles(runId, it) }
                         }
                     }
-                }.awaitAll()
-            }.partition { it.second.isSuccess }
-
-            val issues = failures.mapNotNull { (reporter, failure) ->
-                failure.exceptionOrNull()?.let { reporter to it }
-            }.map { (reporter, e) ->
-                createAndLogReporterIssue(reporter, e)
+                }.awaitAll().filterNotNull()
             }
 
             val reports = successes.associate { (name, report) ->
                 logger.info("Successfully created '$name' report.")
-                name to report.getOrDefault(emptyMap()).keys.toList()
+                name to report.keys.toList()
             }
 
             // Only return the package configurations and resolutions if they were not already resolved by the
