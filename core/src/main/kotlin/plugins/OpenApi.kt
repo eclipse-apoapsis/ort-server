@@ -27,6 +27,7 @@ import io.github.smiley4.schemakenerator.core.connectSubTypes
 import io.github.smiley4.schemakenerator.core.handleNameAnnotation
 import io.github.smiley4.schemakenerator.reflection.collectSubTypes
 import io.github.smiley4.schemakenerator.reflection.processReflection
+import io.github.smiley4.schemakenerator.swagger.OptionalHandling
 import io.github.smiley4.schemakenerator.swagger.compileReferencingRoot
 import io.github.smiley4.schemakenerator.swagger.data.RefType
 import io.github.smiley4.schemakenerator.swagger.data.TitleType
@@ -116,7 +117,9 @@ fun Application.configureOpenApi() {
                     }
                     .connectSubTypes()
                     .handleNameAnnotation()
-                    .generateSwaggerSchema()
+                    .generateSwaggerSchema {
+                        optionalHandling = OptionalHandling.NON_REQUIRED
+                    }
                     .handleCoreAnnotations()
                     .withAutoTitle(TitleType.SIMPLE) // Use the simple class names for titles.
                     .compileReferencingRoot(RefType.SIMPLE) // Use the simple class names for references.
