@@ -87,3 +87,12 @@ tasks.withType<Test>().configureEach {
         showStandardStreams = false
     }
 }
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.exposed") {
+            useVersion(libs.versions.exposed.get())
+            because("https://youtrack.jetbrains.com/issue/EXPOSED-483")
+        }
+    }
+}
