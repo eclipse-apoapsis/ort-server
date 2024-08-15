@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import io.gitlab.arturbosch.detekt.Detekt
+
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.kotlin.dsl.dependencies
 
@@ -44,4 +46,11 @@ detekt {
     source.from(fileTree(".") { include("*.gradle.kts") }, "src/testFixtures/kotlin")
 
     basePath = rootDir.path
+}
+
+tasks.register("detektAll") {
+    group = "Verification"
+    description = "Run all detekt tasks with and without type resolution."
+
+    dependsOn(tasks.withType<Detekt>())
 }
