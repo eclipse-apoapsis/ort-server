@@ -243,12 +243,12 @@ class OrtServerMappingsTest : WordSpec({
                 binaryArtifact = RemoteArtifact(
                     url = OrtTestData.pkgBinaryArtifactUrl,
                     hashValue = "123456",
-                    hashAlgorithm = "SHA-1"
+                    hashAlgorithm = "UNKNOWN"
                 ),
                 sourceArtifact = RemoteArtifact(
                     url = OrtTestData.pkgSourceArtifactUrl,
                     hashValue = "654321",
-                    hashAlgorithm = "SHA-1"
+                    hashAlgorithm = "UNKNOWN"
                 ),
                 vcs = VcsInfo(
                     type = RepositoryType.GIT,

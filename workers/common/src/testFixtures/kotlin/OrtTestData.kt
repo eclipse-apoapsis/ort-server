@@ -362,14 +362,14 @@ object OrtTestData {
             url = pkgBinaryArtifactUrl,
             hash = Hash(
                 value = "123456",
-                algorithm = HashAlgorithm.SHA1
+                algorithm = HashAlgorithm.UNKNOWN
             )
         ),
         sourceArtifact = RemoteArtifact(
             url = pkgSourceArtifactUrl,
             hash = Hash(
                 value = "654321",
-                algorithm = HashAlgorithm.SHA1
+                algorithm = HashAlgorithm.UNKNOWN
             )
         ),
         vcs = VcsInfo(
