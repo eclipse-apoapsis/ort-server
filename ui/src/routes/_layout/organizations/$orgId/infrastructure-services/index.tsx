@@ -58,7 +58,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSchema } from '@/schemas';
 
@@ -66,7 +66,6 @@ const defaultPageSize = 10;
 
 const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [openDelDialog, setOpenDelDialog] = useState(false);
 
@@ -75,8 +74,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
       {
         onSuccess() {
           setOpenDelDialog(false);
-          toast({
-            title: 'Delete Infrastructure Service',
+          toast.info('Delete Infrastructure Service', {
             description: `Infrastructure service "${row.original.name}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
@@ -86,10 +84,13 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
           });
         },
         onError(error: ApiError) {
-          toast({
-            title: error.message,
+          toast.error(error.message, {
             description: <ToastError error={error} />,
-            variant: 'destructive',
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
           });
         },
       }

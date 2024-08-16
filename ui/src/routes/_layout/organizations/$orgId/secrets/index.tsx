@@ -62,7 +62,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSchema } from '@/schemas';
 
@@ -70,7 +70,6 @@ const defaultPageSize = 10;
 
 const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [openDelDialog, setOpenDelDialog] = useState(false);
 
@@ -86,8 +85,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
     useSecretsServiceDeleteSecretByOrganizationIdAndName({
       onSuccess() {
         setOpenDelDialog(false);
-        toast({
-          title: 'Delete Secret',
+        toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
@@ -98,10 +96,13 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

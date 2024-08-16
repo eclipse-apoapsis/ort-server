@@ -56,7 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   url: z.string(),
@@ -66,7 +66,6 @@ const formSchema = z.object({
 const EditRepositoryPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: repository } = useSuspenseQuery({
     queryKey: [
@@ -83,8 +82,7 @@ const EditRepositoryPage = () => {
 
   const { mutateAsync, isPending } = useRepositoriesServicePatchRepositoryById({
     onSuccess(data) {
-      toast({
-        title: 'Edit repository',
+      toast.info('Edit repository', {
         description: `Repository "${data.url}" updated successfully.`,
       });
       navigate({
@@ -97,10 +95,13 @@ const EditRepositoryPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });

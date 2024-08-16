@@ -55,7 +55,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -87,7 +87,6 @@ const columns: ColumnDef<Product>[] = [
 const OrganizationComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -121,8 +120,7 @@ const OrganizationComponent = () => {
   const { mutateAsync: deleteOrganization, isPending } =
     useOrganizationsServiceDeleteOrganizationById({
       onSuccess() {
-        toast({
-          title: 'Delete Organization',
+        toast.info('Delete Organization', {
           description: `Organization "${organization.name}" deleted successfully.`,
         });
         navigate({
@@ -130,10 +128,13 @@ const OrganizationComponent = () => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

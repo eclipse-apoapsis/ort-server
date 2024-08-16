@@ -49,7 +49,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -65,7 +65,6 @@ type FormSchema = z.infer<typeof formSchema>;
 const EditInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   /* Search service details from all infrastructure services of the organization
    * TODO: Edit this to fetch the details from:
@@ -92,8 +91,7 @@ const EditInfrastructureServicePage = () => {
     useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName(
       {
         onSuccess(data) {
-          toast({
-            title: 'Edit Infrastructure Service',
+          toast.info('Edit Infrastructure Service', {
             description: `Infrastructure service "${data.name}" has been updated successfully.`,
           });
           navigate({
@@ -102,10 +100,13 @@ const EditInfrastructureServicePage = () => {
           });
         },
         onError(error: ApiError) {
-          toast({
-            title: error.message,
+          toast.error(error.message, {
             description: <ToastError error={error} />,
-            variant: 'destructive',
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
           });
         },
       }

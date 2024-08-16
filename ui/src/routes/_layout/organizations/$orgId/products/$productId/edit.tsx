@@ -47,7 +47,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -57,7 +57,6 @@ const formSchema = z.object({
 const EditProductPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: product } = useSuspenseQuery({
     queryKey: [useProductsServiceGetProductByIdKey, params.productId],
@@ -69,8 +68,7 @@ const EditProductPage = () => {
 
   const { mutateAsync, isPending } = useProductsServicePatchProductById({
     onSuccess(data) {
-      toast({
-        title: 'Edit Product',
+      toast.info('Edit Product', {
         description: `Product "${data.name}" updated successfully.`,
       });
       navigate({
@@ -79,10 +77,13 @@ const EditProductPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });

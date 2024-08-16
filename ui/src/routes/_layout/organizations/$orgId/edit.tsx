@@ -47,7 +47,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -57,7 +57,6 @@ const formSchema = z.object({
 const EditOrganizationPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: organization } = useSuspenseQuery({
     queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
@@ -70,8 +69,7 @@ const EditOrganizationPage = () => {
   const { mutateAsync, isPending } =
     useOrganizationsServicePatchOrganizationById({
       onSuccess(data) {
-        toast({
-          title: 'Edit Organization',
+        toast.info('Edit Organization', {
           description: `Organization "${data.name}" updated successfully.`,
         });
         navigate({
@@ -80,10 +78,13 @@ const EditOrganizationPage = () => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

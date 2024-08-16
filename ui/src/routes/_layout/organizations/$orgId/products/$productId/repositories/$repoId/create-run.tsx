@@ -45,7 +45,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { AdvisorFields } from './-components/advisor-fields';
 import { AnalyzerFields } from './-components/analyzer-fields';
 import { EvaluatorFields } from './-components/evaluator-fields';
@@ -124,13 +124,11 @@ export type CreateRunFormValues = ReturnType<typeof formSchema.parse>;
 const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
   const ortRun = Route.useLoaderData();
 
   const { mutateAsync, isPending } = useRepositoriesServicePostOrtRun({
     onSuccess() {
-      toast({
-        title: 'Create ORT Run',
+      toast.info('Create ORT Run', {
         description: 'New ORT run created successfully for this repository.',
       });
       navigate({
@@ -143,10 +141,13 @@ const CreateRunPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });
