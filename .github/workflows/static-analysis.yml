@@ -43,10 +43,7 @@ jobs:
         gradle-home-cache-cleanup: true
 
     - name: Check for Detekt Issues
-      run: ./gradlew --stacktrace detekt
-
-    - name: Check for Detekt Issues with Type Resolution
-      run: ./gradlew --stacktrace detektMain detektTest
+      run: ./gradlew --stacktrace detektAll
 
   eslint:
     runs-on: ubuntu-latest
