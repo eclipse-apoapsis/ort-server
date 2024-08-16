@@ -47,6 +47,7 @@ import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
 
@@ -63,7 +64,14 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         issues: Collection<Issue>,
         traceId: String?
     ): OrtRun = db.blockingQuery {
-        val nextIndex = (listForRepository(repositoryId).data.maxByOrNull { it.index }?.index ?: 0) + 1
+        val maxIndex = OrtRunsTable.index.max()
+        val lastIndex = OrtRunsTable
+            .select(maxIndex)
+            .where { OrtRunsTable.repositoryId eq repositoryId }
+            .singleOrNull()
+            ?.get(maxIndex)
+
+        val nextIndex = (lastIndex ?: 0) + 1
 
         OrtRunDao.new {
             this.index = nextIndex
