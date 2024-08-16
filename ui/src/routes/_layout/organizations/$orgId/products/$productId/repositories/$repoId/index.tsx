@@ -24,7 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, PlusIcon, Redo2 } from 'lucide-react';
+import { EditIcon, PlusIcon, Repeat } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
@@ -140,7 +140,7 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
               }}
             >
               Rerun
-              <Redo2 className='ml-1 h-4 w-4' />
+              <Repeat className='ml-1 h-4 w-4' />
             </Link>
           </Button>
         </TooltipTrigger>
