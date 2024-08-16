@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProcessedDeclared
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectScopeDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsAuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.UnmappedDeclaredLicenseDao
@@ -156,8 +157,31 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
     val vcs = VcsInfoDao.getOrPut(project.vcs)
     val vcsProcessed = VcsInfoDao.getOrPut(project.vcsProcessed)
 
-    val projectDao = ProjectDao.findByProject(project) ?: ProjectDao.new {
-        this.analyzerRun = analyzerRun
+    val projectDao = ProjectDao.findByProject(project) ?: insertProject(
+        identifier,
+        vcs,
+        vcsProcessed,
+        project
+    )
+
+    ProjectsAnalyzerRunsTable.insert {
+        it[analyzerRunId] = analyzerRun.id
+        it[projectId] = projectDao.id
+    }
+
+    return projectDao
+}
+
+/**
+ * Create a new [ProjectDao] entity in the database with the given values.
+ */
+private fun insertProject(
+    identifier: IdentifierDao,
+    vcs: VcsInfoDao,
+    vcsProcessed: VcsInfoDao,
+    project: Project
+): ProjectDao {
+    val projectDao = ProjectDao.new {
         this.identifier = identifier
         this.vcs = vcs
         this.vcsProcessed = vcsProcessed

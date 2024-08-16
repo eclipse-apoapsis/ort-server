@@ -58,7 +58,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var dependencyGraphsWrapper by AnalyzerRunsTable.dependencyGraphs
 
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
-    val projects by ProjectDao referrersOn ProjectsTable.analyzerRunId
+    val projects by ProjectDao via ProjectsAnalyzerRunsTable
     var packages by PackageDao via PackagesAnalyzerRunsTable
     var issues by IdentifierIssueDao via AnalyzerRunsIdentifiersIssuesTable
 

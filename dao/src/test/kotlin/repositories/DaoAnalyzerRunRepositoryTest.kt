@@ -28,6 +28,7 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -74,6 +75,13 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
         dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should deduplicate projects" {
+        analyzerRunRepository.create(analyzerJobId, analyzerRun)
+        analyzerRunRepository.create(analyzerJobId, analyzerRun)
+
+        dbExtension.db.dbQuery { ProjectsTable.selectAll().count() } shouldBe 1
     }
 
     "get should return null" {
