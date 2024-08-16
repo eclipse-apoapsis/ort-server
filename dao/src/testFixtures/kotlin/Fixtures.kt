@@ -153,27 +153,27 @@ class Fixtures(private val db: Database) {
 
     fun createAdvisorJob(
         ortRunId: Long = ortRun.id,
-        configuration: AdvisorJobConfiguration = jobConfigurations.advisor!!
+        configuration: AdvisorJobConfiguration = checkNotNull(jobConfigurations.advisor)
     ) = advisorJobRepository.create(ortRunId, configuration)
 
     fun createScannerJob(
         ortRunId: Long = ortRun.id,
-        configuration: ScannerJobConfiguration = jobConfigurations.scanner!!
+        configuration: ScannerJobConfiguration = checkNotNull(jobConfigurations.scanner)
     ) = scannerJobRepository.create(ortRunId, configuration)
 
     fun createEvaluatorJob(
         ortRunId: Long = ortRun.id,
-        configuration: EvaluatorJobConfiguration = jobConfigurations.evaluator!!
+        configuration: EvaluatorJobConfiguration = checkNotNull(jobConfigurations.evaluator)
     ) = evaluatorJobRepository.create(ortRunId, configuration)
 
     fun createReporterJob(
         ortRunId: Long = ortRun.id,
-        configuration: ReporterJobConfiguration = jobConfigurations.reporter!!
+        configuration: ReporterJobConfiguration = checkNotNull(jobConfigurations.reporter)
     ) = reporterJobRepository.create(ortRunId, configuration)
 
     fun createNotifierJob(
         ortRunId: Long = ortRun.id,
-        configuration: NotifierJobConfiguration = jobConfigurations.notifier!!
+        configuration: NotifierJobConfiguration = checkNotNull(jobConfigurations.notifier)
     ) = notifierJobRepository.create(ortRunId, configuration)
 
     fun createJobs(ortRunId: Long): Jobs {
