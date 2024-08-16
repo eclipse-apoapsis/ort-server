@@ -49,6 +49,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
          * Stores the map with data of the latest provider instance that has been created. This can be used to query
          * or set test data directly.
          */
+        @Suppress("DoubleMutabilityForCollection")
         private var latestData: MutableMap<Key, Entry> = mutableMapOf()
 
         /**
