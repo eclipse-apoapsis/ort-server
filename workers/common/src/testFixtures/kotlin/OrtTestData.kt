@@ -496,7 +496,7 @@ object OrtTestData {
         provenanceStorage = null
     )
 
-    val artifactProvenance = ArtifactProvenance(pkgCuration.data.sourceArtifact!!)
+    val artifactProvenance = ArtifactProvenance(checkNotNull(pkgCuration.data.sourceArtifact))
 
     val provenanceResolutionResult = ProvenanceResolutionResult(
         id = pkgIdentifier,
