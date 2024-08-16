@@ -53,12 +53,6 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
         private var latestData: MutableMap<Key, Entry> = mutableMapOf()
 
         /**
-         * Return the last [StorageProvider] instance that has been created by this factory or fail if there is none.
-         */
-        fun instance(): StorageProvider = latestInstance
-            ?: throw AssertionError("No StorageProviderForTesting instance has been created.")
-
-        /**
          * Return the [Entry] from the latest [StorageProvider] instance created by this factory that is associated
          * with the given [key].
          */
