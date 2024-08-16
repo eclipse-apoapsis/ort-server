@@ -204,7 +204,35 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     val binaryArtifact = RemoteArtifactDao.getOrPut(pkg.binaryArtifact)
     val sourceArtifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
 
-    val pkgDao = PackageDao.findByPackage(pkg) ?: PackageDao.new {
+    val pkgDao = PackageDao.findByPackage(pkg) ?: insertPackage(
+        identifier,
+        vcs,
+        vcsProcessed,
+        binaryArtifact,
+        sourceArtifact,
+        pkg
+    )
+
+    PackagesAnalyzerRunsTable.insert {
+        it[analyzerRunId] = analyzerRun.id
+        it[packageId] = pkgDao.id
+    }
+
+    return pkgDao
+}
+
+/**
+ * Create a new [PackageDao] entity in the database with the given values.
+ */
+private fun insertPackage(
+    identifier: IdentifierDao,
+    vcs: VcsInfoDao,
+    vcsProcessed: VcsInfoDao,
+    binaryArtifact: RemoteArtifactDao,
+    sourceArtifact: RemoteArtifactDao,
+    pkg: Package
+): PackageDao {
+    val pkgDao = PackageDao.new {
         this.identifier = identifier
         this.vcs = vcs
         this.vcsProcessed = vcsProcessed
@@ -217,11 +245,6 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
         this.homepageUrl = pkg.homepageUrl
         this.isMetadataOnly = pkg.isMetadataOnly
         this.isModified = pkg.isModified
-    }
-
-    PackagesAnalyzerRunsTable.insert {
-        it[analyzerRunId] = analyzerRun.id
-        it[packageId] = pkgDao.id
     }
 
     pkg.authors.forEach { author ->

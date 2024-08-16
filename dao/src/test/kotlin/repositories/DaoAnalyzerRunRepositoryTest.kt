@@ -26,6 +26,8 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -42,6 +44,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+
+import org.jetbrains.exposed.sql.selectAll
 
 class DaoAnalyzerRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -63,6 +67,13 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
 
         dbEntry.shouldNotBeNull()
         dbEntry shouldBe analyzerRun.copy(id = createdAnalyzerRun.id, analyzerJobId = analyzerJobId)
+    }
+
+    "create should deduplicate packages" {
+        analyzerRunRepository.create(analyzerJobId, analyzerRun)
+        analyzerRunRepository.create(analyzerJobId, analyzerRun)
+
+        dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
     }
 
     "get should return null" {

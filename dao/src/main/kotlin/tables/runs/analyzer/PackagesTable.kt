@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer
 
+import org.eclipse.apoapsis.ortserver.dao.mapAndCompare
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicenseDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
@@ -65,8 +66,8 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                         (PackagesTable.isModified eq pkg.isModified)
             }.singleOrNull {
                 it.identifier.mapToModel() == pkg.identifier &&
-                        it.authors == pkg.authors &&
-                        it.declaredLicenses == pkg.declaredLicenses &&
+                        mapAndCompare(it.authors, pkg.authors, AuthorDao::name) &&
+                        mapAndCompare(it.declaredLicenses, pkg.declaredLicenses, DeclaredLicenseDao::name) &&
                         it.processedDeclaredLicense.mapToModel() == pkg.processedDeclaredLicense &&
                         it.vcs.mapToModel() == pkg.vcs &&
                         it.vcsProcessed.mapToModel() == pkg.vcsProcessed &&
