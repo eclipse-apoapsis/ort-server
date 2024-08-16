@@ -19,7 +19,7 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Redo2 } from 'lucide-react';
+import { Repeat } from 'lucide-react';
 import { z } from 'zod';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
@@ -82,7 +82,7 @@ const RunComponent = () => {
                     }}
                   >
                     Rerun
-                    <Redo2 className='ml-1 h-4 w-4' />
+                    <Repeat className='ml-1 h-4 w-4' />
                   </Link>
                 </Button>
               </CardTitle>
