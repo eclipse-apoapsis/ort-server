@@ -119,42 +119,24 @@ class DaoOrtRunRepositoryTest : StringSpec({
     "create should create sequential indexes for different repositories" {
         val otherRepository = dbExtension.fixtures.createRepository(url = "https://example.com/repo2.git")
 
-        ortRunRepository.create(
-            repositoryId,
-            "revision",
-            null,
-            jobConfigurations,
-            null,
-            labelsMap,
+        fun create(repositoryId: Long) = ortRunRepository.create(
+            repositoryId = repositoryId,
+            revision = "revision",
+            path = null,
+            jobConfigs = jobConfigurations,
+            jobConfigContext = null,
+            labels = labelsMap,
             traceId = null
-        ).index shouldBe 1
-        ortRunRepository.create(
-            otherRepository.id,
-            "revision",
-            null,
-            jobConfigurations,
-            null,
-            labelsMap,
-            traceId = null
-        ).index shouldBe 1
-        ortRunRepository.create(
-            otherRepository.id,
-            "revision",
-            null,
-            jobConfigurations,
-            null,
-            labelsMap,
-            traceId = "some-trace-id"
-        ).index shouldBe 2
-        ortRunRepository.create(
-            repositoryId,
-            "revision",
-            null,
-            jobConfigurations,
-            null,
-            labelsMap,
-            traceId = null
-        ).index shouldBe 2
+        )
+
+        create(repositoryId).index shouldBe 1L
+        create(repositoryId).index shouldBe 2L
+        create(otherRepository.id).index shouldBe 1L
+        create(otherRepository.id).index shouldBe 2L
+        create(otherRepository.id).index shouldBe 3L
+        create(repositoryId).index shouldBe 3L
+        create(repositoryId).index shouldBe 4L
+        create(otherRepository.id).index shouldBe 4L
     }
 
     "getByIndex should return the correct run" {

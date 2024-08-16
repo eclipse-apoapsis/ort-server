@@ -66,6 +66,10 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToGroup
 import org.eclipse.apoapsis.ortserver.core.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.core.commands.CreateOrganizationCommandHandler
+import org.eclipse.apoapsis.ortserver.core.commands.createorganization.CreateOrganizationCommand
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQuery
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQueryHandler
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
@@ -109,10 +113,19 @@ fun Route.organizations() = route("organizations") {
 
         val createOrganization = call.receive<CreateOrganization>()
 
-        val createdOrganization =
-            organizationService.createOrganization(createOrganization.name, createOrganization.description)
+        val command = CreateOrganizationCommand("", createOrganization.name, createOrganization.description)
+        val commandHandler = CreateOrganizationCommandHandler(organizationService)
+        val id = commandHandler.execute(command)
 
-        call.respond(HttpStatusCode.Created, createdOrganization.mapToApi())
+        val query = GetOrganizationQuery("", id)
+        val queryHandler = GetOrganizationQueryHandler()
+        val createdOrganization = queryHandler.execute(query)
+
+        if (createdOrganization != null) {
+            call.respond(HttpStatusCode.Created, createdOrganization.mapToApi())
+        } else {
+            call.respond(HttpStatusCode.InternalServerError, "Could not create organization.")
+        }
     }
 
     route("{organizationId}") {
