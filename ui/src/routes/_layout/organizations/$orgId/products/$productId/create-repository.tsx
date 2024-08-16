@@ -51,7 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   url: z.string(),
@@ -61,12 +61,10 @@ const formSchema = z.object({
 const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   const { mutateAsync, isPending } = useRepositoriesServiceCreateRepository({
     onSuccess(data) {
-      toast({
-        title: 'Create Repository',
+      toast.info('Create Repository', {
         description: `New repository "${data.url}" created successfully.`,
       });
       navigate({
@@ -79,10 +77,13 @@ const CreateRepositoryPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });

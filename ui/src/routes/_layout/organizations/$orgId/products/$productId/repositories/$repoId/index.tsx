@@ -56,9 +56,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useToast } from '@/components/ui/use-toast';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -153,7 +153,6 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
 const RepoComponent = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -189,8 +188,7 @@ const RepoComponent = () => {
   const { mutateAsync: deleteRepository, isPending } =
     useRepositoriesServiceDeleteRepositoryById({
       onSuccess() {
-        toast({
-          title: 'Delete Repository',
+        toast.info('Delete Repository', {
           description: `Repository "${repo.url}" deleted successfully.`,
         });
         navigate({
@@ -199,10 +197,13 @@ const RepoComponent = () => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

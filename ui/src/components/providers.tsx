@@ -39,7 +39,17 @@ export const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      <Toaster />
+      <Toaster
+        toastOptions={{
+          classNames: {
+            title: 'font-semibold',
+            error: 'bg-red-500 text-white',
+            success: 'text-green-400',
+            warning: 'text-yellow-400',
+            info: 'bg-white text-black',
+          },
+        }}
+      />
     </AuthProvider>
   );
 };

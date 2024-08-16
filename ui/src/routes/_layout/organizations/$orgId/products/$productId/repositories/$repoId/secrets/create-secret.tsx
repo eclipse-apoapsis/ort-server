@@ -43,7 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -54,12 +54,10 @@ const formSchema = z.object({
 const CreateRepositorySecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   const { mutateAsync, isPending } = useSecretsServicePostSecretForRepository({
     onSuccess(data) {
-      toast({
-        title: 'Create Repository Secret',
+      toast.info('Create Repository Secret', {
         description: `New repository secret "${data.name}" created successfully.`,
       });
       navigate({
@@ -72,10 +70,13 @@ const CreateRepositorySecretPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });

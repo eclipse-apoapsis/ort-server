@@ -46,7 +46,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -62,13 +62,11 @@ type FormSchema = z.infer<typeof formSchema>;
 const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   const { mutateAsync, isPending } =
     useInfrastructureServicesServicePostInfrastructureServiceForOrganization({
       onSuccess(data) {
-        toast({
-          title: 'Create Infrastructure Service',
+        toast.info('Create Infrastructure Service', {
           description: `New infrastructure service "${data.name}" created successfully.`,
         });
         navigate({
@@ -77,10 +75,13 @@ const CreateInfrastructureServicePage = () => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

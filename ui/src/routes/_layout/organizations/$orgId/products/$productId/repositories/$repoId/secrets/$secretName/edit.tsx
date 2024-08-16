@@ -48,7 +48,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const editSecretFormSchema = z.object({
   name: z.string().optional(),
@@ -61,7 +61,6 @@ export type EditSecretFormValues = z.infer<typeof editSecretFormSchema>;
 const EditRepositorySecretPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
@@ -88,8 +87,7 @@ const EditRepositorySecretPage = () => {
   const { mutateAsync: editSecret, isPending } =
     useSecretsServicePatchSecretByRepositoryIdAndName({
       onSuccess(data) {
-        toast({
-          title: 'Edit repository secret',
+        toast.info('Edit Repository Secret', {
           description: `Secret "${data.name}" updated successfully.`,
         });
         navigate({
@@ -102,10 +100,13 @@ const EditRepositorySecretPage = () => {
         });
       },
       onError(error: ApiError) {
-        toast({
-          title: error.message,
+        toast.error(error.message, {
           description: <ToastError error={error} />,
-          variant: 'destructive',
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
         });
       },
     });

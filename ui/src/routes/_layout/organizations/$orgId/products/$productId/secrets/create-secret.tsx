@@ -43,7 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -54,12 +54,10 @@ const formSchema = z.object({
 const CreateProductSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   const { mutateAsync, isPending } = useSecretsServicePostSecretForProduct({
     onSuccess(data) {
-      toast({
-        title: 'Create Product Secret',
+      toast.info('Create Product Secret', {
         description: `New product secret "${data.name}" created successfully.`,
       });
       navigate({
@@ -68,10 +66,13 @@ const CreateProductSecretPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });

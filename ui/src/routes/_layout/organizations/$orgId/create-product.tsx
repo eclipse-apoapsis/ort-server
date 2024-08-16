@@ -44,7 +44,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -54,12 +54,10 @@ const formSchema = z.object({
 const CreateProductPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { toast } = useToast();
 
   const { mutateAsync, isPending } = useProductsServicePostProduct({
     onSuccess(data) {
-      toast({
-        title: 'Create Product',
+      toast.info('Create Product', {
         description: `New product "${data.name}" created successfully.`,
       });
       navigate({
@@ -68,10 +66,13 @@ const CreateProductPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast({
-        title: error.message,
+      toast.error(error.message, {
         description: <ToastError error={error} />,
-        variant: 'destructive',
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
       });
     },
   });
