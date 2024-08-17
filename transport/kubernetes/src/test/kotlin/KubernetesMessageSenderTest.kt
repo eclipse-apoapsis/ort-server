@@ -201,8 +201,12 @@ private fun createJob(
     config: KubernetesSenderConfig,
     msg: Message<AnalyzerRequest> = message
 ): V1Job {
+    val request = mockk<BatchV1Api.APIcreateNamespacedJobRequest> {
+        every { execute() } returns mockk()
+    }
+
     val client = mockk<BatchV1Api> {
-        every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+        every { createNamespacedJob(any(), any()) } returns request
     }
 
     val sender = KubernetesMessageSender(
@@ -217,14 +221,8 @@ private fun createJob(
 
     val job = slot<V1Job>()
     verify(exactly = 1) {
-        client.createNamespacedJob(
-            "test-namespace",
-            capture(job),
-            null,
-            null,
-            null,
-            null
-        )
+        client.createNamespacedJob("test-namespace", capture(job))
+        request.execute()
     }
 
     return job.captured
