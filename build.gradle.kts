@@ -29,7 +29,6 @@ plugins {
     alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.gitSemver)
     alias(libs.plugins.jib) apply false
-    alias(libs.plugins.mavenPublish)
     alias(libs.plugins.versions)
 }
 
@@ -52,50 +51,6 @@ if (version == Project.DEFAULT_VERSION) {
 }
 
 logger.lifecycle("Building ORT Server version $version.")
-
-allprojects {
-    apply(plugin = rootProject.libs.plugins.mavenPublish.get().pluginId)
-
-    mavenPublishing {
-        pom {
-            name = project.name
-            description = "Part of the ORT Server, the reference implementation of Eclipse Apoapsis."
-            url = "https://projects.eclipse.org/projects/technology.apoapsis"
-
-            developers {
-                developer {
-                    name = "The ORT Server Project Authors"
-                }
-            }
-
-            licenses {
-                license {
-                    name = "Apache-2.0"
-                    url = "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            }
-        }
-
-        publishing {
-            repositories {
-                maven {
-                    name = "githubPackages"
-
-                    // The owner and repository need to be configured in the `GITHUB_REPOSITORY` environment variable,
-                    // for example "octocat/Hello-Word". This variable is set by default in GitHub actions, see
-                    // https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables.
-                    url = uri("https://maven.pkg.github.com/${System.getenv("GITHUB_REPOSITORY")}")
-
-                    // Username and password (a personal GitHub access token) should be specified as
-                    // `githubPackagesUsername` and `githubPackagesPassword` Gradle properties or alternatively as
-                    // `ORG_GRADLE_PROJECT_githubPackagesUsername` and `ORG_GRADLE_PROJECT_githubPackagesPassword`
-                    // environment variables.
-                    credentials(PasswordCredentials::class)
-                }
-            }
-        }
-    }
-}
 
 tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
     gradleReleaseChannel = "current"

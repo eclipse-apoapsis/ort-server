@@ -36,4 +36,5 @@ dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.plugin.detekt)
     implementation(libs.plugin.kotlin)
+    implementation(libs.plugin.mavenPublish)
 }
