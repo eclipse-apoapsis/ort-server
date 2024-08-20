@@ -17,27 +17,19 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-# Set default value for UI_URL as the default value does not work for the Docker image which uses a different port.
+# Set default values that work in the Docker Compose environment.
+: "${UI_API_URL:=http://localhost:8080}"
+: "${UI_AUTHORITY:=http://localhost:8081/realms/master}"
+: "${UI_BASEPATH:=/}"
+: "${UI_CLIENT_ID:=ort-server-ui}"
 : "${UI_URL:=http://localhost:8082/}"
 
-# Set the default value for UI_CLIENT_ID to use the Keycloak client with matching root and home URLs.
-: "${UI_CLIENT_ID:=ort-server-ui}"
-
-# Set the default value for UI_BASEPATH.
-: "${UI_BASEPATH:=/}"
-
 # Replace placeholders with actual environment variables in JavaScript files.
-find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_BASEPATH||\"/\"#VITE_BASEPATH||\"$UI_BASEPATH\"#g" {} +
-find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_CLIENT_ID||\"ort-server-ui-dev\"#VITE_CLIENT_ID||\"$UI_CLIENT_ID\"#g" {} +
-find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_UI_URL||\"http://localhost:5173/\"#VITE_UI_URL||\"$UI_URL\"#g" {} +
-
-if [ -n "$UI_API_URL" ]; then
-  find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_API_URL||\"http://localhost:8080\"#VITE_API_URL||\"$UI_API_URL\"#g" {} +
-fi
-
-if [ -n "$UI_AUTHORITY" ]; then
-  find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#VITE_AUTHORITY||\"http://localhost:8081/realms/master\"#VITE_AUTHORITY||\"$UI_AUTHORITY\"#g" {} +
-fi
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_API_URL_PLACEHOLDER#$UI_API_URL#g" {} +
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_AUTHORITY_PLACEHOLDER#$UI_AUTHORITY#g" {} +
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_BASEPATH_PLACEHOLDER#$UI_BASEPATH#g" {} +
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_CLIENT_ID_PLACEHOLDER#$UI_CLIENT_ID#g" {} +
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_URL_PLACEHOLDER#$UI_URL#g" {} +
 
 # Replace placeholders with actual environment variables in the nginx configuration.
 export UI_BASEPATH
