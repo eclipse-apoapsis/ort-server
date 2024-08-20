@@ -64,7 +64,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                             (this.isMetadataOnly eq data.isMetadataOnly) and
                             (this.isModified eq data.isModified)
                 }
-            }.singleOrNull {
+            }.firstOrNull {
                 it.binaryArtifact?.mapToModel() == data.binaryArtifact &&
                         it.sourceArtifact?.mapToModel() == data.sourceArtifact &&
                         it.vcsInfoCurationData?.mapToModel() == data.vcs &&

@@ -46,7 +46,7 @@ class VcsMatcherDao(id: EntityID<Long>) : LongEntity(id) {
                             (url eq vcsMatcher.url) and
                             (revision eq vcsMatcher.revision)
                 }
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(vcsMatcher: VcsMatcher): VcsMatcherDao =
             findByVcsMatcher(vcsMatcher) ?: new {

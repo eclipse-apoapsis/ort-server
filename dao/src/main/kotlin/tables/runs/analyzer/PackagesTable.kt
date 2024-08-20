@@ -64,7 +64,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                         (PackagesTable.homepageUrl eq pkg.homepageUrl) and
                         (PackagesTable.isMetadataOnly eq pkg.isMetadataOnly) and
                         (PackagesTable.isModified eq pkg.isModified)
-            }.singleOrNull {
+            }.firstOrNull {
                 it.identifier.mapToModel() == pkg.identifier &&
                         mapAndCompare(it.authors, pkg.authors, AuthorDao::name) &&
                         mapAndCompare(it.declaredLicenses, pkg.declaredLicenses, DeclaredLicenseDao::name) &&

@@ -45,7 +45,7 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
             RuleViolationResolutionsTable.message eq ruleViolationResolution.message and
                     (RuleViolationResolutionsTable.reason eq ruleViolationResolution.reason) and
                     (RuleViolationResolutionsTable.comment eq ruleViolationResolution.comment)
-        }.singleOrNull()
+        }.firstOrNull()
 
         fun getOrPut(ruleViolationResolution: RuleViolationResolution): RuleViolationResolutionDao =
             findByRuleViolationResolutionDao(ruleViolationResolution) ?: new {

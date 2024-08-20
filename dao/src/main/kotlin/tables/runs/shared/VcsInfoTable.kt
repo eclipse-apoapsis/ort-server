@@ -46,7 +46,7 @@ class VcsInfoDao(id: EntityID<Long>) : LongEntity(id) {
                         (VcsInfoTable.url eq vcsInfo.url) and
                         (VcsInfoTable.revision eq vcsInfo.revision) and
                         (VcsInfoTable.path eq vcsInfo.path)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(vcsInfo: VcsInfo): VcsInfoDao =
             findByVcsInfo(vcsInfo) ?: new {

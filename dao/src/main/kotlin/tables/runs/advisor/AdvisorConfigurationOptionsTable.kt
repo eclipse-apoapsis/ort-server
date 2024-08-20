@@ -41,7 +41,7 @@ class AdvisorConfigurationOptionDao(id: EntityID<Long>) : LongEntity(id) {
                 AdvisorConfigurationOptionsTable.advisor eq advisor and
                         (AdvisorConfigurationOptionsTable.option eq option) and
                         (AdvisorConfigurationOptionsTable.value eq value)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(advisor: String, option: String, value: String): AdvisorConfigurationOptionDao =
             find(advisor, option, value) ?: new {

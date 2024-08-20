@@ -36,7 +36,7 @@ object ToolVersionsTable : LongIdTable("tool_versions") {
 class ToolVersionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ToolVersionDao>(ToolVersionsTable) {
         fun findByNameAndVersion(name: String, version: String): ToolVersionDao? =
-            find { ToolVersionsTable.name eq name and (ToolVersionsTable.version eq version) }.singleOrNull()
+            find { ToolVersionsTable.name eq name and (ToolVersionsTable.version eq version) }.firstOrNull()
 
         fun getOrPut(name: String, version: String): ToolVersionDao =
             findByNameAndVersion(name, version) ?: new {

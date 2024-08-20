@@ -53,7 +53,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
                 ProjectsTable.cpe eq project.cpe and
                         (ProjectsTable.homepageUrl eq project.homepageUrl) and
                         (ProjectsTable.definitionFilePath eq project.definitionFilePath)
-            }.singleOrNull {
+            }.firstOrNull {
                 it.identifier.mapToModel() == project.identifier &&
                         it.authors == project.authors &&
                         it.declaredLicenses == project.declaredLicenses &&

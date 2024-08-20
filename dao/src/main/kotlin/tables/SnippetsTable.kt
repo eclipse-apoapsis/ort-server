@@ -62,7 +62,7 @@ class SnippetDao(id: EntityID<Long>) : LongEntity(id) {
                         (SnippetsTable.endLine eq snippet.location.endLine) and
                         (SnippetsTable.license eq snippet.spdxLicense) and
                         (SnippetsTable.score eq snippet.score)
-            }.singleOrNull {
+            }.firstOrNull {
                 it.mapToModel().provenance == snippet.provenance && it.additionalData?.data == snippet.additionalData
             }
 

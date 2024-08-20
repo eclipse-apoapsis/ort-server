@@ -36,7 +36,7 @@ object VariablesTable : LongIdTable("variables") {
 class VariableDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<VariableDao>(VariablesTable) {
         fun findByNameAndValue(name: String, value: String): VariableDao? =
-            find { VariablesTable.name eq name and (VariablesTable.value eq value) }.singleOrNull()
+            find { VariablesTable.name eq name and (VariablesTable.value eq value) }.firstOrNull()
 
         fun getOrPut(name: String, value: String): VariableDao =
             findByNameAndValue(name, value) ?: new {

@@ -39,7 +39,7 @@ class IdentifierIssueDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 IdentifiersIssuesTable.identifierId eq identifier.id and
                         (IdentifiersIssuesTable.issueId eq issue.id)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(identifier: IdentifierDao, issue: IssueDao): IdentifierIssueDao =
             findByIdentifierAndIssue(identifier, issue) ?: new {

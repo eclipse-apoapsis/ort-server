@@ -39,7 +39,7 @@ class DetectedLicenseMappingDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 DetectedLicenseMappingsTable.license eq licenseMapping.first and
                         (DetectedLicenseMappingsTable.spdxLicense eq licenseMapping.second)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(licenseMapping: Pair<String, String>): DetectedLicenseMappingDao =
             findByDetectedLicenseMapping(licenseMapping) ?: new {

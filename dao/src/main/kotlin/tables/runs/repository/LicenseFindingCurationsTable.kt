@@ -58,7 +58,7 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
                             (reason eq licenseFindingCuration.reason) and
                             (comment eq licenseFindingCuration.comment)
                 }
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(licenseFindingCuration: LicenseFindingCuration): LicenseFindingCurationDao =
             findByLicenseFindingCuration(licenseFindingCuration) ?: new {
