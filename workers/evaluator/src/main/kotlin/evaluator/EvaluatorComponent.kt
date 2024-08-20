@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
@@ -49,21 +50,23 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         val publisher by inject<MessagePublisher>()
         val evaluatorJobId = message.payload.evaluatorJobId
 
-        val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
-            is RunResult.Success -> {
-                logger.info("Evaluator job '$evaluatorJobId' succeeded.")
-                Message(message.header, EvaluatorWorkerResult(evaluatorJobId))
+        withMdcContext("evaluatorJobId" to evaluatorJobId.toString()) {
+            val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
+                is RunResult.Success -> {
+                    logger.info("Evaluator job '$evaluatorJobId' succeeded.")
+                    Message(message.header, EvaluatorWorkerResult(evaluatorJobId))
+                }
+
+                is RunResult.Failed -> {
+                    logger.error("Evaluator job '$evaluatorJobId' failed.", result.error)
+                    Message(message.header, EvaluatorWorkerError(evaluatorJobId))
+                }
+
+                is RunResult.Ignored -> null
             }
 
-            is RunResult.Failed -> {
-                logger.error("Evaluator job '$evaluatorJobId' failed.", result.error)
-                Message(message.header, EvaluatorWorkerError(evaluatorJobId))
-            }
-
-            is RunResult.Ignored -> null
+            if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
-
-        if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
     override fun customModules(): List<Module> =

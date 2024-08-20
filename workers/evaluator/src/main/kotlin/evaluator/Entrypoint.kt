@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.ossreviewtoolkit.utils.common.Os
@@ -32,9 +33,11 @@ private val logger = LoggerFactory.getLogger(EvaluatorComponent::class.java)
  * interfacing on its APIs.
  */
 suspend fun main() {
-    logger.info("Starting ORT-Server Evaluator endpoint.")
+    withMdcContext("component" to "evaluator-worker") {
+        logger.info("Starting ORT-Server Evaluator endpoint.")
 
-    enableOrtStackTraces()
-    Os.fixupUserHomeProperty()
-    EvaluatorComponent().start()
+        enableOrtStackTraces()
+        Os.fixupUserHomeProperty()
+        EvaluatorComponent().start()
+    }
 }

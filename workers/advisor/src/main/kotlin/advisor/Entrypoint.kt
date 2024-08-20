@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.ossreviewtoolkit.utils.common.Os
@@ -32,9 +33,11 @@ private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
  * interfacing on its APIs.
  */
 suspend fun main() {
-    logger.info("Starting ORT-Server Advisor endpoint.")
+    withMdcContext("component" to "advisor-worker") {
+        logger.info("Starting ORT-Server Advisor endpoint.")
 
-    enableOrtStackTraces()
-    Os.fixupUserHomeProperty()
-    AdvisorComponent().start()
+        enableOrtStackTraces()
+        Os.fixupUserHomeProperty()
+        AdvisorComponent().start()
+    }
 }
