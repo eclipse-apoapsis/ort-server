@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule
@@ -49,23 +50,25 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
     override val endpointHandler: EndpointHandler<AnalyzerRequest> = { message ->
         val analyzerWorker by inject<AnalyzerWorker>()
         val publisher by inject<MessagePublisher>()
-
         val jobId = message.payload.analyzerJobId
-        val response = when (val result = runBlocking { analyzerWorker.run(jobId, message.header.traceId) }) {
-            is RunResult.Success -> {
-                logger.info("Analyzer job '$jobId' succeeded.")
-                Message(message.header, AnalyzerWorkerResult(jobId))
+
+        withMdcContext("analyzerJobId" to jobId.toString()) {
+            val response = when (val result = runBlocking { analyzerWorker.run(jobId, message.header.traceId) }) {
+                is RunResult.Success -> {
+                    logger.info("Analyzer job '$jobId' succeeded.")
+                    Message(message.header, AnalyzerWorkerResult(jobId))
+                }
+
+                is RunResult.Failed -> {
+                    logger.error("Analyzer job '$jobId' failed.", result.error)
+                    Message(message.header, AnalyzerWorkerError(jobId))
+                }
+
+                is RunResult.Ignored -> null
             }
 
-            is RunResult.Failed -> {
-                logger.error("Analyzer job '$jobId' failed.", result.error)
-                Message(message.header, AnalyzerWorkerError(jobId))
-            }
-
-            is RunResult.Ignored -> null
+            if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
-
-        if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
     override fun customModules(): List<Module> = listOf(

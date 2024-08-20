@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.ossreviewtoolkit.utils.common.Os
@@ -32,9 +33,11 @@ private val logger = LoggerFactory.getLogger(ScannerComponent::class.java)
  * interfacing on its APIs.
  */
 suspend fun main() {
-    logger.info("Starting ORT-Server Scanner endpoint.")
+    withMdcContext("component" to "scanner-worker") {
+        logger.info("Starting ORT-Server Scanner endpoint.")
 
-    enableOrtStackTraces()
-    Os.fixupUserHomeProperty()
-    ScannerComponent().start()
+        enableOrtStackTraces()
+        Os.fixupUserHomeProperty()
+        ScannerComponent().start()
+    }
 }

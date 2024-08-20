@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
     implementation(platform(libs.ortPackageConfigurationProviders))

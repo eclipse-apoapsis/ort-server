@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common")

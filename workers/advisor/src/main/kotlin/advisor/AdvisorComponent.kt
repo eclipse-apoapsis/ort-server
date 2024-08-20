@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
@@ -56,21 +57,23 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
 
         val advisorJobId = message.payload.advisorJobId
 
-        val response = when (val result = advisorWorker.run(advisorJobId, message.header.traceId)) {
-            is RunResult.Success -> {
-                logger.info("Advisor job '$advisorJobId' succeeded.")
-                Message(message.header, AdvisorWorkerResult(advisorJobId))
+        withMdcContext("advisorJobId" to advisorJobId.toString()) {
+            val response = when (val result = advisorWorker.run(advisorJobId, message.header.traceId)) {
+                is RunResult.Success -> {
+                    logger.info("Advisor job '$advisorJobId' succeeded.")
+                    Message(message.header, AdvisorWorkerResult(advisorJobId))
+                }
+
+                is RunResult.Failed -> {
+                    logger.error("Advisor job '$advisorJobId' failed.", result.error)
+                    Message(message.header, AdvisorWorkerError(advisorJobId))
+                }
+
+                is RunResult.Ignored -> null
             }
 
-            is RunResult.Failed -> {
-                logger.error("Advisor job '$advisorJobId' failed.", result.error)
-                Message(message.header, AdvisorWorkerError(advisorJobId))
-            }
-
-            is RunResult.Ignored -> null
+            if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
-
-        if (response != null) publisher.publish(OrchestratorEndpoint, response)
     }
 
     override fun customModules(): List<Module> =
