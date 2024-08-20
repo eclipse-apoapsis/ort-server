@@ -27,6 +27,9 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.Envelope
 
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
@@ -42,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 /**
  * Implementation of the [MessageReceiverFactory] interface for RabbitMQ.
@@ -79,6 +83,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
             setUri(rabbitMqConfig.serverUri)
             username = rabbitMqConfig.username
             password = rabbitMqConfig.password
+            threadFactory = MdcThreadFactory(Executors.defaultThreadFactory())
         }
         connectionFactory.newConnection().use { connection ->
             val channel = connection.createChannel()
@@ -140,4 +145,22 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
             }
         }
     }
+}
+
+/**
+ * A wrapper for the provided [delegate] [ThreadFactory] which sets the MDC context map of the current thread to the
+ * context map of the thread that is created by the delegate.
+ */
+class MdcThreadFactory(private val delegate: ThreadFactory) : ThreadFactory {
+    private val mdcContext: Map<String, String>? = MDC.getCopyOfContextMap()
+
+    override fun newThread(runnable: Runnable): Thread =
+        delegate.newThread {
+            try {
+                MDC.setContextMap(mdcContext)
+                runnable.run()
+            } finally {
+                MDC.clear()
+            }
+        }
 }
