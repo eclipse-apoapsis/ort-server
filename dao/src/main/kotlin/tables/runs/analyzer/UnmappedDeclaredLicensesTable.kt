@@ -35,7 +35,7 @@ object UnmappedDeclaredLicensesTable : LongIdTable("unmapped_declared_licenses")
 class UnmappedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<UnmappedDeclaredLicenseDao>(UnmappedDeclaredLicensesTable) {
         fun findByLicense(unmappedLicense: String): UnmappedDeclaredLicenseDao? =
-            find { UnmappedDeclaredLicensesTable.unmappedLicense eq unmappedLicense }.singleOrNull()
+            find { UnmappedDeclaredLicensesTable.unmappedLicense eq unmappedLicense }.firstOrNull()
 
         fun getOrPut(unmappedLicense: String): UnmappedDeclaredLicenseDao =
             findByLicense(unmappedLicense) ?: new { this.unmappedLicense = unmappedLicense }

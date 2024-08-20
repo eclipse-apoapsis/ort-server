@@ -64,7 +64,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
                                 ) and
                         (InfrastructureServicesTable.organizationId eq service.organization?.id) and
                         (InfrastructureServicesTable.productId eq service.product?.id)
-            }.singleOrNull()
+            }.firstOrNull()
 
         /**
          * Return an entity with properties matching the ones of the given [service]. If no such entity exists yet, a

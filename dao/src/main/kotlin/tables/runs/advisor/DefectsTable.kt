@@ -60,7 +60,7 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
                         (DefectsTable.closingTime eq defect.closingTime) and
                         (DefectsTable.fixReleaseVersion eq defect.fixReleaseVersion) and
                         (DefectsTable.fixReleaseUrl eq defect.fixReleaseUrl)
-            }.singleOrNull { dao ->
+            }.firstOrNull { dao ->
                 dao.description == defect.description &&
                         dao.labels.associate { it.key to it.value } == defect.labels
             }

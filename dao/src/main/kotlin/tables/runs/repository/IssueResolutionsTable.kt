@@ -43,7 +43,7 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
                 IssueResolutionsTable.message eq issueResolution.message and
                         (IssueResolutionsTable.reason eq issueResolution.reason) and
                         (IssueResolutionsTable.comment eq issueResolution.comment)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(issueResolution: IssueResolution): IssueResolutionDao =
             findByIssueResolution(issueResolution) ?: new {

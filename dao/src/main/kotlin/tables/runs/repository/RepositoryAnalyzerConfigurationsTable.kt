@@ -52,7 +52,7 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
                         (this.disabledPackageManagers eq config.disabledPackageManagers?.joinToString(",")) and
                         (this.skipExcluded eq config.skipExcluded)
             }
-        }.singleOrNull { dao ->
+        }.firstOrNull { dao ->
             dao.packageManagerConfigurations.associate { it.name to it.mapToModel() } == config.packageManagers
         }
 

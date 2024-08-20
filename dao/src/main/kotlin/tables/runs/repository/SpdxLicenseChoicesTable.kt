@@ -41,7 +41,7 @@ class SpdxLicenseChoiceDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 SpdxLicenseChoicesTable.given eq spdxLicenseChoice.given and
                         (SpdxLicenseChoicesTable.choice eq spdxLicenseChoice.choice)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(spdxLicenseChoice: SpdxLicenseChoice): SpdxLicenseChoiceDao =
             findBySpdxLicenseChoice(spdxLicenseChoice) ?: new {

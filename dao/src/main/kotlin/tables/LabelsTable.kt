@@ -36,7 +36,7 @@ object LabelsTable : LongIdTable("labels") {
 class LabelDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<LabelDao>(LabelsTable) {
         private fun findByKeyAndValue(key: String, value: String): LabelDao? =
-            LabelDao.find { LabelsTable.key eq key and (LabelsTable.value eq value) }.singleOrNull()
+            LabelDao.find { LabelsTable.key eq key and (LabelsTable.value eq value) }.firstOrNull()
 
         fun getOrPut(key: String, value: String): LabelDao =
             findByKeyAndValue(key, value) ?: LabelDao.new {

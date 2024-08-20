@@ -43,7 +43,7 @@ class RemoteArtifactDao(id: EntityID<Long>) : LongEntity(id) {
                 RemoteArtifactsTable.url eq artifact.url and
                         (RemoteArtifactsTable.hashValue eq artifact.hashValue) and
                         (RemoteArtifactsTable.hashAlgorithm eq artifact.hashAlgorithm)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(artifact: RemoteArtifact): RemoteArtifactDao =
             findByRemoteArtifact(artifact) ?: new {

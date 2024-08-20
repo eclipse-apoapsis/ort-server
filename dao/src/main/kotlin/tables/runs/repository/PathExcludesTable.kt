@@ -44,7 +44,7 @@ class PathExcludeDao(id: EntityID<Long>) : LongEntity(id) {
                 PathExcludesTable.pattern eq pathExclude.pattern and
                         (PathExcludesTable.reason eq pathExclude.reason) and
                         (PathExcludesTable.comment eq pathExclude.comment)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(pathExclude: PathExclude): PathExcludeDao =
             findByPathExclude(pathExclude) ?: new {

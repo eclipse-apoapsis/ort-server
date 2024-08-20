@@ -40,7 +40,7 @@ class DeclaredLicenseMappingDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 DeclaredLicenseMappingsTable.license eq license and
                         (DeclaredLicenseMappingsTable.spdxLicense eq spdxLicense)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(license: String, spdxLicense: String): DeclaredLicenseMappingDao =
             findByDeclaredLicenseMap(license, spdxLicense) ?: new {

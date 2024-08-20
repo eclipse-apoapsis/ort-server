@@ -42,7 +42,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 VulnerabilitiesTable.externalId eq vulnerability.externalId and
                         (VulnerabilitiesTable.summary eq vulnerability.summary)
-            }.singleOrNull {
+            }.firstOrNull {
                 it.description == vulnerability.description &&
                         it.references.map(VulnerabilityReferenceDao::mapToModel) == vulnerability.references
             }

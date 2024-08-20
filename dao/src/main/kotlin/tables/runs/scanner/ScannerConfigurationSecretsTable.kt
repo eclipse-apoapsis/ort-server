@@ -43,7 +43,7 @@ class ScannerConfigurationSecretDao(id: EntityID<Long>) : LongEntity(id) {
                 ScannerConfigurationSecretsTable.scanner eq scanner and
                         (ScannerConfigurationSecretsTable.secret eq secret) and
                         (ScannerConfigurationSecretsTable.value eq value)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(scanner: String, secret: String, value: String): ScannerConfigurationSecretDao =
             find(scanner, secret, value) ?: new {

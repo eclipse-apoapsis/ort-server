@@ -45,7 +45,7 @@ class PackageConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByPackageConfiguration(packageConfiguration: PackageConfiguration): PackageConfigurationDao? =
             find {
                 PackageConfigurationsTable.sourceArtifactUrl eq packageConfiguration.sourceArtifactUrl
-            }.singleOrNull {
+            }.firstOrNull {
                 it.identifier.mapToModel() == packageConfiguration.id &&
                         it.vcsMatcher?.mapToModel() == packageConfiguration.vcs &&
                         it.pathExcludes.map(PathExcludeDao::mapToModel) == packageConfiguration.pathExcludes &&

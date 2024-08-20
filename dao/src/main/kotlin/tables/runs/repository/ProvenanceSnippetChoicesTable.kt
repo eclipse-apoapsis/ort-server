@@ -46,7 +46,7 @@ class SnippetChoicesDao(id: EntityID<Long>) : LongEntity(id) {
                 with(ProvenanceSnippetChoicesTable) {
                     provenance eq provenanceSnippetChoices.provenance.url
                 }
-            }.singleOrNull {
+            }.firstOrNull {
                 it.choices.map(ChoicesDao::mapToModel) == provenanceSnippetChoices.choices
             }
 

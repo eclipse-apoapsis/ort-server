@@ -48,7 +48,7 @@ class VcsInfoCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                             (revision eq vcsCurationData.revision) and
                             (path eq vcsCurationData.path)
                 }
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(vcsCurationData: VcsInfoCurationData): VcsInfoCurationDataDao =
             findByVcsInfoCurationData(vcsCurationData) ?: new {

@@ -43,7 +43,7 @@ class ScopeExcludeDao(id: EntityID<Long>) : LongEntity(id) {
                 ScopeExcludesTable.pattern eq scopeExclude.pattern and
                         (ScopeExcludesTable.reason eq scopeExclude.reason) and
                         (ScopeExcludesTable.comment eq scopeExclude.comment)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(scopeExclude: ScopeExclude): ScopeExcludeDao =
             findByScopeExclude(scopeExclude) ?: new {

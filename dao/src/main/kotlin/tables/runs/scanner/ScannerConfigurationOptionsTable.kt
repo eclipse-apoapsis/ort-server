@@ -41,7 +41,7 @@ class ScannerConfigurationOptionDao(id: EntityID<Long>) : LongEntity(id) {
                 ScannerConfigurationOptionsTable.scanner eq scanner and
                         (ScannerConfigurationOptionsTable.option eq option) and
                         (ScannerConfigurationOptionsTable.value eq value)
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(scanner: String, option: String, value: String): ScannerConfigurationOptionDao =
             find(scanner, option, value) ?: new {

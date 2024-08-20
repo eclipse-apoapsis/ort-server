@@ -63,7 +63,7 @@ class ChoicesDao(id: EntityID<Long>) : LongEntity(id) {
                             (choiceReason eq snippetChoice.choice.reason.name) and
                             (choiceComment eq snippetChoice.choice.comment)
                 }
-            }.singleOrNull()
+            }.firstOrNull()
 
         fun getOrPut(snippetChoice: SnippetChoice): ChoicesDao =
             findBySnippetChoice(snippetChoice) ?: new {
