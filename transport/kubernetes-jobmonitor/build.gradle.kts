@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)

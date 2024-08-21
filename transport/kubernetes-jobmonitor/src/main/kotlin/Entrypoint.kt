@@ -21,6 +21,10 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor
 
 import kotlinx.coroutines.runBlocking
 
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
+
 fun main() = runBlocking {
-    MonitorComponent().start()
+    withMdcContext("component" to "kubernetes-jobmonitor") {
+        MonitorComponent().start()
+    }
 }
