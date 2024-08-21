@@ -63,6 +63,7 @@ dependencies {
     implementation(projects.services.secretService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.logging)
 
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)

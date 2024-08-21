@@ -23,9 +23,13 @@ import io.ktor.server.application.Application
 
 import org.eclipse.apoapsis.ortserver.core.plugins.*
 
+import org.slf4j.MDC
+
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
 fun Application.module() {
+    MDC.put("component", "core")
+
     configureKoin()
     configureAuthentication()
     configureLifecycle()

@@ -34,5 +34,10 @@ fun Application.configureMonitoring() {
                 startsWith("/") && !contains("/liveness")
             }
         }
+
+        mdc("component") { "core" }
+        mdc("organizationId") { it.request.queryParameters["repositoryId"] }
+        mdc("productId") { it.request.queryParameters["repositoryId"] }
+        mdc("repositoryId") { it.request.queryParameters["repositoryId"] }
     }
 }
