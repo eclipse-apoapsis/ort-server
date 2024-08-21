@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.logging)
 
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.transport.activemqartemis)
