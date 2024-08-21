@@ -33,6 +33,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
 
@@ -158,17 +159,22 @@ internal class JobHandler(
      */
     suspend fun deleteAndNotifyIfFailed(job: V1Job) {
         job.metadata?.name?.takeIf { canProcess(it) }?.let { jobName ->
-            runCatching {
-                if (job.isFailed()) {
-                    logger.info("Detected a failed job '{}'.", jobName)
-                    logger.debug("Details of the failed job: {}", job)
+            withMdcContext(
+                "traceId" to (job.traceId().takeIf { it.isNotEmpty() } ?: "unknown"),
+                "ortRunId" to (job.ortRunId?.toString() ?: "unknown")
+            ) {
+                runCatching {
+                    if (job.isFailed()) {
+                        logger.info("Detected a failed job '{}'.", jobName)
+                        logger.debug("Details of the failed job: {}", job)
 
-                    notifier.sendFailedJobNotification(job)
+                        notifier.sendFailedJobNotification(job)
+                    }
+                }.onFailure { exception ->
+                    logger.error("Failed to notify about failed job: '{}'.", jobName, exception)
+                }.onSuccess {
+                    deleteJob(jobName)
                 }
-            }.onFailure { exception ->
-                logger.error("Failed to notify about failed job: '{}'.", jobName, exception)
-            }.onSuccess {
-                deleteJob(jobName)
             }
         }
     }

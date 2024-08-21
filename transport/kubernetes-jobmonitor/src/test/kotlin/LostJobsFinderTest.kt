@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
@@ -84,6 +85,13 @@ class LostJobsFinderTest : StringSpec({
         val reporterJobRepo = repositoryMock<ReporterJob, ReporterJobRepository>(reporterJobs)
         val notifierJobRepo = repositoryMock<NotifierJob, NotifierJobRepository>(notifierJobs)
 
+        val ortRunRepo = mockk<OrtRunRepository> {
+            every { get(any<Long>()) } returns mockk {
+                every { id } answers { arg(0) }
+                every { traceId } returns ""
+            }
+        }
+
         val notifier = mockk<FailedJobNotifier> {
             every { sendLostJobNotification(any(), any()) } just runs
         }
@@ -103,6 +111,7 @@ class LostJobsFinderTest : StringSpec({
             evaluatorJobRepo,
             reporterJobRepo,
             notifierJobRepo,
+            ortRunRepo,
             testTimeHelper
         )
 

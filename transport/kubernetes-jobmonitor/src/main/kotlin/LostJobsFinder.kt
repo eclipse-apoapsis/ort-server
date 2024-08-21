@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
@@ -36,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
 
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 /**
  * A class that periodically checks for jobs that have disappeared in Kubernetes.
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory
  * (anymore) in Kubernetes. For such jobs, it sends a notification to the Orchestrator, to give it the chance to act
  * accordingly.
  */
+@Suppress("LongParameterList")
 internal class LostJobsFinder(
     /** The object to query and manipulate jobs. */
     private val jobHandler: JobHandler,
@@ -77,6 +80,9 @@ internal class LostJobsFinder(
 
     /** The repository for Notifier jobs. */
     notifierJobRepository: NotifierJobRepository,
+
+    /** The repository for ORT runs. */
+    val ortRunRepository: OrtRunRepository,
 
     /** The object to determine the current time and the age of jobs. */
     private val timeHelper: TimeHelper
@@ -134,7 +140,14 @@ internal class LostJobsFinder(
             logger.warn("Found ${lostJobs.size} lost jobs for ${endpoint.configPrefix}.")
             logger.debug("Lost jobs: {}", lostJobs)
 
-            lostJobs.forEach { notifier.sendLostJobNotification(it.ortRunId, endpoint) }
+            lostJobs.forEach {
+                val ortRun = ortRunRepository.get(it.ortRunId)
+
+                MDC.put("traceId", ortRun?.traceId ?: "unknown")
+                MDC.put("ortRunId", it.ortRunId.toString())
+
+                notifier.sendLostJobNotification(it.ortRunId, endpoint)
+            }
         }
     }
 }
