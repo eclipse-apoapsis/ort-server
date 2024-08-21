@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceSubRepositoryDao
@@ -40,6 +38,7 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceStorage
+import org.ossreviewtoolkit.utils.ort.runBlocking
 
 class OrtServerNestedProvenanceStorage(
     private val db: Database,
