@@ -33,8 +33,6 @@ import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import java.util.EnumSet
-
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
@@ -153,20 +151,22 @@ internal suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handle
 }
 
 /**
- * Extract the parameter for the log level from this [ApplicationCall]. If this parameter is missing, return the
- * default [LogLevel.INFO]. If an invalid log level name is specified, throw a meaningful exception.
+ * Extract the parameter for the log level from this [ApplicationCall]. If this parameter is missing or empty, return
+ * the default [LogLevel.INFO]. If an invalid log level name is specified, throw a meaningful exception.
  */
 private fun ApplicationCall.extractLevel(): LogLevel =
-    parameters["level"]?.let { findByName<LogLevel>(it) } ?: LogLevel.INFO
+    parameters["level"]?.takeUnless { it.isEmpty() }?.let { findByName<LogLevel>(it) } ?: LogLevel.INFO
 
 /**
  * Extract the parameter for the steps for which logs are to be retrieved from this [ApplicationCall]. If this
- * parameter is missing, the logs for all workers are retrieved. Otherwise, it is interpreted as a comma-delimited
- * list of [LogSource] constants. If an invalid worker name is specified, throw a meaningful exception.
+ * parameter is missing or empty, the logs for all workers are retrieved. Otherwise, it is interpreted as a
+ * comma-delimited list of [LogSource] constants. If an invalid worker name is specified, throw a meaningful exception.
  */
 private fun ApplicationCall.extractSteps(): Set<LogSource> =
-    parameters["steps"]?.split(",")?.mapTo(mutableSetOf()) { findByName<LogSource>(it) }
-        ?: EnumSet.allOf(LogSource::class.java)
+    parameters["steps"]?.split(',').orEmpty()
+        .map { findByName<LogSource>(it) }
+        .ifEmpty { LogSource.entries }
+        .toSet()
 
 /**
  * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
