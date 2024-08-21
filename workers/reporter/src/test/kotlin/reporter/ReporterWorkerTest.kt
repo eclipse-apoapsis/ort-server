@@ -167,7 +167,7 @@ class ReporterWorkerTest : StringSpec({
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", "Test severity"))
         )
         val runner = mockk<ReporterRunner> {
-            every {
+            coEvery {
                 run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration)
             } returns runnerResult
         }

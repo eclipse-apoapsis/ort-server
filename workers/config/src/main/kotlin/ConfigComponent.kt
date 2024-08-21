@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
@@ -49,7 +47,7 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
         val publisher by inject<MessagePublisher>()
 
         val runId = message.payload.ortRunId
-        val responsePayload = when (val result = runBlocking { configWorker.run(runId) }) {
+        val responsePayload = when (val result = configWorker.run(runId)) {
             is RunResult.Success -> {
                 logger.info("Config worker job succeeded for run '$runId'.")
                 ConfigWorkerResult(runId)

@@ -24,6 +24,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,7 +32,6 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkAll
-import io.mockk.verify
 
 import kotlinx.datetime.Clock
 
@@ -123,7 +123,7 @@ class AdvisorWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 runner.run(context, ortResult, advisorJob.configuration)
                 ortRunService.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
             }

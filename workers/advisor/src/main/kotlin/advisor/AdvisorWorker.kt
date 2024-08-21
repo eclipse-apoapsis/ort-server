@@ -43,7 +43,7 @@ internal class AdvisorWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAdvisorJob(jobId)
         val workerContext = contextFactory.createContext(job.ortRunId)
         val ortRun = workerContext.ortRun
