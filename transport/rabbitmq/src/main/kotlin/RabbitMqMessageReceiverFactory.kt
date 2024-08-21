@@ -33,9 +33,10 @@ import java.util.concurrent.ThreadFactory
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.slf4j.MDCContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -138,7 +139,13 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                         )
                     }
 
-                    trySendBlocking(message)
+                    // Inline kotlinx.coroutines.channels.trySendBlocking as the function calls runBlocking internally
+                    // without preserving the MDC context.
+                    if (!trySend(message).isSuccess) {
+                        runBlocking(MDCContext()) {
+                            send(message)
+                        }
+                    }
                 }.onFailure {
                     logger.error("Error during message processing.", it)
                 }
