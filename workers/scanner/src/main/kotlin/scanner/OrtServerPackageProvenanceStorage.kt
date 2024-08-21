@@ -22,8 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
@@ -51,6 +49,7 @@ import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceStorage
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
+import org.ossreviewtoolkit.utils.ort.runBlocking
 
 /**
  * An ORT Server specific implementation of the `PackageProvenanceStorage`. Read and put package provenances are
