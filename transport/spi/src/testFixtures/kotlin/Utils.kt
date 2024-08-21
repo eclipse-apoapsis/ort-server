@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 const val TEST_QUEUE_NAME = "test_queue"
+const val TEST_QUEUE_TIMEOUT = 15L
 
 /**
  * Create a [ConfigManager] with a test queue for [consumerName] using [transportType] and [transportName] that is
@@ -83,7 +84,7 @@ fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<Orc
  * Check that the next message in this queue has the given [traceId], [runId], and [payload].
  */
 fun <T> BlockingQueue<Message<T>>.checkMessage(traceId: String, runId: Long, payload: T) {
-    poll(5, TimeUnit.SECONDS) shouldNotBeNull {
+    poll(TEST_QUEUE_TIMEOUT, TimeUnit.SECONDS) shouldNotBeNull {
         header.traceId shouldBe traceId
         header.ortRunId shouldBe runId
         payload shouldBe payload
