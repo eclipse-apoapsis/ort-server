@@ -26,6 +26,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.utils"
 
 dependencies {
+    api(libs.kotlinxCoroutines)
+
     implementation(libs.kotlinxCoroutinesSlf4j)
     implementation(libs.slf4j)
 
