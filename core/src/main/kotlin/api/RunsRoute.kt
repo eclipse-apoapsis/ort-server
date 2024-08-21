@@ -172,12 +172,8 @@ private fun ApplicationCall.extractSteps(): Set<LogSource> =
  * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
  * resolved.
  */
-private inline fun <reified E : Enum<E>> findByName(name: String): E {
-    val nameUpper = name.uppercase()
-    val values = enumValues<E>()
-
-    return values.find { it.name == nameUpper } ?: throw QueryParametersException(
+private inline fun <reified E : Enum<E>> findByName(name: String): E =
+    runCatching { enumValueOf<E>(name.uppercase()) }.getOrNull() ?: throw QueryParametersException(
         "Invalid parameter value: '$name'. Allowed values are: " +
-                values.joinToString(", ") { "'$it'" }
+                enumValues<E>().joinToString { "'$it'" }
     )
-}
