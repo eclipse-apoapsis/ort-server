@@ -61,10 +61,14 @@ const RunComponent = () => {
       }),
   });
 
-  const downloadLogs = async (runId: number) => {
+  const downloadLogs = async (
+    runId: number,
+    level: string = '',
+    steps: string = ''
+  ) => {
     try {
       const response = await fetch(
-        `${OpenAPI.BASE}/api/v1/runs/${runId}/logs`,
+        `${OpenAPI.BASE}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
         {
           headers: {
             Authorization: `Bearer ${OpenAPI.TOKEN}`,
@@ -214,7 +218,13 @@ const RunComponent = () => {
               <TableCell>Logs</TableCell>
               <TableCell>
                 <Button
-                  onClick={() => downloadLogs(ortRun.id)}
+                  onClick={() => {
+                    // Get the list of steps that were run to only request logs for those steps. The `config` step is
+                    // always run implicitly and not part of the jobs, so add that manually.
+                    const jobNames = Object.keys(ortRun.jobs).concat('config');
+
+                    downloadLogs(ortRun.id, '', jobNames.join(','));
+                  }}
                   variant='outline'
                   className='font-semibold text-blue-400'
                 >
