@@ -24,6 +24,8 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.request.path
 
+import java.util.UUID
+
 import org.slf4j.event.Level
 
 fun Application.configureMonitoring() {
@@ -36,6 +38,7 @@ fun Application.configureMonitoring() {
         }
 
         mdc("component") { "core" }
+        mdc("traceId") { UUID.randomUUID().toString() }
         mdc("organizationId") { it.request.queryParameters["repositoryId"] }
         mdc("productId") { it.request.queryParameters["repositoryId"] }
         mdc("repositoryId") { it.request.queryParameters["repositoryId"] }
