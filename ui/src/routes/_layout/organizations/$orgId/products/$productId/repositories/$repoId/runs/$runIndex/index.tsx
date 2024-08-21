@@ -75,7 +75,7 @@ const RunComponent = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'logs.zip';
+      a.download = `logs-global-run-${runId}.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
