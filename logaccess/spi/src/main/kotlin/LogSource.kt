@@ -40,5 +40,8 @@ enum class LogSource {
     EVALUATOR,
 
     /** Log source for the Reporter worker. */
-    REPORTER
+    REPORTER,
+
+    /** Log source for the Notifier worker. */
+    NOTIFIER
 }
