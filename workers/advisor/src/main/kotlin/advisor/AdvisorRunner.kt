@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -37,24 +35,23 @@ internal class AdvisorRunner {
         private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
     }
 
-    fun run(context: WorkerContext, ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult =
-        runBlocking {
-            logger.info("Advisor run with these advisors: '{}'.", config.advisors)
+    suspend fun run(context: WorkerContext, ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult {
+        logger.info("Advisor run with these advisors: '{}'.", config.advisors)
 
-            val providerFactories = config.advisors.mapNotNull { AdviceProviderFactory.ALL[it] }
-            if (providerFactories.size < config.advisors.size) {
-                val invalidAdvisors = config.advisors.filter { it !in AdviceProviderFactory.ALL }
-                logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
-            }
-
-            val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
-            val advisorConfig = AdvisorConfiguration(
-                config.skipExcluded,
-                pluginConfigs.mapValues { it.value.mapToOrt() }
-            )
-
-            val advisor = Advisor(providerFactories, advisorConfig)
-
-            advisor.advise(ortResult, config.skipExcluded)
+        val providerFactories = config.advisors.mapNotNull { AdviceProviderFactory.ALL[it] }
+        if (providerFactories.size < config.advisors.size) {
+            val invalidAdvisors = config.advisors.filter { it !in AdviceProviderFactory.ALL }
+            logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
         }
+
+        val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
+        val advisorConfig = AdvisorConfiguration(
+            config.skipExcluded,
+            pluginConfigs.mapValues { it.value.mapToOrt() }
+        )
+
+        val advisor = Advisor(providerFactories, advisorConfig)
+
+        return advisor.advise(ortResult, config.skipExcluded)
+    }
 }

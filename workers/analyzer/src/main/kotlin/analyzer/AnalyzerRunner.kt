@@ -26,7 +26,6 @@ import java.io.File
 import java.io.IOException
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -146,9 +145,7 @@ class AnalyzerRunner(
         config: AnalyzerJobConfiguration,
         environmentConfig: ResolvedEnvironmentConfig
     ): OrtResult {
-        val packageCurationProviderConfigs = runBlocking {
-            context.resolveProviderPluginConfigSecrets(config.packageCurationProviders)
-        }
+        val packageCurationProviderConfigs = context.resolveProviderPluginConfigSecrets(config.packageCurationProviders)
         val resolvedConfig = config.copy(packageCurationProviders = packageCurationProviderConfigs)
 
         return if (environmentConfig.environmentVariables.isEmpty()) {

@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
@@ -95,7 +94,7 @@ class ReporterRunner(
     /** The file archiver used for resolving license files. */
     private val fileArchiver: FileArchiver
 ) {
-    fun run(
+    suspend fun run(
         runId: Long,
         ortResult: OrtResult,
         config: ReporterJobConfiguration,
@@ -131,10 +130,10 @@ class ReporterRunner(
                     val repositoryPackageConfigurations = resolvedOrtResult.repository.config.packageConfigurations
                     add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
 
-                    val packageConfigurationProviderConfigs = runBlocking {
-                        context.resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
-                            .map { it.mapToOrt() }
-                    }
+                    val packageConfigurationProviderConfigs = context
+                        .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                        .map { it.mapToOrt() }
+
                     addAll(
                         PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
                             .map { it.second }
@@ -174,7 +173,7 @@ class ReporterRunner(
             val outputDir = context.createTempDir()
             val issues = mutableListOf<Issue>()
 
-            val successes = runBlocking(Dispatchers.IO) {
+            val successes = withContext(Dispatchers.IO) {
                 val deferredTransformedOptions = async { processReporterOptions(context, config) }
 
                 val deferredReporterInput = async {

@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
@@ -47,7 +45,7 @@ class ScannerWorker(
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.blockingQuery {
             var job = getValidScannerJob(jobId)
             val ortRun = ortRunService.getOrtRun(job.ortRunId)
@@ -75,9 +73,7 @@ class ScannerWorker(
 
         val context = contextFactory.createContext(scannerJob.ortRunId)
 
-        runBlocking {
-            environmentService.generateNetRcFileForCurrentRun(context)
-        }
+        environmentService.generateNetRcFileForCurrentRun(context)
 
         val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 

@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
@@ -53,7 +51,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         val jobId = message.payload.analyzerJobId
 
         withMdcContext("analyzerJobId" to jobId.toString()) {
-            val response = when (val result = runBlocking { analyzerWorker.run(jobId, message.header.traceId) }) {
+            val response = when (val result = analyzerWorker.run(jobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Analyzer job '$jobId' succeeded.")
                     Message(message.header, AnalyzerWorkerResult(jobId))

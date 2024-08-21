@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -48,13 +46,13 @@ class ScannerRunner(
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
-    fun run(
+    suspend fun run(
         context: WorkerContext,
         ortResult: OrtResult,
         config: ScannerJobConfiguration,
         scannerRunId: Long
     ): OrtResult {
-        val pluginConfigs = runBlocking { context.resolvePluginConfigSecrets(config.config) }
+        val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
 
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
@@ -115,9 +113,9 @@ class ScannerRunner(
                 fileListStorage = fileListStorage
             )
 
-            return runBlocking { scanner.scan(ortResult, config.skipExcluded, emptyMap()) }
+            return scanner.scan(ortResult, config.skipExcluded, emptyMap())
         } finally {
-            runBlocking { workingTreeCache.shutdown() }
+            workingTreeCache.shutdown()
         }
     }
 }

@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
@@ -49,7 +48,7 @@ internal class ReporterWorker(
     private val ortRunService: OrtRunService,
     private val linkGenerator: ReportDownloadLinkGenerator
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidReporterJob(jobId)
         val ortRun = ortRunService.getOrtRun(job.ortRunId)
         requireNotNull(ortRun) {
@@ -65,7 +64,7 @@ internal class ReporterWorker(
          * TODO: Find a better solution which would allow to set up environment only for a specific reporter if needed.
          */
         val context = contextFactory.createContext(job.ortRunId)
-        runBlocking { environmentService.generateNetRcFileForCurrentRun(context) }
+        environmentService.generateNetRcFileForCurrentRun(context)
 
         val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = true)
 

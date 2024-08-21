@@ -116,7 +116,7 @@ class ScannerWorkerTest : StringSpec({
         )
 
         val runner = mockk<ScannerRunner> {
-            every { run(context, any(), any(), any()) } returns mockk {
+            coEvery { run(context, any(), any(), any()) } returns mockk {
                 every { scanner } returns ortScannerRun
             }
         }

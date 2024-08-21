@@ -43,7 +43,7 @@ internal class EvaluatorWorker(
     private val ortRunService: OrtRunService,
     private val workerContextFactory: WorkerContextFactory
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidEvaluatorJob(jobId)
         val workerContext = workerContextFactory.createContext(job.ortRunId)
         val ortRun = workerContext.ortRun

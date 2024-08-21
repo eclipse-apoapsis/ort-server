@@ -27,7 +27,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockkClass
 
 import kotlin.time.Duration.Companion.days
@@ -97,7 +97,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
         "A message to create a project report should be processed" {
             runEndpointTest {
                 declareMock<ReporterWorker> {
-                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Success
+                    coEvery { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Success
                 }
 
                 sendReporterRequest()
@@ -111,7 +111,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
         "An error message should be sent back in case of a processing error" {
             runEndpointTest {
                 declareMock<ReporterWorker> {
-                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns
+                    coEvery { run(REPORTER_JOB_ID, TRACE_ID) } returns
                             RunResult.Failed(IllegalStateException("Test Exception"))
                 }
 
@@ -126,7 +126,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
         "No response should be sent if the request is ignored" {
             runEndpointTest {
                 declareMock<ReporterWorker> {
-                    every { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                    coEvery { run(REPORTER_JOB_ID, TRACE_ID) } returns RunResult.Ignored
                 }
 
                 sendReporterRequest()

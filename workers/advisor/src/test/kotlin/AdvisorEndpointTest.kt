@@ -27,7 +27,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockkClass
 
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
@@ -86,7 +86,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "A message to advice a project should be processed" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Success
+                    coEvery { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Success
                 }
             }
 
@@ -100,7 +100,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "An error message should be sent back in case of a processing error" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns
+                    coEvery { run(ADVISOR_JOB_ID, TRACE_ID) } returns
                             RunResult.Failed(IllegalStateException("Test exception"))
                 }
 
@@ -115,7 +115,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         "No response should be sent if the request is ignored" {
             runEndpointTest {
                 declareMock<AdvisorWorker> {
-                    every { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                    coEvery { run(ADVISOR_JOB_ID, TRACE_ID) } returns RunResult.Ignored
                 }
 
                 sendAdvisorRequest()
