@@ -132,6 +132,9 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                     val delivery = Delivery(envelope, properties, body)
                     val message = RabbitMqMessageConverter.toTransportMessage(delivery, serializer)
 
+                    MDC.put("traceId", message.header.traceId)
+                    MDC.put("ortRunId", message.header.ortRunId.toString())
+
                     if (logger.isDebugEnabled) {
                         logger.debug(
                             "Received message '${message.header.traceId}' with payload of type " +
