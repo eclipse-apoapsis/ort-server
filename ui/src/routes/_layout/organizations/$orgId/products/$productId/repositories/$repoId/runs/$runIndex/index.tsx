@@ -18,7 +18,7 @@
  */
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { OpenAPI, RepositoriesService } from '@/api/requests';
@@ -61,7 +61,29 @@ const RunComponent = () => {
       }),
   });
 
-  const downloadZipFile = async ({
+  const downloadLogs = async (runId: number) => {
+    try {
+      const response = await fetch(
+        `${OpenAPI.BASE}/api/v1/runs/${runId}/logs`,
+        {
+          headers: {
+            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+          },
+        }
+      );
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'logs.zip';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const downloadReports = async ({
     runId,
     fileName,
   }: {
@@ -93,13 +115,6 @@ const RunComponent = () => {
       console.error(error);
     }
   };
-
-  async function handleDownload(runId: number, filename: string) {
-    await downloadZipFile({
-      runId: runId,
-      fileName: filename,
-    });
-  }
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
@@ -171,20 +186,36 @@ const RunComponent = () => {
                 <TableCell>Reports</TableCell>
                 <TableCell>
                   {ortRun.jobs.reporter?.reportFilenames.map((filename) => (
-                    <div key={filename} className='flex flex-col pb-2'>
-                      <Link onClick={() => handleDownload(ortRun.id, filename)}>
-                        <Button
-                          variant='outline'
-                          className='font-semibold text-blue-400'
-                        >
-                          {filename}
-                        </Button>
-                      </Link>
+                    <div key={filename} className='pb-2'>
+                      <Button
+                        onClick={() =>
+                          downloadReports({
+                            runId: ortRun.id,
+                            fileName: filename,
+                          })
+                        }
+                        variant='outline'
+                        className='font-semibold text-blue-400'
+                      >
+                        {filename}
+                      </Button>
                     </div>
                   ))}
                 </TableCell>
               </TableRow>
             )}
+            <TableRow>
+              <TableCell>Logs</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => downloadLogs(ortRun.id)}
+                  variant='outline'
+                  className='font-semibold text-blue-400'
+                >
+                  Download log archive
+                </Button>
+              </TableCell>
+            </TableRow>
             {ortRun.issues.length > 0 && (
               <TableRow>
                 <TableCell>Issues</TableCell>
