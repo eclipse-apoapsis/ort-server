@@ -38,12 +38,13 @@ export const About = () => {
       <Separator />
       <CardContent className='pt-6'>
         <div>
-          <h3 className='font-semibold'>Version information:</h3>
+          <h3 className='font-semibold'>Version Information</h3>
           <div className='text-sm'>
             {Object.entries(versionData).map(([key, value]) => (
               <div key={key}>
-                <span className='font-semibold'>{key}: </span>
-                <span>{value}</span>
+                <span className='text-muted-foreground'>
+                  {key}: {value}
+                </span>
               </div>
             ))}
           </div>
