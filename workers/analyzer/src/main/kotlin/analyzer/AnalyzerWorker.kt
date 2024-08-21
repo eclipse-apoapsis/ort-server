@@ -109,7 +109,7 @@ internal class AnalyzerWorker(
             }
 
             else -> {
-                logger.error("Error while processing message traceId '$traceId': ${it.message}")
+                logger.error("Error while processing message with traceId '$traceId': ${it.message}")
                 RunResult.Failed(it)
             }
         }
