@@ -91,7 +91,7 @@ export function DataTablePagination<TData>({
               },
             });
           }}
-          className='mx-2'
+          className='mx-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
           max={pageCount}
           min={1}
         />{' '}
