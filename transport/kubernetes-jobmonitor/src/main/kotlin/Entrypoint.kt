@@ -23,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
+@Suppress("ForbiddenMethodCall")
 fun main() = runBlocking {
     withMdcContext("component" to "kubernetes-jobmonitor") {
         MonitorComponent().start()

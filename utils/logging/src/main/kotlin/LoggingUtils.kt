@@ -36,6 +36,7 @@ import org.slf4j.MDC
  * is always preserved.
  */
 fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T =
+    @Suppress("ForbiddenMethodCall")
     kotlinx.coroutines.runBlocking(context + MDCContext()) { block() }
 
 /**
