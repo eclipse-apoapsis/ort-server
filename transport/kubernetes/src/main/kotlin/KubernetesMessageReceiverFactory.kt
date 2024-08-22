@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
 
@@ -62,16 +63,21 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
         val runId = System.getenv(RUN_ID_PROPERTY).toLong()
         val payload = System.getenv("payload")
 
-        val msg = Message(MessageHeader(traceId, runId), serializer.fromJson(payload))
+        withMdcContext(
+            "traceId" to traceId,
+            "ortRunId" to runId.toString()
+        ) {
+            val msg = Message(MessageHeader(traceId, runId), serializer.fromJson(payload))
 
-        @Suppress("TooGenericExceptionCaught")
-        try {
-            handler(msg)
-        } catch (e: Exception) {
-            logger.error("Message processing caused an exception.", e)
-            exit(1)
-        } finally {
-            exit(0)
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                handler(msg)
+            } catch (e: Exception) {
+                logger.error("Message processing caused an exception.", e)
+                exit(1)
+            } finally {
+                exit(0)
+            }
         }
     }
 }
