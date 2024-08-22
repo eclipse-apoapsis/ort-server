@@ -28,6 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.slf4j.MDCContext
 
 import org.slf4j.LoggerFactory
 
@@ -46,7 +47,7 @@ typealias SchedulerAction = suspend () -> Unit
  */
 internal class Scheduler : AutoCloseable {
     /** The [CoroutineScope] to use for scheduling. */
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + MDCContext())
 
     /**
      * Schedule the given [action] to be executed periodically in the given [interval].

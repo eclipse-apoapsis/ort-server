@@ -50,6 +50,7 @@ dependencies {
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
+    implementation(libs.kotlinxCoroutinesSlf4j)
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
     implementation(libs.kubernetesClientExtended)
