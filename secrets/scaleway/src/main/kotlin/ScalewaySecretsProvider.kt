@@ -43,11 +43,10 @@ import java.net.URLEncoder
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 

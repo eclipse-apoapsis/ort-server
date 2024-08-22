@@ -30,6 +30,7 @@ dependencies {
 
     implementation(projects.config.configSpi)
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
 
     implementation(libs.kotlinxDatetime)
     implementation(libs.ktorClientOkHttp)

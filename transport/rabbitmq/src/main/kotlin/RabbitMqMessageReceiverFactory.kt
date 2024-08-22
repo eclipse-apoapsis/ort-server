@@ -35,8 +35,6 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.slf4j.MDCContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -44,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -145,7 +144,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                     // Inline kotlinx.coroutines.channels.trySendBlocking as the function calls runBlocking internally
                     // without preserving the MDC context.
                     if (!trySend(message).isSuccess) {
-                        runBlocking(MDCContext()) {
+                        runBlocking {
                             send(message)
                         }
                     }

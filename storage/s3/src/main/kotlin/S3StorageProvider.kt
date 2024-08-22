@@ -33,11 +33,10 @@ import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by AWS S3 storage.

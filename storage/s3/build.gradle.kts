@@ -32,6 +32,7 @@ dependencies {
     api(projects.storage.storageSpi)
 
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
 
     implementation(libs.s3)
 
