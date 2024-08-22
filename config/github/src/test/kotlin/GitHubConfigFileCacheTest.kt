@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.setLastModifiedTime
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -209,7 +209,7 @@ class GitHubConfigFileCacheTest : WordSpec({
 
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 5, 1.days)
 
-            retry(20, 1.minutes, delay = 1.milliseconds) {
+            retry(10, 30.seconds) {
                 cache.cleanup("current")
                 revisionDir.exists() shouldBe false
             }
@@ -219,7 +219,7 @@ class GitHubConfigFileCacheTest : WordSpec({
             val cacheDir = tempdir()
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 10, 1.days)
 
-            retry(10, 1.minutes, delay = 1.milliseconds) {
+            retry(10, 30.seconds) {
                 val now = Clock.System.now()
                 val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
 
