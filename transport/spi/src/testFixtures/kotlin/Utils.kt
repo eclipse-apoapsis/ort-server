@@ -72,6 +72,7 @@ fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<Orc
     }
 
     Thread {
+        @Suppress("ForbiddenMethodCall")
         runBlocking {
             MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
         }

@@ -80,6 +80,11 @@ performance:
 style:
   ForbiddenComment:
     active: false
+  ForbiddenMethodCall:
+    active: true
+    # Use org.eclipse.apoapsis.ortserver.utils.logging.runBlocking to make sure the MDC context is preserved.
+    # An exception to that is code where the MDC context is not relevant, e.g., in tests.
+    methods: ['kotlinx.coroutines.runBlocking']
   LoopWithTooManyJumpStatements:
     active: false
   MagicNumber:
