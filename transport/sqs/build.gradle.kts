@@ -31,6 +31,7 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
 
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.slf4j)
