@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 
+import kotlin.concurrent.thread
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -42,8 +44,10 @@ fun Application.configureLifecycle() {
     environment.monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
 
-        runBlocking(Dispatchers.IO) {
-            syncRoles(authorizationService)
+        thread {
+            runBlocking(Dispatchers.IO) {
+                syncRoles(authorizationService)
+            }
         }
     }
 }
