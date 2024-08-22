@@ -20,7 +20,11 @@
 package org.eclipse.apoapsis.ortserver.utils.logging
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+
+import kotlin.coroutines.EmptyCoroutineContext
 
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
@@ -28,6 +32,20 @@ import kotlinx.coroutines.withContext
 import org.slf4j.MDC
 
 class LoggingUtilsTest : WordSpec({
+    "runBlocking" should {
+        "preserve SLF4J's MDC context which kotlinx.coroutines.runBlocking does not" {
+            withMdcContext("key" to "value") {
+                kotlinx.coroutines.runBlocking(EmptyCoroutineContext) {
+                    coroutineContext[MDCContext.Key]?.contextMap?.get("key") should beNull()
+                }
+
+                runBlocking(EmptyCoroutineContext) {
+                    coroutineContext[MDCContext.Key]?.contextMap?.get("key") shouldBe "value"
+                }
+            }
+        }
+    }
+
     "withMdcContext" should {
         "add the provided elements to the MDC context" {
             withMdcContext("key1" to "val1", "key2" to "val2") {
