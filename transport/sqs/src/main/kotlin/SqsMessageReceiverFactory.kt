@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
 
@@ -103,7 +104,13 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
 
                 runCatching {
                     val ortMessage = Message(attrs.toMessageHeader(), serializer.fromJson(body))
-                    handler(ortMessage)
+
+                    withMdcContext(
+                        "traceId" to ortMessage.header.traceId,
+                        "ortRunId" to ortMessage.header.ortRunId.toString()
+                    ) {
+                        handler(ortMessage)
+                    }
                 }.onFailure {
                     logger.error("Error during message body processing.", it)
                 }
