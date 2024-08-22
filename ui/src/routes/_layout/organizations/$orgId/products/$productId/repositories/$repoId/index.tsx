@@ -24,7 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, PlusIcon, Repeat } from 'lucide-react';
+import { EditIcon, PlusIcon, Repeat, View } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
@@ -130,27 +130,52 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
     accessorKey: 'actions',
     header: () => <div>Actions</div>,
     cell: ({ row }) => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant='outline' asChild size='sm'>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-              params={{
-                orgId: row.original.organizationId.toString(),
-                productId: row.original.productId.toString(),
-                repoId: row.original.repositoryId.toString(),
-              }}
-              search={{
-                rerunIndex: row.original.index,
-              }}
-            >
-              Rerun
-              <Repeat className='ml-1 h-4 w-4' />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Create a new ORT run based on this run</TooltipContent>
-      </Tooltip>
+      <div className='flex gap-2'>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant='outline' asChild size='sm'>
+              <Link
+                to={
+                  '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                }
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.productId.toString(),
+                  repoId: row.original.repositoryId.toString(),
+                  runIndex: row.original.index.toString(),
+                }}
+              >
+                View
+                <View className='ml-1 h-4 w-4' />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>View the details of this run</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant='outline' asChild size='sm'>
+              <Link
+                to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.productId.toString(),
+                  repoId: row.original.repositoryId.toString(),
+                }}
+                search={{
+                  rerunIndex: row.original.index,
+                }}
+              >
+                Rerun
+                <Repeat className='ml-1 h-4 w-4' />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Create a new ORT run based on this run
+          </TooltipContent>
+        </Tooltip>
+      </div>
     ),
   },
 ];
