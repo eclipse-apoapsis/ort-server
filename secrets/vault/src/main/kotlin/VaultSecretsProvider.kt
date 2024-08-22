@@ -40,7 +40,6 @@ import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -51,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultLoginResponse
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretResponse
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 

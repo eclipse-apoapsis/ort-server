@@ -21,12 +21,11 @@ package org.eclipse.apoapsis.ortserver.transport.sqs
 
 import aws.sdk.kotlin.services.sqs.model.GetQueueUrlRequest
 
-import kotlinx.coroutines.runBlocking
-
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 
