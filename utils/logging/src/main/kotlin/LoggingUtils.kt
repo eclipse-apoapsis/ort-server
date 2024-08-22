@@ -19,11 +19,24 @@
 
 package org.eclipse.apoapsis.ortserver.utils.logging
 
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 
 import org.slf4j.MDC
+
+/**
+ * A wrapper for [kotlinx.coroutines.runBlocking] which always adds an [MDCContext] to the newly created coroutine
+ * context. This ensures that SLF4J's MDC context is not lost when `runBlocking` is used.
+ *
+ * This function should be used instead of [kotlinx.coroutines.runBlocking] in all code to ensure that the MDC context
+ * is always preserved.
+ */
+fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T =
+    kotlinx.coroutines.runBlocking(context + MDCContext()) { block() }
 
 /**
  * Call the specified [block] with the given [elements] in the [MDC coroutine context][MDCContext]. If the provided
