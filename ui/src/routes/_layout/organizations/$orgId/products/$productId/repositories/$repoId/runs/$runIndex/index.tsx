@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -32,6 +33,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import {
   Table,
@@ -126,6 +133,13 @@ const RunComponent = () => {
     }
   };
 
+  const handleLevelChoice = (level: string) => {
+    // Get the list of steps that were run to only request logs for those steps. The `config` step is
+    // always run implicitly and not part of the jobs, so add that manually.
+    const jobNames = Object.keys(ortRun.jobs).concat('config');
+    downloadLogs(ortRun.id, level, jobNames.join(','));
+  };
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader className='flex flex-row items-start'>
@@ -218,18 +232,52 @@ const RunComponent = () => {
               <TableCell>Logs</TableCell>
               <TableCell>
                 <Button
-                  onClick={() => {
-                    // Get the list of steps that were run to only request logs for those steps. The `config` step is
-                    // always run implicitly and not part of the jobs, so add that manually.
-                    const jobNames = Object.keys(ortRun.jobs).concat('config');
-
-                    downloadLogs(ortRun.id, '', jobNames.join(','));
-                  }}
+                  onClick={() => handleLevelChoice('INFO')}
                   variant='outline'
-                  className='font-semibold text-blue-400'
+                  className={'rounded-r-none font-semibold text-blue-400'}
                 >
-                  Download log archive
+                  Download INFO log archive
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='outline'
+                      className={'rounded-l-none border-l-0 px-2 pt-1'}
+                    >
+                      <ChevronDownIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleLevelChoice('ERROR');
+                      }}
+                    >
+                      Download ERROR log archive
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleLevelChoice('WARN');
+                      }}
+                    >
+                      Download WARN log archive
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleLevelChoice('INFO');
+                      }}
+                    >
+                      Download INFO log archive
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleLevelChoice('DEBUG');
+                      }}
+                    >
+                      Download DEBUG log archive
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
             {ortRun.issues.length > 0 && (
