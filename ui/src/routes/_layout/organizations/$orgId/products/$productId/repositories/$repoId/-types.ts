@@ -39,12 +39,20 @@ export const advisors = [
 
 export const packageManagers = [
   {
+    id: 'Bazel',
+    label: 'Bazel (C++, Java, and others)',
+  },
+  {
     id: 'Bundler',
     label: 'Bundler (Ruby)',
   },
   {
     id: 'Cargo',
     label: 'Cargo (Rust)',
+  },
+  {
+    id: 'Composer',
+    label: 'Composer (PHP)',
   },
   {
     id: 'GoMod',
@@ -61,6 +69,10 @@ export const packageManagers = [
   {
     id: 'NPM',
     label: 'NPM (JavaScript / Node.js)',
+  },
+  {
+    id: 'NuGet',
+    label: 'NuGet (C# and DotNet in general)',
   },
   {
     id: 'PIP',
