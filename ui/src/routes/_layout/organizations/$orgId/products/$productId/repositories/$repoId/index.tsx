@@ -111,7 +111,9 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
   {
     accessorKey: 'jobStatuses',
     header: () => <div>Job Status</div>,
-    cell: ({ row }) => <OrtRunJobStatus jobs={row.original.jobs} />,
+    cell: ({ row }) => (
+      <OrtRunJobStatus jobs={row.original.jobs} pollInterval={pollInterval} />
+    ),
   },
   {
     accessorKey: 'duration',
