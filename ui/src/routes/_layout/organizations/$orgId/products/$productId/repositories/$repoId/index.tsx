@@ -40,6 +40,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
+import { RunDuration } from '@/components/run-duration';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
@@ -116,10 +116,13 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
   {
     accessorKey: 'duration',
     header: () => <div>Duration</div>,
-    cell: ({ row }) =>
-      row.original.finishedAt
-        ? calculateDuration(row.original.createdAt, row.original.finishedAt)
-        : '-',
+    cell: ({ row }) => (
+      <RunDuration
+        createdAt={row.original.createdAt}
+        finishedAt={row.original.finishedAt}
+        pollInterval={pollInterval}
+      />
+    ),
   },
   {
     accessorKey: 'actions',
