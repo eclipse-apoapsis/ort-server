@@ -28,12 +28,17 @@ import {
   getStatusBackgroundColor,
   getStatusClass,
 } from '@/helpers/get-status-colors';
+import { RunDuration } from './run-duration';
 
 type OrtRunJobStatusProps = {
   jobs: PagedResponse_OrtRunSummary_['data'][0]['jobs'];
+  pollInterval: number;
 };
 
-export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
+export const OrtRunJobStatus = ({
+  jobs,
+  pollInterval,
+}: OrtRunJobStatusProps) => {
   return (
     <TooltipProvider>
       <div className='flex items-center space-x-1'>
@@ -44,10 +49,27 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
             ></div>
           </TooltipTrigger>
           <TooltipContent>
-            <span>
-              Analyzer:{' '}
-              {jobs.analyzer?.status || 'Not started / not included in ORT Run'}
-            </span>
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div>Analyzer:</div>
+                <div>
+                  {jobs.analyzer?.status ||
+                    'Not started / not included in ORT Run'}
+                </div>
+              </div>
+              <div>
+                {jobs.analyzer?.startedAt && (
+                  <div className='flex gap-2'>
+                    <div>Duration:</div>
+                    <RunDuration
+                      createdAt={jobs.analyzer?.startedAt}
+                      finishedAt={jobs.analyzer.finishedAt}
+                      pollInterval={pollInterval}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -57,10 +79,27 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
             ></div>
           </TooltipTrigger>
           <TooltipContent>
-            <span>
-              Advisor:{' '}
-              {jobs.advisor?.status || 'Not started / not included in ORT Run'}
-            </span>
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div>Advisor:</div>
+                <div>
+                  {jobs.advisor?.status ||
+                    'Not started / not included in ORT Run'}
+                </div>
+              </div>
+              <div>
+                {jobs.advisor?.startedAt && (
+                  <div className='flex gap-2'>
+                    <div>Duration:</div>
+                    <RunDuration
+                      createdAt={jobs.advisor?.startedAt}
+                      finishedAt={jobs.advisor.finishedAt}
+                      pollInterval={pollInterval}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -70,10 +109,27 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
             ></div>
           </TooltipTrigger>
           <TooltipContent>
-            <span>
-              Scanner:{' '}
-              {jobs.scanner?.status || 'Not started / not included in ORT Run'}
-            </span>
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div>Scanner:</div>
+                <div>
+                  {jobs.scanner?.status ||
+                    'Not started / not included in ORT Run'}
+                </div>
+              </div>
+              <div>
+                {jobs.scanner?.startedAt && (
+                  <div className='flex gap-2'>
+                    <div>Duration:</div>
+                    <RunDuration
+                      createdAt={jobs.scanner?.startedAt}
+                      finishedAt={jobs.scanner.finishedAt}
+                      pollInterval={pollInterval}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -83,11 +139,27 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
             ></div>
           </TooltipTrigger>
           <TooltipContent>
-            <span>
-              Evaluator:{' '}
-              {jobs.evaluator?.status ||
-                'Not started / not included in ORT Run'}
-            </span>
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div>Evaluator:</div>
+                <div>
+                  {jobs.evaluator?.status ||
+                    'Not started / not included in ORT Run'}
+                </div>
+              </div>
+              <div>
+                {jobs.evaluator?.startedAt && (
+                  <div className='flex gap-2'>
+                    <div>Duration:</div>
+                    <RunDuration
+                      createdAt={jobs.evaluator?.startedAt}
+                      finishedAt={jobs.evaluator.finishedAt}
+                      pollInterval={pollInterval}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -97,10 +169,27 @@ export const OrtRunJobStatus = ({ jobs }: OrtRunJobStatusProps) => {
             ></div>
           </TooltipTrigger>
           <TooltipContent>
-            <span>
-              Reporter:{' '}
-              {jobs.reporter?.status || 'Not started / not included in ORT Run'}
-            </span>
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div>Reporter:</div>
+                <div>
+                  {jobs.reporter?.status ||
+                    'Not started / not included in ORT Run'}
+                </div>
+              </div>
+              <div>
+                {jobs.reporter?.startedAt && (
+                  <div className='flex gap-2'>
+                    <div>Duration:</div>
+                    <RunDuration
+                      createdAt={jobs.reporter?.startedAt}
+                      finishedAt={jobs.reporter.finishedAt}
+                      pollInterval={pollInterval}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </TooltipContent>
         </Tooltip>
       </div>
