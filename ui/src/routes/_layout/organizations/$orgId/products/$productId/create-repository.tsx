@@ -90,6 +90,9 @@ const CreateRepositoryPage = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      type: 'GIT',
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -116,7 +119,7 @@ const CreateRepositoryPage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>URL</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>URL of the repository</FormDescription>

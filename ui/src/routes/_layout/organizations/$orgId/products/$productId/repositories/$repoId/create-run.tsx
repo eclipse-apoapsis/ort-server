@@ -545,7 +545,7 @@ const CreateRunPage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Revision</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
