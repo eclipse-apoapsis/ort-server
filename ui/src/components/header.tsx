@@ -23,6 +23,7 @@ import { CircleUser, Home, Menu } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { ModeToggle } from '@/components/mode-toggle';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useUser } from '@/hooks/use-user';
 import {
@@ -217,6 +218,7 @@ export const Header = () => {
             <input type='submit' hidden />
           </form>
         </Form>
+        <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
