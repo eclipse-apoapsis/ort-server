@@ -1,0 +1,17 @@
+# To locally configure `git blame` to ignore commits in this file run:
+# `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+
+# style(ui): Add sorting of TailwindCSS classes to the UI files
+ef416a8aa2970dd5b2e7d5b137c9bd0be927e4d0
+
+# style(ui): Add sorting of imports to the UI files
+26a104c512991d603964a87e69caf17af029f94c
+
+# style(ui): Use single quotes instead of double quotes in JSX, TSX files
+7513bf291950f793dd94ed0189b4ec74e369e75e
+
+# style(ui): Format UI code with Prettier
+5764b788ad469d37077bdf66df467566ceed751e
+
+# style(ui): Run `prettier` on already generated files
+8f7c0dbef29a830afd85d38aa591306b0390c256
