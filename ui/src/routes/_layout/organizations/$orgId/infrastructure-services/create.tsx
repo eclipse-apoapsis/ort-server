@@ -140,7 +140,7 @@ const CreateInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
