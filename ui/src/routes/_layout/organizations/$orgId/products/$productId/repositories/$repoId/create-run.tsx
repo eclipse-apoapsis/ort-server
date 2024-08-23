@@ -182,7 +182,7 @@ const CreateRunPage = () => {
       },
       reporter: {
         enabled: true,
-        formats: ['ortresult', 'WebApp'],
+        formats: ['CycloneDx', 'SpdxDocument', 'WebApp'],
       },
       notifier: {
         enabled: false,
