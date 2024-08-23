@@ -66,6 +66,13 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
 import org.eclipse.apoapsis.ortserver.core.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.core.commands.CommandBus
+import org.eclipse.apoapsis.ortserver.core.commands.CreateOrganizationCommandHandler
+import org.eclipse.apoapsis.ortserver.core.commands.createorganization.CreateOrganizationCommand
+import org.eclipse.apoapsis.ortserver.core.queries.QueryBus
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQuery
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQueryHandler
+import org.eclipse.apoapsis.ortserver.core.queries.getorganizationproducts.GetOrganizationProductsQuery
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
@@ -79,12 +86,15 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
 import org.koin.ktor.ext.inject
+import org.slf4j.MDC
 
 @Suppress("LongMethod")
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
     val secretService by inject<SecretService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
+    val commandBus by inject<CommandBus>()
+    val queryBus by inject<QueryBus>()
 
     get(getOrganizations) { _ ->
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
@@ -109,8 +119,13 @@ fun Route.organizations() = route("organizations") {
 
         val createOrganization = call.receive<CreateOrganization>()
 
-        val createdOrganization =
-            organizationService.createOrganization(createOrganization.name, createOrganization.description)
+        val command = CreateOrganizationCommand(
+            traceId = MDC.get("traceId"),
+            name = createOrganization.name,
+            description = createOrganization.description
+        )
+
+        val createdOrganization = commandBus.dispatch(command).getOrThrow()
 
         call.respond(HttpStatusCode.Created, createdOrganization.mapToApi())
     }
@@ -121,7 +136,12 @@ fun Route.organizations() = route("organizations") {
 
             val id = call.requireIdParameter("organizationId")
 
-            val organization = organizationService.getOrganization(id)
+            val query = GetOrganizationQuery(
+                traceId = MDC.get("traceId"),
+                id = id
+            )
+
+            val organization = queryBus.dispatch(query).getOrThrow()
 
             organization?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                 ?: call.respond(HttpStatusCode.NotFound)
@@ -159,9 +179,13 @@ fun Route.organizations() = route("organizations") {
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-                val productsForOrganization =
-                    organizationService.listProductsForOrganization(orgId, pagingOptions.mapToModel())
+                val query = GetOrganizationProductsQuery(
+                    traceId = MDC.get("traceId"),
+                    organizationId = orgId,
+                    pagingOptions = pagingOptions
+                )
 
+                val productsForOrganization = queryBus.dispatch(query).getOrThrow()
                 val pagedResponse = productsForOrganization.mapToApi(Product::mapToApi)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)

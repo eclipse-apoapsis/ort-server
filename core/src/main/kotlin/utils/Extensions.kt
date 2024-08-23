@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.jetbrains.exposed.sql.SortOrder
 
 /**
  * Get the parameter from this [ApplicationCall].
@@ -123,4 +124,9 @@ fun <T> List<T>.paginate(pagingOptions: PagingOptions): List<T> {
     val limit = pagingOptions.limit ?: Integer.MAX_VALUE
 
     return drop(offset.toInt()).take(limit)
+}
+
+fun SortDirection.toSortOrder() = when (this) {
+    SortDirection.ASCENDING -> SortOrder.ASC
+    SortDirection.DESCENDING -> SortOrder.DESC
 }

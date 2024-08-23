@@ -29,7 +29,16 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.core.commands.CommandBus
+import org.eclipse.apoapsis.ortserver.core.commands.CreateOrganizationCommandHandler
+import org.eclipse.apoapsis.ortserver.core.commands.LoggingMiddleware
+import org.eclipse.apoapsis.ortserver.core.commands.createorganization.CreateOrganizationCommand
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
+import org.eclipse.apoapsis.ortserver.core.queries.QueryBus
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQuery
+import org.eclipse.apoapsis.ortserver.core.queries.getorganization.GetOrganizationQueryHandler
+import org.eclipse.apoapsis.ortserver.core.queries.getorganizationproducts.GetOrganizationProductsQuery
+import org.eclipse.apoapsis.ortserver.core.queries.getorganizationproducts.GetOrganizationProductsQueryHandler
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.createKeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
@@ -77,6 +86,7 @@ import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -135,4 +145,22 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { OrtRunService(get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
+
+    single {
+        CommandBus().apply {
+            runBlocking {
+                addMiddleware(LoggingMiddleware())
+                registerHandler(CreateOrganizationCommand::class, CreateOrganizationCommandHandler(get()))
+            }
+        }
+    }
+
+    single {
+        QueryBus().apply {
+            runBlocking {
+                registerHandler(GetOrganizationQuery::class, GetOrganizationQueryHandler())
+                registerHandler(GetOrganizationProductsQuery::class, GetOrganizationProductsQueryHandler())
+            }
+        }
+    }
 }
