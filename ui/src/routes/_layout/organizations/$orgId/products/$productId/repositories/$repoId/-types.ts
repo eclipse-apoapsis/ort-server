@@ -90,23 +90,31 @@ export const packageManagers = [
 
 export const reportFormats = [
   {
-    id: 'AsciiDocTemplate',
-    label: 'AsciiDoc Template',
-  },
-  {
-    id: 'ortresult',
-    label: 'ORT Result',
-  },
-  {
-    id: 'PlainTextTemplate',
-    label: 'NOTICE file',
+    id: 'CycloneDx',
+    label: 'CycloneDX SBOM',
   },
   {
     id: 'SpdxDocument',
     label: 'SPDX Document',
   },
   {
+    id: 'PlainTextTemplate',
+    label: 'NOTICE file',
+  },
+  {
     id: 'WebApp',
-    label: 'Web App',
+    label: 'ORT Web App',
+  },
+  {
+    id: 'PdfTemplate',
+    label: 'ORT PDF Reports',
+  },
+  {
+    id: 'OrtResult',
+    label: 'ORT Result',
+  },
+  {
+    id: 'RunStatistics',
+    label: 'ORT Run Statistics',
   },
 ] as const;
