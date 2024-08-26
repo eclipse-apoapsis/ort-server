@@ -5,6 +5,17 @@
     ":semanticCommitScopeDisabled",
     ":semanticCommitTypeAll(deps)"
   ],
+  "customManagers": [
+    {
+      "description": "Update Eclipse Temurin in libs.versions.toml",
+      "customType": "regex",
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "eclipse-temurin",
+      "fileMatch": ["^gradle\\/libs\\.versions\\.toml$"],
+      "matchStrings": ["eclipseTemurin = \"(?<currentValue>[^@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))\""],
+      "versioningTemplate": "docker"
+    }
+  ],
   "dependencyDashboard": false,
   "labels": ["dependencies"],
   "packageRules": [
