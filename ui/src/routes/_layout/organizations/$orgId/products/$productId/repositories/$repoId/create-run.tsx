@@ -161,7 +161,10 @@ const CreateRunPage = () => {
         enabled: true,
         allowDynamicVersions: true,
         skipExcluded: true,
-        enabledPackageManagers: packageManagers.map((pm) => pm.id),
+        enabledPackageManagers: [
+          ...packageManagers.map((pm) => pm.id),
+          'Unmanaged',
+        ],
       },
       advisor: {
         enabled: true,
