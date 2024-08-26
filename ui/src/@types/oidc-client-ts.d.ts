@@ -25,6 +25,12 @@
 import type { IdTokenClaims } from 'oidc-client-ts';
 
 declare module 'oidc-client-ts' {
+  /* Despite its name, the IdTokenClaims interface is also used as the
+   * type for the profile property in the auth.user object returned by
+   * the useAuth hook from react-oidc-context, which gets some of its
+   * data from the userinfo endpoint, so this declaration is needed
+   * even though the client roles are not included in the actual ID token.
+   */
   export interface IdTokenClaims {
     // Declare additional claim for resource_access to be able to access the roles of the user.
     resource_access: {

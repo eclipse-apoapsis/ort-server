@@ -46,6 +46,7 @@ const oidcConfig = {
   redirect_uri: UI_URL,
   client_id: CLIENT_ID,
   automaticSilentRenew: true,
+  loadUserInfo: true,
 } satisfies AuthProviderProps;
 
 const serverClientId = CLIENT_ID_SERVER;
