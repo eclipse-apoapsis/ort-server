@@ -19,9 +19,11 @@
 
 import { useAuth } from 'react-oidc-context';
 
+import { config } from '@/config';
+
 export const useUser = () => {
   const auth = useAuth();
-  const serverClientId = import.meta.env.VITE_CLIENT_ID_SERVER || 'ort-server';
+  const serverClientId = config.serverClientId;
   const userRoles =
     auth?.user?.profile?.resource_access?.[serverClientId]?.roles || [];
 

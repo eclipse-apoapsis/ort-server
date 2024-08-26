@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { hasAuthParams } from 'react-oidc-context';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { config } from '@/config';
 import { OpenAPI } from './api/requests/index.ts';
 import { useUser } from './hooks/use-user.ts';
 import { queryClient } from './lib/query-client.ts';
@@ -41,7 +42,7 @@ export interface RouterContext {
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  basepath: import.meta.env.VITE_BASEPATH || '/',
+  basepath: config.BASEPATH,
   context: {
     queryClient,
     breadcrumbs: {

@@ -57,14 +57,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const pollInterval =
-  Number.parseInt(import.meta.env.VITE_RUN_POLL_INTERVAL) || 10000;
+const pollInterval = config.pollInterval;
 
 const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
   {
