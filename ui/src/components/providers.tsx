@@ -19,22 +19,17 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
+import { AuthProvider } from 'react-oidc-context';
 
 import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { config } from '@/config';
 import { queryClient } from '@/lib/query-client';
 
-OpenAPIConfig.BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+OpenAPIConfig.BASE = config.API_URL;
 
-const oidcConfig = {
-  authority:
-    import.meta.env.VITE_AUTHORITY || 'http://localhost:8081/realms/master',
-  redirect_uri: import.meta.env.VITE_UI_URL || 'http://localhost:5173/',
-  client_id: import.meta.env.VITE_CLIENT_ID || 'ort-server-ui-dev',
-  automaticSilentRenew: true,
-} satisfies AuthProviderProps;
+const oidcConfig = config.oidcConfig;
 
 export const Providers = ({ children }: { children: ReactNode }) => {
   return (

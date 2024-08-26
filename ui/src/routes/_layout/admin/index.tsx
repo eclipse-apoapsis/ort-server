@@ -50,6 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { config } from '@/config';
 import { cn } from '@/lib/utils';
 
 const columns: ColumnDef<Organization>[] = [
@@ -242,12 +243,8 @@ const OverviewContent = () => {
 };
 
 const UserMgmtContent = () => {
-  const authBaseUrl = import.meta.env.VITE_AUTHORITY
-    ? import.meta.env.VITE_AUTHORITY.split('/realms/')[0]
-    : 'http://localhost:8081';
-  const realm = import.meta.env.VITE_AUTHORITY
-    ? import.meta.env.VITE_AUTHORITY.split('/realms/')[1]
-    : 'master';
+  const authBaseUrl = config.authBaseUrl;
+  const realm = config.realm;
 
   return (
     <>
