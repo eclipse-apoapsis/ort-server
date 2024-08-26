@@ -56,6 +56,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.0.7
         version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@t3-oss/env-core':
+        specifier: ^0.11.1
+        version: 0.11.1(typescript@5.5.4)(zod@3.23.8)
       '@tanstack/react-query':
         specifier: ^5.29.2
         version: 5.52.1(react@18.3.1)
@@ -1346,6 +1349,15 @@ packages:
     resolution: {integrity: sha512-aJ1EJSuTdGnM6qbVC4B5DSmozPTqIag9fSzXRNNo+humQLG89XpPgdt16Ia56ORD7s+H8Pmyx44uczDQ0yDzpg==}
     cpu: [x64]
     os: [win32]
+
+  '@t3-oss/env-core@0.11.1':
+    resolution: {integrity: sha512-MaxOwEoG1ntCFoKJsS7nqwgcxLW1SJw238AJwfJeaz3P/8GtkxXZsPPolsz1AdYvUTbe3XvqZ/VCdfjt+3zmKw==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+      zod: ^3.0.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@tanstack/history@1.49.7':
     resolution: {integrity: sha512-9e9e+QFeWve6rB5BWK9MR8/1BmQYd1LFmM5BYh1Ht15yLcyU0FoiPG4Iun9Coc3Obo1mA+NbYCoOYoSZ+h+9yw==}
@@ -4147,6 +4159,12 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.20.0':
     optional: true
+
+  '@t3-oss/env-core@0.11.1(typescript@5.5.4)(zod@3.23.8)':
+    dependencies:
+      zod: 3.23.8
+    optionalDependencies:
+      typescript: 5.5.4
 
   '@tanstack/history@1.49.7': {}
 

@@ -19,6 +19,8 @@
 
 import { AuthProviderProps } from 'react-oidc-context';
 
+import { env } from '@/ui-env';
+
 interface Config {
   BASEPATH: string;
   API_URL: string;
@@ -30,15 +32,13 @@ interface Config {
 }
 
 // Read the environment variables needed to create the configuration object
-const BASEPATH = import.meta.env.VITE_BASEPATH || '/';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const AUTHORITY =
-  import.meta.env.VITE_AUTHORITY || 'http://localhost:8081/realms/master';
-const UI_URL = import.meta.env.VITE_UI_URL || 'http://localhost:5173/';
-const CLIENT_ID = import.meta.env.VITE_CLIENT_ID || 'ort-server-ui-dev';
-const CLIENT_ID_SERVER = import.meta.env.VITE_CLIENT_ID_SERVER || 'ort-server';
-const RUN_POLL_INTERVAL =
-  Number.parseInt(import.meta.env.VITE_RUN_POLL_INTERVAL) || 10000;
+const BASEPATH = env.VITE_BASEPATH;
+const API_URL = env.VITE_API_URL;
+const AUTHORITY = env.VITE_AUTHORITY;
+const UI_URL = env.VITE_UI_URL;
+const CLIENT_ID = env.VITE_CLIENT_ID;
+const CLIENT_ID_SERVER = env.VITE_CLIENT_ID_SERVER;
+const RUN_POLL_INTERVAL = env.VITE_RUN_POLL_INTERVAL;
 
 // Initialize the OpenID Connect configuration
 const oidcConfig = {
