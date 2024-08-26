@@ -107,7 +107,10 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
             name='jobConfigs.analyzer.enabledPackageManagers'
             label='Enabled package managers'
             description={
-              <>Select the package managers enabled for this ORT Run.</>
+              <>
+                Select the package managers enabled for this ORT Run. Note that
+                the 'Unmanaged' package manager is always enabled.
+              </>
             }
             options={packageManagers}
           />
