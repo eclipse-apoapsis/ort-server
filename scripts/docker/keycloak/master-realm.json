@@ -963,7 +963,8 @@
       "consentRequired" : false,
       "config" : {
         "user.attribute" : "foo",
-        "id.token.claim": "true",
+        "id.token.claim": "false",
+        "userinfo.token.claim" : "true",
         "access.token.claim" : "true",
         "claim.name" : "resource_access.${client_id}.roles",
         "jsonType.label" : "String",
