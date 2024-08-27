@@ -28,7 +28,7 @@ interface SidebarNavProps {
   sections: {
     label?: string;
     items: {
-      to: string;
+      to?: string;
       params?: Record<string, string | undefined>;
       title: string;
       visible?: boolean; // default: true
@@ -63,17 +63,26 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                 </Label>
               )}
               {section.items.map((item) => {
+                const disabled = item.to === undefined;
                 return item.visible === undefined || item.visible ? (
                   <Link
                     key={item.title}
-                    to={item.to}
+                    // When a link is disabled, make it point to completely separate
+                    // (but existing) route on the server, otherwise all disabled links
+                    // are grouped together with an existing one in the UI.
+                    to={disabled ? '/' : item.to}
+                    disabled={disabled}
                     params={item.params}
                     activeProps={{
                       className: 'bg-muted hover:bg-muted',
                     }}
-                    inactiveProps={{
-                      className: 'hover:bg-transparent hover:underline',
-                    }}
+                    inactiveProps={
+                      disabled
+                        ? { className: 'text-muted-foreground italic' }
+                        : {
+                            className: 'hover:bg-transparent hover:underline',
+                          }
+                    }
                     activeOptions={{
                       exact:
                         item.activeOptions?.exact === undefined
