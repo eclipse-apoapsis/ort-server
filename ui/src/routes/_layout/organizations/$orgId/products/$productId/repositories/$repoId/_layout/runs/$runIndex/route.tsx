@@ -24,7 +24,7 @@ import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex'
 )({
   loader: async ({ context, params }) => {
     const run = await context.queryClient.ensureQueryData({

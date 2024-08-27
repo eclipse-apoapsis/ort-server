@@ -20,7 +20,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Repeat } from 'lucide-react';
-import { z } from 'zod';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
@@ -41,7 +40,6 @@ import { ScannerJobDetails } from './-components/scanner-job-details';
 
 const RunComponent = () => {
   const params = Route.useParams();
-  const searchParams = Route.useSearch();
   const locale = navigator.language;
 
   const { data: ortRun } = useSuspenseQuery({
@@ -217,43 +215,43 @@ const RunComponent = () => {
         </Card>
       </div>
       <div className='flex w-4/12'>
-        <Tabs defaultValue={searchParams.job}>
+        <Tabs defaultValue='analyzer'>
           <TabsList className='flex-wrap justify-start bg-white'>
             <TabsTrigger
               value='analyzer'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.analyzer?.status)}`}
             >
-              <Link search={() => ({ job: 'analyzer' })}>Analyzer</Link>
+              Analyzer
             </TabsTrigger>
             <TabsTrigger
               value='advisor'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.advisor?.status)}`}
             >
-              <Link search={() => ({ job: 'advisor' })}>Advisor</Link>
+              Advisor
             </TabsTrigger>
             <TabsTrigger
               value='scanner'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.scanner?.status)}`}
             >
-              <Link search={() => ({ job: 'scanner' })}>Scanner</Link>
+              Scanner
             </TabsTrigger>
             <TabsTrigger
               value='evaluator'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.evaluator?.status)}`}
             >
-              <Link search={() => ({ job: 'evaluator' })}>Evaluator</Link>
+              Evaluator
             </TabsTrigger>
             <TabsTrigger
               value='reporter'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.reporter?.status)}`}
             >
-              <Link search={() => ({ job: 'reporter' })}>Reporter</Link>
+              Reporter
             </TabsTrigger>
             <TabsTrigger
               value='notifier'
               className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.notifier?.status)}`}
             >
-              <Link search={() => ({ job: 'notifier' })}>Notifier</Link>
+              Notifier
             </TabsTrigger>
           </TabsList>
           <TabsContent value='analyzer' className='mt-10'>
@@ -280,22 +278,8 @@ const RunComponent = () => {
   );
 };
 
-// These are the only valid search parameters for this route.
-const jobSearchSchema = z.object({
-  job: z
-    .enum([
-      'analyzer',
-      'advisor',
-      'scanner',
-      'evaluator',
-      'reporter',
-      'notifier',
-    ])
-    .catch('analyzer'),
-});
-
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
@@ -313,5 +297,4 @@ export const Route = createFileRoute(
   },
   component: RunComponent,
   pendingComponent: LoadingIndicator,
-  validateSearch: jobSearchSchema,
 });

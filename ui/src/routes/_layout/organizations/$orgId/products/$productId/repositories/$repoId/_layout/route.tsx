@@ -25,7 +25,7 @@ const Layout = () => {
   const navItems = [
     {
       title: 'Overview',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
     },
     {
       title: 'Dependencies',
@@ -41,11 +41,11 @@ const Layout = () => {
     },
     {
       title: 'Reports',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/reports',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
     },
     {
       title: 'Logs',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/logs',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
     },
   ];
 
