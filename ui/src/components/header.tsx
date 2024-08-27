@@ -89,13 +89,7 @@ export const Header = () => {
   const runMatch = matches.find(
     (match) =>
       match.routeId ===
-      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-  );
-
-  const run2Match = matches.find(
-    (match) =>
-      match.routeId ===
-      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex'
+      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex'
   );
 
   return (
@@ -175,18 +169,6 @@ export const Header = () => {
                   <BreadcrumbLink asChild>
                     <Link to={runMatch.pathname}>
                       {runMatch.context.breadcrumbs.run}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            )}
-            {run2Match?.context && (
-              <>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to={run2Match.pathname}>
-                      {run2Match.context.breadcrumbs.run}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>

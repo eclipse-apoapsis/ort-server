@@ -116,7 +116,7 @@ const ReportComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs2/$runIndex/reports/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/reports/'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
