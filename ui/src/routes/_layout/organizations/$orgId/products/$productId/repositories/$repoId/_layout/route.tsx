@@ -31,6 +31,10 @@ const Layout = () => {
       title: 'Reports',
       to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/reports',
     },
+    {
+      title: 'Logs',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/logs',
+    },
   ];
 
   return (
