@@ -28,6 +28,18 @@ const Layout = () => {
       to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex',
     },
     {
+      title: 'Dependencies',
+    },
+    {
+      title: 'Vulnerabilities',
+    },
+    {
+      title: 'License Findings',
+    },
+    {
+      title: 'Rule Violations',
+    },
+    {
       title: 'Reports',
       to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs2/$runIndex/reports',
     },
