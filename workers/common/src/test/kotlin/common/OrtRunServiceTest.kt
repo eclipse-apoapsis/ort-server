@@ -732,7 +732,7 @@ class OrtRunServiceTest : WordSpec({
                         fixtures.identifier,
                         license = "license",
                         licenseSource = "license source",
-                        severity = "ERROR",
+                        severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = "how to fix info"
                     )
@@ -757,7 +757,7 @@ class OrtRunServiceTest : WordSpec({
                         fixtures.identifier,
                         license = "license",
                         licenseSource = "license source",
-                        severity = "ERROR",
+                        severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = howToFix
                     )

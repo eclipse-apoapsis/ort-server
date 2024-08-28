@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 import org.jetbrains.exposed.sql.Database
@@ -202,7 +203,7 @@ class Fixtures(private val db: Database) {
         license = "license",
         licenseSource = "license source",
         message = "message",
-        severity = "severity",
+        severity = Severity.ERROR,
         howToFix = "how to fix"
     )
 }

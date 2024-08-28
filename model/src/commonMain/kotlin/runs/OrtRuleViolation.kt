@@ -21,13 +21,15 @@ package org.eclipse.apoapsis.ortserver.model.runs
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.model.Severity
+
 @Serializable
 data class OrtRuleViolation(
     val rule: String,
     val packageId: Identifier?,
     val license: String?,
     val licenseSource: String?,
-    val severity: String,
+    val severity: Severity,
     val message: String,
     val howToFix: String
 )
