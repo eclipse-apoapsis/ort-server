@@ -24,10 +24,20 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.Severity
 
+/**
+ * A data class describing an issue that occurred during an ORT run.
+ */
 @Serializable
 data class Issue(
+    /** The timestamp when this issue occurred. */
     val timestamp: Instant,
+
+    /** The source where this issue occurred. */
     val source: String,
+
+    /** A message describing the issue. */
     val message: String,
+
+    /** The [Severity] of the issue. */
     val severity: Severity
 )
