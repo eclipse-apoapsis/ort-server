@@ -24,18 +24,19 @@ import { Label } from '@/components/ui/label';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
-type AdvisorJobDetailsProps = {
+type AnalyzerJobDetailsProps = {
   run: OrtRun;
 };
 
-export const AdvisorJobDetails = ({ run }: AdvisorJobDetailsProps) => {
-  const job = run.jobs.advisor;
-  const jobConfigs = run.resolvedJobConfigs?.advisor;
+export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
+  const job = run.jobs.analyzer;
+  const jobConfigs = run.resolvedJobConfigs?.analyzer;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className='flex gap-2'>
+          Analyzer
           <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
             {job?.status || 'NOT RUN'}
           </Badge>
@@ -55,16 +56,26 @@ export const AdvisorJobDetails = ({ run }: AdvisorJobDetailsProps) => {
                 Resolved job configuration:
               </Label>
               <div className='ml-2 space-y-2'>
+                {jobConfigs?.allowDynamicVersions && (
+                  <div>
+                    <Label className='font-semibold'>
+                      Allow dynamic versions:
+                    </Label>{' '}
+                    {jobConfigs.allowDynamicVersions.toString()}
+                  </div>
+                )}
                 {jobConfigs?.skipExcluded && (
                   <div>
                     <Label className='font-semibold'>Skip excluded: </Label>
                     {jobConfigs.skipExcluded.toString()}
                   </div>
                 )}
-                {jobConfigs?.advisors && (
+                {jobConfigs?.enabledPackageManagers && (
                   <div>
-                    <Label className='font-semibold'>Advisors:</Label>{' '}
-                    {jobConfigs.advisors.join(', ')}
+                    <Label className='font-semibold'>
+                      Enabled package managers:
+                    </Label>{' '}
+                    {jobConfigs.enabledPackageManagers.join(', ')}
                   </div>
                 )}
               </div>

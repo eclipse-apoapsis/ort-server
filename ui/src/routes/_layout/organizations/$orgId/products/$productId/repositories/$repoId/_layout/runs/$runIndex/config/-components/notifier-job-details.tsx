@@ -35,7 +35,8 @@ export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className='flex gap-2'>
+          Notifier
           <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
             {job?.status || 'NOT RUN'}
           </Badge>

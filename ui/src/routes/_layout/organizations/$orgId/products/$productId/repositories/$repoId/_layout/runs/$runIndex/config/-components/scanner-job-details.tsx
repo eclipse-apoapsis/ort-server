@@ -35,7 +35,8 @@ export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className='flex gap-2'>
+          Scanner
           <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
             {job?.status || 'NOT RUN'}
           </Badge>

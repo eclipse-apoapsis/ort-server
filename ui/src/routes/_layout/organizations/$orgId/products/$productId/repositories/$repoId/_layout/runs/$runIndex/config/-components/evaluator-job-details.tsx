@@ -35,7 +35,8 @@ export const EvaluatorJobDetails = ({ run }: EvaluatorJobDetailsProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className='flex gap-2'>
+          Evaluator
           <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
             {job?.status || 'NOT RUN'}
           </Badge>
