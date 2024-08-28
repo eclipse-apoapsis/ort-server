@@ -57,6 +57,12 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
                     Message(message.header, AnalyzerWorkerResult(jobId))
                 }
 
+                is RunResult.FinishedWithIssues -> {
+                    logger.warn("Analyzer job '$jobId' finished with issues.")
+                    // TODO: Send the right message type.
+                    Message(message.header, AnalyzerWorkerError(jobId))
+                }
+
                 is RunResult.Failed -> {
                     logger.error("Analyzer job '$jobId' failed.", result.error)
                     Message(message.header, AnalyzerWorkerError(jobId))

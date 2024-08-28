@@ -112,4 +112,5 @@ internal class WorkerScheduleContext(
 /**
  * Return a flag whether this [WorkerJob] is already completed.
  */
-private fun WorkerJob.isCompleted(): Boolean = status == JobStatus.FINISHED || status == JobStatus.FAILED
+private fun WorkerJob.isCompleted(): Boolean =
+    status == JobStatus.FINISHED || status == JobStatus.FAILED || status == JobStatus.FINISHED_WITH_ISSUES

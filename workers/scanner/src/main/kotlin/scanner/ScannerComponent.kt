@@ -58,6 +58,12 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
                     Message(message.header, ScannerWorkerResult(scannerJobId))
                 }
 
+                is RunResult.FinishedWithIssues -> {
+                    logger.warn("Scanner job '$scannerJobId' finished with issues.")
+                    // TODO: Send the right message type.
+                    Message(message.header, ScannerWorkerError(scannerJobId))
+                }
+
                 is RunResult.Failed -> {
                     logger.error("Scanner job '$scannerJobId' failed.", result.error)
                     Message(message.header, ScannerWorkerError(scannerJobId))

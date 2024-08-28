@@ -39,5 +39,8 @@ enum class JobStatus {
     FAILED,
 
     /** The job was processed successfully. */
-    FINISHED
+    FINISHED,
+
+    /** The job has finished but there were some issues over the threshold. */
+    FINISHED_WITH_ISSUES
 }

@@ -148,5 +148,6 @@ enum class OrtRunStatus(
     CREATED(false),
     ACTIVE(false),
     FINISHED(true),
-    FAILED(true)
+    FAILED(true),
+    FINISHED_WITH_ISSUES(true)
 }
