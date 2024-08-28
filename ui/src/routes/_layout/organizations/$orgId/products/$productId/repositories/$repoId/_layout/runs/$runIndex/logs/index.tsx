@@ -79,7 +79,7 @@ const ReportComponent = () => {
         ?.find((entry) => entry.includes('filename='))
         ?.replace('filename=', '')
         ?.trim();
-      a.download = filename ?? `${runId}_logs.zip`;
+      a.download = filename ?? `run-${runId}-${level}-logs.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
