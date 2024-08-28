@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
@@ -387,7 +388,7 @@ class OrchestratorTest : WordSpec() {
                         id = withArg { it shouldBe configWorkerError.ortRunId },
                         status = withArg { it.verifyOptionalValue(OrtRunStatus.FAILED) },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", ConfigEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, ConfigEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -686,7 +687,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe analyzerJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", AnalyzerEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, AnalyzerEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -892,7 +893,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe advisorJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", AdvisorEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, AdvisorEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -983,7 +984,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe evaluatorJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", EvaluatorEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, EvaluatorEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -1136,7 +1137,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe reporterJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", ReporterEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, ReporterEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -1272,7 +1273,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe notifierJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", NotifierEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, NotifierEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -1331,7 +1332,7 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(
                         id = withArg { it shouldBe notifierJob.ortRunId },
                         issues = withArg {
-                            verifyIssues(it) { verifyWorkerErrorIssues("ERROR", NotifierEndpoint.configPrefix) }
+                            verifyIssues(it) { verifyWorkerErrorIssues(Severity.ERROR, NotifierEndpoint.configPrefix) }
                         }
                     )
                 }
@@ -1837,7 +1838,7 @@ fun verifyIssues(
     issuesList.validate()
 }
 
-fun Collection<Issue>.verifyWorkerErrorIssues(severity: String, source: String) {
+fun Collection<Issue>.verifyWorkerErrorIssues(severity: Severity, source: String) {
     shouldBeSingleton { issue ->
         issue.severity shouldBe severity
         issue.source shouldBe source

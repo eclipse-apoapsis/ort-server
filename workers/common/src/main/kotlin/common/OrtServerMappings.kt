@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
@@ -313,7 +314,7 @@ fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.m
 
 fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
 
-fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, OrtSeverity.valueOf(severity))
+fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, severity.mapToOrt())
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
 
@@ -631,6 +632,12 @@ fun ScanSummary.mapToOrt() =
     )
 
 fun ScopeExclude.mapToOrt() = OrtScopeExclude(pattern, OrtScopeExcludeReason.valueOf(reason), comment)
+
+fun Severity.mapToOrt() = when (this) {
+    Severity.ERROR -> OrtSeverity.ERROR
+    Severity.WARNING -> OrtSeverity.WARNING
+    Severity.HINT -> OrtSeverity.HINT
+}
 
 fun Snippet.mapToOrt() = OrtSnippet(
     score = score,

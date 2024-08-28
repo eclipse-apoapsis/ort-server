@@ -25,6 +25,7 @@ import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
@@ -120,6 +121,7 @@ import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.ScanSummary as OrtScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails as OrtScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
+import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.Snippet as OrtSnippet
 import org.ossreviewtoolkit.model.SnippetFinding as OrtSnippetFinding
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
@@ -308,7 +310,7 @@ fun OrtIssue.mapToModel() =
         timestamp = timestamp.toKotlinInstant(),
         source = source,
         message = message,
-        severity = severity.name
+        severity = severity.mapToModel()
     )
 
 fun OrtPackage.mapToModel() =
@@ -520,6 +522,12 @@ fun OrtScanSummary.mapToModel() =
     )
 
 fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
+
+fun OrtSeverity.mapToModel() = when (this) {
+    OrtSeverity.ERROR -> Severity.ERROR
+    OrtSeverity.WARNING -> Severity.WARNING
+    OrtSeverity.HINT -> Severity.HINT
+}
 
 fun OrtSnippet.mapToModel() = Snippet(
     purl = purl,

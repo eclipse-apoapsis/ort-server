@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -174,7 +175,7 @@ val issue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
     source = "source",
     message = "message",
-    severity = "ERROR"
+    severity = Severity.ERROR
 )
 
 val defect = Defect(

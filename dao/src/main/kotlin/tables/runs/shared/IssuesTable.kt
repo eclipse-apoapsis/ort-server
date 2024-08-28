@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -35,7 +36,7 @@ object IssuesTable : LongIdTable("issues") {
     val timestamp = timestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
-    val severity = text("severity")
+    val severity = enumerationByName<Severity>("severity", 128)
 }
 
 class IssueDao(id: EntityID<Long>) : LongEntity(id) {

@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -69,7 +70,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
-import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
@@ -386,7 +387,7 @@ class ReporterRunnerTest : WordSpec({
                 message shouldContain "Something went wrong"
                 message shouldContain failureReportFormat
                 source shouldBe "Reporter"
-                severity shouldBe "ERROR"
+                severity shouldBe Severity.ERROR
             }
         }
 
@@ -424,7 +425,7 @@ class ReporterRunnerTest : WordSpec({
                 message shouldContain "No reporter found"
                 message shouldContain unsupportedReportFormat
                 source shouldBe "Reporter"
-                severity shouldBe "ERROR"
+                severity shouldBe Severity.ERROR
             }
         }
 
@@ -583,7 +584,7 @@ class ReporterRunnerTest : WordSpec({
 
             mockReportersAll(format to reporter)
 
-            val ruleViolation = RuleViolation("RULE", null, null, null, Severity.ERROR, "message", "howToFix")
+            val ruleViolation = RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
 
             val result = runner.run(
                 runId = RUN_ID,
@@ -631,7 +632,7 @@ class ReporterRunnerTest : WordSpec({
                         startTime = Clock.System.now().toJavaInstant(),
                         endTime = Clock.System.now().toJavaInstant(),
                         violations = listOf(
-                            RuleViolation("RULE", null, null, null, Severity.ERROR, "message", "howToFix")
+                            RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
                         )
                     )
                 ),

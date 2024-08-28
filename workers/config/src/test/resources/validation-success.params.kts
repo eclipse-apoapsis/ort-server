@@ -24,7 +24,7 @@ val issue = Issue(
     time,
     "validation",
     "Current repository is ${context.hierarchy.repository.url}",
-    "Hint"
+    Severity.HINT
 )
 
 validationResult = ConfigValidationResultSuccess(

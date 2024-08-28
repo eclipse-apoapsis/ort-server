@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobPluginOptions
 import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
@@ -396,6 +397,6 @@ private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
         timestamp = Clock.System.now(),
         source = "Reporter",
         message = "Could not create report for '$format': '${e.message}'",
-        severity = "ERROR",
+        severity = Severity.ERROR,
     )
 }
