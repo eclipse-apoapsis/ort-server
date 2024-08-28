@@ -55,8 +55,8 @@ const CreateOrganizationPage = () => {
 
   const { mutateAsync, isPending } = useOrganizationsServicePostOrganizations({
     onSuccess(data) {
-      toast.info('Create Organization', {
-        description: `New organization "${data.name}" created successfully.`,
+      toast.info('Add Organization', {
+        description: `Organization "${data.name}" added successfully.`,
       });
       navigate({
         to: '/organizations/$orgId',

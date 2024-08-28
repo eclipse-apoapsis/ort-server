@@ -64,8 +64,8 @@ const CreateRepositoryPage = () => {
 
   const { mutateAsync, isPending } = useRepositoriesServiceCreateRepository({
     onSuccess(data) {
-      toast.info('Create Repository', {
-        description: `New repository "${data.url}" created successfully.`,
+      toast.info('Add Repository', {
+        description: `Repository ${data.url} added successfully.`,
       });
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
