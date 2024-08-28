@@ -141,7 +141,11 @@ class Orchestrator(
      * Handle messages of the type [AnalyzerWorkerResult].
      */
     fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
-        handleWorkerResult(AnalyzerEndpoint, header, analyzerWorkerResult)
+        if (!analyzerWorkerResult.hasIssues) {
+            handleWorkerResult(AnalyzerEndpoint, header, analyzerWorkerResult)
+        } else {
+            handleWorkerResultWithIssues(AnalyzerEndpoint, header, analyzerWorkerResult)
+        }
     }
 
     /**
@@ -255,6 +259,14 @@ class Orchestrator(
      */
     private fun handleWorkerResult(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
         handleCompletedJob(endpoint, header, result, JobStatus.FINISHED)
+    }
+
+    /**
+     * Handle the given [result] message with the given [header] from a worker of the given [endpoint]. The run finished
+     * on the worker, but with issues over the threshold.
+     */
+    private fun handleWorkerResultWithIssues(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
+        handleCompletedJob(endpoint, header, result, JobStatus.FINISHED_WITH_ISSUES)
     }
 
     /**

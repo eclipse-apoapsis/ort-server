@@ -62,7 +62,9 @@ interface WorkerMessage {
 @Serializable
 data class AnalyzerWorkerResult(
     /** The ID of the Analyzer job, as it is stored in the database. */
-    override val jobId: Long
+    override val jobId: Long,
+    /** if `true`, the result has issues over the threshold. */
+    val hasIssues: Boolean = false
 ) : OrchestratorMessage(), WorkerMessage
 
 /**

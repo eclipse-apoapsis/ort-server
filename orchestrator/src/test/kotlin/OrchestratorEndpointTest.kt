@@ -195,6 +195,23 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "AnalyzerWorkerResultWithIssues messages should be handled" {
+            val analyzerWorkerResultWithIssues = AnalyzerWorkerResult(99, true)
+            val message = Message(msgHeader, analyzerWorkerResultWithIssues)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleAnalyzerWorkerResult(msgHeader, any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleAnalyzerWorkerResult(msgHeader, analyzerWorkerResultWithIssues)
+                }
+            }
+        }
+
         "AdvisorWorkerResult messages should be handled" {
             val advisorWorkerResult = AdvisorWorkerResult(11)
             val message = Message(msgHeader, advisorWorkerResult)

@@ -701,6 +701,74 @@ class OrchestratorTest : WordSpec() {
             }
         }
 
+        "handleAnalyzerWorkerResultWithIssues" should {
+            "update the job in the database and create an advisor and scanner job" {
+                val analyzerWorkerResultWithIssues = AnalyzerWorkerResult(123, true)
+
+                val scannerJobRepository: ScannerJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns scannerJob
+                    every { get(scannerJob.id) } returns scannerJob
+                    every { update(scannerJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val advisorJobRepository: AdvisorJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns advisorJob
+                    every { get(advisorJob.id) } returns advisorJob
+                    every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED_WITH_ISSUES) {
+                    every { get(analyzerWorkerResultWithIssues.jobId) } returns analyzerJob
+                    every { complete(analyzerJob.id, any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleAnalyzerWorkerResult(msgHeader, analyzerWorkerResultWithIssues)
+                }
+
+                verify(exactly = 1) {
+                    analyzerJobRepository.complete(
+                        id = withArg { it shouldBe analyzerJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FINISHED_WITH_ISSUES }
+                    )
+                    advisorJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe advisorJob.configuration }
+                    )
+                    scannerJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe scannerJob.configuration }
+                    )
+                    publisher.publish(
+                        to = withArg<AdvisorEndpoint> { it shouldBe AdvisorEndpoint },
+                        message = withArg {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload.advisorJobId shouldBe advisorJob.id
+                        }
+                    )
+                    advisorJobRepository.update(
+                        id = withArg { it shouldBe advisorJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                    scannerJobRepository.update(
+                        id = withArg { it shouldBe scannerJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                }
+            }
+        }
+
         "handleAdvisorWorkerResult" should {
             "update the job in the database" {
                 val advisorWorkerResult = AdvisorWorkerResult(advisorJob.id)

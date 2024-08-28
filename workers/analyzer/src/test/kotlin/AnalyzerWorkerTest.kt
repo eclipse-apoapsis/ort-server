@@ -33,6 +33,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.spyk
 import io.mockk.verify
 
 import java.io.File
@@ -52,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -428,6 +430,58 @@ class AnalyzerWorkerTest : StringSpec({
             val result = worker.testRun()
 
             result shouldBe RunResult.Ignored
+        }
+    }
+
+    "A 'finished with issues' result should be returned if the analyzer run finished with issues" {
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
+            // the repository is not cloned.
+            every { downloadRepository(any(), any()) } returns projectDir
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(analyzerJob.ortRunId) } returns context
+        }
+
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServiceForRepository(context) } returns null
+            coEvery { setUpEnvironment(context, projectDir, null) } returns ResolvedEnvironmentConfig()
+        }
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } answers {
+                OrtTestData.result
+            }
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.FinishedWithIssues
         }
     }
 })
