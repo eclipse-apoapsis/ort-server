@@ -67,6 +67,10 @@ const Layout = () => {
           title: 'Logs',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
         },
+        {
+          title: 'Job Configurations',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
+        },
       ],
     },
   ];

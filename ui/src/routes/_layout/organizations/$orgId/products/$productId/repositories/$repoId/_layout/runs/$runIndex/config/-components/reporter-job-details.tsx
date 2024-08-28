@@ -35,7 +35,8 @@ export const ReporterJobDetails = ({ run }: ReporterJobDetailsProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className='flex gap-2'>
+          Reporter
           <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
             {run.jobs.reporter?.status || 'NOT RUN'}
           </Badge>

@@ -28,15 +28,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
-import { AdvisorJobDetails } from './-components/advisor-job-details';
-import { AnalyzerJobDetails } from './-components/analyzer-job-details';
-import { EvaluatorJobDetails } from './-components/evaluator-job-details';
-import { NotifierJobDetails } from './-components/notifier-job-details';
-import { ReporterJobDetails } from './-components/reporter-job-details';
-import { ScannerJobDetails } from './-components/scanner-job-details';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -213,66 +206,6 @@ const RunComponent = () => {
             </CardContent>
           </CardHeader>
         </Card>
-      </div>
-      <div className='flex w-4/12'>
-        <Tabs defaultValue='analyzer'>
-          <TabsList className='flex-wrap justify-start bg-white'>
-            <TabsTrigger
-              value='analyzer'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.analyzer?.status)}`}
-            >
-              Analyzer
-            </TabsTrigger>
-            <TabsTrigger
-              value='advisor'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.advisor?.status)}`}
-            >
-              Advisor
-            </TabsTrigger>
-            <TabsTrigger
-              value='scanner'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.scanner?.status)}`}
-            >
-              Scanner
-            </TabsTrigger>
-            <TabsTrigger
-              value='evaluator'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.evaluator?.status)}`}
-            >
-              Evaluator
-            </TabsTrigger>
-            <TabsTrigger
-              value='reporter'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.reporter?.status)}`}
-            >
-              Reporter
-            </TabsTrigger>
-            <TabsTrigger
-              value='notifier'
-              className={`border font-semibold text-white ${getStatusBackgroundColor(ortRun.jobs.notifier?.status)}`}
-            >
-              Notifier
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value='analyzer' className='mt-10'>
-            <AnalyzerJobDetails run={ortRun} />
-          </TabsContent>
-          <TabsContent value='advisor' className='mt-10'>
-            <AdvisorJobDetails run={ortRun} />
-          </TabsContent>
-          <TabsContent value='scanner' className='mt-10'>
-            <ScannerJobDetails run={ortRun} />
-          </TabsContent>
-          <TabsContent value='evaluator' className='mt-10'>
-            <EvaluatorJobDetails run={ortRun} />
-          </TabsContent>
-          <TabsContent value='reporter' className='mt-10'>
-            <ReporterJobDetails run={ortRun} />
-          </TabsContent>
-          <TabsContent value='notifier' className='mt-10'>
-            <NotifierJobDetails run={ortRun} />
-          </TabsContent>
-        </Tabs>
       </div>
     </>
   );
