@@ -112,7 +112,14 @@ const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
     accessorKey: 'jobStatuses',
     header: () => <div>Job Status</div>,
     cell: ({ row }) => (
-      <OrtRunJobStatus jobs={row.original.jobs} pollInterval={pollInterval} />
+      <OrtRunJobStatus
+        jobs={row.original.jobs}
+        pollInterval={pollInterval}
+        orgId={row.original.organizationId.toString()}
+        productId={row.original.productId.toString()}
+        repoId={row.original.repositoryId.toString()}
+        runIndex={row.original.index.toString()}
+      />
     ),
   },
   {

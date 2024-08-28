@@ -47,12 +47,22 @@ const ConfigComponent = () => {
   });
 
   return (
-    <div className='my-2 flex h-full flex-col gap-4 overflow-y-auto'>
-      <AnalyzerJobDetails run={ortRun} />
-      <AdvisorJobDetails run={ortRun} />
-      <ScannerJobDetails run={ortRun} />
-      <EvaluatorJobDetails run={ortRun} />
-      <ReporterJobDetails run={ortRun} />
+    <div className='flex flex-col gap-4'>
+      <div id='analyzer' className='scroll-mt-16'>
+        <AnalyzerJobDetails run={ortRun} />
+      </div>
+      <div id='advisor' className='scroll-mt-16'>
+        <AdvisorJobDetails run={ortRun} />
+      </div>
+      <div id='scanner' className='scroll-mt-16'>
+        <ScannerJobDetails run={ortRun} />
+      </div>
+      <div id='evaluator' className='scroll-mt-16'>
+        <EvaluatorJobDetails run={ortRun} />
+      </div>
+      <div id='reporter' className='scroll-mt-16'>
+        <ReporterJobDetails run={ortRun} />
+      </div>
       <NotifierJobDetails run={ortRun} />
     </div>
   );

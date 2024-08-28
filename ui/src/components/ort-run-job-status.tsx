@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { Link } from '@tanstack/react-router';
+
 import { PagedResponse_OrtRunSummary_ } from '@/api/requests';
 import {
   Tooltip,
@@ -33,20 +35,36 @@ import { RunDuration } from './run-duration';
 type OrtRunJobStatusProps = {
   jobs: PagedResponse_OrtRunSummary_['data'][0]['jobs'];
   pollInterval: number;
+  orgId: string;
+  productId: string;
+  repoId: string;
+  runIndex: string;
 };
 
 export const OrtRunJobStatus = ({
   jobs,
   pollInterval,
+  orgId,
+  productId,
+  repoId,
+  runIndex,
 }: OrtRunJobStatusProps) => {
   return (
     <TooltipProvider>
       <div className='flex items-center space-x-1'>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
-            ></div>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+              params={{ orgId, productId, repoId, runIndex }}
+              hash='analyzer'
+            >
+              <div
+                className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
+              >
+                {' '}
+              </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className='flex flex-col'>
@@ -74,9 +92,17 @@ export const OrtRunJobStatus = ({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
-            ></div>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+              params={{ orgId, productId, repoId, runIndex }}
+              hash='advisor'
+            >
+              <div
+                className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
+              >
+                {' '}
+              </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className='flex flex-col'>
@@ -104,9 +130,17 @@ export const OrtRunJobStatus = ({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
-            ></div>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+              params={{ orgId, productId, repoId, runIndex }}
+              hash='scanner'
+            >
+              <div
+                className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
+              >
+                {' '}
+              </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className='flex flex-col'>
@@ -134,9 +168,17 @@ export const OrtRunJobStatus = ({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
-            ></div>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+              params={{ orgId, productId, repoId, runIndex }}
+              hash='evaluator'
+            >
+              <div
+                className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
+              >
+                {' '}
+              </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className='flex flex-col'>
@@ -164,9 +206,17 @@ export const OrtRunJobStatus = ({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
-            ></div>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+              params={{ orgId, productId, repoId, runIndex }}
+              hash='reporter'
+            >
+              <div
+                className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
+              >
+                {' '}
+              </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className='flex flex-col'>
