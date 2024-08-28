@@ -972,6 +972,65 @@ class OrchestratorTest : WordSpec() {
             }
         }
 
+        "handleAdvisorWorkerResultWithIssues" should {
+            "update the job in the database" {
+                val advisorWorkerResultWithIssues = AdvisorWorkerResult(advisorJob.id, true)
+
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED_WITH_ISSUES) {
+                    every { get(advisorWorkerResultWithIssues.jobId) } returns advisorJob
+                    every { complete(advisorJob.id, any(), any()) } returns mockk()
+                }
+
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns evaluatorJob
+                    every { get(evaluatorJob.id) } returns evaluatorJob
+                    every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val publisher = createMessagePublisher()
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleAdvisorWorkerResult(msgHeader, advisorWorkerResultWithIssues)
+                }
+
+                verify(exactly = 1) {
+                    evaluatorJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe evaluatorJob.configuration }
+                    )
+                    publisher.publish(
+                        to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
+                        message = withArg {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload.evaluatorJobId shouldBe evaluatorJob.id
+                        }
+                    )
+                    evaluatorJobRepository.update(
+                        id = withArg { it shouldBe evaluatorJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+
+                    advisorJobRepository.complete(
+                        id = withArg { it shouldBe advisorJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FINISHED_WITH_ISSUES }
+                    )
+                }
+            }
+        }
+
         "handleEvaluatorWorkerResult" should {
             "update the job in the database and create a reporter job" {
                 val evaluatorWorkerResult = EvaluatorWorkerResult(evaluatorJob.id)

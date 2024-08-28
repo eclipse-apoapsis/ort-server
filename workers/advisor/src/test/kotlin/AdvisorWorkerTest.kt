@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -142,6 +143,61 @@ class AdvisorWorkerTest : StringSpec({
             when (val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> fail("Unexpected result: $result")
+            }
+        }
+    }
+
+    "A 'finished with issues' result should be returned if the advisor run finished with issues" {
+        val analyzerRun = mockk<AnalyzerRun> {
+            every { analyzerJobId } returns ANALYZER_JOB_ID
+            every { packages } returns emptySet()
+        }
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { resolvedJobConfigContext } returns null
+        }
+        val ortResult = OrtResult.EMPTY.copy(
+            analyzer = OrtAnalyzerRun.EMPTY
+        )
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorJob(any()) } returns advisorJob
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { startAdvisorJob(any()) } returns advisorJob
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { storeAdvisorRun(any()) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
+        }
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
+
+        val runner = spyk(createRunner())
+        coEvery { runner.run(any(), any(), any()) } coAnswers {
+           OrtTestData.result
+        }
+
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
+
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.FinishedWithIssues
+
+            coVerify(exactly = 1) {
+                runner.run(context, ortResult, advisorJob.configuration)
+                ortRunService.storeAdvisorRun(withArg { it.advisorJobId shouldBe ADVISOR_JOB_ID })
             }
         }
     }

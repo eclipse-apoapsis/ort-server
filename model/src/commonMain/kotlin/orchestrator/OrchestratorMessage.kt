@@ -82,7 +82,9 @@ data class AnalyzerWorkerError(
 @Serializable
 data class AdvisorWorkerResult(
     /** The ID of the Advisor job, as it is stored in the database. */
-    override val jobId: Long
+    override val jobId: Long,
+    /** if `true`, the result has issues over the threshold. */
+    val hasIssues: Boolean = false
 ) : OrchestratorMessage(), WorkerMessage
 
 /**
