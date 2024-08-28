@@ -111,12 +111,14 @@ export const IndexPage = () => {
               <TooltipTrigger asChild>
                 <Button asChild size='sm' className='ml-auto gap-1'>
                   <Link to='/create-organization'>
-                    New organization
+                    Add organization
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Create a new organization</TooltipContent>
+              <TooltipContent>
+                Add an organization for managing products
+              </TooltipContent>
             </Tooltip>
           </div>
         </CardHeader>

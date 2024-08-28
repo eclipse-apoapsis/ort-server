@@ -211,13 +211,13 @@ const ProductComponent = () => {
                       productId: params.productId,
                     }}
                   >
-                    New repository
+                    Add repository
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                Add a new repository for this product
+                Add a repository for managing compliance runs
               </TooltipContent>
             </Tooltip>
           </div>

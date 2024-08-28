@@ -203,13 +203,13 @@ const OrganizationComponent = () => {
                     to='/organizations/$orgId/create-product'
                     params={{ orgId: organization.id.toString() }}
                   >
-                    New product
+                    Add product
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                Create a new product for this organization
+                Add a product for managing repositories
               </TooltipContent>
             </Tooltip>
           </div>
