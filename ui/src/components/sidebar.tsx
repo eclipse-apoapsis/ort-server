@@ -31,6 +31,9 @@ interface SidebarNavProps {
       to?: string;
       params?: Record<string, string | undefined>;
       title: string;
+      icon?: React.ComponentType<{
+        className?: string;
+      }>;
       visible?: boolean; // default: true
       activeOptions?: {
         exact?: boolean; // default: true
@@ -74,13 +77,14 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                     disabled={disabled}
                     params={item.params}
                     activeProps={{
-                      className: 'bg-muted hover:bg-muted',
+                      className: 'gap-2 bg-muted hover:bg-muted',
                     }}
                     inactiveProps={
                       disabled
-                        ? { className: 'text-muted-foreground italic' }
+                        ? { className: 'gap-2 text-muted-foreground italic' }
                         : {
-                            className: 'hover:bg-transparent hover:underline',
+                            className:
+                              'gap-2 hover:bg-transparent hover:underline',
                           }
                     }
                     activeOptions={{
@@ -102,6 +106,7 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                       'w-full justify-start'
                     )}
                   >
+                    {item.icon && <item.icon />}
                     {item.title}
                   </Link>
                 ) : null;
