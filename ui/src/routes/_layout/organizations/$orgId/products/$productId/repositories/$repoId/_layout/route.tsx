@@ -18,40 +18,62 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import {
+  ArrowRightLeft,
+  Cigarette,
+  Eye,
+  FileText,
+  FolderTree,
+} from 'lucide-react';
 
 import { Sidebar } from '@/components/sidebar';
 
 const Layout = () => {
-  const navItems = [
+  const sections = [
     {
-      title: 'Overview',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+      label: 'Compliance',
+      items: [
+        {
+          title: 'Overview',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+          icon: () => <Eye className='h-4 w-4' />,
+        },
+        {
+          title: 'Dependencies',
+          icon: () => <FolderTree className='h-4 w-4' />,
+        },
+        {
+          title: 'Vulnerabilities',
+          icon: () => <Cigarette className='h-4 w-4' />,
+        },
+        {
+          title: 'License Findings',
+          icon: () => <FileText className='h-4 w-4' />,
+        },
+        {
+          title: 'Rule Violations',
+          icon: () => <ArrowRightLeft className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Dependencies',
-    },
-    {
-      title: 'Vulnerabilities',
-    },
-    {
-      title: 'License Findings',
-    },
-    {
-      title: 'Rule Violations',
-    },
-    {
-      title: 'Reports',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
-    },
-    {
-      title: 'Logs',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
+      label: 'Technical',
+      items: [
+        {
+          title: 'Reports',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
+        },
+        {
+          title: 'Logs',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
+        },
+      ],
     },
   ];
 
   return (
     <div className='flex h-[calc(100vh-4rem-2rem)] w-full gap-2 md:h-[calc(100vh-4rem-4rem)]'>
-      <Sidebar sections={[{ items: navItems }]} />
+      <Sidebar sections={sections} />
       <Outlet />
     </div>
   );
