@@ -31,11 +31,13 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.Severity
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
 
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
+private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES)
 
 internal class AnalyzerWorker(
     private val db: Database,
@@ -100,7 +102,11 @@ internal class AnalyzerWorker(
             ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
         }
 
-        RunResult.Success
+        if (analyzerRun.result.issues.values.flatten().any { it.severity >= Severity.WARNING }) {
+            RunResult.FinishedWithIssues
+        } else {
+            RunResult.Success
+        }
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
