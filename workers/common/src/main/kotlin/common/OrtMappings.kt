@@ -310,7 +310,8 @@ fun OrtIssue.mapToModel() =
         timestamp = timestamp.toKotlinInstant(),
         source = source,
         message = message,
-        severity = severity.mapToModel()
+        severity = severity.mapToModel(),
+        affectedPath = affectedPath
     )
 
 fun OrtPackage.mapToModel() =

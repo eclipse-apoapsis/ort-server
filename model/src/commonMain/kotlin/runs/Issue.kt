@@ -39,5 +39,8 @@ data class Issue(
     val message: String,
 
     /** The [Severity] of the issue. */
-    val severity: Severity
+    val severity: Severity,
+
+    /** The optional file path this issue is related to. */
+    val affectedPath: String? = null
 )

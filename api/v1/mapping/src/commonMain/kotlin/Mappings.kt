@@ -217,7 +217,7 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         ruleSet
     )
 
-fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity.mapToApi())
+fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity.mapToApi(), affectedPath)
 
 fun Severity.mapToApi() = when (this) {
     Severity.ERROR -> ApiSeverity.ERROR

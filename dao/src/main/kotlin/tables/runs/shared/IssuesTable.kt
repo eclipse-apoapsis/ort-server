@@ -37,6 +37,7 @@ object IssuesTable : LongIdTable("issues") {
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)
+    val affectedPath = text("affected_path").nullable()
 }
 
 class IssueDao(id: EntityID<Long>) : LongEntity(id) {
@@ -47,6 +48,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
                 source = issue.source
                 message = issue.message
                 severity = issue.severity
+                affectedPath = issue.affectedPath
             }
     }
 
@@ -54,6 +56,13 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     var source by IssuesTable.issueSource
     var message by IssuesTable.message
     var severity by IssuesTable.severity
+    var affectedPath by IssuesTable.affectedPath
 
-    fun mapToModel() = Issue(timestamp = timestamp, source = source, message = message, severity = severity)
+    fun mapToModel() = Issue(
+        timestamp = timestamp,
+        source = source,
+        message = message,
+        severity = severity,
+        affectedPath = affectedPath
+    )
 }
