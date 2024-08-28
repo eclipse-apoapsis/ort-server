@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -37,7 +38,7 @@ object RuleViolationsTable : LongIdTable("rule_violations") {
     val packageIdentifierId = reference("package_identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
     val licenseSource = text("license_source").nullable()
-    val severity = text("severity")
+    val severity = enumerationByName<Severity>("severity", 128)
     val message = text("message")
     val howToFix = text("how_to_fix")
 }

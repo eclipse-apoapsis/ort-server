@@ -579,7 +579,7 @@ fun RuleViolation.mapToOrt() =
         pkg = packageId?.mapToOrt(),
         license = license?.let { SpdxSingleLicenseExpression.parse(it) },
         licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
-        severity = OrtSeverity.valueOf(severity),
+        severity = severity.mapToOrt(),
         message = message,
         howToFix = howToFix
     )
