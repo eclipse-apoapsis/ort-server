@@ -159,7 +159,11 @@ class Orchestrator(
      * Handle messages of the type [AdvisorWorkerResult].
      */
     fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
-        handleWorkerResult(AdvisorEndpoint, header, advisorWorkerResult)
+        if (!advisorWorkerResult.hasIssues) {
+            handleWorkerResult(AdvisorEndpoint, header, advisorWorkerResult)
+        } else {
+            handleWorkerResultWithIssues(AdvisorEndpoint, header, advisorWorkerResult)
+        }
     }
 
     /**
