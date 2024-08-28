@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
@@ -953,13 +954,13 @@ class OrtRunServiceTest : WordSpec({
                     Instant.parse("2024-02-20T13:51:00Z"),
                     "issueSource",
                     "Some test issue",
-                    "HINT"
+                    Severity.HINT
                 ),
                 Issue(
                     Instant.parse("2024-02-20T13:52:00Z"),
                     "differentIssueSource",
                     "Some problematic issue",
-                    "WARN"
+                    Severity.WARNING
                 )
             )
 

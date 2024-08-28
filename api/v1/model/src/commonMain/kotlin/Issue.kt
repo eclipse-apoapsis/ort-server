@@ -36,6 +36,6 @@ data class Issue(
     /** A message describing the issue. */
     val message: String,
 
-    /** The severity, such as ERROR, HINT, etc. */
-    val severity: String
+    /** The [Severity] of the issue. */
+    val severity: Severity
 )

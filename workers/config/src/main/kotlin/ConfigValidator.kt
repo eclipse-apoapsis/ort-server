@@ -26,6 +26,7 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -66,7 +67,7 @@ class ConfigValidator private constructor(private val context: WorkerContext) : 
                         INVALID_SCRIPT_SOURCE,
                         "Error when executing validation script. This is a problem with the configuration " +
                                 "of ORT Server.",
-                        "ERROR"
+                        Severity.ERROR
                     )
                 )
             ).also {

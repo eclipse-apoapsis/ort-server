@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -62,7 +63,7 @@ class ConfigValidatorTest : StringSpec({
             Clock.System.now(),
             "validation",
             "Current repository is ${testHierarchy.repository.url}",
-            "Hint"
+            Severity.HINT
         )
         validationResult.issues shouldHaveSize 1
         checkIssue(expectedIssue, validationResult.issues[0])
@@ -82,7 +83,7 @@ class ConfigValidatorTest : StringSpec({
             Clock.System.now(),
             "validation",
             "Current repository is ${testHierarchy.repository.url}; invalid parameters.",
-            "Error"
+            Severity.ERROR
         )
         validationResult.issues shouldHaveSize 1
         checkIssue(expectedIssue, validationResult.issues[0])
@@ -99,7 +100,7 @@ class ConfigValidatorTest : StringSpec({
         with(validationResult.issues[0]) {
             source shouldBe ConfigValidator.INVALID_SCRIPT_SOURCE
             message shouldContain "executing validation script"
-            severity shouldBe "ERROR"
+            severity shouldBe Severity.ERROR
         }
     }
 })

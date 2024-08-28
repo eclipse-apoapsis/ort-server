@@ -23,7 +23,7 @@ val issue = Issue(
     time,
     "validation",
     "Current repository is ${context.hierarchy.repository.url}; invalid parameters.",
-    "Error"
+    Severity.ERROR
 )
 
 validationResult = ConfigValidationResultFailure(listOf(issue))

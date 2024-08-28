@@ -22,10 +22,12 @@ package org.eclipse.apoapsis.ortserver.model.runs
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.model.Severity
+
 @Serializable
 data class Issue(
     val timestamp: Instant,
     val source: String,
     val message: String,
-    val severity: String
+    val severity: Severity
 )

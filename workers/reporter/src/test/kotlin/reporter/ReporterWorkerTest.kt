@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
@@ -164,7 +165,7 @@ class ReporterWorkerTest : StringSpec({
             reports = mapOf("WebApp" to listOf("report.html")),
             resolvedPackageConfigurations = null,
             resolvedResolutions = null,
-            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", "Test severity"))
+            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
         )
         val runner = mockk<ReporterRunner> {
             coEvery {

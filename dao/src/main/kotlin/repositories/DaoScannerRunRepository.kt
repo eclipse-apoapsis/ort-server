@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanner
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScannersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -126,7 +127,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                         source = "scanner",
                         message = "Could not resolve provenance for package '$identifier': " +
                                 "${packageProvenanceDao.errorMessage}",
-                        severity = "ERROR"
+                        severity = Severity.ERROR
                     )
                 )
                 add(result)
@@ -143,7 +144,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                         timestamp = Clock.System.now(),
                         source = "scanner",
                         message = "Could not resolve nested provenance for provenance '$packageProvenance'.",
-                        severity = "ERROR"
+                        severity = Severity.ERROR
                     )
                 )
                 add(result)

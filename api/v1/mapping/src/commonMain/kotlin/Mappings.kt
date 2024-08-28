@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiReposito
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
@@ -101,6 +102,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
@@ -215,7 +217,13 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         ruleSet
     )
 
-fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity)
+fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity.mapToApi())
+
+fun Severity.mapToApi() = when (this) {
+    Severity.ERROR -> ApiSeverity.ERROR
+    Severity.WARNING -> ApiSeverity.WARNING
+    Severity.HINT -> ApiSeverity.HINT
+}
 
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
 

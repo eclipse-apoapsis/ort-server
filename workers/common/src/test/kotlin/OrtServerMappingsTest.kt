@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
@@ -120,7 +121,7 @@ class OrtServerMappingsTest : WordSpec({
                 timestamp = Instant.parse("2023-08-02T07:59:38Z"),
                 source = "test-tool",
                 message = "Some problem with this run",
-                severity = "WARN"
+                severity = Severity.WARNING
             )
 
             val ortRun = OrtRun(
@@ -270,7 +271,7 @@ class OrtServerMappingsTest : WordSpec({
                 timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 source = "tool-x",
                 message = "An issue occurred.",
-                severity = "ERROR"
+                severity = Severity.ERROR
             )
 
             val dependencyGraph = DependencyGraph(

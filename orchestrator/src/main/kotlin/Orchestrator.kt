@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
@@ -417,5 +418,5 @@ fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
     timestamp = Clock.System.now(),
     source = configPrefix,
     message = "The $configPrefix worker failed due to an unexpected error.",
-    severity = "ERROR"
+    severity = Severity.ERROR
 )
