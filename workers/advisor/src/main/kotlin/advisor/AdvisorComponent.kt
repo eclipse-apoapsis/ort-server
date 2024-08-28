@@ -64,6 +64,12 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
                     Message(message.header, AdvisorWorkerResult(advisorJobId))
                 }
 
+                is RunResult.FinishedWithIssues -> {
+                    logger.warn("Advisor job '$advisorJobId' finished with issues.")
+                    // TODO: Send the right message type.
+                    Message(message.header, AdvisorWorkerError(advisorJobId))
+                }
+
                 is RunResult.Failed -> {
                     logger.error("Advisor job '$advisorJobId' failed.", result.error)
                     Message(message.header, AdvisorWorkerError(advisorJobId))

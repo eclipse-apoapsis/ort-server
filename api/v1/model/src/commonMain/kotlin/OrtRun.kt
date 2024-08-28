@@ -160,7 +160,8 @@ enum class OrtRunStatus {
     CREATED,
     ACTIVE,
     FINISHED,
-    FAILED
+    FAILED,
+    FINISHED_WITH_ISSUES
 }
 
 @Serializable

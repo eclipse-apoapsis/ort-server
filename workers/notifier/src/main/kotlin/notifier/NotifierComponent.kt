@@ -51,6 +51,12 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
                     Message(message.header, NotifierWorkerResult(notifierJobId))
                 }
 
+                // The notifier job does not return any issue so this result will never occur.
+                is RunResult.FinishedWithIssues -> {
+                    logger.warn("Notifier job '$notifierJobId' finished with issues.")
+                    Message(message.header, NotifierWorkerError(notifierJobId))
+                }
+
                 is RunResult.Failed -> {
                     logger.error("Notifier job '$notifierJobId' failed.", result.error)
                     Message(message.header, NotifierWorkerError(notifierJobId))
