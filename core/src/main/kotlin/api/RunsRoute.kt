@@ -80,20 +80,18 @@ fun Route.runs() = route("runs/{runId}") {
             call.forRun(ortRunRepository) { ortRun ->
                 requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-                val logArchive = logFileService.createLogFilesArchive(
-                    ortRun.id,
-                    call.extractSteps(),
-                    call.extractLevel(),
-                    ortRun.createdAt,
-                    ortRun.finishedAt ?: Clock.System.now()
-                )
+                val sources = call.extractSteps()
+                val level = call.extractLevel()
+                val startTime = ortRun.createdAt
+                val endTime = ortRun.finishedAt ?: Clock.System.now()
+                val logArchive = logFileService.createLogFilesArchive(ortRun.id, sources, level, startTime, endTime)
 
                 try {
                     call.response.header(
                         HttpHeaders.ContentDisposition,
                         ContentDisposition.Attachment.withParameter(
                             ContentDisposition.Parameters.FileName,
-                            "${ortRun.id}_logs.zip"
+                            "run-${ortRun.id}-$level-logs.zip"
                         ).toString()
                     )
 

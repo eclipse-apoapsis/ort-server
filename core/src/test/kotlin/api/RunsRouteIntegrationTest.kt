@@ -283,7 +283,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}/logs")
 
-                val expectedContentDispositionHeader = "attachment; filename=${run.id}_logs.zip"
+                val expectedContentDispositionHeader = "attachment; filename=run-${run.id}-INFO-logs.zip"
                 response.headers["Content-Disposition"] shouldBe expectedContentDispositionHeader
                 response.headers["Content-Type"] shouldBe "application/zip"
             }
