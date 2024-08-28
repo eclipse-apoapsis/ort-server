@@ -314,7 +314,7 @@ fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.m
 
 fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
 
-fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, severity.mapToOrt())
+fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, severity.mapToOrt(), affectedPath)
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
 
