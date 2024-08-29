@@ -148,6 +148,7 @@ const EditOrganizationPage = () => {
           </CardContent>
           <CardFooter>
             <Button
+              type='button'
               className='m-1'
               variant='outline'
               onClick={() => navigate({ to: '/organizations/' + params.orgId })}
