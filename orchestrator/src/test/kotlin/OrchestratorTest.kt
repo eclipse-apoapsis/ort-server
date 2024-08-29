@@ -1184,6 +1184,47 @@ class OrchestratorTest : WordSpec() {
             }
         }
 
+        "handleEvaluatorWorkerResultWithIssues" should {
+            "update the job in the database and create a reporter job" {
+                val evaluatorWorkerResultWithIssues = EvaluatorWorkerResult(evaluatorJob.id, true)
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED_WITH_ISSUES) {
+                    every { get(evaluatorWorkerResultWithIssues.jobId) } returns evaluatorJob
+                    every { complete(evaluatorJob.id, any(), any()) } returns mockk()
+                }
+
+                val reporterJobRepository = expectReporterJob()
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleEvaluatorWorkerResult(msgHeader, evaluatorWorkerResultWithIssues)
+                }
+
+                verifyReporterJobCreated(reporterJobRepository, publisher)
+                verify(exactly = 1) {
+                    evaluatorJobRepository.complete(
+                        id = withArg { it shouldBe evaluatorJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FINISHED_WITH_ISSUES }
+                    )
+                }
+            }
+        }
+
         "handleReporterWorkerResult" should {
             "update the job in the database and create a notifier job" {
                 val reporterWorkerResult = ReporterWorkerResult(reporterJob.id)
