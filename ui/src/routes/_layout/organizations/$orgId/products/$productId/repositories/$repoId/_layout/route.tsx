@@ -76,7 +76,7 @@ const Layout = () => {
   ];
 
   return (
-    <div className='flex h-[calc(100vh-4rem-2rem)] w-full gap-2 md:h-[calc(100vh-4rem-4rem)]'>
+    <div className='flex h-full w-full gap-2'>
       <Sidebar sections={sections} />
       <Outlet />
     </div>
