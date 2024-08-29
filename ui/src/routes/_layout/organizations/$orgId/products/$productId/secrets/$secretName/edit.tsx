@@ -148,7 +148,7 @@ const EditProductSecretPage = () => {
               render={({ field }) => (
                 <FormItem className='mt-0'>
                   <FormLabel>Value</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>

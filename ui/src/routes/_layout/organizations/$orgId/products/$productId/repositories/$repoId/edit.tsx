@@ -138,7 +138,7 @@ const EditRepositoryPage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>URL</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>URL of the repository</FormDescription>

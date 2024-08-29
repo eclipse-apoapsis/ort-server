@@ -167,7 +167,7 @@ const EditInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Url</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} type='url' />
                   </FormControl>
                   <FormDescription>
