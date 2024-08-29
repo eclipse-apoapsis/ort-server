@@ -53,6 +53,7 @@ const RunComponent = () => {
       refetchInterval: (run) => {
         if (
           run.state.data?.status === 'FINISHED' ||
+          run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
           run.state.data?.status === 'FAILED'
         )
           return false;
