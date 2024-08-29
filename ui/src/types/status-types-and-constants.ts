@@ -25,6 +25,7 @@ export type Status =
   | 'ACTIVE'
   | 'FAILED'
   | 'FINISHED'
+  | 'FINISHED_WITH_ISSUES'
   | undefined;
 
 // Note: all color classes need to be defined as they are here, as they are formed
@@ -39,6 +40,7 @@ export const STATUS_FONT_COLOR: { [K in Exclude<Status, undefined>]: string } =
     ACTIVE: 'text-blue-500',
     FAILED: 'text-red-500',
     FINISHED: 'text-green-500',
+    FINISHED_WITH_ISSUES: 'text-yellow-500',
   } as const;
 
 // Map statuses to TailwindCSS background colors
@@ -51,6 +53,7 @@ export const STATUS_BACKGROUND_COLOR: {
   ACTIVE: 'bg-blue-500',
   FAILED: 'bg-red-500',
   FINISHED: 'bg-green-500',
+  FINISHED_WITH_ISSUES: 'bg-yellow-500',
 } as const;
 
 // Map statuses to TailwindCSS classes
@@ -63,4 +66,5 @@ export const STATUS_CLASS: {
   ACTIVE: 'w-4 h-4 rounded-full animate-pulse border border-black',
   FAILED: 'w-3 h-3 rounded-full',
   FINISHED: 'w-3 h-3 rounded-full',
+  FINISHED_WITH_ISSUES: 'w-3 h-3 rounded-full',
 } as const;
