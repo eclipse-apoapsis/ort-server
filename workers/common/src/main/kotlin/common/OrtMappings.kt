@@ -526,7 +526,7 @@ fun OrtSnippet.mapToModel() = Snippet(
     provenance = provenance.mapToModel(),
     location = location.mapToModel(),
     score = score,
-    spdxLicense = licenses.toString(),
+    spdxLicense = license.toString(),
     additionalData = additionalData
 )
 
@@ -562,7 +562,7 @@ fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
 
 fun OrtVcsMatcher.mapToModel() = VcsMatcher(type.mapToModel(), url, revision)
 
-fun OrtVcsType.mapToModel() = RepositoryType.forName(aliases.first())
+fun OrtVcsType.mapToModel() = RepositoryType.forName(toString())
 
 fun OrtVulnerability.mapToModel() =
     Vulnerability(

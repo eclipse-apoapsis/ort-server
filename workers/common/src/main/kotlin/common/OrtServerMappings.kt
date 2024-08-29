@@ -637,7 +637,7 @@ fun Snippet.mapToOrt() = OrtSnippet(
     location = location.mapToOrt(),
     provenance = provenance.mapToOrt() as OrtKnownProvenance,
     purl = purl,
-    licenses = spdxLicense.toSpdx(),
+    license = spdxLicense.toSpdx(),
     additionalData = additionalData
 )
 

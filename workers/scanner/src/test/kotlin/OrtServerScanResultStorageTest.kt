@@ -252,7 +252,7 @@ private fun createScanResult(
                             location = TextLocation("/example/path", 1, 50),
                             provenance = createArtifactProvenance(),
                             purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                            licenses = "LicenseRef-23".toSpdx(),
+                            license = "LicenseRef-23".toSpdx(),
                             additionalData = mapOf("data" to "value")
                         ),
                         Snippet(
@@ -260,7 +260,7 @@ private fun createScanResult(
                             location = TextLocation("/example/path2", 10, 20),
                             provenance = createRepositoryProvenance(),
                             purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                            licenses = "LicenseRef-23".toSpdx(),
+                            license = "LicenseRef-23".toSpdx(),
                             additionalData = mapOf("data2" to "value2")
                         )
                     )
