@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.Severity
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ScannerWorker::class.java)
@@ -85,7 +87,11 @@ class ScannerWorker(
             ortRunService.finalizeScannerRun(scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId))
         }
 
-        RunResult.Success
+        if (scannerRun.scanResults.flatMap { it.summary.issues }.any { it.severity >= Severity.WARNING }) {
+            RunResult.FinishedWithIssues
+        } else {
+            RunResult.Success
+        }
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
