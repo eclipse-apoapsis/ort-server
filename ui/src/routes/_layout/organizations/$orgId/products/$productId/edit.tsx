@@ -147,6 +147,7 @@ const EditProductPage = () => {
           </CardContent>
           <CardFooter>
             <Button
+              type='button'
               className='m-1'
               variant='outline'
               onClick={() =>
