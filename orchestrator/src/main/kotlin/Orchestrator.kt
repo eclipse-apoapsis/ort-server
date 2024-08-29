@@ -195,7 +195,11 @@ class Orchestrator(
      * Handle messages of the type [EvaluatorWorkerResult].
      */
     fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
-        handleWorkerResult(EvaluatorEndpoint, header, evaluatorWorkerResult)
+        if (!evaluatorWorkerResult.hasIssues) {
+            handleWorkerResult(EvaluatorEndpoint, header, evaluatorWorkerResult)
+        } else {
+            handleWorkerResultWithIssues(EvaluatorEndpoint, header, evaluatorWorkerResult)
+        }
     }
 
     /**

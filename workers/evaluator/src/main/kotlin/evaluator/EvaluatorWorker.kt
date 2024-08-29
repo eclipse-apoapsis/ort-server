@@ -31,6 +31,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.Severity
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(EvaluatorWorker::class.java)
@@ -75,7 +77,11 @@ internal class EvaluatorWorker(
             ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
         }
 
-        RunResult.Success
+        if (evaluatorRunnerResult.evaluatorRun.violations.any { it.severity >= Severity.WARNING }) {
+            RunResult.FinishedWithIssues
+        } else {
+            RunResult.Success
+        }
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {

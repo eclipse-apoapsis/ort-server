@@ -35,11 +35,13 @@ import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.DependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphNode
+import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.HashAlgorithm
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.LicenseFinding
+import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
@@ -51,6 +53,7 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedConfiguration
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.RootDependencyIndex
+import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
@@ -99,6 +102,7 @@ import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense
 import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 object OrtTestData {
@@ -589,6 +593,22 @@ object OrtTestData {
                 )
             )
         )
+    )
+
+    val evaluatorRun = EvaluatorRun(
+        startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+        endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+        violations = listOf(
+            RuleViolation(
+                rule = "rule",
+                message = "message",
+                severity = Severity.ERROR,
+                howToFix = "howToFix",
+                pkg = Identifier("Maven:com.example:package:1.0"),
+                license = SpdxSingleLicenseExpression.parse("LicenseRef-detected1-concluded"),
+                licenseSource = LicenseSource.CONCLUDED
+            )
+        ),
     )
 
     val result = OrtResult(

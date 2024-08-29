@@ -59,8 +59,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
 
                 is RunResult.FinishedWithIssues -> {
                     logger.warn("Evaluator job '$evaluatorJobId' finished with issues.")
-                    // TODO: Send the right message type.
-                    Message(message.header, EvaluatorWorkerError(evaluatorJobId))
+                    Message(message.header, EvaluatorWorkerResult(evaluatorJobId, true))
                 }
 
                 is RunResult.Failed -> {
