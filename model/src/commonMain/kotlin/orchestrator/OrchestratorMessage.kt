@@ -142,7 +142,9 @@ data class EvaluatorWorkerError(
 @Serializable
 data class ReporterWorkerResult(
     /** The ID of the Reporter job, as it is stored in the database. */
-    override val jobId: Long
+    override val jobId: Long,
+    /** if `true`, the result has issues over the threshold. */
+    val hasIssues: Boolean = false
 ) : OrchestratorMessage(), WorkerMessage
 
 /**

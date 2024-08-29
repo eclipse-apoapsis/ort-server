@@ -104,8 +104,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
 
                 is RunResult.FinishedWithIssues -> {
                     logger.warn("Reporter job '$reporterJobId' finished with issues.")
-                    // TODO: Send the right message type.
-                    Message(message.header, ReporterWorkerError(reporterJobId))
+                    Message(message.header, ReporterWorkerResult(reporterJobId, true))
                 }
 
                 is RunResult.Failed -> {

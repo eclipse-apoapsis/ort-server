@@ -165,7 +165,7 @@ class ReporterWorkerTest : StringSpec({
             reports = mapOf("WebApp" to listOf("report.html")),
             resolvedPackageConfigurations = null,
             resolvedResolutions = null,
-            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
+            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.HINT))
         )
         val runner = mockk<ReporterRunner> {
             coEvery {
@@ -226,6 +226,100 @@ class ReporterWorkerTest : StringSpec({
                 else -> fail("Unexpected result: $result")
             }
         }
+    }
+
+    "A 'finished with issues' result should be returned if the reporter run finished with issues" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val advisorRun = mockk<AdvisorRun>()
+        val evaluatorRun = mockk<EvaluatorRun>()
+        val scannerRun = mockk<ScannerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { labels } returns mapOf("projectName" to "Test project")
+        }
+
+        val ortResult = mockk<OrtResult> {
+            every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
+            every { labels } returns mapOf("projectName" to "Test project")
+        }
+
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { advisorRun.mapToOrt() } returns mockk()
+        every { evaluatorRun.mapToOrt() } returns mockk()
+        every { scannerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            every { getOrtRepositoryInformation(ortRun) } returns mockk()
+            every { getOrtRun(ORT_RUN_ID) } returns ortRun
+            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { storeReporterRun(any()) } just runs
+            every { storeIssues(any(), any()) } just runs
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns ortResult
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+        }
+
+        val runnerResult = ReporterRunnerResult(
+            reports = mapOf("WebApp" to listOf("report.html")),
+            resolvedPackageConfigurations = null,
+            resolvedResolutions = null,
+            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
+        )
+        val runner = mockk<ReporterRunner> {
+            coEvery {
+                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration)
+            } returns runnerResult
+        }
+
+        val link = ReportDownloadLink("https://report.example.org/ap1/$ORT_RUN_ID/someToken", Instant.DISTANT_FUTURE)
+        val linkGenerator = mockk<ReportDownloadLinkGenerator> {
+            every { generateLink(ORT_RUN_ID) } returns link
+        }
+
+        val worker = ReporterWorker(
+            contextFactory,
+            mockk(),
+            environmentService,
+            runner,
+            ortRunService,
+            linkGenerator
+        )
+
+        mockkTransaction {
+            val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.FinishedWithIssues
+        }
+
+        val slotReporterRun = slot<ReporterRun>()
+        coVerify {
+            ortRunService.storeReporterRun(capture(slotReporterRun))
+            ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
+            environmentService.generateNetRcFileForCurrentRun(context)
+        }
+
+        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+            Report("report.html", link.downloadLink, link.expirationTime)
+        )
     }
 
     "An ignored result should be returned for an invalid job" {

@@ -107,6 +107,22 @@ class ReporterEndpointTest : KoinTest, StringSpec() {
             }
         }
 
+        "A 'run finished with issues' message should be sent when ORT issues are over the threshold" {
+            runEndpointTest {
+                declareMock<ReporterWorker> {
+                    coEvery {
+                        run(REPORTER_JOB_ID, TRACE_ID)
+                    } returns RunResult.FinishedWithIssues
+                }
+
+                sendReporterRequest()
+
+                val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+                resultMessage.header shouldBe messageHeader
+                resultMessage.payload shouldBe ReporterWorkerResult(REPORTER_JOB_ID, true)
+            }
+        }
+
         "No response should be sent if the request is ignored" {
             runEndpointTest {
                 declareMock<ReporterWorker> {

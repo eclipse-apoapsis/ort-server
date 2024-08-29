@@ -213,7 +213,11 @@ class Orchestrator(
      * Handle messages of the type [ReporterWorkerResult].
      */
     fun handleReporterWorkerResult(header: MessageHeader, reporterWorkerResult: ReporterWorkerResult) {
-        handleWorkerResult(ReporterEndpoint, header, reporterWorkerResult)
+        if (!reporterWorkerResult.hasIssues) {
+            handleWorkerResult(ReporterEndpoint, header, reporterWorkerResult)
+        } else {
+            handleWorkerResultWithIssues(ReporterEndpoint, header, reporterWorkerResult)
+        }
     }
 
     /**

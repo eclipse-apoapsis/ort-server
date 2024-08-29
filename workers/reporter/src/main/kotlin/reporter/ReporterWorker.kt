@@ -24,6 +24,7 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
@@ -105,7 +106,11 @@ internal class ReporterWorker(
             }
         }
 
-        RunResult.Success
+        if (reporterRunnerResult.issues.any { it.severity >= Severity.WARNING }) {
+            RunResult.FinishedWithIssues
+        } else {
+            RunResult.Success
+        }
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
