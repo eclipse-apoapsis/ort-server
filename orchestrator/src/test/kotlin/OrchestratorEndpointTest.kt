@@ -45,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
@@ -312,6 +314,40 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleScannerWorkerResult(msgHeader, scannerWorkerResultWithIssues)
+                }
+            }
+        }
+
+        "EvaluatorWorkerResult messages should be handled" {
+            val evaluatorWorkerResult = EvaluatorWorkerResult(11)
+            val message = Message(msgHeader, evaluatorWorkerResult)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleEvaluatorWorkerResult(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleEvaluatorWorkerResult(message.header, evaluatorWorkerResult)
+                }
+            }
+        }
+
+        "EvaluatorWorkerError messages should be handled" {
+            val evaluatorWorkerError = EvaluatorWorkerError(22)
+            val message = Message(msgHeader, evaluatorWorkerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleEvaluatorWorkerError(msgHeader, any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleEvaluatorWorkerError(msgHeader, evaluatorWorkerError)
                 }
             }
         }
