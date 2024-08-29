@@ -651,6 +651,63 @@ class OrchestratorTest : WordSpec() {
             }
         }
 
+        "handleScannerWorkerResultWithIssues" should {
+            "update the job in the database and create an evaluator job" {
+                val scannerWorkerResultWithIssues = ScannerWorkerResult(789, true)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED_WITH_ISSUES) {
+                    every { get(scannerWorkerResultWithIssues.jobId) } returns scannerJob
+                    every { complete(scannerJob.id, any(), any()) } returns mockk()
+                }
+
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns evaluatorJob
+                    every { get(evaluatorJob.id) } returns evaluatorJob
+                    every { update(evaluatorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleScannerWorkerResult(msgHeader, scannerWorkerResultWithIssues)
+                }
+
+                verify(exactly = 1) {
+                    evaluatorJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe evaluatorJob.configuration }
+                    )
+                    publisher.publish(
+                        to = withArg<EvaluatorEndpoint> { it shouldBe EvaluatorEndpoint },
+                        message = withArg {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload.evaluatorJobId shouldBe evaluatorJob.id
+                        }
+                    )
+                    evaluatorJobRepository.update(
+                        id = withArg { it shouldBe evaluatorJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                    scannerJobRepository.complete(
+                        id = withArg { it shouldBe scannerWorkerResultWithIssues.jobId },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FINISHED_WITH_ISSUES }
+                    )
+                }
+            }
+        }
+
         "handleAnalyzerWorkerError" should {
             "update the job and the ORT run in the database" {
                 val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FAILED) {

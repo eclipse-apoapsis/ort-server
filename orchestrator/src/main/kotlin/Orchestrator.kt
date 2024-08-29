@@ -177,7 +177,11 @@ class Orchestrator(
      * Handle messages of the type [ScannerWorkerResult].
      */
     fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
-        handleWorkerResult(ScannerEndpoint, header, scannerWorkerResult)
+        if (!scannerWorkerResult.hasIssues) {
+            handleWorkerResult(ScannerEndpoint, header, scannerWorkerResult)
+        } else {
+            handleWorkerResultWithIssues(ScannerEndpoint, header, scannerWorkerResult)
+        }
     }
 
     /**
