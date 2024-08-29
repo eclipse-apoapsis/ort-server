@@ -25,15 +25,6 @@ helm_resource(
 
 helm_repo('bitnami', 'https://charts.bitnami.com/bitnami', labels=['helm_repos'])
 
-secret_create_generic('keycloak-master-realm',
-  namespace='ort-server',
-  secret_type='generic',
-  from_file='./scripts/docker/keycloak/master-realm.json')
-
-configmap_create('keycloak-init',
-  namespace='ort-server',
-  from_file=['master-realm.json=./scripts/docker/keycloak/master-realm.json'])
-
 configmap_create('ort-core-secrets',
   namespace='ort-server',
   from_file=['secrets.properties=./scripts/compose/secrets.properties'])
@@ -84,11 +75,6 @@ k8s_resource(
   extra_pod_selectors={'statefulset.kubernetes.io/pod-name': 'keycloak-0'},
   discovery_strategy='selectors-only')
 
-secret_create_generic('rabbitmq-load-definition',
-  namespace='ort-server',
-  secret_type='generic',
-  from_file='load_definition.json=./scripts/docker/rabbitmq/load_definition.json')
-
 helm_resource(
   'rabbitmq',
   'bitnami/rabbitmq',
@@ -124,17 +110,13 @@ helm_resource(
   labels=['monitoring'],
 )
 
-configmap_create('ort-core-config',
-  namespace='ort-server',
-  from_file=['application.conf=./scripts/kubernetes/core.application.conf'])
-
 custom_build(
   'core',
   './gradlew :core:jibDockerBuild --image $EXPECTED_REF',
   live_update= [
     sync('./core/build/classes/kotlin/main', '/app/classes')
   ],
-  deps=['./core/build/classes', './core/build.gradle.kts', './scripts/kubernetes/core.application.conf'],
+  deps=['./core/build/classes', './core/build.gradle.kts',],
 )
 
 k8s_resource(

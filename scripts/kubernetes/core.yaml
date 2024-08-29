@@ -19,6 +19,40 @@ spec:
     app: ort-server
     component: core
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: core-configuration
+  namespace: ort-server
+data:
+  PUBLIC_SCHEME: http
+  PUBLIC_FQDN: localhost
+  PUBLIC_PORT: "8080"
+  PORT: "8080"
+  UI_HOSTS: localhost:5173
+  DB_HOST: postgresql
+  DB_PORT: "5432"
+  DB_NAME: ort
+  DB_SCHEMA: ort_server
+  DB_USERNAME: postgres
+  DB_PASSWORD: postgres
+  DB_SSL_MODE: disable
+  JWT_URI: "http://keycloak.ort-server.svc.cluster.local/realms/ort-server/protocol/openid-connect/certs"
+  JWT_ISSUER: "http://localhost:8081/realms/ort-server"
+  JWT_REALM: "ort-server"
+  KEYCLOAK_ACCESS_TOKEN_URL: "http://keycloak.ort-server.svc.cluster.local/realms/ort-server/protocol/openid-connect/token"
+  KEYCLOAK_API_URL: "http://keycloak.ort-server.svc.cluster.local/admin/realms/ort-server"
+  KEYCLOAK_API_USER: "keycloak-admin"
+  KEYCLOAK_API_SECRET: "keycloak-admin"
+  ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+  ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: amqp://rabbitmq-headless.ort-server.svc.cluster.local:5672
+  ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+  GRAPHITE_HOST: graphite
+  GRAPHITE_PORT: "2003"
+  CORE_SECRET_PROVIDER: secret-file
+  CORE_SECRET_FILES: "/app/resources/secrets.properties"
+  ALLOW_SECRETS_FROM_CONFIG: "true"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,11 +85,10 @@ spec:
           image: core
           ports:
             - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: core-configuration
           volumeMounts:
-            - name: ort-core-config-volume
-              mountPath: /app/resources/application.conf
-              subPath: application.conf
-              readOnly: true
             - name: ort-core-config-secrets
               mountPath: /app/resources/secrets.properties
               subPath: secrets.properties
