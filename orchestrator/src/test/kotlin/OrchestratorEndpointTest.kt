@@ -45,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
@@ -259,6 +261,40 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleAdvisorWorkerResult(msgHeader, advisorWorkerResultWithIssues)
+                }
+            }
+        }
+
+        "ScannerWorkerResult messages should be handled" {
+            val scannerWorkerResult = ScannerWorkerResult(11)
+            val message = Message(msgHeader, scannerWorkerResult)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleScannerWorkerResult(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleScannerWorkerResult(message.header, scannerWorkerResult)
+                }
+            }
+        }
+
+        "ScannerWorkerError messages should be handled" {
+            val scannerWorkerError = ScannerWorkerError(22)
+            val message = Message(msgHeader, scannerWorkerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleScannerWorkerError(msgHeader, any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleScannerWorkerError(msgHeader, scannerWorkerError)
                 }
             }
         }
