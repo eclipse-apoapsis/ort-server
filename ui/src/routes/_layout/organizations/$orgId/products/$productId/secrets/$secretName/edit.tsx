@@ -165,11 +165,9 @@ const EditProductSecretPage = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    Optional description of the secret
-                  </FormDescription>
+                  <FormDescription>Description of the secret</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

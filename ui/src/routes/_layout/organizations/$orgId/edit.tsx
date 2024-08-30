@@ -136,10 +136,10 @@ const EditOrganizationPage = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    Optional description of the organization
+                    Description of the organization
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
