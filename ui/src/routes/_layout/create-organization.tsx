@@ -36,7 +36,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -103,9 +102,6 @@ const CreateOrganizationPage = () => {
                   <FormControl>
                     <Input {...field} autoFocus />
                   </FormControl>
-                  <FormDescription>
-                    The name of the organization.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -119,9 +115,6 @@ const CreateOrganizationPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    The description of the organization.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

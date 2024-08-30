@@ -40,7 +40,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -122,9 +121,6 @@ const EditOrganizationPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    The name of the organization.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -138,9 +134,6 @@ const EditOrganizationPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    The description of the organization.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -37,7 +37,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -122,7 +121,6 @@ const CreateRepositoryPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The URL of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -150,7 +148,6 @@ const CreateRepositoryPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>The type of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
