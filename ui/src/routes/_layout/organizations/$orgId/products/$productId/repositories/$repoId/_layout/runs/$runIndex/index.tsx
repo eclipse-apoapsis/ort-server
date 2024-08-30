@@ -28,12 +28,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
 
 const RunComponent = () => {
   const params = Route.useParams();
   const locale = navigator.language;
+  const pollInterval = config.pollInterval;
 
   const { data: ortRun } = useSuspenseQuery({
     queryKey: [
@@ -46,6 +48,14 @@ const RunComponent = () => {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
       }),
+    refetchInterval: (run) => {
+      if (
+        run.state.data?.status === 'FINISHED' ||
+        run.state.data?.status === 'FAILED'
+      )
+        return false;
+      return pollInterval;
+    },
   });
 
   return (
