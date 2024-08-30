@@ -3,20 +3,20 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'ORT Server',
+  tagline: 'A scalable application to automate software compliance checks, based on the OSS Review Toolkit.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://eclipse-apoapsis.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/ort-server',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'eclipse-apoapsis', // Usually your GitHub org/user name.
+  projectName: 'ort-server', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -38,7 +38,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/eclipse-apoapsis/ort-server/tree/main/website/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -51,9 +51,9 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'My Site',
+      title: 'ORT Server',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'ORT Server Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -61,10 +61,10 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Docs',
         },
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/eclipse-apoapsis/ort-server',
           label: 'GitHub',
           position: 'right',
         },
@@ -86,16 +86,8 @@ const config: Config = {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              label: 'OSS Review Toolkit',
+              href: 'https://oss-review-toolkit.org',
             },
           ],
         },
@@ -103,13 +95,17 @@ const config: Config = {
           title: 'More',
           items: [
             {
+              label: 'Eclipse Project Site',
+              href: 'https://projects.eclipse.org/projects/technology.apoapsis',
+            },
+            {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/eclipse-apoapsis/ort-server',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} The ORT Server Authors. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
