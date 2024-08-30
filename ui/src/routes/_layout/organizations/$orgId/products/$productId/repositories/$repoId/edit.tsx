@@ -42,7 +42,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -141,7 +140,6 @@ const EditRepositoryPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The URL of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -169,7 +167,6 @@ const EditRepositoryPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>The type of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

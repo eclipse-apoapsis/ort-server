@@ -40,7 +40,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -121,7 +120,6 @@ const EditProductPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The name of the product.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -135,9 +133,6 @@ const EditProductPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    The description of the product.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

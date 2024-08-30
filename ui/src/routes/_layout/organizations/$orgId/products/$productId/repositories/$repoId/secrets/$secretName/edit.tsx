@@ -155,7 +155,6 @@ const EditRepositorySecretPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The value of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -169,9 +168,6 @@ const EditRepositorySecretPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    The description of the secret.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -36,7 +36,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -107,7 +106,6 @@ const CreateProductSecretPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The name of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -121,7 +119,6 @@ const CreateProductSecretPage = () => {
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>The value of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -135,9 +132,6 @@ const CreateProductSecretPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    The description of the secret.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
