@@ -552,7 +552,7 @@ const CreateRunPage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The repository revision used by this run
+                    The repository revision to use.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -565,13 +565,12 @@ const CreateRunPage = () => {
                 <FormItem className='pt-4'>
                   <FormLabel>Job configuration context</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    An optional context to be used when obtaining configuration
-                    for this run. The meaning of the context is up for
-                    interpretation by the implementation of the configuration
-                    provider.
+                    The context to use when obtaining configuration for this
+                    run. The meaning of the context is up for interpretation by
+                    the implementation of the configuration provider.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -584,11 +583,11 @@ const CreateRunPage = () => {
                 <FormItem className='pt-4'>
                   <FormLabel>Path</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    An optional subpath to limit the analysis to, for example,
-                    'dir/subdir'.
+                    The path to limit the analysis to, for example
+                    'path/to/source'.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

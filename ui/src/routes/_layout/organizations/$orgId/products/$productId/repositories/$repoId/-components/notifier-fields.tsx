@@ -77,8 +77,8 @@ export const NotifierFields = ({ form }: NotifierFieldsProps) => {
                   <Input {...field} />
                 </FormControl>
                 <FormDescription>
-                  The notifier script to use. If this is null, the configured
-                  default notification will be used.
+                  The notifier script to use. If this is not specified, the
+                  configured default notification will be used.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -95,8 +95,8 @@ export const NotifierFields = ({ form }: NotifierFieldsProps) => {
                 </FormControl>
                 <FormDescription>
                   The path to the resolutions file which is resolved from the
-                  configured configuration source. If this is null, the default
-                  path from ORT will be used.
+                  configured configuration source. If this is not specified, the
+                  default path from ORT will be used.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

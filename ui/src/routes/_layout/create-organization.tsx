@@ -104,7 +104,7 @@ const CreateOrganizationPage = () => {
                     <Input {...field} autoFocus />
                   </FormControl>
                   <FormDescription>
-                    Enter the name of your organization
+                    The name of the organization.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -120,7 +120,7 @@ const CreateOrganizationPage = () => {
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    Description of the organization
+                    The description of the organization.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

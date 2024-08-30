@@ -135,7 +135,7 @@ const EditProductSecretPage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The name of the secret (cannot be changed)
+                    The name of the secret (cannot be changed).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -151,9 +151,7 @@ const EditProductSecretPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Enter a new value for the secret.
-                  </FormDescription>
+                  <FormDescription>The value of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -167,7 +165,9 @@ const EditProductSecretPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>Description of the secret</FormDescription>
+                  <FormDescription>
+                    The description of the secret.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

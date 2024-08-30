@@ -67,8 +67,7 @@ export const ScannerFields = ({ form }: ScannerFieldsProps) => {
                   <FormDescription>
                     A flag to indicate whether packages that have a concluded
                     license and authors set (to derive copyrights from) should
-                    be skipped in the scan in favor of only using the declared
-                    information.
+                    be skipped by the scanner.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -88,7 +87,8 @@ export const ScannerFields = ({ form }: ScannerFieldsProps) => {
                 <div className='space-y-0.5'>
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>
-                    Do not scan excluded projects or packages.
+                    A flag to control whether excluded scopes and paths should
+                    by skipped by the scanner.
                   </FormDescription>
                 </div>
                 <FormControl>

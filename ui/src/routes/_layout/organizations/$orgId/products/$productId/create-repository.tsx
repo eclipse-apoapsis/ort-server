@@ -122,7 +122,7 @@ const CreateRepositoryPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>URL of the repository</FormDescription>
+                  <FormDescription>The URL of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -150,7 +150,7 @@ const CreateRepositoryPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Type of the repository</FormDescription>
+                  <FormDescription>The type of the repository.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
