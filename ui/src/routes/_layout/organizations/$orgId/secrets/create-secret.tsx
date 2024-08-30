@@ -109,9 +109,7 @@ const CreateOrganizationSecretPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Enter the name of your secret
-                  </FormDescription>
+                  <FormDescription>The name of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -125,9 +123,7 @@ const CreateOrganizationSecretPage = () => {
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Enter the value of your secret
-                  </FormDescription>
+                  <FormDescription>The value of the secret.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -141,7 +137,9 @@ const CreateOrganizationSecretPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>Description of the secret</FormDescription>
+                  <FormDescription>
+                    The description of the secret.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

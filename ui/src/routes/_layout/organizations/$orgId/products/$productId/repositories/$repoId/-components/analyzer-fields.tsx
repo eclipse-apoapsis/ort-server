@@ -90,7 +90,7 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>
                     A flag to control whether excluded scopes and paths should
-                    be skipped during the analysis.
+                    be skipped by the analyzer.
                   </FormDescription>
                 </div>
                 <FormControl>

@@ -68,7 +68,7 @@ export const AdvisorFields = ({ form }: AdvisorFieldsProps) => {
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>
                     A flag to control whether excluded scopes and paths should
-                    be skipped from the advisor.
+                    be skipped by the advisor.
                   </FormDescription>
                 </div>
                 <FormControl>

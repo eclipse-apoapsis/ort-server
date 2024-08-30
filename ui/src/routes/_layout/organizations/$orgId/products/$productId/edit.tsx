@@ -121,9 +121,7 @@ const EditProductPage = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Enter the name of your product
-                  </FormDescription>
+                  <FormDescription>The name of the product.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -137,7 +135,9 @@ const EditProductPage = () => {
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>Description of the product</FormDescription>
+                  <FormDescription>
+                    The description of the product.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

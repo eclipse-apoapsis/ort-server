@@ -154,7 +154,7 @@ const EditInfrastructureServicePage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The name of your infrastructure service (cannot be changed)
+                    The name of the infrastructure service (cannot be changed).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -171,7 +171,7 @@ const EditInfrastructureServicePage = () => {
                     <Input {...field} type='url' />
                   </FormControl>
                   <FormDescription>
-                    Enter the URL of your infrastructure service
+                    The URL of the infrastructure service.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -187,7 +187,7 @@ const EditInfrastructureServicePage = () => {
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    Description of your infrastructure service
+                    The description of the infrastructure service.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -203,10 +203,10 @@ const EditInfrastructureServicePage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    Enter the name of the organization secret that contains the
-                    username of the credentials for your infrastructure service.
-                    Please note that you need to create the secret before you
-                    can use it here.
+                    The name of the organization secret that contains the
+                    username of the credentials for the infrastructure service.
+                    Please note that the secret first needs to be created in
+                    order to use it here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -222,10 +222,10 @@ const EditInfrastructureServicePage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    Enter the name of the organization secret that contains the
-                    password of the credentials for your infrastructure service.
-                    Please note that you need to create the secret before you
-                    can use it here.
+                    The name of the organization secret that contains the
+                    password of the credentials for the infrastructure service.
+                    Please note that the secret first needs to be created in
+                    order to use it here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
