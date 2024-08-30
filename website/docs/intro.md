@@ -2,46 +2,24 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# ORT Server
 
-Let's discover **Docusaurus in less than 5 minutes**.
+The [Eclipse Apoapsis](https://projects.eclipse.org/projects/technology.apoapsis) ORT Server is a standalone application for the automation of software compliance checks.
 
-## Getting Started
+It is based on the [OSS Review Toolkit (ORT)](https://oss-review-toolkit.org) which provides:
 
-Get started by **creating a new site**.
+* Recursive dependency analysis for more than 20 package managers.
+* Integration of several vulnerability databases.
+* Integration of several license, copyright, and snippet scanners.
+* Customizable compliance rules.
+* Lots of report formats, including SPDX and CycloneDX SBOMs.
+* Flexible configuration.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+The ORT core functionality is extended with:
 
-### What you'll need
+* A scalable architecture with Kubernetes integration.
+* A REST API to trigger scans and manage data.
+* Keycloak integration for authentication and role management.
+* A central database to enable data analysis across projects.
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
-```
-
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+The ORT Server developers are also contributors to ORT and both projects work in close collaboration.
