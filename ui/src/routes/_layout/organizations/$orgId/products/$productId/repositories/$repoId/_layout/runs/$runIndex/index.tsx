@@ -24,6 +24,7 @@ import { Repeat } from 'lucide-react';
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,28 +65,40 @@ const RunComponent = () => {
         <div className='flex flex-row gap-2'>
           <Card>
             <CardHeader>
-              <CardTitle className='flex flex-row items-center justify-between'>
-                <Badge
-                  className={`border ${getStatusBackgroundColor(ortRun.status)}`}
-                >
-                  {ortRun.status}
-                </Badge>
-                <Button variant='outline' asChild size='sm'>
-                  <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                    params={{
-                      orgId: params.orgId,
-                      productId: params.productId,
-                      repoId: params.repoId,
-                    }}
-                    search={{
-                      rerunIndex: ortRun.index,
-                    }}
+              <CardTitle className='flex flex-col gap-2'>
+                <div className='flex items-center justify-between'>
+                  <Badge
+                    className={`border ${getStatusBackgroundColor(ortRun.status)}`}
                   >
-                    Rerun
-                    <Repeat className='ml-1 h-4 w-4' />
-                  </Link>
-                </Button>
+                    {ortRun.status}
+                  </Badge>
+                  <Button variant='outline' asChild size='sm'>
+                    <Link
+                      to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                      params={{
+                        orgId: params.orgId,
+                        productId: params.productId,
+                        repoId: params.repoId,
+                      }}
+                      search={{
+                        rerunIndex: ortRun.index,
+                      }}
+                    >
+                      Rerun
+                      <Repeat className='ml-1 h-4 w-4' />
+                    </Link>
+                  </Button>
+                </div>
+                <div>
+                  <OrtRunJobStatus
+                    jobs={ortRun.jobs}
+                    orgId={params.orgId}
+                    productId={params.productId}
+                    repoId={params.repoId}
+                    runIndex={params.runIndex}
+                    pollInterval={pollInterval}
+                  />
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
