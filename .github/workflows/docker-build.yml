@@ -175,8 +175,8 @@ jobs:
         push: true
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
-        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
-        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache${{ steps.compute-tag-suffix.outputs.suffix }}
+        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache${{ steps.compute-tag-suffix.outputs.suffix }},mode=max
 
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
