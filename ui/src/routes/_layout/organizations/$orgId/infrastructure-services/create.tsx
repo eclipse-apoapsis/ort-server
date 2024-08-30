@@ -133,7 +133,7 @@ const CreateInfrastructureServicePage = () => {
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className='space-y-2'>
+          <CardContent className='space-y-4'>
             <FormField
               control={form.control}
               name='name'
