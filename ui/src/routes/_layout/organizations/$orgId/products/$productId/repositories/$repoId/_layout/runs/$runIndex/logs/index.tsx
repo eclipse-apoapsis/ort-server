@@ -20,6 +20,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDownIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { OpenAPI, RepositoriesService } from '@/api/requests';
@@ -41,6 +42,7 @@ import {
 
 const ReportComponent = () => {
   const params = Route.useParams();
+  const [level, setLevel] = useState('INFO');
 
   const { data: ortRun } = useSuspenseQuery({
     queryKey: [
@@ -99,7 +101,7 @@ const ReportComponent = () => {
       <CardHeader>
         <CardTitle>Logs from global run ID {ortRun.id}</CardTitle>
         <CardDescription>
-          Click the button do download. You can select different log levels for
+          Click the button to download. You can select different log levels for
           downloading from the dropdown. Note that the log levels are additive,
           eg. DEBUG logs include all the log levels, while WARN logs include
           only errors and warnings.
@@ -108,11 +110,11 @@ const ReportComponent = () => {
       <CardContent>
         <div className='flex align-middle'>
           <Button
-            onClick={() => handleLevelChoice('INFO')}
+            onClick={() => handleLevelChoice(level)}
             variant='outline'
             className={'rounded-r-none font-semibold text-blue-400'}
           >
-            Download INFO log archive
+            Download {level} level archive
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -126,31 +128,31 @@ const ReportComponent = () => {
             <DropdownMenuContent>
               <DropdownMenuItem
                 onClick={() => {
-                  handleLevelChoice('ERROR');
+                  setLevel('ERROR');
                 }}
               >
-                Download ERROR log archive
+                Download ERROR level archive
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  handleLevelChoice('WARN');
+                  setLevel('WARN');
                 }}
               >
-                Download WARN log archive
+                Download WARN level archive
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  handleLevelChoice('INFO');
+                  setLevel('INFO');
                 }}
               >
-                Download INFO log archive
+                Download INFO level archive
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  handleLevelChoice('DEBUG');
+                  setLevel('DEBUG');
                 }}
               >
-                Download DEBUG log archive
+                Download DEBUG level archive
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
