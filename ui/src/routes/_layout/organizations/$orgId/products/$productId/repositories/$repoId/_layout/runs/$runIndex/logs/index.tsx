@@ -19,7 +19,7 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
@@ -43,6 +43,7 @@ import {
 const ReportComponent = () => {
   const params = Route.useParams();
   const [level, setLevel] = useState('INFO');
+  const [isPending, setIsPending] = useState(false);
 
   const { data: ortRun } = useSuspenseQuery({
     queryKey: [
@@ -62,6 +63,7 @@ const ReportComponent = () => {
     level: string = '',
     steps: string = ''
   ) => {
+    setIsPending(true);
     try {
       const response = await fetch(
         `${OpenAPI.BASE}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
@@ -86,6 +88,8 @@ const ReportComponent = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -110,15 +114,24 @@ const ReportComponent = () => {
       <CardContent>
         <div className='flex align-middle'>
           <Button
+            disabled={isPending}
             onClick={() => handleLevelChoice(level)}
             variant='outline'
             className={'rounded-r-none font-semibold text-blue-400'}
           >
-            Download {level} level archive
+            {isPending ? (
+              <>
+                <span>Downloading logs...</span>
+                <Loader2 size={16} className='mx-3 animate-spin' />
+              </>
+            ) : (
+              `Download ${level} level archive`
+            )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
+                disabled={isPending}
                 variant='outline'
                 className={'rounded-l-none border-l-0 px-2 pt-1'}
               >
