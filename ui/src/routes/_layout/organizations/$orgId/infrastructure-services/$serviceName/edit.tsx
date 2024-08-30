@@ -184,10 +184,10 @@ const EditInfrastructureServicePage = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    Optional description of your infrastructure service
+                    Description of your infrastructure service
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

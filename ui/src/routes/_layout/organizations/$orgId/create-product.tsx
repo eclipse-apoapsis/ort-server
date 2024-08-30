@@ -122,11 +122,9 @@ const CreateProductPage = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder='(optional)' />
                   </FormControl>
-                  <FormDescription>
-                    Optional description of the product
-                  </FormDescription>
+                  <FormDescription>Description of the product</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
