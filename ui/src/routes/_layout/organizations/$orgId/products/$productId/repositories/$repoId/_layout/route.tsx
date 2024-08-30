@@ -18,13 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import {
-  ArrowRightLeft,
-  Cigarette,
-  Eye,
-  FileText,
-  FolderTree,
-} from 'lucide-react';
+import { Eye, FileText, ListTree, Scale, ShieldQuestion } from 'lucide-react';
 
 import { Sidebar } from '@/components/sidebar';
 
@@ -40,11 +34,11 @@ const Layout = () => {
         },
         {
           title: 'Dependencies',
-          icon: () => <FolderTree className='h-4 w-4' />,
+          icon: () => <ListTree className='h-4 w-4' />,
         },
         {
           title: 'Vulnerabilities',
-          icon: () => <Cigarette className='h-4 w-4' />,
+          icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
         {
           title: 'License Findings',
@@ -52,7 +46,7 @@ const Layout = () => {
         },
         {
           title: 'Rule Violations',
-          icon: () => <ArrowRightLeft className='h-4 w-4' />,
+          icon: () => <Scale className='h-4 w-4' />,
         },
       ],
     },
