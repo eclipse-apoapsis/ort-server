@@ -274,7 +274,7 @@ const InfrastructureServices = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-7xl'>
+      <Card>
         <CardHeader>
           <CardTitle>Infrastructure Services</CardTitle>
           <CardDescription>

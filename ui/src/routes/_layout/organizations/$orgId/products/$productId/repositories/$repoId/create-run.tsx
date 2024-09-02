@@ -535,7 +535,7 @@ const CreateRunPage = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl'>
+    <Card>
       <CardHeader>
         <CardTitle>Create an ORT run</CardTitle>
       </CardHeader>

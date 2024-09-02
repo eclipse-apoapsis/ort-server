@@ -50,7 +50,7 @@ const IssuesComponent = () => {
   });
 
   return (
-    <Card className='h-fit w-full max-w-4xl'>
+    <Card className='h-fit'>
       <CardHeader>
         <CardTitle>Technical issues related to the ORT Server</CardTitle>
         <CardDescription>

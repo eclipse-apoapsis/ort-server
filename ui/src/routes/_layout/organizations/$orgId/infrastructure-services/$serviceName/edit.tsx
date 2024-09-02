@@ -139,7 +139,7 @@ const EditInfrastructureServicePage = () => {
   };
 
   return (
-    <Card className='w-full max-w-4xl'>
+    <Card>
       <CardHeader>Edit Infrastructure Service</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>

@@ -161,7 +161,7 @@ const OrganizationComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-4xl'>
+      <Card>
         <CardHeader>
           <CardTitle className='flex flex-row justify-between'>
             <div className='flex items-stretch'>
