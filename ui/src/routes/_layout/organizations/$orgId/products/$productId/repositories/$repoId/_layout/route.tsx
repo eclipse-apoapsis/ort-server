@@ -54,6 +54,10 @@ const Layout = () => {
       label: 'Technical',
       items: [
         {
+          title: 'Issues',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
+        },
+        {
           title: 'Reports',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
         },
