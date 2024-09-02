@@ -28,6 +28,8 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+import kotlin.concurrent.thread
+
 import kotlinx.coroutines.runBlocking
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -71,12 +73,12 @@ fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<Orc
         queue.offer(message)
     }
 
-    Thread {
+    thread {
         @Suppress("ForbiddenMethodCall")
         runBlocking {
             MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
         }
-    }.start()
+    }
 
     return queue
 }
