@@ -121,7 +121,7 @@ const EditOrganizationSecretPage = () => {
   };
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
+    <Card className='w-full max-w-4xl'>
       <CardHeader>Edit Organization Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

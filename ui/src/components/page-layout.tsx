@@ -27,7 +27,7 @@ interface PageLayoutProps {
 
 export const PageLayout = ({ sections, children }: PageLayoutProps) => {
   return (
-    <Page className='flex flex-col gap-4 md:flex-row'>
+    <Page className='flex flex-col justify-center gap-4 md:flex-row'>
       {sections && (
         <Pane className='w-full md:w-52'>
           <Sidebar sections={sections} />

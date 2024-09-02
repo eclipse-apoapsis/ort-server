@@ -101,7 +101,7 @@ const ReportComponent = () => {
   };
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
+    <Card className='w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Logs from global run ID {ortRun.id}</CardTitle>
         <CardDescription>
