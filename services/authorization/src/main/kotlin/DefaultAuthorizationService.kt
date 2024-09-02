@@ -302,6 +302,21 @@ class DefaultAuthorizationService(
         }
     }
 
+    override suspend fun ensureSuperuserAndSynchronizeRolesAndPermissions() {
+        runCatching {
+            logger.info("Ensuring superuser role and group.")
+            this.ensureSuperuser()
+            logger.info("Synchronizing Keycloak permissions.")
+            this.synchronizePermissions()
+            logger.info("Synchronizing Keycloak roles.")
+            this.synchronizeRoles()
+        }.onSuccess {
+            logger.info("Synchronized Keycloak permissions and roles.")
+        }.onFailure {
+            logger.error("Error while synchronizing Keycloak permissions and roles.", it)
+        }
+    }
+
     /**
      * Synchronize the [organization roles][OrganizationRole] with the Keycloak roles by adding missing roles, removing
      * obsolete roles that start with the [organization role prefix][OrganizationRole.rolePrefix], and adding the

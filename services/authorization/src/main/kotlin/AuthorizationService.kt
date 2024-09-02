@@ -104,6 +104,11 @@ interface AuthorizationService {
     suspend fun synchronizeRoles()
 
     /**
+     * Combines [ensureSuperuser], [synchronizeRoles] and [synchronizePermissions] with some logging
+     */
+    suspend fun ensureSuperuserAndSynchronizeRolesAndPermissions()
+
+    /**
      * Add a user [username] to a group for the given [organizationId].
      */
     suspend fun addUserToGroup(username: String, organizationId: Long, groupName: String)
