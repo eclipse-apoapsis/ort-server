@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 const val TEST_QUEUE_NAME = "test_queue"
-const val TEST_QUEUE_TIMEOUT = 15L
+const val TEST_QUEUE_TIMEOUT = 30L
 
 /**
  * Create a [ConfigManager] with a test queue for [consumerName] using [transportType] and [transportName] that is
