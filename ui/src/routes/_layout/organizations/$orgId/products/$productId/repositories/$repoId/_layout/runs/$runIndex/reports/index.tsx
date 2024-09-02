@@ -89,7 +89,7 @@ const ReportComponent = () => {
   }
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
+    <Card className='w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Reports from run {ortRun.index}</CardTitle>
         <CardDescription>Click the file to download.</CardDescription>

@@ -267,7 +267,7 @@ const RepoComponent = () => {
 
   return (
     <TooltipProvider>
-      <Card className='mx-auto w-full max-w-4xl'>
+      <Card className='w-full max-w-4xl'>
         <CardHeader>
           <CardTitle className='flex flex-row justify-between'>
             <div className='flex items-stretch'>

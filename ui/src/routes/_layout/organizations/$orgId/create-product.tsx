@@ -91,7 +91,7 @@ const CreateProductPage = () => {
   }
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
+    <Card className='w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Create Product</CardTitle>
       </CardHeader>

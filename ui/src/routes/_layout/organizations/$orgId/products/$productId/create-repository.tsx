@@ -105,7 +105,7 @@ const CreateRepositoryPage = () => {
   }
 
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
+    <Card className='w-full max-w-4xl'>
       <CardHeader>
         <CardTitle>Add repository</CardTitle>
       </CardHeader>

@@ -208,7 +208,7 @@ const RepositorySecrets = () => {
 
   return (
     <TooltipProvider>
-      <Card className='mx-auto w-full max-w-4xl'>
+      <Card className='w-full max-w-4xl'>
         <CardHeader>
           <CardTitle>Secrets</CardTitle>
           <CardDescription>Manage secrets for {repo.url}.</CardDescription>
