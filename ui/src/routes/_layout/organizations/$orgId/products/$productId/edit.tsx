@@ -106,7 +106,7 @@ const EditProductPage = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl'>
+    <Card>
       <CardHeader>Edit Product</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

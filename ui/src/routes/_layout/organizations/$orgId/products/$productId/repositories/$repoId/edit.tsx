@@ -124,7 +124,7 @@ const EditRepositoryPage = () => {
   }
 
   return (
-    <Card className='w-full max-w-4xl'>
+    <Card>
       <CardHeader>
         <CardTitle>Edit repository</CardTitle>
       </CardHeader>

@@ -203,7 +203,7 @@ const OrganizationSecrets = () => {
 
   return (
     <TooltipProvider>
-      <Card className='w-full max-w-4xl'>
+      <Card>
         <CardHeader>
           <CardTitle>Secrets</CardTitle>
           <CardDescription>
