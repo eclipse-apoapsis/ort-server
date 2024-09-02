@@ -209,7 +209,7 @@ class GitHubConfigFileCacheTest : WordSpec({
 
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 5, 1.days)
 
-            retry(10, 30.seconds) {
+            retry(10, 30.seconds, 2.seconds) {
                 cache.cleanup("current")
                 revisionDir.exists() shouldBe false
             }
@@ -219,7 +219,7 @@ class GitHubConfigFileCacheTest : WordSpec({
             val cacheDir = tempdir()
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 10, 1.days)
 
-            retry(10, 30.seconds) {
+            retry(10, 30.seconds, 2.seconds) {
                 val now = Clock.System.now()
                 val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
 
