@@ -36,7 +36,7 @@ versionsPlugin = "0.51.0"
 # Gradle dependencies
 awsSdk = "1.3.23"
 exposed = "0.52.0"
-flyway = "10.17.2"
+flyway = "10.17.3"
 hikari = "5.1.0"
 jackson = "2.17.2"
 jsonSchemaSerialization = "0.6.6"
