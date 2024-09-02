@@ -32,10 +32,6 @@ import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.koin.ktor.ext.inject
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(Application::class.java)
-
 /**
  * Configure actions that are triggered by
  * [lifecycle events][https://ktor.io/docs/events.html#handle-events-application].
@@ -58,18 +54,7 @@ fun Application.configureLifecycle() {
 private suspend fun syncRoles(authorizationService: AuthorizationService) {
     withMdcContext("component" to "core") {
         launch {
-            runCatching {
-                logger.info("Ensuring superuser role and group.")
-                authorizationService.ensureSuperuser()
-                logger.info("Synchronizing Keycloak permissions.")
-                authorizationService.synchronizePermissions()
-                logger.info("Synchronizing Keycloak roles.")
-                authorizationService.synchronizeRoles()
-            }.onSuccess {
-                logger.info("Synchronized Keycloak permissions and roles.")
-            }.onFailure {
-                logger.error("Error while synchronizing Keycloak permissions and roles.", it)
-            }
+            authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
         }
     }
 }
