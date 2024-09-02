@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import { BookLock, Eye } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
@@ -33,10 +34,12 @@ const Layout = () => {
     {
       title: 'Overview',
       to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+      icon: () => <Eye className='h-4 w-4' />,
     },
     {
       title: 'Secrets',
       to: '/organizations/$orgId//products/$productId/repositories/$repoId/secrets',
+      icon: () => <BookLock className='h-4 w-4' />,
       visible: user.hasRole([
         'superuser',
         `permission_repository_${repoId}_write_secrets`,

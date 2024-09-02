@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import { BookLock, Eye, ServerCog } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
@@ -33,10 +34,12 @@ const Layout = () => {
     {
       title: 'Overview',
       to: '/organizations/$orgId',
+      icon: () => <Eye className='h-4 w-4' />,
     },
     {
       title: 'Secrets',
       to: '/organizations/$orgId/secrets',
+      icon: () => <BookLock className='h-4 w-4' />,
       visible: user.hasRole([
         'superuser',
         `permission_organization_${orgId}_write_secrets`,
@@ -45,6 +48,7 @@ const Layout = () => {
     {
       title: 'Infrastructure Services',
       to: '/organizations/$orgId/infrastructure-services',
+      icon: () => <ServerCog className='h-4 w-4' />,
       visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
     },
   ];
