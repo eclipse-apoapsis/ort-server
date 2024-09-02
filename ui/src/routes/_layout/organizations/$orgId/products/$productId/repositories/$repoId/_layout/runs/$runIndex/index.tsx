@@ -27,7 +27,13 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
@@ -194,51 +200,12 @@ const RunComponent = () => {
         </div>
         <Card className='flex flex-1 overflow-hidden'>
           <CardHeader>
-            <CardTitle>Issues</CardTitle>
-            <CardContent className='space-y-2 overflow-auto'>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-              <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Possimus nobis necessitatibus amet deleniti quia quis
-                consequuntur cumque impedit accusantium dolorem, eos inventore
-                in sed magni dolorum nemo repellendus voluptates velit.
-              </p>
-            </CardContent>
+            <CardTitle>Summary</CardTitle>
+            <CardDescription>
+              When the corresponding API endpoints have been implemented, this
+              section will include a summary of the run, for example number of
+              issues by severity, and some statistical data from the run.
+            </CardDescription>
           </CardHeader>
         </Card>
       </div>
