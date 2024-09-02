@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import { BookLock, Eye } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
@@ -33,10 +34,12 @@ const Layout = () => {
     {
       title: 'Overview',
       to: '/organizations/$orgId/products/$productId',
+      icon: () => <Eye className='h-4 w-4' />,
     },
     {
       title: 'Secrets',
       to: '/organizations/$orgId//products/$productId/secrets',
+      icon: () => <BookLock className='h-4 w-4' />,
       visible: user.hasRole([
         'superuser',
         `permission_product_${productId}_write_secrets`,
