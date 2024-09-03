@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.micrometerRegistryGraphite)
     implementation(libs.ortUtils)
     implementation(libs.bundles.schemaKenerator)
+    implementation(libs.swaggerParser)
 
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(projects.logaccess.loki)
