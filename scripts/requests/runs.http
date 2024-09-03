@@ -1,0 +1,3 @@
+### Get all vulnerabilities for an ORT run
+GET {{host}}/runs/1/vulnerabilities
+Authorization: Bearer {{$auth.token("keycloak")}}

@@ -55,18 +55,28 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -413,6 +423,90 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/reporter/$reportFile")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/vulnerabilities" should {
+        "show the vulnerabilities of an ORT run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = ortRun.id,
+                    configuration = AdvisorJobConfiguration(
+                        config = mapOf(
+                            "VulnerableCode" to PluginConfiguration(
+                                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                                secrets = mapOf("apiKey" to "key")
+                            )
+                        )
+                    )
+                )
+
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AdvisorConfiguration(
+                        config = mapOf(
+                            "VulnerableCode" to PluginConfiguration(
+                                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                                secrets = mapOf("apiKey" to "key")
+                            )
+                        )
+                    ),
+                    results = mapOf(
+                        Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                capabilities = listOf("vulnerabilities"),
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                defects = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-1234",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = emptyList()
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+
+                response.status shouldBe HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+
+                with(vulnerabilities.data) {
+                    shouldHaveSize(1)
+                    first().vulnerability.externalId shouldBe "CVE-2021-1234"
+
+                    with(first().identifier) {
+                        type shouldBe "Maven"
+                        namespace shouldBe "org.apache.logging.log4j"
+                        name shouldBe "log4j-core"
+                        version shouldBe "2.14.0"
+                    }
+                }
             }
         }
     }

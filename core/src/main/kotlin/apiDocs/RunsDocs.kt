@@ -25,8 +25,16 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 
@@ -133,6 +141,53 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.BadRequest to {
             description = "Invalid values have been provided for the log level or steps parameters."
+        }
+    }
+}
+
+val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetVulnerabilitiesByRunId"
+    summary = "Get the vulnerabilities found in an ORT run."
+    tags = listOf("Vulnerabilities")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<PagedResponse<VulnerabilityWithIdentifier>> {
+                example("Get vulnerabilities for an ORT run") {
+                    value = PagedResponse(
+                        listOf(
+                            VulnerabilityWithIdentifier(
+                                vulnerability = Vulnerability(
+                                    externalId = "CVE-2021-1234",
+                                    summary = "A vulnerability",
+                                    description = "A description",
+                                    references = listOf(
+                                        VulnerabilityReference("https://example.com", "CVSS3", "9.8")
+                                    )
+                                ),
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0")
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("external_id", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
         }
     }
 }

@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvir
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration as ApiJiraNotificationConfiguration
@@ -68,6 +69,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier as ApiVulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -104,8 +108,12 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -446,6 +454,15 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)
+
+fun VulnerabilityWithIdentifier.mapToApi() =
+    ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi())
+
+fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
+
+fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
+
+fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity)
 
 fun InfrastructureService.mapToApi() =
     ApiInfrastructureService(

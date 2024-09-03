@@ -36,10 +36,15 @@ import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -47,10 +52,12 @@ import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 
 import org.koin.ktor.ext.inject
 
@@ -60,6 +67,7 @@ import org.koin.ktor.ext.inject
 fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
     val repositoryService by inject<RepositoryService>()
+    val vulnerabilityService by inject<VulnerabilityService>()
 
     get(getOrtRunById) { _ ->
         val ortRunId = call.requireIdParameter("runId")
@@ -100,6 +108,19 @@ fun Route.runs() = route("runs/{runId}") {
                     logArchive.delete()
                 }
             }
+        }
+    }
+
+    route("vulnerabilities") {
+        get(getVulnerabilitiesByRunId) {
+            val ortRunId = call.requireIdParameter("runId")
+            val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+
+            val vulnerabilitiesForOrtRun = vulnerabilityService.listForOrtRunId(ortRunId, pagingOptions.mapToModel())
+
+            val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
     }
 
