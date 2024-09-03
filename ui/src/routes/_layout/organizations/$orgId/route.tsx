@@ -19,11 +19,10 @@
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye, ServerCog } from 'lucide-react';
-import { Suspense } from 'react';
 
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
-import { Sidebar } from '@/components/sidebar';
+import { PageLayout } from '@/components/page-layout';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
@@ -54,14 +53,15 @@ const Layout = () => {
   ];
 
   return (
-    <div className='flex flex-col md:flex-row'>
-      {!productId && !repoId && !runIndex && (
-        <Sidebar sections={[{ items: navItems }]} />
-      )}
-      <Suspense fallback={<div>Loading...</div>}>
+    <>
+      {!productId && !repoId && !runIndex ? (
+        <PageLayout sections={[{ items: navItems }]}>
+          <Outlet />
+        </PageLayout>
+      ) : (
         <Outlet />
-      </Suspense>
-    </div>
+      )}
+    </>
   );
 };
 

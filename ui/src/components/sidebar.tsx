@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface SidebarNavProps {
+export interface SidebarNavProps {
   sections: {
     label?: string;
     items: {
@@ -48,10 +48,7 @@ interface SidebarNavProps {
 
 export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
   return (
-    <nav
-      className={cn('mb-4 w-full md:mb-0 md:mr-2 md:w-52', className)}
-      {...props}
-    >
+    <nav className={cn('w-full', className)} {...props}>
       <div className='flex flex-col items-start'>
         {sections.map((section) => {
           if (section.visible === false) {

@@ -19,11 +19,10 @@
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye } from 'lucide-react';
-import { Suspense } from 'react';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
-import { Sidebar } from '@/components/sidebar';
+import { PageLayout } from '@/components/page-layout';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
@@ -49,10 +48,13 @@ const Layout = () => {
 
   return (
     <>
-      {!runIndex && <Sidebar sections={[{ items: navItems }]} />}
-      <Suspense fallback={<div>Loading...</div>}>
+      {!runIndex ? (
+        <PageLayout sections={[{ items: navItems }]}>
+          <Outlet />
+        </PageLayout>
+      ) : (
         <Outlet />
-      </Suspense>
+      )}
     </>
   );
 };
