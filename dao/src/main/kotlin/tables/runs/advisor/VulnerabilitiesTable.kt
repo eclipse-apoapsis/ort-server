@@ -19,25 +19,25 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
 /**
  * A table to represent a vulnerability.
  */
-object VulnerabilitiesTable : LongIdTable("vulnerabilities") {
-    val externalId = text("external_id")
+object VulnerabilitiesTable : SortableTable("vulnerabilities") {
+    val externalId = text("external_id").sortable()
     val summary = text("summary").nullable()
     val description = text("description").nullable()
 }
 
 class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<VulnerabilityDao>(VulnerabilitiesTable) {
+    companion object : SortableEntityClass<VulnerabilityDao>(VulnerabilitiesTable) {
         fun findByVulnerability(vulnerability: Vulnerability): VulnerabilityDao? =
             find {
                 VulnerabilitiesTable.externalId eq vulnerability.externalId and
