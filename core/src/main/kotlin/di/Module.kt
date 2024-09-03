@@ -70,6 +70,7 @@ import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.koin.core.module.dsl.singleOf
@@ -121,6 +122,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { ProductService(get(), get(), get(), get()) }
     single { RepositoryService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { SecretService(get(), get(), get(), get()) }
+    single { VulnerabilityService(get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }
