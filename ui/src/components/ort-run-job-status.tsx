@@ -19,7 +19,7 @@
 
 import { Link } from '@tanstack/react-router';
 
-import { PagedResponse_OrtRunSummary_ } from '@/api/requests';
+import { PagedResponse_OrtRunSummary } from '@/api/requests';
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +33,7 @@ import {
 import { RunDuration } from './run-duration';
 
 type OrtRunJobStatusProps = {
-  jobs: PagedResponse_OrtRunSummary_['data'][0]['jobs'];
+  jobs: PagedResponse_OrtRunSummary['data'][0]['jobs'];
   pollInterval: number;
   orgId: string;
   productId: string;
