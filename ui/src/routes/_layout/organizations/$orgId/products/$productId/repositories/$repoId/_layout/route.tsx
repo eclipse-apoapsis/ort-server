@@ -20,7 +20,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { Eye, FileText, ListTree, Scale, ShieldQuestion } from 'lucide-react';
 
-import { Sidebar } from '@/components/sidebar';
+import { PageLayout } from '@/components/page-layout';
 
 const Layout = () => {
   const sections = [
@@ -74,10 +74,9 @@ const Layout = () => {
   ];
 
   return (
-    <div className='flex h-full w-full gap-2'>
-      <Sidebar sections={sections} />
+    <PageLayout sections={sections}>
       <Outlet />
-    </div>
+    </PageLayout>
   );
 };
 export const Route = createFileRoute(
