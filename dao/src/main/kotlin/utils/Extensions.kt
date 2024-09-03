@@ -30,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -53,6 +55,22 @@ internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
     val filterQuery = find(query)
     val totalCount = filterQuery.count()
     val data = filterQuery.apply(sortableTable, parameters).map(entityMapper)
+
+    return ListQueryResult(data, parameters, totalCount)
+}
+
+/**
+ * Run the [query] using the [parameters] to create a [ListQueryResult]. The entities are mapped to the  corresponding
+ * model objects using the provided [entityMapper].
+ */
+fun <E : LongEntity, M> SortableEntityClass<E>.listCustomQuery(
+    parameters: ListQueryParameters,
+    entityMapper: (ResultRow) -> M,
+    query: () -> Query
+): ListQueryResult<M> {
+    val totalCount = query().count()
+    val apply = query().apply(sortableTable, parameters)
+    val data = apply.map(entityMapper)
 
     return ListQueryResult(data, parameters, totalCount)
 }
