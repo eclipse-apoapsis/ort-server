@@ -46,7 +46,7 @@ class GenerateOpenApiSpec : StringSpec({
     "generate the OpenAPI specification".config(enabled = System.getProperty("generateOpenApiSpec").toBoolean()) {
         ortServerTestApplication(
             config = noDbConfig,
-            additionalConfigs = mapOf("jwt.issuer" to "https://example.org")
+            additionalConfigs = mapOf("jwt.issuer" to "http://localhost:8081/realms/master")
         ) {
             application { configureOpenApi() }
 
