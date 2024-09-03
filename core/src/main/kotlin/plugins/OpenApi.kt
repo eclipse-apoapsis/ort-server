@@ -69,6 +69,7 @@ fun Application.configureOpenApi() {
                     authorizationCode {
                         authorizationUrl = "${config.property("jwt.issuer").getString()}/protocol/openid-connect/auth"
                         tokenUrl = "${config.property("jwt.issuer").getString()}/protocol/openid-connect/token"
+                        scopes = emptyMap()
                     }
                 }
             }
