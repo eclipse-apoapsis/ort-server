@@ -24,6 +24,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ModeToggle } from '@/components/mode-toggle';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useUser } from '@/hooks/use-user';
 import {
@@ -213,6 +214,15 @@ export const Header = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
+            <DropdownMenuItem className='flex gap-2' disabled>
+              <Avatar className='h-8 w-8'>
+                <AvatarFallback className='h-8 w-8 bg-red-400'>
+                  {user.username?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className='font-semibold'>{user.username}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <Link to='/about'>
               <DropdownMenuItem>About</DropdownMenuItem>
             </Link>
