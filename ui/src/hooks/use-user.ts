@@ -32,8 +32,12 @@ export const useUser = () => {
     return roles.some((role) => userRoles.includes(role));
   };
 
+  // Return the logged-in username.
+  const username = auth?.user?.profile?.preferred_username;
+
   return {
     hasRole,
+    username,
     ...auth,
   };
 };
