@@ -18,7 +18,14 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { Eye, FileText, ListTree, Scale, ShieldQuestion } from 'lucide-react';
+import {
+  Boxes,
+  Eye,
+  FileText,
+  ListTree,
+  Scale,
+  ShieldQuestion,
+} from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 
@@ -33,19 +40,28 @@ const Layout = () => {
           icon: () => <Eye className='h-4 w-4' />,
         },
         {
+          title: 'Packages',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
+          icon: () => <Boxes className='h-4 w-4' />,
+        },
+        {
           title: 'Dependencies',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies',
           icon: () => <ListTree className='h-4 w-4' />,
         },
         {
           title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
         {
           title: 'License Findings',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
           icon: () => <FileText className='h-4 w-4' />,
         },
         {
           title: 'Rule Violations',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
           icon: () => <Scale className='h-4 w-4' />,
         },
       ],
