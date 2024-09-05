@@ -29,9 +29,10 @@ import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
 import org.ossreviewtoolkit.model.readValue
-import org.ossreviewtoolkit.model.utils.PackageCurationProvider
+import org.ossreviewtoolkit.plugins.api.OrtPlugin
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
+import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProvider
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
-import org.ossreviewtoolkit.utils.common.Options
 import org.ossreviewtoolkit.utils.common.encodeOr
 import org.ossreviewtoolkit.utils.ort.runBlocking
 
@@ -57,10 +58,18 @@ private val logger = LoggerFactory.getLogger(DirPackageCurationProvider::class.j
  * - Some special characters that are problematic in file names are mapped to their numeric hexadecimal representation
  *   (%XX).
  */
+@OrtPlugin(
+    name = "Dir Package Curation Provider",
+    description = "A package curation provider that reads curation data from a folder structure.",
+    factory = PackageCurationProviderFactory::class
+)
 class DirPackageCurationProvider(
-    /** The root path of the folder structure with curation files. */
-    private val root: File
+    override val descriptor: PluginDescriptor,
+    config: DirPackageCurationProviderConfig
 ) : PackageCurationProvider {
+    /** The root directory of the folder structure with curation files. */
+    private val root = File(config.path)
+
     override fun getCurationsFor(packages: Collection<Package>): Set<PackageCuration> =
         runBlocking(Dispatchers.IO) {
             packages.map { pkg ->
@@ -88,22 +97,6 @@ data class DirPackageCurationProviderConfig(
     /** The root path of the folder structure to be searched by the provider. */
     val path: String
 )
-
-/**
- * A factory implementation for creating [DirPackageCurationProvider] instances.
- */
-class DirPackageCurationProviderFactory : PackageCurationProviderFactory<DirPackageCurationProviderConfig> {
-    override val type: String = "Dir"
-
-    override fun create(config: DirPackageCurationProviderConfig): PackageCurationProvider {
-        logger.info("Creating DirPackageCurationProvider using root path '{}'.", config.path)
-
-        return DirPackageCurationProvider(File(config.path))
-    }
-
-    override fun parseConfig(options: Options, secrets: Options): DirPackageCurationProviderConfig =
-        DirPackageCurationProviderConfig(options.getValue("path"))
-}
 
 /**
  * The path must be aligned with the

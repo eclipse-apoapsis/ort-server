@@ -164,7 +164,7 @@ internal class WorkerContextImpl(
     }
 
     override fun close() {
-        tempDirectories.forEach { it.safeDeleteRecursively(force = true) }
+        tempDirectories.forEach { it.safeDeleteRecursively() }
     }
 
     /**

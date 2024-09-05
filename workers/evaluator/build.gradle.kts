@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
+    implementation(libs.ortConfigUtils)
     implementation(libs.ortEvaluator)
     implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(libs.typesafeConfig)

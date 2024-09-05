@@ -53,6 +53,7 @@ dependencies {
 
     implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(platform(libs.ortVersionControlSystems))
+    implementation(libs.ortConfigUtils)
     implementation(libs.ortDownloader)
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)

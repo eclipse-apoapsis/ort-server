@@ -121,7 +121,7 @@ class LogFileService private constructor(
             val archiveFile = kotlin.io.path.createTempFile(tempDir, "logs", ".zip").toFile()
             return downloadDir.packZip(archiveFile, overwrite = true)
         } finally {
-            downloadDir.safeDeleteRecursively(force = true)
+            downloadDir.safeDeleteRecursively()
         }
     }
 
