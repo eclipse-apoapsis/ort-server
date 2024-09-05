@@ -66,7 +66,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val tempDir = tempdir()
             val helper = TestHelper()
 
-            val config = helper.loader().parse(tempDir, hierarchy)
+            val config = helper.loader().parse(tempDir)
 
             config.infrastructureServices should beEmpty()
         }
@@ -76,7 +76,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             val config = loadConfig(".ort.env.no-services.yml", helper)
 
-            config shouldBe ResolvedEnvironmentConfig(emptyList())
+            config shouldBe ResolvedEnvironmentConfig()
         }
 
         "A configuration file can be read" {
@@ -405,7 +405,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             }
         }
 
-        return helper.loader().parse(tempDir, hierarchy)
+        return with(helper.loader()) { resolve(parse(tempDir), hierarchy) }
     }
 }
 

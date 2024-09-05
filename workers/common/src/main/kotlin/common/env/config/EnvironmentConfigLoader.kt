@@ -107,15 +107,14 @@ class EnvironmentConfigLoader(
      * the given [repositoryFolder] and return an [ResolvedEnvironmentConfig] with its content. Syntactic errors in the
      * file cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
      */
-    fun parse(repositoryFolder: File, hierarchy: Hierarchy): ResolvedEnvironmentConfig =
+    fun parse(repositoryFolder: File): EnvironmentConfig =
         repositoryFolder.resolve(CONFIG_FILE_PATH).takeIf { it.isFile }?.let { configFile ->
             logger.info("Parsing environment configuration file '{}'.", configFile)
 
             configFile.inputStream().use { stream ->
-                val config = Yaml.default.decodeFromStream(RepositoryEnvironmentConfig.serializer(), stream)
-                resolveRepositoryEnvironmentConfig(config, hierarchy)
+                Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
             }
-        } ?: ResolvedEnvironmentConfig(emptyList())
+        } ?: EnvironmentConfig()
 
     /**
      * Resolve the given [config] for the repository defined by the given [hierarchy]. This function is used when the

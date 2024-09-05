@@ -374,7 +374,8 @@ private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefini
  */
 private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConfigLoader =
     mockk<EnvironmentConfigLoader> {
-        every { parse(repositoryFolder, repositoryHierarchy) } returns config
+        every { parse(repositoryFolder) } returns mockk()
+        every { resolve(any(), repositoryHierarchy) } returns config
     }
 
 /**

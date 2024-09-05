@@ -76,9 +76,9 @@ class EnvironmentService(
         repositoryFolder: File,
         repositoryService: InfrastructureService?
     ): ResolvedEnvironmentConfig {
-        val config = configLoader.parse(repositoryFolder, context.hierarchy)
+        val resolvedConfig = configLoader.resolve(configLoader.parse(repositoryFolder), context.hierarchy)
 
-        return setUpEnvironmentForConfig(context, config, repositoryService)
+        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
     }
 
     /**
