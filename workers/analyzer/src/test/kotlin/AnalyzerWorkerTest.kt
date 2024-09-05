@@ -145,7 +145,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { findInfrastructureServiceForRepository(context) } returns infrastructureService
             coEvery { generateNetRcFile(context, listOf(infrastructureService)) } just runs
             coEvery {
-                setUpEnvironment(context, projectDir, infrastructureService)
+                setUpEnvironment(context, projectDir, null, infrastructureService)
             } returns ResolvedEnvironmentConfig()
         }
 
@@ -171,7 +171,7 @@ class AnalyzerWorkerTest : StringSpec({
             coVerifyOrder {
                 envService.generateNetRcFile(context, listOf(infrastructureService))
                 downloader.downloadRepository(repository.url, ortRun.revision)
-                envService.setUpEnvironment(context, projectDir, infrastructureService)
+                envService.setUpEnvironment(context, projectDir, null, infrastructureService)
             }
         }
     }
@@ -203,7 +203,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
-            coEvery { setUpEnvironment(context, projectDir, null) } returns ResolvedEnvironmentConfig()
+            coEvery { setUpEnvironment(context, projectDir, null, null) } returns ResolvedEnvironmentConfig()
         }
 
         val worker = AnalyzerWorker(
@@ -229,7 +229,7 @@ class AnalyzerWorkerTest : StringSpec({
             }
 
             coVerify {
-                envService.setUpEnvironment(context, projectDir, null)
+                envService.setUpEnvironment(context, projectDir, null, null)
             }
         }
     }
@@ -264,7 +264,7 @@ class AnalyzerWorkerTest : StringSpec({
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
             every { findInfrastructureServiceForRepository(context, envConfig) } returns null
-            coEvery { setUpEnvironment(context, envConfig) } returns ResolvedEnvironmentConfig()
+            coEvery { setUpEnvironment(context, projectDir, envConfig, null) } returns ResolvedEnvironmentConfig()
         }
 
         val worker = AnalyzerWorker(
@@ -286,7 +286,7 @@ class AnalyzerWorkerTest : StringSpec({
             }
 
             coVerify {
-                envService.setUpEnvironment(context, envConfig)
+                envService.setUpEnvironment(context, projectDir, envConfig, null)
             }
         }
     }
@@ -319,7 +319,7 @@ class AnalyzerWorkerTest : StringSpec({
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
             every { findInfrastructureServiceForRepository(context, envConfig) } returns null
-            coEvery { setUpEnvironment(context, envConfig) } returns resolvedEnvConfig
+            coEvery { setUpEnvironment(context, projectDir, envConfig, null) } returns resolvedEnvConfig
         }
 
         val testException = IllegalStateException("AnalyzerRunner test exception")
@@ -367,7 +367,8 @@ class AnalyzerWorkerTest : StringSpec({
         val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
-            coEvery { setUpEnvironment(context, projectDir, null) } returns resolvedEnvConfig
+            every { findInfrastructureServiceForRepository(context, any()) } returns null
+            coEvery { setUpEnvironment(context, projectDir, null, null) } returns resolvedEnvConfig
         }
 
         val testException = IllegalStateException("AnalyzerRunner test exception")
@@ -464,7 +465,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServiceForRepository(context) } returns null
-            coEvery { setUpEnvironment(context, projectDir, null) } returns ResolvedEnvironmentConfig()
+            coEvery { setUpEnvironment(context, projectDir, null, null) } returns ResolvedEnvironmentConfig()
         }
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
