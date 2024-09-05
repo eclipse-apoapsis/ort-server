@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
-import { OpenAPI, RepositoriesService } from '@/api/requests';
+import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,17 +45,9 @@ const ReportComponent = () => {
   const [level, setLevel] = useState('INFO');
   const [isPending, setIsPending] = useState(false);
 
-  const { data: ortRun } = useSuspenseQuery({
-    queryKey: [
-      useRepositoriesServiceGetOrtRunByIndexKey,
-      params.repoId,
-      params.runIndex,
-    ],
-    queryFn: async () =>
-      await RepositoriesService.getOrtRunByIndex({
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }),
+  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
+    repositoryId: Number.parseInt(params.repoId),
+    ortRunIndex: Number.parseInt(params.runIndex),
   });
 
   const downloadLogs = async (
@@ -179,17 +171,9 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/logs/'
 )({
   loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useRepositoriesServiceGetOrtRunByIndexKey,
-        params.repoId,
-        params.runIndex,
-      ],
-      queryFn: () =>
-        RepositoriesService.getOrtRunByIndex({
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runIndex),
-        }),
+    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
+      repositoryId: Number.parseInt(params.repoId),
+      ortRunIndex: Number.parseInt(params.runIndex),
     });
   },
   component: ReportComponent,

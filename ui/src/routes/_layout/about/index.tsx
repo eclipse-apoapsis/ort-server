@@ -17,19 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useVersionsServiceGetVersionsKey } from '@/api/queries';
-import { VersionsService } from '@/api/requests';
+import { useVersionsServiceGetVersionsSuspense } from '@/api/queries/suspense';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 export const About = () => {
-  const { data: versionData } = useSuspenseQuery({
-    queryKey: [useVersionsServiceGetVersionsKey],
-    queryFn: () => VersionsService.getVersions(),
-  });
+  const { data: versionData } = useVersionsServiceGetVersionsSuspense();
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>

@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -28,14 +27,14 @@ import { EditIcon, PlusIcon, Repeat, View } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
-  useRepositoriesServiceGetOrtRunsKey,
-  useRepositoriesServiceGetRepositoryByIdKey,
+  useRepositoriesServiceGetOrtRuns,
+  useRepositoriesServiceGetRepositoryById,
 } from '@/api/queries';
 import {
-  ApiError,
-  GetOrtRunsResponse,
-  RepositoriesService,
-} from '@/api/requests';
+  prefetchUseRepositoriesServiceGetOrtRuns,
+  prefetchUseRepositoriesServiceGetRepositoryById,
+} from '@/api/queries/prefetch';
+import { ApiError, GetOrtRunsResponse } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -63,7 +62,6 @@ import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
-
 const pollInterval = config.pollInterval;
 
 const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
@@ -194,39 +192,32 @@ const RepoComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: repo }, { data: runs }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-        queryFn: async () =>
-          await RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId),
-          }),
-      },
-      {
-        queryKey: [
-          useRepositoriesServiceGetOrtRunsKey,
-          params.repoId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await RepositoriesService.getOrtRuns({
-            repositoryId: Number.parseInt(params.repoId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-            sort: '-index',
-          }),
-        refetchInterval: pollInterval,
-      },
-    ],
+  const {
+    data: repo,
+    error: repoError,
+    isPending: repoIsPending,
+    isError: repoIsError,
+  } = useRepositoriesServiceGetRepositoryById({
+    repositoryId: Number.parseInt(params.repoId),
+  });
+
+  const {
+    data: runs,
+    error: runsError,
+    isPending: runsIsPending,
+    isError: runsIsError,
+  } = useRepositoriesServiceGetOrtRuns({
+    repositoryId: Number.parseInt(params.repoId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
+    sort: '-index',
   });
 
   const { mutateAsync: deleteRepository, isPending } =
     useRepositoriesServiceDeleteRepositoryById({
       onSuccess() {
         toast.info('Delete Repository', {
-          description: `Repository "${repo.url}" deleted successfully.`,
+          description: `Repository "${repo?.url}" deleted successfully.`,
         });
         navigate({
           to: '/organizations/$orgId/products/$productId',
@@ -252,9 +243,9 @@ const RepoComponent = () => {
   }
 
   const table = useReactTable({
-    data: runs.data || [],
+    data: runs?.data || [],
     columns,
-    pageCount: Math.ceil(runs.pagination.totalCount / pageSize),
+    pageCount: Math.ceil((runs?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -264,6 +255,14 @@ const RepoComponent = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (repoIsPending || runsIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (repoIsError || runsIsError) {
+    return repoError || runsError;
+  }
 
   return (
     <TooltipProvider>
@@ -343,27 +342,14 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-        queryFn: () =>
-          RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId),
-          }),
+      prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
+        repositoryId: Number.parseInt(params.repoId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useRepositoriesServiceGetOrtRunsKey,
-          params.repoId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          RepositoriesService.getOrtRuns({
-            repositoryId: Number.parseInt(params.repoId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-            sort: '-index',
-          }),
+      prefetchUseRepositoriesServiceGetOrtRuns(context.queryClient, {
+        repositoryId: Number.parseInt(params.repoId),
+        limit: pageSize || defaultPageSize,
+        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        sort: '-index',
       }),
     ]);
   },

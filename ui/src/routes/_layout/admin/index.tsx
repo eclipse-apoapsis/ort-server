@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -37,8 +36,8 @@ import {
 import { useState } from 'react';
 import { z } from 'zod';
 
-import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
-import { Organization, OrganizationsService } from '@/api/requests';
+import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
+import { Organization } from '@/api/requests';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -208,9 +207,8 @@ const DataTable = <TData, TValue>({
 };
 
 const OverviewContent = () => {
-  const { data } = useSuspenseQuery({
-    queryKey: [useOrganizationsServiceGetOrganizationsKey],
-    queryFn: () => OrganizationsService.getOrganizations({ limit: 1000 }),
+  const { data } = useOrganizationsServiceGetOrganizationsSuspense({
+    limit: 1000,
   });
 
   return (

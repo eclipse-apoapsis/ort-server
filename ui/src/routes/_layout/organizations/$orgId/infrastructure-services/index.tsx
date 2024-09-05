@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -30,15 +30,15 @@ import { useState } from 'react';
 
 import {
   useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName,
+  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
   useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-  useOrganizationsServiceGetOrganizationByIdKey,
+  useOrganizationsServiceGetOrganizationById,
 } from '@/api/queries';
 import {
-  ApiError,
-  InfrastructureService,
-  InfrastructureServicesService,
-  OrganizationsService,
-} from '@/api/requests';
+  prefetchUseInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
+  prefetchUseOrganizationsServiceGetOrganizationById,
+} from '@/api/queries/prefetch';
+import { ApiError, InfrastructureService } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -135,33 +135,27 @@ const InfrastructureServices = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: organization }, { data: infraServices }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: async () =>
-          await OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
-      },
-      {
-        queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-          params.orgId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: () =>
-          InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
-            {
-              organizationId: Number.parseInt(params.orgId),
-              limit: pageSize,
-              offset: pageIndex * pageSize,
-            }
-          ),
-      },
-    ],
+  const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useOrganizationsServiceGetOrganizationById({
+    organizationId: Number.parseInt(params.orgId),
   });
+
+  const {
+    data: infraServices,
+    error: infraError,
+    isPending: infraIsPending,
+    isError: infraIsError,
+  } = useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId(
+    {
+      organizationId: Number.parseInt(params.orgId),
+      limit: pageSize,
+      offset: pageIndex * pageSize,
+    }
+  );
 
   const columns: ColumnDef<InfrastructureService>[] = [
     {
@@ -261,7 +255,7 @@ const InfrastructureServices = () => {
   const table = useReactTable({
     data: infraServices?.data || [],
     columns,
-    pageCount: Math.ceil(infraServices.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(infraServices?.pagination.totalCount ?? 0 / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -271,6 +265,14 @@ const InfrastructureServices = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (orgIsPending || infraIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (orgIsError || infraIsError) {
+    return orgError || infraError;
+  }
 
   return (
     <TooltipProvider>
@@ -314,29 +316,17 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: () =>
-          OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
+      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
+        organizationId: Number.parseInt(params.orgId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-          params.orgId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
-            {
-              organizationId: Number.parseInt(params.orgId),
-              limit: pageSize || defaultPageSize,
-              offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-            }
-          ),
-      }),
+      prefetchUseInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
     ]);
   },
   component: InfrastructureServices,

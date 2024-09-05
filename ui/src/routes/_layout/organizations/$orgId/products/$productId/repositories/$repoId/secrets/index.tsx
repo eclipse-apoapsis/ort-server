@@ -17,11 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  useQueryClient,
-  useSuspenseQueries,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -33,16 +29,17 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  useRepositoriesServiceGetRepositoryByIdKey,
+  useRepositoriesServiceGetRepositoryById,
   useSecretsServiceDeleteSecretByRepositoryIdAndName,
+  useSecretsServiceGetSecretsByRepositoryId,
   useSecretsServiceGetSecretsByRepositoryIdKey,
 } from '@/api/queries';
 import {
-  ApiError,
-  RepositoriesService,
-  Secret,
-  SecretsService,
-} from '@/api/requests';
+  prefetchUseRepositoriesServiceGetRepositoryById,
+  prefetchUseSecretsServiceGetSecretsByRepositoryId,
+} from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -73,12 +70,8 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
   const [openDelDialog, setOpenDelDialog] = useState(false);
 
-  const { data: repo } = useSuspenseQuery({
-    queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-    queryFn: async () =>
-      await RepositoriesService.getRepositoryById({
-        repositoryId: Number.parseInt(params.repoId),
-      }),
+  const { data: repo } = useRepositoriesServiceGetRepositoryByIdSuspense({
+    repositoryId: Number.parseInt(params.repoId),
   });
 
   const { mutateAsync: deleteSecret, isPending: delIsPending } =
@@ -166,36 +159,30 @@ const RepositorySecrets = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: repo }, { data: secrets }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-        queryFn: async () =>
-          await RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId),
-          }),
-      },
-      {
-        queryKey: [
-          useSecretsServiceGetSecretsByRepositoryIdKey,
-          params.repoId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await SecretsService.getSecretsByRepositoryId({
-            repositoryId: Number.parseInt(params.repoId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-          }),
-      },
-    ],
+  const {
+    data: repo,
+    error: repoError,
+    isPending: repoIsPending,
+    isError: repoIsError,
+  } = useRepositoriesServiceGetRepositoryById({
+    repositoryId: Number.parseInt(params.repoId),
+  });
+
+  const {
+    data: secrets,
+    error: secretsError,
+    isPending: secretsIsPending,
+    isError: secretsIsError,
+  } = useSecretsServiceGetSecretsByRepositoryId({
+    repositoryId: Number.parseInt(params.repoId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const table = useReactTable({
     data: secrets?.data || [],
     columns,
-    pageCount: Math.ceil(secrets.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(secrets?.pagination.totalCount ?? 0 / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -205,6 +192,14 @@ const RepositorySecrets = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (repoIsPending || secretsIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (repoIsError || secretsIsError) {
+    return repoError || secretsError;
+  }
 
   return (
     <TooltipProvider>
@@ -250,26 +245,13 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
-        queryFn: async () =>
-          await RepositoriesService.getRepositoryById({
-            repositoryId: Number.parseInt(params.repoId),
-          }),
+      prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
+        repositoryId: Number.parseInt(params.repoId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretsByRepositoryIdKey,
-          params.repoId,
-          page,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await SecretsService.getSecretsByRepositoryId({
-            repositoryId: Number(params.repoId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
+      prefetchUseSecretsServiceGetSecretsByRepositoryId(context.queryClient, {
+        repositoryId: Number.parseInt(params.repoId),
+        limit: pageSize || defaultPageSize,
+        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
       }),
     ]);
   },

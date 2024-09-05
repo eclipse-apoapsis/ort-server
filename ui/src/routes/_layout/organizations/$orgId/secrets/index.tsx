@@ -17,11 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  useQueryClient,
-  useSuspenseQueries,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -33,16 +29,17 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  useOrganizationsServiceGetOrganizationByIdKey,
+  useOrganizationsServiceGetOrganizationById,
   useSecretsServiceDeleteSecretByOrganizationIdAndName,
+  useSecretsServiceGetSecretsByOrganizationId,
   useSecretsServiceGetSecretsByOrganizationIdKey,
 } from '@/api/queries';
 import {
-  ApiError,
-  OrganizationsService,
-  Secret,
-  SecretsService,
-} from '@/api/requests';
+  prefetchUseOrganizationsServiceGetOrganizationById,
+  prefetchUseSecretsServiceGetSecretsByOrganizationId,
+} from '@/api/queries/prefetch';
+import { useOrganizationsServiceGetOrganizationByIdSuspense } from '@/api/queries/suspense';
+import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -73,13 +70,10 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
   const [openDelDialog, setOpenDelDialog] = useState(false);
 
-  const { data: organization } = useSuspenseQuery({
-    queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-    queryFn: async () =>
-      await OrganizationsService.getOrganizationById({
-        organizationId: Number.parseInt(params.orgId),
-      }),
-  });
+  const { data: organization } =
+    useOrganizationsServiceGetOrganizationByIdSuspense({
+      organizationId: Number.parseInt(params.orgId),
+    });
 
   const { mutateAsync: delSecret, isPending: delIsPending } =
     useSecretsServiceDeleteSecretByOrganizationIdAndName({
@@ -161,36 +155,30 @@ const OrganizationSecrets = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: organization }, { data: secrets }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: async () =>
-          await OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
-      },
-      {
-        queryKey: [
-          useSecretsServiceGetSecretsByOrganizationIdKey,
-          params.orgId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await SecretsService.getSecretsByOrganizationId({
-            organizationId: Number.parseInt(params.orgId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-          }),
-      },
-    ],
+  const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useOrganizationsServiceGetOrganizationById({
+    organizationId: Number.parseInt(params.orgId),
+  });
+
+  const {
+    data: secrets,
+    error: secretsError,
+    isPending: secretsIsPending,
+    isError: secretsIsError,
+  } = useSecretsServiceGetSecretsByOrganizationId({
+    organizationId: Number.parseInt(params.orgId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const table = useReactTable({
     data: secrets?.data || [],
     columns,
-    pageCount: Math.ceil(secrets.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(secrets?.pagination.totalCount ?? 0 / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -200,6 +188,14 @@ const OrganizationSecrets = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (orgIsPending || secretsIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (orgIsError || secretsIsError) {
+    return orgError || secretsError;
+  }
 
   return (
     <TooltipProvider>
@@ -241,26 +237,13 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/secrets/')({
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: () =>
-          OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
+      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
+        organizationId: Number.parseInt(params.orgId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretsByOrganizationIdKey,
-          params.orgId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretsByOrganizationId({
-            organizationId: Number.parseInt(params.orgId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
+      prefetchUseSecretsServiceGetSecretsByOrganizationId(context.queryClient, {
+        organizationId: Number.parseInt(params.orgId),
+        limit: pageSize || defaultPageSize,
+        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
       }),
     ]);
   },

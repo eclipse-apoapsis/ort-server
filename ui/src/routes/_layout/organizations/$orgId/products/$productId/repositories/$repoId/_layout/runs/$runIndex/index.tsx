@@ -17,12 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Repeat } from 'lucide-react';
 
-import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
-import { RepositoriesService } from '@/api/requests';
+import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { Badge } from '@/components/ui/badge';
@@ -44,26 +43,23 @@ const RunComponent = () => {
   const locale = navigator.language;
   const pollInterval = config.pollInterval;
 
-  const { data: ortRun } = useSuspenseQuery({
-    queryKey: [
-      useRepositoriesServiceGetOrtRunByIndexKey,
-      params.repoId,
-      params.runIndex,
-    ],
-    queryFn: async () =>
-      await RepositoriesService.getOrtRunByIndex({
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }),
-    refetchInterval: (run) => {
-      if (
-        run.state.data?.status === 'FINISHED' ||
-        run.state.data?.status === 'FAILED'
-      )
-        return false;
-      return pollInterval;
+  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense(
+    {
+      repositoryId: Number.parseInt(params.repoId),
+      ortRunIndex: Number.parseInt(params.runIndex),
     },
-  });
+    undefined,
+    {
+      refetchInterval: (run) => {
+        if (
+          run.state.data?.status === 'FINISHED' ||
+          run.state.data?.status === 'FAILED'
+        )
+          return false;
+        return pollInterval;
+      },
+    }
+  );
 
   return (
     <>
@@ -217,17 +213,9 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/'
 )({
   loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useRepositoriesServiceGetOrtRunByIndexKey,
-        params.repoId,
-        params.runIndex,
-      ],
-      queryFn: () =>
-        RepositoriesService.getOrtRunByIndex({
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runIndex),
-        }),
+    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
+      repositoryId: Number.parseInt(params.repoId),
+      ortRunIndex: Number.parseInt(params.runIndex),
     });
   },
   component: RunComponent,

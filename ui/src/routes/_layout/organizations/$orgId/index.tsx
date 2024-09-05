@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -28,15 +27,14 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
   useOrganizationsServiceDeleteOrganizationById,
-  useOrganizationsServiceGetOrganizationByIdKey,
-  useProductsServiceGetOrganizationProductsKey,
+  useOrganizationsServiceGetOrganizationById,
+  useProductsServiceGetOrganizationProducts,
 } from '@/api/queries';
 import {
-  ApiError,
-  OrganizationsService,
-  Product,
-  ProductsService,
-} from '@/api/requests';
+  prefetchUseOrganizationsServiceGetOrganizationById,
+  prefetchUseProductsServiceGetOrganizationProducts,
+} from '@/api/queries/prefetch';
+import { ApiError, Product } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -91,37 +89,31 @@ const OrganizationComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: organization }, { data: products }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: async () =>
-          await OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
-      },
-      {
-        queryKey: [
-          useProductsServiceGetOrganizationProductsKey,
-          params.orgId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await ProductsService.getOrganizationProducts({
-            organizationId: Number.parseInt(params.orgId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-          }),
-      },
-    ],
+  const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useOrganizationsServiceGetOrganizationById({
+    organizationId: Number.parseInt(params.orgId),
+  });
+
+  const {
+    data: products,
+    error: prodError,
+    isPending: prodIsPending,
+    isError: prodIsError,
+  } = useProductsServiceGetOrganizationProducts({
+    organizationId: Number.parseInt(params.orgId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const { mutateAsync: deleteOrganization, isPending } =
     useOrganizationsServiceDeleteOrganizationById({
       onSuccess() {
         toast.info('Delete Organization', {
-          description: `Organization "${organization.name}" deleted successfully.`,
+          description: `Organization "${organization?.name}" deleted successfully.`,
         });
         navigate({
           to: '/',
@@ -148,7 +140,7 @@ const OrganizationComponent = () => {
   const table = useReactTable({
     data: products?.data || [],
     columns,
-    pageCount: Math.ceil(products.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(products?.pagination.totalCount ?? 0 / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -158,6 +150,14 @@ const OrganizationComponent = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (orgIsPending || prodIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (orgIsError || prodIsError) {
+    return orgError || prodError;
+  }
 
   return (
     <TooltipProvider>
@@ -227,26 +227,13 @@ export const Route = createFileRoute('/_layout/organizations/$orgId/')({
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-        queryFn: () =>
-          OrganizationsService.getOrganizationById({
-            organizationId: Number.parseInt(params.orgId),
-          }),
+      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
+        organizationId: Number.parseInt(params.orgId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useProductsServiceGetOrganizationProductsKey,
-          params.orgId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          ProductsService.getOrganizationProducts({
-            organizationId: Number.parseInt(params.orgId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
+      prefetchUseProductsServiceGetOrganizationProducts(context.queryClient, {
+        organizationId: Number.parseInt(params.orgId),
+        limit: pageSize || defaultPageSize,
+        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
       }),
     ]);
   },
