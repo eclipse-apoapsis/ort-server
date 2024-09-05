@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -26,8 +25,9 @@ import {
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
-import { useOrganizationsServiceGetOrganizationsKey } from '@/api/queries';
-import { Organization, OrganizationsService } from '@/api/requests';
+import { prefetchUseOrganizationsServiceGetOrganizations } from '@/api/queries/prefetch';
+import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
+import { Organization } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
@@ -75,13 +75,9 @@ export const IndexPage = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const { data } = useSuspenseQuery({
-    queryKey: [useOrganizationsServiceGetOrganizationsKey, pageIndex, pageSize],
-    queryFn: () =>
-      OrganizationsService.getOrganizations({
-        limit: pageSize,
-        offset: pageIndex * pageSize,
-      }),
+  const { data } = useOrganizationsServiceGetOrganizationsSuspense({
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const table = useReactTable({
@@ -134,13 +130,9 @@ export const Route = createFileRoute('/_layout/')({
   validateSearch: paginationSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, deps: { page, pageSize } }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [useOrganizationsServiceGetOrganizationsKey, page, pageSize],
-      queryFn: () =>
-        OrganizationsService.getOrganizations({
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        }),
+    prefetchUseOrganizationsServiceGetOrganizations(context.queryClient, {
+      limit: pageSize || defaultPageSize,
+      offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
     });
   },
   component: IndexPage,

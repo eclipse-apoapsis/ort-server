@@ -32,6 +32,10 @@ import {
   useRepositoriesServiceGetRepositoriesByProductIdKey,
 } from '@/api/queries';
 import {
+  prefetchUseProductsServiceGetProductById,
+  prefetchUseRepositoriesServiceGetRepositoriesByProductId,
+} from '@/api/queries/prefetch';
+import {
   ApiError,
   ProductsService,
   RepositoriesService,
@@ -237,27 +241,17 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-        queryFn: () =>
-          ProductsService.getProductById({
-            productId: Number.parseInt(params.productId),
-          }),
+      prefetchUseProductsServiceGetProductById(context.queryClient, {
+        productId: Number.parseInt(params.productId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useRepositoriesServiceGetRepositoriesByProductIdKey,
-          params.productId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          RepositoriesService.getRepositoriesByProductId({
-            productId: Number.parseInt(params.productId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
-      }),
+      prefetchUseRepositoriesServiceGetRepositoriesByProductId(
+        context.queryClient,
+        {
+          productId: Number.parseInt(params.productId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
     ]);
   },
   component: ProductComponent,

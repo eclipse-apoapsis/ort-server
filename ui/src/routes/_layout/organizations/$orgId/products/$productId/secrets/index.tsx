@@ -17,11 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  useQueryClient,
-  useSuspenseQueries,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -33,16 +29,17 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  useProductsServiceGetProductByIdKey,
+  useProductsServiceGetProductById,
   useSecretsServiceDeleteSecretByProductIdAndName,
+  useSecretsServiceGetSecretsByProductId,
   useSecretsServiceGetSecretsByProductIdKey,
 } from '@/api/queries';
 import {
-  ApiError,
-  ProductsService,
-  Secret,
-  SecretsService,
-} from '@/api/requests';
+  prefetchUseProductsServiceGetProductById,
+  prefetchUseSecretsServiceGetSecretsByProductId,
+} from '@/api/queries/prefetch';
+import { useProductsServiceGetProductByIdSuspense } from '@/api/queries/suspense';
+import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -73,12 +70,8 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
   const [openDelDialog, setOpenDelDialog] = useState(false);
 
-  const { data: product } = useSuspenseQuery({
-    queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-    queryFn: async () =>
-      await ProductsService.getProductById({
-        productId: Number.parseInt(params.productId),
-      }),
+  const { data: product } = useProductsServiceGetProductByIdSuspense({
+    productId: Number.parseInt(params.productId),
   });
 
   const { mutateAsync: deleteSecret, isPending: delIsPending } =
@@ -165,36 +158,30 @@ const ProductSecrets = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: product }, { data: secrets }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-        queryFn: async () =>
-          await ProductsService.getProductById({
-            productId: Number.parseInt(params.productId),
-          }),
-      },
-      {
-        queryKey: [
-          useSecretsServiceGetSecretsByProductIdKey,
-          params.productId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await SecretsService.getSecretsByProductId({
-            productId: Number.parseInt(params.productId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-          }),
-      },
-    ],
+  const {
+    data: product,
+    error: prodError,
+    isPending: prodIsPending,
+    isError: prodIsError,
+  } = useProductsServiceGetProductById({
+    productId: Number.parseInt(params.productId),
+  });
+
+  const {
+    data: secrets,
+    error: secretsError,
+    isPending: secretsIsPending,
+    isError: secretsIsError,
+  } = useSecretsServiceGetSecretsByProductId({
+    productId: Number(params.productId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const table = useReactTable({
     data: secrets?.data || [],
     columns,
-    pageCount: Math.ceil(secrets.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(secrets?.pagination.totalCount ?? 0 / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -204,6 +191,14 @@ const ProductSecrets = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (prodIsPending || secretsIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (prodIsError || secretsIsError) {
+    return prodError || secretsError;
+  }
 
   return (
     <TooltipProvider>
@@ -248,26 +243,13 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      context.queryClient.ensureQueryData({
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-        queryFn: () =>
-          ProductsService.getProductById({
-            productId: Number(params.productId),
-          }),
+      prefetchUseProductsServiceGetProductById(context.queryClient, {
+        productId: Number.parseInt(params.productId),
       }),
-      context.queryClient.ensureQueryData({
-        queryKey: [
-          useSecretsServiceGetSecretsByProductIdKey,
-          params.productId,
-          page,
-          pageSize,
-        ],
-        queryFn: () =>
-          SecretsService.getSecretsByProductId({
-            productId: Number(params.productId),
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          }),
+      prefetchUseSecretsServiceGetSecretsByProductId(context.queryClient, {
+        productId: Number(params.productId),
+        limit: pageSize || defaultPageSize,
+        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
       }),
     ]);
   },
