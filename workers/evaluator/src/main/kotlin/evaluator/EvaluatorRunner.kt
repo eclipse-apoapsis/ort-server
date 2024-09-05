@@ -36,13 +36,13 @@ import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
-import org.ossreviewtoolkit.model.utils.CompositePackageConfigurationProvider
-import org.ossreviewtoolkit.model.utils.ConfigurationResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
-import org.ossreviewtoolkit.model.utils.setPackageConfigurations
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
+import org.ossreviewtoolkit.utils.config.ConfigurationResolver
+import org.ossreviewtoolkit.utils.config.setPackageConfigurations
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -94,7 +94,7 @@ class EvaluatorRunner(
 
         val packageConfigurationProvider = buildList {
             val repositoryPackageConfigurations = ortResult.repository.config.packageConfigurations
-            add(SimplePackageConfigurationProvider(repositoryPackageConfigurations))
+            add(SimplePackageConfigurationProvider(configurations = repositoryPackageConfigurations))
 
             val packageConfigurationProviderConfigs = workerContext
                 .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)

@@ -41,6 +41,8 @@ import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
+import org.ossreviewtoolkit.plugins.api.PluginConfig
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 
 class AdvisorRunnerTest : WordSpec({
     val runner = AdvisorRunner()
@@ -108,26 +110,29 @@ class AdvisorRunnerTest : WordSpec({
             )
 
             verify(exactly = 1) {
-                osvFactory.create(osvConfig.options, osvSecrets)
-                vulnerableCodeFactory.create(vulnerableCodeConfig.options, vulnerableCodeSecrets)
+                osvFactory.create(PluginConfig(osvConfig.options, osvSecrets))
+                vulnerableCodeFactory.create(PluginConfig(vulnerableCodeConfig.options, vulnerableCodeSecrets))
             }
         }
     }
 })
 
 private fun mockAdviceProviderFactory(adviceProviderName: String) =
-    mockk<AdviceProviderFactory<*>> {
-        every { type } returns adviceProviderName
+    mockk<AdviceProviderFactory> {
+        val pluginDescriptor =
+            PluginDescriptor(id = adviceProviderName, displayName = adviceProviderName, description = "")
 
-        every { create(any(), any()) } returns mockk<AdviceProvider> {
-            every { providerName } returns adviceProviderName
+        every { descriptor } returns pluginDescriptor
+
+        every { create(any()) } returns mockk<AdviceProvider> {
+            every { descriptor } returns pluginDescriptor
             coEvery { retrievePackageFindings(any()) } returns emptyMap()
         }
     }
 
-private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory<*>>) {
+private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory>) {
     mockkObject(AdviceProviderFactory)
-    every { AdviceProviderFactory.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.type }
+    every { AdviceProviderFactory.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.descriptor.id }
 }
 
 /**

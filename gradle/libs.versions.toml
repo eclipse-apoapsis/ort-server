@@ -50,6 +50,7 @@ kotest = "5.9.1"
 kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
+ksp = "2.0.20-1.0.25"
 ktor = "2.3.12"
 ktorSwaggerUi = "3.3.1"
 kubernetesClient = "18.0.1"
@@ -57,7 +58,7 @@ log4j = "2.24.0"
 logback = "1.5.8"
 micrometer = "1.13.4"
 mockk = "1.13.12"
-ort = "30.0.0"
+ort = "31.0.0"
 postgres = "42.7.4"
 qpidJmsClient = "2.5.0"
 schemaKenerator = "1.1.1"
@@ -72,6 +73,7 @@ dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.re
 gitSemver = { id = "com.github.jmongard.git-semver-plugin", version.ref = "gitSemverPlugin" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 
 [libraries]
@@ -136,13 +138,16 @@ ortAdvisor = { module = "org.ossreviewtoolkit:advisor", version.ref = "ort" }
 ortAdvisors = { module = "org.ossreviewtoolkit.plugins:advisors", version.ref = "ort" }
 ortAnalyzer = { module = "org.ossreviewtoolkit:analyzer", version.ref = "ort" }
 ortCommonUtils = { module = "org.ossreviewtoolkit.utils:common-utils", version.ref = "ort" }
+ortConfigUtils = { module = "org.ossreviewtoolkit.utils:config-utils", version.ref = "ort" }
 ortDownloader = { module = "org.ossreviewtoolkit:downloader", version.ref = "ort" }
 ortEvaluator = { module = "org.ossreviewtoolkit:evaluator", version.ref = "ort" }
 ortModel = { module = "org.ossreviewtoolkit:model", version.ref = "ort" }
 ortNotifier = { module = "org.ossreviewtoolkit:notifier", version.ref = "ort" }
 ortPackageConfigurationProviders = { module = "org.ossreviewtoolkit.plugins:package-configuration-providers", version.ref = "ort" }
+ortPackageCurationProviderApi = { module = "org.ossreviewtoolkit.plugins.packagecurationproviders:package-curation-provider-api", version.ref = "ort" }
 ortPackageCurationProviders = { module = "org.ossreviewtoolkit.plugins:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "org.ossreviewtoolkit.plugins:package-managers", version.ref = "ort" }
+ortPluginCompiler = { module = "org.ossreviewtoolkit.plugins:compiler", version.ref = "ort" }
 ortReporter = { module = "org.ossreviewtoolkit:reporter", version.ref = "ort" }
 ortReporters = { module = "org.ossreviewtoolkit.plugins:reporters", version.ref = "ort" }
 ortScanner = { module = "org.ossreviewtoolkit:scanner", version.ref = "ort" }
