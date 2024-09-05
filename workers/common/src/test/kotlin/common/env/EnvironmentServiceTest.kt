@@ -110,6 +110,62 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
+    "findInfrastructureServiceForRepository from config" should {
+        "return null if no infrastructure services are defined" {
+            val configLoader = mockk<EnvironmentConfigLoader> {
+                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig()
+            }
+
+            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
+            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
+
+            result should beNull()
+        }
+
+        "return the infrastructure service with the longest matching URL" {
+            val matchingService = createInfrastructureService()
+            val service1 = createInfrastructureService("https://repo.example.org/test-orga/test-repo")
+            val service2 = createInfrastructureService("https://repo.example.org/")
+
+            val configLoader = mockk<EnvironmentConfigLoader> {
+                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig(
+                    listOf(
+                        matchingService,
+                        service1,
+                        service2
+                    )
+                )
+            }
+
+            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
+            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
+
+            result shouldBe matchingService
+        }
+
+        "ignore infrastructure services for other repositories" {
+            val matchingService = createInfrastructureService()
+            val service1 = createInfrastructureService("https://repo.example.org/test-orga/other-repo.git")
+            val service2 =
+                createInfrastructureService("https://x.org?url=https://repo.example.org/test-orga/test-repo.git")
+
+            val configLoader = mockk<EnvironmentConfigLoader> {
+                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig(
+                    listOf(
+                        matchingService,
+                        service1,
+                        service2
+                    )
+                )
+            }
+
+            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
+            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
+
+            result shouldBe matchingService
+        }
+    }
+
     "setUpEnvironment from a file" should {
         "invoke all generators to produce the supported configuration files" {
             val definitions = listOf(

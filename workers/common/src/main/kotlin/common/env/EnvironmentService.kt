@@ -26,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -62,6 +63,23 @@ class EnvironmentService(
     fun findInfrastructureServiceForRepository(context: WorkerContext): InfrastructureService? =
         with(context.hierarchy) {
             infrastructureServiceRepository.listForRepositoryUrl(repository.url, organization.id, product.id)
+                .filter { repository.url.startsWith(it.url) }
+                .maxByOrNull { it.url.length }
+        }
+
+    /**
+     * Try to find the [InfrastructureService] that matches the current repository stored in the given [context],
+     * using the provided [config]. This function is used to find the credentials for downloading the repository.
+     * The match is done based on the URL prefix, and only services that support the [CredentialsType.NETRC_FILE]
+     * credential type are considered. In case of multiple matches, the longest match wins.
+     */
+    fun findInfrastructureServiceForRepository(
+        context: WorkerContext,
+        config: EnvironmentConfig
+    ): InfrastructureService? =
+        with(context.hierarchy) {
+            configLoader.resolve(config, context.hierarchy).infrastructureServices
+                .filter { CredentialsType.NETRC_FILE in it.credentialsTypes }
                 .filter { repository.url.startsWith(it.url) }
                 .maxByOrNull { it.url.length }
         }

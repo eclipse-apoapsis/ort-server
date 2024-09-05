@@ -61,19 +61,17 @@ internal class AnalyzerWorker(
         val context = contextFactory.createContext(job.ortRunId)
         val envConfigFromJob = job.configuration.environmentConfig
 
-        val (repositoryService, resolvedEnvConfigFromJob) = if (envConfigFromJob != null) {
-            logger.info("Setting up environment from configuration provided in the Analyzer job.")
-            null to environmentService.setUpEnvironment(context, envConfigFromJob)
-        } else {
-            environmentService.findInfrastructureServiceForRepository(context)?.also { serviceForRepo ->
-                logger.info(
-                    "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
-                            "repository.",
-                    serviceForRepo
-                )
+        val repositoryService = envConfigFromJob?.let {
+            environmentService.findInfrastructureServiceForRepository(context, it)
+        } ?: environmentService.findInfrastructureServiceForRepository(context)
+        repositoryService?.also { serviceForRepo ->
+            logger.info(
+                "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
+                        "repository.",
+                serviceForRepo
+            )
 
-                environmentService.generateNetRcFile(context, listOf(serviceForRepo))
-            } to null
+            environmentService.generateNetRcFile(context, listOf(serviceForRepo))
         }
 
         val sourcesDir = downloader.downloadRepository(
@@ -82,7 +80,7 @@ internal class AnalyzerWorker(
             ortRun.path.orEmpty()
         )
 
-        val resolvedEnvConfig = resolvedEnvConfigFromJob
+        val resolvedEnvConfig = envConfigFromJob?.let { environmentService.setUpEnvironment(context, it) }
             ?: environmentService.setUpEnvironment(context, sourcesDir, repositoryService)
         val ortResult = runner.run(context, sourcesDir, job.configuration, resolvedEnvConfig)
 
