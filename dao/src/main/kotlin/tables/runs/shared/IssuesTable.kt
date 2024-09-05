@@ -19,21 +19,22 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 /**
  * A table to represent an ort issue.
  */
-object IssuesTable : LongIdTable("issues") {
-    val timestamp = timestamp("timestamp")
+object IssuesTable : SortableTable("issues") {
+    val timestamp = timestamp("timestamp").sortable()
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)
@@ -41,7 +42,7 @@ object IssuesTable : LongIdTable("issues") {
 }
 
 class IssueDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<IssueDao>(IssuesTable) {
+    companion object : SortableEntityClass<IssueDao>(IssuesTable) {
         fun createByIssue(issue: Issue): IssueDao =
             new {
                 timestamp = issue.timestamp
