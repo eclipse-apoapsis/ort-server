@@ -47,6 +47,8 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
@@ -365,6 +367,40 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleEvaluatorWorkerResult(msgHeader, evaluatorWorkerResultWithIssues)
+                }
+            }
+        }
+
+        "ReporterWorkerResult messages should be handled" {
+            val reporterWorkerResult = ReporterWorkerResult(11)
+            val message = Message(msgHeader, reporterWorkerResult)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleReporterWorkerResult(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleReporterWorkerResult(message.header, reporterWorkerResult)
+                }
+            }
+        }
+
+        "ReporterWorkerError messages should be handled" {
+            val reporterWorkerError = ReporterWorkerError(22)
+            val message = Message(msgHeader, reporterWorkerError)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleReporterWorkerError(msgHeader, any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleReporterWorkerError(msgHeader, reporterWorkerError)
                 }
             }
         }
