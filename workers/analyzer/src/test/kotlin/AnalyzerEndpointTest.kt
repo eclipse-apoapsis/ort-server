@@ -365,7 +365,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             val environmentService by inject<EnvironmentService>()
 
             withSystemProperties(properties, mode = OverrideMode.SetOrOverride) {
-                environmentService.setUpEnvironment(context, repositoryFolder, null)
+                environmentService.setUpEnvironment(context, repositoryFolder, null, null)
             }
 
             block(homeFolder)

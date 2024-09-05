@@ -35,6 +35,10 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfi
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(EnvironmentService::class.java)
+
 /**
  * A service class providing functionality for setting up the build environment when running a worker.
  *
@@ -87,29 +91,19 @@ class EnvironmentService(
     /**
      * Set up the analysis environment for the current repository defined by the given [context] that has been
      * checked out to the given [repositoryFolder]. The credentials of this repository - if any - are defined by the
-     * given [repositoryService].
+     * given [repositoryService]. If an optional [config] is provided, it will be merged with the parsed configuration.
+     * In case of overlapping entries, the provided [config] will take priority over the parsed configuration.
      */
     suspend fun setUpEnvironment(
         context: WorkerContext,
         repositoryFolder: File,
+        config: EnvironmentConfig?,
         repositoryService: InfrastructureService?
     ): ResolvedEnvironmentConfig {
-        val resolvedConfig = configLoader.resolve(configLoader.parse(repositoryFolder), context.hierarchy)
+        val mergedConfig = configLoader.parse(repositoryFolder).merge(config)
+        val resolvedConfig = configLoader.resolve(mergedConfig, context.hierarchy)
 
         return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
-    }
-
-    /**
-     * Set up the analysis environment for the current repository defined by the given [context] using the provided
-     * [config]. This function can be used if the environment configuration was passed when the run was triggered.
-     */
-    suspend fun setUpEnvironment(
-        context: WorkerContext,
-        config: EnvironmentConfig
-    ): ResolvedEnvironmentConfig {
-        val resolvedConfig = configLoader.resolve(config, context.hierarchy)
-
-        return setUpEnvironmentForConfig(context, resolvedConfig, null)
     }
 
     /**
@@ -184,4 +178,35 @@ class EnvironmentService(
             infrastructureServiceRepository.getOrCreateForRun(service, context.ortRun.id)
         }
     }
+}
+
+/**
+ * Merge this [EnvironmentConfig] with another [EnvironmentConfig]. The merging process ensures that:
+ * - Overlapping infrastructure services are overridden by the ones from the [other] config.
+ * - Environment definitions are combined, with values from both configs being flattened.
+ * - Environment variables with the same name are overridden by the ones from the [other] config.
+ */
+internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConfig {
+    if (other == null) return this
+
+    val (overridden, unreferenced) = infrastructureServices
+        .partition { service -> other.infrastructureServices.any { it.name == service.name } }
+
+    if (overridden.isNotEmpty()) {
+        logger.info(
+            "The following infrastructure services have been overridden: ${overridden.joinToString { it.name }}."
+        )
+    }
+
+    val mergedInfrastructureService = unreferenced + other.infrastructureServices
+    val mergedEnvironmentDefinitions =
+        (environmentDefinitions.asSequence() + other.environmentDefinitions.asSequence())
+            .groupBy({ it.key }, { it.value })
+            .mapValues { (_, values) -> values.flatten() }
+    val mergedEnvironmentVariables = (environmentVariables + other.environmentVariables)
+        .associateBy { it.name }
+        .values
+        .toList()
+
+    return EnvironmentConfig(mergedInfrastructureService, mergedEnvironmentDefinitions, mergedEnvironmentVariables)
 }
