@@ -28,6 +28,14 @@ export type Status =
   | 'FINISHED_WITH_ISSUES'
   | undefined;
 
+// All vulnerability ratings
+export type VulnerabilityRating =
+  | 'CRITICAL'
+  | 'HIGH'
+  | 'MEDIUM'
+  | 'LOW'
+  | 'NONE';
+
 // Note: all color classes need to be defined as they are here, as they are formed
 // in compilation time and cannot be interpolated in runtime
 

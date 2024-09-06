@@ -22,7 +22,23 @@ import {
   STATUS_BACKGROUND_COLOR,
   STATUS_CLASS,
   STATUS_FONT_COLOR,
+  VulnerabilityRating,
 } from '@/types/status-types-and-constants';
+
+// Color classes
+
+// Map Vulnerability ratings to TailwindCSS background colors
+const VULNERABILITY_RATING_BG_COLOR: {
+  [K in VulnerabilityRating]: string;
+} = {
+  CRITICAL: 'bg-red-600',
+  HIGH: 'bg-orange-600',
+  MEDIUM: 'bg-amber-500',
+  LOW: 'bg-yellow-400',
+  NONE: 'bg-neutral-300',
+} as const;
+
+// Color accessor functions
 
 // Get the color class for font coloring
 export function getStatusFontColor(status: Status): string {
@@ -38,6 +54,13 @@ export function getStatusBackgroundColor(status: Status): string {
     return 'bg-gray-300'; // Define the color for undefined status here
   }
   return STATUS_BACKGROUND_COLOR[status]; // This will now only be called for defined statuses
+}
+
+// Get the color class for coloring the background of vulnerability ratings
+export function getVulnerabilityRatingBackgroundColor(
+  rating: VulnerabilityRating
+): string {
+  return VULNERABILITY_RATING_BG_COLOR[rating];
 }
 
 // Get the general class for the elements
