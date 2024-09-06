@@ -154,6 +154,8 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
         pathParameter<Long>("runId") {
             description = "The ID of the ORT run."
         }
+
+        standardListQueryParameters()
     }
 
     response {
