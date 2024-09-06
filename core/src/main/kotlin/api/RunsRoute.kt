@@ -113,14 +113,18 @@ fun Route.runs() = route("runs/{runId}") {
 
     route("vulnerabilities") {
         get(getVulnerabilitiesByRunId) {
-            val ortRunId = call.requireIdParameter("runId")
-            val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+            call.forRun(ortRunRepository) { ortRun ->
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-            val vulnerabilitiesForOrtRun = vulnerabilityService.listForOrtRunId(ortRunId, pagingOptions.mapToModel())
+                val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
 
-            val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+                val vulnerabilitiesForOrtRun =
+                    vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
 
-            call.respond(HttpStatusCode.OK, pagedResponse)
+                val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
+            }
         }
     }
 

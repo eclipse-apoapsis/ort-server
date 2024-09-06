@@ -509,6 +509,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 }
             }
         }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                null,
+                labelsMap,
+                traceId = "test-trace-id"
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}/vulnerabilities")
+            }
+        }
     }
 })
 
