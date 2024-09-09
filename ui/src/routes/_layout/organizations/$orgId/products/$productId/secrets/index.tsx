@@ -181,7 +181,7 @@ const ProductSecrets = () => {
   const table = useReactTable({
     data: secrets?.data || [],
     columns,
-    pageCount: Math.ceil(secrets?.pagination.totalCount ?? 0 / pageSize),
+    pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,

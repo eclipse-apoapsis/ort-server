@@ -255,7 +255,9 @@ const InfrastructureServices = () => {
   const table = useReactTable({
     data: infraServices?.data || [],
     columns,
-    pageCount: Math.ceil(infraServices?.pagination.totalCount ?? 0 / pageSize),
+    pageCount: Math.ceil(
+      (infraServices?.pagination.totalCount ?? 0) / pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
