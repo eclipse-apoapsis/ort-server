@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import React, { Suspense } from 'react';
 
@@ -34,6 +35,7 @@ const TanStackRouterDevtools = import.meta.env.PROD
 const RootComponent = () => {
   return (
     <>
+      <ReactQueryDevtools initialIsOpen={false} />
       <Outlet />
       <Suspense>
         <TanStackRouterDevtools />
