@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.migrations
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -25,7 +25,8 @@ import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
 
-class CleanRepositoryUrlMigrationTest : StringSpec() {
+@Suppress("ClassNaming")
+class V65__removeUserInfoFromRepositoryUrlTest : StringSpec() {
     val extension = extension(DatabaseMigrationTestExtension("64", "65"))
 
     init {
