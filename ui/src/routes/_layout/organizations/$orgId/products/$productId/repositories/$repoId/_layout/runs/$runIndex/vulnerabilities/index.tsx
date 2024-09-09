@@ -240,7 +240,22 @@ const VulnerabilitiesComponent = () => {
       </CardHeader>
       <CardContent>
         <CardContent>
-          <DataTable table={table} renderSubComponent={renderSubComponent} />
+          <DataTable
+            table={table}
+            renderSubComponent={renderSubComponent}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                ...Route,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                ...Route,
+                search: { ...search, pageSize: size },
+              };
+            }}
+          />
         </CardContent>
       </CardContent>
     </Card>

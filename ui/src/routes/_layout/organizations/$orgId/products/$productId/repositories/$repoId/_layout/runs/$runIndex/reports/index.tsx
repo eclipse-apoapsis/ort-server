@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
@@ -91,14 +91,13 @@ const ReportComponent = () => {
         ortRun.jobs.reporter?.reportFilenames.length > 0
           ? ortRun.jobs.reporter.reportFilenames.map((filename) => (
               <div key={filename} className='flex flex-col pb-2'>
-                <Link onClick={() => handleDownload(ortRun.id, filename)}>
-                  <Button
-                    variant='outline'
-                    className='font-semibold text-blue-400'
-                  >
-                    {filename}
-                  </Button>
-                </Link>
+                <Button
+                  variant='outline'
+                  className='font-semibold text-blue-400'
+                  onClick={() => handleDownload(ortRun.id, filename)}
+                >
+                  {filename}
+                </Button>
               </div>
             ))
           : 'No reports available.'}

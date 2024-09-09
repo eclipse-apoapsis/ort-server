@@ -239,7 +239,21 @@ const RepositorySecrets = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable table={table} />
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                ...Route,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                ...Route,
+                search: { ...search, pageSize: size },
+              };
+            }}
+          />
         </CardContent>
       </Card>
     </TooltipProvider>

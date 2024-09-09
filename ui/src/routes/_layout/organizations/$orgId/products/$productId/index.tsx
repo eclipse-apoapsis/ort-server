@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -85,7 +85,7 @@ const columns: ColumnDef<Repository>[] = [
 
 const ProductComponent = () => {
   const params = Route.useParams();
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -231,7 +231,21 @@ const ProductComponent = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable table={table} />
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                ...Route,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                ...Route,
+                search: { ...search, pageSize: size },
+              };
+            }}
+          />
         </CardContent>
       </Card>
     </TooltipProvider>
