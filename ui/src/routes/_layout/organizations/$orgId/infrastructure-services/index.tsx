@@ -273,7 +273,15 @@ const InfrastructureServices = () => {
   }
 
   if (orgIsError || infraIsError) {
-    return orgError || infraError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={orgError || infraError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (

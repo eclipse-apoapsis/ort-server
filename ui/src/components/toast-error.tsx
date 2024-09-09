@@ -20,7 +20,7 @@
 import { ApiError } from '@/api/requests';
 
 type ToastErrorProps = {
-  error: ApiError;
+  error: unknown;
 };
 
 type ErrorBody = {
@@ -31,15 +31,20 @@ type ErrorBody = {
 export const ToastError = ({ error }: ToastErrorProps) => {
   let message;
   let cause;
-  if (error.body === undefined) {
-    message = 'Server responded with status code ' + error.status + '.';
-    cause = error.statusText;
+  if (error instanceof ApiError) {
+    if (error.body === undefined) {
+      message = 'Server responded with status code ' + error.status + '.';
+      cause = error.statusText;
+    } else {
+      // Casting is not generally recommended, but as both message and cause can be undefined, casting
+      // and accessing them is safe.
+      const body = error.body as ErrorBody;
+      message = body.message;
+      cause = body.cause;
+    }
   } else {
-    // Casting is not generally recommended, but as both message and cause can be undefined, casting
-    // and accessing them is safe.
-    const body = error.body as ErrorBody;
-    message = body.message;
-    cause = body.cause;
+    message = 'An unknown error occurred.';
+    cause = 'Please try again.';
   }
   return (
     <div className='grid gap-2'>

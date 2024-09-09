@@ -156,7 +156,15 @@ const OrganizationComponent = () => {
   }
 
   if (orgIsError || prodIsError) {
-    return orgError || prodError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={orgError || prodError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (
