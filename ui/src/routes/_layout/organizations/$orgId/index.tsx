@@ -140,7 +140,7 @@ const OrganizationComponent = () => {
   const table = useReactTable({
     data: products?.data || [],
     columns,
-    pageCount: Math.ceil(products?.pagination.totalCount ?? 0 / pageSize),
+    pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,
