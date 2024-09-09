@@ -197,7 +197,15 @@ const ProductSecrets = () => {
   }
 
   if (prodIsError || secretsIsError) {
-    return prodError || secretsError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={prodError || secretsError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (

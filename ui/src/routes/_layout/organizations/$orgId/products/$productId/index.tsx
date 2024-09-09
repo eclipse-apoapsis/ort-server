@@ -158,7 +158,15 @@ const ProductComponent = () => {
   }
 
   if (prodIsError || reposIsError) {
-    return prodError || reposError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={prodError || reposError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (

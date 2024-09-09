@@ -194,7 +194,15 @@ const OrganizationSecrets = () => {
   }
 
   if (orgIsError || secretsIsError) {
-    return orgError || secretsError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={orgError || secretsError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (

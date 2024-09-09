@@ -198,7 +198,15 @@ const RepositorySecrets = () => {
   }
 
   if (repoIsError || secretsIsError) {
-    return repoError || secretsError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={repoError || secretsError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (

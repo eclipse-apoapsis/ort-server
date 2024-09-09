@@ -261,7 +261,15 @@ const RepoComponent = () => {
   }
 
   if (repoIsError || runsIsError) {
-    return repoError || runsError;
+    toast.error('Unable to load data', {
+      description: <ToastError error={repoError || runsError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (
