@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -28,19 +27,14 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
   useProductsServiceDeleteProductById,
-  useProductsServiceGetProductByIdKey,
-  useRepositoriesServiceGetRepositoriesByProductIdKey,
+  useProductsServiceGetProductById,
+  useRepositoriesServiceGetRepositoriesByProductId,
 } from '@/api/queries';
 import {
   prefetchUseProductsServiceGetProductById,
   prefetchUseRepositoriesServiceGetRepositoriesByProductId,
 } from '@/api/queries/prefetch';
-import {
-  ApiError,
-  ProductsService,
-  RepositoriesService,
-  Repository,
-} from '@/api/requests';
+import { ApiError, Repository } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -96,37 +90,31 @@ const ProductComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const [{ data: product }, { data: repositories }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: [useProductsServiceGetProductByIdKey, params.productId],
-        queryFn: async () =>
-          await ProductsService.getProductById({
-            productId: Number.parseInt(params.productId),
-          }),
-      },
-      {
-        queryKey: [
-          useRepositoriesServiceGetRepositoriesByProductIdKey,
-          params.productId,
-          pageIndex,
-          pageSize,
-        ],
-        queryFn: async () =>
-          await RepositoriesService.getRepositoriesByProductId({
-            productId: Number.parseInt(params.productId),
-            limit: pageSize,
-            offset: pageIndex * pageSize,
-          }),
-      },
-    ],
+  const {
+    data: product,
+    error: prodError,
+    isPending: prodIsPending,
+    isError: prodIsError,
+  } = useProductsServiceGetProductById({
+    productId: Number.parseInt(params.productId),
+  });
+
+  const {
+    data: repositories,
+    error: reposError,
+    isPending: reposIsPending,
+    isError: reposIsError,
+  } = useRepositoriesServiceGetRepositoriesByProductId({
+    productId: Number.parseInt(params.productId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const { mutateAsync: deleteProduct, isPending } =
     useProductsServiceDeleteProductById({
       onSuccess() {
         toast.info('Delete Product', {
-          description: `Product "${product.name}" deleted successfully.`,
+          description: `Product "${product?.name}" deleted successfully.`,
         });
         navigate({
           to: '/organizations/$orgId',
@@ -154,7 +142,7 @@ const ProductComponent = () => {
   const table = useReactTable({
     data: repositories?.data || [],
     columns,
-    pageCount: Math.ceil(repositories.pagination.totalCount / pageSize),
+    pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -164,6 +152,14 @@ const ProductComponent = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (prodIsPending || reposIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (prodIsError || reposIsError) {
+    return prodError || reposError;
+  }
 
   return (
     <TooltipProvider>
