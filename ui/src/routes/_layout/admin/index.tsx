@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
   flexRender,
@@ -321,7 +321,7 @@ const UserMgmtContent = () => {
 };
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
   return (

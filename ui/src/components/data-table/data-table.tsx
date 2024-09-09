@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { LinkOptions } from '@tanstack/react-router';
 import {
   flexRender,
   Row,
@@ -39,6 +40,8 @@ import { cn } from '@/lib/utils';
 interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  setCurrentPageOptions: (page: number) => LinkOptions;
+  setPageSizeOptions: (pageSize: number) => LinkOptions;
 }
 
 export function DataTable<TData>({
@@ -48,6 +51,9 @@ export function DataTable<TData>({
   className,
   ...props
 }: DataTableProps<TData>) {
+  const pagination = table.getState().pagination;
+  const totalPages = table.getPageCount();
+
   return (
     <div
       className={cn('w-full space-y-2.5 overflow-auto', className)}
@@ -127,7 +133,13 @@ export function DataTable<TData>({
       </div>
       {table.getRowModel().rows?.length > 0 && (
         <div className='flex flex-col gap-2.5'>
-          <DataTablePagination table={table} />
+          <DataTablePagination
+            currentPage={pagination.pageIndex + 1}
+            pageSize={pagination.pageSize}
+            totalPages={totalPages}
+            setCurrentPageOptions={props.setCurrentPageOptions}
+            setPageSizeOptions={props.setPageSizeOptions}
+          />
         </div>
       )}
     </div>

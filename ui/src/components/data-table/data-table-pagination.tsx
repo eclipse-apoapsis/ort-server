@@ -23,8 +23,7 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { type Table } from '@tanstack/react-table';
+import { Link, LinkOptions, useNavigate } from '@tanstack/react-router';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,19 +35,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>;
+interface DataTablePaginationProps {
   pageSizeOptions?: number[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  /**
+   * A function to provide `LinkOptions` for a link to set page size parameter in the URL.
+   */
+  setPageSizeOptions: (pageSize: number) => LinkOptions;
+  /**
+   * A function to provide `LinkOptions` for a link to set current page parameter in the URL.
+   */
+  setCurrentPageOptions: (page: number) => LinkOptions;
 }
 
-export function DataTablePagination<TData>({
-  table,
+export function DataTablePagination({
   pageSizeOptions = [5, 10, 20, 30, 40, 50],
-}: DataTablePaginationProps<TData>) {
+  currentPage,
+  totalPages,
+  pageSize,
+  setPageSizeOptions,
+  setCurrentPageOptions,
+}: DataTablePaginationProps) {
   const navigate = useNavigate();
-  const page = table.getState().pagination.pageIndex + 1;
-  const pageSize = table.getState().pagination.pageSize;
-  const pageCount = table.getPageCount();
 
   return (
     <div className='flex flex-col items-center justify-end gap-4 sm:flex-row sm:gap-6 lg:gap-8'>
@@ -57,12 +67,8 @@ export function DataTablePagination<TData>({
         <Select
           value={`${pageSize}`}
           onValueChange={(value) => {
-            navigate({
-              search: {
-                page: 1,
-                pageSize: Number(value),
-              },
-            });
+            const options = setPageSizeOptions(Number(value));
+            navigate(options);
           }}
         >
           <SelectTrigger className='h-8 w-[4.5rem]'>
@@ -81,82 +87,69 @@ export function DataTablePagination<TData>({
         Page{' '}
         <Input
           type='number'
-          value={page}
+          value={currentPage}
           onChange={(event) => {
             const value = Number(event.target.value);
-            navigate({
-              search: {
-                page: value > pageCount ? pageCount : value < 1 ? 1 : value,
-                pageSize,
-              },
-            });
+            const navigationOptions = setCurrentPageOptions(
+              value > totalPages ? totalPages : value < 1 ? 1 : value
+            );
+            navigate(navigationOptions);
           }}
           className='mx-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
-          max={pageCount}
+          max={totalPages}
           min={1}
         />{' '}
-        of {pageCount}
+        of {totalPages}
       </div>
       <div className='flex items-center space-x-2'>
-        <Link
-          search={(prev) => ({
-            ...prev,
-            page: 1,
-          })}
-        >
+        <Link disabled={currentPage <= 1} {...setCurrentPageOptions(1)}>
           <Button
             aria-label='Go to first page'
             variant='outline'
             className='hidden size-8 p-0 lg:flex'
-            disabled={!table.getCanPreviousPage()}
+            disabled={currentPage <= 1}
           >
             <DoubleArrowLeftIcon className='size-4' aria-hidden='true' />
           </Button>
         </Link>
         <Link
-          search={(prev) => ({
-            ...prev,
-            page: page - 1,
-          })}
+          disabled={currentPage <= 1}
+          {...setCurrentPageOptions(currentPage - 1)}
         >
           <Button
             aria-label='Go to previous page'
             variant='outline'
             size='icon'
             className='size-8'
-            disabled={!table.getCanPreviousPage()}
+            disabled={currentPage <= 1}
           >
             <ChevronLeftIcon className='size-4' aria-hidden='true' />
           </Button>
         </Link>
         <Link
-          search={(prev) => ({
-            ...prev,
-            page: page + 1,
-          })}
+          disabled={currentPage >= totalPages}
+          {...setCurrentPageOptions(currentPage + 1)}
         >
           <Button
             aria-label='Go to next page'
             variant='outline'
             size='icon'
             className='size-8'
-            disabled={!table.getCanNextPage()}
+            disabled={currentPage >= totalPages}
           >
             <ChevronRightIcon className='size-4' aria-hidden='true' />
           </Button>
         </Link>
         <Link
-          search={(prev) => ({
-            ...prev,
-            page: pageCount,
-          })}
+          disabled={currentPage >= totalPages}
+          {...setCurrentPageOptions(totalPages)}
         >
           <Button
             aria-label='Go to last page'
             variant='outline'
             size='icon'
             className='hidden size-8 lg:flex'
-            disabled={!table.getCanNextPage()}
+            disabled={currentPage >= totalPages}
           >
             <DoubleArrowRightIcon className='size-4' aria-hidden='true' />
           </Button>
