@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.tables
+package org.eclipse.apoapsis.ortserver.dao.migrations
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
