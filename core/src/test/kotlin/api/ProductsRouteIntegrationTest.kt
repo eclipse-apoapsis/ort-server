@@ -20,10 +20,16 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.data.forAll
+import io.kotest.data.row
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -34,12 +40,15 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
@@ -52,13 +61,19 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.ADMIN
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.READER
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.WRITER
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -71,6 +86,7 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
+@Suppress("LargeClass")
 class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
@@ -130,6 +146,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         name: String = secretName,
         description: String = secretDescription,
     ) = secretRepository.create(path, name, description, null, productId, null)
+
+    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
+        productService.addUserToGroup(username, organizationId, groupId)
 
     "GET /products/{productId}" should {
         "return a single product" {
@@ -673,6 +692,229 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 HttpStatusCode.NoContent
             ) {
                 delete("/api/v1/products/${createdProduct.id}/secrets/${secret.name}")
+            }
+        }
+    }
+
+    "PUT/DELETE /products/{productId}/groups/{groupId}" should {
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "require ProductPermission.WRITE for method '${method.value}'" {
+                val createdProd = createProduct()
+                val user = Username(TEST_USER.username.value)
+                requestShouldRequireRole(
+                    ProductPermission.WRITE.roleName(createdProd.id),
+                    HttpStatusCode.NoContent
+                ) {
+                    when (method) {
+                        HttpMethod.Put -> put("/api/v1/products/${createdProd.id}/groups/readers") {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> delete("/api/v1/products/${createdProd.id}/groups/readers") {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the user does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdProd = createProduct()
+                    val user = Username("non-existing-username")
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/products/${createdProd.id}/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/products/${createdProd.id}/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.InternalServerError
+
+                    val body = response.body<ErrorResponse>()
+                    body.cause shouldContain "Could not find user"
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the organization does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/products/999999/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/products/999999/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdProd = createProduct()
+                    val org = CreateOrganization(name = "name", description = "description") // Wrong request body
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/products/${createdProd.id}/groups/readers"
+                        ) {
+                            setBody(org)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/products/${createdProd.id}/groups/readers"
+                        ) {
+                            setBody(org)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.BadRequest
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdProd = createProduct()
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/products/${createdProd.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/products/${createdProd.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+    }
+
+    "PUT /products/{productId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "add a user to the '$groupId' group" {
+                integrationTestApplication {
+                    val createdProd = createProduct()
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = superuserClient.put(
+                        "/api/v1/products/${createdProd.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdProd.id)
+                        "writers" -> WRITER.groupName(createdProd.id)
+                        "admins" -> ADMIN.groupName(createdProd.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val group = keycloakClient.getGroup(GroupName(groupName))
+                    group.shouldNotBeNull()
+
+                    val members = keycloakClient.getGroupMembers(group.name)
+                    members shouldHaveSize 1
+                    members.map { it.username } shouldContain TEST_USER.username
+                }
+            }
+        }
+    }
+
+    "DELETE /products/{productId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "remove a user from the '$groupId' group" {
+                integrationTestApplication {
+                    val createdProd = createProduct()
+                    val user = Username(TEST_USER.username.value)
+                    addUserToGroup(user.username, createdProd.id, groupId)
+
+                    // Check pre-condition
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdProd.id)
+                        "writers" -> WRITER.groupName(createdProd.id)
+                        "admins" -> ADMIN.groupName(createdProd.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
+                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
+                    membersBefore shouldHaveSize 1
+                    membersBefore.map { it.username } shouldContain TEST_USER.username
+
+                    val response = superuserClient.delete(
+                        "/api/v1/products/${createdProd.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
+                    groupAfter.shouldNotBeNull()
+
+                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    membersAfter.shouldBeEmpty()
+                }
             }
         }
     }

@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
@@ -345,6 +346,68 @@ val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+    }
+}
+
+val putUserToProductGroup: OpenApiRoute.() -> Unit = {
+    operationId = "PutUserToGroupProduct"
+    summary = "Add a user to a group on Product level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<Username> {
+            example("Add user identified by username 'abc123'.") {
+                value = Username(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully added the user to the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Product or group not found."
+        }
+    }
+}
+
+val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteUserFromGroupProduct"
+    summary = "Remove a user from a group on Product level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<Username> {
+            example("Remove user identified by username 'abc123'.") {
+                value = Username(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully removed the user from the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Product or group not found."
         }
     }
 }
