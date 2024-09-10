@@ -47,9 +47,12 @@ import io.mockk.mockk
 import java.io.File
 import java.util.EnumSet
 import java.util.Locale
+import java.util.UUID
 
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
+import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -80,6 +83,22 @@ class LokiLogFileProviderTest : StringSpec() {
             val logFile = sendTestRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
 
             logData.checkLogFile(logFile)
+        }
+
+        "Log statements with identical timestamps should not cause an endless loop" {
+            withTimeout(3.seconds) {
+                val logData1 = generateLogData(LIMIT)
+                val lastTimestamp = logData1.last().first
+                server.stubLogRequest(logData1, LogSource.ADVISOR, """level="ERROR"""")
+
+                val logData2 = generateLogDataWithIdenticalTimestamp(LIMIT, lastTimestamp)
+                server.stubLogRequest(logData2, LogSource.ADVISOR, """level="ERROR"""", from = lastTimestamp)
+
+                val logFile = sendTestRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+
+                logData1.isContainedInLogFile(logFile) shouldBe true
+                logData2.isContainedInLogFile(logFile) shouldBe true
+            }
         }
 
         "Log data should be loaded in chunks and de-duplicated" {
@@ -306,6 +325,13 @@ private fun generateLogLine(timestamp: Instant): String =
     "[$timestamp] Something interesting just happened at this time."
 
 /**
+ * Generate a unique log line for the given [timestamp].
+ * Uniqueness is achieved by adding a random UUID to the log line.
+ */
+private fun generateUniqueLogLine(timestamp: Instant): String =
+    "[$timestamp] ${UUID.randomUUID()} Something interesting just happened at this time."
+
+/**
  * Generate log values for a Loki query response based on the given parameters. Generate [count] values starting at
  * [from] with a delta of 100ms between two values. The resulting pairs contain the timestamp as string as first
  * element and the generated log line as second element.
@@ -315,6 +341,15 @@ private fun generateLogData(count: Int, from: Instant = startTime): LogData =
         val timestamp = logDataTimestamp(from, index)
         timestamp.toNanoStr() to generateLogLine(timestamp)
     }
+
+/**
+ * Generate [count] log values for a Loki query response. All log values have the same timestamp.
+ * To make the log lines unique, a random UUID is added to each log line.
+ */
+private fun generateLogDataWithIdenticalTimestamp(count: Int, timestamp: String): LogData {
+    val instant = Instant.fromEpochMilliseconds(timestamp.toLong() / 1_000_000)
+    return List(count) { timestamp to generateUniqueLogLine(instant) }
+}
 
 /**
  * Generate the timestamp of a test log entry starting at [from] with the given [index].
@@ -351,6 +386,11 @@ private fun LogData.checkLogFile(file: File) {
     val logLines = file.readLines()
 
     logLines shouldBe expectedLogLines
+}
+
+private fun LogData.isContainedInLogFile(file: File): Boolean {
+    val logLines = file.readLines()
+    return logLines.containsAll(map { it.second })
 }
 
 /**
