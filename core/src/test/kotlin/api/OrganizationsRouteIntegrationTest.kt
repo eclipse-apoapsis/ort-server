@@ -1327,7 +1327,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    println(body)
                     body.message shouldBe "Resource not found."
                 }
             }
