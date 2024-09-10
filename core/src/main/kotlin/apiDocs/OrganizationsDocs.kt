@@ -589,7 +589,7 @@ val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully removed the user to the group."
+            description = "Successfully removed the user from the group."
         }
 
         HttpStatusCode.NotFound to {
