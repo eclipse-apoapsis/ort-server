@@ -32,13 +32,17 @@ import { PageLayout } from '@/components/page-layout';
 const Layout = () => {
   const sections = [
     {
-      label: 'Compliance',
       items: [
         {
           title: 'Overview',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
           icon: () => <Eye className='h-4 w-4' />,
         },
+      ],
+    },
+    {
+      label: 'Compliance',
+      items: [
         {
           title: 'Packages',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
