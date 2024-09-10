@@ -20,9 +20,14 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.data.forAll
+import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAnyOf
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -36,7 +41,9 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
@@ -49,6 +56,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
@@ -69,8 +77,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
@@ -79,6 +90,9 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.ADMIN
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.READER
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.WRITER
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
@@ -87,6 +101,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -98,6 +113,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var secretRepository: SecretRepository
+    lateinit var repositoryService: RepositoryService
 
     var orgId = -1L
     var productId = -1L
@@ -126,6 +142,19 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
+        repositoryService = RepositoryService(
+            dbExtension.db,
+            dbExtension.fixtures.ortRunRepository,
+            dbExtension.fixtures.repositoryRepository,
+            dbExtension.fixtures.analyzerJobRepository,
+            dbExtension.fixtures.advisorJobRepository,
+            dbExtension.fixtures.scannerJobRepository,
+            dbExtension.fixtures.evaluatorJobRepository,
+            dbExtension.fixtures.reporterJobRepository,
+            dbExtension.fixtures.notifierJobRepository,
+            authorizationService
+        )
+
         ortRunRepository = dbExtension.fixtures.ortRunRepository
         secretRepository = dbExtension.fixtures.secretRepository
 
@@ -144,6 +173,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         url: String = repositoryUrl,
         prodId: Long = productId
     ) = productService.createRepository(type, url, prodId)
+
+    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
+        repositoryService.addUserToGroup(username, organizationId, groupId)
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
@@ -836,7 +868,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
     }
-
     "DELETE /repositories/{repositoryId}/secrets/{secretName}" should {
         "delete a secret" {
             integrationTestApplication {
@@ -874,6 +905,229 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 HttpStatusCode.NoContent
             ) {
                 delete("/api/v1/repositories/${createdRepository.id}/secrets/${secret.name}")
+            }
+        }
+    }
+
+    "PUT/DELETE /repositories/{repositoryId}/groups/{groupId}" should {
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "require ProductPermission.WRITE for method '${method.value}'" {
+                val createdRepo = createRepository()
+                val user = Username(TEST_USER.username.value)
+                requestShouldRequireRole(
+                    RepositoryPermission.WRITE.roleName(createdRepo.id),
+                    HttpStatusCode.NoContent
+                ) {
+                    when (method) {
+                        HttpMethod.Put -> put("/api/v1/repositories/${createdRepo.id}/groups/readers") {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> delete("/api/v1/repositories/${createdRepo.id}/groups/readers") {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the user does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdRepo = createRepository()
+                    val user = Username("non-existing-username")
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.InternalServerError
+
+                    val body = response.body<ErrorResponse>()
+                    body.cause shouldContain "Could not find user"
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the organization does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/repositories/999999/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/repositories/999999/groups/readers"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdRepo = createRepository()
+                    val org = CreateOrganization(name = "name", description = "description") // Wrong request body
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                        ) {
+                            setBody(org)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                        ) {
+                            setBody(org)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.BadRequest
+                }
+            }
+        }
+
+        forAll(
+            row(HttpMethod.Put),
+            row(HttpMethod.Delete)
+        ) { method ->
+            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+                integrationTestApplication {
+                    val createdRepo = createRepository()
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = when (method) {
+                        HttpMethod.Put -> superuserClient.put(
+                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        HttpMethod.Delete -> superuserClient.delete(
+                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group"
+                        ) {
+                            setBody(user)
+                        }
+                        else -> error("Unsupported method: $method")
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NotFound
+
+                    val body = response.body<ErrorResponse>()
+                    body.message shouldBe "Resource not found."
+                }
+            }
+        }
+    }
+
+    "PUT /repositories/{orgId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "add a user to the '$groupId' group" {
+                integrationTestApplication {
+                    val createdRepo = createRepository()
+                    val user = Username(TEST_USER.username.value)
+
+                    val response = superuserClient.put(
+                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdRepo.id)
+                        "writers" -> WRITER.groupName(createdRepo.id)
+                        "admins" -> ADMIN.groupName(createdRepo.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val group = keycloakClient.getGroup(GroupName(groupName))
+                    group.shouldNotBeNull()
+
+                    val members = keycloakClient.getGroupMembers(group.name)
+                    members shouldHaveSize 1
+                    members.map { it.username } shouldContain TEST_USER.username
+                }
+            }
+        }
+    }
+
+    "DELETE /repositories/{orgId}/groups/{groupId}" should {
+        forAll(
+            row("readers"),
+            row("writers"),
+            row("admins")
+        ) { groupId ->
+            "remove a user from the '$groupId' group" {
+                integrationTestApplication {
+                    val createdRepo = createRepository()
+                    val user = Username(TEST_USER.username.value)
+                    addUserToGroup(user.username, createdRepo.id, groupId)
+
+                    // Check pre-condition
+                    val groupName = when (groupId) {
+                        "readers" -> READER.groupName(createdRepo.id)
+                        "writers" -> WRITER.groupName(createdRepo.id)
+                        "admins" -> ADMIN.groupName(createdRepo.id)
+                        else -> error("Unknown group: $groupId")
+                    }
+                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
+                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
+                    membersBefore shouldHaveSize 1
+                    membersBefore.map { it.username } shouldContain TEST_USER.username
+
+                    val response = superuserClient.delete(
+                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId"
+                    ) {
+                        setBody(user)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.NoContent
+
+                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
+                    groupAfter.shouldNotBeNull()
+
+                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    membersAfter.shouldBeEmpty()
+                }
             }
         }
     }

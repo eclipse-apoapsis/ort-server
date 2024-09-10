@@ -23,6 +23,7 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.delete
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.patch
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
+import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -42,8 +43,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
@@ -53,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
@@ -230,6 +234,34 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     repositoryId
                 ).mapToApi()
             )
+        }
+    }
+
+    route("groups") {
+        // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
+        // groupId "readers", "writers" or "admins".
+        route("{groupId}") {
+            put(putUserToRepositoryGroup) {
+                requirePermission(RepositoryPermission.WRITE)
+
+                val user = call.receive<Username>()
+                val repositoryId = call.requireIdParameter("repositoryId")
+                val groupId = call.requireParameter("groupId")
+
+                repositoryService.addUserToGroup(user.username, repositoryId, groupId)
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            delete(deleteUserFromRepositoryGroup) {
+                requirePermission(RepositoryPermission.WRITE)
+
+                val user = call.receive<Username>()
+                val repositoryId = call.requireIdParameter("repositoryId")
+                val groupId = call.requireParameter("groupId")
+
+                repositoryService.removeUserFromGroup(user.username, repositoryId, groupId)
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }
