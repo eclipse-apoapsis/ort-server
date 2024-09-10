@@ -149,7 +149,7 @@ class OrganizationService(
         // As the AuthorizationService does not distinguish between technical exceptions (e.g. cannot connect to
         // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.addUserToGroup(username, organizationId, groupName)
+        authorizationService.addUserToGroup(username, groupName)
     }
 
     /**
@@ -177,7 +177,7 @@ class OrganizationService(
         // As the AuthorizationService does not distinguish between technical exceptions (e.g. cannot connect to
         // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.removeUserFromGroup(username, organizationId, groupName)
+        authorizationService.removeUserFromGroup(username, groupName)
     }
 
     private fun EnumEntries<OrganizationRole>.toJoinedString(): String =
