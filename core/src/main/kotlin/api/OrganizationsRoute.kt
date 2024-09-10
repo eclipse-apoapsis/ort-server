@@ -48,7 +48,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromOrganizationGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForO
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
-import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
 import org.eclipse.apoapsis.ortserver.core.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
@@ -328,7 +328,7 @@ fun Route.organizations() = route("organizations") {
             // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
             // groupId "readers", "writers" or "admins".
             route("{groupId}") {
-                put(putUserToGroup) {
+                put(putUserToOrganizationGroup) {
                     requirePermission(OrganizationPermission.WRITE)
 
                     val user = call.receive<Username>()
@@ -339,7 +339,7 @@ fun Route.organizations() = route("organizations") {
                     call.respond(HttpStatusCode.NoContent)
                 }
 
-                delete(deleteUserFromGroup) {
+                delete(deleteUserFromOrganizationGroup) {
                     requirePermission(OrganizationPermission.WRITE)
 
                     val user = call.receive<Username>()
