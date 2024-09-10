@@ -114,7 +114,7 @@ class OrganizationServiceTest : WordSpec({
 
         "throw an exception if the group does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any(), any()) } just runs
+                coEvery { addUserToGroup(any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -136,7 +136,7 @@ class OrganizationServiceTest : WordSpec({
 
         "generate the Keycloak group name" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any(), any()) } just runs
+                coEvery { addUserToGroup(any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -156,7 +156,6 @@ class OrganizationServiceTest : WordSpec({
             coVerify(exactly = 1) {
                 authorizationService.addUserToGroup(
                     "username",
-                    1,
                     "ORGANIZATION_1_READERS"
                 )
             }
@@ -174,7 +173,7 @@ class OrganizationServiceTest : WordSpec({
 
         "throw an exception if the group does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any(), any()) } just runs
+                coEvery { addUserToGroup(any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -196,7 +195,7 @@ class OrganizationServiceTest : WordSpec({
 
         "generate the Keycloak group name" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserFromGroup(any(), any(), any()) } just runs
+                coEvery { removeUserFromGroup(any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -216,7 +215,6 @@ class OrganizationServiceTest : WordSpec({
             coVerify(exactly = 1) {
                 authorizationService.removeUserFromGroup(
                     "username",
-                    1,
                     "ORGANIZATION_1_READERS"
                 )
             }

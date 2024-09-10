@@ -750,7 +750,6 @@ class DefaultAuthorizationService(
 
     override suspend fun addUserToGroup(
         username: String,
-        organizationId: Long,
         groupName: String
     ) {
         val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
@@ -759,7 +758,6 @@ class DefaultAuthorizationService(
 
     override suspend fun removeUserFromGroup(
         username: String,
-        organizationId: Long,
         groupName: String
     ) {
         val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm

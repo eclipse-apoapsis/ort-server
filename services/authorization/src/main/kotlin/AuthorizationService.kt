@@ -109,12 +109,12 @@ interface AuthorizationService {
     suspend fun ensureSuperuserAndSynchronizeRolesAndPermissions()
 
     /**
-     * Add a user [username] to a group for the given [organizationId].
+     * Add a user [username] to the group with the given [groupName].
      */
-    suspend fun addUserToGroup(username: String, organizationId: Long, groupName: String)
+    suspend fun addUserToGroup(username: String, groupName: String)
 
     /**
-     * Remove a user [username] from a group for the given [organizationId].
+     * Remove a user [username] from a group with the given [groupName].
      */
-    suspend fun removeUserFromGroup(username: String, organizationId: Long, groupName: String)
+    suspend fun removeUserFromGroup(username: String, groupName: String)
 }
