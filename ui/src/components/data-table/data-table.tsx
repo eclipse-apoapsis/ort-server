@@ -17,8 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { flexRender, type Table as TanstackTable } from '@tanstack/react-table';
+import {
+  flexRender,
+  Row,
+  type Table as TanstackTable,
+} from '@tanstack/react-table';
 import * as React from 'react';
+import { Fragment } from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import {
@@ -33,10 +38,12 @@ import { cn } from '@/lib/utils';
 
 interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
 }
 
 export function DataTable<TData>({
   table,
+  renderSubComponent,
   children,
   className,
   ...props
@@ -57,6 +64,7 @@ export function DataTable<TData>({
                     <TableHead
                       key={header.id}
                       style={{ minWidth: header.column.columnDef.size }}
+                      colSpan={header.colSpan}
                     >
                       {header.isPlaceholder
                         ? null
@@ -73,22 +81,36 @@ export function DataTable<TData>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      style={{ minWidth: cell.column.columnDef.size }}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <Fragment key={row.id}>
+                  <TableRow
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={
+                      row.getIsExpanded() && renderSubComponent
+                        ? 'border-0'
+                        : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{ minWidth: cell.column.columnDef.size }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && renderSubComponent && (
+                    <TableRow>
+                      {/* 2nd row is a custom 1 cell row */}
+                      <TableCell colSpan={row.getVisibleCells().length}>
+                        {renderSubComponent({ row })}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
               ))
             ) : (
               <TableRow>
