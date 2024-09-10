@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import kotlin.enums.EnumEntries
-
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.model.Organization
@@ -29,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.services.utils.toJoinedString
 
 import org.jetbrains.exposed.sql.Database
 
@@ -179,8 +178,4 @@ class OrganizationService(
         // and just let the exception propagate.
         authorizationService.removeUserFromGroup(username, groupName)
     }
-
-    private fun EnumEntries<OrganizationRole>.toJoinedString(): String =
-        this.dropLast(1).joinToString(", ", transform = { "'${it.name.lowercase()}s'" })
-            .let { "$it or '${this.last().name.lowercase()}s'" }
 }
