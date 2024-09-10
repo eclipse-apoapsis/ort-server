@@ -74,6 +74,12 @@ data class AnalyzerJobConfiguration(
     val environmentConfig: EnvironmentConfig? = null,
 
     /**
+     * A flag indicating whether the submodules of the repository should be downloaded during the download process.
+     * If set to `true`, submodules will be downloaded; if `false`, they will be ignored.
+     */
+    val recursiveCheckout: Boolean = true,
+
+    /**
      * The list of package curation providers to use.
      */
     val packageCurationProviders: List<ProviderPluginConfiguration>? = null,
