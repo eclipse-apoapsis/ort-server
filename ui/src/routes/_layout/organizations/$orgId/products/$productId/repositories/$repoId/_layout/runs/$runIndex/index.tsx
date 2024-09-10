@@ -18,12 +18,15 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Repeat } from 'lucide-react';
+import { Bug, ListTree, Repeat, Scale, ShieldQuestion } from 'lucide-react';
 
+import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
+import { StatisticsCard } from '@/components/statistics-card';
+import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +39,11 @@ import {
 import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
-import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import {
+  getStatusBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-colors';
+import { toast } from '@/lib/toast';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -62,9 +69,39 @@ const RunComponent = () => {
     }
   );
 
+  // Note that this is very inefficient as it fetches all vulnerabilities for the run,
+  // while for this purpose we only need the total count, so this is a temporary solution.
+  // The query will be replaced with the ORT Run statistics query once it is implemented.
+  const {
+    data: vulnerabilities,
+    isPending: vulnIsPending,
+    isError: vulnIsError,
+    error: vulnError,
+  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
+    runId: ortRun.id,
+  });
+
+  if (vulnIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (vulnIsError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={vulnError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
+
+  const vulnTotal = vulnerabilities?.pagination.totalCount;
+
   return (
     <>
-      <div className='flex flex-1 flex-col gap-2'>
+      <div className='flex flex-col gap-2'>
         <div className='flex flex-row gap-2'>
           <Card>
             <CardHeader>
@@ -194,6 +231,48 @@ const RunComponent = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+        <div className='grid grid-cols-4 gap-2'>
+          <StatisticsCard
+            title='Issues'
+            icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
+            value='N/A'
+            resultsPath='issues'
+            pollInterval={pollInterval}
+          />
+          <StatisticsCard
+            title='Packages'
+            icon={() => (
+              <ListTree
+                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.analyzer?.status)}`}
+              />
+            )}
+            value={ortRun.jobs.analyzer ? '-' : 'N/A'}
+            resultsPath='packages'
+            pollInterval={pollInterval}
+          />
+          <StatisticsCard
+            title='Vulnerabilities'
+            icon={() => (
+              <ShieldQuestion
+                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
+              />
+            )}
+            value={ortRun.jobs.advisor ? vulnTotal : 'N/A'}
+            resultsPath='vulnerabilities'
+            pollInterval={pollInterval}
+          />
+          <StatisticsCard
+            title='Rule Violations'
+            icon={() => (
+              <Scale
+                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.evaluator?.status)}`}
+              />
+            )}
+            value={ortRun.jobs.evaluator ? '-' : 'N/A'}
+            resultsPath='rule-violations'
+            pollInterval={pollInterval}
+          />
         </div>
         <Card className='flex flex-1 overflow-hidden'>
           <CardHeader>
