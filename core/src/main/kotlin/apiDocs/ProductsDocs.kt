@@ -30,8 +30,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.GIT
-import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType.SUBVERSION
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
@@ -139,14 +137,14 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
                                 id = 1,
                                 organizationId = 2,
                                 productId = 3,
-                                type = GIT,
+                                type = RepositoryType.GIT,
                                 url = "https://example.com/first/repo.git"
                             ),
                             Repository(
                                 id = 2,
                                 organizationId = 3,
                                 productId = 4,
-                                type = SUBVERSION,
+                                type = RepositoryType.SUBVERSION,
                                 url = "https://example.com/second/repo"
                             )
                         ),
