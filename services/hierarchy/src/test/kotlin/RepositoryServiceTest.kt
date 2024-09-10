@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -30,9 +31,12 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 
 import org.jetbrains.exposed.sql.Database
 
@@ -118,6 +122,104 @@ class RepositoryServiceTest : WordSpec({
             val service = createService()
 
             service.getJobs(fixtures.repository.id, -1L) should beNull()
+        }
+    }
+
+    "addUserToGroup" should {
+        "throw an exception if the organization does not exist" {
+            val service = createService()
+
+            shouldThrow<ResourceNotFoundException> {
+                service.addUserToGroup("username", 1, "readers")
+            }
+        }
+
+        "throw an exception if the group does not exist" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                createService(authorizationService)
+            ) {
+                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
+            }
+
+            shouldThrow<ResourceNotFoundException> {
+                service.addUserToGroup("username", 1, "viewers")
+            }
+        }
+
+        "generate the Keycloak group name" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                createService(authorizationService)
+            ) {
+                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
+            }
+
+            service.addUserToGroup("username", 1, "readers")
+
+            coVerify(exactly = 1) {
+                authorizationService.addUserToGroup(
+                    "username",
+                    "REPOSITORY_1_READERS"
+                )
+            }
+        }
+    }
+
+    "removeUsersFromGroup" should {
+        "throw an exception if the organization does not exist" {
+            val service = createService()
+
+            shouldThrow<ResourceNotFoundException> {
+                service.removeUserFromGroup("username", 1, "readers")
+            }
+        }
+
+        "throw an exception if the group does not exist" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { addUserToGroup(any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                createService(authorizationService)
+            ) {
+                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
+            }
+
+            shouldThrow<ResourceNotFoundException> {
+                service.removeUserFromGroup("username", 1, "viewers")
+            }
+        }
+
+        "generate the Keycloak group name" {
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { removeUserFromGroup(any(), any()) } just runs
+            }
+
+            // Create a spy of the service to partially mock it
+            val service = spyk(
+                createService(authorizationService)
+            ) {
+                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
+            }
+
+            service.removeUserFromGroup("username", 1, "readers")
+
+            coVerify(exactly = 1) {
+                authorizationService.removeUserFromGroup(
+                    "username",
+                    "REPOSITORY_1_READERS"
+                )
+            }
         }
     }
 })

@@ -68,6 +68,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 internal val fullJobConfigurations = JobConfigurations(
@@ -646,6 +647,68 @@ val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+    }
+}
+
+val putUserToRepositoryGroup: OpenApiRoute.() -> Unit = {
+    operationId = "PutUserToGroupRepository"
+    summary = "Add a user to a group on Repository level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<Username> {
+            example("Add user identified by username 'abc123'.") {
+                value = Username(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully added the user to the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Repository or group not found."
+        }
+    }
+}
+
+val deleteUserFromRepositoryGroup: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteUserFromGroupRepository"
+    summary = "Remove a user from a group on Repository level."
+    tags = listOf("Groups")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("groupId") {
+            description = "One of 'readers', 'writers' or 'admins'."
+        }
+
+        jsonBody<Username> {
+            example("Remove user identified by username 'abc123'.") {
+                value = Username(username = "abc123")
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully removed the user from the group."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "Repository or group not found."
         }
     }
 }
