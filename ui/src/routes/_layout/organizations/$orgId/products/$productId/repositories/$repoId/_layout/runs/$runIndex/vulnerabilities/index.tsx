@@ -21,8 +21,11 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
   getCoreRowModel,
+  getExpandedRowModel,
+  Row,
   useReactTable,
 } from '@tanstack/react-table';
+import { Minus, Plus } from 'lucide-react';
 
 import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -37,6 +40,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -53,15 +57,34 @@ const defaultPageSize = 10;
 
 const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
   {
-    accessorKey: 'vulnerability',
-    header: () => <></>,
+    accessorKey: 'package',
+    header: 'Package',
     cell: ({ row }) => {
-      const type = row.original.identifier.type;
-      const namespace = row.original.identifier.namespace;
-      const name = row.original.identifier.name;
-      const version = row.original.identifier.version;
-      const references = row.original.vulnerability.references;
+      const { type, namespace, name, version } = row.original.identifier;
 
+      return (
+        <div className='font-semibold'>
+          {type ? type.concat(':') : ''}
+          {namespace ? namespace.concat('/') : ''}
+          {name ? name : ''}
+          {version ? '@'.concat(version) : ''}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: 'externalId',
+    header: 'External ID',
+    cell: ({ row }) => (
+      <Badge className='whitespace-nowrap bg-gray-400'>
+        {row.original.vulnerability.externalId}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: 'rating',
+    header: 'Rating',
+    cell: ({ row }) => {
       // Calculate the overall vulnerability rating based on the individual ratings
       const ratings = row.original.vulnerability.references.map((reference) =>
         Number(reference.severity)
@@ -69,62 +92,92 @@ const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
       const overallRating = calcOverallVulnerability(ratings);
 
       return (
-        <div className='flex flex-col gap-2'>
-          <div className='flex justify-between'>
-            <Label className='font-semibold'>
-              {type ? type.concat(':') : ''}
-              {namespace ? namespace.concat('/') : ''}
-              {name ? name : ''}
-              {version ? '@'.concat(version) : ''}
-            </Label>
-
-            <Badge className='bg-gray-400'>
-              {row.original.vulnerability.externalId}
-            </Badge>
-          </div>
-          <div className='flex justify-between'>
-            <div>{row.original.vulnerability.summary}</div>
-            <Badge
-              className={`${getVulnerabilityRatingBackgroundColor(overallRating)}`}
-            >
-              {overallRating}
-            </Badge>
-          </div>
-          <div className='italic text-muted-foreground'>
-            {row.original.vulnerability.description}
-          </div>
-          <Accordion type='single' collapsible className='ml-4'>
-            <AccordionItem
-              value='references'
-              className='rounded-lg border px-2'
-            >
-              <AccordionTrigger>
-                <Label className='font-semibold text-blue-400 hover:underline'>
-                  References
-                </Label>
-              </AccordionTrigger>
-              {references.map((reference, index) => (
-                <AccordionContent key={index}>
-                  <div className='flex gap-2'>
-                    <div>{reference.severity}</div>
-                    <div>{reference.scoringSystem}</div>
-                    <Link
-                      className='font-semibold text-blue-400 hover:underline'
-                      to={reference.url}
-                      target='_blank'
-                    >
-                      {reference.url}
-                    </Link>
-                  </div>
-                </AccordionContent>
-              ))}
-            </AccordionItem>
-          </Accordion>
+        <Badge
+          className={`${getVulnerabilityRatingBackgroundColor(overallRating)}`}
+        >
+          {overallRating}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: 'summary',
+    header: 'Summary',
+    cell: ({ row }) => {
+      return (
+        <div className='italic text-muted-foreground'>
+          {row.original.vulnerability.summary}
         </div>
       );
     },
   },
+  {
+    id: 'moreInfo',
+    header: () => null,
+    size: 50,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          {...{
+            onClick: row.getToggleExpandedHandler(),
+            style: { cursor: 'pointer' },
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <Minus className='h-4 w-4' />
+          ) : (
+            <Plus className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+  },
 ];
+
+const renderSubComponent = ({
+  row,
+}: {
+  row: Row<VulnerabilityWithIdentifier>;
+}) => {
+  const references = row.original.vulnerability.references;
+
+  return (
+    <div className='flex flex-col gap-2'>
+      <div className='italic text-muted-foreground'>
+        <div className='font-semibold'>Description:</div>
+        {row.original.vulnerability.description}
+      </div>
+      <Accordion type='single' collapsible className='ml-4'>
+        <AccordionItem value='references' className='rounded-lg border px-2'>
+          <AccordionTrigger>
+            <Label className='font-semibold text-blue-400 hover:underline'>
+              References
+            </Label>
+          </AccordionTrigger>
+          {references.map((reference, index) => (
+            <AccordionContent key={index}>
+              <div className='flex gap-2'>
+                <div>{reference.severity}</div>
+                <div>{reference.scoringSystem}</div>
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to={reference.url}
+                  target='_blank'
+                >
+                  {reference.url}
+                </Link>
+              </div>
+            </AccordionContent>
+          ))}
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+};
 
 const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
@@ -161,6 +214,8 @@ const VulnerabilitiesComponent = () => {
       },
     },
     getCoreRowModel: getCoreRowModel(),
+    getRowCanExpand: () => true,
+    getExpandedRowModel: getExpandedRowModel(),
     manualPagination: true,
   });
 
@@ -185,7 +240,7 @@ const VulnerabilitiesComponent = () => {
       </CardHeader>
       <CardContent>
         <CardContent>
-          <DataTable table={table} />
+          <DataTable table={table} renderSubComponent={renderSubComponent} />
         </CardContent>
       </CardContent>
     </Card>
