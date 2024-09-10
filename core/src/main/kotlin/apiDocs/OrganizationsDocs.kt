@@ -536,8 +536,8 @@ val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit
     }
 }
 
-val putUserToGroup: OpenApiRoute.() -> Unit = {
-    operationId = "PutUserToGroup"
+val putUserToOrganizationGroup: OpenApiRoute.() -> Unit = {
+    operationId = "PutUserToGroupOrganization"
     summary = "Add a user to a group on Organization level."
     tags = listOf("Groups")
 
@@ -567,8 +567,8 @@ val putUserToGroup: OpenApiRoute.() -> Unit = {
     }
 }
 
-val deleteUserFromGroup: OpenApiRoute.() -> Unit = {
-    operationId = "DeleteUserFromGroup"
+val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
+    operationId = "DeleteUserFromGroupOrganization"
     summary = "Remove a user from a group on Organization level."
     tags = listOf("Groups")
 
