@@ -23,6 +23,7 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.delete
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.patch
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
+import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -39,8 +40,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByProductIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromProductGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByProductIdAndName
@@ -49,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
@@ -203,6 +207,34 @@ fun Route.products() = route("products/{productId}") {
                     null
                 ).mapToApi()
             )
+        }
+    }
+
+    route("groups") {
+        // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
+        // groupId "readers", "writers" or "admins".
+        route("{groupId}") {
+            put(putUserToProductGroup) {
+                requirePermission(ProductPermission.WRITE)
+
+                val user = call.receive<Username>()
+                val productId = call.requireIdParameter("productId")
+                val groupId = call.requireParameter("groupId")
+
+                productService.addUserToGroup(user.username, productId, groupId)
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            delete(deleteUserFromProductGroup) {
+                requirePermission(ProductPermission.WRITE)
+
+                val user = call.receive<Username>()
+                val productId = call.requireIdParameter("productId")
+                val groupId = call.requireParameter("groupId")
+
+                productService.removeUserFromGroup(user.username, productId, groupId)
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }
