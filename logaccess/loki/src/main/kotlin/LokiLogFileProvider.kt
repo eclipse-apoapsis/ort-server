@@ -104,7 +104,18 @@ class LokiLogFileProvider(
                 }
 
                 if (statements.size >= config.limit && deDuplicatedStatements.isNotEmpty()) {
-                    downloadChunk(statements.last().timestamp, deDuplicatedStatements)
+                    val lastTimestamp = statements.last().timestamp
+
+                    if (lastTimestamp != from) {
+                        downloadChunk(lastTimestamp, deDuplicatedStatements)
+                    } else {
+                        logger.error(
+                            "Possible loss of log data for run '{}' and source '{}' " +
+                            "due to number of identical timestamps exceeds chunk size limit.",
+                            ortRunId,
+                            source
+                        )
+                    }
                 }
             }
 
