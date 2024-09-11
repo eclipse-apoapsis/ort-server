@@ -24,8 +24,10 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.file.beEmptyDirectory
 import io.kotest.matchers.file.shouldContainFile
 import io.kotest.matchers.file.shouldNotExist
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 
 import java.io.IOException
@@ -38,11 +40,28 @@ class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
 
     "downloadRepository" should {
-        "recursively clone a Git repository" {
+        "not recursively clone a Git repository if recursiveCheckout is false" {
             val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
             val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
 
-            val outputDir = downloader.downloadRepository(repositoryUrl, revision)
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision, recursiveCheckout = false)
+
+            outputDir shouldContainFile "LICENSE"
+            outputDir shouldContainFile "README.md"
+
+            outputDir.resolve("commons-text") should beEmptyDirectory()
+            outputDir.resolve("test-data-npm") should beEmptyDirectory()
+
+            val workingTree = VersionControlSystem.forDirectory(outputDir)
+            workingTree.shouldNotBeNull()
+            workingTree.getNested().shouldBeEmpty()
+        }
+
+        "recursively clone a Git repository if recursiveCheckout is true" {
+            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
+            val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
+
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision, recursiveCheckout = true)
 
             outputDir shouldContainFile "LICENSE"
             outputDir shouldContainFile "README.md"

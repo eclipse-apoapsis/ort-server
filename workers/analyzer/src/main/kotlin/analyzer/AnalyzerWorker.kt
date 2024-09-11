@@ -77,7 +77,8 @@ internal class AnalyzerWorker(
         val sourcesDir = downloader.downloadRepository(
             repository.url,
             ortRun.revision,
-            ortRun.path.orEmpty()
+            ortRun.path.orEmpty(),
+            job.configuration.recursiveCheckout
         )
 
         val resolvedEnvConfig = environmentService.setUpEnvironment(
