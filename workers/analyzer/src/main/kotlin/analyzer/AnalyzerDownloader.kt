@@ -31,7 +31,12 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(AnalyzerDownloader::class.java)
 
 class AnalyzerDownloader {
-    fun downloadRepository(repositoryUrl: String, revision: String, path: String = ""): File {
+    fun downloadRepository(
+        repositoryUrl: String,
+        revision: String,
+        path: String = "",
+        recursiveCheckout: Boolean = true
+    ): File {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
         val outputDir = createOrtTempDir("analyzer-worker")
@@ -47,7 +52,7 @@ class AnalyzerDownloader {
         )
 
         val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
-        vcs.updateWorkingTree(workingTree, revision, recursive = true).getOrThrow()
+        vcs.updateWorkingTree(workingTree, revision, recursive = recursiveCheckout).getOrThrow()
 
         logger.info("Finished downloading '$repositoryUrl' revision '$revision'.")
 
