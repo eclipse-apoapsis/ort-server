@@ -49,15 +49,18 @@ import java.io.File
 import java.io.IOException
 import java.util.EnumSet
 
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -73,11 +76,13 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -97,6 +102,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 import org.ossreviewtoolkit.utils.common.ArchiveType
 import org.ossreviewtoolkit.utils.common.unpack
 
+@Suppress("LargeClass")
 class RunsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
@@ -531,6 +537,240 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/vulnerabilities")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/issues" should {
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRun = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${ortRun.id}/issues")
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/runs/12345/issues")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "return and empty list of issues if no issues exist" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues")
+
+                response.status shouldBe HttpStatusCode.OK
+                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+
+                pagedIssues.pagination.totalCount shouldBe 0
+                pagedIssues.data shouldHaveSize 0
+
+                // Applies a default sort order
+                pagedIssues.pagination.sortProperties.firstOrNull()?.name shouldBe "timestamp"
+                pagedIssues.pagination.sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+            }
+        }
+
+        "return a paginated list of issues including analyzer issues" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRun.id)
+
+                val now = Clock.System.now()
+                dbExtension.fixtures.analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AnalyzerConfiguration(
+                        allowDynamicVersions = true,
+                        enabledPackageManagers = emptyList(),
+                        disabledPackageManagers = emptyList(),
+                        packageManagers = emptyMap(),
+                        skipExcluded = true
+                    ),
+                    projects = emptySet(),
+                    packages = emptySet(),
+                    issues = mapOf(
+                        Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
+                            Issue(
+                                timestamp = now.minus(1.hours).toDatabasePrecision(),
+                                source = "Maven",
+                                message = "Issue 1",
+                                severity = Severity.ERROR,
+                                affectedPath = "path"
+                            ),
+                            Issue(
+                                timestamp = now.toDatabasePrecision(),
+                                source = "Maven",
+                                message = "Issue 2",
+                                severity = Severity.WARNING,
+                                affectedPath = "path"
+                            )
+                        )
+                    ),
+                    dependencyGraphs = emptyMap()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
+
+                response.status shouldBe HttpStatusCode.OK
+                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+
+                with(pagedIssues.pagination) {
+                    totalCount shouldBe 2
+                    offset shouldBe 0
+                    limit shouldBe 1
+
+                    // Default sort order applied?
+                    sortProperties.firstOrNull()?.name shouldBe "timestamp"
+                    sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+                }
+
+                with(pagedIssues.data) {
+                    shouldHaveSize(1)
+                    with(first()) {
+                        with(issue) {
+                            timestamp.epochSeconds shouldBe now.epochSeconds
+                            source shouldBe "Maven"
+                            message shouldBe "Issue 2"
+                            severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                            affectedPath shouldBe "path"
+                        }
+
+                        with(identifier) {
+                            this?.type shouldBe "Maven"
+                            this?.namespace shouldBe "namespace"
+                            this?.name shouldBe "name"
+                            this?.version shouldBe "1.0.0"
+                        }
+                    }
+                }
+            }
+        }
+
+        "return a paginated list of issues including advisor issues" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRun.id)
+
+                val now = Clock.System.now()
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AdvisorConfiguration(
+                        config = mapOf(
+                            "VulnerableCode" to PluginConfiguration(
+                                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                                secrets = mapOf("apiKey" to "key")
+                            )
+                        )
+                    ),
+                    results = mapOf(
+                        Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "Advisor",
+                                capabilities = listOf("vulnerabilities"),
+                                startTime = now.toDatabasePrecision(),
+                                endTime = now.toDatabasePrecision(),
+                                issues = listOf(
+                                    Issue(
+                                        timestamp = now.minus(1.hours).toDatabasePrecision(),
+                                        source = "Advisor",
+                                        message = "Issue 1",
+                                        severity = Severity.ERROR,
+                                        affectedPath = "path"
+                                    ),
+                                    Issue(
+                                        timestamp = now.toDatabasePrecision(),
+                                        source = "Advisor",
+                                        message = "Issue 2",
+                                        severity = Severity.WARNING,
+                                        affectedPath = "path"
+                                    )
+                                ),
+                                defects = emptyList(),
+                                vulnerabilities = emptyList()
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
+
+                response.status shouldBe HttpStatusCode.OK
+                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+
+                with(pagedIssues.pagination) {
+                    totalCount shouldBe 2
+                    offset shouldBe 0
+                    limit shouldBe 1
+
+                    // Default sort order applied?
+                    sortProperties.firstOrNull()?.name shouldBe "timestamp"
+                    sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+                }
+
+                with(pagedIssues.data) {
+                    shouldHaveSize(1)
+                    with(first()) {
+                        with(issue) {
+                            timestamp.epochSeconds shouldBe now.epochSeconds
+                            source shouldBe "Advisor"
+                            message shouldBe "Issue 2"
+                            severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                            affectedPath shouldBe "path"
+                        }
+
+                        with(identifier) {
+                            this?.type shouldBe "Maven"
+                            this?.namespace shouldBe "namespace"
+                            this?.name shouldBe "name"
+                            this?.version shouldBe "1.0.0"
+                        }
+                    }
+                }
             }
         }
     }
