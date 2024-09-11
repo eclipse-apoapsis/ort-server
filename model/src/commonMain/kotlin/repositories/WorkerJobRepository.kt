@@ -108,7 +108,7 @@ interface WorkerJobRepository<T : WorkerJob> {
 /**
  * A set with the [JobStatus] values that indicate a completed job.
  */
-private val completedJobStates = setOf(JobStatus.FINISHED, JobStatus.FAILED)
+private val completedJobStates = setOf(JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES, JobStatus.FAILED)
 
 /**
  * A set with the [JobStatus] values that indicate a job that was not started.
