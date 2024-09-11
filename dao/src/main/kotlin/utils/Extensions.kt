@@ -31,8 +31,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
@@ -71,10 +71,10 @@ internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
  * Run the [query] using the [parameters] to create a [ListQueryResult]. The entities are mapped to the  corresponding
  * model objects using the provided [entityMapper].
  */
-fun <E : LongEntity, M> SortableEntityClass<E>.listCustomQuery(
+fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQuery(
     parameters: ListQueryParameters,
     entityMapper: (ResultRow) -> M,
-    query: () -> Query
+    query: () -> AbstractQuery<T>
 ): ListQueryResult<M> {
     val totalCount = query().count()
     val apply = query().apply(sortableTable, parameters)
