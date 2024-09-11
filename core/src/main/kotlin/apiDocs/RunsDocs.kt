@@ -27,6 +27,8 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
@@ -34,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
@@ -146,6 +149,50 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.BadRequest to {
             description = "Invalid values have been provided for the log level or steps parameters."
+        }
+    }
+}
+
+val getIssuesByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetIssuesByRunId"
+    summary = "Get the issues of an ORT run."
+    tags = listOf("Issues")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<PagedResponse<IssueWithIdentifier>> {
+                example("Get issues for an ORT run") {
+                    value = PagedResponse(
+                        listOf(
+                            Issue(
+                                message = "An issue",
+                                severity = Severity.ERROR,
+                                source = "source",
+                                timestamp = Clock.System.now()
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("timestamp", SortDirection.DESCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
         }
     }
 }

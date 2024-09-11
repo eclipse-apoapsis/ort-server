@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType as Api
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier as ApiIssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration as ApiJiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JiraRestClientConfiguration as ApiJiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
@@ -88,6 +89,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -471,6 +473,8 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)
+
+fun IssueWithIdentifier.mapToApi() = ApiIssueWithIdentifier(issue.mapToApi(), identifier?.mapToApi())
 
 fun VulnerabilityWithIdentifier.mapToApi() =
     ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi())

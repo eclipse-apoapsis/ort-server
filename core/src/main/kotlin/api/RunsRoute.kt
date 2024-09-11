@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
@@ -52,11 +53,13 @@ import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -68,6 +71,7 @@ import org.koin.ktor.ext.inject
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
 fun Route.runs() = route("runs/{runId}") {
+    val issueService by inject<IssueService>()
     val ortRunRepository by inject<OrtRunRepository>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
@@ -111,6 +115,22 @@ fun Route.runs() = route("runs/{runId}") {
                 } finally {
                     logArchive.delete()
                 }
+            }
+        }
+    }
+
+    route("issues") {
+        get(getIssuesByRunId) {
+            call.forRun(ortRunRepository) { ortRun ->
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                val pagingOptions = call.pagingOptions(SortProperty("timestamp", SortDirection.DESCENDING))
+
+                val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                val pagedResponse = issueForOrtRun.mapToApi(IssueWithIdentifier::mapToApi)
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
             }
         }
     }
