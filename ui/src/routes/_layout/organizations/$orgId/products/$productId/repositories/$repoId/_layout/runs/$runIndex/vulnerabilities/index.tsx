@@ -33,6 +33,7 @@ import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/su
 import { VulnerabilityWithIdentifier } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
   AccordionContent,
@@ -51,6 +52,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-colors';
+import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -224,7 +226,15 @@ const VulnerabilitiesComponent = () => {
   }
 
   if (isError) {
-    return error;
+    toast.error('Unable to load data', {
+      description: <ToastError error={error} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (
