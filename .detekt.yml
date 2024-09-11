@@ -22,6 +22,7 @@
 comments:
   AbsentOrWrongFileLicense:
     active: true
+    excludes: ['**/build/generated/**']
     licenseTemplateFile: '.detekt.license.template'
     licenseTemplateIsRegex: true
 
