@@ -151,7 +151,9 @@ const renderSubComponent = ({
     <div className='flex flex-col gap-2'>
       <div className='italic text-muted-foreground'>
         <div className='font-semibold'>Description:</div>
-        {row.original.vulnerability.description}
+        <div className='whitespace-pre-line'>
+          {row.original.vulnerability.description}
+        </div>
       </div>
       <Accordion type='single' collapsible className='ml-4'>
         <AccordionItem value='references' className='rounded-lg border px-2'>
