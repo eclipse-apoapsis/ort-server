@@ -44,6 +44,7 @@ include(":secrets:vault")
 include(":services:authorization")
 include(":services:hierarchy")
 include(":services:infrastructure")
+include(":services:maintenance")
 include(":services:report-storage")
 include(":services:secret")
 include(":storage:database")
@@ -75,6 +76,7 @@ project(":secrets:spi").name = "secrets-spi"
 project(":services:authorization").name = "authorization-service"
 project(":services:hierarchy").name = "hierarchy-service"
 project(":services:infrastructure").name = "infrastructure-service"
+project(":services:maintenance").name = "maintenance-service"
 project(":services:report-storage").name = "report-storage-service"
 project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
