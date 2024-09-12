@@ -61,7 +61,6 @@ postgres = "42.7.4"
 qpidJmsClient = "2.6.0"
 schemaKenerator = "1.2.3"
 slf4j = "2.0.16"
-swagger = "2.1.22"
 testContainers = "1.20.2"
 typesafeConfig = "1.4.3"
 wiremock = "3.0.1"
@@ -165,7 +164,6 @@ schemaKeneratorReflection = { module = "io.github.smiley4:schema-kenerator-refle
 schemaKeneratorSwagger = { module = "io.github.smiley4:schema-kenerator-swagger", version.ref = "schemaKenerator" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
-swaggerParser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainersLocalStack = { module = "org.testcontainers:localstack", version.ref = "testContainers" }
