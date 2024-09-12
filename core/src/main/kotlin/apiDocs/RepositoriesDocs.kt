@@ -26,8 +26,6 @@ import io.ktor.http.HttpStatusCode
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob
@@ -172,14 +170,14 @@ private val minimalJobConfigurations = JobConfigurations(
 val jobs = Jobs(
     analyzer = AnalyzerJob(
         id = 1L,
-        createdAt = Clock.System.now(),
+        createdAt = CREATED_AT,
         configuration = fullJobConfigurations.analyzer,
         status = JobStatus.CREATED
     ),
     advisor = fullJobConfigurations.advisor?.let {
         AdvisorJob(
             id = 1L,
-            createdAt = Clock.System.now(),
+            createdAt = CREATED_AT,
             configuration = it,
             status = JobStatus.CREATED
         )
@@ -187,7 +185,7 @@ val jobs = Jobs(
     scanner = fullJobConfigurations.scanner?.let {
         ScannerJob(
             id = 1L,
-            createdAt = Clock.System.now(),
+            createdAt = CREATED_AT,
             configuration = it,
             status = JobStatus.CREATED
         )
@@ -195,7 +193,7 @@ val jobs = Jobs(
     evaluator = fullJobConfigurations.evaluator?.let {
         EvaluatorJob(
             id = 1L,
-            createdAt = Clock.System.now(),
+            createdAt = CREATED_AT,
             configuration = it,
             status = JobStatus.CREATED
         )
@@ -203,7 +201,7 @@ val jobs = Jobs(
     reporter = fullJobConfigurations.reporter?.let {
         ReporterJob(
             id = 1L,
-            createdAt = Clock.System.now(),
+            createdAt = CREATED_AT,
             configuration = it,
             status = JobStatus.CREATED,
             reportFilenames = listOf(
@@ -216,7 +214,7 @@ val jobs = Jobs(
     notifier = fullJobConfigurations.notifier?.let {
         NotifierJob(
             id = 1L,
-            createdAt = Clock.System.now(),
+            createdAt = CREATED_AT,
             configuration = it,
             status = JobStatus.CREATED
         )
@@ -227,7 +225,7 @@ val jobs = Jobs(
  * Create a [JobSummary] for a job that was created the provided [offset] duration ago.
  */
 private fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): JobSummary {
-    val createdAt = Clock.System.now() - offset
+    val createdAt = CREATED_AT - offset
     return JobSummary(
         id = 1L,
         createdAt = createdAt,
@@ -349,8 +347,8 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                                 productId = 1,
                                 repositoryId = 1,
                                 revision = "main",
-                                createdAt = Clock.System.now() - 15.minutes,
-                                finishedAt = Clock.System.now(),
+                                createdAt = CREATED_AT,
+                                finishedAt = FINISHED_AT,
                                 jobs = JobSummaries(
                                     analyzer = createJobSummary(10.minutes),
                                     advisor = createJobSummary(8.minutes),
@@ -370,8 +368,8 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                                 productId = 1,
                                 repositoryId = 1,
                                 revision = "main",
-                                createdAt = Clock.System.now() - 15.minutes,
-                                finishedAt = Clock.System.now(),
+                                createdAt = CREATED_AT,
+                                finishedAt = FINISHED_AT,
                                 jobs = JobSummaries(
                                     analyzer = createJobSummary(5.minutes),
                                     advisor = createJobSummary(3.minutes),
@@ -439,7 +437,7 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
                         productId = 1,
                         repositoryId = 1,
                         revision = "main",
-                        createdAt = Clock.System.now(),
+                        createdAt = CREATED_AT,
                         jobConfigs = fullJobConfigurations,
                         resolvedJobConfigs = fullJobConfigurations,
                         jobs = jobs,
@@ -484,7 +482,7 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
                         productId = 1,
                         repositoryId = 1,
                         revision = "main",
-                        createdAt = Clock.System.now(),
+                        createdAt = CREATED_AT,
                         jobConfigs = fullJobConfigurations,
                         resolvedJobConfigs = fullJobConfigurations,
                         jobs = jobs,

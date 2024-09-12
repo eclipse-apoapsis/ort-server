@@ -23,8 +23,6 @@ import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
@@ -71,7 +69,7 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
                         productId = 1,
                         repositoryId = 1,
                         revision = "main",
-                        createdAt = Clock.System.now(),
+                        createdAt = CREATED_AT,
                         jobConfigs = fullJobConfigurations,
                         resolvedJobConfigs = fullJobConfigurations,
                         jobs = jobs,
@@ -179,7 +177,7 @@ val getIssuesByRunId: OpenApiRoute.() -> Unit = {
                                 message = "An issue",
                                 severity = Severity.ERROR,
                                 source = "source",
-                                timestamp = Clock.System.now()
+                                timestamp = CREATED_AT
                             )
                         ),
                         PagingData(
