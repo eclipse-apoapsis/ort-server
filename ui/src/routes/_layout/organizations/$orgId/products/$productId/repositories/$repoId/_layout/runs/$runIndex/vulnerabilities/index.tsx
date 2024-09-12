@@ -34,12 +34,6 @@ import { VulnerabilityWithIdentifier } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,7 +43,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-colors';
 import { toast } from '@/lib/toast';
@@ -148,37 +141,31 @@ const renderSubComponent = ({
   const references = row.original.vulnerability.references;
 
   return (
-    <div className='flex flex-col gap-2'>
-      <div className='italic text-muted-foreground'>
-        <div className='font-semibold'>Description:</div>
-        <div className='whitespace-pre-line'>
-          {row.original.vulnerability.description}
-        </div>
+    <div className='flex flex-col gap-4'>
+      <div className='font-semibold'>Description</div>
+      <div className='whitespace-pre-line italic text-muted-foreground'>
+        {row.original.vulnerability.description}
       </div>
-      <Accordion type='single' collapsible className='ml-4'>
-        <AccordionItem value='references' className='rounded-lg border px-2'>
-          <AccordionTrigger>
-            <Label className='font-semibold text-blue-400 hover:underline'>
-              References
-            </Label>
-          </AccordionTrigger>
+      <Card className='rounded-lg border px-2'>
+        <CardHeader>
+          <CardTitle>References</CardTitle>
+        </CardHeader>
+        <CardContent>
           {references.map((reference, index) => (
-            <AccordionContent key={index}>
-              <div className='flex gap-2'>
-                <div>{reference.severity}</div>
-                <div>{reference.scoringSystem}</div>
-                <Link
-                  className='font-semibold text-blue-400 hover:underline'
-                  to={reference.url}
-                  target='_blank'
-                >
-                  {reference.url}
-                </Link>
-              </div>
-            </AccordionContent>
+            <div key={index} className='flex gap-2'>
+              <div>{reference.severity}</div>
+              <div>{reference.scoringSystem}</div>
+              <Link
+                className='font-semibold text-blue-400 hover:underline'
+                to={reference.url}
+                target='_blank'
+              >
+                {reference.url}
+              </Link>
+            </div>
           ))}
-        </AccordionItem>
-      </Accordion>
+        </CardContent>
+      </Card>
     </div>
   );
 };
