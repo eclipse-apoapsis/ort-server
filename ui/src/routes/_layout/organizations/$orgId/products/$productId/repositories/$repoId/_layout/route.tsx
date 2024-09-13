@@ -20,6 +20,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
   Boxes,
+  Bug,
   Eye,
   FileText,
   ListTree,
@@ -76,6 +77,7 @@ const Layout = () => {
         {
           title: 'Issues',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
+          icon: () => <Bug className='h-4 w-4' />,
         },
         {
           title: 'Reports',
