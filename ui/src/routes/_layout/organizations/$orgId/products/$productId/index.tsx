@@ -235,13 +235,13 @@ const ProductComponent = () => {
             table={table}
             setCurrentPageOptions={(currentPage) => {
               return {
-                ...Route,
+                to: Route.to,
                 search: { ...search, page: currentPage },
               };
             }}
             setPageSizeOptions={(size) => {
               return {
-                ...Route,
+                to: Route.to,
                 search: { ...search, pageSize: size },
               };
             }}
