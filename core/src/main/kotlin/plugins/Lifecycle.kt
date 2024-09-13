@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.koin.ktor.ext.inject
 
+import org.slf4j.MDC
+
 /**
  * Configure actions that are triggered by
  * [lifecycle events][https://ktor.io/docs/events.html#handle-events-application].
@@ -40,7 +42,10 @@ fun Application.configureLifecycle() {
     environment.monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
 
+        val mdcContext = MDC.getCopyOfContextMap()
+
         thread {
+            MDC.setContextMap(mdcContext)
             runBlocking(Dispatchers.IO) {
                 syncRoles(authorizationService)
             }
