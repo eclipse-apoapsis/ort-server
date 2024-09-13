@@ -49,6 +49,8 @@ export function DataTable<TData>({
   renderSubComponent,
   children,
   className,
+  setCurrentPageOptions,
+  setPageSizeOptions,
   ...props
 }: DataTableProps<TData>) {
   const pagination = table.getState().pagination;
@@ -137,8 +139,8 @@ export function DataTable<TData>({
             currentPage={pagination.pageIndex + 1}
             pageSize={pagination.pageSize}
             totalPages={totalPages}
-            setCurrentPageOptions={props.setCurrentPageOptions}
-            setPageSizeOptions={props.setPageSizeOptions}
+            setCurrentPageOptions={setCurrentPageOptions}
+            setPageSizeOptions={setPageSizeOptions}
           />
         </div>
       )}
