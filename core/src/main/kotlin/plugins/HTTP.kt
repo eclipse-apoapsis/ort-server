@@ -39,9 +39,9 @@ fun Application.configureHTTP() {
     install(CORS) {
         allowedHosts.split(',').forEach(::allowHost)
         allowCredentials = true
-        allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
-        allowMethod(HttpMethod.Patch)
+        allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Patch)
     }
 }
