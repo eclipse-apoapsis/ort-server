@@ -17,65 +17,37 @@
  * License-Filename: LICENSE
  */
 
-import { Link, useParams } from '@tanstack/react-router';
-
-import {
-  AdvisorJob,
-  AnalyzerJob,
-  EvaluatorJob,
-  ReporterJob,
-  ScannerJob,
-} from '@/api/requests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type StatisticsCardProps = {
-  job?:
-    | AnalyzerJob
-    | AdvisorJob
-    | ScannerJob
-    | EvaluatorJob
-    | ReporterJob
-    | undefined;
   title: string;
   icon?: React.ComponentType<{ className?: string }>;
   value?: number | string;
-  resultsPath: 'issues' | 'packages' | 'vulnerabilities' | 'rule-violations';
-  pollInterval: number;
+
+  className?: string;
 };
 
 export const StatisticsCard = ({
   title,
   icon: Icon,
   value,
-  resultsPath,
+  className,
 }: StatisticsCardProps) => {
-  const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
   return (
-    <Link
-      from='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-      to={resultsPath}
-      params={{
-        orgId: orgId || '',
-        productId: productId || '',
-        repoId: repoId || '',
-        runIndex: runIndex || '',
-      }}
-    >
-      <Card className='hover:bg-muted/50'>
-        <CardHeader>
-          <CardTitle>
-            <div className='flex items-center justify-between'>
-              <span className='text-sm font-semibold'>{title}</span>
-              {Icon && <Icon />}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className='text-sm'>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>
           <div className='flex items-center justify-between'>
-            <div className='text-2xl font-bold'>{value ? value : '-'}</div>
+            <span className='text-sm font-semibold'>{title}</span>
+            {Icon && <Icon />}
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className='text-sm'>
+        <div className='flex items-center justify-between'>
+          <div className='text-2xl font-bold'>{value ? value : '-'}</div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

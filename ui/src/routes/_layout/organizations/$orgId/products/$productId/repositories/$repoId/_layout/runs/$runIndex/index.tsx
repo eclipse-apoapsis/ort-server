@@ -233,46 +233,82 @@ const RunComponent = () => {
           </Card>
         </div>
         <div className='grid grid-cols-4 gap-2'>
-          <StatisticsCard
-            title='Issues'
-            icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
-            value='N/A'
-            resultsPath='issues'
-            pollInterval={pollInterval}
-          />
-          <StatisticsCard
-            title='Packages'
-            icon={() => (
-              <ListTree
-                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.analyzer?.status)}`}
-              />
-            )}
-            value={ortRun.jobs.analyzer ? '-' : 'N/A'}
-            resultsPath='packages'
-            pollInterval={pollInterval}
-          />
-          <StatisticsCard
-            title='Vulnerabilities'
-            icon={() => (
-              <ShieldQuestion
-                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
-              />
-            )}
-            value={ortRun.jobs.advisor ? vulnTotal : 'N/A'}
-            resultsPath='vulnerabilities'
-            pollInterval={pollInterval}
-          />
-          <StatisticsCard
-            title='Rule Violations'
-            icon={() => (
-              <Scale
-                className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.evaluator?.status)}`}
-              />
-            )}
-            value={ortRun.jobs.evaluator ? '-' : 'N/A'}
-            resultsPath='rule-violations'
-            pollInterval={pollInterval}
-          />
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+          >
+            <StatisticsCard
+              title='Issues'
+              icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
+              value='N/A'
+              className='hover:bg-muted/50'
+            />
+          </Link>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+          >
+            <StatisticsCard
+              title='Packages'
+              icon={() => (
+                <ListTree
+                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.analyzer?.status)}`}
+                />
+              )}
+              value={ortRun.jobs.analyzer ? '-' : 'N/A'}
+              className='hover:bg-muted/50'
+            />
+          </Link>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+          >
+            <StatisticsCard
+              title='Vulnerabilities'
+              icon={() => (
+                <ShieldQuestion
+                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
+                />
+              )}
+              value={ortRun.jobs.advisor ? vulnTotal : 'N/A'}
+              className='hover:bg-muted/50'
+            />
+          </Link>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+          >
+            <StatisticsCard
+              title='Rule Violations'
+              icon={() => (
+                <Scale
+                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.evaluator?.status)}`}
+                />
+              )}
+              value={ortRun.jobs.evaluator ? '-' : 'N/A'}
+              className='hover:bg-muted/50'
+            />
+          </Link>
         </div>
         <Card className='flex flex-1 overflow-hidden'>
           <CardHeader>
