@@ -43,5 +43,6 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Put)
     }
 }
