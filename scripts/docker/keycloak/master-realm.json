@@ -878,21 +878,21 @@
       "consent.screen.text" : "${rolesScopeConsentText}"
     },
     "protocolMappers" : [ {
-      "id" : "d9099df9-6427-40d6-bee0-7ed07fbd9547",
-      "name" : "client roles",
+      "id" : "e4f5681b-0f63-4ec3-9bc2-446f0917cfbc",
+      "name" : "master realm roles",
       "protocol" : "openid-connect",
       "protocolMapper" : "oidc-usermodel-client-role-mapper",
       "consentRequired" : false,
       "config" : {
         "introspection.token.claim" : "true",
-        "userinfo.token.claim" : "true",
         "multivalued" : "true",
-        "user.attribute" : "foo",
-        "id.token.claim" : "false",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "true",
         "lightweight.claim" : "false",
         "access.token.claim" : "true",
         "claim.name" : "resource_access.${client_id}.roles",
-        "jsonType.label" : "String"
+        "jsonType.label" : "String",
+        "usermodel.clientRoleMapping.clientId" : "master-realm"
       }
     }, {
       "id" : "47debf09-34ce-4f09-ac93-3dd7412c66e8",
@@ -914,6 +914,22 @@
       "protocolMapper" : "oidc-audience-resolve-mapper",
       "consentRequired" : false,
       "config" : { }
+    }, {
+      "id" : "47a8fcd9-234d-4ee3-84c1-2583f63ce4d3",
+      "name" : "userinfo roles",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-client-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "multivalued" : "true",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "false",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "false",
+        "claim.name" : "resource_access.${client_id}.roles",
+        "jsonType.label" : "String"
+      }
     } ]
   }, {
     "id" : "bf7d5ec2-e133-4a43-b6a6-5377cf4cc41f",
