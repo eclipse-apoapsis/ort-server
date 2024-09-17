@@ -24,3 +24,6 @@ export const paginationSchema = z.object({
   page: z.number().optional(),
   pageSize: z.number().optional(),
 });
+
+// Enum schema for the groupId parameter of the Groups endpoints
+export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
