@@ -18,7 +18,7 @@
 [versions]
 # Docker
 # When updating this version make sure to keep it in sync with the worker Dockerfiles.
-eclipseTemurin = "17.0.12_7-jdk-jammy@sha256:3ac5bcb9e083fa91e0b0be2db7eb04efeee07e9a5911b634a2803b03652796c6"
+eclipseTemurin = "17.0.12_7-jdk-jammy@sha256:d41eff8f20494968aaa1f5bbea4547303076b915d38f7d642441bd16538b45e3"
 
 # Gradle plugins
 dependencyAnalysisPlugin = "2.0.2"
