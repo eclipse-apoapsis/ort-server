@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye } from 'lucide-react';
+import { BookLock, Eye, User } from 'lucide-react';
 
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
 import { ProductsService } from '@/api/requests';
@@ -43,6 +43,12 @@ const Layout = () => {
         'superuser',
         `permission_product_${productId}_write_secrets`,
       ]),
+    },
+    {
+      title: 'Users',
+      to: '/organizations/$orgId/products/$productId/users',
+      icon: () => <User className='h-4 w-4' />,
+      visible: user.hasRole(['superuser', `role_product_${productId}_admin`]),
     },
   ];
 
