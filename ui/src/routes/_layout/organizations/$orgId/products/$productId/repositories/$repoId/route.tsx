@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye } from 'lucide-react';
+import { BookLock, Eye, User } from 'lucide-react';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
@@ -43,6 +43,12 @@ const Layout = () => {
         'superuser',
         `permission_repository_${repoId}_write_secrets`,
       ]),
+    },
+    {
+      title: 'Users',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
+      icon: () => <User className='h-4 w-4' />,
+      visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
     },
   ];
 
