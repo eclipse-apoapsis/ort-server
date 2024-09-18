@@ -31,7 +31,9 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { packageManagers } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 import { CreateRunFormValues } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run';
@@ -59,12 +61,30 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
       />
       <AccordionItem value='analyzer' className='flex-1'>
         <AccordionTrigger>Analyzer</AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className='flex flex-col gap-6'>
+          <FormField
+            control={form.control}
+            name='jobConfigs.analyzer.repositoryConfigPath'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Repository configuration path</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder='(optional)' />
+                </FormControl>
+                <FormDescription>
+                  The optional path to a repository configuration file. If this
+                  is not defined, the repository configuration is read from the
+                  root of the analyzed project repository, ie. "./.ort.yml".
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name='jobConfigs.analyzer.allowDynamicVersions'
             render={({ field }) => (
-              <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                 <div className='space-y-0.5'>
                   <FormLabel>Allow dynamic versions</FormLabel>
                   <FormDescription>
@@ -85,7 +105,7 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
             control={form.control}
             name='jobConfigs.analyzer.skipExcluded'
             render={({ field }) => (
-              <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                 <div className='space-y-0.5'>
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>

@@ -56,6 +56,14 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                 Resolved job configuration:
               </Label>
               <div className='ml-2 space-y-2'>
+                {jobConfigs?.repositoryConfigPath && (
+                  <div>
+                    <Label className='font-semibold'>
+                      Repository configuration path:
+                    </Label>{' '}
+                    {jobConfigs.repositoryConfigPath}
+                  </div>
+                )}
                 {jobConfigs?.allowDynamicVersions && (
                   <div>
                     <Label className='font-semibold'>
