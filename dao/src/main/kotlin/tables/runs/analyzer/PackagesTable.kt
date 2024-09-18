@@ -27,25 +27,25 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
 /**
  * A table to represent all metadata for a software package.
  */
-object PackagesTable : LongIdTable("packages") {
+object PackagesTable : SortableTable("packages") {
     val identifierId = reference("identifier_id", IdentifiersTable)
     val vcsId = reference("vcs_id", VcsInfoTable)
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable)
     val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable)
     val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable)
 
-    val purl = text("purl")
+    val purl = text("purl").sortable()
     val cpe = text("cpe").nullable()
     val description = text("description")
     val homepageUrl = text("homepage_url")
@@ -54,7 +54,7 @@ object PackagesTable : LongIdTable("packages") {
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<PackageDao>(PackagesTable) {
+    companion object : SortableEntityClass<PackageDao>(PackagesTable) {
         fun findByPackage(pkg: Package): PackageDao? =
             // TODO: Implement a more efficient way to check if an identical package already exists.
             find {
