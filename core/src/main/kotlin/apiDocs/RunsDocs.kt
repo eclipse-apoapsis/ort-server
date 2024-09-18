@@ -25,13 +25,18 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.Package
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
@@ -182,6 +187,64 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
                             offset = 0,
                             totalCount = 1,
                             sortProperties = listOf(SortProperty("external_id", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getPackagesByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetPackagesByRunId"
+    summary = "Get the packages found in an ORT run."
+    tags = listOf("Packages")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<PagedResponse<Package>> {
+                example("Get packages for an ORT run") {
+                    value = PagedResponse(
+                        listOf(
+                            Package(
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                purl = "pkg:maven/org.namespace/name@1.0",
+                                cpe = null,
+                                authors = setOf("author1", "author2"),
+                                declaredLicenses = setOf("license1", "license2"),
+                                processedDeclaredLicense = ProcessedDeclaredLicense(
+                                    spdxExpression = "Expression",
+                                    mappedLicenses = emptyMap(),
+                                    unmappedLicenses = emptySet()
+                                ),
+                                description = "A description",
+                                homepageUrl = "https://example.com/namespace/name",
+                                binaryArtifact = RemoteArtifact("url", "hashValue", "hashAlgorithm"),
+                                sourceArtifact = RemoteArtifact("url", "hashValue", "hashAlgorithm"),
+                                vcs = VcsInfo(ExtendedRepositoryType.GIT, "url", "revision", "path"),
+                                vcsProcessed = VcsInfo(ExtendedRepositoryType.GIT, "url", "revision", "path"),
+                                isMetadataOnly = false,
+                                isModified = false,
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("purl", SortDirection.ASCENDING))
                         )
                     )
                 }

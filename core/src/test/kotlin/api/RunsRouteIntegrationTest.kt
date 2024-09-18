@@ -30,6 +30,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -55,6 +56,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -65,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
@@ -72,8 +75,13 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
@@ -523,6 +531,159 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/vulnerabilities")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/packages" should {
+        "show the packages found in an ORT run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                dbExtension.fixtures.analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AnalyzerConfiguration(),
+                    projects = emptySet(),
+                    packages = setOf(
+                        Package(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            purl = "pkg:maven/com.example/example@1.0",
+                            cpe = null,
+                            authors = setOf("Author One", "Author Two"),
+                            declaredLicenses = setOf("License1", "License2", "License3"),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = mapOf(
+                                    "License 1" to "Mapped License 1",
+                                    "License 2" to "Mapped License 2",
+                                ),
+                                unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
+                            ),
+                            description = "An example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier(
+                                type = "Maven",
+                                namespace = "com.example",
+                                name = "example2",
+                                version = "1.0"
+                            ),
+                            purl = "pkg:maven/com.example/example2@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        )
+                    ),
+                    issues = emptyMap(),
+                    dependencyGraphs = emptyMap()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
+
+                response.status shouldBe HttpStatusCode.OK
+                val packages = response.body<PagedResponse<ApiPackage>>()
+
+                with(packages.data) {
+                    shouldHaveSize(2)
+                    first().identifier.name shouldBe "example"
+                    first().authors shouldHaveSize 2
+                    first().declaredLicenses shouldHaveSize 3
+                    first().processedDeclaredLicense.mappedLicenses shouldHaveSize 2
+                    first().processedDeclaredLicense.unmappedLicenses shouldHaveSize 4
+                    last().identifier.name shouldBe "example2"
+                }
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                null,
+                labelsMap,
+                traceId = "test-trace-id"
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}/packages")
             }
         }
     }

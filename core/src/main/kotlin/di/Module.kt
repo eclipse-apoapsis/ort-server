@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -123,6 +124,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { RepositoryService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { SecretService(get(), get(), get(), get()) }
     single { VulnerabilityService(get()) }
+    single { PackageService(get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }
