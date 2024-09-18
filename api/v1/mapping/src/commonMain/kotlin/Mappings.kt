@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvir
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType as ApiExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
@@ -51,12 +52,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganizati
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
+import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterAsset as ApiReporterAsset
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob as ApiReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration as ApiReporterJobConfiguration
@@ -69,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier as ApiVulnerabilityWithIdentifier
@@ -111,7 +116,11 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -328,6 +337,12 @@ fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.ma
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
+fun RepositoryType.mapToExtendedApi() =
+    when (this) {
+        RepositoryType.UNKNOWN -> ApiExtendedRepositoryType.UNKNOWN
+        else -> ApiExtendedRepositoryType.valueOf(name)
+    }
+
 fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
 
 fun <T> ApiOptionalValue<T>.mapToModel() = mapToModel { it }
@@ -463,6 +478,46 @@ fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
 
 fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity)
+
+fun Package.mapToApi() =
+    ApiPackage(
+        identifier.mapToApi(),
+        purl,
+        cpe,
+        authors,
+        declaredLicenses,
+        processedDeclaredLicense.mapToApi(),
+        description,
+        homepageUrl,
+        binaryArtifact.mapToApi(),
+        sourceArtifact.mapToApi(),
+        vcs.mapToApi(),
+        vcsProcessed.mapToApi(),
+        isMetadataOnly,
+        isModified
+    )
+
+fun ProcessedDeclaredLicense.mapToApi() =
+    ApiProcessedDeclaredLicense(
+        spdxExpression,
+        mappedLicenses,
+        unmappedLicenses
+    )
+
+fun RemoteArtifact.mapToApi() =
+    ApiRemoteArtifact(
+        url,
+        hashValue,
+        hashAlgorithm
+    )
+
+fun VcsInfo.mapToApi() =
+    ApiVcsInfo(
+        type.mapToExtendedApi(),
+        url,
+        revision,
+        path
+    )
 
 fun InfrastructureService.mapToApi() =
     ApiInfrastructureService(

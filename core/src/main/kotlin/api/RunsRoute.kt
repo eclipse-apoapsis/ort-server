@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
@@ -55,6 +56,8 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
@@ -68,6 +71,7 @@ fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
+    val packageService by inject<PackageService>()
 
     get(getOrtRunById) { _ ->
         val ortRunId = call.requireIdParameter("runId")
@@ -122,6 +126,22 @@ fun Route.runs() = route("runs/{runId}") {
                     vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
 
                 val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
+            }
+        }
+    }
+
+    route("packages") {
+        get(getPackagesByRunId) {
+            call.forRun(ortRunRepository) { ortRun ->
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                val pagingOptions = call.pagingOptions(SortProperty("purl", SortDirection.ASCENDING))
+
+                val packagesForOrtRun = packageService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                val pagedResponse = packagesForOrtRun.mapToApi(Package::mapToApi)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }
