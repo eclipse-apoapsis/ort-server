@@ -65,6 +65,7 @@ const formSchema = z.object({
   jobConfigs: z.object({
     analyzer: z.object({
       enabled: z.boolean(),
+      repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
       enabledPackageManagers: z.array(z.string()),
@@ -159,6 +160,7 @@ const CreateRunPage = () => {
     jobConfigs: {
       analyzer: {
         enabled: true,
+        repositoryConfigPath: '',
         allowDynamicVersions: true,
         skipExcluded: true,
         enabledPackageManagers: [
@@ -225,6 +227,9 @@ const CreateRunPage = () => {
         jobConfigs: {
           analyzer: {
             enabled: baseDefaults.jobConfigs.analyzer.enabled,
+            repositoryConfigPath:
+              ortRun.jobConfigs.analyzer?.repositoryConfigPath ||
+              baseDefaults.jobConfigs.analyzer.repositoryConfigPath,
             allowDynamicVersions:
               ortRun.jobConfigs.analyzer?.allowDynamicVersions ||
               baseDefaults.jobConfigs.analyzer.allowDynamicVersions,
@@ -404,6 +409,7 @@ const CreateRunPage = () => {
     // it empty, and thus disabling the job.
     const analyzerConfig = {
       allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
+      repositoryConfigPath: values.jobConfigs.analyzer.repositoryConfigPath,
       skipExcluded: values.jobConfigs.analyzer.skipExcluded,
       enabledPackageManagers: values.jobConfigs.analyzer.enabledPackageManagers,
     };
