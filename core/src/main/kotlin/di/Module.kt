@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.services.maintenance.MaintenanceService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.koin.core.module.dsl.singleOf
@@ -117,6 +118,8 @@ fun ortServerModule(config: ApplicationConfig) = module {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
         DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
     }
+
+    singleOf(::MaintenanceService)
     single { OrchestratorService(get(), get(), get()) }
     single { OrganizationService(get(), get(), get(), get()) }
     single { ProductService(get(), get(), get(), get()) }

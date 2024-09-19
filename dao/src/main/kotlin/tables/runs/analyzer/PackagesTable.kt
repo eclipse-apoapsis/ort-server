@@ -33,6 +33,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 
 /**
@@ -64,7 +65,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                         (PackagesTable.homepageUrl eq pkg.homepageUrl) and
                         (PackagesTable.isMetadataOnly eq pkg.isMetadataOnly) and
                         (PackagesTable.isModified eq pkg.isModified)
-            }.firstOrNull {
+            }.orderBy(PackagesTable.id to SortOrder.ASC).firstOrNull {
                 it.identifier.mapToModel() == pkg.identifier &&
                         mapAndCompare(it.authors, pkg.authors, AuthorDao::name) &&
                         mapAndCompare(it.declaredLicenses, pkg.declaredLicenses, DeclaredLicenseDao::name) &&

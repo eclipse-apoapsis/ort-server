@@ -27,9 +27,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
+import org.eclipse.apoapsis.ortserver.services.maintenance.MaintenanceService
+import org.eclipse.apoapsis.ortserver.services.maintenance.jobs.DeduplicatePackagesJob
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
+import org.koin.ktor.ext.get
 import org.koin.ktor.ext.inject
 
 import org.slf4j.MDC
@@ -41,6 +44,7 @@ import org.slf4j.MDC
 fun Application.configureLifecycle() {
     environment.monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
+        val maintenanceService by inject<MaintenanceService>()
 
         val mdcContext = MDC.getCopyOfContextMap()
 
@@ -48,6 +52,14 @@ fun Application.configureLifecycle() {
             MDC.setContextMap(mdcContext)
             runBlocking(Dispatchers.IO) {
                 syncRoles(authorizationService)
+            }
+        }
+
+        thread {
+            MDC.setContextMap(mdcContext)
+            runBlocking(Dispatchers.IO) {
+                maintenanceService.addJob(DeduplicatePackagesJob(get()))
+                maintenanceService.run()
             }
         }
     }
