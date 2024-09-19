@@ -333,7 +333,7 @@ WHERE
 CREATE VIEW projects_with_hashes AS
 SELECT
   p.id,
-  encode(sha256(concat(
+  encode(sha256(convert_to(concat(
     p.identifier_id,
     p.vcs_id,
     p.vcs_processed_id,
@@ -344,7 +344,7 @@ SELECT
     pa.authors,
     ps.scopes,
     ppl.processed_license_hash
-  )::bytea),
+  ), 'UTF8')),
     'hex') AS hash
 FROM
   projects p
