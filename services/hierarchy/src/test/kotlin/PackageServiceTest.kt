@@ -395,7 +395,12 @@ class PackageServiceTest : WordSpec() {
                 variables = emptyMap(),
                 toolVersions = emptyMap()
             ),
-            config = AnalyzerConfiguration(),
+            config = AnalyzerConfiguration(
+                allowDynamicVersions = true,
+                enabledPackageManagers = emptyList(),
+                disabledPackageManagers = emptyList(),
+                packageManagers = emptyMap()
+            ),
             projects = emptySet(),
             packages = packages,
             issues = emptyMap(),

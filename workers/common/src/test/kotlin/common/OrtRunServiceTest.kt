@@ -284,7 +284,12 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap(),
                     toolVersions = emptyMap()
                 ),
-                config = AnalyzerConfiguration(),
+                config = AnalyzerConfiguration(
+                    allowDynamicVersions = true,
+                    enabledPackageManagers = emptyList(),
+                    disabledPackageManagers = emptyList(),
+                    packageManagers = emptyMap()
+                ),
                 projects = emptySet(),
                 packages = emptySet(),
                 issues = emptyMap(),
@@ -706,7 +711,12 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap(),
                     toolVersions = emptyMap()
                 ),
-                config = AnalyzerConfiguration(packageManagers = emptyMap()),
+                config = AnalyzerConfiguration(
+                    allowDynamicVersions = true,
+                    enabledPackageManagers = null,
+                    disabledPackageManagers = null,
+                    packageManagers = emptyMap()
+                ),
                 projects = emptySet(),
                 packages = emptySet(),
                 issues = emptyMap(),

@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.model.runs
 
 data class AnalyzerConfiguration(
-    val allowDynamicVersions: Boolean = false,
-    val enabledPackageManagers: List<String>? = null,
-    val disabledPackageManagers: List<String>? = null,
-    val packageManagers: Map<String, PackageManagerConfiguration>? = null
+    val allowDynamicVersions: Boolean,
+    val enabledPackageManagers: List<String>?,
+    val disabledPackageManagers: List<String>?,
+    val packageManagers: Map<String, PackageManagerConfiguration>?
 )
