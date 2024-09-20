@@ -323,6 +323,7 @@ class V73__deduplicatePackagesAndProjectsTest : StringSpec() {
         AnalyzerConfigurationDao.new {
             this.analyzerRun = runDao
             this.allowDynamicVersions = false
+            this.skipExcluded = false
         }
 
         runDao

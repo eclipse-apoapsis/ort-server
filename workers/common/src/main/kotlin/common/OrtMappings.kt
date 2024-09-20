@@ -192,7 +192,8 @@ fun OrtAnalyzerConfiguration.mapToModel() =
         allowDynamicVersions = allowDynamicVersions,
         enabledPackageManagers = enabledPackageManagers,
         disabledPackageManagers = disabledPackageManagers,
-        packageManagers = packageManagers?.mapValues { it.value.mapToModel() }
+        packageManagers = packageManagers?.mapValues { it.value.mapToModel() },
+        skipExcluded = skipExcluded
     )
 
 fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
@@ -479,6 +480,7 @@ fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(message, r
 fun OrtScannerConfiguration.mapToModel() =
     ScannerConfiguration(
         skipConcluded = skipConcluded,
+        skipExcluded = skipExcluded,
         detectedLicenseMappings = detectedLicenseMapping,
         config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
         ignorePatterns = ignorePatterns

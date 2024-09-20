@@ -179,6 +179,7 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
+                    skipExcluded = true,
                     detectedLicenseMappings = mapOf("license-1" to "spdx-license-1"),
                     config = emptyMap(),
                     ignorePatterns = listOf("pattern-1")
@@ -288,7 +289,8 @@ class OrtRunServiceTest : WordSpec({
                     allowDynamicVersions = true,
                     enabledPackageManagers = emptyList(),
                     disabledPackageManagers = emptyList(),
-                    packageManagers = emptyMap()
+                    packageManagers = emptyMap(),
+                    skipExcluded = true
                 ),
                 projects = emptySet(),
                 packages = emptySet(),
@@ -549,6 +551,7 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
+                    skipExcluded = true,
                     detectedLicenseMappings = emptyMap(),
                     config = emptyMap(),
                     ignorePatterns = emptyList()
@@ -715,7 +718,8 @@ class OrtRunServiceTest : WordSpec({
                     allowDynamicVersions = true,
                     enabledPackageManagers = null,
                     disabledPackageManagers = null,
-                    packageManagers = emptyMap()
+                    packageManagers = emptyMap(),
+                    skipExcluded = true
                 ),
                 projects = emptySet(),
                 packages = emptySet(),

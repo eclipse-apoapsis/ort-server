@@ -399,7 +399,8 @@ class PackageServiceTest : WordSpec() {
                 allowDynamicVersions = true,
                 enabledPackageManagers = emptyList(),
                 disabledPackageManagers = emptyList(),
-                packageManagers = emptyMap()
+                packageManagers = emptyMap(),
+                skipExcluded = true
             ),
             projects = emptySet(),
             packages = packages,

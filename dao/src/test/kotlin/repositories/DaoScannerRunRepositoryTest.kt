@@ -300,6 +300,7 @@ private fun createScanResult(
 
 internal val scannerConfiguration = ScannerConfiguration(
     skipConcluded = false,
+    skipExcluded = false,
     detectedLicenseMappings = mapOf(
         "license-1" to "spdx-license-1",
         "license-2" to "spdx-license-2"

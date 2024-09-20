@@ -115,7 +115,8 @@ internal val analyzerConfiguration = AnalyzerConfiguration(
         "Yarn" to PackageManagerConfiguration(
             options = emptyMap()
         )
-    )
+    ),
+    skipExcluded = false
 )
 
 val project = Project(

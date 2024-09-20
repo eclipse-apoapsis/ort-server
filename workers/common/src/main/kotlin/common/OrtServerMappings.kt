@@ -229,7 +229,8 @@ fun AnalyzerConfiguration.mapToOrt() =
         allowDynamicVersions = allowDynamicVersions,
         enabledPackageManagers = enabledPackageManagers,
         disabledPackageManagers = disabledPackageManagers,
-        packageManagers = packageManagers?.mapValues { it.value.mapToOrt() }
+        packageManagers = packageManagers?.mapValues { it.value.mapToOrt() },
+        skipExcluded = skipExcluded
     )
 
 fun AnalyzerRun.mapToOrt() =
@@ -594,6 +595,7 @@ fun RuleViolationResolution.mapToOrt() =
 fun ScannerConfiguration.mapToOrt() =
     OrtScannerConfiguration(
         skipConcluded = skipConcluded,
+        skipExcluded = skipExcluded,
         detectedLicenseMapping = detectedLicenseMappings,
         config = config.mapValues { it.value.mapToOrt() },
         ignorePatterns = ignorePatterns
