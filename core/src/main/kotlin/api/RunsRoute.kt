@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
@@ -55,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 import org.eclipse.apoapsis.ortserver.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -63,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 
 import org.koin.ktor.ext.inject
@@ -75,6 +78,7 @@ fun Route.runs() = route("runs/{runId}") {
     val ortRunRepository by inject<OrtRunRepository>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
+    val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
 
     get(getOrtRunById) { _ ->
@@ -146,6 +150,23 @@ fun Route.runs() = route("runs/{runId}") {
                     vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
 
                 val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
+            }
+        }
+    }
+
+    route("rule-violations") {
+        get(getRuleViolationsByRunId) {
+            call.forRun(ortRunRepository) { ortRun ->
+                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+
+                val ruleViolationsForOrtRun =
+                    ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                val pagedResponse = ruleViolationsForOrtRun.mapToApi(RuleViolationWithIdentifier::mapToApi)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }
