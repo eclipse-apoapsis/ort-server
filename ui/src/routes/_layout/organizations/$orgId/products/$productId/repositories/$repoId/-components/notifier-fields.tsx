@@ -37,7 +37,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run';
+import { CreateRunFormValues } from '../-create-run-utils';
 
 type NotifierFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
