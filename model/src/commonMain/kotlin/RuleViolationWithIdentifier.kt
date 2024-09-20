@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs
+package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.serialization.Serializable
-
-import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 /**
- * A data class describing an rule violation that occurred during an ORT run.
+ * A union data class to associate a [OrtRuleViolation] with an [Identifier].
  */
-@Serializable
-data class OrtRuleViolation(
-    val rule: String,
-    val packageId: Identifier?,
-    val license: String?,
-    val licenseSource: String?,
-    val severity: Severity,
-    val message: String,
-    val howToFix: String
+data class RuleViolationWithIdentifier(
+    val ruleViolation: OrtRuleViolation,
+    val identifier: Identifier,
 )
