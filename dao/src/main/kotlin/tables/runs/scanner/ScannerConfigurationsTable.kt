@@ -33,7 +33,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 object ScannerConfigurationsTable : LongIdTable("scanner_configurations") {
     val scannerRunId = reference("scanner_run_id", ScannerRunsTable)
 
-    val skipConcluded = bool("skip_concluded").default(false)
+    val skipConcluded = bool("skip_concluded")
     val ignorePatterns = text("ignore_patterns").nullable()
 }
 
