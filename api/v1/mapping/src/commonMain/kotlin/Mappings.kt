@@ -67,6 +67,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob as ApiReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration as ApiReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository as ApiRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationWithIdentifier as ApiRuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
@@ -110,6 +112,7 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -118,6 +121,7 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -480,6 +484,20 @@ fun VulnerabilityWithIdentifier.mapToApi() =
     ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi())
 
 fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
+
+fun RuleViolationWithIdentifier.mapToApi() = ApiRuleViolationWithIdentifier(
+    ruleViolation.mapToApi(),
+    identifier.mapToApi()
+)
+
+fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
+    rule,
+    license,
+    licenseSource,
+    severity.mapToApi(),
+    message,
+    howToFix
+)
 
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
 

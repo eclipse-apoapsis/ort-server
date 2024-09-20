@@ -36,6 +36,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
@@ -240,6 +242,77 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
                             offset = 0,
                             totalCount = 1,
                             sortProperties = listOf(SortProperty("external_id", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetRuleViolationsByRunId"
+    summary = "Get the rules violations found in an ORT run."
+    tags = listOf("RuleViolations")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<PagedResponse<RuleViolationWithIdentifier>> {
+                example("Get vulnerabilities for an ORT run") {
+                    value = PagedResponse(
+                        listOf(
+                            RuleViolationWithIdentifier(
+                                RuleViolation(
+                                    "Unmapped declared license found",
+                                    "GPL-1.0-or-later",
+                                    "DETECTED",
+                                    Severity.ERROR,
+                                    "The declared license 'LPGL-2.1' could not be mapped to a valid SPDX expression.",
+                                    """
+                                        |Please add a declared license mapping via a curation for package
+                                        |'SpdxDocumentFile::hal:7.70.0'.
+                                        |If this is a false-positive or ineffective finding, it can be fixed in your 
+                                        |`.ort.yml` file:
+                                        |```yaml
+                                        |---
+                                        |curations:
+                                        |  packages:
+                                        |  - id: \"SpdxDocumentFile::hal:7.70.0\"
+                                        |    curations:
+                                        |      comment: \"<Describe the reason for the curation.>\"
+                                        |      declared_license_mapping:
+                                        |        LPGL-2.1: <Insert correct license.>
+                                        |```
+                                        |Documentation in how to configure curations in the `.ort.yml` file can be found
+                                        |[here](https://oss-review-toolkit.org/ort/docs/configuration/ort-yml).
+                                    """.trimMargin()
+                                ),
+                                Identifier(
+                                    "Maven",
+                                    "org.glassfish.jersey.media",
+                                    "jersey-media-jaxb",
+                                    "2.42"
+                                )
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("packageUrl", SortDirection.ASCENDING))
                         )
                     )
                 }
