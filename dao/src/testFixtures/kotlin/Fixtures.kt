@@ -53,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 import org.jetbrains.exposed.sql.Database
@@ -188,12 +189,19 @@ class Fixtures(private val db: Database) {
         return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
     }
 
-    fun createIdentifier() = db.blockingQuery {
+    fun createIdentifier(
+        identifier: Identifier = Identifier(
+            "identifier_type",
+            "identifier_namespace",
+            "identifier_package",
+            "identifier_version"
+        )
+    ): Identifier = db.blockingQuery {
         IdentifierDao.new {
-            type = "identifier_type"
-            namespace = "identifier_namespace"
-            name = "identifier_package"
-            version = "identifier_version"
+            type = identifier.type
+            namespace = identifier.namespace
+            name = identifier.name
+            version = identifier.version
         }.mapToModel()
     }
 
