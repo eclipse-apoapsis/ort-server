@@ -32,7 +32,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run';
+import { CreateRunFormValues } from '../-create-run-utils';
 
 type ScannerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
