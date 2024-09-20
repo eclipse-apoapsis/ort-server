@@ -21,19 +21,19 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 
 /**
  * A table to represent a rule violation.
  */
-object RuleViolationsTable : LongIdTable("rule_violations") {
+object RuleViolationsTable : SortableTable("rule_violations") {
     val rule = text("rule")
     val packageIdentifierId = reference("package_identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
@@ -44,7 +44,7 @@ object RuleViolationsTable : LongIdTable("rule_violations") {
 }
 
 class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<RuleViolationDao>(RuleViolationsTable) {
+    companion object : SortableEntityClass<RuleViolationDao>(RuleViolationsTable) {
         fun getOrPut(ruleViolation: OrtRuleViolation): RuleViolationDao =
             findByRuleViolation(ruleViolation) ?: RuleViolationDao.new {
                 rule = ruleViolation.rule
