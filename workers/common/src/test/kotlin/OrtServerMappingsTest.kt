@@ -166,7 +166,8 @@ class OrtServerMappingsTest : WordSpec({
                     "DotNet" to PackageManagerConfiguration(options = mapOf("directDependenciesOnly" to "true")),
                     "NPM" to PackageManagerConfiguration(options = mapOf("legacyPeerDeps" to "true")),
                     "NuGet" to PackageManagerConfiguration(options = mapOf("directDependenciesOnly" to "true"))
-                )
+                ),
+                skipExcluded = false
             )
 
             val project = Project(
@@ -364,6 +365,7 @@ class OrtServerMappingsTest : WordSpec({
 
             val scannerConfiguration = ScannerConfiguration(
                 skipConcluded = true,
+                skipExcluded = true,
                 detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
                 config = mapOf(
                     "scanner-1" to PluginConfiguration(

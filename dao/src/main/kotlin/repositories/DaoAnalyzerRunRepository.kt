@@ -146,6 +146,7 @@ private fun createAnalyzerConfiguration(
         allowDynamicVersions = analyzerConfiguration.allowDynamicVersions
         enabledPackageManagers = analyzerConfiguration.enabledPackageManagers
         disabledPackageManagers = analyzerConfiguration.disabledPackageManagers
+        skipExcluded = analyzerConfiguration.skipExcluded
     }
 
     return analyzerConfigurationDao

@@ -35,6 +35,7 @@ object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
     val allowDynamicVersions = bool("allow_dynamic_versions")
     val enabledPackageManagers = text("enabled_package_managers").nullable()
     val disabledPackageManagers = text("disabled_package_managers").nullable()
+    val skipExcluded = bool("skip_excluded")
 }
 
 class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
@@ -47,6 +48,7 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
+    var skipExcluded by AnalyzerConfigurationsTable.skipExcluded
 
     var packageManagerConfigurations by PackageManagerConfigurationDao via
             AnalyzerConfigurationsPackageManagerConfigurationsTable
@@ -55,6 +57,7 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         allowDynamicVersions = allowDynamicVersions,
         enabledPackageManagers = enabledPackageManagers,
         disabledPackageManagers = disabledPackageManagers,
-        packageManagers = packageManagerConfigurations.associate { it.name to it.mapToModel() }
+        packageManagers = packageManagerConfigurations.associate { it.name to it.mapToModel() },
+        skipExcluded = skipExcluded
     )
 }
