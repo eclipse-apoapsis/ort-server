@@ -339,7 +339,8 @@ export function formValuesToPayload(
   // it empty, and thus disabling the job.
   const analyzerConfig = {
     allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
-    repositoryConfigPath: values.jobConfigs.analyzer.repositoryConfigPath,
+    repositoryConfigPath:
+      values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
     enabledPackageManagers: values.jobConfigs.analyzer.enabledPackageManagers,
   };
