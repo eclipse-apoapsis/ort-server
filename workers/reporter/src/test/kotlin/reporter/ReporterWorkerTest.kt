@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Repository
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
 
@@ -127,6 +128,7 @@ class ReporterWorkerTest : StringSpec({
         val ortResult = mockk<OrtResult> {
             every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
             every { labels } returns mapOf("projectName" to "Test project")
+            every { repository } returns mockk()
         }
 
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -149,7 +151,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
             every { storeIssues(any(), any()) } just runs
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns ortResult
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
         }
 
         val context = mockk<WorkerContext>()
@@ -244,6 +246,7 @@ class ReporterWorkerTest : StringSpec({
         val ortResult = mockk<OrtResult> {
             every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
             every { labels } returns mapOf("projectName" to "Test project")
+            every { repository } returns mockk()
         }
 
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -266,7 +269,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
             every { storeIssues(any(), any()) } just runs
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns ortResult
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
         }
 
         val context = mockk<WorkerContext>()
@@ -341,6 +344,46 @@ class ReporterWorkerTest : StringSpec({
             val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Ignored
+        }
+    }
+
+    "Reporter should run without error even if there is no analyzer result" {
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { labels } returns mapOf("projectName" to "Test project")
+        }
+
+        val ortResult = mockk<OrtResult> {
+            every { repository } returns Repository.EMPTY
+        }
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getOrtRun(ORT_RUN_ID) } returns ortRun
+            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
+            every { storeReporterRun(any()) } just runs
+        }
+
+        val worker = ReporterWorker(
+            mockk(),
+            mockk(),
+            mockk(),
+            mockk<ReporterRunner>(),
+            ortRunService,
+            mockk()
+        )
+
+        mockkTransaction {
+            val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.FinishedWithIssues
+        }
+
+        coVerify {
+            ortRunService.storeReporterRun(any())
         }
     }
 })

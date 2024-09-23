@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.Repository
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ReporterWorker::class.java)
@@ -64,12 +66,28 @@ internal class ReporterWorker(
          * The setup of environment is only needed by a reporter that creates source code bundles.
          * TODO: Find a better solution which would allow to set up environment only for a specific reporter if needed.
          */
+        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
+        val startTime = Clock.System.now()
+
+        if (ortResult.repository == Repository.EMPTY) {
+            logger.warn(
+                "No repository information found in ORT result for ORT run '${job.ortRunId}'. Most likely, the " +
+                        "analyzer worker did not complete successfully."
+            )
+
+            val reporterRun = ReporterRun(
+                id = -1L,
+                reporterJobId = jobId,
+                startTime = startTime,
+                endTime = startTime,
+                reports = emptyList()
+            )
+            ortRunService.storeReporterRun(reporterRun)
+            return RunResult.FinishedWithIssues
+        }
+
         val context = contextFactory.createContext(job.ortRunId)
         environmentService.generateNetRcFileForCurrentRun(context)
-
-        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = true)
-
-        val startTime = Clock.System.now()
 
         val reporterRunnerResult = runner.run(
             job.ortRunId,
