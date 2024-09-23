@@ -70,8 +70,12 @@ import org.jetbrains.exposed.sql.insert
 class V73__deduplicatePackagesAndProjectsTest : StringSpec() {
     val extension = extension(DatabaseMigrationTestExtension("72", "73"))
 
+    // TODO: The tests in this class are disabled because they are incompatible with a later migration. To enable them
+    //       again, they must not depend on the Exposed tables and DAOs but instead use copies of them that are
+    //       compatible with the schema version under test.
+
     init {
-        "package migration should deduplicate packages" {
+        "package migration should deduplicate packages".config(enabled = false) {
             val run1 = extension.fixtures.createOrtRun()
             val run2 = extension.fixtures.createOrtRun(revision = "revision2")
 
@@ -117,7 +121,7 @@ class V73__deduplicatePackagesAndProjectsTest : StringSpec() {
             }
         }
 
-        "project migration should deduplicate projects" {
+        "project migration should deduplicate projects".config(enabled = false) {
             val run1 = extension.fixtures.createOrtRun()
             val run2 = extension.fixtures.createOrtRun(revision = "revision2")
 
