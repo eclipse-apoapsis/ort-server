@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -40,8 +40,8 @@ object ScanSummariesTable : LongIdTable("scan_summaries") {
 class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScanSummaryDao>(ScanSummariesTable)
 
-    var startTime by ScanSummariesTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by ScanSummariesTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by ScanSummariesTable.startTime.transformToDatabasePrecision()
+    var endTime by ScanSummariesTable.endTime.transformToDatabasePrecision()
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
     val snippetFindings by SnippetFindingDao referrersOn SnippetFindingsTable.scanSummaryId

@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
@@ -49,9 +49,9 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
 
     var ortRun by OrtRunDao referencedOn ScannerJobsTable.ortRunId
 
-    var createdAt by ScannerJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var startedAt by ScannerJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
-    var finishedAt by ScannerJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
+    var createdAt by ScannerJobsTable.createdAt.transformToDatabasePrecision()
+    var startedAt by ScannerJobsTable.startedAt.transformToDatabasePrecision()
+    var finishedAt by ScannerJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by ScannerJobsTable.configuration
     var status by ScannerJobsTable.status
 

@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -51,9 +51,9 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
 
     var ortRun by OrtRunDao referencedOn AnalyzerJobsTable.ortRunId
 
-    var createdAt by AnalyzerJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var startedAt by AnalyzerJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
-    var finishedAt by AnalyzerJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
+    var createdAt by AnalyzerJobsTable.createdAt.transformToDatabasePrecision()
+    var startedAt by AnalyzerJobsTable.startedAt.transformToDatabasePrecision()
+    var finishedAt by AnalyzerJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by AnalyzerJobsTable.configuration
     var status by AnalyzerJobsTable.status
 

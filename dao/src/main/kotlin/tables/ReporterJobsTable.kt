@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
@@ -52,9 +52,9 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
     var ortRun by OrtRunDao referencedOn ReporterJobsTable.ortRunId
     val reporterRun by ReporterRunDao optionalBackReferencedOn ReporterRunsTable.reporterJobId
 
-    var createdAt by ReporterJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var startedAt by ReporterJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
-    var finishedAt by ReporterJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
+    var createdAt by ReporterJobsTable.createdAt.transformToDatabasePrecision()
+    var startedAt by ReporterJobsTable.startedAt.transformToDatabasePrecision()
+    var finishedAt by ReporterJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by ReporterJobsTable.configuration
     var status by ReporterJobsTable.status
 

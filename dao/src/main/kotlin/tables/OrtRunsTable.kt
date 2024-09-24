@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
@@ -68,13 +68,13 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var revision by OrtRunsTable.revision
     var path by OrtRunsTable.path
     var traceId by OrtRunsTable.traceId
-    var createdAt by OrtRunsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
+    var createdAt by OrtRunsTable.createdAt.transformToDatabasePrecision()
     var jobConfigs by OrtRunsTable.jobConfigs
     var resolvedJobConfigs by OrtRunsTable.resolvedJobConfigs
     var jobConfigContext by OrtRunsTable.jobConfigContext
     var resolvedJobConfigContext by OrtRunsTable.resolvedJobConfigContext
     var status by OrtRunsTable.status
-    var finishedAt by OrtRunsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
+    var finishedAt by OrtRunsTable.finishedAt.transformToDatabasePrecision()
     var issues by IssueDao via OrtRunsIssuesTable
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
