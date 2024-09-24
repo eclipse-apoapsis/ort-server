@@ -48,7 +48,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByRepositoryId
@@ -109,7 +109,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getOrtRuns) { _ ->
+        get(getOrtRunsByRepositoryId) { _ ->
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireIdParameter("repositoryId")
