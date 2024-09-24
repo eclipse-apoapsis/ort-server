@@ -85,6 +85,7 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
     }
 
     var path by LicenseFindingCurationsTable.path
+    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var startLines: List<Int>? by LicenseFindingCurationsTable.startLines
         .transform({ it?.joinToString(",") }, ::convertStartLines)
     var lineCount by LicenseFindingCurationsTable.lineCount
