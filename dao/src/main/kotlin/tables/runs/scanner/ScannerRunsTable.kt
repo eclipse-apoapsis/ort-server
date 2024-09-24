@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -51,8 +51,8 @@ class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var scannerJob by ScannerJobDao referencedOn ScannerRunsTable.scannerJobId
     var environment by EnvironmentDao optionalReferencedOn ScannerRunsTable.environmentId
 
-    var startTime by ScannerRunsTable.startTime.transform({ it?.toDatabasePrecision() }, { it })
-    var endTime by ScannerRunsTable.endTime.transform({ it?.toDatabasePrecision() }, { it })
+    var startTime by ScannerRunsTable.startTime.transformToDatabasePrecision()
+    var endTime by ScannerRunsTable.endTime.transformToDatabasePrecision()
 
     val config by ScannerConfigurationDao optionalBackReferencedOn ScannerConfigurationsTable.scannerRunId
 

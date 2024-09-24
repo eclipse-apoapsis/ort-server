@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -49,8 +49,8 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     var advisorJob by AdvisorJobDao referencedOn AdvisorRunsTable.advisorJobId
     var environment by EnvironmentDao referencedOn AdvisorRunsTable.environmentId
 
-    var startTime by AdvisorRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by AdvisorRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by AdvisorRunsTable.startTime.transformToDatabasePrecision()
+    var endTime by AdvisorRunsTable.endTime.transformToDatabasePrecision()
 
     val advisorConfiguration by AdvisorConfigurationDao backReferencedOn AdvisorConfigurationsTable.advisorRunId
     val results by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId

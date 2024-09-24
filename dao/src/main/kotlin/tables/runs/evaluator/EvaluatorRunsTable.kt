@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -43,8 +43,8 @@ class EvaluatorRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EvaluatorRunDao>(EvaluatorRunsTable)
 
     var evaluatorJob by EvaluatorJobDao referencedOn EvaluatorRunsTable.evaluatorJobId
-    var startTime by EvaluatorRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by EvaluatorRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by EvaluatorRunsTable.startTime.transformToDatabasePrecision()
+    var endTime by EvaluatorRunsTable.endTime.transformToDatabasePrecision()
     var violations by RuleViolationDao via EvaluatorRunsRuleViolationsTable
 
     fun mapToModel() = EvaluatorRun(

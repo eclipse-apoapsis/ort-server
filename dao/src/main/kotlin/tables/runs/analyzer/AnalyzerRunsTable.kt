@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
@@ -53,8 +53,8 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJobId
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
 
-    var startTime by AnalyzerRunsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by AnalyzerRunsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by AnalyzerRunsTable.startTime.transformToDatabasePrecision()
+    var endTime by AnalyzerRunsTable.endTime.transformToDatabasePrecision()
     var dependencyGraphsWrapper by AnalyzerRunsTable.dependencyGraphs
 
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId

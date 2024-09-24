@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
@@ -46,9 +46,9 @@ class NotifierJobDao(id: EntityID<Long>) : LongEntity(id) {
 
     var ortRun by OrtRunDao referencedOn NotifierJobsTable.ortRunId
 
-    var createdAt by NotifierJobsTable.createdAt.transform({ it.toDatabasePrecision() }, { it })
-    var startedAt by NotifierJobsTable.startedAt.transform({ it?.toDatabasePrecision() }, { it })
-    var finishedAt by NotifierJobsTable.finishedAt.transform({ it?.toDatabasePrecision() }, { it })
+    var createdAt by NotifierJobsTable.createdAt.transformToDatabasePrecision()
+    var startedAt by NotifierJobsTable.startedAt.transformToDatabasePrecision()
+    var finishedAt by NotifierJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by NotifierJobsTable.configuration
     var status by NotifierJobsTable.status
 

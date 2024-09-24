@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -95,9 +95,9 @@ class DefectDao(id: EntityID<Long>) : LongEntity(id) {
     var state by DefectsTable.state
     var severity by DefectsTable.severity
     var description by DefectsTable.description
-    var creationTime by DefectsTable.creationTime.transform({ it?.toDatabasePrecision() }, { it })
-    var modificationTime by DefectsTable.modificationTime.transform({ it?.toDatabasePrecision() }, { it })
-    var closingTime by DefectsTable.closingTime.transform({ it?.toDatabasePrecision() }, { it })
+    var creationTime by DefectsTable.creationTime.transformToDatabasePrecision()
+    var modificationTime by DefectsTable.modificationTime.transformToDatabasePrecision()
+    var closingTime by DefectsTable.closingTime.transformToDatabasePrecision()
     var fixReleaseVersion by DefectsTable.fixReleaseVersion
     var fixReleaseUrl by DefectsTable.fixReleaseUrl
 

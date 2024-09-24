@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -49,8 +49,8 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
     var advisorName by AdvisorResultsTable.advisorName
     var capabilities by AdvisorResultsTable.capabilities
         .transform({ it.joinToString(",") }, { it.split(",") })
-    var startTime by AdvisorResultsTable.startTime.transform({ it.toDatabasePrecision() }, { it })
-    var endTime by AdvisorResultsTable.endTime.transform({ it.toDatabasePrecision() }, { it })
+    var startTime by AdvisorResultsTable.startTime.transformToDatabasePrecision()
+    var endTime by AdvisorResultsTable.endTime.transformToDatabasePrecision()
 
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
     var defects by DefectDao via AdvisorResultsDefectsTable

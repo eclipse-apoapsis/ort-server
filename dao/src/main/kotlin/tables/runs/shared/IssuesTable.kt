@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
@@ -52,7 +52,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    var timestamp by IssuesTable.timestamp.transform({ it.toDatabasePrecision() }, { it })
+    var timestamp by IssuesTable.timestamp.transformToDatabasePrecision()
     var source by IssuesTable.issueSource
     var message by IssuesTable.message
     var severity by IssuesTable.severity
