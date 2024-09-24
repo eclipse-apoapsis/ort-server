@@ -73,7 +73,7 @@ import org.koin.ktor.ext.inject
 /**
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
-fun Route.runs() = route("runs/{runId}") {
+fun Route.runs() = route("runs") {
     val issueService by inject<IssueService>()
     val ortRunRepository by inject<OrtRunRepository>()
     val repositoryService by inject<RepositoryService>()
@@ -81,138 +81,140 @@ fun Route.runs() = route("runs/{runId}") {
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
 
-    get(getOrtRunById) { _ ->
-        val ortRunId = call.requireIdParameter("runId")
+    route("{runId}") {
+        get(getOrtRunById) { _ ->
+            val ortRunId = call.requireIdParameter("runId")
 
-        ortRunRepository.get(ortRunId)?.let { ortRun ->
-            requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-            repositoryService.getJobs(ortRun.repositoryId, ortRun.index)?.let { jobs ->
-                call.respond(HttpStatusCode.OK, ortRun.mapToApi(jobs.mapToApi()))
-            }
-        } ?: call.respond(HttpStatusCode.NotFound)
-    }
-
-    route("logs") {
-        val logFileService by inject<LogFileService>()
-
-        get(getLogsByRunId) {
-            call.forRun(ortRunRepository) { ortRun ->
+            ortRunRepository.get(ortRunId)?.let { ortRun ->
                 requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-                val sources = call.extractSteps()
-                val level = call.extractLevel()
-                val startTime = ortRun.createdAt
-                val endTime = ortRun.finishedAt ?: Clock.System.now()
-                val logArchive = logFileService.createLogFilesArchive(ortRun.id, sources, level, startTime, endTime)
+                repositoryService.getJobs(ortRun.repositoryId, ortRun.index)?.let { jobs ->
+                    call.respond(HttpStatusCode.OK, ortRun.mapToApi(jobs.mapToApi()))
+                }
+            } ?: call.respond(HttpStatusCode.NotFound)
+        }
 
-                try {
+        route("logs") {
+            val logFileService by inject<LogFileService>()
+
+            get(getLogsByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val sources = call.extractSteps()
+                    val level = call.extractLevel()
+                    val startTime = ortRun.createdAt
+                    val endTime = ortRun.finishedAt ?: Clock.System.now()
+                    val logArchive = logFileService.createLogFilesArchive(ortRun.id, sources, level, startTime, endTime)
+
+                    try {
+                        call.response.header(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.Attachment.withParameter(
+                                ContentDisposition.Parameters.FileName,
+                                "run-${ortRun.id}-$level-logs.zip"
+                            ).toString()
+                        )
+
+                        call.respondFile(logArchive)
+                    } finally {
+                        logArchive.delete()
+                    }
+                }
+            }
+        }
+
+        route("issues") {
+            get(getIssuesByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val pagingOptions = call.pagingOptions(SortProperty("timestamp", SortDirection.DESCENDING))
+
+                    val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                    val pagedResponse = issueForOrtRun.mapToApi(Issue::mapToApi)
+
+                    call.respond(HttpStatusCode.OK, pagedResponse)
+                }
+            }
+        }
+
+        route("vulnerabilities") {
+            get(getVulnerabilitiesByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+
+                    val vulnerabilitiesForOrtRun =
+                        vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                    val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
+
+                    call.respond(HttpStatusCode.OK, pagedResponse)
+                }
+            }
+        }
+
+        route("rule-violations") {
+            get(getRuleViolationsByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val pagingOptions = call.pagingOptions(SortProperty("rule", SortDirection.ASCENDING))
+
+                    val ruleViolationsForOrtRun =
+                        ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                    val pagedResponse = ruleViolationsForOrtRun.mapToApi(RuleViolationWithIdentifier::mapToApi)
+
+                    call.respond(HttpStatusCode.OK, pagedResponse)
+                }
+            }
+        }
+
+        route("packages") {
+            get(getPackagesByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val pagingOptions = call.pagingOptions(SortProperty("purl", SortDirection.ASCENDING))
+
+                    val packagesForOrtRun = packageService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                    val pagedResponse = packagesForOrtRun.mapToApi(Package::mapToApi)
+
+                    call.respond(HttpStatusCode.OK, pagedResponse)
+                }
+            }
+        }
+
+        route("reporter/{fileName}") {
+            val reportStorageService by inject<ReportStorageService>()
+
+            get(getReportByRunIdAndFileName) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    val fileName = call.requireParameter("fileName")
+
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
+
                     call.response.header(
                         HttpHeaders.ContentDisposition,
                         ContentDisposition.Attachment.withParameter(
                             ContentDisposition.Parameters.FileName,
-                            "run-${ortRun.id}-$level-logs.zip"
+                            fileName
                         ).toString()
                     )
 
-                    call.respondFile(logArchive)
-                } finally {
-                    logArchive.delete()
+                    call.respondOutputStream(
+                        downloadData.contentType,
+                        producer = downloadData.loader,
+                        contentLength = downloadData.contentLength
+                    )
                 }
-            }
-        }
-    }
-
-    route("issues") {
-        get(getIssuesByRunId) {
-            call.forRun(ortRunRepository) { ortRun ->
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val pagingOptions = call.pagingOptions(SortProperty("timestamp", SortDirection.DESCENDING))
-
-                val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
-
-                val pagedResponse = issueForOrtRun.mapToApi(Issue::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-        }
-    }
-
-    route("vulnerabilities") {
-        get(getVulnerabilitiesByRunId) {
-            call.forRun(ortRunRepository) { ortRun ->
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
-
-                val vulnerabilitiesForOrtRun =
-                    vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
-
-                val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-        }
-    }
-
-    route("rule-violations") {
-        get(getRuleViolationsByRunId) {
-            call.forRun(ortRunRepository) { ortRun ->
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val pagingOptions = call.pagingOptions(SortProperty("rule", SortDirection.ASCENDING))
-
-                val ruleViolationsForOrtRun =
-                    ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
-
-                val pagedResponse = ruleViolationsForOrtRun.mapToApi(RuleViolationWithIdentifier::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-        }
-    }
-
-    route("packages") {
-        get(getPackagesByRunId) {
-            call.forRun(ortRunRepository) { ortRun ->
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val pagingOptions = call.pagingOptions(SortProperty("purl", SortDirection.ASCENDING))
-
-                val packagesForOrtRun = packageService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
-
-                val pagedResponse = packagesForOrtRun.mapToApi(Package::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-        }
-    }
-
-    route("reporter/{fileName}") {
-        val reportStorageService by inject<ReportStorageService>()
-
-        get(getReportByRunIdAndFileName) {
-            call.forRun(ortRunRepository) { ortRun ->
-                val fileName = call.requireParameter("fileName")
-
-                requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
-
-                val downloadData = reportStorageService.fetchReport(ortRun.id, fileName)
-
-                call.response.header(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.Attachment.withParameter(
-                        ContentDisposition.Parameters.FileName,
-                        fileName
-                    ).toString()
-                )
-
-                call.respondOutputStream(
-                    downloadData.contentType,
-                    producer = downloadData.loader,
-                    contentLength = downloadData.contentLength
-                )
             }
         }
     }
