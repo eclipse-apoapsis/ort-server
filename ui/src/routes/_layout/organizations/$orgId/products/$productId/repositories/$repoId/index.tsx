@@ -27,14 +27,14 @@ import { EditIcon, PlusIcon, Repeat, View } from 'lucide-react';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
-  useRepositoriesServiceGetOrtRuns,
+  useRepositoriesServiceGetOrtRunsByRepositoryId,
   useRepositoriesServiceGetRepositoryById,
 } from '@/api/queries';
 import {
-  prefetchUseRepositoriesServiceGetOrtRuns,
+  prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId,
   prefetchUseRepositoriesServiceGetRepositoryById,
 } from '@/api/queries/prefetch';
-import { ApiError, GetOrtRunsResponse } from '@/api/requests';
+import { ApiError, GetOrtRunsByRepositoryIdResponse } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -64,7 +64,7 @@ import { paginationSchema } from '@/schemas';
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
 
-const columns: ColumnDef<GetOrtRunsResponse['data'][number]>[] = [
+const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
   {
     accessorKey: 'runIndex',
     header: () => <div>Run</div>,
@@ -206,7 +206,7 @@ const RepoComponent = () => {
     error: runsError,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRuns({
+  } = useRepositoriesServiceGetOrtRunsByRepositoryId({
     repositoryId: Number.parseInt(params.repoId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -367,12 +367,15 @@ export const Route = createFileRoute(
       prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
         repositoryId: Number.parseInt(params.repoId),
       }),
-      prefetchUseRepositoriesServiceGetOrtRuns(context.queryClient, {
-        repositoryId: Number.parseInt(params.repoId),
-        limit: pageSize || defaultPageSize,
-        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        sort: '-index',
-      }),
+      prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId(
+        context.queryClient,
+        {
+          repositoryId: Number.parseInt(params.repoId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          sort: '-index',
+        }
+      ),
     ]);
   },
   component: RepoComponent,

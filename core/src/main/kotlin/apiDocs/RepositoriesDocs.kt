@@ -320,8 +320,8 @@ val deleteRepositoryById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getOrtRuns: OpenApiRoute.() -> Unit = {
-    operationId = "getOrtRuns"
+val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRunsByRepositoryId"
     summary = "Get all ORT runs of a repository."
     tags = listOf("Repositories")
 
