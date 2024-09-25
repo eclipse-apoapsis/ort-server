@@ -1466,6 +1466,48 @@ class OrchestratorTest : WordSpec() {
                 }
             }
 
+            "update the job in the database and mark the ORT run as finished with issues if some issues occurred" {
+                val notifierWorkerResult = NotifierWorkerResult(notifierJob.id)
+                val notifierJobRepository: NotifierJobRepository =
+                    createRepository(JobStatus.FINISHED, notifierJob.id) {
+                        every { get(notifierJob.id) } returns notifierJob
+                        every { complete(notifierJob.id, any(), any()) } returns notifierJob
+                        every { deleteMailRecipients(notifierJob.id) } returns notifierJob
+                    }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED_WITH_ISSUES)
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
+                val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
+
+                val ortRunRepository = createOrtRunRepository()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        notifierJobRepository = notifierJobRepository,
+                        ortRunRepository = ortRunRepository
+                    ).handleNotifierWorkerResult(msgHeader, notifierWorkerResult)
+                }
+
+                verify(exactly = 1) {
+                    notifierJobRepository.complete(
+                        id = withArg { it shouldBe notifierJob.id },
+                        finishedAt = withArg { it.verifyTimeRange(10.seconds) },
+                        status = withArg { it shouldBe JobStatus.FINISHED }
+                    )
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe notifierJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FINISHED_WITH_ISSUES) }
+                    )
+                }
+            }
+
             "delete the recipient email addresses" {
                 val notifierWorkerResult = NotifierWorkerResult(notifierJob.id)
                 val notifierJobRepository: NotifierJobRepository =
