@@ -1,0 +1,21 @@
+name: ORT
+
+on:
+  workflow_dispatch:
+
+env:
+  ORT_IMAGE: ghcr.io/oss-review-toolkit/ort-minimal
+
+jobs:
+  ort:
+    name: Run ORT
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Pull ORT Docker Image
+      run: docker pull ${{ env.ORT_IMAGE }}
+
+    - name: Check ORT Requirements
+      run: docker run --rm ${{ env.ORT_IMAGE }} requirements
