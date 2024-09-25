@@ -17,19 +17,39 @@
 
 excludes:
   paths:
-  - pattern: "**/src/{:funTest|test}/**"
+  - pattern: "buildSrc/**"
+    reason: "BUILD_TOOL_OF"
+    comment: >-
+      The buildSrc directory contains build scripts for the Gradle build tool.
+  - pattern: "**/src/test/**"
     reason: "TEST_OF"
     comment: >-
       Licenses contained in this directory are used for testing and do not apply to the ORT server.
+  - pattern: "website/**"
+    reason: "OTHER"
+    comment: >-
+      The website directory contains the ORT server's website and is not part of the server itself.
   scopes:
   - pattern: ".*[tT]est.*"
     reason: "TEST_DEPENDENCY_OF"
     comment: >-
-      Packages for testing only. Not part of released artifacts.
+      Packages for testing only.
   - pattern: "detekt.*"
     reason: "DEV_DEPENDENCY_OF"
     comment: >-
-      Packages for static code analysis.
+      Packages for static code analysis only.
+  - pattern: "devDependencies"
+    reason: "TEST_DEPENDENCY_OF"
+    comment: >-
+      Packages for development only.
+  - pattern: "kotlin.*"
+    reason: "BUILD_DEPENDENCY_OF"
+    comment: >-
+      Packages for Kotlin compiler only.
+  - pattern: "metadataCompileClasspath"
+    reason: "BUILD_DEPENDENCY_OF"
+    comment: >-
+      Packages for Kotlin compiler only.
 
 curations:
   packages:
