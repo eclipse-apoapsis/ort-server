@@ -1,0 +1,199 @@
+CREATE INDEX advisor_configurations_advisor_run_id ON advisor_configurations (advisor_run_id);
+
+CREATE INDEX advisor_configurations_options_advisor_configuration_option_id ON advisor_configurations_options (advisor_configuration_option_id);
+
+CREATE INDEX advisor_configurations_secrets_advisor_configuration_secret_id ON advisor_configurations_secrets (advisor_configuration_secret_id);
+
+CREATE INDEX advisor_results_advisor_run_identifier_id ON advisor_results (advisor_run_identifier_id);
+
+CREATE INDEX advisor_results_defects_defect_id ON advisor_results_defects (defect_id);
+
+CREATE INDEX advisor_results_issues_issue_id ON advisor_results_issues (issue_id);
+
+CREATE INDEX advisor_results_vulnerabilities_vulnerability_id ON advisor_results_vulnerabilities (vulnerability_id);
+
+CREATE INDEX advisor_runs_advisor_job_id ON advisor_runs (advisor_job_id);
+CREATE INDEX advisor_runs_environment_id ON advisor_runs (environment_id);
+
+CREATE INDEX advisor_runs_identifiers_advisor_run_id ON advisor_runs_identifiers (advisor_run_id);
+CREATE INDEX advisor_runs_identifiers_identifier_id ON advisor_runs_identifiers (identifier_id);
+
+CREATE INDEX analyzer_configurations_analyzer_run_id ON analyzer_configurations (analyzer_run_id);
+
+CREATE INDEX analyzer_configurations_package_manager_configurations_package_manager_configuration_id ON analyzer_configurations_package_manager_configurations (package_manager_configuration_id);
+
+CREATE INDEX analyzer_runs_analyzer_job_id ON analyzer_runs (analyzer_job_id);
+CREATE INDEX analyzer_runs_environment_id ON analyzer_runs (environment_id);
+
+CREATE INDEX analyzer_runs_identifiers_issues_identifier_issue_id ON analyzer_runs_identifiers_issues (identifier_issue_id);
+
+CREATE INDEX defect_labels_defect_id ON defect_labels (defect_id);
+
+CREATE INDEX environments_tool_versions_tool_version_id ON environments_tool_versions (tool_version_id);
+
+CREATE INDEX environments_variables_variable_id ON environments_variables (variable_id);
+
+CREATE INDEX evaluator_runs_evaluator_job_id ON evaluator_runs (evaluator_job_id);
+
+CREATE INDEX evaluator_runs_rule_violations_rule_violation_id ON evaluator_runs_rule_violations (rule_violation_id);
+
+CREATE INDEX identifiers_issues_issue_id ON identifiers_issues (issue_id);
+
+CREATE INDEX infrastructure_services_organization_id ON infrastructure_services (organization_id);
+CREATE INDEX infrastructure_services_ort_runs_ort_run_id ON infrastructure_services_ort_runs (ort_run_id);
+CREATE INDEX infrastructure_services_password_secret_id ON infrastructure_services (password_secret_id);
+CREATE INDEX infrastructure_services_product_id ON infrastructure_services (product_id);
+CREATE INDEX infrastructure_services_username_secret_id ON infrastructure_services (username_secret_id);
+
+CREATE INDEX nested_provenance_sub_repositories_nested_provenance_id ON nested_provenance_sub_repositories (nested_provenance_id);
+CREATE INDEX nested_provenance_sub_repositories_vcs_id ON nested_provenance_sub_repositories (vcs_id);
+
+CREATE INDEX nested_repositories_vcs_id ON nested_repositories (vcs_id);
+
+CREATE INDEX notifier_jobs_ort_run_id ON notifier_jobs (ort_run_id);
+
+CREATE INDEX notifier_runs_notifier_job_id ON notifier_runs (notifier_job_id);
+
+CREATE INDEX ort_runs_issues_issue_id ON ort_runs_issues (issue_id);
+
+CREATE INDEX ort_runs_labels_label_id ON ort_runs_labels (label_id);
+
+CREATE INDEX ort_runs_repository_id ON ort_runs (repository_id);
+CREATE INDEX ort_runs_vcs_id ON ort_runs (vcs_id);
+CREATE INDEX ort_runs_vcs_processed_id ON ort_runs (vcs_processed_id);
+
+CREATE INDEX packages_binary_artifact_id ON packages (binary_artifact_id);
+CREATE INDEX packages_identifier_id ON packages (identifier_id);
+CREATE INDEX packages_source_artifact_id ON packages (source_artifact_id);
+CREATE INDEX packages_vcs_id ON packages (vcs_id);
+CREATE INDEX packages_vcs_processed_id ON packages (vcs_processed_id);
+
+
+CREATE INDEX package_configurations_license_finding_curations_license_finding_curation_id ON package_configurations_license_finding_curations (license_finding_curation_id);
+
+CREATE INDEX package_configurations_path_excludes_path_exclude_id ON package_configurations_path_excludes (path_exclude_id);
+
+CREATE INDEX package_configurations_vcs_matcher_id ON package_configurations (vcs_matcher_id);
+
+CREATE INDEX package_curations_identifier_id ON package_curations (identifier_id);
+CREATE INDEX package_curations_package_curation_data_id ON package_curations (package_curation_data_id);;
+
+CREATE INDEX package_curation_data_binary_artifact_id ON package_curation_data (binary_artifact_id);
+CREATE INDEX package_curation_data_source_artifact_id ON package_curation_data (source_artifact_id);
+CREATE INDEX package_curation_data_vcs_info_curation_data_id ON package_curation_data (vcs_info_curation_data_id);
+
+CREATE INDEX package_curation_data_authors_package_curation_data_id ON package_curation_data_authors (package_curation_data_id);
+
+CREATE INDEX package_curation_data_declared_license_mappings_declared_license_mapping_id ON package_curation_data_declared_license_mappings (declared_license_mapping_id);
+
+CREATE INDEX package_license_choices_identifier_id ON package_license_choices (identifier_id);
+
+CREATE INDEX package_license_choices_spdx_license_choices_spdx_license_choice_id ON package_license_choices_spdx_license_choices (spdx_license_choice_id);
+
+CREATE INDEX package_manager_configuration_options_package_manager_configuration_id ON package_manager_configuration_options (package_manager_configuration_id);
+
+CREATE INDEX package_provenances_artifact_id ON package_provenances (artifact_id);
+CREATE INDEX package_provenances_nested_provenance_id ON package_provenances (nested_provenance_id);
+CREATE INDEX package_provenances_vcs_id ON package_provenances (vcs_id);
+
+CREATE INDEX packages_analyzer_runs_analyzer_run_id ON packages_analyzer_runs (analyzer_run_id);
+
+CREATE INDEX packages_declared_licenses_declared_license_id ON packages_declared_licenses (declared_license_id);
+
+CREATE INDEX processed_declared_licenses_mapped_declared_licenses_mapped_declared_license_id ON processed_declared_licenses_mapped_declared_licenses (mapped_declared_license_id);
+
+CREATE INDEX processed_declared_licenses_unmapped_declared_licenses_unmapped_declared_license_id ON processed_declared_licenses_unmapped_declared_licenses (unmapped_declared_license_id);
+
+CREATE INDEX products_organization_id ON products (organization_id);
+
+CREATE INDEX project_scopes_project_id ON project_scopes (project_id);
+
+CREATE INDEX projects_identifier_id ON projects (identifier_id);
+CREATE INDEX projects_vcs_id ON projects (vcs_id);
+CREATE INDEX projects_vcs_processed_id ON projects (vcs_processed_id);
+
+CREATE INDEX projects_authors_project_id ON projects_authors (project_id);
+
+CREATE INDEX projects_analyzer_runs_analyzer_run_id ON projects_analyzer_runs (analyzer_run_id);
+
+CREATE INDEX projects_declared_licenses_declared_license_id ON projects_declared_licenses (declared_license_id);
+
+CREATE INDEX provenance_snippet_choices_snippet_choices_snippet_choices_id ON provenance_snippet_choices_snippet_choices (snippet_choices_id);
+
+CREATE INDEX reporter_runs_reporter_job_id ON reporter_runs (reporter_job_id);
+
+CREATE INDEX reporter_runs_reports_report_id ON reporter_runs_reports (report_id);
+
+CREATE INDEX repositories_product_id ON repositories (product_id);
+
+CREATE INDEX repository_analyzer_configurations_pkg_mng_conf_pkg_mng_conf_id ON repository_analyzer_configurations_package_manager_configurations (package_manager_configuration_id);
+
+CREATE INDEX repository_configurations_ort_run_id ON repository_configurations (ort_run_id);
+CREATE INDEX repository_configurations_repository_analyzer_configuration_id ON repository_configurations (repository_analyzer_configuration_id);
+
+CREATE INDEX repository_configurations_issue_resolutions_issue_resolution_id ON repository_configurations_issue_resolutions (issue_resolution_id);
+
+CREATE INDEX repository_configurations_license_finding_curations_license_finding_curation_id ON repository_configurations_license_finding_curations (license_finding_curation_id);
+
+CREATE INDEX repository_configurations_package_configurations_package_configuration_id ON repository_configurations_package_configurations (package_configuration_id);
+
+CREATE INDEX repository_configurations_package_curations_package_curation_id ON repository_configurations_package_curations (package_curation_id);
+
+CREATE INDEX repository_configurations_package_license_choices_package_license_choice_id ON repository_configurations_package_license_choices (package_license_choice_id);
+
+CREATE INDEX repository_configurations_path_excludes_path_exclude_id ON repository_configurations_path_excludes (path_exclude_id);
+
+CREATE INDEX repository_configurations_provenance_snippet_choices_provenance_snippet_choices_id ON repository_configurations_provenance_snippet_choices (provenance_snippet_choices_id);
+
+CREATE INDEX repository_configurations_rule_violation_resolutions_rule_violation_resolution_id ON repository_configurations_rule_violation_resolutions (rule_violation_resolution_id);
+
+CREATE INDEX repository_configurations_scope_excludes_scope_exclude_id ON repository_configurations_scope_excludes (scope_exclude_id);
+
+CREATE INDEX repository_configurations_spdx_license_choices_spdx_license_choice ON repository_configurations_spdx_license_choices (spdx_license_choice);
+
+CREATE INDEX repository_configurations_vulnerability_resolutions_vulnerability_resolution_id ON repository_configurations_vulnerability_resolutions (vulnerability_resolution_id);
+
+CREATE INDEX resolved_configurations_ort_run_id ON resolved_configurations (ort_run_id);
+
+CREATE INDEX resolved_configurations_issue_resolutions_issue_resolution_id ON resolved_configurations_issue_resolutions (issue_resolution_id);
+
+CREATE INDEX resolved_configurations_package_configurations_package_configuration_id ON resolved_configurations_package_configurations (package_configuration_id);
+
+CREATE INDEX resolved_configurations_rule_violation_resolutions_rule_violation_resolution_id ON resolved_configurations_rule_violation_resolutions (rule_violation_resolution_id);
+
+CREATE INDEX resolved_configurations_vulnerability_resolutions_vulnerability_resolution_id ON resolved_configurations_vulnerability_resolutions (vulnerability_resolution_id);
+
+CREATE INDEX resolved_package_curation_providers_package_curation_provider_config_id ON resolved_package_curation_providers (package_curation_provider_config_id);
+
+CREATE INDEX resolved_package_curations_package_curation_id ON resolved_package_curations (package_curation_id);
+
+CREATE INDEX rule_violations_package_identifier_id ON rule_violations (package_identifier_id);
+
+CREATE INDEX scan_results_scan_summary_id ON scan_results (scan_summary_id);
+
+CREATE INDEX scan_summaries_issues_issue_id ON scan_summaries_issues (issue_id);
+
+CREATE INDEX scanner_configurations_scanner_run_id ON scanner_configurations (scanner_run_id);
+
+CREATE INDEX scanner_configurations_detected_license_mappings_detected_license_mapping_id ON scanner_configurations_detected_license_mappings (detected_license_mapping_id);
+
+CREATE INDEX scanner_configurations_options_scanner_configuration_option_id ON scanner_configurations_options (scanner_configuration_option_id);
+
+CREATE INDEX scanner_configurations_secrets_scanner_configuration_secret_id ON scanner_configurations_secrets (scanner_configuration_secret_id);
+
+CREATE INDEX scanner_runs_environment_id ON scanner_runs (environment_id);
+CREATE INDEX scanner_runs_scanner_job_id ON scanner_runs (scanner_job_id);
+
+CREATE INDEX scanner_runs_package_provenances_package_provenance_id ON scanner_runs_package_provenances (package_provenance_id);
+
+CREATE INDEX scanner_runs_scan_results_scan_result_id ON scanner_runs_scan_results (scan_result_id);
+
+CREATE INDEX scanner_runs_scanners_identifier_id ON scanner_runs_scanners (identifier_id);
+
+CREATE INDEX secrets_organization_id ON secrets (organization_id);
+CREATE INDEX secrets_product_id ON secrets (product_id);
+CREATE INDEX secrets_repository_id ON secrets (repository_id);
+
+CREATE INDEX snippet_findings_snippets_snippet_id ON snippet_findings_snippets (snippet_id);
+
+CREATE INDEX vulnerability_references_vulnerability_id ON vulnerability_references (vulnerability_id);
