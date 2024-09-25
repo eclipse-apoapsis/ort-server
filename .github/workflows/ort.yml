@@ -3,9 +3,6 @@ name: ORT
 on:
   workflow_dispatch:
 
-env:
-  ORT_IMAGE: ghcr.io/oss-review-toolkit/ort-minimal
-
 jobs:
   ort:
     name: Run ORT
@@ -13,9 +10,87 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        path: ort-server
 
-    - name: Pull ORT Docker Image
-      run: docker pull ${{ env.ORT_IMAGE }}
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
-    - name: Check ORT Requirements
-      run: docker run --rm ${{ env.ORT_IMAGE }} requirements
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: pnpm
+        cache-dependency-path: ort-server/ui/pnpm-lock.yaml
+
+    - name: Get latest ORT version
+      run: |
+        echo "ORT_VERSION=$(curl -s https://api.github.com/repos/oss-review-toolkit/ort/releases/latest | jq -r .tag_name)" >> $GITHUB_ENV
+
+    - name: Install ORT
+      run: |
+        curl -L https://github.com/oss-review-toolkit/ort/releases/download/${{ env.ORT_VERSION }}/ort-${{ env.ORT_VERSION }}.tgz | tar xfz -
+        echo "ort-${{ env.ORT_VERSION }}/bin" >> $GITHUB_PATH
+
+    - name: Cache ORT Cache Directory
+      uses: actions/cache@v4
+      with:
+        path: ~/.ort/cache
+        key: ort-cache-${{ runner.os }}
+
+    - name: Run ORT Analyzer
+      run: |
+        set +e
+        ort --info analyze -i ort-server -o ort-results
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 2 ]; then
+          echo "ORT Analyzer exited with code $EXIT_CODE, failing workflow."
+          exit $EXIT_CODE
+        fi
+
+    - name: Run ORT Advisor
+      run: |
+        set +e
+        ort --info advise -i ort-results/analyzer-result.yml -o ort-results -a OSV
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 2 ]; then
+          echo "ORT Advisor exited with code $EXIT_CODE, failing workflow."
+          exit $EXIT_CODE
+        fi
+
+    - name: Run ORT Evaluator
+      run: |
+        set +e
+        ort --info evaluate -i ort-results/advisor-result.yml -o ort-results --rules-resource /rules/osadl.rules.kts
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 2 ]; then
+          echo "ORT Evaluator exited with code $EXIT_CODE, failing workflow."
+          exit $EXIT_CODE
+        fi
+
+    - name: Upload Evaluator Result
+      uses: actions/upload-artifact@v4
+      with:
+        name: evaluation-result
+        path: ort-results/evaluation-result.yml
+
+    - name: Run ORT Reporter
+      run: |
+        set +e
+        ort --info report -i ort-results/evaluation-result.yml -o ort-reports -f CycloneDX,SPDXDocument,WebApp
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 2 ]; then
+          echo "ORT Reporter exited with code $EXIT_CODE, failing workflow."
+          exit $EXIT_CODE
+        fi
+
+    - name: Upload ORT Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: reports
+        path: ort-reports
