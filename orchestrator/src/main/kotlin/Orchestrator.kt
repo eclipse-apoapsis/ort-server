@@ -375,10 +375,12 @@ class Orchestrator(
         if (createdJobs.isEmpty() && !context.hasRunningJobs()) {
             cleanupJobs(context.ortRun.id)
 
-            val ortRunStatus = if (context.isFailed()) {
-                OrtRunStatus.FAILED
-            } else {
-                OrtRunStatus.FINISHED
+            val ortRunStatus = when {
+                context.isFailed() -> OrtRunStatus.FAILED
+
+                context.isFinishedWithIssues() -> OrtRunStatus.FINISHED_WITH_ISSUES
+
+                else -> OrtRunStatus.FINISHED
             }
 
             log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
