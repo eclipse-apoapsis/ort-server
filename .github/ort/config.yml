@@ -1,0 +1,19 @@
+ort:
+  packageConfigurationProviders:
+  - type: OrtConfig
+  packageCurationProviders:
+  - type: OrtConfig
+  analyzer:
+    skipExcluded: true
+  advisor:
+    skipExcluded: true
+  reporter:
+    config:
+      CycloneDx:
+        output.file.formats: JSON
+      SpdxDocument:
+        creationInfo.organization: Eclipse Apoapsis
+        document.name: ORT Server
+      WebApp:
+        # Otherwise, the tree view in the report is barely usable.
+        deduplicateDependencyTree: true

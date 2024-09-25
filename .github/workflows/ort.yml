@@ -3,6 +3,9 @@ name: ORT
 on:
   workflow_dispatch:
 
+env:
+  ORT_CONFIG_DIR: ${{ github.workspace }}/ort-server/.github/ort
+
 jobs:
   ort:
     name: Run ORT
