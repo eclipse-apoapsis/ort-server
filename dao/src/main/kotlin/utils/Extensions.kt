@@ -94,7 +94,7 @@ internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQu
     }.toTypedArray()
 
     val orderedQuery = orderBy(*orders)
-    return parameters.limit?.let { orderedQuery.limit(it, parameters.offset ?: 0) } ?: orderedQuery
+    return parameters.limit?.let { orderedQuery.limit(it).offset(parameters.offset ?: 0) } ?: orderedQuery
 }
 
 /**
