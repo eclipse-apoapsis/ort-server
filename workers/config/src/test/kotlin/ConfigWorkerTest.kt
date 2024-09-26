@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
-import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -323,4 +322,4 @@ private fun mockConfigManager(validationScriptExists: Boolean = true): ConfigMan
 /**
  * Helper function to invoke the test worker with test parameters in a coroutine context.
  */
-private fun ConfigWorker.testRun(): RunResult = runBlocking { run(RUN_ID) }
+private suspend fun ConfigWorker.testRun(): RunResult = run(RUN_ID)
