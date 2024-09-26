@@ -337,7 +337,9 @@ class OrtServerMappingsTest : WordSpec({
                     VulnerabilityReference(
                         url = "http://cve.example.org",
                         scoringSystem = "CVSS3",
-                        severity = "5.5"
+                        severity = "MEDIUM",
+                        score = 5.5f,
+                        vector = "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H"
                     )
                 )
             )

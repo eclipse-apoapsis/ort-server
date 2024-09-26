@@ -587,7 +587,9 @@ fun OrtVulnerabilityReference.mapToModel() =
     VulnerabilityReference(
         url = url.toString(),
         scoringSystem = scoringSystem,
-        severity = severity
+        severity = severity,
+        score = score,
+        vector = vector
     )
 
 fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(id, reason.name, comment)

@@ -479,7 +479,7 @@ fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description
 
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
 
-fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity)
+fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity, score, vector)
 
 fun Package.mapToApi() =
     ApiPackage(

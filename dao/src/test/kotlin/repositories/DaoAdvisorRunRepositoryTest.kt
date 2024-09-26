@@ -201,7 +201,9 @@ val vulnerability = Vulnerability(
         VulnerabilityReference(
             url = "url",
             scoringSystem = "scoring-system",
-            severity = "ERROR"
+            severity = "ERROR",
+            score = 8.3f,
+            vector = "vector"
         )
     )
 )
