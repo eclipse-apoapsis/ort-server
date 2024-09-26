@@ -91,9 +91,9 @@ internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQu
         val column = table.sortableColumn(it.name)
             ?: throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
         column to it.direction.toSortOrder()
-    }.toTypedArray()
+    }
 
-    val orderedQuery = orderBy(*orders)
+    val orderedQuery = orderBy(*orders.toTypedArray())
     return parameters.limit?.let { orderedQuery.limit(it).offset(parameters.offset ?: 0) } ?: orderedQuery
 }
 
