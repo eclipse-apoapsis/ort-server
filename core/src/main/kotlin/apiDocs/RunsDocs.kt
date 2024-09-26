@@ -176,7 +176,13 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
                                     summary = "A vulnerability",
                                     description = "A description",
                                     references = listOf(
-                                        VulnerabilityReference("https://example.com", "CVSS3", "9.8")
+                                        VulnerabilityReference(
+                                            "https://example.com",
+                                            "CVSS3",
+                                            "HIGH",
+                                            9.8f,
+                                            "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                        )
                                     )
                                 ),
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0")

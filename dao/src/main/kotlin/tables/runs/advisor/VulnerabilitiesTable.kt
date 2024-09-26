@@ -59,6 +59,8 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
                         this.url = reference.url
                         this.scoringSystem = reference.scoringSystem
                         this.severity = reference.severity
+                        this.score = reference.score
+                        this.vector = reference.vector
                     }
                 }
             }

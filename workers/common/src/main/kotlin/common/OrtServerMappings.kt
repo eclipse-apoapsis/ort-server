@@ -695,7 +695,13 @@ fun Vulnerability.mapToOrt() =
         references = references.map(VulnerabilityReference::mapToOrt)
     )
 
-fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(URI.create(url), scoringSystem, severity)
+fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(
+    URI.create(url),
+    scoringSystem,
+    severity,
+    score,
+    vector
+)
 
 fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
     id = externalId,
