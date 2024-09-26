@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.fail
-import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -112,7 +111,7 @@ private val analyzerJob = AnalyzerJob(
 /**
  * Helper function to invoke this worker with test parameters.
  */
-private fun AnalyzerWorker.testRun(): RunResult = runBlocking { run(JOB_ID, TRACE_ID) }
+private suspend fun AnalyzerWorker.testRun(): RunResult = run(JOB_ID, TRACE_ID)
 
 class AnalyzerWorkerTest : StringSpec({
     "A private repository should be analyzed successfully" {
