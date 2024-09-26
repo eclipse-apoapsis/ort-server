@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -111,7 +111,7 @@ internal class ReporterWorker(
             reports = reports
         )
 
-        db.blockingQuery {
+        db.dbQuery {
             ortRunService.storeReporterRun(reporterRun)
             reporterRunnerResult.resolvedPackageConfigurations?.let {
                 ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)

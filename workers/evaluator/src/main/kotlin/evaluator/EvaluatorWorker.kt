@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
@@ -70,7 +70,7 @@ internal class EvaluatorWorker(
 
         val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
 
-        db.blockingQuery {
+        db.dbQuery {
             getValidEvaluatorJob(job.id)
             ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
             ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)

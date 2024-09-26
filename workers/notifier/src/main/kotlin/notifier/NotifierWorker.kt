@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
@@ -45,7 +45,7 @@ internal class NotifierWorker(
     private val workerContextFactory: WorkerContextFactory,
     private val ortResultGenerator: NotifierOrtResultGenerator
 ) {
-    fun run(jobId: Long, traceId: String): RunResult = runCatching {
+    suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidNotifierJob(jobId)
         val workerContext = workerContextFactory.createContext(job.ortRunId)
         val ortRun = workerContext.ortRun
@@ -69,7 +69,7 @@ internal class NotifierWorker(
             endTime = endTime
         )
 
-        db.blockingQuery {
+        db.dbQuery {
             ortRunService.storeNotifierRun(notifierRun)
         }
 

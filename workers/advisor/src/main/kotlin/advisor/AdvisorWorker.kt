@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
@@ -72,7 +72,7 @@ internal class AdvisorWorker(
             ).advisor
         ) { "ORT Adviser failed to create a result." }
 
-        db.blockingQuery {
+        db.dbQuery {
             getValidAdvisorJob(jobId)
             ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
         }

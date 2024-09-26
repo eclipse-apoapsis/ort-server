@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
@@ -48,7 +48,7 @@ class ScannerWorker(
     private val environmentService: EnvironmentService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
-        val (scannerJob, ortResult) = db.blockingQuery {
+        val (scannerJob, ortResult) = db.dbQuery {
             var job = getValidScannerJob(jobId)
             val ortRun = ortRunService.getOrtRun(job.ortRunId)
             requireNotNull(ortRun) {
@@ -82,7 +82,7 @@ class ScannerWorker(
         val scannerRun = runner.run(context, ortResult, scannerJob.configuration, scannerRunId).scanner
             ?: throw ScannerException("ORT Scanner failed to create a result.")
 
-        db.blockingQuery {
+        db.dbQuery {
             getValidScannerJob(scannerJob.id)
             ortRunService.finalizeScannerRun(scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId))
         }
