@@ -17,18 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
+package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
-
+/**
+ * Part of the request object for creating a new user with credentials in Keycloak.
+ */
 @Serializable
-internal data class UserRequest(
-    val username: UserName?,
-    val firstName: String?,
-    val lastName: String?,
-    val email: String?,
-    val enabled: Boolean = true,
-    val credentials: List<Credential> = emptyList()
+data class UserCredentials(
+    val id: String,
+    val type: String,
+    val createdDate: Long,
+    val credentialData: String
 )
