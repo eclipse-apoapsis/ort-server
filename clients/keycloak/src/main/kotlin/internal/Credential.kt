@@ -21,14 +21,9 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
-
 @Serializable
-internal data class UserRequest(
-    val username: UserName?,
-    val firstName: String?,
-    val lastName: String?,
-    val email: String?,
-    val enabled: Boolean = true,
-    val credentials: List<Credential> = emptyList()
+internal data class Credential(
+    val type: String = "password",
+    val value: String,
+    val temporary: Boolean = false
 )

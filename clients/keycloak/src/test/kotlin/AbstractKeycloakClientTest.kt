@@ -401,11 +401,22 @@ abstract class AbstractKeycloakClientTest : WordSpec() {
         }
 
         "createUser" should {
-            "successfully add a new realm user" {
+            "successfully add a new realm user without credentials" {
                 client.createUser(UserName("test_user"))
                 val user = client.getUser(UserName("test_user"))
 
                 user.username shouldBe UserName("test_user")
+                client.getUserHasCredentials(UserName("test_user")) shouldBe false
+
+                client.deleteUser(user.id)
+            }
+
+            "successfully add a new realm user with credentials" {
+                client.createUser(username = UserName("test_user"), password = "test123", temporary = true)
+                val user = client.getUser(UserName("test_user"))
+
+                user.username shouldBe UserName("test_user")
+                client.getUserHasCredentials(UserName("test_user")) shouldBe true
 
                 client.deleteUser(user.id)
             }

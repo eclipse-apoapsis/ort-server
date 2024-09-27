@@ -39,6 +39,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.Client
+import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.Credential
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.GroupRequest
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.RoleRequest
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.TokenInfo
@@ -341,14 +342,39 @@ class DefaultKeycloakClient(
         username: UserName,
         firstName: String?,
         lastName: String?,
-        email: String?
+        email: String?,
+        password: String?,
+        temporary: Boolean
     ) {
         runCatching {
+            // If a password is provided, create a Credential object; otherwise, leave credentials empty.
+            val credentials = password?.let {
+                listOf(Credential(value = it, temporary = temporary))
+            }.orEmpty()
+
+            // Create the UserRequest object which optionally includes the credentials.
+            val userRequest = UserRequest(
+                username = username,
+                firstName = firstName,
+                lastName = lastName,
+                email = email,
+                credentials = credentials
+            )
+
             httpClient.post("$apiUrl/users") {
-                setBody(UserRequest(username, firstName, lastName, email))
+                setBody(userRequest)
             }
         }.onFailure { throw KeycloakClientException("Failed to create user '${username.value}'.", it) }
     }
+
+    override suspend fun getUserHasCredentials(username: UserName): Boolean =
+        runCatching {
+            val user = getUser(username)
+            httpClient.get("$apiUrl/users/${user.id.value}/credentials") {
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Could not find user with name '${username.value}'.", it)
+        }.body<List<UserCredentials>>().isNotEmpty()
 
     override suspend fun updateUser(
         id: UserId,

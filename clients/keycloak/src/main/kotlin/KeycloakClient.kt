@@ -127,14 +127,22 @@ interface KeycloakClient {
     suspend fun getUser(username: UserName): User
 
     /**
-     * Create a new [user][User] in the Keycloak realm with the given [username], [firstName], [lastName] and [email].
+     * Create a new [user][User] in the Keycloak realm with the given [username], [firstName], [lastName], [email],
+     * [password] and [temporary].
      */
     suspend fun createUser(
         username: UserName,
         firstName: String? = null,
         lastName: String? = null,
-        email: String? = null
+        email: String? = null,
+        password: String? = null,
+        temporary: Boolean = false
     )
+
+    /**
+     * Check whether the [user][User] has credentials in the Keycloak realm.
+     */
+    suspend fun getUserHasCredentials(username: UserName): Boolean
 
     /**
      * Update the [user][User] with the given [id] within the Keycloak realm with the new [username], [firstName],

@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserCredentials
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 
@@ -47,6 +48,7 @@ class KeycloakTestClient(
     private var groupCounter = 0
     private var roleCounter = 0
     private var userCounter = 0
+    private val credentials = mutableMapOf<UserId, MutableList<UserCredentials>>()
 
     override suspend fun getGroups() = groups
 
@@ -140,11 +142,19 @@ class KeycloakTestClient(
     override suspend fun getUser(username: UserName) =
         users.find { it.username == username } ?: throw KeycloakClientException("")
 
-    override suspend fun createUser(username: UserName, firstName: String?, lastName: String?, email: String?) {
+    override suspend fun createUser(
+        username: UserName,
+        firstName: String?,
+        lastName: String?,
+        email: String?,
+        password: String?,
+        temporary: Boolean
+    ) {
         if (users.any { it.username == username }) throw KeycloakClientException("")
         val id = getNextUserId()
         users += User(id, username, firstName, lastName, email)
         userClientRoles[id] = emptySet()
+        if (password != null) credentials.getOrPut(id) { mutableListOf() } += UserCredentials("", "", 0, "")
     }
 
     override suspend fun updateUser(
@@ -187,6 +197,12 @@ class KeycloakTestClient(
 
     override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserHasCredentials(username: UserName): Boolean {
+        val user = getUser(username)
+        val creds = credentials[user.id]
+        return !creds.isNullOrEmpty()
     }
 
     private fun getNextGroupId() = GroupId("group-id-${groupCounter++}")
