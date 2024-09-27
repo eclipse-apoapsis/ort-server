@@ -44,9 +44,13 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.coalesce
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
+import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.longLiteral
 import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
@@ -64,14 +68,10 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         issues: Collection<Issue>,
         traceId: String?
     ): OrtRun = db.blockingQuery {
-        val maxIndex = OrtRunsTable.index.max()
-        val lastIndex = OrtRunsTable
-            .select(maxIndex)
-            .where { OrtRunsTable.repositoryId eq repositoryId }
-            .singleOrNull()
-            ?.get(maxIndex)
-
-        val nextIndex = (lastIndex ?: 0) + 1
+        val aliasExpression = coalesce(OrtRunsTable.index.max(), longLiteral(0)).plus(1L).alias("index")
+        val nextIndex = OrtRunsTable.select(aliasExpression).where {
+            OrtRunsTable.repositoryId eq repositoryId
+        }.single()[aliasExpression]
 
         OrtRunDao.new {
             this.index = nextIndex
