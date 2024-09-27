@@ -27,7 +27,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: String,
-    val username: String
+    val username: String,
+)
+
+@Serializable
+data class CreateUser(
+    val username: String,
+    val password: String? = null,
+
+    /** Specifies whether the password is for one-time use only */
+    val temporary: Boolean = true
 )
 
 /**

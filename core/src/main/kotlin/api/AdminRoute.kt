@@ -20,9 +20,11 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktorswaggerui.dsl.routing.post
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
@@ -31,9 +33,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
+import org.eclipse.apoapsis.ortserver.services.UserService
 
 import org.koin.ktor.ext.inject
 
@@ -51,6 +56,21 @@ fun Route.admin() = route("admin") {
 
                 call.respond(HttpStatusCode.Accepted)
             }
+        }
+    }
+    /**
+     * For CRUD operations for users.
+     */
+    route("users") {
+        val userService by inject<UserService>()
+
+        post(postUsers) {
+            requireSuperuser()
+
+            val createUser = call.receive<CreateUser>()
+            userService.createUser(createUser.username, createUser.password, createUser.temporary)
+
+            call.respond(HttpStatusCode.Created)
         }
     }
 }
