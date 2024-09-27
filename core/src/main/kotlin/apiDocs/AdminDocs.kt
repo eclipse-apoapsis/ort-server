@@ -23,6 +23,8 @@ import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+
 val runPermissionsSync: OpenApiRoute.() -> Unit = {
     operationId = "runPermissionsSync"
     summary = ""
@@ -38,6 +40,33 @@ val runPermissionsSync: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.Unauthorized to {
             description = "Unauth."
+        }
+    }
+}
+
+val postUsers: OpenApiRoute.() -> Unit = {
+    operationId = "postUsers"
+    summary = "Create a user, possibly with a password. This is enabled for server administrators only."
+    tags = listOf("Admin")
+
+    request {
+        jsonBody<CreateUser> {
+            example("Create User") {
+                value = CreateUser(username = "newUser", password = "password", temporary = true)
+                description = "temporary=true means the password is for one-time use only and needs to be changed " +
+                        "on first login. If password is not set, temporary is ignored."
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.Created to {
+            description = "Successfully created the user."
+        }
+
+        // Note: Keycloak doesn't distinguish technical from logical errors; it just returns 500 for both.
+        HttpStatusCode.InternalServerError to {
+            description = "A user with the same username already exists."
         }
     }
 }
