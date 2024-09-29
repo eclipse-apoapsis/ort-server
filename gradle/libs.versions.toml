@@ -38,6 +38,7 @@ versionsPlugin = "0.52.0"
 # Gradle dependencies
 awsSdk = "1.4.46"
 azureIdentity = "1.15.4"
+azureMessagingServicebus = "7.17.10"
 azureSecurityKeyvaultSecrets = "4.9.3"
 azureStorageBlob = "12.30.0"
 clikt = "5.0.3"
@@ -89,6 +90,7 @@ plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.
 plugin-mavenPublish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishPlugin" }
 
 azureIdentity = { module = "com.azure:azure-identity", version.ref = "azureIdentity" }
+azureMessagingServicebus = { module = "com.azure:azure-messaging-servicebus", version.ref = "azureMessagingServicebus" }
 azureSecurityKeyvaultSecrets = { module = "com.azure:azure-security-keyvault-secrets", version.ref = "azureSecurityKeyvaultSecrets" }
 azureStorageBlob = { module = "com.azure:azure-storage-blob", version.ref = "azureStorageBlob" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
