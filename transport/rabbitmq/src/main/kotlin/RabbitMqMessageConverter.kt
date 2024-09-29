@@ -35,6 +35,7 @@ internal object RabbitMqMessageConverter {
     fun MessageHeader.toAmqpProperties(): BasicProperties = BasicProperties.Builder()
         .contentType("application/json")
         .contentEncoding("UTF-8")
+        .correlationId(traceId) // TODO: Make separate PR!
         .headers(
             mapOf(
                 TRACE_PROPERTY to traceId,
