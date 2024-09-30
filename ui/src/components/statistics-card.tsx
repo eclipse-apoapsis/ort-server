@@ -23,7 +23,7 @@ type StatisticsCardProps = {
   title: string;
   icon?: React.ComponentType<{ className?: string }>;
   value?: number | string;
-
+  description?: string;
   className?: string;
 };
 
@@ -31,6 +31,7 @@ export const StatisticsCard = ({
   title,
   icon: Icon,
   value,
+  description,
   className,
 }: StatisticsCardProps) => {
   return (
@@ -44,8 +45,9 @@ export const StatisticsCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent className='text-sm'>
-        <div className='flex items-center justify-between'>
+        <div className='flex flex-col'>
           <div className='text-2xl font-bold'>{value ? value : '-'}</div>
+          <div className='text-xs'>{description}</div>
         </div>
       </CardContent>
     </Card>
