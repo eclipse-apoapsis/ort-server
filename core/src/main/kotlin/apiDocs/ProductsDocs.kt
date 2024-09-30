@@ -217,8 +217,8 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
                 example("List all secrets of a product") {
                     value = PagedResponse(
                         listOf(
-                            Secret(name = "rsa", description = "ssh rsa certificate"),
-                            Secret(name = "secret", description = "another secret")
+                            Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1"),
+                            Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
                         ),
                         PagingData(
                             limit = 20,
@@ -252,7 +252,7 @@ val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example("Get Secret") {
-                    value = Secret(name = "rsa", description = "rsa certificate")
+                    value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
                 }
             }
         }
@@ -271,9 +271,9 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
         jsonBody<CreateSecret> {
             example("Create Secret") {
                 value = CreateSecret(
-                    name = "New secret",
+                    name = "token_maven_repo_1",
                     value = "pr0d-s3cr3t-08_15",
-                    description = "The new prod secret"
+                    description = "Access token for Maven Repo 1"
                 )
             }
         }
@@ -284,7 +284,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example("Create Secret") {
-                    value = Secret(name = "rsa", description = "New secret")
+                    value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
                 }
             }
         }
