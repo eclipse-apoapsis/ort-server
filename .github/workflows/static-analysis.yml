@@ -24,7 +24,7 @@ jobs:
         configFile: .commitlintrc.yml
 
   detekt-issues:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
@@ -46,7 +46,7 @@ jobs:
       run: ./gradlew --stacktrace detektAll
 
   eslint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
       run: pnpm -C ui lint 
 
   prettier:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -106,12 +106,12 @@ jobs:
       run: npx -y --package renovate -- renovate-config-validator .github/renovate-global.json
 
   reuse-tool:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
     - name: Check REUSE Compliance
       run: |
-        pip install --user reuse==3.0.2
-        ~/.local/bin/reuse lint
+        pipx install reuse==3.0.2
+        reuse lint
