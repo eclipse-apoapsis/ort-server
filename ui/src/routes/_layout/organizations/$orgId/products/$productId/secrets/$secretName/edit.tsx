@@ -112,7 +112,6 @@ const EditProductSecretPage = () => {
       productId: Number.parseInt(params.productId),
       secretName: secret.name,
       requestBody: {
-        name: values.name,
         value: values.value,
         description: values.description,
       },

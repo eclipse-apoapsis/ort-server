@@ -820,7 +820,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, updateSecret.name.valueOrThrow)
+                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
@@ -830,7 +830,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId = createRepository().id
                 val secret = createSecret(repositoryId)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), secretDescription.asPresent())
                 val response = superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
@@ -848,7 +848,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId = createRepository().id
                 val secret = createSecret(repositoryId, path = secretErrorPath)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), "newDesc".asPresent())
                 superuserClient.patch("/api/v1/repositories/$repositoryId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
@@ -862,12 +862,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             val secret = createSecret(createdRepository.id)
 
             requestShouldRequireRole(RepositoryPermission.WRITE_SECRETS.roleName(createdRepository.id)) {
-                val updateSecret =
-                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), "new description".asPresent())
                 patch("/api/v1/repositories/${createdRepository.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }
     }
+
     "DELETE /repositories/{repositoryId}/secrets/{secretName}" should {
         "delete a secret" {
             integrationTestApplication {

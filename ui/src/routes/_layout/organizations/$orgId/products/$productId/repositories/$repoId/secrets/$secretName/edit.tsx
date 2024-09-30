@@ -116,7 +116,6 @@ const EditRepositorySecretPage = () => {
       repositoryId: Number.parseInt(params.repoId),
       secretName: secret.name,
       requestBody: {
-        name: values.name,
         value: values.value,
         description: values.description,
       },

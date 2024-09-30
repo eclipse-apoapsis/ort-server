@@ -780,7 +780,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(organizationId)
 
                 val updatedDescription = "updated description"
-                val updateSecret = UpdateSecret(secret.name.asPresent(), description = updatedDescription.asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), description = updatedDescription.asPresent())
 
                 val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
@@ -789,7 +789,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByOrganizationIdAndName(organizationId, updateSecret.name.valueOrThrow)
+                secretRepository.getByOrganizationIdAndName(organizationId, secret.name)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
@@ -799,7 +799,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val organizationId = createOrganization().id
                 val secret = createSecret(organizationId)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), secretDescription.asPresent())
                 val response = superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
@@ -817,7 +817,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val organizationId = createOrganization().id
                 val secret = createSecret(organizationId, path = secretErrorPath)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), "newDesc".asPresent())
                 superuserClient.patch("/api/v1/organizations/$organizationId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
@@ -832,7 +832,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(OrganizationPermission.WRITE_SECRETS.roleName(createdOrg.id)) {
                 val updateSecret =
-                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                    UpdateSecret(secretValue.asPresent(), "new description".asPresent())
                 patch("/api/v1/organizations/${createdOrg.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }

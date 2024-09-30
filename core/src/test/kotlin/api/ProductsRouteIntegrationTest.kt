@@ -570,7 +570,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(productId)
 
                 val updatedDescription = "updated description"
-                val updateSecret = UpdateSecret(secret.name.asPresent(), description = updatedDescription.asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), description = updatedDescription.asPresent())
 
                 val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
@@ -579,7 +579,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByProductIdAndName(productId, updateSecret.name.valueOrThrow)?.mapToApi() shouldBe
+                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
                         Secret(secret.name, updatedDescription)
             }
         }
@@ -589,7 +589,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
                 val secret = createSecret(productId)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), secretDescription.asPresent())
                 val response = superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
@@ -607,7 +607,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
                 val secret = createSecret(productId, path = secretErrorPath)
 
-                val updateSecret = UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "newDesc".asPresent())
+                val updateSecret = UpdateSecret(secretValue.asPresent(), "newDesc".asPresent())
                 superuserClient.patch("/api/v1/products/$productId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
@@ -622,7 +622,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(ProductPermission.WRITE_SECRETS.roleName(createdProduct.id)) {
                 val updateSecret =
-                    UpdateSecret(secret.name.asPresent(), secretValue.asPresent(), "new description".asPresent())
+                    UpdateSecret(secretValue.asPresent(), "new description".asPresent())
                 patch("/api/v1/products/${createdProduct.id}/secrets/${secret.name}") { setBody(updateSecret) }
             }
         }

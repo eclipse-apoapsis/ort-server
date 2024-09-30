@@ -342,11 +342,12 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
         }
         jsonBody<UpdateSecret> {
             example("Update Secret") {
-                value = UpdateSecret(
-                    name = "My updated Secret".asPresent(),
-                    value = "My updated value".asPresent(),
-                    description = "Updated description".asPresent()
-                )
+                value = """
+                    {
+                        "value": "0rg-s3cr3t-08_15",
+                        "description": "New access token for Maven Repo 1"
+                    }
+                """.trimIndent()
             }
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
         }
@@ -357,7 +358,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
             description = "Success"
             jsonBody<Secret> {
                 example("Update Secret") {
-                    value = Secret(name = "My updated Secret", description = "Updated description.")
+                    value = Secret(name = "token_maven_repo_1", description = "New access token for Maven Repo 1")
                 }
             }
         }
