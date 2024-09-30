@@ -68,10 +68,10 @@ data class CreateSecret(
 
 /**
  * Request object for the update secret endpoint.
+ * This holds only the secret value and the description. The secret name is a path variable.
  */
 @Serializable
 data class UpdateSecret(
-    val name: OptionalValue<String> = OptionalValue.Absent,
     val value: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String> = OptionalValue.Absent,
 )

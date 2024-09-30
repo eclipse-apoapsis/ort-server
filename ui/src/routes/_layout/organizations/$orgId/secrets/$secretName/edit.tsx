@@ -113,7 +113,6 @@ const EditOrganizationSecretPage = () => {
       organizationId: Number.parseInt(params.orgId),
       secretName: secret.name,
       requestBody: {
-        name: values.name,
         value: values.value,
         description: values.description,
       },
