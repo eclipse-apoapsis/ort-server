@@ -62,7 +62,7 @@ qpidJmsClient = "2.6.0"
 schemaKenerator = "1.1.1"
 slf4j = "2.0.16"
 swagger = "2.1.22"
-testContainers = "1.20.1"
+testContainers = "1.20.2"
 typesafeConfig = "1.4.3"
 wiremock = "3.0.1"
 
