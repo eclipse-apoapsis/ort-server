@@ -5,7 +5,7 @@ standalone application to deploy the [OSS Review Toolkit](https://github.com/oss
 cloud.
 
 > [!NOTE]
-> This project is currently in the [incubation phase](https://projects.eclipse.org/projects/technology.apoapsis) at the
+> This project is currently in the [incubation phase](https://www.eclipse.org/projects/handbook/#incubation) at the
 > Eclipse Foundation and working towards making the first release.
 > Once released, the project will use semantic versioning, until then breaking changes can occur at any time.
 > 
