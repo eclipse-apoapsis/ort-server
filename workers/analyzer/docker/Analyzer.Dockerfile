@@ -43,7 +43,7 @@ ARG PYTHON_VERSION=3.11.10
 ARG RUBY_VERSION=3.1.2
 ARG RUST_VERSION=1.72.0
 ARG SBT_VERSION=1.10.0
-ARG SWIFT_VERSION=5.9.2
+ARG SWIFT_VERSION=5.10.1
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
 ARG TEMURIN_VERSION=17.0.12_7-jdk-jammy@sha256:d41eff8f20494968aaa1f5bbea4547303076b915d38f7d642441bd16538b45e3
