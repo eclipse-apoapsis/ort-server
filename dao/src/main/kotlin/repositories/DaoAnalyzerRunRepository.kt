@@ -27,9 +27,9 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AuthorDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.MappedDeclaredLicenseDao
@@ -51,8 +51,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.UnmappedDeclaredL
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.DeclaredLicenseDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierIssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
@@ -61,7 +59,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -82,30 +79,33 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
         config: AnalyzerConfiguration,
         projects: Set<Project>,
         packages: Set<Package>,
-        issues: Map<Identifier, List<Issue>>,
+        issues: List<Issue>,
         dependencyGraphs: Map<String, DependencyGraph>
-    ): AnalyzerRun = db.blockingQuery {
-        val environmentDao = EnvironmentDao.getOrPut(environment)
+    ): AnalyzerRun {
+        return db.blockingQuery {
+            val jobDao = AnalyzerJobDao[analyzerJobId]
+            val environmentDao = EnvironmentDao.getOrPut(environment)
 
-        val analyzerRun = AnalyzerRunDao.new {
-            this.analyzerJob = AnalyzerJobDao[analyzerJobId]
-            this.startTime = startTime
-            this.endTime = endTime
-            this.environment = environmentDao
-            this.dependencyGraphsWrapper = DependencyGraphsWrapper(dependencyGraphs)
+            val analyzerRun = AnalyzerRunDao.new {
+                this.analyzerJob = jobDao
+                this.startTime = startTime
+                this.endTime = endTime
+                this.environment = environmentDao
+                this.dependencyGraphsWrapper = DependencyGraphsWrapper(dependencyGraphs)
+            }
+
+            createAnalyzerConfiguration(analyzerRun, config)
+
+            projects.forEach { createProject(analyzerRun, it) }
+            packages.forEach { createPackage(analyzerRun, it) }
+
+            issues.forEach {
+                val analyzerIssue = it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE)
+                OrtRunIssueDao.createByIssue(jobDao.ortRun.id.value, analyzerIssue)
+            }
+
+            analyzerRun.mapToModel()
         }
-
-        createAnalyzerConfiguration(analyzerRun, config)
-
-        projects.forEach { createProject(analyzerRun, it) }
-        packages.forEach { createPackage(analyzerRun, it) }
-
-        issues.forEach { (id, issues) ->
-            val identifier = IdentifierDao.getOrPut(id)
-            issues.forEach { createIssue(analyzerRun, identifier, it) }
-        }
-
-        analyzerRun.mapToModel()
     }
 
     override fun get(id: Long): AnalyzerRun? = db.entityQuery { AnalyzerRunDao[id].mapToModel() }
@@ -325,17 +325,4 @@ private fun createProcessedDeclaredLicense(
             it[unmappedDeclaredLicenseId] = unmappedDeclaredLicenseDao.id
         }
     }
-}
-
-private fun createIssue(analyzerRun: AnalyzerRunDao, identifier: IdentifierDao, issue: Issue): IssueDao {
-    val issueDao = IssueDao.createByIssue(issue)
-
-    val identifiersIssueDao = IdentifierIssueDao.getOrPut(identifier, issueDao)
-
-    AnalyzerRunsIdentifiersIssuesTable.insert {
-        it[analyzerRunId] = analyzerRun.id
-        it[identifierIssueId] = identifiersIssueDao.id
-    }
-
-    return issueDao
 }

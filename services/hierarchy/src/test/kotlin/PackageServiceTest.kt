@@ -404,7 +404,7 @@ class PackageServiceTest : WordSpec() {
             ),
             projects = emptySet(),
             packages = packages,
-            issues = emptyMap(),
+            issues = emptyList(),
             dependencyGraphs = emptyMap()
         )
 

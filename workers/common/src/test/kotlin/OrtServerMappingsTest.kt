@@ -272,7 +272,8 @@ class OrtServerMappingsTest : WordSpec({
                 timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 source = "tool-x",
                 message = "An issue occurred.",
-                severity = Severity.ERROR
+                severity = Severity.ERROR,
+                identifier = pkgIdentifier
             )
 
             val dependencyGraph = DependencyGraph(
@@ -293,7 +294,7 @@ class OrtServerMappingsTest : WordSpec({
                 config = analyzerConfiguration,
                 projects = setOf(project),
                 packages = setOf(pkg),
-                issues = mapOf(pkgIdentifier to listOf(issue)),
+                issues = listOf(issue),
                 dependencyGraphs = mapOf("Maven" to dependencyGraph)
             )
 

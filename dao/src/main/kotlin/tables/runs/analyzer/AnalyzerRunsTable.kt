@@ -23,7 +23,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -48,7 +47,12 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable)
+    companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable) {
+        /**
+         * Constant for the _worker_ property value set for issues to mark them as created by the Analyzer.
+         */
+        const val ISSUE_WORKER_TYPE = "analyzer"
+    }
 
     var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJobId
     var environment by EnvironmentDao referencedOn AnalyzerRunsTable.environmentId
@@ -60,7 +64,6 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     val analyzerConfiguration by AnalyzerConfigurationDao backReferencedOn AnalyzerConfigurationsTable.analyzerRunId
     val projects by ProjectDao via ProjectsAnalyzerRunsTable
     var packages by PackageDao via PackagesAnalyzerRunsTable
-    var issues by IdentifierIssueDao via AnalyzerRunsIdentifiersIssuesTable
 
     fun mapToModel() = AnalyzerRun(
         id = id.value,
@@ -71,10 +74,7 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
         config = analyzerConfiguration.mapToModel(),
         projects = projects.mapTo(mutableSetOf(), ProjectDao::mapToModel),
         packages = packages.mapTo(mutableSetOf(), PackageDao::mapToModel),
-        issues = issues.groupBy { it.identifier }.map { (identifier, idToIssues) ->
-            identifier.mapToModel() to
-                    idToIssues.filter { it.identifier == identifier }.map { it.issueDao.mapToModel() }
-        }.toMap(),
+        issues = analyzerJob.ortRun.issues.filter { it.worker == ISSUE_WORKER_TYPE }.map { it.mapToModel() },
         dependencyGraphs = dependencyGraphsWrapper.dependencyGraphs
     )
 }

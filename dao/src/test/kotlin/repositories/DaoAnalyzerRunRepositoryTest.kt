@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -67,7 +68,12 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe analyzerRun.copy(id = createdAnalyzerRun.id, analyzerJobId = analyzerJobId)
+        val expectedRun = analyzerRun.copy(
+            id = createdAnalyzerRun.id,
+            analyzerJobId = analyzerJobId,
+            issues = analyzerRun.issues.map { it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE) }
+        )
+        dbEntry shouldBe expectedRun
     }
 
     "create should deduplicate packages" {
@@ -267,6 +273,6 @@ internal val analyzerRun = AnalyzerRun(
     config = analyzerConfiguration,
     projects = setOf(project),
     packages = setOf(pkg),
-    issues = mapOf(pkg.identifier to listOf(issue)),
+    issues = listOf(issue.copy(identifier = pkg.identifier)),
     dependencyGraphs = dependencyGraphs
 )

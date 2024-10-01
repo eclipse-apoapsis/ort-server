@@ -24,15 +24,11 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorResultsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorRunsIdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsIdentifiersIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -45,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
@@ -65,13 +61,9 @@ class IssueService(private val db: Database) {
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<Issue> = db.dbQuery {
         val ortRunIssuesQuery = createOrtRunIssuesQuery(ortRunId)
-        val analyzerIssuesQuery = createAnalyzerIssuesQuery(ortRunId)
         val advisorIssuesQuery = createAdvisorIssuesQuery(ortRunId)
 
-        val combinedQuery =
-            ortRunIssuesQuery
-                .union(analyzerIssuesQuery)
-                .union(advisorIssuesQuery)
+        val combinedQuery = ortRunIssuesQuery.union(advisorIssuesQuery)
 
         val subQueryAlias = combinedQuery.alias("combined_query").selectAll()
 
@@ -104,30 +96,12 @@ class IssueService(private val db: Database) {
         )
     }
 
-    private fun createOrtRunIssuesQuery(ortRunId: Long) = (IssuesTable innerJoin OrtRunsIssuesTable).select(
-        IssuesTable.timestamp,
-        IssuesTable.issueSource,
-        IssuesTable.message,
-        IssuesTable.severity,
-        IssuesTable.affectedPath,
-        Op.nullOp<Unit>().alias("\"type\""),
-        Op.nullOp<Unit>().alias("\"namespace\""),
-        Op.nullOp<Unit>().alias("\"name\""),
-        Op.nullOp<Unit>().alias("\"version\"")
-    ).where { OrtRunsIssuesTable.ortRunId eq ortRunId }
-
-    private fun createAnalyzerIssuesQuery(ortRunId: Long): Query {
-        val analyzerIssuesIdentifiersJoin = (
-                IssuesTable innerJoin
-                        IdentifiersIssuesTable innerJoin
-                        AnalyzerRunsIdentifiersIssuesTable innerJoin
-                        AnalyzerRunsTable innerJoin
-                        AnalyzerJobsTable innerJoin
-                        IdentifiersTable
-                )
-
-        return analyzerIssuesIdentifiersJoin.select(
-            IssuesTable.timestamp,
+    private fun createOrtRunIssuesQuery(ortRunId: Long): Query {
+        val issuesIdentifiersJoin = OrtRunsIssuesTable
+            .innerJoin(IssuesTable, { issueId }, { IssuesTable.id })
+            .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+        return issuesIdentifiersJoin.select(
+            OrtRunsIssuesTable.timestamp,
             IssuesTable.issueSource,
             IssuesTable.message,
             IssuesTable.severity,
@@ -136,7 +110,7 @@ class IssueService(private val db: Database) {
             IdentifiersTable.name,
             IdentifiersTable.namespace,
             IdentifiersTable.version
-        ).where { AnalyzerJobsTable.ortRunId eq ortRunId }
+        ).where { OrtRunsIssuesTable.ortRunId eq ortRunId }
     }
 
     private fun createAdvisorIssuesQuery(ortRunId: Long): Query {

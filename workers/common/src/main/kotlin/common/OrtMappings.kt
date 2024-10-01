@@ -23,6 +23,7 @@ package org.eclipse.apoapsis.ortserver.workers.common
 
 import kotlinx.datetime.toKotlinInstant
 
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -206,7 +207,10 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
         config = config.mapToModel(),
         projects = result.projects.mapTo(mutableSetOf()) { it.mapToModel() },
         packages = result.packages.mapTo(mutableSetOf()) { it.mapToModel() },
-        issues = result.issues.entries.associate { (k, v) -> k.mapToModel() to v.map { it.mapToModel() } },
+        issues = result.issues.entries.flatMap { (k, v) ->
+            val identifier = k.mapToModel()
+            v.map { issue -> issue.mapToModel(identifier = identifier, worker = AnalyzerRunDao.ISSUE_WORKER_TYPE) }
+        },
         dependencyGraphs = result.dependencyGraphs.mapValues { it.value.mapToModel() }
     )
 
@@ -306,13 +310,15 @@ fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
     comment = comment
 )
 
-fun OrtIssue.mapToModel() =
+fun OrtIssue.mapToModel(identifier: Identifier? = null, worker: String? = null) =
     Issue(
         timestamp = timestamp.toKotlinInstant(),
         source = source,
         message = message,
         severity = severity.mapToModel(),
-        affectedPath = affectedPath
+        affectedPath = affectedPath,
+        identifier = identifier,
+        worker = worker
     )
 
 fun OrtPackage.mapToModel() =
