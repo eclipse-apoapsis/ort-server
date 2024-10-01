@@ -60,6 +60,10 @@ Files: */tsconfig.*json
 Copyright: 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
 
+Files: assets/*
+Copyright: 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
 Files: config/*.txt
 Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
