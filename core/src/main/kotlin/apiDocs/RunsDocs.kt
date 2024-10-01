@@ -26,7 +26,6 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
-import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
@@ -169,7 +168,7 @@ val getIssuesByRunId: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success."
-            jsonBody<PagedResponse<IssueWithIdentifier>> {
+            jsonBody<PagedResponse<Issue>> {
                 example("Get issues for an ORT run") {
                     value = PagedResponse(
                         listOf(

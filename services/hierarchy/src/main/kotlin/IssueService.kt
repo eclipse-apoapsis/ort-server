@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssuesTable
-import org.eclipse.apoapsis.ortserver.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -64,7 +63,7 @@ class IssueService(private val db: Database) {
     suspend fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<IssueWithIdentifier> = db.dbQuery {
+    ): ListQueryResult<Issue> = db.dbQuery {
         val ortRunIssuesQuery = createOrtRunIssuesQuery(ortRunId)
         val analyzerIssuesQuery = createAnalyzerIssuesQuery(ortRunId)
         val advisorIssuesQuery = createAdvisorIssuesQuery(ortRunId)
@@ -99,7 +98,7 @@ class IssueService(private val db: Database) {
             ?: orderedQuery
 
         ListQueryResult(
-            paginatedQuery.map(ResultRow::toIssueWithIdentifier),
+            paginatedQuery.map(ResultRow::toIssue),
             parameters,
             combinedQuery.count()
         )
@@ -164,30 +163,30 @@ class IssueService(private val db: Database) {
 }
 
 @Suppress("ComplexCondition")
-private fun ResultRow.toIssueWithIdentifier(): IssueWithIdentifier {
+private fun ResultRow.toIssue(): Issue {
     // The exposed library seems not to fully support fields on alias queries when unions are used.
     // Use the field indexes in order to extract the values from the ResultRow instead of the field names.
     // Disadvantage: More fragility, losing type safety at compile time.
     val columns = fieldIndex.keys.toList()
 
-    val issue = Issue(
-        timestamp = this[columns[0]] as Instant,
-        source = this[columns[1]] as String,
-        message = this[columns[2]] as String,
-        severity = this[columns[3]] as Severity,
-        affectedPath = this[columns[4]] as String?
-    )
-
     val type = this[columns[5]] as String?
     val name = this[columns[6]] as String?
     val namespace = this[columns[7]] as String?
     val version = this[columns[8]] as String?
-
-    return if (type == null || name == null || namespace == null || version == null) {
-        IssueWithIdentifier(issue, null)
+    val identifier = if (type == null || name == null || namespace == null || version == null) {
+        null
     } else {
-        IssueWithIdentifier(issue, Identifier(type, namespace, name, version))
+        Identifier(type, namespace, name, version)
     }
+
+    return Issue(
+        timestamp = this[columns[0]] as Instant,
+        source = this[columns[1]] as String,
+        message = this[columns[2]] as String,
+        severity = this[columns[3]] as Severity,
+        affectedPath = this[columns[4]] as String?,
+        identifier = identifier
+    )
 }
 
 /**

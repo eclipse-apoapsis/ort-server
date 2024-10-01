@@ -54,12 +54,12 @@ import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
-import org.eclipse.apoapsis.ortserver.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.PackageService
@@ -132,7 +132,7 @@ fun Route.runs() = route("runs/{runId}") {
 
                 val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
 
-                val pagedResponse = issueForOrtRun.mapToApi(IssueWithIdentifier::mapToApi)
+                val pagedResponse = issueForOrtRun.mapToApi(Issue::mapToApi)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }
