@@ -1,4 +1,4 @@
-# ORT Server
+# <img alt="ORT Server" src="assets/logo.svg" width="10%"> ORT Server 
 
 The ORT server is a standalone application to deploy the
 [OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the cloud.
