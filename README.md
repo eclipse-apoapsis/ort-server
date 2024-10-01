@@ -1,6 +1,6 @@
 # <img alt="ORT Server" src="assets/logo.svg" width="10%"> ORT Server 
 
-The ORT server is a standalone application to deploy the
+The ORT Server is a standalone application to deploy the
 [OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the cloud.
 
 > [!NOTE]
@@ -21,7 +21,7 @@ For a proper deployment to Kubernetes, the project will later provide a Helm cha
 > Do not use the Docker Compose setup in production as it uses multiple insecure defaults, like providing Keycloak
 > without TLS.
 
-To start the ORT server with the required third-party services run:
+To start the ORT Server with the required third-party services run:
 
 ```shell
 docker compose up
@@ -193,12 +193,12 @@ migrated by following these steps:
 
 #### HTTP request collections
 
-When using IntelliJ IDEA Ultimate, you can use the [integrated HTTP client](https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html) to execute requests against the ORT server.
+When using IntelliJ IDEA Ultimate, you can use the [integrated HTTP client](https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html) to execute requests against the ORT Server.
 The requests can be found in [scripts/requests](./scripts/requests).
 
 ### Debugging
 
-To debug the ORT server in IntelliJ, you can use a composition with only some selected services:
+To debug the ORT Server in IntelliJ, you can use a composition with only some selected services:
 
 ```shell
 docker compose up rabbitmq keycloak 
@@ -207,7 +207,7 @@ docker compose up rabbitmq keycloak
 Please note that Postgres does not need to be explicitly passed: since it is a dependency of Keycloak, it will be
 automatically started.
 
-Then execute the ORT server in IntelliJ with the run configuration "Run ORT Server".
+Then execute the ORT Server in IntelliJ with the run configuration "Run ORT Server".
 
 ## Troubleshooting
 
