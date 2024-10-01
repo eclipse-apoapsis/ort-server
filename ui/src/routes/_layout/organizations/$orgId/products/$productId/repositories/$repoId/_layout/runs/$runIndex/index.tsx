@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Bug, ListTree, Repeat, Scale, ShieldQuestion } from 'lucide-react';
+import { Bug, Repeat, Scale, ShieldQuestion } from 'lucide-react';
 
 import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -44,6 +44,7 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
+import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -97,7 +98,7 @@ const RunComponent = () => {
     return;
   }
 
-  const vulnTotal = vulnerabilities?.pagination.totalCount;
+  const vulnTotal = vulnerabilities.pagination.totalCount;
 
   return (
     <>
@@ -246,7 +247,7 @@ const RunComponent = () => {
               title='Issues'
               icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
               value='N/A'
-              className='hover:bg-muted/50'
+              className='h-full hover:bg-muted/50'
             />
           </Link>
           <Link
@@ -258,15 +259,9 @@ const RunComponent = () => {
               runIndex: params.runIndex,
             }}
           >
-            <StatisticsCard
-              title='Packages'
-              icon={() => (
-                <ListTree
-                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.analyzer?.status)}`}
-                />
-              )}
-              value={ortRun.jobs.analyzer ? '-' : 'N/A'}
-              className='hover:bg-muted/50'
+            <PackagesStatisticsCard
+              runId={ortRun.id}
+              status={ortRun.jobs.analyzer?.status}
             />
           </Link>
           <Link
@@ -286,7 +281,7 @@ const RunComponent = () => {
                 />
               )}
               value={ortRun.jobs.advisor ? vulnTotal : 'N/A'}
-              className='hover:bg-muted/50'
+              className='h-full hover:bg-muted/50'
             />
           </Link>
           <Link
@@ -306,7 +301,7 @@ const RunComponent = () => {
                 />
               )}
               value={ortRun.jobs.evaluator ? '-' : 'N/A'}
-              className='hover:bg-muted/50'
+              className='h-full hover:bg-muted/50'
             />
           </Link>
         </div>
