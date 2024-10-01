@@ -11,6 +11,17 @@ cloud.
 > 
 > <img alt="Eclipse Incubation" src="https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png" width="10%">
 
+## Community
+
+To communicate with the developers, you can:
+* Join the [Matrix chat](https://matrix.to/#/#apoapsis:matrix.eclipse.org).
+* Start a GitHub [discussion](https://github.com/eclipse-apoapsis/ort-server/discussions).
+* Join the [mailing list](https://accounts.eclipse.org/mailing-list/apoapsis-dev).
+
+Please report any issues to the [issue tracker](https://github.com/eclipse-apoapsis/ort-server/issues).
+
+Contributions are welcome, please see the [contributing guide](CONTRIBUTING.md) for more information.
+
 ## Running ORT Server
 
 The easiest way to run the ORT Server for testing is to use [Docker Compose](https://docs.docker.com/compose/).
