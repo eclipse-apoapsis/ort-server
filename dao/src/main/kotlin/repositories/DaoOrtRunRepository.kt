@@ -27,10 +27,10 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.LabelDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -61,7 +61,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>,
-        issues: Collection<Issue>,
         traceId: String?
     ): OrtRun = db.blockingQuery {
         val maxIndex = OrtRunsTable.index.max()
@@ -83,7 +82,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.jobConfigContext = jobConfigContext
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
-            this.issues = mapAndDeduplicate(issues, IssueDao::createByIssue)
             this.traceId = traceId
         }.mapToModel()
     }
@@ -128,7 +126,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
 
         issues.ifPresent { issues ->
-            ortRun.issues = SizedCollection(ortRun.issues + mapAndDeduplicate(issues, IssueDao::createByIssue))
+            issues.forEach { OrtRunIssueDao.createByIssue(id, it) }
         }
 
         labels.ifPresent { labels ->

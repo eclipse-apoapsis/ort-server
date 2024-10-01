@@ -29,12 +29,15 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -236,9 +239,33 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "update should update an entry in the database" {
-        val issue1 = Issue(Instant.parse("2023-08-02T06:16:10Z"), "existing", "An initial issue", Severity.WARNING)
-        val issue2 = Issue(Instant.parse("2023-08-02T06:17:16Z"), "new1", "An new issue", Severity.HINT)
-        val issue3 = Issue(Instant.parse("2023-08-02T06:17:36Z"), "new2", "Another new issue", Severity.ERROR)
+        val identifier = dbExtension.db.dbQuery {
+            IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
+        }
+
+        val issue1 = Issue(
+            Instant.parse("2023-08-02T06:16:10Z"),
+            "existing",
+            "An initial issue",
+            Severity.WARNING,
+            "some/path",
+            identifier.mapToModel(),
+            "Analyzer"
+        )
+        val issue2 = Issue(
+            Instant.parse("2023-08-02T06:17:16Z"),
+            "new1",
+            "An new issue",
+            Severity.HINT,
+            identifier = identifier.mapToModel()
+        )
+        val issue3 = Issue(
+            Instant.parse("2023-08-02T06:17:36Z"),
+            "new2",
+            "Another new issue",
+            Severity.ERROR,
+            worker = "Reporter"
+        )
 
         val label2Value = "new value for label2"
         val label3Value = "a newly added label"
@@ -250,7 +277,6 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            listOf(issue1),
             "theTraceId"
         )
 
@@ -263,7 +289,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations.asPresent(),
             resolvedJobConfigurations.asPresent(),
             resolvedContext.asPresent(),
-            listOf(issue2, issue3).asPresent(),
+            listOf(issue1, issue2, issue3).asPresent(),
             mapOf("label2" to label2Value, "label3" to label3Value).asPresent()
         )
 
@@ -278,6 +304,60 @@ class DaoOrtRunRepositoryTest : StringSpec({
         ortRunRepository.get(ortRun.id) shouldBe expectedResult
     }
 
+    "update should add new issues to a run" {
+        val identifier = dbExtension.db.dbQuery {
+            IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
+        }
+
+        val issue1 = Issue(
+            Instant.parse("2023-08-02T06:16:10Z"),
+            "existing",
+            "An initial issue",
+            Severity.WARNING,
+            "some/path",
+            identifier.mapToModel(),
+            "Analyzer"
+        )
+        val issue2 = Issue(
+            Instant.parse("2023-08-02T06:17:16Z"),
+            "new1",
+            "An new issue",
+            Severity.HINT,
+            identifier = identifier.mapToModel()
+        )
+        val issue3 = Issue(
+            Instant.parse("2023-08-02T06:17:36Z"),
+            "new2",
+            "Another new issue",
+            Severity.ERROR,
+            worker = "Reporter"
+        )
+
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            "theTraceId"
+        )
+
+        ortRunRepository.update(
+            ortRun.id,
+            issues = listOf(issue1).asPresent()
+        )
+        val updateResult = ortRunRepository.update(
+            ortRun.id,
+            issues = listOf(issue2, issue3).asPresent()
+        )
+        val expectedResult = ortRun.copy(
+            issues = listOf(issue1, issue2, issue3),
+        )
+        updateResult shouldBe expectedResult
+        ortRunRepository.get(ortRun.id) shouldBe expectedResult
+    }
+
     "update should mark a finished run as completed" {
         val ortRun = ortRunRepository.create(
             repositoryId,
@@ -286,7 +366,6 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            emptyList(),
             "theTraceId"
         )
 
@@ -304,7 +383,6 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            emptyList(),
             "traceIT"
         )
 

@@ -19,10 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
+import kotlinx.datetime.Instant
+
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -58,11 +61,18 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     var severity by IssuesTable.severity
     var affectedPath by IssuesTable.affectedPath
 
-    fun mapToModel() = Issue(
-        timestamp = timestamp,
+    fun mapToModel() = mapToModel(timestamp, null, null)
+
+    /**
+     * Return a model representation of this [IssueDao] with the given additional properties.
+     */
+    fun mapToModel(at: Instant, identifier: Identifier?, worker: String?) = Issue(
+        timestamp = at,
         source = source,
         message = message,
         severity = severity,
-        affectedPath = affectedPath
+        affectedPath = affectedPath,
+        identifier = identifier,
+        worker = worker
     )
 }

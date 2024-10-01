@@ -41,7 +41,6 @@ interface OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String? = null,
         labels: Map<String, String>,
-        issues: Collection<Issue> = emptyList(),
         traceId: String?
     ): OrtRun
 
