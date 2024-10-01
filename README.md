@@ -6,7 +6,9 @@ The ORT server is a standalone application to deploy the
 > [!NOTE]
 > This project is currently in the [incubation phase](https://projects.eclipse.org/projects/technology.apoapsis) at the
 > Eclipse Foundation and working towards making the first release.
-> Once released, the project will use semantic versioning, until then breaking changes can occur at any time. 
+> Once released, the project will use semantic versioning, until then breaking changes can occur at any time.
+> 
+> <img alt="Eclipse Incubation" src="https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png" width="10%">
 
 ## Running ORT Server
 
