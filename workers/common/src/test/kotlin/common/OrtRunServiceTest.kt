@@ -294,7 +294,7 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 projects = emptySet(),
                 packages = emptySet(),
-                issues = emptyMap(),
+                issues = emptyList(),
                 dependencyGraphs = emptyMap()
             )
 
@@ -723,7 +723,7 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 projects = emptySet(),
                 packages = emptySet(),
-                issues = emptyMap(),
+                issues = emptyList(),
                 dependencyGraphs = emptyMap()
             )
 

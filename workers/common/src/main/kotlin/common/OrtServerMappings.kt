@@ -243,10 +243,15 @@ fun AnalyzerRun.mapToOrt() =
             projects = projects.mapTo(mutableSetOf(), Project::mapToOrt),
             // TODO: Currently, curations are not stored at all, therefore the mapping just creates the OrtPackage.
             packages = packages.mapTo(mutableSetOf()) { it.mapToOrt() },
-            issues = issues.entries.associate { it.key.mapToOrt() to it.value.map(Issue::mapToOrt) },
+            issues = issues.mapToOrt(),
             dependencyGraphs = dependencyGraphs.mapValues { it.value.mapToOrt() }
         )
     )
+
+private fun Collection<Issue>.mapToOrt(): Map<OrtIdentifier, List<OrtIssue>> =
+    mapNotNull { issue ->
+        issue.identifier?.let { it.mapToOrt() to issue.mapToOrt() }
+    }.groupBy({ it.first }, { it.second })
 
 fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact.mapToOrt())
 

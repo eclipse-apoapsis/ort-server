@@ -31,6 +31,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -51,6 +52,7 @@ import java.util.EnumSet
 
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -610,6 +612,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRun.id)
 
                 val now = Clock.System.now()
+                val identifier = Identifier("Maven", "namespace", "name", "1.0.0")
                 dbExtension.fixtures.analyzerRunRepository.create(
                     analyzerJobId = analyzerJob.id,
                     startTime = now.toDatabasePrecision(),
@@ -632,36 +635,43 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     projects = emptySet(),
                     packages = emptySet(),
-                    issues = mapOf(
-                        Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
-                            Issue(
-                                timestamp = now.minus(1.hours).toDatabasePrecision(),
-                                source = "Maven",
-                                message = "Issue 1",
-                                severity = Severity.ERROR,
-                                affectedPath = "path"
-                            ),
-                            Issue(
-                                timestamp = now.toDatabasePrecision(),
-                                source = "Maven",
-                                message = "Issue 2",
-                                severity = Severity.WARNING,
-                                affectedPath = "path"
-                            )
+                    issues = listOf(
+                        Issue(
+                            timestamp = now.minus(1.hours).toDatabasePrecision(),
+                            source = "Maven",
+                            message = "Issue 1",
+                            severity = Severity.ERROR,
+                            affectedPath = "path",
+                            identifier = identifier
+                        ),
+                        Issue(
+                            timestamp = now.toDatabasePrecision(),
+                            source = "Maven",
+                            message = "Issue 2",
+                            severity = Severity.WARNING,
+                            affectedPath = "path",
+                            identifier = identifier
+                        ),
+                        Issue(
+                            timestamp = now.plus(5.seconds).toDatabasePrecision(),
+                            source = "Maven",
+                            message = "Issue 3",
+                            severity = Severity.HINT,
+                            affectedPath = "path"
                         )
                     ),
                     dependencyGraphs = emptyMap()
                 )
 
-                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=2")
 
                 response.status shouldBe HttpStatusCode.OK
                 val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 with(pagedIssues.pagination) {
-                    totalCount shouldBe 2
+                    totalCount shouldBe 3
                     offset shouldBe 0
-                    limit shouldBe 1
+                    limit shouldBe 2
 
                     // Default sort order applied?
                     sortProperties.firstOrNull()?.name shouldBe "timestamp"
@@ -669,21 +679,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 with(pagedIssues.data) {
-                    shouldHaveSize(1)
-                    with(first()) {
-                        timestamp.epochSeconds shouldBe now.epochSeconds
+                    shouldHaveSize(2)
+                    with(get(1)) {
+                        now.epochSeconds - timestamp.epochSeconds shouldBeLessThan 10
                         source shouldBe "Maven"
                         message shouldBe "Issue 2"
                         severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
                         affectedPath shouldBe "path"
 
                         with(identifier) {
-                            this?.type shouldBe "Maven"
-                            this?.namespace shouldBe "namespace"
-                            this?.name shouldBe "name"
-                            this?.version shouldBe "1.0.0"
+                            this.type shouldBe "Maven"
+                            this.namespace shouldBe "namespace"
+                            this.name shouldBe "name"
+                            this.version shouldBe "1.0.0"
                         }
                     }
+                    first().identifier should beNull()
                 }
             }
         }
@@ -907,7 +918,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             isModified = false
                         )
                     ),
-                    issues = emptyMap(),
+                    issues = emptyList(),
                     dependencyGraphs = emptyMap()
                 )
 
