@@ -1,7 +1,8 @@
-# <img alt="ORT Server" src="assets/logo.svg" width="10%"> ORT Server 
+# <img alt="ORT Server" src="assets/logo.svg" width="10%"> Eclipse Apoapsis - ORT Server
 
-The ORT Server is a standalone application to deploy the
-[OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the cloud.
+The [Eclipse Apoapsis](https://projects.eclipse.org/projects/technology.apoapsis) project's **ORT Server** is a
+standalone application to deploy the [OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the
+cloud.
 
 > [!NOTE]
 > This project is currently in the [incubation phase](https://projects.eclipse.org/projects/technology.apoapsis) at the
