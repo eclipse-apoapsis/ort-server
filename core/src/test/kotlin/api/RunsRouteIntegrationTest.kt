@@ -56,7 +56,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
@@ -589,7 +588,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues")
 
                 response.status shouldBe HttpStatusCode.OK
-                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+                val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 pagedIssues.pagination.totalCount shouldBe 0
                 pagedIssues.data shouldHaveSize 0
@@ -657,7 +656,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
 
                 response.status shouldBe HttpStatusCode.OK
-                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+                val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 with(pagedIssues.pagination) {
                     totalCount shouldBe 2
@@ -672,13 +671,11 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 with(pagedIssues.data) {
                     shouldHaveSize(1)
                     with(first()) {
-                        with(issue) {
-                            timestamp.epochSeconds shouldBe now.epochSeconds
-                            source shouldBe "Maven"
-                            message shouldBe "Issue 2"
-                            severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
-                            affectedPath shouldBe "path"
-                        }
+                        timestamp.epochSeconds shouldBe now.epochSeconds
+                        source shouldBe "Maven"
+                        message shouldBe "Issue 2"
+                        severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                        affectedPath shouldBe "path"
 
                         with(identifier) {
                             this?.type shouldBe "Maven"
@@ -756,7 +753,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
 
                 response.status shouldBe HttpStatusCode.OK
-                val pagedIssues = response.body<PagedResponse<IssueWithIdentifier>>()
+                val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 with(pagedIssues.pagination) {
                     totalCount shouldBe 2
@@ -771,13 +768,11 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 with(pagedIssues.data) {
                     shouldHaveSize(1)
                     with(first()) {
-                        with(issue) {
-                            timestamp.epochSeconds shouldBe now.epochSeconds
-                            source shouldBe "Advisor"
-                            message shouldBe "Issue 2"
-                            severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
-                            affectedPath shouldBe "path"
-                        }
+                        timestamp.epochSeconds shouldBe now.epochSeconds
+                        source shouldBe "Advisor"
+                        message shouldBe "Issue 2"
+                        severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                        affectedPath shouldBe "path"
 
                         with(identifier) {
                             this?.type shouldBe "Maven"
