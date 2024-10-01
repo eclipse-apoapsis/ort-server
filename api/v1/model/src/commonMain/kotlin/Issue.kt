@@ -40,5 +40,11 @@ data class Issue(
     val severity: Severity,
 
     /** The optional file path this issue is related to. */
-    val affectedPath: String? = null
+    val affectedPath: String? = null,
+
+    /** An optional identifier of a [Package] this issue is related to. */
+    val identifier: Identifier? = null,
+
+    /** The worker which caused this issue if available. */
+    val worker: String? = null
 )

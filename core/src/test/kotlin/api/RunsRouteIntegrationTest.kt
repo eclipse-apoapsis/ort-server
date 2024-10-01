@@ -57,9 +57,13 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.IssueWithIdentifier
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -245,10 +249,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     traceId = "t1"
                 )
 
+                val issue = ApiIssue(
+                    timestamp = Clock.System.now().toDatabasePrecision(),
+                    source = "Integration-Test",
+                    message = "This is a test issue",
+                    severity = ApiSeverity.WARNING,
+                    affectedPath = "test/path",
+                    identifier = ApiIdentifier("test", "test-ns", "test-name", "test-version"),
+                    worker = "Analyzer"
+                )
+                ortRunRepository.update(run.id, issues = listOf(issue.mapToModel()).asPresent())
+
                 val response = superuserClient.get("/api/v1/runs/${run.id}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody run.mapToApi(Jobs())
+                val expectedBody = run.mapToApi(Jobs()).copy(issues = listOf(issue))
+                response shouldHaveBody expectedBody
             }
         }
 

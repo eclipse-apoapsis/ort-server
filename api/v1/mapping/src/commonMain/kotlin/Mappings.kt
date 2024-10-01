@@ -242,12 +242,22 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         ruleSet
     )
 
-fun Issue.mapToApi() = ApiIssue(timestamp, source, message, severity.mapToApi(), affectedPath)
+fun Issue.mapToApi() =
+    ApiIssue(timestamp, source, message, severity.mapToApi(), affectedPath, identifier?.mapToApi(), worker)
+
+fun ApiIssue.mapToModel() =
+    Issue(timestamp, source, message, severity.mapToModel(), affectedPath, identifier?.mapToModel(), worker)
 
 fun Severity.mapToApi() = when (this) {
     Severity.ERROR -> ApiSeverity.ERROR
     Severity.WARNING -> ApiSeverity.WARNING
     Severity.HINT -> ApiSeverity.HINT
+}
+
+fun ApiSeverity.mapToModel() = when (this) {
+    ApiSeverity.ERROR -> Severity.ERROR
+    ApiSeverity.WARNING -> Severity.WARNING
+    ApiSeverity.HINT -> Severity.HINT
 }
 
 fun JobStatus.mapToApi() = ApiJobStatus.valueOf(name)
@@ -500,6 +510,8 @@ fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
 )
 
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
+
+fun ApiIdentifier.mapToModel() = Identifier(type, namespace, name, version)
 
 fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity, score, vector)
 

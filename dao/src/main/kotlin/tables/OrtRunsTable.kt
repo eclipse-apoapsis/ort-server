@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.repository.RepositoryConfigurationsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
@@ -75,7 +74,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var resolvedJobConfigContext by OrtRunsTable.resolvedJobConfigContext
     var status by OrtRunsTable.status
     var finishedAt by OrtRunsTable.finishedAt.transformToDatabasePrecision()
-    var issues by IssueDao via OrtRunsIssuesTable
+    val issues by OrtRunIssueDao referrersOn OrtRunsIssuesTable.ortRunId
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
