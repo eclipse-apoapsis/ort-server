@@ -86,6 +86,10 @@ const config: Config = {
           title: 'Community',
           items: [
             {
+              label: 'Matrix Chat',
+              href: 'https://matrix.to/#/#apoapsis:matrix.eclipse.org',
+            },
+            {
               label: 'OSS Review Toolkit',
               href: 'https://oss-review-toolkit.org',
             },
