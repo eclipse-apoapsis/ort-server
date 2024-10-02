@@ -31,6 +31,26 @@ data class PagedResponse<E>(
 
     /** The pagination information for the result set. */
     val pagination: PagingData
+) {
+    /** Convert this object to a [PagedSearchResponse] with the provided [filters]. */
+    fun <T> toSearchResponse(filters: T): PagedSearchResponse<E, T> {
+        return PagedSearchResponse(data, pagination, filters)
+    }
+}
+
+/**
+ * A response object for returning paged and filtered lists of entities.
+ */
+@Serializable
+data class PagedSearchResponse<E, T>(
+    /** The list of returned entities. */
+    val data: List<E>,
+
+    /** The pagination information for the result set. */
+    val pagination: PagingData,
+
+    /** The filters applied to get the result. */
+    val filters: T
 )
 
 @Serializable

@@ -27,12 +27,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator as ApiComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType as ApiExtendedRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
@@ -50,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as A
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
@@ -101,6 +104,7 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Product
@@ -127,6 +131,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -346,6 +352,23 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
     )
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
+
+fun ApiOrtRunStatus.mapToModel() = OrtRunStatus.valueOf(name)
+
+fun <T, E> ApiFilterOperatorAndValue<T>.mapToModel(mapValues: (T) -> E): FilterOperatorAndValue<E> =
+    FilterOperatorAndValue(
+        operator = operator.mapToModel(),
+        value = mapValues(value)
+    )
+
+fun ApiOrtRunFilters.mapToModel(): OrtRunFilters =
+    OrtRunFilters(
+        status = status?.mapToModel { statusSet: Set<ApiOrtRunStatus> ->
+            statusSet.map { it.mapToModel() }.toSet()
+        }
+    )
+
+fun ApiComparisonOperator.mapToModel() = ComparisonOperator.valueOf(name)
 
 fun Product.mapToApi() = ApiProduct(id, organizationId, name, description)
 

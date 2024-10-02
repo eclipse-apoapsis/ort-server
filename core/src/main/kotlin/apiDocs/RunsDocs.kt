@@ -23,13 +23,23 @@ import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import kotlin.time.Duration.Companion.minutes
+
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
@@ -376,6 +386,70 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getOrtRuns: OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRuns"
+    summary = "Get all ORT runs."
+    tags = listOf("Runs")
+
+    request {
+        queryParameter<String>("status") {
+            description = "Defines the statuses for which runs are to be retrieved. This is a comma-separated " +
+                    "string with the following allowed statuses: " + OrtRunStatus.entries.joinToString { "'$it'" } +
+                    " (ignoring case). If missing, the runs for all statuses are retrieved. Add a minus as the first " +
+                    "item to exclude runs with the specified status(es), e.g. '-,FINISHED'."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<PagedSearchResponse<OrtRunSummary, OrtRunFilters>> {
+                example("Get ORT runs for server instance") {
+                    value = PagedSearchResponse(
+                        listOf(
+                            OrtRunSummary(
+                                id = 1,
+                                index = 2,
+                                organizationId = 1,
+                                productId = 1,
+                                repositoryId = 1,
+                                revision = "main",
+                                createdAt = Clock.System.now(),
+                                finishedAt = Clock.System.now(),
+                                jobs = JobSummaries(
+                                    analyzer = createJobSummary(10.minutes),
+                                    advisor = createJobSummary(8.minutes),
+                                    scanner = createJobSummary(8.minutes),
+                                    evaluator = createJobSummary(6.minutes),
+                                    reporter = createJobSummary(4.minutes)
+                                ),
+                                status = OrtRunStatus.FINISHED,
+                                labels = mapOf("label key" to "label value"),
+                                jobConfigContext = null,
+                                resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING)),
+                        ),
+                        OrtRunFilters(
+                            status = FilterOperatorAndValue(
+                                ComparisonOperator.IN,
+                                setOf(OrtRunStatus.FINISHED)
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 }

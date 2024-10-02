@@ -224,7 +224,7 @@ val jobs = Jobs(
 /**
  * Create a [JobSummary] for a job that was created the provided [offset] duration ago.
  */
-private fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): JobSummary {
+fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): JobSummary {
     val createdAt = CREATED_AT - offset
     return JobSummary(
         id = 1L,
