@@ -90,6 +90,6 @@ fun <T> BlockingQueue<Message<T>>.checkMessage(traceId: String, runId: Long, pay
     poll(TEST_QUEUE_TIMEOUT, TimeUnit.SECONDS) shouldNotBeNull {
         header.traceId shouldBe traceId
         header.ortRunId shouldBe runId
-        payload shouldBe payload
+        this.payload shouldBe payload
     }
 }
