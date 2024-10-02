@@ -31,10 +31,12 @@ import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -43,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -92,6 +95,22 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.mapToModel()
     }
+
+    override fun list(parameters: ListQueryParameters, filters: OrtRunFilters?): ListQueryResult<OrtRun> =
+        db.blockingQuery {
+            OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) {
+                var condition: Op<Boolean> = Op.TRUE
+
+                filters?.status?.let { statusFilter ->
+                    condition = condition and OrtRunsTable.status.applyFilter(
+                        statusFilter.operator,
+                        statusFilter.value
+                    )
+                }
+
+                condition
+            }
+        }
 
     override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
         db.blockingQueryCatching {

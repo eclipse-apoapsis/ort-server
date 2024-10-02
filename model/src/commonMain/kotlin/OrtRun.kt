@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 @Serializable
 data class OrtRun(
@@ -151,3 +152,10 @@ enum class OrtRunStatus(
     FAILED(true),
     FINISHED_WITH_ISSUES(true)
 }
+
+/**
+ * Object containing values to filter an ort run listing with.
+ */
+data class OrtRunFilters(
+    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null
+)
