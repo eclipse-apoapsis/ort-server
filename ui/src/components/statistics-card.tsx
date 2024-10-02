@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 type StatisticsCardProps = {
   title: string;
   icon?: React.ComponentType<{ className?: string }>;
-  value?: number | string;
+  value?: React.ReactNode;
   description?: string;
   className?: string;
 };

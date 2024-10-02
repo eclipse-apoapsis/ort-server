@@ -67,7 +67,16 @@ export const PackagesStatisticsCard = ({
   );
 
   if (packagesIsPending) {
-    return <LoadingIndicator />;
+    return (
+      <StatisticsCard
+        title='Packages'
+        icon={() => (
+          <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
+        )}
+        value={<LoadingIndicator />}
+        className='h-full hover:bg-muted/50'
+      />
+    );
   }
 
   if (packagesIsError) {
