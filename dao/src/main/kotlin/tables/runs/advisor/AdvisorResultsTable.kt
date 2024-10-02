@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -55,15 +55,23 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
 
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
     var defects by DefectDao via AdvisorResultsDefectsTable
-    var issues by IssueDao via AdvisorResultsIssuesTable
 
-    fun mapToModel() = AdvisorResult(
+    fun mapToModel(identifierIssues: List<Issue>) = AdvisorResult(
         advisorName = advisorName,
         capabilities = capabilities.filter(String::isNotEmpty),
         startTime = startTime,
         endTime = endTime,
-        issues = issues.map(IssueDao::mapToModel),
+        issues = filterResultIssues(identifierIssues),
         defects = defects.map(DefectDao::mapToModel),
         vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel)
     )
+
+    /**
+     * Filter the given [identifierIssues] for the issues belonging to this result. This is done based on the
+     * assumption that the source of the issues contains the advisor name. This solution is a bit hacky, but it
+     * should work if the advisors follow default conventions. Note that the primary use case is to fetch the issues
+     * for a whole ORT run and not necessarily drilling this down to single advisor results.
+     */
+    private fun filterResultIssues(identifierIssues: List<Issue>): List<Issue> =
+        identifierIssues.filter { it.source.contains(advisorName, ignoreCase = true) }
 }

@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -43,5 +46,10 @@ class AdvisorRunIdentifierDao(id: EntityID<Long>) : LongEntity(id) {
 
     val advisorResults by AdvisorResultDao referrersOn AdvisorResultsTable.advisorRunIdentifierId
 
-    fun mapToModel() = Pair(identifier.mapToModel(), advisorResults.map(AdvisorResultDao::mapToModel))
+    fun mapToModel(runIssues: List<Issue>): Pair<Identifier, List<AdvisorResult>> {
+        val modelIdentifier = identifier.mapToModel()
+        val identifierIssues = runIssues.filter { it.identifier == modelIdentifier }
+
+        return Pair(modelIdentifier, advisorResults.map { it.mapToModel(identifierIssues) })
+    }
 }
