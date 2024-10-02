@@ -21,3 +21,14 @@
   align-items: center;
   justify-content: center;
 }
+
+.incubation {
+  display: flex;
+  align-items: center;
+}
+
+.incubationImage {
+  margin-right: 20px;
+  width: 100px;
+  height: auto;
+}
