@@ -1,17 +1,19 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
+import {Icon} from '@iconify/react';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  Svg?: React.ComponentType<React.ComponentProps<'svg'>>;
+  icon?: string;
   description: JSX.Element;
 };
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Builds on the OSS Review Toolkit',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    Svg: require('@site/static/img/ort-logo.svg').default,
     description: (
       <>
           The server integrates is baed on the OSS Review Toolkit, leveraging its APIs for component analysis, license
@@ -22,7 +24,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Software Composition Analysis',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    icon: 'carbon:network-4',
     description: (
       <>
           The ORT Server provides a comprehensive solution for organizations to perform Software Composition Analysis
@@ -34,7 +36,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Web UI',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    icon: 'devicon:react',
     description: (
       <>
           The ORT Server includes a react-based web UI designed to streamline access to critical functions and data.
@@ -45,7 +47,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'REST API',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    icon: 'devicon:openapi',
     description: (
       <>
           The ORT Server provides a REST API that allows for seamless integration with other tools and automation
@@ -57,7 +59,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Scalable Architecture',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    icon: 'devicon:kubernetes',
     description: (
       <>
           The ORT Server is designed with scalability in mind, leveraging container orchestration platforms like
@@ -70,7 +72,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Access and User Management',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    icon: 'carbon:two-factor-authentication',
     description: (
       <>
           The ORT Server incorporates robust user access and role management capabilities based on Keycloak, an open
@@ -82,12 +84,19 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, Svg, icon, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
+      {icon && (
+        <div className="text--center">
+          <Icon className={styles.featureSvg} icon={icon} />
+        </div>
+      )}
+      {Svg && (
+        <div className="text--center">
+          <Svg className={styles.featureSvg} role="img" />
+        </div>
+      )}
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
         <p>{description}</p>
