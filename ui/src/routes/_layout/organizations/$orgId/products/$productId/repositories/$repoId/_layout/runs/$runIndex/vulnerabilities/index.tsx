@@ -43,6 +43,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-colors';
 import { toast } from '@/lib/toast';
@@ -81,8 +89,8 @@ const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
     header: 'Rating',
     cell: ({ row }) => {
       // Calculate the overall vulnerability rating based on the individual ratings
-      const ratings = row.original.vulnerability.references.map((reference) =>
-        Number(reference.severity)
+      const ratings = row.original.vulnerability.references.map(
+        (reference) => reference.score
       );
       const overallRating = calcOverallVulnerability(ratings);
 
@@ -138,34 +146,47 @@ const renderSubComponent = ({
 }: {
   row: Row<VulnerabilityWithIdentifier>;
 }) => {
-  const references = row.original.vulnerability.references;
+  const vulnerability = row.original.vulnerability;
 
   return (
     <div className='flex flex-col gap-4'>
       <div className='font-semibold'>Description</div>
       <div className='whitespace-pre-line italic text-muted-foreground'>
-        {row.original.vulnerability.description}
+        {vulnerability.description || 'No description.'}
       </div>
-      <Card className='rounded-lg border px-2'>
-        <CardHeader>
-          <CardTitle>References</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {references.map((reference, index) => (
-            <div key={index} className='flex gap-2'>
-              <div>{reference.severity}</div>
-              <div>{reference.scoringSystem}</div>
-              <Link
-                className='font-semibold text-blue-400 hover:underline'
-                to={reference.url}
-                target='_blank'
-              >
-                {reference.url}
-              </Link>
-            </div>
+      <div className='font-semibold'>References</div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Severity</TableHead>
+            <TableHead>Scoring system</TableHead>
+            <TableHead>Score</TableHead>
+            <TableHead>Vector</TableHead>
+            <TableHead>Link</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {vulnerability.references.map((reference, index) => (
+            <TableRow key={index}>
+              <TableCell>{reference.severity || '-'}</TableCell>
+              <TableCell>{reference.scoringSystem || '-'}</TableCell>
+              <TableCell>{reference.score || '-'}</TableCell>
+              <TableCell>{reference.vector || '-'}</TableCell>
+              <TableCell>
+                {
+                  <Link
+                    className='break-all font-semibold text-blue-400 hover:underline'
+                    to={reference.url}
+                    target='_blank'
+                  >
+                    {reference.url}
+                  </Link>
+                }
+              </TableCell>
+            </TableRow>
           ))}
-        </CardContent>
-      </Card>
+        </TableBody>
+      </Table>
     </div>
   );
 };
@@ -231,10 +252,18 @@ const VulnerabilitiesComponent = () => {
       <CardHeader>
         <CardTitle>Vulnerabilities (ORT run global ID: {ortRun.id})</CardTitle>
         <CardDescription>
-          These are the vulnerabilities found in the project. By clicking on
-          "References" you can see more information about the vulnerability.
-          Please note that the overall severity rating is calculated based on
-          the highest severity rating found in the references.
+          <p>
+            These are the vulnerabilities found currently in the project. Please
+            note that the vulnerability status may change over time, as your
+            project dependencies change. Therefore, your project should be
+            scanned for vulnerabilities regularly.
+          </p>
+          <br />
+          <p>
+            By clicking on "References" you can see more information about the
+            vulnerability. The overall severity rating is calculated based on
+            the highest severity rating found in the references.
+          </p>
         </CardDescription>
       </CardHeader>
       <CardContent>
