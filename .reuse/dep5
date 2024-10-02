@@ -124,6 +124,10 @@ Files: website/*
 Copyright: 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
 
+Files: website/static/img/ort-logo.svg
+Copyright: 2017 The ORT Project Authors (see <https://github.com/oss-review-toolkit/ort/blob/main/NOTICE>)
+License: Apache-2.0
+
 Files: gradlew*
 Copyright: 2007-2021 The original author or authors <info@gradle.com>
 License: Apache-2.0
