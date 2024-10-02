@@ -173,3 +173,11 @@ data class Jobs(
     val reporter: ReporterJob? = null,
     val notifier: NotifierJob? = null
 )
+
+/**
+ * Object containing values to filter an ort run listing with.
+ */
+@Serializable
+data class OrtRunFilters(
+    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null
+)

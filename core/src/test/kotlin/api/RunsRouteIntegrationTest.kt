@@ -58,14 +58,24 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
+import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -83,6 +93,7 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -112,6 +123,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     lateinit var ortRunRepository: OrtRunRepository
+    lateinit var organizationService: OrganizationService
+    lateinit var productService: ProductService
 
     var repositoryId = -1L
 
@@ -125,14 +138,14 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             keycloakGroupPrefix = ""
         )
 
-        val organizationService = OrganizationService(
+        organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             authorizationService
         )
 
-        val productService = ProductService(
+        productService = ProductService(
             dbExtension.db,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
@@ -954,6 +967,187 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/packages")
+            }
+        }
+    }
+
+    "GET /runs" should {
+        "return a paginated list of ORT runs from all organizations" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                val productId2 =
+                    organizationService.createProduct(
+                        name = "name",
+                        description = "description",
+                        organizationId = orgId2
+                    ).id
+                val repositoryId2 = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example2.org/repo.git",
+                    productId = productId2
+                ).id
+
+                val run1 = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t1"
+                )
+
+                val run2 = ortRunRepository.create(
+                    repositoryId2,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t2"
+                )
+
+                val response = superuserClient.get("/api/v1/runs")
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<PagedSearchResponse<OrtRunSummary, OrtRunFilters>>()
+
+                with(body.data) {
+                    shouldHaveSize(2)
+                    first() shouldBe run2.mapToApiSummary(JobSummaries())
+                    last() shouldBe run1.mapToApiSummary(JobSummaries())
+                }
+
+                body.pagination.sortProperties shouldBe listOf(SortProperty("createdAt", SortDirection.DESCENDING))
+                body.filters shouldBe OrtRunFilters()
+            }
+        }
+
+        "return a sorted and filtered list of ORT runs" {
+            integrationTestApplication {
+                ortRunRepository.create(
+                    repositoryId,
+                    "revision1",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t1"
+                )
+
+                val run2 = ortRunRepository.create(
+                    repositoryId,
+                    "revision2",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t2"
+                )
+
+                val run3 = ortRunRepository.create(
+                    repositoryId,
+                    "revision3",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t3"
+                )
+
+                val updatedRun2 = ortRunRepository.update(run2.id, OrtRunStatus.FAILED.asPresent())
+                val updatedRun3 = ortRunRepository.update(run3.id, OrtRunStatus.FINISHED_WITH_ISSUES.asPresent())
+
+                val response = superuserClient.get("/api/v1/runs?status=failed,finished_with_issues&sort=revision")
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<PagedSearchResponse<OrtRunSummary, OrtRunFilters>>()
+
+                with(body.data) {
+                    shouldHaveSize(2)
+                    first() shouldBe updatedRun2.mapToApiSummary(JobSummaries())
+                    last() shouldBe updatedRun3.mapToApiSummary(JobSummaries())
+                }
+
+                with(body.pagination) {
+                    sortProperties shouldBe listOf(SortProperty("revision", SortDirection.ASCENDING))
+                    totalCount shouldBe 2
+                }
+
+                body.filters shouldBe OrtRunFilters(
+                    status = FilterOperatorAndValue(
+                        ComparisonOperator.IN,
+                        setOf(ApiOrtRunStatus.FAILED, ApiOrtRunStatus.FINISHED_WITH_ISSUES)
+                    )
+                )
+            }
+        }
+
+        "exclude specified statuses if requested" {
+            integrationTestApplication {
+                val run1 = ortRunRepository.create(
+                    repositoryId,
+                    "revision1",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t1"
+                )
+
+                val run2 = ortRunRepository.create(
+                    repositoryId,
+                    "revision2",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t2"
+                )
+
+                val run3 = ortRunRepository.create(
+                    repositoryId,
+                    "revision3",
+                    null,
+                    JobConfigurations(),
+                    "jobConfigContext",
+                    labelsMap,
+                    traceId = "t3"
+                )
+
+                ortRunRepository.update(run2.id, OrtRunStatus.FAILED.asPresent())
+                ortRunRepository.update(run3.id, OrtRunStatus.FINISHED_WITH_ISSUES.asPresent())
+
+                val response = superuserClient.get("/api/v1/runs?status=-,failed,finished_with_issues&sort=revision")
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<PagedSearchResponse<OrtRunSummary, OrtRunFilters>>()
+
+                with(body.data) {
+                    shouldHaveSize(1)
+                    first() shouldBe run1.mapToApiSummary(JobSummaries())
+                }
+
+                with(body.pagination) {
+                    sortProperties shouldBe listOf(SortProperty("revision", SortDirection.ASCENDING))
+                    totalCount shouldBe 1
+                }
+
+                body.filters shouldBe OrtRunFilters(
+                    status = FilterOperatorAndValue(
+                        ComparisonOperator.NOT_IN,
+                        setOf(ApiOrtRunStatus.FAILED, ApiOrtRunStatus.FINISHED_WITH_ISSUES)
+                    )
+                )
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME) {
+                get("/api/v1/runs")
             }
         }
     }

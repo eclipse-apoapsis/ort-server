@@ -36,17 +36,25 @@ import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
@@ -62,6 +70,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.services.IssueService
+import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -80,6 +89,30 @@ fun Route.runs() = route("runs") {
     val vulnerabilityService by inject<VulnerabilityService>()
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
+    val ortRunService by inject<OrtRunService>()
+
+    get(getOrtRuns) {
+        requireSuperuser()
+
+        val pagingOptions = call.pagingOptions(SortProperty("createdAt", SortDirection.DESCENDING))
+        val filters = call.filters()
+
+        val ortRunsWithJobSummaries =
+            ortRunService.listOrtRuns(
+                pagingOptions.mapToModel(),
+                filters.mapToModel()
+            ).mapData { ortRun ->
+                val jobSummaries = repositoryService.getJobs(ortRun.repositoryId, ortRun.index)?.mapToApiSummary()
+                    ?: JobSummaries()
+                ortRun.mapToApiSummary(jobSummaries)
+            }
+
+        val pagedSearchResponse = ortRunsWithJobSummaries
+            .mapToApi { runs -> runs }
+            .toSearchResponse(filters)
+
+        call.respond(HttpStatusCode.OK, pagedSearchResponse)
+    }
 
     route("{runId}") {
         get(getOrtRunById) { _ ->
@@ -253,6 +286,38 @@ private fun ApplicationCall.extractSteps(): Set<LogSource> =
         .map { findByName<LogSource>(it) }
         .ifEmpty { LogSource.entries }
         .toSet()
+
+/**
+ * Extract the filter for the status from this [ApplicationCall]. If this filter is missing or empty, return
+ * null. Otherwise, it is interpreted as a comma-delimited list of [OrtRunStatus] constants to filter the
+ * result by. If an invalid status name is specified, throw a meaningful exception. If the first item on the
+ * list is a minus, the provided statuses will be excluded from the result.
+ */
+private fun ApplicationCall.status(): FilterOperatorAndValue<Set<OrtRunStatus>>? {
+    val parts = parameters["status"]?.split(',').orEmpty()
+
+    if (parts.isEmpty()) return null
+
+    val operator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN
+
+    val statuses = parts
+        .filter { it != "-" }
+        .map { findByName<OrtRunStatus>(it) }
+        .toSet()
+
+    return FilterOperatorAndValue(
+        operator,
+        statuses
+    )
+}
+
+/**
+ * Extract the filters for the run's endpoint from this [ApplicationCall].
+ */
+private fun ApplicationCall.filters(): OrtRunFilters =
+    OrtRunFilters(
+        status = status()
+    )
 
 /**
  * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
