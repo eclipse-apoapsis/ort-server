@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -53,6 +54,14 @@ interface OrtRunRepository {
      * Get an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
      */
     fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
+
+    /**
+     * List all ORT runs according to the given [parameters] and [filters].
+     */
+    fun list(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filters: OrtRunFilters? = null
+    ): ListQueryResult<OrtRun>
 
     /**
      * List all ORT runs for a [repository][repositoryId] according to the given [parameters].

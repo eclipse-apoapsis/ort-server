@@ -35,10 +35,13 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -191,6 +194,131 @@ class DaoOrtRunRepositoryTest : StringSpec({
         )
 
         ortRunRepository.get(ortRun.id) shouldBe ortRun
+    }
+
+    "list should return all runs" {
+        val ortRun1 = ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "the-first-trace-id"
+        )
+
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "the-second-trace-id"
+        )
+
+        ortRunRepository.list() shouldBe ListQueryResult(listOf(ortRun1, ortRun2), ListQueryParameters.DEFAULT, 2)
+    }
+
+    "list should apply query parameters" {
+        ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "t"
+        )
+
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "trace-id"
+        )
+
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("revision", OrderDirection.DESCENDING)),
+            limit = 1
+        )
+
+        ortRunRepository.list(parameters) shouldBe ListQueryResult(listOf(ortRun2), parameters, 2)
+    }
+
+    "list should apply filters" {
+        ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "t"
+        )
+
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "trace-id"
+        )
+
+        val failedRun = ortRunRepository.update(ortRun2.id, status = OrtRunStatus.FAILED.asPresent())
+
+        val filters = OrtRunFilters(
+            status = FilterOperatorAndValue(
+                ComparisonOperator.IN,
+                setOf(OrtRunStatus.FAILED)
+            )
+        )
+
+        ortRunRepository.list(
+            ListQueryParameters.DEFAULT,
+            filters
+        ) shouldBe ListQueryResult(listOf(failedRun), ListQueryParameters.DEFAULT, 1)
+    }
+
+    "list should apply filters based on operator" {
+        val ortRun1 = ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "t"
+        )
+
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "trace-id"
+        )
+
+        ortRunRepository.update(ortRun2.id, status = OrtRunStatus.FAILED.asPresent())
+
+        val filters = OrtRunFilters(
+            status = FilterOperatorAndValue(
+                ComparisonOperator.NOT_IN,
+                setOf(OrtRunStatus.FAILED)
+            )
+        )
+
+        ortRunRepository.list(
+            ListQueryParameters.DEFAULT,
+            filters
+        ) shouldBe ListQueryResult(listOf(ortRun1), ListQueryParameters.DEFAULT, 1)
     }
 
     "listForRepositories should return all runs for a repository" {

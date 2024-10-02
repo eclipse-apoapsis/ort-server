@@ -25,6 +25,7 @@ import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao.Companion.transform
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -37,6 +38,15 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 
 /**
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.
@@ -105,3 +115,37 @@ private fun OrderDirection.toSortOrder(): SortOrder =
         OrderDirection.ASCENDING -> SortOrder.ASC
         OrderDirection.DESCENDING -> SortOrder.DESC
     }
+
+/**
+ * Apply the given [operator] and filter [value] to filter this column by.
+ */
+fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, value: T): Op<Boolean> {
+    return when (operator) {
+        ComparisonOperator.EQUALS -> this eq value
+        ComparisonOperator.NOT_EQUALS -> this neq value
+        ComparisonOperator.GREATER_THAN -> this greater value
+        ComparisonOperator.LESS_THAN -> this less value
+        ComparisonOperator.GREATER_OR_EQUAL -> this greaterEq value
+        ComparisonOperator.LESS_OR_EQUAL -> this lessEq value
+        else -> throw IllegalArgumentException("Unsupported operator for single value")
+    }
+}
+
+/**
+ * Apply the given [value] to filter this column by using the LIKE operator.
+ */
+fun Column<String>.applyLike(value: String): Op<Boolean> {
+    return this like value
+}
+
+/**
+ * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
+ * applyFilter function for collections.
+ */
+fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, values: Collection<T>): Op<Boolean> {
+    return when (operator) {
+        ComparisonOperator.IN -> this inList values
+        ComparisonOperator.NOT_IN -> this notInList values
+        else -> throw IllegalArgumentException("Unsupported operator for collections")
+    }
+}
