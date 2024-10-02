@@ -10,32 +10,73 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: 'Builds on the OSS Review Toolkit',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+          The server integrates is baed on the OSS Review Toolkit, leveraging its APIs for component analysis, license
+          scanning, vulnerability databases, compliance rules, and report generation. This allows users to manage and
+          analyze dependencies and licenses with ease, offering detailed insights and compliance reporting.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Software Composition Analysis',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+          The ORT Server provides a comprehensive solution for organizations to perform Software Composition Analysis
+          (SCA) at scale. It supports a wide range of project setups, from mobile apps to cloud services, enabling
+          automatic generation of Software Bill of Materials (SBOMs), dependency analysis, and identification of
+          vulnerabilities, ensuring efficient management of software components across projects.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Web UI',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+          The ORT Server includes a react-based web UI designed to streamline access to critical functions and data.
+          This interface allows users to manage the compliance and security of their projects with ease, providing
+          detailed reports of software components, licenses, and vulnerabilities.
+      </>
+    ),
+  },
+  {
+    title: 'REST API',
+    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    description: (
+      <>
+          The ORT Server provides a REST API that allows for seamless integration with other tools and automation
+          workflows. This API offers endpoints for performing tasks like managing repositories, secrets, or users, and
+          getting the results of ORT runs, making it easy to incorporate ORT functionality into existing DevOps
+          pipelines or CI/CD environments.
+      </>
+    ),
+  },
+  {
+    title: 'Scalable Architecture',
+    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    description: (
+      <>
+          The ORT Server is designed with scalability in mind, leveraging container orchestration platforms like
+          Kubernetes for efficient resource management and deployment. It allows organizations to scale their software
+          composition analysis workflows horizontally by running the actual ORT components in separate containers.
+          Kubernetes integration also provides enhanced automation, fault tolerance, and dynamic load balancing,
+          ensuring high availability and reliability in production environments.
+      </>
+    ),
+  },
+  {
+    title: 'Access and User Management',
+    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    description: (
+      <>
+          The ORT Server incorporates robust user access and role management capabilities based on Keycloak, an open
+          source identity and access management solution. It supports user authentication, authorization, and
+          multi-factor authentication, allowing organizations to define roles and permissions for different users. This
+          ensures that different users can access only the relevant parts of the system.
       </>
     ),
   },
