@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorConfigurationOptionDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.AdvisorConfigurationSecretDao
@@ -38,7 +39,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.DefectDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor.VulnerabilityDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -62,9 +62,10 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
         results: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
+        val advisorJobDao = AdvisorJobDao[advisorJobId]
 
         val advisorRunDao = AdvisorRunDao.new {
-            this.advisorJob = AdvisorJobDao[advisorJobId]
+            this.advisorJob = advisorJobDao
             this.startTime = startTime
             this.endTime = endTime
             this.environment = environmentDao
@@ -81,7 +82,6 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
             }
 
             advisorResults.forEach { result ->
-                val issues = mapAndDeduplicate(result.issues, IssueDao::createByIssue)
                 val defects = mapAndDeduplicate(result.defects, DefectDao::getOrPut)
                 val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {
@@ -90,9 +90,15 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
                     this.capabilities = result.capabilities
                     this.startTime = result.startTime
                     this.endTime = result.endTime
-                    this.issues = issues
                     this.defects = defects
                     this.vulnerabilities = vulnerabilities
+                }
+
+                result.issues.forEach { issue ->
+                    OrtRunIssueDao.createByIssue(
+                        advisorJobDao.ortRun.id.value,
+                        issue.copy(identifier = id, worker = AdvisorRunDao.ISSUE_WORKER_TYPE)
+                    )
                 }
             }
         }

@@ -686,6 +686,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         message shouldBe "Issue 2"
                         severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
                         affectedPath shouldBe "path"
+                        worker shouldBe "analyzer"
 
                         with(identifier) {
                             this.type shouldBe "Maven"
@@ -784,6 +785,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         message shouldBe "Issue 2"
                         severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
                         affectedPath shouldBe "path"
+                        worker shouldBe "advisor"
 
                         with(identifier) {
                             this?.type shouldBe "Maven"

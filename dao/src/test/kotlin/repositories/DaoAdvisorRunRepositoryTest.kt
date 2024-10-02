@@ -109,7 +109,7 @@ fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) =
     endTime = advisorRun.endTime,
     environment = advisorRun.environment,
     config = advisorRun.config,
-    results = advisorRun.results
+    results = advisorRun.results.mapValues { (_, results) -> results.map { it.withPlainIssues() } }
 )
 
 val variables = mapOf(
@@ -171,11 +171,29 @@ val identifier = Identifier(
     version = "version"
 )
 
+val otherIdentifier = Identifier(
+    type = "otherType",
+    namespace = "otherNamespace",
+    name = "otherName",
+    version = "otherVersion"
+)
+
 val issue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
-    source = "source",
+    source = "NexusIq",
     message = "message",
-    severity = Severity.ERROR
+    severity = Severity.ERROR,
+    identifier = identifier,
+    worker = "advisor"
+)
+
+val otherIssue = Issue(
+    timestamp = Clock.System.now().toDatabasePrecision(),
+    source = "GitHubDefects",
+    message = "otherMessage",
+    severity = Severity.ERROR,
+    identifier = otherIdentifier,
+    worker = "advisor"
 )
 
 val defect = Defect(
@@ -214,8 +232,18 @@ val advisorResult = AdvisorResult(
     startTime = Clock.System.now().toDatabasePrecision(),
     endTime = Clock.System.now().toDatabasePrecision(),
     issues = listOf(issue),
-    defects = listOf(defect),
+    defects = emptyList(),
     vulnerabilities = listOf(vulnerability)
+)
+
+val otherAdvisorResult = AdvisorResult(
+    advisorName = "GitHubDefects",
+    capabilities = emptyList(),
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    issues = listOf(otherIssue),
+    defects = listOf(defect),
+    vulnerabilities = emptyList()
 )
 
 val advisorRun = AdvisorRun(
@@ -225,5 +253,17 @@ val advisorRun = AdvisorRun(
     endTime = Clock.System.now().toDatabasePrecision(),
     environment = environment,
     config = advisorConfiguration,
-    results = mapOf(identifier to listOf(advisorResult))
+    results = mapOf(identifier to listOf(advisorResult), otherIdentifier to listOf(otherAdvisorResult))
 )
+
+/**
+ * Return a copy of this [AdvisorResult] with the issues converted to plain issues.
+ */
+private fun AdvisorResult.withPlainIssues(): AdvisorResult =
+    copy(issues = issues.map { it.toPlain() })
+
+/**
+ * Return an [Issue] derived from this one with the fields removed that are set when the entity is created.
+ */
+private fun Issue.toPlain(): Issue =
+    copy(identifier = null, worker = null)

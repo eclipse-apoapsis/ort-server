@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.EnvironmentsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
@@ -44,7 +45,12 @@ object AdvisorRunsTable : LongIdTable("advisor_runs") {
 }
 
 class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<AdvisorRunDao>(AdvisorRunsTable)
+    companion object : LongEntityClass<AdvisorRunDao>(AdvisorRunsTable) {
+        /**
+         * Constant for the _worker_ property value set for issues to mark them as created by the Advisor.
+         */
+        const val ISSUE_WORKER_TYPE = "advisor"
+    }
 
     var advisorJob by AdvisorJobDao referencedOn AdvisorRunsTable.advisorJobId
     var environment by EnvironmentDao referencedOn AdvisorRunsTable.environmentId
@@ -55,13 +61,18 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     val advisorConfiguration by AdvisorConfigurationDao backReferencedOn AdvisorConfigurationsTable.advisorRunId
     val results by AdvisorRunIdentifierDao referrersOn AdvisorRunsIdentifiersTable.advisorRunId
 
-    fun mapToModel() = AdvisorRun(
-        id = id.value,
-        advisorJobId = advisorJob.id.value,
-        startTime = startTime,
-        endTime = endTime,
-        environment = environment.mapToModel(),
-        config = advisorConfiguration.mapToModel(),
-        results = results.associate(AdvisorRunIdentifierDao::mapToModel)
-    )
+    fun mapToModel(): AdvisorRun {
+        val runIssues = advisorJob.ortRun.issues.filter { it.worker == ISSUE_WORKER_TYPE }
+            .map(OrtRunIssueDao::mapToModel)
+
+        return AdvisorRun(
+            id = id.value,
+            advisorJobId = advisorJob.id.value,
+            startTime = startTime,
+            endTime = endTime,
+            environment = environment.mapToModel(),
+            config = advisorConfiguration.mapToModel(),
+            results = results.associate { it.mapToModel(runIssues) }
+        )
+    }
 }
