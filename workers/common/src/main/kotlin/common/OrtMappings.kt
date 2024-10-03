@@ -236,8 +236,8 @@ fun OrtDefect.mapToModel() =
 fun OrtDependencyGraph.mapToModel() =
     DependencyGraph(
         packages = packages.map { it.mapToModel() },
-        nodes = nodes?.map { it.mapToModel() }.orEmpty(),
-        edges = edges?.mapTo(mutableSetOf()) { it.mapToModel() }.orEmpty(),
+        nodes = nodes.map { it.mapToModel() },
+        edges = edges.mapTo(mutableSetOf()) { it.mapToModel() },
         scopes = scopes.mapValues { (_, indices) -> indices.map { it.mapToModel() } }
     )
 
