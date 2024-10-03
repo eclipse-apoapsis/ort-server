@@ -276,12 +276,7 @@ private fun createRepositoryProvenance(vcsInfo: VcsInfo) =
     ResolvedRepositoryProvenance(
         provenance = RepositoryProvenance(
             resolvedRevision = vcsInfo.revision,
-            vcsInfo = VcsInfo(
-                path = vcsInfo.path,
-                url = vcsInfo.url,
-                revision = vcsInfo.revision,
-                type = VcsType(vcsInfo.type.toString())
-            )
+            vcsInfo = vcsInfo
         ),
         clonedRevision = vcsInfo.revision,
         isFixedRevision = true
