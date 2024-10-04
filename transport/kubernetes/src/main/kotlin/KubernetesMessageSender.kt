@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.custom.Quantity
+import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
@@ -141,7 +142,14 @@ internal class KubernetesMessageSender<T : Any>(
             .endSpec()
             .build()
 
-        api.createNamespacedJob(msgConfig.namespace, jobBody, null, null, null, null)
+        runCatching {
+            api.createNamespacedJob(msgConfig.namespace, jobBody, null, null, null, null)
+        }.onFailure { e ->
+            println("ApiException: ${e.message} | ${e.cause?.message}")
+            if (e is ApiException) {
+                println("ApiException: ${e.code} | ${e.responseBody}")
+            }
+        }
     }
 
     /**
