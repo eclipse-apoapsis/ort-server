@@ -103,7 +103,7 @@ importers:
         version: 7.53.0(react@18.3.1)
       react-oidc-context:
         specifier: ^3.0.0
-        version: 3.1.1(oidc-client-ts@3.1.0)(react@18.3.1)
+        version: 3.2.0(oidc-client-ts@3.1.0)(react@18.3.1)
       sonner:
         specifier: ^1.5.0
         version: 1.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2734,11 +2734,11 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
 
-  react-oidc-context@3.1.1:
-    resolution: {integrity: sha512-pXZYVUVOU+wnLFZVh5HFGiAyAHpy0mm7mZBVp5oNuCln/7yd+Uhb7KfYI2QN+LLQI0kIv6FHIcqeUFjMIsM5gA==}
+  react-oidc-context@3.2.0:
+    resolution: {integrity: sha512-ZLaCRLWV84Cn9pFdsatmblqxLMv0np69GWVXq9RWGqAjppdOGXNIbIxWMByIio0oSCVUwdeqwYRnJme0tjqd8A==}
     engines: {node: '>=18'}
     peerDependencies:
-      oidc-client-ts: ^3.0.0
+      oidc-client-ts: ^3.1.0
       react: '>=16.8.0'
 
   react-refresh@0.14.2:
@@ -5726,7 +5726,7 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  react-oidc-context@3.1.1(oidc-client-ts@3.1.0)(react@18.3.1):
+  react-oidc-context@3.2.0(oidc-client-ts@3.1.0)(react@18.3.1):
     dependencies:
       oidc-client-ts: 3.1.0
       react: 18.3.1
