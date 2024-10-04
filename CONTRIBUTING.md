@@ -43,17 +43,101 @@ Commits should also be self-contained, meaning that they should pass all tests a
 
 ### Commit messages
 
-We use [conventional commits](https://www.conventionalcommits.org/) for our commit messages.
-This means that each commit message should follow the format `<type>(<scope>): <description>`.
-The valid types are defined in the [Commitlint configuration file](.commitlintrc.yml).
-The scopes should represent the part of the project that was changed, e.g., `analyzer`, `core`, or `ui`.
-If a commit touches multiple parts of the project, and it is not possible to split it into multiple commits, the scope can be omitted.
-
 Commit messages should be written in the imperative mood.
 For example, use "Add feature" instead of "Added feature".
+Also, they should be written in impersonal form, meaning that you should not use terms like "I" or "we".
 
+This project requires that commit messages for the [conventional commits](https://www.conventionalcommits.org/) specification.
+This means that each commit message should follow the format `<type>(<scope>): <description>`.
+The description should start with a capital letter and not end with a period.
+
+#### Types
+
+The valid types are defined in the [Commitlint configuration file](.commitlintrc.yml).
+When chosing a type, please consider the following guidelines:
+
+* `build`: Changes that affect the build system.
+* `chore`: Changes that do not affect the application, e.g., removing an obsolete workaround in the code.
+* `ci`: Changes to the CI configuration.
+* `deps`: Changes to the dependencies of the project.
+* `docs`: Changes to the documentation, either in code or in documentation files.
+* `feat`: A new feature of the application.
+* `fix`: A bug fix in the application.
+* `perf`: A change that improves the performance of the application.
+* `refactor`: A code refactoring that does not change the behavior of the application.
+* `revert`: A commit that reverts a previous commit.
+* `style`: Changes that do not affect the meaning of the code, e.g., formatting changes.
+* `test`: Changes to the tests of the application.
+
+The types `fix`, `feat`, and `perf` are reserved for changes that affect the application and should not be used for changes that are not user-facing.
+For example, a new build system feature should use `build`, and a test fix should use `test`.
+This is important because the commit message titles are used to generate the release notes, and the feature and fix sections in the release notes should only contain user-facing changes.
+
+#### Scopes
+
+The scopes should represent the part of the project that was changed, e.g., `analyzer`, `core`, or `ui`.
+This usually matches the name of the Gradle module that was changed.
+If a commit touches multiple parts of the project, and it is not possible to split it into multiple commits, the scope can be omitted.
+
+#### Breaking changes
+
+Breaking changes should be indicated by either adding a `BREAKING CHANGE:` section to the commit message body or by adding a `!` after the type, for example:
+
+```
+feat(api)!: Change the API to use a different format
+```
+
+or
+
+```
+feat(api): Change the API to use a different format
+
+BREAKING CHANGE: The API now uses a different format.
+```
+
+> [!CAUTION]
+> Before the 1.0.0 release, breaking changes can occur at any time and should not be marked as such in the commit message.
+> Otherwise, they would change the major version from 0 to 1 which is not intended before the 1.0.0 release (see [Semantic versioning](#semantic-versioning)).
+
+#### Body
+
+The body of the commit message should contain a more detailed description of the change.
+Especially, it should explain **why** the change was made and how it affects the application.
+
+#### Linking GitHub issues
+
+If a commit is related to a GitHub issue, it should be linked in the commit message footer, for example:
+
+```
+fix(api): Fix a bug
+
+Some more detailed description of the fix.
+
+Fixes #123.
+```
+
+This will automatically close the issue when the commit is merged to the main branch.
+In addition to the commit message, the link can optionally be added to the PR description.
+
+For the full list of supported keywords see the [GitHub documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword).
+
+If the commit is related to an issue without fixing it, it should still be referenced, for example, with `Relates to #123.`
+
+#### Validation
+
+All commit messages are validated by the [commitlint](https://commitlint.js.org/) tool in CI.
 You can locally verify that your commit messages pass the checks by running `npx commitlint --from=HEAD~1`.
 The number at the end specifies how many commits back you want to check.
+
+#### Examples
+
+If you are unsure how to properly write a commit message, just have a look at the commit history of this repository.
+
+### Semantic versioning
+
+The version of a new release is determined by the types of the commit messages since the previous release, following the [semantic versioning](https://semver.org/) scheme.
+For this, the [git-semver-plugin](https://github.com/jmongard/Git.SemVersioning.Gradle) for Gradle is used.
+Its documentation provides a [good overview](https://github.com/jmongard/Git.SemVersioning.Gradle?tab=readme-ov-file#example-of-how-version-is-calculated) of how the version is determined.
 
 ### Code review workflow
 
