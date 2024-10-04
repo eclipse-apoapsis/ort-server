@@ -2,7 +2,7 @@
 
 ## Eclipse Contributor Agreement (ECA)
 
-Before we can accept your contributions, you have to electronically sign the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php).
+Before your contributions can be accepted, you have to electronically sign the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php).
 This is a one-time process that should take only a few minutes.
 For more details on the ECA also see the [ECA FAQ](https://www.eclipse.org/legal/ecafaq.php).
 
@@ -28,9 +28,9 @@ More examples can be found in the [wiki](https://wiki.eclipse.org/Technology) of
 
 To create a pull request, you have to fork the repository and create a new branch as described in the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
-We put high value on the structure of pull requests to make the review process as efficient as possible.
+This project puts high value on the structure of pull requests to make the review process as efficient as possible.
 The following sections describe the guidelines for creating pull requests.
-Please have a look at the Git history of the repository and already merged PRs to get a feeling for how we expect contributions to be made.
+Please have a look at the Git history of the repository and already merged PRs to get a feeling for how contributions are expected to be made.
 
 ### Atomic commits
 
@@ -153,7 +153,7 @@ Also, please click the "Re-request review" button next to the reviewer names on 
 ### Code style
 
 The two main languages used in this project are [Kotlin](https://kotlinlang.org/) and [TypeScript](https://www.typescriptlang.org/).
-For both languages, we have PR checks that enforce a consistent code style.
+For both languages, there are PR checks that enforce a consistent code style.
 It is advised to run those checks locally before creating a PR.
 
 For Kotlin, you can run `./gradlew detekt detektMain detektTest` to run the static code analysis.
