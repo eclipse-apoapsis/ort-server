@@ -1,25 +1,26 @@
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import Heading from '@theme/Heading';
+import Layout from '@theme/Layout';
+import clsx from 'clsx';
 
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
+      <div className='container'>
+        <Heading as='h1' className='hero__title'>
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <p className='hero__subtitle'>{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
+            className='button button--secondary button--lg'
+            to='/docs/intro'
+          >
             Introduction
           </Link>
         </div>
@@ -31,28 +32,34 @@ function HomepageHeader() {
 function EclipseIncubation() {
   return (
     <section className={clsx('hero', styles.heroBanner)}>
-      <div className="container">
+      <div className='container'>
         <div className={styles.incubation}>
-            <img
-                src="https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png"
-                alt="Incubation" className={styles.incubationImage}/>
-          <p className="hero__subtitle">
-              The ORT Server is the reference implementation of the <a
-              href="https://projects.eclipse.org/projects/technology.apoapsis">Eclipse Apoapsis</a> project which is
-              currently in the <a href="https://www.eclipse.org/projects/handbook/#incubation">incubation</a> phase.
+          <img
+            src='https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png'
+            alt='Incubation'
+            className={styles.incubationImage}
+          />
+          <p className='hero__subtitle'>
+            The ORT Server is the reference implementation of the{' '}
+            <a href='https://projects.eclipse.org/projects/technology.apoapsis'>
+              Eclipse Apoapsis
+            </a>{' '}
+            project which is currently in the{' '}
+            <a href='https://www.eclipse.org/projects/handbook/#incubation'>
+              incubation
+            </a>{' '}
+            phase.
           </p>
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 export default function Home(): JSX.Element {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout
-      title={`${siteConfig.title}`}
-      description={`${siteConfig.tagline}`}>
+    <Layout title={`${siteConfig.title}`} description={`${siteConfig.tagline}`}>
       <HomepageHeader />
       <main>
         <HomepageFeatures />

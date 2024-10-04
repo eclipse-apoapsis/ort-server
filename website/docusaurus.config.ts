@@ -1,10 +1,11 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type { Config } from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 const config: Config = {
   title: 'ORT Server',
-  tagline: 'A scalable application to automate software compliance checks, based on the OSS Review Toolkit.',
+  tagline:
+    'A scalable application to automate software compliance checks, based on the OSS Review Toolkit.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
