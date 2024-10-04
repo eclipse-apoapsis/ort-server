@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.config.github
 
-import io.kotest.assertions.retry
 import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -35,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.setLastModifiedTime
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -202,31 +200,21 @@ class GitHubConfigFileCacheTest : WordSpec({
             currentRevision.exists() shouldBe true
         }
 
-        "remove outdated revisions with the configured probability" {
+        "remove outdated revisions with the configured ratio" {
             val now = Clock.System.now()
             val cacheDir = tempdir()
             val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
+            val ratio = 5
 
-            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 5, 1.days)
+            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, ratio, 1.days)
 
-            retry(10, 30.seconds, 2.seconds) {
+            repeat(ratio - 1) {
                 cache.cleanup("current")
-                revisionDir.exists() shouldBe false
-            }
-        }
-
-        "not remove outdated revisions at every run" {
-            val cacheDir = tempdir()
-            val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 10, 1.days)
-
-            retry(10, 30.seconds, 2.seconds) {
-                val now = Clock.System.now()
-                val revisionDir = cacheDir.createChildDirAt(revision(1), now - 2.days)
-
-                cache.cleanup("current")
-
                 revisionDir.exists() shouldBe true
             }
+
+            cache.cleanup("current")
+            revisionDir.exists() shouldBe false
         }
     }
 })

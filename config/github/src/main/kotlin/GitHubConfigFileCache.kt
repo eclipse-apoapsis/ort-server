@@ -28,6 +28,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.io.RandomAccessFile
 import java.nio.channels.FileLock
+import java.util.concurrent.atomic.AtomicInteger
 
 import kotlin.time.Duration
 
@@ -84,7 +85,7 @@ internal class GitHubConfigFileCache(
 
     /**
      * A numeric value which determines how often a cleanup of old cache entries should be performed. A value of
-     * *n* means that the cleanup is done roughly on every *nth* invocation of the [cleanup] function.
+     * *n* means that the cleanup is done on every *nth* invocation of the [cleanup] function.
      */
     private val cleanupRatio: Int,
 
@@ -94,6 +95,8 @@ internal class GitHubConfigFileCache(
      */
     private val cleanupMaxAge: Duration
 ) : GitHubConfigCache {
+    private val cleanupCounter = AtomicInteger(0)
+
     /**
      * Return an [InputStream] to access the file at the given [path] from the given [revision]. If the file is already
      * contained in the cache, a stream to its content can be returned directly. Otherwise, the specified [load]
@@ -130,7 +133,9 @@ internal class GitHubConfigFileCache(
     }
 
     override fun cleanup(currentRevision: String) {
-        if (canCleanup()) {
+        if (cleanupCounter.incrementAndGet() >= cleanupRatio) {
+            cleanupCounter.set(0)
+
             val ageThresholdInstant = Clock.System.now() - cleanupMaxAge
             val ageThreshold = ageThresholdInstant.toEpochMilliseconds()
 
@@ -250,14 +255,4 @@ internal class GitHubConfigFileCache(
         val revisionDir = cacheDir.resolve(revision)
         return revisionDir.resolve(subFolder).resolve(path)
     }
-
-    /**
-     * Decide whether a cleanup run can now be performed. Since this class cannot hold a state over multiple ORT runs,
-     * it uses an approach based on probability to check whether a cleanup operation should be triggered. If the
-     * [cleanupRatio] is greater than 1, it generates a random number between 1 and [cleanupRatio]. Only if this number
-     * equals the upper bound, the cleanup is performed. For lower values of [cleanupRatio], the cleanup is always
-     * done.
-     */
-    private fun canCleanup(): Boolean =
-        cleanupRatio <= 1 || (1..cleanupRatio).random() == cleanupRatio
 }
