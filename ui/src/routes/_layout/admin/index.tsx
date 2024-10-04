@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -32,14 +33,34 @@ import {
   ChevronsUpDownIcon,
   ChevronUpIcon,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { useAdminServicePostUsers } from '@/api/queries';
 import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
-import { Organization } from '@/api/requests';
+import { ApiError, Organization } from '@/api/requests';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Table,
@@ -49,8 +70,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { config } from '@/config';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
+
+const formSchema = z.object({
+  username: z.string(),
+  password: z.string().optional(),
+  temporary: z.boolean(),
+});
 
 const columns: ColumnDef<Organization>[] = [
   {
@@ -241,31 +268,115 @@ const OverviewContent = () => {
 };
 
 const UserMgmtContent = () => {
-  const authBaseUrl = config.authBaseUrl;
-  const realm = config.realm;
+  const { mutateAsync, isPending } = useAdminServicePostUsers({
+    onSuccess() {
+      toast.info('Add User', {
+        description: `User "${form.getValues().username}" added successfully to the server.`,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      temporary: true,
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await mutateAsync({
+      requestBody: {
+        username: values.username,
+        password: values.password,
+        temporary: values.temporary,
+      },
+    });
+  }
 
   return (
     <>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm'>User Management</CardTitle>
+        <Card className='col-span-2 w-full'>
+          <CardHeader>
+            <CardTitle className='text-sm'>Create User</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className='gap-1'>
-              Manage users in{' '}
-              <a
-                href={
-                  authBaseUrl + '/admin/master/console/#/' + realm + '/users'
-                }
-                target='_blank'
-                className='gap-1 text-blue-400 hover:underline'
-              >
-                <span>Keycloak</span>
-                <ExternalLink className='mb-1 ml-1 inline' size={16} />
-              </a>
-            </div>
-          </CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardContent className='space-y-4'>
+                <FormField
+                  control={form.control}
+                  name='username'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoFocus />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='password'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='password'
+                          {...field}
+                          placeholder='(optional)'
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='temporary'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className='space-y-1 leading-none'>
+                        <FormLabel>
+                          Password change required on first login
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter>
+                <Button type='submit' disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <span className='sr-only'>Creating user...</span>
+                      <Loader2 size={16} className='mx-3 animate-spin' />
+                    </>
+                  ) : (
+                    'Create'
+                  )}
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
