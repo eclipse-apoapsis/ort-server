@@ -17,8 +17,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/ort-logo.svg').default,
     description: (
       <>
-        The server integrates is baed on the OSS Review Toolkit, leveraging its
-        APIs for component analysis, license scanning, vulnerability databases,
+        The server is based on the OSS Review Toolkit, leveraging its APIs for
+        component analysis, license scanning, vulnerability databases,
         compliance rules, and report generation. This allows users to manage and
         analyze dependencies and licenses with ease, offering detailed insights
         and compliance reporting.
