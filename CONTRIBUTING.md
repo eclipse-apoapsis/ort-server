@@ -157,7 +157,7 @@ For both languages, there are PR checks that enforce a consistent code style.
 It is advised to run those checks locally before creating a PR.
 
 For Kotlin, you can run `./gradlew detekt detektMain detektTest` to run the static code analysis.
-For TypeScript, you can run `pnpm format:check` within the `ui/` directory.
+For TypeScript, you can run `pnpm format:check` within the `ui/` and `/website` directories.
 
 ### Larger changes
 
