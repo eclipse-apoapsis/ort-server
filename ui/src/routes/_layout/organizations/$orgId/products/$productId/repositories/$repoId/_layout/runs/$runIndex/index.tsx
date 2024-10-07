@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Bug, Repeat, Scale, ShieldQuestion } from 'lucide-react';
+import { Bug, Repeat, ShieldQuestion } from 'lucide-react';
 
 import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -45,6 +45,7 @@ import {
 } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
+import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -70,9 +71,10 @@ const RunComponent = () => {
     }
   );
 
-  // Note that this is very inefficient as it fetches all vulnerabilities for the run,
-  // while for this purpose we only need the total count, so this is a temporary solution.
-  // The query will be replaced with the ORT Run statistics query once it is implemented.
+  // Note that this is very inefficient as it fetches all data from the endpoints,
+  // while for this purpose we only need the total counts, so this is a temporary solution.
+  // The queries will be replaced with the ORT Run statistics query once it is implemented.
+
   const {
     data: vulnerabilities,
     isPending: vulnIsPending,
@@ -293,15 +295,9 @@ const RunComponent = () => {
               runIndex: params.runIndex,
             }}
           >
-            <StatisticsCard
-              title='Rule Violations'
-              icon={() => (
-                <Scale
-                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.evaluator?.status)}`}
-                />
-              )}
-              value={ortRun.jobs.evaluator ? '-' : 'N/A'}
-              className='h-full hover:bg-muted/50'
+            <RuleViolationsStatisticsCard
+              runId={ortRun.id}
+              status={ortRun.jobs.evaluator?.status}
             />
           </Link>
         </div>
