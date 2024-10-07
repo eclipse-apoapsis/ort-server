@@ -34,11 +34,11 @@ import org.jetbrains.exposed.sql.and
  * A table to represent a rule violation.
  */
 object RuleViolationsTable : SortableTable("rule_violations") {
-    val rule = text("rule")
+    val rule = text("rule").sortable()
     val packageIdentifierId = reference("package_identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
     val licenseSource = text("license_source").nullable()
-    val severity = enumerationByName<Severity>("severity", 128)
+    val severity = enumerationByName<Severity>("severity", 128).sortable()
     val message = text("message")
     val howToFix = text("how_to_fix")
 }

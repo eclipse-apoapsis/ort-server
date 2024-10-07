@@ -161,7 +161,7 @@ fun Route.runs() = route("runs/{runId}") {
             call.forRun(ortRunRepository) { ortRun ->
                 requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-                val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("rule", SortDirection.ASCENDING))
 
                 val ruleViolationsForOrtRun =
                     ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
