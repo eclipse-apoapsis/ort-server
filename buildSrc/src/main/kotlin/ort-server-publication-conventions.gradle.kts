@@ -31,6 +31,8 @@ mavenPublishing {
         developers {
             developer {
                 name = "The ORT Server Project Authors"
+                email = "apoapsis-dev@eclipse.org"
+                url = "https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE"
             }
         }
 
@@ -39,6 +41,13 @@ mavenPublishing {
                 name = "Apache-2.0"
                 url = "https://www.apache.org/licenses/LICENSE-2.0"
             }
+        }
+
+        scm {
+            connection = "scm:git:https://github.com/eclipse-apoapsis/ort-server.git"
+            developerConnection = "scm:git:git@github.com:eclipse-apoapsis/ort-server.git"
+            tag = version.toString()
+            url = "https://github.com/eclipse-apoapsis/ort-server"
         }
     }
 
