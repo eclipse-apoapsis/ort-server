@@ -253,7 +253,7 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
 
 val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetRuleViolationsByRunId"
-    summary = "Get the rules violations found in an ORT run."
+    summary = "Get the rule violations found in an ORT run."
     tags = listOf("RuleViolations")
 
     request {
@@ -268,7 +268,7 @@ val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success."
             jsonBody<PagedResponse<RuleViolationWithIdentifier>> {
-                example("Get vulnerabilities for an ORT run") {
+                example("Get rule violations for an ORT run") {
                     value = PagedResponse(
                         listOf(
                             RuleViolationWithIdentifier(
@@ -309,7 +309,7 @@ val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 1,
-                            sortProperties = listOf(SortProperty("packageUrl", SortDirection.ASCENDING))
+                            sortProperties = listOf(SortProperty("rule", SortDirection.ASCENDING))
                         )
                     )
                 }
