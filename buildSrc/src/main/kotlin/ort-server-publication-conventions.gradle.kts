@@ -69,4 +69,6 @@ mavenPublishing {
             }
         }
     }
+
+    publishToMavenCentral()
 }
