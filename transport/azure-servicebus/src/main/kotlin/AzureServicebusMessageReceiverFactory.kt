@@ -22,9 +22,12 @@ package org.eclipse.apoapsis.ortserver.transport.azureservicebus
 import com.azure.identity.DefaultAzureCredentialBuilder
 import com.azure.messaging.servicebus.ServiceBusClientBuilder
 import com.azure.messaging.servicebus.ServiceBusErrorContext
+import com.azure.messaging.servicebus.ServiceBusProcessorClient
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext
+import com.azure.messaging.servicebus.models.ServiceBusReceiveMode
 
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -35,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import kotlin.coroutines.coroutineContext
 
 private val logger = LoggerFactory.getLogger(AzureServicebusMessageReceiverFactory::class.java)
 
@@ -53,7 +57,6 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
 
         fun processMessage(context: ServiceBusReceivedMessageContext) {
             val message = AzureServicebusMessageConverter.toTransportMessage(context.message, serializer)
-//            context.complete()
 
             MDC.put("traceId", message.header.traceId)
             MDC.put("ortRunId", message.header.ortRunId.toString())
@@ -67,6 +70,8 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
 
             runBlocking {
                 handler(message)
+
+                coroutineContext.cancel()
             }
         }
 
@@ -87,11 +92,9 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
             .processError(::processError)
             .buildProcessorClient()
 
-        try {
-            client.start()
+        client.use {
+            it.start()
             awaitCancellation()
-        } finally {
-            client.stop()
         }
     }
 }

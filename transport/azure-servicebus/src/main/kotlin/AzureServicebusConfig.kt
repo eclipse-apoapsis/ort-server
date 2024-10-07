@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.transport.azureservicebus
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 
 import org.slf4j.Logger
 
@@ -30,7 +31,9 @@ class AzureServicebusConfig(
     val namespace: String,
 
     /** The name of the queue that is used for sending and receiving messages. */
-    val queueName: String
+    val queueName: String,
+
+    val singleMessage: Boolean
 ) {
     companion object {
         /**
@@ -44,6 +47,8 @@ class AzureServicebusConfig(
         /** Name of the configuration property for the queue name. */
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
+        private const val SINGLE_MESSAGE_PROPERTY = "singleMessage"
+
         /**
          * Create a [RabbitMqConfig] from the provided [configManager].
          */
@@ -51,6 +56,7 @@ class AzureServicebusConfig(
             AzureServicebusConfig(
                 namespace = configManager.getString(NAMESPACE_PROPERTY),
                 queueName = configManager.getString(QUEUE_NAME_PROPERTY),
+                singleMessage = configManager.getBooleanOrDefault(SINGLE_MESSAGE_PROPERTY, false)
             )
     }
 
