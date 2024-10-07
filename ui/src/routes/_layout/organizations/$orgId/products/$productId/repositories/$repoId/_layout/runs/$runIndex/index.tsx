@@ -20,7 +20,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Bug, ListTree, Repeat, Scale, ShieldQuestion } from 'lucide-react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
+import {
+  useRuleViolationsServiceGetRuleViolationsByRunId,
+  useVulnerabilitiesServiceGetVulnerabilitiesByRunId,
+} from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -69,9 +72,19 @@ const RunComponent = () => {
     }
   );
 
-  // Note that this is very inefficient as it fetches all vulnerabilities for the run,
-  // while for this purpose we only need the total count, so this is a temporary solution.
-  // The query will be replaced with the ORT Run statistics query once it is implemented.
+  // Note that this is very inefficient as it fetches all data from the endpoints,
+  // while for this purpose we only need the total counts, so this is a temporary solution.
+  // The queries will be replaced with the ORT Run statistics query once it is implemented.
+
+  const {
+    data: ruleViolations,
+    isPending: ruleViolationsIsPending,
+    isError: ruleViolationsIsError,
+    error: ruleViolationsError,
+  } = useRuleViolationsServiceGetRuleViolationsByRunId({
+    runId: ortRun.id,
+  });
+
   const {
     data: vulnerabilities,
     isPending: vulnIsPending,
@@ -80,6 +93,22 @@ const RunComponent = () => {
   } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
     runId: ortRun.id,
   });
+
+  if (ruleViolationsIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (ruleViolationsIsError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={ruleViolationsError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
 
   if (vulnIsPending) {
     return <LoadingIndicator />;
@@ -97,7 +126,8 @@ const RunComponent = () => {
     return;
   }
 
-  const vulnTotal = vulnerabilities?.pagination.totalCount;
+  const vulnTotal = vulnerabilities.pagination.totalCount;
+  const ruleViolationsTotal = ruleViolations.pagination.totalCount;
 
   return (
     <>
@@ -305,7 +335,7 @@ const RunComponent = () => {
                   className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.evaluator?.status)}`}
                 />
               )}
-              value={ortRun.jobs.evaluator ? '-' : 'N/A'}
+              value={ortRun.jobs.evaluator ? ruleViolationsTotal : 'N/A'}
               className='hover:bg-muted/50'
             />
           </Link>
