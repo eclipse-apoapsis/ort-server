@@ -55,6 +55,8 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
+import { LastJobStatus } from './-components/last-job-status';
+import { LastRunStatus } from './-components/last-run-status';
 
 const defaultPageSize = 10;
 
@@ -80,6 +82,16 @@ const columns: ColumnDef<Repository>[] = [
         </div>
       </>
     ),
+  },
+  {
+    accessorKey: 'runStatus',
+    header: () => <div>Last Run Status</div>,
+    cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+  },
+  {
+    accessorKey: 'jobStatus',
+    header: () => <div>Last Job Status</div>,
+    cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
   },
 ];
 
