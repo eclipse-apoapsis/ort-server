@@ -52,7 +52,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-colors';
+import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 

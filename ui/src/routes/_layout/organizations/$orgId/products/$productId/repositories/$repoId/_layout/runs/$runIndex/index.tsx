@@ -42,7 +42,7 @@ import { calculateDuration } from '@/helpers/get-run-duration';
 import {
   getStatusBackgroundColor,
   getStatusFontColor,
-} from '@/helpers/get-status-colors';
+} from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 
 const RunComponent = () => {
