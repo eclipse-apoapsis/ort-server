@@ -57,7 +57,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
-import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 

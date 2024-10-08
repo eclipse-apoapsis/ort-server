@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { calculateDuration } from '@/helpers/get-run-duration';
-import { getStatusBackgroundColor } from '@/helpers/get-status-colors';
+import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 
 type EvaluatorJobDetailsProps = {
   run: OrtRun;

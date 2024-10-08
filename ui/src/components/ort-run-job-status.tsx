@@ -29,7 +29,7 @@ import {
 import {
   getStatusBackgroundColor,
   getStatusClass,
-} from '@/helpers/get-status-colors';
+} from '@/helpers/get-status-class';
 import { RunDuration } from './run-duration';
 
 type OrtRunJobStatusProps = {
