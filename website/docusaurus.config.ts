@@ -1,3 +1,4 @@
+import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 import type * as Preset from '@docusaurus/preset-classic';
 import type { Config } from '@docusaurus/types';
 import { themes as prismThemes } from 'prism-react-renderer';
@@ -48,6 +49,38 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'api',
+        path: 'api',
+        routeBasePath: 'api',
+        sidebarPath: './sidebarsApi.ts',
+        docItemComponent: '@theme/ApiItem',
+      },
+    ],
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'api', // plugin id
+        docsPluginId: 'api', // configured for preset-classic
+        config: {
+          api: {
+            specPath: '../ui/build/openapi.json',
+            outputDir: 'api',
+            sidebarOptions: {
+              groupPathsBy: "tag",
+              categoryLinkSource: "tag",
+            },
+          } satisfies OpenApiPlugin.Options,
+        },
+      },
+    ],
+  ],
+
+  themes: ['docusaurus-theme-openapi-docs'],
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
@@ -63,6 +96,19 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: 'Docs',
+        },
+        // {
+        //   type: 'docSidebar',
+        //   sidebarId: 'apiSidebar',
+        //   docsPluginId: 'api',
+        //   position: 'left',
+        //   label: 'API'
+        // },
+        {
+          to: '/api/ort-server-api',
+          label: 'API',
+          position: 'left',
+          activeBaseRegex: `/api/`,
         },
         {
           href: 'https://github.com/eclipse-apoapsis/ort-server',
