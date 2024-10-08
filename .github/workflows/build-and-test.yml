@@ -27,9 +27,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Build all classes
       run: ./gradlew --stacktrace classes
@@ -47,9 +45,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Generate OpenAPI spec
       run: ./gradlew --stacktrace :core:generateOpenApiSpec
@@ -89,9 +85,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Run tests
       run: ./gradlew test -Dkotest.tags='!Integration'
@@ -124,9 +118,7 @@ jobs:
         java-version: 17
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-home-cache-cleanup: true
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Run integration tests
       run: ./gradlew test -Dkotest.tags='Integration'
