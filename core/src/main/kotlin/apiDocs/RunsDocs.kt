@@ -28,7 +28,6 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
@@ -43,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
@@ -367,8 +367,8 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                                 homepageUrl = "https://example.com/namespace/name",
                                 binaryArtifact = RemoteArtifact("url", "hashValue", "hashAlgorithm"),
                                 sourceArtifact = RemoteArtifact("url", "hashValue", "hashAlgorithm"),
-                                vcs = VcsInfo(ExtendedRepositoryType.GIT, "url", "revision", "path"),
-                                vcsProcessed = VcsInfo(ExtendedRepositoryType.GIT, "url", "revision", "path"),
+                                vcs = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
+                                vcsProcessed = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
                                 isMetadataOnly = false,
                                 isModified = false,
                             )

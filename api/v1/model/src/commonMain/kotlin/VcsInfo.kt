@@ -23,16 +23,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class VcsInfo(
-    val type: ExtendedRepositoryType,
+    val type: String,
     val url: String,
     val revision: String,
     val path: String
 )
-
-enum class ExtendedRepositoryType {
-    GIT,
-    GIT_REPO,
-    MERCURIAL,
-    SUBVERSION,
-    UNKNOWN
-}
