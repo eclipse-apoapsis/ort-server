@@ -2,6 +2,14 @@
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
+## Build OpenAPI specification
+
+Before you can build the website, you need to build the OpenAPI specification by running this command in the root of the repository:
+
+```
+$ ./gradlew :core:generateOpenApiSpec
+```
+
 ## Installation
 
 ```
@@ -9,6 +17,14 @@ $ pnpm install --frozen-lockfile
 ```
 
 ## Local Development
+
+Before starting the local development server, you need to generate the API docs by running:
+
+```
+$ pnpm gen-api-docs
+```
+
+Then you can run:
 
 ```
 $ pnpm start
