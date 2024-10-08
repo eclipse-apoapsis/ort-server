@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvir
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.ExtendedRepositoryType as ApiExtendedRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
@@ -376,12 +375,6 @@ fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.ma
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
-fun RepositoryType.mapToExtendedApi() =
-    when (this) {
-        RepositoryType.UNKNOWN -> ApiExtendedRepositoryType.UNKNOWN
-        else -> ApiExtendedRepositoryType.valueOf(name)
-    }
-
 fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
 
 fun <T> ApiOptionalValue<T>.mapToModel() = mapToModel { it }
@@ -568,7 +561,7 @@ fun RemoteArtifact.mapToApi() =
 
 fun VcsInfo.mapToApi() =
     ApiVcsInfo(
-        type.mapToExtendedApi(),
+        type.name,
         url,
         revision,
         path
