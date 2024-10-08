@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
 
 val runPermissionsSync: OpenApiRoute.() -> Unit = {
     operationId = "runPermissionsSync"
-    summary = ""
+    summary = "Trigger the synchronization of Keycloak roles."
     tags = listOf("Admin")
 
     request {
