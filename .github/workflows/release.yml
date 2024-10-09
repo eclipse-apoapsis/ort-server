@@ -45,7 +45,7 @@ jobs:
         # https://keyserver.ubuntu.com/pks/lookup?search=apoapsis-dev&fingerprint=on&op=index
         ORG_GRADLE_PROJECT_signingInMemoryKeyId: 437c0602
         ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GPG_PASSPHRASE }}
-      run: ./gradlew --no-configuration-cache publishAndReleaseToMavenCentral
+      run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
     - name: Generate Release Notes
       # Temporary implementation for the very first release. The release notes for this will be written by hand as they
