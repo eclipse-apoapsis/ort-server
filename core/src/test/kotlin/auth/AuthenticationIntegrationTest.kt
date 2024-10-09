@@ -28,15 +28,13 @@ import io.kotest.matchers.should
 
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.util.pipeline.PipelineContext
 
 import kotlinx.serialization.json.Json
 
@@ -77,7 +75,7 @@ class AuthenticationIntegrationTest : StringSpec({
     val json = Json { ignoreUnknownKeys = true }
 
     fun authTestApplication(
-        onCall: PipelineContext<Unit, ApplicationCall>.() -> Unit = {},
+        onCall: RoutingContext.() -> Unit = {},
         block: suspend ApplicationTestBuilder.() -> Unit
     ) =
         ortServerTestApplication(config = authNoDbConfig, additionalConfigs = keycloakConfig + jwtConfig) {
