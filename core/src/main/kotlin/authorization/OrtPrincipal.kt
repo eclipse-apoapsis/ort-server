@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.core.authorization
 
 import com.auth0.jwt.interfaces.Payload
 
-import io.ktor.server.auth.Principal
 import io.ktor.server.auth.jwt.JWTPayloadHolder
 
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
@@ -39,7 +38,7 @@ class OrtPrincipal(
      * The set of Keycloak roles.
      */
     val roles: Set<String>
-) : Principal, JWTPayloadHolder(payload)
+) : JWTPayloadHolder(payload)
 
 /**
  * Return true if this [OrtPrincipal] is not `null` and has the provided [role].

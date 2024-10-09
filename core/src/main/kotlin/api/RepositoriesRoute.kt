@@ -75,7 +75,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
 
-    get(getRepositoryById) { _ ->
+    get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
 
         val id = call.requireIdParameter("repositoryId")
@@ -84,7 +84,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    patch(patchRepositoryById) { _ ->
+    patch(patchRepositoryById) {
         requirePermission(RepositoryPermission.WRITE)
 
         val id = call.requireIdParameter("repositoryId")
@@ -110,7 +110,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getOrtRunsByRepositoryId) { _ ->
+        get(getOrtRunsByRepositoryId) {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -142,7 +142,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get(getOrtRunByIndex) { _ ->
+            get(getOrtRunByIndex) {
                 requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
                 val repositoryId = call.requireIdParameter("repositoryId")
@@ -155,7 +155,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 } ?: call.respond(HttpStatusCode.NotFound)
             }
 
-            delete(deleteOrtRunByIndex) { _ ->
+            delete(deleteOrtRunByIndex) {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
@@ -170,7 +170,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("secrets") {
-        get(getSecretsByRepositoryId) { _ ->
+        get(getSecretsByRepositoryId) {
             requirePermission(RepositoryPermission.READ)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -184,7 +184,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{secretName}") {
-            get(getSecretByRepositoryIdAndName) { _ ->
+            get(getSecretByRepositoryIdAndName) {
                 requirePermission(RepositoryPermission.READ)
 
                 val repositoryId = call.requireIdParameter("repositoryId")

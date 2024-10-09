@@ -310,9 +310,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Invalid request body."
-                body.cause.shouldContain(
-                    "Illegal input: Unexpected JSON token at offset 53: Expected quotation mark '\"'"
-                )
+                body.cause shouldBe "Failed to convert request body to class " +
+                        "org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization"
 
                 organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
             }

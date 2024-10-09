@@ -47,9 +47,9 @@ fun Application.configureDatabase() {
     val db = dataSource.connect()
     dataSource.migrate()
 
-    environment.monitor.subscribe(ApplicationStarted) {
+    monitor.subscribe(ApplicationStarted) {
         attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
-        environment.monitor.raise(DatabaseReady, db)
+        monitor.raise(DatabaseReady, db)
     }
 }
 
