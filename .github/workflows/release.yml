@@ -48,10 +48,7 @@ jobs:
       run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
     - name: Generate Release Notes
-      # Temporary implementation for the very first release. The release notes for this will be written by hand as they
-      # would otherwise contain the complete commit history.
-      run: echo "Initial release!" > RELEASE_NOTES.md
-      #run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
+      run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
 
     - name: Create GitHub Release
       env:
