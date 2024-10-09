@@ -54,4 +54,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create $ORT_SERVER_VERSION --notes-file RELEASE_NOTES.md
+        if [[ "$ORT_SERVER_VERSION" =~ -RC[0-9]+ ]]; then
+          PRERELEASE_ARG="--prerelease"
+        fi
+        gh release create $ORT_SERVER_VERSION --notes-file RELEASE_NOTES.md $PRERELEASE_ARG
