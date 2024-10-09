@@ -86,7 +86,7 @@ fun Route.organizations() = route("organizations") {
     val secretService by inject<SecretService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
 
-    get(getOrganizations) { _ ->
+    get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
         val filteredOrganizations = organizationService
@@ -116,7 +116,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     route("{organizationId}") {
-        get(getOrganizationById) { _ ->
+        get(getOrganizationById) {
             requirePermission(OrganizationPermission.READ)
 
             val id = call.requireIdParameter("organizationId")
@@ -153,7 +153,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("products") {
-            get(getOrganizationProducts) { _ ->
+            get(getOrganizationProducts) {
                 requirePermission(OrganizationPermission.READ_PRODUCTS)
 
                 val orgId = call.requireIdParameter("organizationId")
@@ -181,7 +181,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("secrets") {
-            get(getSecretsByOrganizationId) { _ ->
+            get(getSecretsByOrganizationId) {
                 requirePermission(OrganizationPermission.READ)
 
                 val orgId = call.requireIdParameter("organizationId")
@@ -195,7 +195,7 @@ fun Route.organizations() = route("organizations") {
             }
 
             route("{secretName}") {
-                get(getSecretByOrganizationIdAndName) { _ ->
+                get(getSecretByOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.READ)
 
                     val organizationId = call.requireIdParameter("organizationId")
@@ -257,7 +257,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("infrastructure-services") {
-            get(getInfrastructureServicesByOrganizationId) { _ ->
+            get(getInfrastructureServicesByOrganizationId) {
                 requirePermission(OrganizationPermission.READ)
 
                 val orgId = call.requireIdParameter("organizationId")

@@ -47,10 +47,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 /**
  * A micrometer [MeterBinder] that provides metrics for ORT runs and jobs.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class JobMetrics(private val application: Application) : MeterBinder {
     override fun bindTo(registry: MeterRegistry) {
-        application.environment.monitor.subscribe(DatabaseReady) {
+        application.monitor.subscribe(DatabaseReady) {
             OrtRunStatus.entries.forEach { status ->
                 Gauge.builder("runs.status.${status.name.lowercase()}") { countOrtRunStatus(status) }
                     .description("The number of ORT runs with status '${status.name}'.")

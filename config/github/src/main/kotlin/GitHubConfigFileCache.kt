@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.config.github
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.isEmpty
-import io.ktor.utils.io.core.readByteBuffer
+import io.ktor.utils.io.core.read
+import io.ktor.utils.io.readRemaining
 
 import java.io.File
 import java.io.FileInputStream
@@ -30,6 +30,8 @@ import java.io.RandomAccessFile
 import java.nio.channels.FileLock
 import java.util.concurrent.atomic.AtomicInteger
 
+import kotlin.io.use
+import kotlin.text.toByteArray
 import kotlin.time.Duration
 
 import kotlinx.coroutines.Dispatchers
@@ -206,15 +208,14 @@ internal class GitHubConfigFileCache(
 
                     // If no write lock can be acquired, the file is currently downloaded by another process. In this
                     // case, simply retry the operation.
-                    lock?.use {
+                    lock?.use { _ ->
                         if (dataFile.length() <= 0L) {
                             val readChannel = load()
 
                             while (!readChannel.isClosedForRead) {
                                 val packet = readChannel.readRemaining()
-                                while (!packet.isEmpty) {
-                                    val data = packet.readByteBuffer()
-                                    writeChannel.write(data)
+                                while (!packet.exhausted()) {
+                                    packet.read { writeChannel.write(it) }
                                 }
                             }
                         } else {

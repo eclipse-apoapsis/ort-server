@@ -19,10 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.core.authorization
 
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.principal
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.server.routing.RoutingContext
 
 import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
@@ -35,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
  * Return `true` if the [OrtPrincipal] of the current [call] has the provided [permission] for the organization with the
  * provided [organizationId].
  */
-fun PipelineContext<*, ApplicationCall>.hasPermission(
+fun RoutingContext.hasPermission(
     organizationId: Long,
     permission: OrganizationPermission
 ): Boolean = hasRole(permission.roleName(organizationId))
@@ -43,7 +42,7 @@ fun PipelineContext<*, ApplicationCall>.hasPermission(
 /**
  * Return `true` if the [OrtPrincipal] of the current [call] has the provided [role].
  */
-fun PipelineContext<*, ApplicationCall>.hasRole(role: String): Boolean {
+fun RoutingContext.hasRole(role: String): Boolean {
     val principal = call.principal<OrtPrincipal>()
     return principal.isSuperuser() || principal.hasRole(role)
 }
@@ -52,7 +51,7 @@ fun PipelineContext<*, ApplicationCall>.hasRole(role: String): Boolean {
  * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]
  * otherwise.
  */
-fun PipelineContext<*, ApplicationCall>.requirePermission(permission: OrganizationPermission) {
+fun RoutingContext.requirePermission(permission: OrganizationPermission) {
     val orgId = call.requireIdParameter("organizationId")
     requirePermission(permission.roleName(orgId))
 }
@@ -61,7 +60,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: Organizati
  * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]
  * otherwise.
  */
-fun PipelineContext<*, ApplicationCall>.requirePermission(permission: ProductPermission) {
+fun RoutingContext.requirePermission(permission: ProductPermission) {
     val productId = call.requireIdParameter("productId")
     requirePermission(permission.roleName(productId))
 }
@@ -70,7 +69,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: ProductPer
  * Require that the [OrtPrincipal] of the current[call] has the provided [permission]. Throw an [AuthorizationException]
  * otherwise.
  */
-fun PipelineContext<*, ApplicationCall>.requirePermission(permission: RepositoryPermission) {
+fun RoutingContext.requirePermission(permission: RepositoryPermission) {
     val repositoryId = call.requireIdParameter("repositoryId")
     requirePermission(permission.roleName(repositoryId))
 }
@@ -79,7 +78,7 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(permission: Repository
  * Require that the [OrtPrincipal] of the current [call] has the [requiredRole]. Throw an [AuthorizationException]
  * otherwise.
  */
-fun PipelineContext<*, ApplicationCall>.requirePermission(requiredRole: String) {
+fun RoutingContext.requirePermission(requiredRole: String) {
     if (!hasRole(requiredRole)) {
         throw AuthorizationException()
     }
@@ -88,6 +87,6 @@ fun PipelineContext<*, ApplicationCall>.requirePermission(requiredRole: String) 
 /**
  * Require that the [OrtPrincipal] of the current [call] is a [Superuser]. Throw an [AuthorizationException] otherwise.
  */
-fun PipelineContext<*, ApplicationCall>.requireSuperuser() {
+fun RoutingContext.requireSuperuser() {
     requirePermission(Superuser.ROLE_NAME)
 }

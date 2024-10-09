@@ -121,7 +121,7 @@ fun Route.runs() = route("runs") {
     }
 
     route("{runId}") {
-        get(getOrtRunById) { _ ->
+        get(getOrtRunById) {
             val ortRunId = call.requireIdParameter("runId")
 
             ortRunRepository.get(ortRunId)?.let { ortRun ->
@@ -133,7 +133,7 @@ fun Route.runs() = route("runs") {
             } ?: call.respond(HttpStatusCode.NotFound)
         }
 
-        delete(deleteOrtRunById) { _ ->
+        delete(deleteOrtRunById) {
             val ortRunId = call.requireIdParameter("runId")
 
             ortRunRepository.get(ortRunId)?.let { ortRun ->

@@ -108,6 +108,7 @@ dependencies {
     testImplementation(libs.ktorClientCore)
     testImplementation(libs.ktorServerCommon)
     testImplementation(libs.ktorServerTestHost)
+    testImplementation(libs.ktorUtils)
     testImplementation(libs.mockk)
     testImplementation(libs.ortCommonUtils)
 }

@@ -45,15 +45,15 @@ jackson = "2.18.2"
 jsonSchemaSerialization = "0.6.6"
 kaml = "0.66.0"
 keycloakTestcontainerVersion = "3.5.1"
-koin = "4.0.0"
+koin = "4.1.0-Beta1"
 konform = "0.10.0"
 kotest = "5.9.1"
 kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
 ksp = "2.1.0-1.0.29"
-ktor = "2.3.13"
-ktorSwaggerUi = "3.6.0"
+ktor = "3.0.2"
+ktorSwaggerUi = "4.1.0"
 kubernetesClient = "18.0.1"
 log4j = "2.24.2"
 logback = "1.5.12"
@@ -97,7 +97,7 @@ jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-ko
 jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-serialization", version.ref = "jsonSchemaSerialization" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koinKtor = { module = "io.insert-koin:koin-ktor3", version.ref = "koin" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 konform = { module = "io.konform:konform", version.ref = "konform" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
@@ -116,6 +116,7 @@ ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktorClientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktorHttp = { module = "io.ktor:ktor-http", version.ref = "ktor" }
+ktorIo = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktorKotlinxSerializationMP = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
@@ -132,6 +133,7 @@ ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", versi
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi" }
+ktorUtils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktorValidation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }

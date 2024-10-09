@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.request.path
 
 import java.util.UUID
