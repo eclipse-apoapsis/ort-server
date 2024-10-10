@@ -56,8 +56,12 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
+
+import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 class EnvironmentServiceTest : WordSpec({
     afterEach {
@@ -219,6 +223,35 @@ class EnvironmentServiceTest : WordSpec({
             configResult shouldBe config
 
             assignedServices shouldContainExactlyInAnyOrder services
+        }
+
+        "load the environment configuration from the ORT run if any is provided" {
+            val envConfigFileName = "alternative.ort.env.yml"
+
+            val ortRunWithEnvironment = mockk<OrtRun> {
+                every { id } returns RUN_ID
+                every { environmentConfigPath } returns envConfigFileName
+            }
+            val context = mockk<WorkerContext> {
+                every { hierarchy } returns repositoryHierarchy
+                every { ortRun } returns ortRunWithEnvironment
+            }
+
+            val repositoryFolder = createOrtTempDir("EnvironmentServiceTest")
+            File(repositoryFolder, envConfigFileName).writeText(
+                """
+                environmentVariables:
+                - name: "variable1"
+                  value: "testValue1"
+            """.trimIndent()
+            )
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            val configLoader = EnvironmentConfigLoader(mockk(), mockk(), EnvironmentDefinitionFactory())
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            val config = environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+
+            config.environmentVariables shouldBe setOf(SimpleVariableDefinition("variable1", "testValue1"))
         }
 
         "assign the infrastructure service for the repository to the current ORT run" {
@@ -496,6 +529,7 @@ private val repositoryHierarchy = Hierarchy(
 /** A mock representing the current ORT run. */
 private val currentOrtRun = mockk<OrtRun> {
     every { id } returns RUN_ID
+    every { environmentConfigPath } returns null
 }
 
 /** A file representing the checkout folder of the current repository. */

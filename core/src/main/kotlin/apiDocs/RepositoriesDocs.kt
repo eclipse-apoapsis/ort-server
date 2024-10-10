@@ -379,7 +379,8 @@ val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
                                 status = OrtRunStatus.ACTIVE,
                                 labels = mapOf("label key" to "label value"),
                                 jobConfigContext = null,
-                                resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050"
+                                resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
+                                environmentConfigPath = null
                             )
                         ),
                         PagingData(
@@ -492,7 +493,8 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
                         issues = emptyList(),
                         jobConfigContext = null,
                         resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
-                        traceId = "35b67725-a85b-4cc3-b2a4-60fd914634e7"
+                        traceId = "35b67725-a85b-4cc3-b2a4-60fd914634e7",
+                        environmentConfigPath = null
                     )
                 }
             }

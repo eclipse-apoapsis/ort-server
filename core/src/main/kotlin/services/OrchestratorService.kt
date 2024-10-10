@@ -55,7 +55,8 @@ class OrchestratorService(
         path: String?,
         jobConfig: JobConfigurations,
         jobConfigContext: String?,
-        labels: Map<String, String>?
+        labels: Map<String, String>?,
+        environmentConfigPath: String?
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
@@ -68,7 +69,8 @@ class OrchestratorService(
                 jobConfig,
                 jobConfigContext,
                 labels.orEmpty(),
-                traceId = traceId
+                traceId = traceId,
+                environmentConfigPath = environmentConfigPath
             )
         }
 
