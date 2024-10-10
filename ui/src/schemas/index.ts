@@ -25,5 +25,10 @@ export const paginationSchema = z.object({
   pageSize: z.number().optional(),
 });
 
+// Grouping schema that is used for search parameter validation
+export const tableGroupingSchema = z.object({
+  groups: z.array(z.string()).optional(),
+});
+
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
