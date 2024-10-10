@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
+val dockerImageTag: String by project
 
 plugins {
     alias(libs.plugins.dependencyAnalysis)
@@ -115,7 +116,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
                 "docker", "build",
                 "-f", dockerfile.path,
                 *buildArgs.toTypedArray(),
-                "-t", "ort-server-${name.lowercase()}:$dockerBaseImageTag",
+                "-t", "ort-server-${name.lowercase()}:$dockerImageTag",
                 "-q",
                 context
             )
