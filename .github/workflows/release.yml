@@ -41,9 +41,7 @@ jobs:
         ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_OSSRH_PASSWORD }}
         ORG_GRADLE_PROJECT_RELEASE_SIGNING_ENABLED: true
         ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GPG_PRIVATE_KEY }}
-        # secrets.ORG_GPG_KEY_ID contains the wrong value, so hardcode the key id as found on:
-        # https://keyserver.ubuntu.com/pks/lookup?search=apoapsis-dev&fingerprint=on&op=index
-        ORG_GRADLE_PROJECT_signingInMemoryKeyId: 437c0602
+        ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GPG_SUBKEY_ID }}
         ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GPG_PASSPHRASE }}
       run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
