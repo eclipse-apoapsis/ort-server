@@ -18,8 +18,27 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getGroupedRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ChevronRight } from 'lucide-react';
+import { useMemo } from 'react';
 
+import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
+import {
+  useRepositoriesServiceGetOrtRunByIndexSuspense,
+  useRuleViolationsServiceGetRuleViolationsByRunIdSuspense,
+} from '@/api/queries/suspense';
+import { RuleViolationWithIdentifier } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -27,17 +46,203 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { paginationSchema, tableGroupingSchema } from '@/schemas';
+
+const defaultPageSize = 10;
+
+const columns: ColumnDef<RuleViolationWithIdentifier>[] = [
+  {
+    accessorFn: ({ ruleViolation }) => ruleViolation.severity,
+    header: 'Severity',
+    cell: ({ row }) => {
+      return (
+        <Badge
+          className={`${getRuleViolationSeverityBackgroundColor(row.original.ruleViolation.severity)}`}
+        >
+          {row.original.ruleViolation.severity}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorFn: ({ identifier: { name, namespace, type, version } }) => {
+      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+    },
+    header: 'Package',
+    cell: ({ getValue }) => {
+      // TypeScript gets confused, but type casting to string is safe here,
+      // because the accessor function returns a string.
+      return <div className='font-semibold'>{getValue() as string}</div>;
+    },
+  },
+  {
+    accessorFn: ({ ruleViolation }) => ruleViolation.rule,
+    header: 'Rule',
+    cell: ({ row }) => (
+      <Badge className='whitespace-nowrap bg-gray-400'>
+        {row.original.ruleViolation.rule}
+      </Badge>
+    ),
+  },
+  {
+    id: 'moreInfo',
+    header: () => null,
+    enableGrouping: false,
+    size: 50,
+    cell: ({ row }) => (
+      <Tooltip>
+        <TooltipTrigger>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant='outline' size='sm'>
+                <ChevronRight className='h-4 w-4' />
+              </Button>
+            </DialogTrigger>
+            <RuleViolationDetailsComponent details={row.original} />
+          </Dialog>
+        </TooltipTrigger>
+        <TooltipContent>Show the details of the rule violation</TooltipContent>
+      </Tooltip>
+    ),
+  },
+];
+
+// TODO: This is a temporary solution, which will be replaced with
+// unique subpages to show the rule violation details.
+type Props = {
+  details: RuleViolationWithIdentifier;
+};
+const RuleViolationDetailsComponent = ({ details }: Props) => {
+  return (
+    <DialogContent className={'max-h-96 overflow-y-scroll lg:max-w-screen-lg'}>
+      <DialogHeader>
+        <DialogTitle>{details.ruleViolation.rule}</DialogTitle>
+        <DialogDescription>{details?.ruleViolation.message}</DialogDescription>
+      </DialogHeader>
+      <div className='grid grid-cols-8 gap-2 text-sm'>
+        <div className='col-span-2 font-semibold'>License:</div>
+        <div className='col-span-6'>{details.ruleViolation.license}</div>
+        <div className='col-span-2 font-semibold'>License source:</div>
+        <div className='col-span-6'>{details.ruleViolation.licenseSource}</div>
+        <div className='col-span-2 font-semibold'>How to fix:</div>
+      </div>
+      <div className='flex whitespace-pre-line break-all text-sm'>
+        {details.ruleViolation.howToFix}
+      </div>
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button type='button' variant='secondary'>
+            Close
+          </Button>
+        </DialogClose>
+      </DialogFooter>
+    </DialogContent>
+  );
+};
 
 const RuleViolationsComponent = () => {
+  const params = Route.useParams();
+  const search = Route.useSearch();
+
+  // Memoize the search parameters to prevent unnecessary re-rendering
+
+  const pageIndex = useMemo(
+    () => (search.page ? search.page - 1 : 0),
+    [search.page]
+  );
+
+  const pageSize = useMemo(
+    () => (search.pageSize ? search.pageSize : defaultPageSize),
+    [search.pageSize]
+  );
+
+  const groups = useMemo(
+    () => (search.groups ? search.groups : ['Severity']),
+    [search.groups]
+  );
+
+  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
+    repositoryId: Number.parseInt(params.repoId),
+    ortRunIndex: Number.parseInt(params.runIndex),
+  });
+
+  const { data: ruleViolations } =
+    useRuleViolationsServiceGetRuleViolationsByRunIdSuspense({
+      runId: ortRun.id,
+      // Fetch all data at once, as we need to do both grouping and
+      // pagination in front-end for consistency in data handling.
+      limit: 100000,
+      sort: 'rule',
+    });
+
+  const table = useReactTable({
+    data: ruleViolations?.data || [],
+    columns,
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+      grouping: groups,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Rule violations</CardTitle>
-        <CardDescription>Rule violations of the project.</CardDescription>
+        <CardTitle>Rule violations (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardDescription>
+          These are the rule violations found from the ORT run. Please note that
+          the status may change over time, as your project dependencies change.
+          Therefore, your project should be scanned for rule violations
+          regularly.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Label className='font-semibold'>Not implemented yet.</Label>
+        <CardContent>
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: 1, pageSize: size },
+              };
+            }}
+            setGroupingOptions={(groups) => {
+              return {
+                to: Route.to,
+                search: { ...search, groups: groups },
+              };
+            }}
+            enableGrouping={true}
+          />
+        </CardContent>
       </CardContent>
     </Card>
   );
@@ -46,6 +251,13 @@ const RuleViolationsComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/rule-violations/'
 )({
+  validateSearch: paginationSchema.merge(tableGroupingSchema),
+  loader: async ({ context, params }) => {
+    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
+      repositoryId: Number.parseInt(params.repoId),
+      ortRunIndex: Number.parseInt(params.runIndex),
+    });
+  },
   component: RuleViolationsComponent,
   pendingComponent: LoadingIndicator,
 });
