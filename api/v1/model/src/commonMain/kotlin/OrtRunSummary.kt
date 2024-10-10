@@ -100,7 +100,13 @@ data class OrtRunSummary(
      * The resolved configuration context. When an ORT run is started, the configuration context is resolved once and
      * then stored, so that all workers access the same set of configuration properties.
      */
-    val resolvedJobConfigContext: String? = null
+    val resolvedJobConfigContext: String? = null,
+
+    /**
+     * The optional path to an environment configuration file. If this is not defined, the environment configuration is
+     * read from the default location `.ort.env.yml`.
+     */
+    val environmentConfigPath: String? = null
 )
 
 @Serializable

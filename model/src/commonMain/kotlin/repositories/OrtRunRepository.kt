@@ -42,7 +42,8 @@ interface OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String? = null,
         labels: Map<String, String>,
-        traceId: String?
+        traceId: String?,
+        environmentConfigPath: String?,
     ): OrtRun
 
     /**

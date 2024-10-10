@@ -38,6 +38,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEn
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
+import org.ossreviewtoolkit.utils.common.alsoIfNull
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -96,25 +98,41 @@ class EnvironmentConfigLoader(
     private val definitionFactory: EnvironmentDefinitionFactory
 ) {
     companion object {
-        /** The path to the environment configuration file relative to the root folder of the repository. */
-        const val CONFIG_FILE_PATH = ".ort.env.yml"
+        /** The default path to the environment configuration file relative to the root folder of the repository. */
+        const val DEFAULT_CONFIG_FILE_PATH = ".ort.env.yml"
 
         private val logger = LoggerFactory.getLogger(EnvironmentConfigLoader::class.java)
     }
 
     /**
-     * Read the environment configuration file from the repository defined by the given [Hierarchy] checked out at
-     * the given [repositoryFolder] and return an [ResolvedEnvironmentConfig] with its content. Syntactic errors in the
-     * file cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
+     * Read the environment configuration file [environmentConfigPath] from the repository defined by the given
+     * [Hierarchy] checked out at the given [repositoryFolder] and return an [ResolvedEnvironmentConfig] with its
+     * content. If not file path is provided, the default path `.ort.env.yml` is used. Syntactic errors in the file
+     * cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
      */
-    fun parse(repositoryFolder: File): EnvironmentConfig =
-        repositoryFolder.resolve(CONFIG_FILE_PATH).takeIf { it.isFile }?.let { configFile ->
+    fun parse(repositoryFolder: File, environmentConfigPath: String? = null): EnvironmentConfig {
+        val customEnvironmentConfigFile = environmentConfigPath?.let {
+            repositoryFolder.resolve(it).takeIf { file -> file.isFile }.alsoIfNull {
+                logger.warn("Custom environment configuration file '$environmentConfigPath' not found.")
+            }
+        }
+
+        val defaultEnvironmentConfigFile = if (customEnvironmentConfigFile == null) {
+            repositoryFolder.resolve(DEFAULT_CONFIG_FILE_PATH).takeIf { it.isFile }.alsoIfNull {
+                logger.info("Default environment configuration file '$DEFAULT_CONFIG_FILE_PATH' not found.")
+            }
+        } else {
+            null
+        }
+
+        return (customEnvironmentConfigFile ?: defaultEnvironmentConfigFile)?.let { configFile ->
             logger.info("Parsing environment configuration file '{}'.", configFile)
 
             configFile.inputStream().use { stream ->
                 Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
             }
         } ?: EnvironmentConfig()
+    }
 
     /**
      * Resolve the given [config] for the repository defined by the given [hierarchy]. This function is used when the

@@ -147,7 +147,8 @@ class ListQueryTest : StringSpec() {
                     JobConfigurations(),
                     null,
                     mapOf("label1" to "label1"),
-                    traceId = "trace-$idx"
+                    traceId = "trace-$idx",
+                    ".custom.ort.env.yml"
                 )
             }
 
