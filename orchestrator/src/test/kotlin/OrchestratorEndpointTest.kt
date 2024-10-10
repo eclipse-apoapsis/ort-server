@@ -115,6 +115,7 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     emptyList(),
                     null,
                     null,
+                    environmentConfigPath = null,
                     "trace-id"
                 )
             )

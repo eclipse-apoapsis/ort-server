@@ -64,7 +64,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>,
-        traceId: String?
+        traceId: String?,
+        environmentConfigPath: String?
     ): OrtRun = db.blockingQuery {
         val maxIndex = OrtRunsTable.index.max()
         val lastIndex = OrtRunsTable
@@ -86,6 +87,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
             this.traceId = traceId
+            this.environmentConfigPath = environmentConfigPath
         }.mapToModel()
     }
 

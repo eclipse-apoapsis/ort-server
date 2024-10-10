@@ -140,7 +140,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createOrtRun.path,
                     createOrtRun.jobConfigs.mapToModel(),
                     createOrtRun.jobConfigContext,
-                    createOrtRun.labels
+                    createOrtRun.labels,
+                    createOrtRun.environmentConfigPath
                 ).mapToApi(Jobs())
             )
         }

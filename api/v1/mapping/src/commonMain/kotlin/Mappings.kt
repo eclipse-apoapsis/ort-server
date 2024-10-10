@@ -329,6 +329,7 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         issues = issues.map { it.mapToApi() },
         jobConfigContext,
         resolvedJobConfigContext,
+        environmentConfigPath,
         traceId
     )
 
@@ -347,7 +348,8 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
         status = status.mapToApi(),
         labels = labels,
         jobConfigContext = jobConfigContext,
-        resolvedJobConfigContext = resolvedJobConfigContext
+        resolvedJobConfigContext = resolvedJobConfigContext,
+        environmentConfigPath = environmentConfigPath
     )
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
