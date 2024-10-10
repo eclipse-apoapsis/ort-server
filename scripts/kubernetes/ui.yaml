@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ort-server-ui
+  namespace: ort-server
+  labels:
+    app: ort-server
+    component: ui
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: ort-server
+    component: ui
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-ui
+  namespace: ort-server
+  labels:
+    app: ort-server
+    component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server
+      component: ui
+  template:
+    metadata:
+      labels:
+        app: ort-server
+        component: ui
+    spec:
+      containers:
+        - name: ort-server
+          image: ort-server-ui
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          env:
+            - name: UI_URL
+              value: "http://localhost:18082"
+            - name: UI_API_URL
+              value: "http://localhost:8080"
+            - name: UI_AUTHORITY
+              value: "http://localhost:8081/realms/master"
+            - name: UI_CLIENT_ID
+              value: "ort-server-ui"

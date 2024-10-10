@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ort-server
+    component: core
+  name: ort-server-core
+  namespace: ort-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: metrics
+      port: 9108
+      targetPort: 9108
+  selector:
+    app: ort-server
+    component: core
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: core-configuration
+  namespace: ort-server
+data:
+  PUBLIC_SCHEME: http
+  PUBLIC_FQDN: localhost
+  PUBLIC_PORT: "8080"
+  PORT: "8080"
+  UI_HOSTS: localhost:5173
+  DB_HOST: postgresql
+  DB_PORT: "5432"
+  DB_NAME: ort
+  DB_SCHEMA: ort_server
+  DB_USERNAME: postgres
+  DB_PASSWORD: postgres
+  DB_SSL_MODE: disable
+  JWT_URI: "http://keycloak.ort-server.svc.cluster.local/realms/ort-server/protocol/openid-connect/certs"
+  JWT_ISSUER: "http://localhost:8081/realms/ort-server"
+  JWT_REALM: "ort-server"
+  KEYCLOAK_ACCESS_TOKEN_URL: "http://keycloak.ort-server.svc.cluster.local/realms/ort-server/protocol/openid-connect/token"
+  KEYCLOAK_API_URL: "http://keycloak.ort-server.svc.cluster.local/admin/realms/ort-server"
+  KEYCLOAK_API_USER: "keycloak-admin"
+  KEYCLOAK_API_SECRET: "keycloak-admin"
+  ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
+  ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: amqp://rabbitmq-headless.ort-server.svc.cluster.local:5672
+  ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+  GRAPHITE_HOST: graphite
+  GRAPHITE_PORT: "2003"
+  CORE_SECRET_PROVIDER: secret-file
+  CORE_SECRET_FILES: "/app/resources/secrets.properties"
+  ALLOW_SECRETS_FROM_CONFIG: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-core
+  namespace: ort-server
+  labels:
+    app: ort-server
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server
+      component: core
+  template:
+    metadata:
+      labels:
+        app: ort-server
+        component: core
+    spec:
+      volumes:
+        - name: ort-core-config-volume
+          configMap:
+            name: ort-core-config
+        - name: ort-core-config-secrets
+          secret:
+            secretName: ort-secrets
+      containers:
+        - name: ort-server
+          image: core
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: core-configuration
+          volumeMounts:
+            - name: ort-core-config-secrets
+              mountPath: /app/resources/secrets.properties
+              subPath: secrets.properties
+              readOnly: true
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          livenessProbe:
+             failureThreshold: 6
+             httpGet:
+               path: /api/v1/liveness
+               port: 8080
+               scheme: HTTP
+             periodSeconds: 10
+             successThreshold: 1
+             timeoutSeconds: 5

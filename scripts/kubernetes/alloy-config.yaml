@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+  namespace: ort-server
+data:
+  config.alloy: |
+    logging {
+      level = "info"
+      format = "logfmt"
+    }
+
+    discovery.kubernetes "ort_server_deployment_pods" {
+      role = "pod"
+
+      selectors {
+        role = "pod"
+        label = "app=ort-server"
+      }
+
+      namespaces {
+        own_namespace = true
+      }
+    }
+
+    discovery.relabel "ort_server_deployment_containers" {
+      targets = discovery.kubernetes.ort_server_deployment_pods.targets
+
+      rule {
+        action = "labelmap"
+        regex = "__meta_kubernetes_(namespace|(pod_(node_name|name|container_image)))"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app"]
+        target_label = "app"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_component"]
+        target_label = "component"
+      }
+
+      rule {
+        action = "keep"
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        regex = "^(ort-server|kubernetes-jobmonitor)$"
+      }
+    }
+
+    discovery.kubernetes "ort_server_worker_pods" {
+      role = "pod"
+    
+      selectors {
+        role = "pod"
+        label = "ort-worker in (advisor, analyzer, config, evaluator, reporter, scanner)"
+      }
+
+      namespaces {
+        own_namespace = true
+      }
+    }
+    
+    discovery.relabel "ort_server_worker_relabelled" {
+      targets = discovery.kubernetes.ort_server_worker_pods.targets
+
+      rule {
+        action = "labelmap"
+        regex = "__meta_kubernetes_(namespace|(pod_(node_name|name|container_image)))"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_ort_worker"]
+        target_label = "component"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_run_id"]
+        target_label = "run_id"
+      }
+    }
+
+    loki.source.kubernetes "ort_server_deployment_logs" {
+      targets = discovery.relabel.ort_server_deployment_containers.output
+      forward_to = [loki.process.parse_logs.receiver]
+    }
+
+    loki.source.kubernetes "ort_server_worker_logs" {
+      targets = discovery.relabel.ort_server_worker_relabelled.output
+      forward_to = [loki.process.parse_logs.receiver]
+    }
+
+    loki.process "parse_logs" {
+      forward_to = [loki.write.cockpit_logs_endpoint.receiver]
+  
+      stage.regex {
+        expression = "^(?P<time>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}) \\[(?P<thread>[^\\]]+)\\] level=(?P<level>\\w+) (?P<message>.+)\\n$"
+      }
+
+      stage.labels {
+        values = {
+          app = "",
+          component = "",
+          run_id = "",
+          thread = "",
+          level = "",
+          namespace = "",
+          pod_name = "",
+          pod_node_name = "",
+          pod_container_name = "",
+          pod_container_image = "",
+        }
+      }
+    
+      stage.timestamp {
+        source = "time"
+        format = "2006-01-02 15:04:05.000"
+      }
+  
+      stage.output {
+        source = "message"
+      }
+    }
+
+    loki.write "cockpit_logs_endpoint" {
+      endpoint {
+        url = "http://loki-stack:3100/loki/api/v1/push"
+      }
+    }
+
+    discovery.relabel "ort_server_core_pods" {
+      targets = discovery.kubernetes.ort_server_deployment_pods.targets
+
+      rule {
+        action = "keep"
+        source_labels = ["__meta_kubernetes_pod_label_component"]
+        regex = "^core$"
+      }
+
+      rule {
+        action = "keep"
+        source_labels = ["__address__"]
+        regex = ".*:9108$"
+      }
+    }
