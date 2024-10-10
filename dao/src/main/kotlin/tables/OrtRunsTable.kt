@@ -56,6 +56,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val finishedAt = timestamp("finished_at").nullable()
     val path = text("path").nullable()
     val traceId = text("trace_id").nullable()
+    val environmentConfigPath = text("environment_config_path").nullable()
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -78,6 +79,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var labels by LabelDao via OrtRunsLabelsTable
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
+    var environmentConfigPath by OrtRunsTable.environmentConfigPath
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
@@ -109,6 +111,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         issues = issues.map { it.mapToModel() },
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
-        traceId = traceId
+        traceId = traceId,
+        environmentConfigPath = environmentConfigPath
     )
 }

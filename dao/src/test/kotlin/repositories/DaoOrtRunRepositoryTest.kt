@@ -84,6 +84,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
         val path = "somePath"
         val jobConfigContext = "someConfigContext"
         val traceId = "trace-1234"
+        val environmentConfigPath = "path/to/env.yml"
 
         val createdOrtRun = ortRunRepository.create(
             repositoryId,
@@ -92,7 +93,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             jobConfigContext,
             labelsMap,
-            traceId = traceId
+            traceId = traceId,
+            environmentConfigPath
         )
 
         val dbEntry = ortRunRepository.get(createdOrtRun.id)
@@ -119,7 +121,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             nestedRepositoryIds = emptyMap(),
             repositoryConfigId = null,
             issues = emptyList(),
-            traceId = traceId
+            traceId = traceId,
+            environmentConfigPath = environmentConfigPath
         )
     }
 
@@ -133,7 +136,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = null
+            traceId = null,
+            null
         ).index shouldBe 1
         ortRunRepository.create(
             otherRepository.id,
@@ -142,7 +146,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = null
+            traceId = null,
+            null
         ).index shouldBe 1
         ortRunRepository.create(
             otherRepository.id,
@@ -151,7 +156,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "some-trace-id"
+            traceId = "some-trace-id",
+            null
         ).index shouldBe 2
         ortRunRepository.create(
             repositoryId,
@@ -160,7 +166,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = null
+            traceId = null,
+            null
         ).index shouldBe 2
     }
 
@@ -172,7 +179,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "some-trace-id"
+            traceId = "some-trace-id",
+            null
         )
 
         ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
@@ -190,7 +198,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "some-trace-id"
+            traceId = "some-trace-id",
+            null
         )
 
         ortRunRepository.get(ortRun.id) shouldBe ortRun
@@ -204,7 +213,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "the-first-trace-id"
+            traceId = "the-first-trace-id",
+            null
         )
 
         val ortRun2 = ortRunRepository.create(
@@ -214,7 +224,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "the-second-trace-id"
+            traceId = "the-second-trace-id",
+            null
         )
 
         ortRunRepository.list() shouldBe ListQueryResult(listOf(ortRun1, ortRun2), ListQueryParameters.DEFAULT, 2)
@@ -228,7 +239,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "t"
+            traceId = "t",
+            null
         )
 
         val ortRun2 = ortRunRepository.create(
@@ -238,7 +250,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "trace-id"
+            traceId = "trace-id",
+            null
         )
 
         val parameters = ListQueryParameters(
@@ -257,7 +270,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "t"
+            traceId = "t",
+            null
         )
 
         val ortRun2 = ortRunRepository.create(
@@ -267,7 +281,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "trace-id"
+            traceId = "trace-id",
+            null
         )
 
         val failedRun = ortRunRepository.update(ortRun2.id, status = OrtRunStatus.FAILED.asPresent())
@@ -293,7 +308,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "t"
+            traceId = "t",
+            null
         )
 
         val ortRun2 = ortRunRepository.create(
@@ -303,7 +319,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "trace-id"
+            traceId = "trace-id",
+            null
         )
 
         ortRunRepository.update(ortRun2.id, status = OrtRunStatus.FAILED.asPresent())
@@ -329,7 +346,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "the-first-trace-id"
+            traceId = "the-first-trace-id",
+            null
         )
         val ortRun2 = ortRunRepository.create(
             repositoryId,
@@ -338,7 +356,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "the-second-trace-id"
+            traceId = "the-second-trace-id",
+            null
         )
 
         ortRunRepository.listForRepository(repositoryId) shouldBe
@@ -346,7 +365,16 @@ class DaoOrtRunRepositoryTest : StringSpec({
     }
 
     "listForRepositories should apply query parameters" {
-        ortRunRepository.create(repositoryId, "revision1", null, jobConfigurations, null, labelsMap, traceId = "t")
+        ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "t",
+            null
+        )
         val ortRun2 = ortRunRepository.create(
             repositoryId,
             "revision2",
@@ -354,7 +382,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "trace-id"
+            traceId = "trace-id",
+            null
         )
 
         val parameters = ListQueryParameters(
@@ -405,7 +434,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            "theTraceId"
+            "theTraceId",
+            null
         )
 
         val resolvedContext = "theResolvedConfigContext"
@@ -468,7 +498,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            "theTraceId"
+            "theTraceId",
+            null
         )
 
         ortRunRepository.update(
@@ -494,7 +525,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            "theTraceId"
+            "theTraceId",
+            null
         )
 
         val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FINISHED.asPresent())
@@ -511,7 +543,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             emptyMap(),
-            "traceIT"
+            "traceIT",
+            null
         )
 
         val updateResult = ortRunRepository.update(ortRun.id, status = OrtRunStatus.FAILED.asPresent())
@@ -528,7 +561,8 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations,
             null,
             labelsMap,
-            traceId = "delete-without-trace"
+            traceId = "delete-without-trace",
+            null
         )
 
         ortRunRepository.delete(ortRun.id)

@@ -145,7 +145,8 @@ class Fixtures(private val db: Database) {
         jobConfigurations,
         null,
         mapOf("label key" to "label value"),
-        traceId = "trace-this-run"
+        traceId = "trace-this-run0",
+        environmentConfigPath = "path/to/env.yml"
     )
 
     fun createAnalyzerJob(

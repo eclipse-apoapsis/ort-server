@@ -100,7 +100,8 @@ class EnvironmentService(
         config: EnvironmentConfig?,
         repositoryService: InfrastructureService?
     ): ResolvedEnvironmentConfig {
-        val mergedConfig = configLoader.parse(repositoryFolder).merge(config)
+        val environmentConfigPath = context.ortRun.environmentConfigPath
+        val mergedConfig = configLoader.parse(repositoryFolder, environmentConfigPath).merge(config)
         val resolvedConfig = configLoader.resolve(mergedConfig, context.hierarchy)
 
         return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
