@@ -136,6 +136,12 @@ data class OrtRun(
     val resolvedJobConfigContext: String?,
 
     /**
+     * The optional path to a environment configuration file. If this is not defined, the environment configuration is
+     * read from the default location `.ort.env.yml`.
+     */
+    val environmentConfigPath: String? = null,
+
+    /**
      * The trace ID that is assigned to this run. This is generated when the run is created. It can be used to
      * correlate the logs from different components that are taking part in processing of the run.
      */

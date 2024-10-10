@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run ORT Server" type="JetRunConfigurationType">
     <envs>
-      <env name="DB_NAME" value="ort_server" />
       <env name="DB_HOST" value="localhost" />
-      <env name="DB_PORT" value="5433" />
+      <env name="DB_NAME" value="ort_server" />
       <env name="DB_PASSWORD" value="postgres" />
+      <env name="DB_PORT" value="5432" />
       <env name="DB_SCHEMA" value="ort_server" />
       <env name="DB_SSL_MODE" value="disable" />
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:5433" />
@@ -13,13 +13,13 @@
       <env name="JWT_ISSUER" value="http://localhost:8081/realms/master" />
       <env name="JWT_REALM" value="master" />
       <env name="JWT_URI" value="http://localhost:8081/realms/master/protocol/openid-connect/certs" />
+      <env name="KEYCLOAK_ACCESS_TOKEN_URL" value="http://localhost:8081/realms/master/protocol/openid-connect/token" />
+      <env name="KEYCLOAK_API_URL" value="http://localhost:8081/admin/realms/master" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD" value="admin" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME" value="orchestrator_queue" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI" value="amqp://rabbitmq:5672" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_TYPE" value="rabbitMQ" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_USERNAME" value="admin" />
-      <env name="KEYCLOAK_ACCESS_TOKEN_URL" value="http://localhost:8081/realms/master/protocol/openid-connect/token" />
-      <env name="KEYCLOAK_API_URL" value="http://localhost:8081/admin/realms/master" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.eclipse.apoapsis.ortserver.core.ApplicationKt" />
     <module name="ort-server.core.main" />

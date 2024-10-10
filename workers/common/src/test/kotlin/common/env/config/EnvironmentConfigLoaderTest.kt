@@ -399,7 +399,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
         val tempDir = tempdir()
 
         javaClass.getResourceAsStream("/$name")?.use { stream ->
-            val target = tempDir.resolve(EnvironmentConfigLoader.CONFIG_FILE_PATH)
+            val target = tempDir.resolve(EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH)
             target.outputStream().use { out ->
                 stream.copyTo(out)
             }

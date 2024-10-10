@@ -260,7 +260,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t1"
+                    traceId = "t1",
+                    null
                 )
 
                 val issue = ApiIssue(
@@ -291,7 +292,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "testContext",
                     labelsMap,
-                    traceId = "trace"
+                    traceId = "trace",
+                    null
                 )
 
                 val jobs = dbExtension.fixtures.createJobs(run.id).mapToApi()
@@ -311,7 +313,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 JobConfigurations(),
                 null,
                 labelsMap,
-                traceId = "test-trace-id"
+                traceId = "test-trace-id",
+                null
             )
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
@@ -562,7 +565,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 JobConfigurations(),
                 null,
                 labelsMap,
-                traceId = "test-trace-id"
+                traceId = "test-trace-id",
+                null
             )
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
@@ -962,7 +966,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 JobConfigurations(),
                 null,
                 labelsMap,
-                traceId = "test-trace-id"
+                traceId = "test-trace-id",
+                null
             )
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
@@ -994,7 +999,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t1"
+                    traceId = "t1",
+                    null
                 )
 
                 val run2 = ortRunRepository.create(
@@ -1004,7 +1010,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t2"
+                    traceId = "t2",
+                    null
                 )
 
                 val response = superuserClient.get("/api/v1/runs")
@@ -1033,7 +1040,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t1"
+                    traceId = "t1",
+                    null
                 )
 
                 val run2 = ortRunRepository.create(
@@ -1043,7 +1051,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t2"
+                    traceId = "t2",
+                    null
                 )
 
                 val run3 = ortRunRepository.create(
@@ -1053,7 +1062,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t3"
+                    traceId = "t3",
+                    null
                 )
 
                 val updatedRun2 = ortRunRepository.update(run2.id, OrtRunStatus.FAILED.asPresent())
@@ -1094,7 +1104,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t1"
+                    traceId = "t1",
+                    null
                 )
 
                 val run2 = ortRunRepository.create(
@@ -1104,7 +1115,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t2"
+                    traceId = "t2",
+                    null
                 )
 
                 val run3 = ortRunRepository.create(
@@ -1114,7 +1126,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     JobConfigurations(),
                     "jobConfigContext",
                     labelsMap,
-                    traceId = "t3"
+                    traceId = "t3",
+                    null
                 )
 
                 ortRunRepository.update(run2.id, OrtRunStatus.FAILED.asPresent())
