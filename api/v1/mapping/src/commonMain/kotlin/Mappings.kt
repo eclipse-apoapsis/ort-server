@@ -113,7 +113,6 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.RuleViolationWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -507,11 +506,6 @@ fun VulnerabilityWithIdentifier.mapToApi() =
 
 fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
 
-fun RuleViolationWithIdentifier.mapToApi() = ApiRuleViolationWithIdentifier(
-    ruleViolation.mapToApi(),
-    identifier.mapToApi()
-)
-
 fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
     rule,
     license,
@@ -519,6 +513,10 @@ fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
     severity.mapToApi(),
     message,
     howToFix
+)
+
+fun OrtRuleViolation.mapToApiRuleViolationWithIdentifier() = ApiRuleViolationWithIdentifier(
+    this.mapToApi(), this.packageId?.mapToApi()
 )
 
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)

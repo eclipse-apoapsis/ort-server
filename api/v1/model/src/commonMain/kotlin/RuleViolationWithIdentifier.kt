@@ -24,5 +24,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RuleViolationWithIdentifier(
     val ruleViolation: RuleViolation,
-    val identifier: Identifier
+    val identifier: Identifier?
 )
