@@ -39,7 +39,7 @@ import org.slf4j.MDC
  * [lifecycle events][https://ktor.io/docs/events.html#handle-events-application].
  */
 fun Application.configureLifecycle() {
-    environment.monitor.subscribe(DatabaseReady) {
+    monitor.subscribe(DatabaseReady) {
         val authorizationService by inject<AuthorizationService>()
 
         val mdcContext = MDC.getCopyOfContextMap()

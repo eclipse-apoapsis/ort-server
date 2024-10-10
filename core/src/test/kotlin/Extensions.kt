@@ -38,8 +38,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.util.KtorDsl
 import io.ktor.util.appendIfNameAbsent
+import io.ktor.utils.io.KtorDsl
 
 import kotlinx.serialization.json.Json
 

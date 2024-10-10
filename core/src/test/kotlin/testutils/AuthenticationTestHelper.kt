@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.core.testutils
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.Principal
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.UserPasswordCredential
 import io.ktor.server.auth.basic
@@ -49,5 +48,5 @@ fun Application.configureTestAuthentication() {
 /**
  * Validate whether the [credentials] passed to the server are the expected test credentials.
  */
-fun validateTestCredentials(credentials: UserPasswordCredential): Principal? =
+fun validateTestCredentials(credentials: UserPasswordCredential): UserIdPrincipal? =
     credentials.takeIf { it.name == TEST_USER && it.password == TEST_PASSWORD }?.let { UserIdPrincipal(it.name) }

@@ -49,7 +49,7 @@ kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
 ksp = "2.0.20-1.0.25"
-ktor = "2.3.12"
+ktor = "3.0.0"
 ktorSwaggerUi = "3.4.0"
 kubernetesClient = "18.0.1"
 log4j = "2.24.1"
@@ -109,6 +109,7 @@ ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiati
 ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktorHttp = { module = "io.ktor:ktor-http", version.ref = "ktor" }
+ktorIo = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktorServerAuthJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
@@ -124,6 +125,7 @@ ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", versi
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorSwaggerUi" }
+ktorUtils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktorValidation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }

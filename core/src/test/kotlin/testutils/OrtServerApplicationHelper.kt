@@ -25,7 +25,7 @@ import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import io.ktor.util.KtorDsl
+import io.ktor.utils.io.KtorDsl
 
 import java.lang.IllegalArgumentException
 
@@ -66,7 +66,9 @@ fun ortServerTestApplication(
 
     environment {
         this.config = mergedConfig
+    }
 
+    serverConfig {
         // Turn off development mode for tests because auto-reloading causes several issues, mainly with code checking
         // if an object is an instance of a certain class, because the same class might have been loaded by different
         // class loaders.
@@ -75,7 +77,7 @@ fun ortServerTestApplication(
 
     if (db != null) {
         application {
-            environment.monitor.subscribe(ApplicationStarted) {
+            monitor.subscribe(ApplicationStarted) {
                 attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
             }
         }
