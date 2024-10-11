@@ -50,7 +50,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
@@ -168,79 +167,77 @@ const OrganizationComponent = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex flex-row justify-between'>
-            <div className='flex items-stretch'>
-              <div className='flex items-center pb-1'>{organization.name}</div>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Button
-                    asChild
-                    size='sm'
-                    variant='outline'
-                    className='ml-2 px-2'
-                  >
-                    <Link
-                      to='/organizations/$orgId/edit'
-                      params={{ orgId: organization.id.toString() }}
-                    >
-                      <EditIcon className='h-4 w-4' />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit this organization</TooltipContent>
-              </Tooltip>
-            </div>
-            <DeleteDialog
-              item={{
-                descriptor: 'organization',
-                name: organization.name,
-              }}
-              onDelete={handleDelete}
-              isPending={isPending}
-            />
-          </CardTitle>
-          <CardDescription>{organization.description}</CardDescription>
-          <div className='py-2'>
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex flex-row justify-between'>
+          <div className='flex items-stretch'>
+            <div className='flex items-center pb-1'>{organization.name}</div>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
+              <TooltipTrigger>
+                <Button
+                  asChild
+                  size='sm'
+                  variant='outline'
+                  className='ml-2 px-2'
+                >
                   <Link
-                    to='/organizations/$orgId/create-product'
+                    to='/organizations/$orgId/edit'
                     params={{ orgId: organization.id.toString() }}
                   >
-                    Add product
-                    <PlusIcon className='h-4 w-4' />
+                    <EditIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                Add a product for managing repositories
-              </TooltipContent>
+              <TooltipContent>Edit this organization</TooltipContent>
             </Tooltip>
           </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
+          <DeleteDialog
+            item={{
+              descriptor: 'organization',
+              name: organization.name,
             }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, pageSize: size },
-              };
-            }}
+            onDelete={handleDelete}
+            isPending={isPending}
           />
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+        </CardTitle>
+        <CardDescription>{organization.description}</CardDescription>
+        <div className='py-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link
+                  to='/organizations/$orgId/create-product'
+                  params={{ orgId: organization.id.toString() }}
+                >
+                  Add product
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add a product for managing repositories
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, pageSize: size },
+            };
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

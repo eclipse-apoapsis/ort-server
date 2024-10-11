@@ -23,7 +23,6 @@ import { PagedResponse_OrtRunSummary } from '@/api/requests';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -50,199 +49,197 @@ export const OrtRunJobStatus = ({
   runIndex,
 }: OrtRunJobStatusProps) => {
   return (
-    <TooltipProvider>
-      <div className='flex items-center space-x-1'>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
-              params={{ orgId, productId, repoId, runIndex }}
-              hash='analyzer'
+    <div className='flex items-center space-x-1'>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+            params={{ orgId, productId, repoId, runIndex }}
+            hash='analyzer'
+          >
+            <div
+              className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
             >
-              <div
-                className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
-              >
-                {' '}
-              </div>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className='flex flex-col'>
-              <div className='flex gap-2'>
-                <div>Analyzer:</div>
-                <div>
-                  {jobs.analyzer?.status ||
-                    'Not started / not included in ORT Run'}
-                </div>
-              </div>
+              {' '}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className='flex flex-col'>
+            <div className='flex gap-2'>
+              <div>Analyzer:</div>
               <div>
-                {jobs.analyzer?.startedAt && (
-                  <div className='flex gap-2'>
-                    <div>Duration:</div>
-                    <RunDuration
-                      createdAt={jobs.analyzer?.startedAt}
-                      finishedAt={jobs.analyzer.finishedAt}
-                      pollInterval={pollInterval}
-                    />
-                  </div>
-                )}
+                {jobs.analyzer?.status ||
+                  'Not started / not included in ORT Run'}
               </div>
             </div>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
-              params={{ orgId, productId, repoId, runIndex }}
-              hash='advisor'
-            >
-              <div
-                className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
-              >
-                {' '}
-              </div>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className='flex flex-col'>
-              <div className='flex gap-2'>
-                <div>Advisor:</div>
-                <div>
-                  {jobs.advisor?.status ||
-                    'Not started / not included in ORT Run'}
+            <div>
+              {jobs.analyzer?.startedAt && (
+                <div className='flex gap-2'>
+                  <div>Duration:</div>
+                  <RunDuration
+                    createdAt={jobs.analyzer?.startedAt}
+                    finishedAt={jobs.analyzer.finishedAt}
+                    pollInterval={pollInterval}
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+            params={{ orgId, productId, repoId, runIndex }}
+            hash='advisor'
+          >
+            <div
+              className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
+            >
+              {' '}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className='flex flex-col'>
+            <div className='flex gap-2'>
+              <div>Advisor:</div>
               <div>
-                {jobs.advisor?.startedAt && (
-                  <div className='flex gap-2'>
-                    <div>Duration:</div>
-                    <RunDuration
-                      createdAt={jobs.advisor?.startedAt}
-                      finishedAt={jobs.advisor.finishedAt}
-                      pollInterval={pollInterval}
-                    />
-                  </div>
-                )}
+                {jobs.advisor?.status ||
+                  'Not started / not included in ORT Run'}
               </div>
             </div>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
-              params={{ orgId, productId, repoId, runIndex }}
-              hash='scanner'
-            >
-              <div
-                className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
-              >
-                {' '}
-              </div>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className='flex flex-col'>
-              <div className='flex gap-2'>
-                <div>Scanner:</div>
-                <div>
-                  {jobs.scanner?.status ||
-                    'Not started / not included in ORT Run'}
+            <div>
+              {jobs.advisor?.startedAt && (
+                <div className='flex gap-2'>
+                  <div>Duration:</div>
+                  <RunDuration
+                    createdAt={jobs.advisor?.startedAt}
+                    finishedAt={jobs.advisor.finishedAt}
+                    pollInterval={pollInterval}
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+            params={{ orgId, productId, repoId, runIndex }}
+            hash='scanner'
+          >
+            <div
+              className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
+            >
+              {' '}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className='flex flex-col'>
+            <div className='flex gap-2'>
+              <div>Scanner:</div>
               <div>
-                {jobs.scanner?.startedAt && (
-                  <div className='flex gap-2'>
-                    <div>Duration:</div>
-                    <RunDuration
-                      createdAt={jobs.scanner?.startedAt}
-                      finishedAt={jobs.scanner.finishedAt}
-                      pollInterval={pollInterval}
-                    />
-                  </div>
-                )}
+                {jobs.scanner?.status ||
+                  'Not started / not included in ORT Run'}
               </div>
             </div>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
-              params={{ orgId, productId, repoId, runIndex }}
-              hash='evaluator'
-            >
-              <div
-                className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
-              >
-                {' '}
-              </div>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className='flex flex-col'>
-              <div className='flex gap-2'>
-                <div>Evaluator:</div>
-                <div>
-                  {jobs.evaluator?.status ||
-                    'Not started / not included in ORT Run'}
+            <div>
+              {jobs.scanner?.startedAt && (
+                <div className='flex gap-2'>
+                  <div>Duration:</div>
+                  <RunDuration
+                    createdAt={jobs.scanner?.startedAt}
+                    finishedAt={jobs.scanner.finishedAt}
+                    pollInterval={pollInterval}
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+            params={{ orgId, productId, repoId, runIndex }}
+            hash='evaluator'
+          >
+            <div
+              className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
+            >
+              {' '}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className='flex flex-col'>
+            <div className='flex gap-2'>
+              <div>Evaluator:</div>
               <div>
-                {jobs.evaluator?.startedAt && (
-                  <div className='flex gap-2'>
-                    <div>Duration:</div>
-                    <RunDuration
-                      createdAt={jobs.evaluator?.startedAt}
-                      finishedAt={jobs.evaluator.finishedAt}
-                      pollInterval={pollInterval}
-                    />
-                  </div>
-                )}
+                {jobs.evaluator?.status ||
+                  'Not started / not included in ORT Run'}
               </div>
             </div>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
-              params={{ orgId, productId, repoId, runIndex }}
-              hash='reporter'
-            >
-              <div
-                className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
-              >
-                {' '}
-              </div>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className='flex flex-col'>
-              <div className='flex gap-2'>
-                <div>Reporter:</div>
-                <div>
-                  {jobs.reporter?.status ||
-                    'Not started / not included in ORT Run'}
+            <div>
+              {jobs.evaluator?.startedAt && (
+                <div className='flex gap-2'>
+                  <div>Duration:</div>
+                  <RunDuration
+                    createdAt={jobs.evaluator?.startedAt}
+                    finishedAt={jobs.evaluator.finishedAt}
+                    pollInterval={pollInterval}
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
+            params={{ orgId, productId, repoId, runIndex }}
+            hash='reporter'
+          >
+            <div
+              className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
+            >
+              {' '}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className='flex flex-col'>
+            <div className='flex gap-2'>
+              <div>Reporter:</div>
               <div>
-                {jobs.reporter?.startedAt && (
-                  <div className='flex gap-2'>
-                    <div>Duration:</div>
-                    <RunDuration
-                      createdAt={jobs.reporter?.startedAt}
-                      finishedAt={jobs.reporter.finishedAt}
-                      pollInterval={pollInterval}
-                    />
-                  </div>
-                )}
+                {jobs.reporter?.status ||
+                  'Not started / not included in ORT Run'}
               </div>
             </div>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    </TooltipProvider>
+            <div>
+              {jobs.reporter?.startedAt && (
+                <div className='flex gap-2'>
+                  <div>Duration:</div>
+                  <RunDuration
+                    createdAt={jobs.reporter?.startedAt}
+                    finishedAt={jobs.reporter.finishedAt}
+                    pollInterval={pollInterval}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 };

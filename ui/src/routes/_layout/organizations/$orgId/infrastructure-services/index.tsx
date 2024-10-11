@@ -55,7 +55,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
@@ -98,21 +97,20 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
 
   return (
     <div className='flex justify-end gap-1'>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/infrastructure-services/$serviceName/edit'
-              params={{ orgId: params.orgId, serviceName: row.original.name }}
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
-            >
-              <span className='sr-only'>Edit</span>
-              <EditIcon size={16} />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>Edit this infrastructure service</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/infrastructure-services/$serviceName/edit'
+            params={{ orgId: params.orgId, serviceName: row.original.name }}
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+          >
+            <span className='sr-only'>Edit</span>
+            <EditIcon size={16} />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>Edit this infrastructure service</TooltipContent>
+      </Tooltip>
+
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
@@ -176,29 +174,27 @@ const InfrastructureServices = () => {
       cell: ({ row }) => (
         <div className='flex items-baseline'>
           {row.original.usernameSecretRef}{' '}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to='/organizations/$orgId/secrets/$secretName/edit'
-                  params={{
-                    orgId: params.orgId,
-                    secretName: row.original.usernameSecretRef,
-                  }}
-                  search={{
-                    returnTo: '/organizations/$orgId/infrastructure-services',
-                  }}
-                  className='px-2'
-                >
-                  <span className='sr-only'>Edit</span>
-                  <Pencil size={16} className='inline' />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                Edit the secret "{row.original.usernameSecretRef}"
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to='/organizations/$orgId/secrets/$secretName/edit'
+                params={{
+                  orgId: params.orgId,
+                  secretName: row.original.usernameSecretRef,
+                }}
+                search={{
+                  returnTo: '/organizations/$orgId/infrastructure-services',
+                }}
+                className='px-2'
+              >
+                <span className='sr-only'>Edit</span>
+                <Pencil size={16} className='inline' />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              Edit the secret "{row.original.usernameSecretRef}"
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
     },
@@ -208,29 +204,27 @@ const InfrastructureServices = () => {
       cell: ({ row }) => (
         <div className='flex items-baseline'>
           {row.original.passwordSecretRef}{' '}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to='/organizations/$orgId/secrets/$secretName/edit'
-                  params={{
-                    orgId: params.orgId,
-                    secretName: row.original.passwordSecretRef,
-                  }}
-                  search={{
-                    returnTo: '/organizations/$orgId/infrastructure-services',
-                  }}
-                  className='px-2'
-                >
-                  <span className='sr-only'>Edit</span>
-                  <Pencil size={16} className='inline' />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                Edit the secret "{row.original.passwordSecretRef}"
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to='/organizations/$orgId/secrets/$secretName/edit'
+                params={{
+                  orgId: params.orgId,
+                  secretName: row.original.passwordSecretRef,
+                }}
+                search={{
+                  returnTo: '/organizations/$orgId/infrastructure-services',
+                }}
+                className='px-2'
+              >
+                <span className='sr-only'>Edit</span>
+                <Pencil size={16} className='inline' />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              Edit the secret "{row.original.passwordSecretRef}"
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
     },
@@ -285,51 +279,49 @@ const InfrastructureServices = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle>Infrastructure Services</CardTitle>
-          <CardDescription>
-            Manage infrastructure services for {organization.name}
-          </CardDescription>
-          <div className='py-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
-                  <Link
-                    to='/organizations/$orgId/infrastructure-services/create'
-                    params={{ orgId: params.orgId }}
-                  >
-                    New infrastructure service
-                    <PlusIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Create a new infrastructure service for this organization
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, pageSize: size },
-              };
-            }}
-          />
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+    <Card>
+      <CardHeader>
+        <CardTitle>Infrastructure Services</CardTitle>
+        <CardDescription>
+          Manage infrastructure services for {organization.name}
+        </CardDescription>
+        <div className='py-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link
+                  to='/organizations/$orgId/infrastructure-services/create'
+                  params={{ orgId: params.orgId }}
+                >
+                  New infrastructure service
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Create a new infrastructure service for this organization
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, pageSize: size },
+            };
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

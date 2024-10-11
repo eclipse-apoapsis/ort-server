@@ -53,7 +53,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
@@ -273,87 +272,85 @@ const RepoComponent = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex flex-row justify-between'>
-            <div className='flex items-stretch'>
-              <div className='flex items-center pb-1'>{repo.url}</div>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Button
-                    asChild
-                    size='sm'
-                    variant='outline'
-                    className='ml-2 px-2'
-                  >
-                    <Link
-                      to='/organizations/$orgId/products/$productId/repositories/$repoId/edit'
-                      params={{
-                        orgId: params.orgId,
-                        productId: params.productId,
-                        repoId: params.repoId,
-                      }}
-                    >
-                      <EditIcon className='h-4 w-4' />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit this repository</TooltipContent>
-              </Tooltip>
-            </div>
-            <DeleteDialog
-              item={{
-                descriptor: 'repository',
-                name: repo.url,
-              }}
-              onDelete={handleDelete}
-              isPending={isPending}
-            />
-          </CardTitle>
-          <CardDescription>{repo.type}</CardDescription>
-          <div className='py-2'>
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex flex-row justify-between'>
+          <div className='flex items-stretch'>
+            <div className='flex items-center pb-1'>{repo.url}</div>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
+              <TooltipTrigger>
+                <Button
+                  asChild
+                  size='sm'
+                  variant='outline'
+                  className='ml-2 px-2'
+                >
                   <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/edit'
                     params={{
                       orgId: params.orgId,
                       productId: params.productId,
                       repoId: params.repoId,
                     }}
                   >
-                    New run
-                    <PlusIcon className='h-4 w-4' />
+                    <EditIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                Create a new ORT run for this repository
-              </TooltipContent>
+              <TooltipContent>Edit this repository</TooltipContent>
             </Tooltip>
           </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
+          <DeleteDialog
+            item={{
+              descriptor: 'repository',
+              name: repo.url,
             }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, pageSize: size },
-              };
-            }}
+            onDelete={handleDelete}
+            isPending={isPending}
           />
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+        </CardTitle>
+        <CardDescription>{repo.type}</CardDescription>
+        <div className='py-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                  }}
+                >
+                  New run
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Create a new ORT run for this repository
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, pageSize: size },
+            };
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 
