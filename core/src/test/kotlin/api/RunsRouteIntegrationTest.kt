@@ -72,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
@@ -86,6 +87,7 @@ import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
@@ -99,6 +101,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -1026,7 +1029,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     last() shouldBe run1.mapToApiSummary(JobSummaries())
                 }
 
-                body.pagination.sortProperties shouldBe listOf(SortProperty("createdAt", SortDirection.DESCENDING))
+                body.pagination.sortProperties shouldBe listOf(SortProperty("createdAt", DESCENDING))
                 body.filters shouldBe OrtRunFilters()
             }
         }
@@ -1161,6 +1164,189 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         "require superuser role" {
             requestShouldRequireRole(Superuser.ROLE_NAME) {
                 get("/api/v1/runs")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/rule-violations" should {
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRun = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${ortRun.id}/rule-violations")
+            }
+        }
+
+        "return a paginated and properly sorted list of rule violations for given runId" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(
+                    ortRunId = ortRun.id,
+                    configuration = EvaluatorJobConfiguration()
+                )
+
+                val ruleViolations = listOf(
+                    // 4th record after sort by "rule"
+                    OrtRuleViolation(
+                        "z-Rule-1",
+                        Identifier(
+                            "Maven",
+                            "org.apache.logging.log4j",
+                            "log4j-core",
+                            "2.14.0"
+                        ),
+                        "License-1",
+                        "CONCLUDED",
+                        Severity.WARNING,
+                        "Message-1",
+                        "How_to_fix-1"
+                    ),
+                    // 3rd record after sort by "rule"
+                    OrtRuleViolation(
+                        "b-Rule-2",
+                        Identifier(
+                            "Maven",
+                            "com.fasterxml.jackson.core",
+                            "jackson-databind",
+                            "2.9.6"
+                        ),
+                        "License-2",
+                        "DETECTED",
+                        Severity.ERROR,
+                        "Message-2",
+                        "How_to_fix-2"
+                    ),
+                    // 1st record after sort by "rule"
+                    OrtRuleViolation(
+                        "1-Rule-3",
+                        Identifier(
+                            "Maven",
+                            "org.apache.logging.log4j.api",
+                            "log4j-core-api",
+                            "2.20.0"
+                        ),
+                        "License-3",
+                        "CONCLUDED",
+                        Severity.WARNING,
+                        "Message-3",
+                        "How_to_fix-3"
+                    ),
+                    // 2nd record after sort by "rule"
+                    OrtRuleViolation(
+                        "a-Rule-4",
+                        Identifier(
+                            "Maven",
+                            "org.apache.test",
+                            "adv-loggger",
+                            "0.0.1-alpha"
+                        ),
+                        "License-4",
+                        "CONCLUDED",
+                        Severity.WARNING,
+                        "Message-4",
+                        "How_to_fix-4"
+                    )
+                )
+
+                ruleViolations.forEach {
+                    it.packageId?.let { identifier ->
+                        dbExtension.fixtures.createIdentifier(
+                            identifier
+                        )
+                    }
+                }
+
+                dbExtension.fixtures.evaluatorRunRepository.create(
+                    evaluatorJobId = evaluatorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    violations = ruleViolations
+                )
+
+                // 2nd ortRun just to check if filtering is working OK
+                val obsoleteOrtRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val obsoleteEvaluatorJob = dbExtension.fixtures.createEvaluatorJob(
+                    ortRunId = obsoleteOrtRun.id,
+                    configuration = EvaluatorJobConfiguration()
+                )
+
+                val obsoleteRuleViolations = listOf(
+                    OrtRuleViolation(
+                        "Rule-1-obsolete",
+                        Identifier(
+                            "Maven",
+                            "org.apache.logging.log4j.obsolete",
+                            "log4j-core",
+                            "2.14.0"
+                        ),
+                        "License-1-obsolete",
+                        "CONCLUDED",
+                        Severity.WARNING,
+                        "Message-1-obsolete",
+                        "How_to_fix-1-obsolete"
+                    ),
+                    OrtRuleViolation(
+                        "Rule-2-obsolete",
+                        Identifier(
+                            "Maven",
+                            "com.fasterxml.jackson.core.obsolete",
+                            "jackson-databind",
+                            "2.9.6"
+                        ),
+                        "License-2-obsolete",
+                        "DETECTED",
+                        Severity.ERROR,
+                        "Message-2-obsolete",
+                        "How_to_fix-2-obsolete"
+                    )
+                )
+
+                obsoleteRuleViolations.forEach {
+                    it.packageId?.let { identifier ->
+                        dbExtension.fixtures.createIdentifier(
+                            identifier
+                        )
+                    }
+                }
+
+                dbExtension.fixtures.evaluatorRunRepository.create(
+                    evaluatorJobId = obsoleteEvaluatorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    violations = obsoleteRuleViolations
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/rule-violations")
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val ruleViolationsResponse = response.body<PagedResponse<RuleViolation>>()
+
+                ruleViolationsResponse.data shouldHaveSize(4)
+
+                with(ruleViolationsResponse.pagination) {
+                    sortProperties shouldBe listOf(SortProperty("rule", SortDirection.ASCENDING))
+                    totalCount shouldBe 4
+                }
+
+                ruleViolationsResponse.data[0] shouldBe ruleViolations[2].mapToApi()
+                ruleViolationsResponse.data[1] shouldBe ruleViolations[3].mapToApi()
+                ruleViolationsResponse.data[2] shouldBe ruleViolations[1].mapToApi()
+                ruleViolationsResponse.data[3] shouldBe ruleViolations[0].mapToApi()
             }
         }
     }
