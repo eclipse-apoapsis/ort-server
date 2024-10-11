@@ -28,5 +28,6 @@ data class RuleViolation(
     val licenseSource: String?,
     val severity: Severity,
     val message: String,
-    val howToFix: String
+    val howToFix: String,
+    val packageId: Identifier?
 )
