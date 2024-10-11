@@ -41,7 +41,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { paginationSchema } from '@/schemas';
@@ -95,48 +94,46 @@ export const IndexPage = () => {
   });
 
   return (
-    <TooltipProvider>
-      <Card className='mx-auto w-full max-w-4xl'>
-        <CardHeader>
-          <CardTitle>Organizations</CardTitle>
-          <CardDescription>
-            Browse your organizations or create a new one
-          </CardDescription>
-          <div className='py-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
-                  <Link to='/create-organization'>
-                    Add organization
-                    <PlusIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Add an organization for managing products
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, pageSize: size },
-              };
-            }}
-          />
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+    <Card className='mx-auto w-full max-w-4xl'>
+      <CardHeader>
+        <CardTitle>Organizations</CardTitle>
+        <CardDescription>
+          Browse your organizations or create a new one
+        </CardDescription>
+        <div className='py-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link to='/create-organization'>
+                  Add organization
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add an organization for managing products
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, pageSize: size },
+            };
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

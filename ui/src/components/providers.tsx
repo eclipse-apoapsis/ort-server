@@ -24,6 +24,7 @@ import { AuthProvider } from 'react-oidc-context';
 import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { queryClient } from '@/lib/query-client';
 
@@ -36,7 +37,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
       <Toaster

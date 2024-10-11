@@ -56,7 +56,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
@@ -103,21 +102,19 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
 
   return (
     <div className='flex justify-end gap-1'>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to='/organizations/$orgId/secrets/$secretName/edit'
-              params={{ orgId: params.orgId, secretName: row.original.name }}
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
-            >
-              <span className='sr-only'>Edit</span>
-              <EditIcon size={16} />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>Edit this secret</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to='/organizations/$orgId/secrets/$secretName/edit'
+            params={{ orgId: params.orgId, secretName: row.original.name }}
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+          >
+            <span className='sr-only'>Edit</span>
+            <EditIcon size={16} />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>Edit this secret</TooltipContent>
+      </Tooltip>
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
@@ -206,51 +203,49 @@ const OrganizationSecrets = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle>Secrets</CardTitle>
-          <CardDescription>
-            Manage secrets for {organization.name}
-          </CardDescription>
-          <div className='py-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
-                  <Link
-                    to='/organizations/$orgId/secrets/create-secret'
-                    params={{ orgId: params.orgId }}
-                  >
-                    New secret
-                    <PlusIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Create a new secret for this organization
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, pageSize: size },
-              };
-            }}
-          />
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+    <Card>
+      <CardHeader>
+        <CardTitle>Secrets</CardTitle>
+        <CardDescription>
+          Manage secrets for {organization.name}
+        </CardDescription>
+        <div className='py-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link
+                  to='/organizations/$orgId/secrets/create-secret'
+                  params={{ orgId: params.orgId }}
+                >
+                  New secret
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Create a new secret for this organization
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, pageSize: size },
+            };
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 
