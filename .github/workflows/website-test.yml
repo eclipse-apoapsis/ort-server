@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
 
     - name: Install pnpm
       uses: pnpm/action-setup@v4
@@ -20,7 +20,7 @@ jobs:
         version: 9
 
     - name: Install Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
       with:
         node-version: 20
         cache: pnpm
