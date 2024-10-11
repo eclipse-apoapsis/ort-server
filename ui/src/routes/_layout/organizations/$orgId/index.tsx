@@ -23,12 +23,13 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, PlusIcon } from 'lucide-react';
+import { EditIcon, Loader2, PlusIcon } from 'lucide-react';
 
 import {
   useOrganizationsServiceDeleteOrganizationById,
   useOrganizationsServiceGetOrganizationById,
   useProductsServiceGetOrganizationProducts,
+  useRepositoriesServiceGetRepositoriesByProductId,
 } from '@/api/queries';
 import {
   prefetchUseOrganizationsServiceGetOrganizationById,
@@ -54,6 +55,9 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
+import { LastJobStatus } from './products/$productId/-components/last-job-status';
+import { LastRunDate } from './products/$productId/-components/last-run-date';
+import { LastRunStatus } from './products/$productId/-components/last-run-status';
 
 const defaultPageSize = 10;
 
@@ -78,6 +82,82 @@ const columns: ColumnDef<Product>[] = [
         </div>
       </>
     ),
+  },
+  {
+    accessorKey: 'runStatus',
+    header: () => <div>Last Run Status</div>,
+    cell: function CellComponent({ row }) {
+      const { data, isPending, isError } =
+        useRepositoriesServiceGetRepositoriesByProductId({
+          productId: row.original.id,
+          limit: 1,
+        });
+
+      if (isPending)
+        return (
+          <>
+            <span className='sr-only'>Loading...</span>
+            <Loader2 size={16} className='mx-3 animate-spin' />
+          </>
+        );
+
+      if (isError) return <span>Error loading data.</span>;
+
+      if (data.pagination.totalCount === 1)
+        return <LastRunStatus repoId={data.data[0].id} />;
+      else
+        return <span>Contains {data.pagination.totalCount} repositories</span>;
+    },
+  },
+  {
+    accessorKey: 'lastRunDate',
+    header: () => <div>Last Run Date</div>,
+    cell: function CellComponent({ row }) {
+      const { data, isPending, isError } =
+        useRepositoriesServiceGetRepositoriesByProductId({
+          productId: row.original.id,
+          limit: 1,
+        });
+
+      if (isPending)
+        return (
+          <>
+            <span className='sr-only'>Loading...</span>
+            <Loader2 size={16} className='mx-3 animate-spin' />
+          </>
+        );
+
+      if (isError) return <span>Error loading data.</span>;
+
+      if (data.pagination.totalCount === 1)
+        return <LastRunDate repoId={data.data[0].id} />;
+      else return null;
+    },
+  },
+  {
+    accessorKey: 'jobStatus',
+    header: () => <div>Last Job Status</div>,
+    cell: function CellComponent({ row }) {
+      const { data, isPending, isError } =
+        useRepositoriesServiceGetRepositoriesByProductId({
+          productId: row.original.id,
+          limit: 1,
+        });
+
+      if (isPending)
+        return (
+          <>
+            <span className='sr-only'>Loading...</span>
+            <Loader2 size={16} className='mx-3 animate-spin' />
+          </>
+        );
+
+      if (isError) return <span>Error loading data.</span>;
+
+      if (data.pagination.totalCount === 1)
+        return <LastJobStatus repoId={data.data[0].id} />;
+      else return null;
+    },
   },
 ];
 
