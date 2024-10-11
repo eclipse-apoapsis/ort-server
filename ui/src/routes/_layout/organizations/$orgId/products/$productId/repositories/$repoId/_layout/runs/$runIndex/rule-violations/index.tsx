@@ -34,7 +34,7 @@ import {
   useRepositoriesServiceGetOrtRunByIndexSuspense,
   useRuleViolationsServiceGetRuleViolationsByRunIdSuspense,
 } from '@/api/queries/suspense';
-import { RuleViolationWithIdentifier } from '@/api/requests';
+import { RuleViolation } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Badge } from '@/components/ui/badge';
@@ -66,23 +66,26 @@ import { paginationSchema, tableGroupingSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columns: ColumnDef<RuleViolationWithIdentifier>[] = [
+const columns: ColumnDef<RuleViolation>[] = [
   {
-    accessorFn: ({ ruleViolation }) => ruleViolation.severity,
+    accessorFn: (ruleViolation) => ruleViolation.severity,
     header: 'Severity',
     cell: ({ row }) => {
       return (
         <Badge
-          className={`${getRuleViolationSeverityBackgroundColor(row.original.ruleViolation.severity)}`}
+          className={`${getRuleViolationSeverityBackgroundColor(row.original.severity)}`}
         >
-          {row.original.ruleViolation.severity}
+          {row.original.severity}
         </Badge>
       );
     },
   },
   {
-    accessorFn: ({ identifier: { name, namespace, type, version } }) => {
-      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+    accessorFn: (ruleViolation) => {
+      return `${ruleViolation.packageId?.type ? ruleViolation.packageId?.type.concat(':') : ''}
+        ${ruleViolation.packageId?.namespace ? ruleViolation.packageId?.namespace.concat('/') : ''}
+        ${ruleViolation.packageId?.name ? ruleViolation.packageId?.name : ''}
+        ${ruleViolation.packageId?.version ? '@'.concat(ruleViolation.packageId?.version) : ''}`;
     },
     header: 'Package',
     cell: ({ getValue }) => {
@@ -92,11 +95,11 @@ const columns: ColumnDef<RuleViolationWithIdentifier>[] = [
     },
   },
   {
-    accessorFn: ({ ruleViolation }) => ruleViolation.rule,
+    accessorFn: (ruleViolation) => ruleViolation.rule,
     header: 'Rule',
     cell: ({ row }) => (
       <Badge className='whitespace-nowrap bg-gray-400'>
-        {row.original.ruleViolation.rule}
+        {row.original.rule}
       </Badge>
     ),
   },
@@ -126,24 +129,24 @@ const columns: ColumnDef<RuleViolationWithIdentifier>[] = [
 // TODO: This is a temporary solution, which will be replaced with
 // unique subpages to show the rule violation details.
 type Props = {
-  details: RuleViolationWithIdentifier;
+  details: RuleViolation;
 };
 const RuleViolationDetailsComponent = ({ details }: Props) => {
   return (
     <DialogContent className={'max-h-96 overflow-y-scroll lg:max-w-screen-lg'}>
       <DialogHeader>
-        <DialogTitle>{details.ruleViolation.rule}</DialogTitle>
-        <DialogDescription>{details?.ruleViolation.message}</DialogDescription>
+        <DialogTitle>{details.rule}</DialogTitle>
+        <DialogDescription>{details?.message}</DialogDescription>
       </DialogHeader>
       <div className='grid grid-cols-8 gap-2 text-sm'>
         <div className='col-span-2 font-semibold'>License:</div>
-        <div className='col-span-6'>{details.ruleViolation.license}</div>
+        <div className='col-span-6'>{details.license}</div>
         <div className='col-span-2 font-semibold'>License source:</div>
-        <div className='col-span-6'>{details.ruleViolation.licenseSource}</div>
+        <div className='col-span-6'>{details.licenseSource}</div>
         <div className='col-span-2 font-semibold'>How to fix:</div>
       </div>
       <div className='flex whitespace-pre-line break-all text-sm'>
-        {details.ruleViolation.howToFix}
+        {details.howToFix}
       </div>
       <DialogFooter>
         <DialogClose asChild>

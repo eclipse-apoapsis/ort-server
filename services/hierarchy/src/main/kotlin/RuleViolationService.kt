@@ -25,10 +25,9 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsRul
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
-import org.eclipse.apoapsis.ortserver.model.RuleViolationWithIdentifier
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
@@ -42,7 +41,7 @@ class RuleViolationService(private val db: Database) {
     suspend fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<RuleViolationWithIdentifier> = db.dbQuery {
+    ): ListQueryResult<OrtRuleViolation> = db.dbQuery {
         val ruleViolationQueryResult =
             RuleViolationDao.listCustomQuery(parameters, ResultRow::toRuleViolation) {
                 val join = RuleViolationsTable innerJoin
@@ -60,9 +59,6 @@ class RuleViolationService(private val db: Database) {
     }
 }
 
-private fun ResultRow.toRuleViolation(): RuleViolationWithIdentifier {
-    return RuleViolationWithIdentifier(
-        RuleViolationDao.wrapRow(this).mapToModel(),
-        IdentifierDao.wrapRow(this).mapToModel()
-    )
+private fun ResultRow.toRuleViolation(): OrtRuleViolation {
+    return RuleViolationDao.wrapRow(this).mapToModel()
 }
