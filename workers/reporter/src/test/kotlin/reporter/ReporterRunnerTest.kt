@@ -34,6 +34,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -128,7 +129,7 @@ class ReporterRunnerTest : WordSpec({
     "run" should {
         "return a result with report format and report names" {
             val storage = mockk<ReportStorage>()
-            every { storage.storeReportFiles(any(), any()) } just runs
+            coEvery { storage.storeReportFiles(any(), any()) } just runs
             val (contextFactory, _) = mockContext()
             val runner = ReporterRunner(storage, contextFactory, OptionsTransformerFactory(), configManager, mockk())
 
@@ -144,7 +145,7 @@ class ReporterRunnerTest : WordSpec({
             result.issues should beEmpty()
 
             val slotReports = slot<Map<String, File>>()
-            verify {
+            coVerify {
                 storage.storeReportFiles(RUN_ID, capture(slotReports))
             }
 

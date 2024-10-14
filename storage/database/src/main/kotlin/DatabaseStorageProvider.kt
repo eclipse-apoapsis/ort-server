@@ -30,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by a database table using PostgreSQL's large
@@ -43,15 +43,15 @@ class DatabaseStorageProvider(
     /** The maximum size of a storage entry that can be loaded into memory. */
     private val inMemoryLimit: Int
 ) : StorageProvider {
-    override fun read(key: Key): StorageEntry = transaction {
+    override suspend fun read(key: Key): StorageEntry = newSuspendedTransaction {
         val entry = findByKey(key).single()
 
         val inputStream = readLargeObject(entry.data, entry.size, inMemoryLimit)
         StorageEntry.create(inputStream, entry.contentType, entry.size)
     }
 
-    override fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
-        transaction {
+    override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
+        newSuspendedTransaction {
             // In case of an override, delete the key first. This may not be the cleanest solution (it has the
             // side effect that the createdAt date is changed), but it is very easy to implement.
             deleteKey(key)
@@ -67,11 +67,11 @@ class DatabaseStorageProvider(
         }
     }
 
-    override fun contains(key: Key): Boolean = transaction {
+    override suspend fun contains(key: Key): Boolean = newSuspendedTransaction {
         !findByKey(key).empty()
     }
 
-    override fun delete(key: Key): Boolean = transaction {
+    override suspend fun delete(key: Key): Boolean = newSuspendedTransaction {
         deleteKey(key)
     }
 
