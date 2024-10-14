@@ -49,10 +49,11 @@ docker run --rm -p 8082:80 ort-server-ui
 
 The Docker image can be configured by the following environment variables:
 
-| Variable       | Default                               | Description                          |
-| -------------- | ------------------------------------- | ------------------------------------ |
-| `UI_API_URL`   | `http://localhost:8080`               | The URL of the ORT Server API.       |
-| `UI_URL`       | `http://localhost:8082`               | The URL of the UI.                   |
-| `UI_BASEPATH`  | `/`                                   | The base path of the UI.             |
-| `UI_AUTHORITY` | `http://localhost:8081/realms/master` | The URL of the Keycloak realm.       |
-| `UI_CLIENT_ID` | `ort-server-ui`                       | The client ID of the UI in Keycloak. |
+| Variable              | Default                               | Description                           |
+| --------------------- | ------------------------------------- | ------------------------------------- |
+| `UI_API_URL`          | `http://localhost:8080`               | The URL of the ORT Server API.        |
+| `UI_URL`              | `http://localhost:8082`               | The URL of the UI.                    |
+| `UI_BASEPATH`         | `/`                                   | The base path of the UI.              |
+| `UI_AUTHORITY`        | `http://localhost:8081/realms/master` | The URL of the Keycloak realm.        |
+| `UI_CLIENT_ID`        | `ort-server-ui`                       | The client ID of the UI in Keycloak.  |
+| `UI_CLIENT_ID_SERVER` | `ort-server`                          | The client ID of the API in Keycloak. |
