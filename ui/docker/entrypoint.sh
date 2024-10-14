@@ -22,6 +22,7 @@
 : "${UI_AUTHORITY:=http://localhost:8081/realms/master}"
 : "${UI_BASEPATH:=/}"
 : "${UI_CLIENT_ID:=ort-server-ui}"
+: "${UI_CLIENT_ID_SERVER:=ort-server}"
 : "${UI_URL:=http://localhost:8082/}"
 
 # Replace placeholders with actual environment variables in JavaScript files.
@@ -29,6 +30,7 @@ find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_API_URL_PLACEH
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_AUTHORITY_PLACEHOLDER#$UI_AUTHORITY#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_BASEPATH_PLACEHOLDER#$UI_BASEPATH#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_CLIENT_ID_PLACEHOLDER#$UI_CLIENT_ID#g" {} +
+find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_CLIENT_ID_SERVER_PLACEHOLDER#$UI_CLIENT_ID_SERVER#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_URL_PLACEHOLDER#$UI_URL#g" {} +
 
 # Replace placeholders with actual environment variables in the nginx configuration.
