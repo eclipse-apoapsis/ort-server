@@ -26,12 +26,6 @@ data class User(
     /** The username of the user. */
     val username: String,
 
-    /** The password of the user. */
-    val password: String?,
-
-    /** Whether the password is temporary. */
-    val temporary: Boolean,
-
     /** The first name of the user. */
     val firstName: String? = null,
 
@@ -40,7 +34,4 @@ data class User(
 
     /** The mail address of the user. */
     val email: String? = null,
-
-    /** Specifies, whether the user can log in or not. */
-    val enabled: Boolean = true
 )

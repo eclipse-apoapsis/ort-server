@@ -35,4 +35,27 @@ class UserService(
     suspend fun createUser(username: String, password: String?, temporary: Boolean) = run {
         keycloakClient.createUser(username = UserName(username), password = password, temporary = temporary)
     }
+
+    /**
+     * Get all current users of the server.
+     */
+    suspend fun getUsers(): Set<User> = run {
+        keycloakClient.getUsers().map {
+            User(
+                username = it.username.value,
+                firstName = it.firstName,
+                lastName = it.lastName,
+                email = it.email
+            )
+        }.toSet()
+    }
+
+    /**
+     * Delete a user from the server.
+     */
+    suspend fun deleteUser(username: String) = run {
+        // Get the user ID by username
+        val user = keycloakClient.getUser(username = UserName(username))
+        keycloakClient.deleteUser(id = user.id)
+    }
 }
