@@ -23,6 +23,7 @@ import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.KnownProvenance
@@ -58,15 +59,16 @@ class OrtServerFileListStorage(
             }
     }
 
-    override fun getData(provenance: KnownProvenance): InputStream? {
+    override fun getData(provenance: KnownProvenance): InputStream? = runBlocking {
         val key = generateKey(provenance)
-        return if (storage.containsKey(key)) storage.read(key).data else null
+        if (storage.containsKey(key)) storage.read(key).data else null
     }
 
-    override fun hasData(provenance: KnownProvenance): Boolean =
+    override fun hasData(provenance: KnownProvenance): Boolean = runBlocking {
         storage.containsKey(generateKey(provenance))
+    }
 
-    override fun putData(provenance: KnownProvenance, data: InputStream, size: Long) {
+    override fun putData(provenance: KnownProvenance, data: InputStream, size: Long) = runBlocking {
         storage.write(generateKey(provenance), data, size, CONTENT_TYPE)
     }
 }

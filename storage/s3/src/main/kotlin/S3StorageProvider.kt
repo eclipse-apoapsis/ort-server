@@ -36,7 +36,6 @@ import kotlin.io.path.outputStream
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by AWS S3 storage.
@@ -51,33 +50,31 @@ class S3StorageProvider(
     /**
      * Retrieve the data associated with the given [key] from the S3 bucket.
      */
-    override fun read(key: Key): StorageEntry = runBlocking {
-        s3Client.getObject(
-            GetObjectRequest {
-                bucket = bucketName
-                this.key = key.key
-            }
-        ) { response ->
-            val data = checkNotNull(response.body) { "No data found for ${key.key}." }
-            val contentType = response.contentType
-            val tempFile = createTempFile()
-
-            runCatching {
-                data.writeToFile(tempFile)
-                StorageEntry.create(tempFile.toFile(), contentType)
-            }.onFailure { tempFile.deleteExisting() }.getOrThrow()
+    override suspend fun read(key: Key): StorageEntry = s3Client.getObject(
+        GetObjectRequest {
+            bucket = bucketName
+            this.key = key.key
         }
+    ) { response ->
+        val data = checkNotNull(response.body) { "No data found for ${key.key}." }
+        val contentType = response.contentType
+        val tempFile = createTempFile()
+
+        runCatching {
+            data.writeToFile(tempFile)
+            StorageEntry.create(tempFile.toFile(), contentType)
+        }.onFailure { tempFile.deleteExisting() }.getOrThrow()
     }
 
     /**
      * Write the given [data] to the S3 bucket with the provided [key].
      */
-    override fun write(key: Key, data: InputStream, length: Long, contentType: String?): Unit = runBlocking {
+    override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
         val tempFile = createTempFile()
 
         try {
             tempFile.outputStream().use { outputStream ->
-                    data.copyTo(outputStream)
+                data.copyTo(outputStream)
             }
 
             s3Client.putObject(
@@ -96,30 +93,26 @@ class S3StorageProvider(
     /**
      * Check if an object with the given [key] exists in the S3 bucket.
      */
-    override fun contains(key: Key): Boolean = runBlocking {
-        runCatching {
-            s3Client.getObject(
-                GetObjectRequest {
-                    this.bucket = bucketName
-                    this.key = key.key
-                }
-            ) {}
-        }.isSuccess
-    }
+    override suspend fun contains(key: Key): Boolean = runCatching {
+        s3Client.getObject(
+            GetObjectRequest {
+                this.bucket = bucketName
+                this.key = key.key
+            }
+        ) {}
+    }.isSuccess
 
     /**
      * Delete the object for the provided key in the S3 bucket.
      */
-    override fun delete(key: Key): Boolean = runBlocking {
-        if (contains(key)) {
-            runCatching {
-                s3Client.deleteObject {
-                    this.bucket = bucketName
-                    this.key = key.key
-                }
-            }.isSuccess
-        } else {
-            false
-        }
+    override suspend fun delete(key: Key): Boolean = if (contains(key)) {
+        runCatching {
+            s3Client.deleteObject {
+                this.bucket = bucketName
+                this.key = key.key
+            }
+        }.isSuccess
+    } else {
+        false
     }
 }

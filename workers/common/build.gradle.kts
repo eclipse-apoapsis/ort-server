@@ -41,6 +41,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
 
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
