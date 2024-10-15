@@ -101,9 +101,11 @@ export const PackagesStatisticsCard = ({
       )}
       value={status ? packagesTotal : 'N/A'}
       description={
-        ecoSystems.length > 1
-          ? `from ${ecoSystems.length} ecosystems (${ecoSystems.join(`,`)})`
-          : `from 1 ecosystem (${ecoSystems})`
+        ecoSystems.length
+          ? ecoSystems.length > 1
+            ? `from ${ecoSystems.length} ecosystems (${ecoSystems.join(`,`)})`
+            : `from 1 ecosystem (${ecoSystems})`
+          : ''
       }
       className='h-full hover:bg-muted/50'
     />
