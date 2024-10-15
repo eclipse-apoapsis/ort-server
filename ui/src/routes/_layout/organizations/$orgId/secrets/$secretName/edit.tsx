@@ -81,7 +81,7 @@ const EditOrganizationSecretPage = () => {
     values: {
       name: secret.name,
       value: '',
-      description: secret.description,
+      description: secret.description ?? undefined,
     },
   });
 
