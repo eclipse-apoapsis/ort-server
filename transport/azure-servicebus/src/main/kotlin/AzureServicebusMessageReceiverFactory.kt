@@ -38,7 +38,10 @@ import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.lang.Exception
+import java.lang.System.exit
 import kotlin.coroutines.coroutineContext
+import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger(AzureServicebusMessageReceiverFactory::class.java)
 
@@ -55,6 +58,8 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
     ) {
         val serializer = JsonSerializer.forClass(from.messageClass)
 
+        val config = AzureServicebusConfig.createConfig(configManager)
+
         fun processMessage(context: ServiceBusReceivedMessageContext) {
             val message = AzureServicebusMessageConverter.toTransportMessage(context.message, serializer)
 
@@ -69,9 +74,27 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
             }
 
             runBlocking {
-                handler(message)
+                try {
+                    handler(message)
+                } catch (e: Exception) {
+                    logger.error("Message processing caused an exception.", e)
+                    if (config.singleMessage) {
+                        exitProcess(1)
+                        // TODO: It seems that above call causes the message to not be completed.
+                        //       Maybe change the receive mode?
+                    }
+                } finally {
+                    if (config.singleMessage) {
+                        //context.complete()
+                        exitProcess(0)
+                        // TODO: It seems that above call causes the message to not be completed.
+                    }
+                }
 
-                coroutineContext.cancel()
+//                if (config.singleMessage) {
+//                    client.stop()
+//                    coroutineContext.cancel() // TODO: This does not work as expected, the client is not stopped.
+//                }
             }
         }
 
@@ -80,14 +103,15 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
             logger.warn("Error processing message: ${exception.message}", exception)
         }
 
-        val config = AzureServicebusConfig.createConfig(configManager)
         val credential = DefaultAzureCredentialBuilder().build()
 
         val client = ServiceBusClientBuilder()
             .fullyQualifiedNamespace("${config.namespace}.servicebus.windows.net")
             .credential(credential)
             .processor()
+            .disableAutoComplete()
             .queueName(config.queueName)
+            .receiveMode(ServiceBusReceiveMode.RECEIVE_AND_DELETE) // TODO: maybe use this?
             .processMessage(::processMessage)
             .processError(::processError)
             .buildProcessorClient()
